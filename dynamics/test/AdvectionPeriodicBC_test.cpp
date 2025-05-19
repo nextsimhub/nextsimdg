@@ -169,8 +169,13 @@ public:
 
         double initialmass = Nextsim::Tools::MeanValue(smesh, phi);
         // velocity field
-        Nextsim::Interpolations::Function2DG(smesh, dgtransport.GetVx(), VX);
-        Nextsim::Interpolations::Function2DG(smesh, dgtransport.GetVy(), VY);
+        Nextsim::DGVector<DG> vx;
+        Nextsim::DGVector<DG> vy;
+        vx.resize_by_mesh(smesh);
+        vy.resize_by_mesh(smesh);
+        Nextsim::Interpolations::Function2DG(smesh, vx, VX);
+        Nextsim::Interpolations::Function2DG(smesh, vy, VY);
+        dgtransport.setVelocities(vx, vy);
 
         std::string resultsdir = "test2_" + std::to_string(DG) + "_" + std::to_string(smesh.nx);
 

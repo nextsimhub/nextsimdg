@@ -22,9 +22,6 @@ public:
 
     // ModelComponent functions
     std::string getName() const override { return "NoOutput"; }
-    // No configuration in getState
-    ModelState getState() const override { return ModelState(); }
-    ModelState getState(const OutputLevel&) const override { return getState(); }
 };
 
 } /* namespace Nextsim */

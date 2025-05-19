@@ -9,6 +9,7 @@
 #define IICETHERMODYNAMICS_HPP
 
 #include "include/ConfigurationHelp.hpp"
+#include "include/gridNames.hpp"
 #include "include/ModelArray.hpp"
 #include "include/ModelArrayRef.hpp"
 #include "include/ModelComponent.hpp"
@@ -27,12 +28,18 @@ public:
         deltaHi.resize();
         snowToIce.resize();
     }
-    ModelState getState() const override { return ModelState(); }
-    ModelState getState(const OutputLevel&) const override { return getState(); }
-    ModelState getStateRecursive(const OutputSpec& os) const override
+
+    ModelState getStateDiagnostic() const override
     {
-        return os ? getState() : ModelState();
+        ModelState state = { {
+            { "delta_H_ice", deltaHi },
+            { "snow_to_ice", snowToIce },
+        },
+                getConfiguration()
+        };
+        return state;
     }
+
     /*!
      * Updates the ice thermodynamic and thickness growth calculation for the timestep.
      *
@@ -64,9 +71,8 @@ protected:
         , tf(getStore())
         , snowfall(getStore())
         , sss(getStore())
+        , qswBase(getStore())
     {
-        registerModule();
-
         getStore().registerArray(Shared::DELTA_HICE, &deltaHi, RW);
         getStore().registerArray(Shared::T_ICE, &tice, RW);
     }
@@ -76,6 +82,7 @@ protected:
     ModelArrayRef<Shared::H_SNOW, RW> hsnow; // From Ice Growth
     ModelArrayRef<Shared::Q_IC, RW>
         qic; // From IceTemperature. Conductive heat flux to the ice surface.
+    ModelArrayRef<Shared::Q_SW_BASE, RW> qswBase; // Short-wave flux through the base of the ice
     ModelArrayRef<Shared::Q_IO, RW> qio; // From FluxCalculation
     ModelArrayRef<Shared::Q_IA, RO> qia; // From FluxCalculation
     ModelArrayRef<Shared::DQIA_DT, RO> dQia_dt; // From FluxCalculation

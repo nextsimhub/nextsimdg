@@ -1,7 +1,7 @@
 /*!
  * @file ThermoIce0.cpp
  *
- * @date 20 Nov 2024
+ * @date 07 Feb 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -49,13 +49,29 @@ void ThermoIce0::configure()
     NZLevels::set(nZLevels);
 }
 
-ModelState ThermoIce0::getStateRecursive(const OutputSpec& os) const
+ConfigMap ThermoIce0::getConfiguration() const
 {
-    ModelState state = { {},
-        {
-            { keyMap.at(KS_KEY), kappa_s },
-        } };
-    return os ? state : ModelState();
+    return { { keyMap.at(KS_KEY), kappa_s } };
+}
+
+ModelState ThermoIce0::getStateDiagnostic() const
+{
+    ModelState state = { {
+        { "snow_melt", snowMelt },
+        { "top_melt", topMelt },
+        { "bottom_melt", botMelt },
+        { "Q_ic", qic },
+    },
+            getConfiguration()
+    };
+
+    return state.merge(IIceThermodynamics::getStateDiagnostic());
+}
+
+ModelState ThermoIce0::getStatePrognostic() const
+{
+    ModelState state = IIceThermodynamics::getStatePrognostic();
+    return state.merge(getConfiguration());
 }
 
 ThermoIce0::HelpMap& ThermoIce0::getHelpText(HelpMap& map, bool getAll)
@@ -87,6 +103,7 @@ void ThermoIce0::calculateElement(size_t i, const TimestepTime& tst)
     if (hice[i] == 0. || cice[i] == 0.) {
         deltaHi[i] = 0.;
         snowToIce[i] = 0.;
+        tice.zIndexAndLayer(i, 0) = freezingPointIce;
 
         return;
     }

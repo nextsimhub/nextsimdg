@@ -22,9 +22,9 @@ void ConstantHealing::configure()
     tD *= 86400.;
 }
 
-ModelState ConstantHealing::getStateRecursive(const Nextsim::OutputSpec& os) const
+ConfigMap ConstantHealing::getConfiguration() const
 {
-    return { {}, { { keyMap.at(TD_KEY), tD } } };
+    return { { keyMap.at(TD_KEY), tD } };
 }
 
 ConstantHealing::HelpMap& ConstantHealing::getHelpText(HelpMap& map, bool getAll)

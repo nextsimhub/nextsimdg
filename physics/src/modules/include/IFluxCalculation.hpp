@@ -1,7 +1,7 @@
 /*!
  * @file IFluxCalculation.hpp
  *
- * @date 24 Sep 2024
+ * @date 11 Feb 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -23,18 +23,15 @@ public:
         , qia(getStore())
         , penSW(getStore())
         , dqia_dt(getStore())
+        , Q_sw_ow(getStore())
+        , Q_sw_base(getStore())
+        , tau_x_ow(getStore())
+        , tau_y_ow(getStore())
     {
     }
     virtual ~IFluxCalculation() = default;
 
     void setData(const ModelState::DataMap& ms) override { }
-
-    ModelState getState() const override { return ModelState(); }
-    ModelState getState(const OutputLevel&) const override { return getState(); }
-    ModelState getStateRecursive(const OutputSpec& os) const override
-    {
-        return os ? getState() : ModelState();
-    }
 
     std::string getName() const override { return "IFluxCalculation"; }
 
@@ -53,6 +50,10 @@ protected:
     ModelArrayRef<Shared::Q_IA, RW> qia;
     ModelArrayRef<Shared::Q_PEN_SW, RW> penSW;
     ModelArrayRef<Shared::DQIA_DT, RW> dqia_dt;
+    ModelArrayRef<Shared::Q_SW_OW, RW> Q_sw_ow;
+    ModelArrayRef<Shared::Q_SW_BASE, RW> Q_sw_base;
+    ModelArrayRef<Shared::OW_STRESS_X, RW> tau_x_ow;
+    ModelArrayRef<Shared::OW_STRESS_Y, RW> tau_y_ow;
 };
 }
 #endif /* IFLUXCALCULATION_HPP */

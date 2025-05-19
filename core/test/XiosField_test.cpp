@@ -1,10 +1,11 @@
 /*!
  * @file    XiosField_test.cpp
  * @author  Joe Wallwork <jw2423@cam.ac.uk>
- * @date    03 Dec 2024
- * @brief   Tests for XIOS axes
+ * @author  Adeleke Bankole <ab3191@cam.ac.uk>
+ * @date    07 May 2025
+ * @brief   Tests for XIOS fields
  * @details
- * This test is designed to test axis functionality of the C++ interface
+ * This test is designed to test field functionality of the C++ interface
  * for XIOS.
  *
  */
@@ -12,6 +13,7 @@
 #undef INFO
 
 #include "StructureModule/include/ParametricGrid.hpp"
+#include "include/Finalizer.hpp"
 #include "include/Xios.hpp"
 
 namespace Nextsim {
@@ -20,64 +22,80 @@ namespace Nextsim {
  * TestXiosField
  *
  * This function tests the field functionality of the C++ interface for XIOS. It
- * needs to be run with 2 ranks i.e.,
+ * needs to be run with 3 ranks i.e.,
  *
- * `mpirun -n 2 ./testXiosField_MPI2`
+ * `mpirun -n 3 ./testXiosField_MPI3`
  *
  */
-MPI_TEST_CASE("TestXiosField", 2)
+MPI_TEST_CASE("TestXiosField", 3)
 {
+    // Enable XIOS in the 'config' and provide parameters to configure it
     enableXios();
+    std::stringstream config;
+    config << "[XiosInput]" << std::endl;
+    config << "field_names = field_C,field_D" << std::endl;
+    config << "[XiosOutput]" << std::endl;
+    config << "field_names = field_A,field_C" << std::endl;
+    std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
+    Configurator::addStream(std::move(pcstream));
 
-    // Initialize an Xios instance called xios_handler
-    Xios xios_handler;
-    REQUIRE(xios_handler.isInitialized());
-    const size_t size = xios_handler.getClientMPISize();
-    REQUIRE(size == 2);
-    const size_t rank = xios_handler.getClientMPIRank();
+    // Get the Xios singleton instance and check it's initialized
+    Xios& xiosHandler = Xios::getInstance();
+    REQUIRE(xiosHandler.isInitialized());
+    const size_t size = xiosHandler.getClientMPISize();
+    REQUIRE(size == 3);
+    const size_t rank = xiosHandler.getClientMPIRank();
 
     // Create an axis with two points
-    xios_handler.createAxis("axis_A");
-    xios_handler.setAxisValues("axis_A", { 0.0, 1.0 });
+    xiosHandler.createAxis("axis_A");
+    xiosHandler.setAxisValues("axis_A", { 0.0, 1.0 });
 
     // Create a 1D grid comprised of the single axis
-    xios_handler.createGrid("grid_1D");
-    xios_handler.gridAddAxis("grid_1D", "axis_A");
+    xiosHandler.createGrid("grid_1D");
+    xiosHandler.gridAddAxis("grid_1D", "axis_A");
 
     // --- Tests for field API
     const std::string fieldId = "field_A";
-    REQUIRE_THROWS_WITH(xios_handler.getFieldName(fieldId), "Xios: Undefined field 'field_A'");
-    xios_handler.createField(fieldId);
-    REQUIRE_THROWS_WITH(xios_handler.createField(fieldId), "Xios: Field 'field_A' already exists");
+    REQUIRE_THROWS_WITH(xiosHandler.getFieldName(fieldId), "Xios: Undefined field 'field_A'");
+    xiosHandler.createField(fieldId);
+    REQUIRE_THROWS_WITH(xiosHandler.createField(fieldId), "Xios: Field 'field_A' already exists");
+    // Disallow creation of fields that aren't in either config section
+    REQUIRE_THROWS_WITH(xiosHandler.createField("field_B"),
+        "Xios: Field 'field_B' cannot be found in the XiosInput or XiosOutput config sections");
+    // Disallow fields that're in both config sections (for now)
+    REQUIRE_THROWS_WITH(xiosHandler.createField("field_C"),
+        "Xios: Field 'field_C' found in both the XiosInput and XiosOutput config sections");
     // Field name
     REQUIRE_THROWS_WITH(
-        xios_handler.getFieldName(fieldId), "Xios: Undefined name for field 'field_A'");
+        xiosHandler.getFieldName(fieldId), "Xios: Undefined name for field 'field_A'");
     const std::string fieldName = "test_field";
-    xios_handler.setFieldName(fieldId, fieldName);
-    REQUIRE(xios_handler.getFieldName(fieldId) == fieldName);
+    xiosHandler.setFieldName(fieldId, fieldName);
+    REQUIRE(xiosHandler.getFieldName(fieldId) == fieldName);
     // Operation
     REQUIRE_THROWS_WITH(
-        xios_handler.getFieldOperation(fieldId), "Xios: Undefined operation for field 'field_A'");
+        xiosHandler.getFieldOperation(fieldId), "Xios: Undefined operation for field 'field_A'");
     const std::string operation = "instant";
-    xios_handler.setFieldOperation(fieldId, operation);
-    REQUIRE(xios_handler.getFieldOperation(fieldId) == operation);
+    xiosHandler.setFieldOperation(fieldId, operation);
+    REQUIRE(xiosHandler.getFieldOperation(fieldId) == operation);
     // Grid reference
-    REQUIRE_THROWS_WITH(xios_handler.getFieldGridRef(fieldId),
-        "Xios: Undefined grid reference for field 'field_A'");
+    REQUIRE_THROWS_WITH(
+        xiosHandler.getFieldGridRef(fieldId), "Xios: Undefined grid reference for field 'field_A'");
     const std::string gridRef = "grid_1D";
-    xios_handler.setFieldGridRef(fieldId, gridRef);
-    REQUIRE(xios_handler.getFieldGridRef(fieldId) == gridRef);
+    xiosHandler.setFieldGridRef(fieldId, gridRef);
+    REQUIRE(xiosHandler.getFieldGridRef(fieldId) == gridRef);
     // Read access
-    const bool readAccess(true);
-    xios_handler.setFieldReadAccess(fieldId, readAccess);
-    REQUIRE(xios_handler.getFieldReadAccess(fieldId));
+    REQUIRE(!xiosHandler.getFieldReadAccess(fieldId));
+    xiosHandler.createField("field_D");
+    xiosHandler.setFieldGridRef("field_D", gridRef);
+    REQUIRE(xiosHandler.getFieldReadAccess("field_D"));
     // Frequency offset
-    Duration freqOffset = xios_handler.getCalendarTimestep();
-    xios_handler.setFieldFreqOffset(fieldId, freqOffset);
+    Duration freqOffset = xiosHandler.getCalendarTimestep();
+    xiosHandler.setFieldFreqOffset(fieldId, freqOffset);
     // TODO: Overload == for Duration
-    REQUIRE(xios_handler.getFieldFreqOffset(fieldId).seconds() == freqOffset.seconds());
+    REQUIRE(xiosHandler.getFieldFreqOffset(fieldId).seconds() == freqOffset.seconds());
 
-    xios_handler.close_context_definition();
-    xios_handler.context_finalize();
+    xiosHandler.close_context_definition();
+    xiosHandler.context_finalize();
+    Finalizer::finalize();
 }
 }

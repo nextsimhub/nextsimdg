@@ -72,7 +72,7 @@ TEST_CASE("Melting conditions")
             tice0[0] = -1;
             tice0[1] = -1;
             tice0[2] = -1;
-            tice.data().setData(tice0);
+            tice = tice0;
 
             hice = hice0;
             cice = cice0;
@@ -89,9 +89,6 @@ TEST_CASE("Melting conditions")
         HField hice;
         HField cice;
         HField hsnow;
-
-        ModelState getState() const override { return ModelState(); }
-        ModelState getState(const OutputLevel&) const override { return getState(); }
     } initCond;
     initCond.setData(ModelState().data);
 
@@ -174,7 +171,7 @@ TEST_CASE("Freezing conditions")
             tice0[0] = -9.;
             tice0[1] = -9.;
             tice0[2] = -9.;
-            tice.data().setData(tice0);
+            tice = tice0;
 
             hice = hice0;
             cice = cice0;
@@ -192,9 +189,6 @@ TEST_CASE("Freezing conditions")
         HField hice;
         HField cice;
         HField hsnow;
-
-        ModelState getState() const override { return ModelState(); }
-        ModelState getState(const OutputLevel&) const override { return getState(); }
     } atmoState;
     atmoState.setData(ModelState().data);
 
@@ -277,7 +271,7 @@ TEST_CASE("No ice do nothing")
             tice0[0] = 0;
             tice0[1] = 0;
             tice0[2] = 0.;
-            tice.data().setData(tice0);
+            tice = tice0;
 
             hice = hice0;
             cice = cice0;
@@ -295,9 +289,6 @@ TEST_CASE("No ice do nothing")
         HField hice;
         HField cice;
         HField hsnow;
-
-        ModelState getState() const override { return ModelState(); }
-        ModelState getState(const OutputLevel&) const override { return getState(); }
     } atmoState;
     atmoState.setData(ModelState().data);
 

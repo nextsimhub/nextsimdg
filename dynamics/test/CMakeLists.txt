@@ -21,6 +21,19 @@ if(NOT ENABLE_MPI)
     target_link_libraries(testDGModelArray LINK_PUBLIC doctest::doctest Eigen3::Eigen)
 
     add_executable(
+        testDGVectorHolder
+        "dgVectorHolder_test.cpp"
+        "${CoreDir}/ModelArray.cpp"
+        "${CoreDir}/ModelArraySlice.cpp"
+        "${CoreDir}/${ModelArrayStructure}/ModelArrayDetails.cpp"
+    )
+    target_include_directories(
+        testDGVectorHolder
+        PRIVATE "${CoreDir}" "${SRC_DIR}" "${CoreDir}/${ModelArrayStructure}"
+    )
+    target_link_libraries(testDGVectorHolder LINK_PUBLIC doctest::doctest Eigen3::Eigen)
+
+    add_executable(
         testCGModelArray
         "CGModelArray_test.cpp"
         "${CoreDir}/ModelArray.cpp"

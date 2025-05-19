@@ -152,6 +152,32 @@ public:
     }
 
     /*!
+     * @brief Assigns to a slice from a instance of ModelArray::DataType.
+     *
+     * @details Fills the slice with data from an instance of ModelArray::DataType. The data source
+     * should be sufficiently sized that the data is copied without being indexed out-of-bounds.
+     * The number of components of the slice ModelArray and the size of the second dimension of the
+     * source array should match. The spatial dimensions of the slice will copy from the first
+     * dimension of the source array, treating it as a flattened one-dimensional version of the
+     * slice, with the first spatial dimension of the slice varying fastest.
+     *
+     * @params dataBuffer The source of the data to be copied into the slice.
+     */
+    ModelArraySlice& operator=(const ModelArray::DataType& dataBuffer);
+
+    /*!
+     * @brief Returns the contents of this slice as an instance of ModelArray::DataType.
+     *
+     * @details Creates an instance of ModelArray::DataType with the contents of the slice,
+     * including all components. Current ModelArray::DataType is Eigen::Array. In this case all
+     * spatial dimensions are flattened to one dimension, as they are internally in ModelArray,
+     * and occupy the first dimension of the Eigen::Array. Any components of the sliced array take
+     * up the second dimension. That is, a 4 x 5 slice with 3 components will create a (20, 3)
+     * Eigen::Array.
+     */
+    operator ModelArray::DataType();
+
+    /*!
      * Copies the contents of a slice to a ModelArray with an equal number of elements.
      * @param target The ModelArray object to copy the contents of the slice to.
      * @return A reference to the updated ModelArray object.

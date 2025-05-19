@@ -18,13 +18,7 @@ public:
     virtual ~IDamageHealing() = default;
 
     std::string getName() const override { return "DamageHealing"; }
-    void setData(const ModelState::DataMap& ms) override { damage.data().resize(); }
-    ModelState getState() const override { return ModelState(); }
-    ModelState getState(const OutputLevel&) const override { return getState(); }
-    ModelState getStateRecursive(const OutputSpec& os) const override
-    {
-        return os ? getState() : ModelState();
-    }
+    void setData(const ModelState::DataMap& ms) override { }
     /*!
      * Updates the ice damage based on lateral ice growth and healing
      *

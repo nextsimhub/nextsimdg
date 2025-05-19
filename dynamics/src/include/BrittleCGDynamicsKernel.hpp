@@ -4,6 +4,7 @@
  * @date 28 Apr 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Einar Ólason <einar.olason@nersc.no>
+ * @author Robert Jendersie <robert.jendersie@ovgu.de>
  */
 
 #ifndef BRITTLECGDYNAMICSKERNEL_HPP
@@ -53,15 +54,16 @@ protected:
     using CGDynamicsKernel<DGadvection>::dStressX;
     using CGDynamicsKernel<DGadvection>::dStressY;
     using CGDynamicsKernel<DGadvection>::pmap;
-
-    double cosOceanAngle, sinOceanAngle;
+    using CGDynamicsKernel<DGadvection>::updateIceOceanStress;
+    using CGDynamicsKernel<DGadvection>::cosOceanAngle;
+    using CGDynamicsKernel<DGadvection>::sinOceanAngle;
 
 public:
-    BrittleCGDynamicsKernel(StressUpdateStep<DGadvection, DGstressComp>& stressStepIn,
-        const DynamicsParameters& paramsIn)
-        : CGDynamicsKernel<DGadvection>()
+    BrittleCGDynamicsKernel(
+        StressUpdateStep<DGadvection, DGstressComp>& stressStepIn, const BBMParameters& paramsIn)
+        : CGDynamicsKernel<DGadvection>(paramsIn)
         , stressStep(stressStepIn)
-        , params(reinterpret_cast<const BBMParameters&>(paramsIn))
+        , params(paramsIn)
         , stresstransport(nullptr)
     {
     }
@@ -79,8 +81,10 @@ public:
         avgU.resize_by_mesh(*smesh);
         avgV.resize_by_mesh(*smesh);
 
-        cosOceanAngle = std::cos(radians(params.oceanTurningAngle));
-        sinOceanAngle = std::sin(radians(params.oceanTurningAngle));
+        // Set the fields to zero. Prognostic fields will be filled from the restart file.
+        damage.zero();
+        avgU.zero();
+        avgV.zero();
     }
 
     // The brittle rheologies use avgU and avgV to do the advection, not u and v, like mEVP
@@ -88,7 +92,6 @@ public:
 
     void update(const TimestepTime& tst) override
     {
-
         // Let DynamicsKernel handle the advection step
         advectionAndLimits(tst);
 
@@ -129,6 +132,9 @@ public:
 
             // Land mask
         }
+
+        updateIceOceanStress(avgU, avgV);
+
         // Finally, do the base class update
         DynamicsKernel<DGadvection, DGstressComp>::update(tst);
     }
@@ -163,22 +169,6 @@ public:
         }
     }
 
-    double getIceOceanStressElement(const std::string& name, const int i) const override
-    {
-        const double FOcean = params.COcean * params.rhoOcean;
-
-        const double uOceanRel = uOcean(i) - avgU(i);
-        const double vOceanRel = vOcean(i) - avgV(i);
-        const double cPrime = FOcean * std::hypot(uOceanRel, vOceanRel);
-
-        if (name == uIOStressName)
-            return cPrime * (uOceanRel * cosOceanAngle - vOceanRel * sinOceanAngle);
-        else if (name == vIOStressName)
-            return cPrime * (vOceanRel * cosOceanAngle + uOceanRel * sinOceanAngle);
-        else
-            return std::numeric_limits<double>::quiet_NaN();
-    }
-
 protected:
     CGVector<CGdegree> avgU;
     CGVector<CGdegree> avgV;
@@ -198,6 +188,9 @@ protected:
 
 #pragma omp parallel for
         for (size_t i = 0; i < u.rows(); ++i) {
+            if (pmap->cglandmask(i) == 0)
+                continue;
+
             // FIXME dte_over_mass should include snow in the total mass
             const double dteOverMass = deltaT / (params.rhoIce * cgH(i));
             // Memoized initial velocity values

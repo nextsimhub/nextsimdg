@@ -39,6 +39,8 @@ public:
         , vocean(getStore())
         , ssh(getStore())
         , m_usesDamage(usesDamageIn)
+        , hiceDG(getStore())
+        , ciceDG(getStore())
     {
         getStore().registerArray(Shared::DAMAGE, &damage, RW);
         getStore().registerArray(Protected::IO_STRESS_X, &taux, RO);
@@ -46,19 +48,31 @@ public:
     }
     virtual ~IDynamics() = default;
 
-    ModelState getState() const override
+    ModelState getStatePrognostic() const override
     {
-        return { {
-                     { uName, mask(uice) },
-                     { vName, mask(vice) },
+        ModelState state = { {
+                { uName, mask(uice) },
+                { vName, mask(vice) },
                  },
-            {} };
+            getConfiguration()
+        };
+
+        if (m_usesDamage) {
+               ModelState::DataMap damageState = { { damageName, damage } };
+               state.merge(damageState);
+           }
+
+        return state;
     }
-    ModelState getState(const OutputLevel&) const override { return getState(); }
-    ModelState getStateRecursive(const OutputSpec& os) const override
+
+    ModelState getStateDiagnostic() const override
     {
-        // Ensure the base class implementation of getState() is called
-        return os ? IDynamics::getState() : ModelState();
+        ModelState state = { {
+                { "tau_x", taux },
+                { "tau_y", tauy },
+        }, { }
+        };
+        return state.merge(getStatePrognostic());
     }
 
     std::string getName() const override { return "IDynamics"; }
@@ -113,6 +127,10 @@ protected:
 
     // Does this implementation of the dynamics use damage?
     bool m_usesDamage;
+
+    // Store the h_ice and c_ice DG fields here, rather than in the kernel.
+    ModelArrayRef<Shared::H_ICE_DG, RW> hiceDG;
+    ModelArrayRef<Shared::C_ICE_DG, RW> ciceDG;
 
     /*
      * Checks and returns if the provided data map is spherical

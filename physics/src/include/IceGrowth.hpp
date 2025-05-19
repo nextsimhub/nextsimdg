@@ -39,20 +39,11 @@ public:
     std::string getName() const override { return "IceGrowth"; }
 
     void setData(const ModelState::DataMap&) override;
-    ModelState getState() const override;
-    ModelState getState(const OutputLevel&) const override { return getState(); }
-    ModelState getStateRecursive(const OutputSpec& os) const override;
+    ModelState getStateDiagnostic() const override;
+    ModelState getStatePrognostic() const override;
 
     static HelpMap& getHelpText(HelpMap& map, bool getAll);
     static HelpMap& getHelpRecursive(HelpMap& map, bool getAll);
-
-    std::unordered_set<std::string> hFields() const override
-    {
-        return { "updated_hice", "updated_cice", "updated_hsnow" };
-    }
-    std::unordered_set<std::string> uFields() const override { return {}; }
-    std::unordered_set<std::string> vFields() const override { return {}; }
-    std::unordered_set<std::string> zFields() const override { return {}; }
 
     void update(const TimestepTime&);
 

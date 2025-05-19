@@ -41,7 +41,6 @@ IceGrowth::IceGrowth()
     , tf(getStore())
     , deltaHi(getStore())
 {
-    registerModule();
     getStore().registerArray(Shared::H_ICE, &hice, RW);
     getStore().registerArray(Shared::C_ICE, &cice, RW);
     getStore().registerArray(Shared::H_SNOW, &hsnow, RW);
@@ -71,28 +70,33 @@ void IceGrowth::setData(const ModelState::DataMap& ms)
     deltaCIce.resize();
 }
 
-ModelState IceGrowth::getState() const
+ModelState IceGrowth::getStateDiagnostic() const
 {
-    return { {
-                 { "hice_updated", hice },
-                 { "cice_updated", cice },
-                 { "hsnow_updated", hsnow },
-                 { "hice_initial", hice0 },
-                 { "cice_initial", cice0 },
-                 { "hsnow_initial", hsnow0 },
-             },
+    ModelState state = { {
+                             { "hice_updated", hice },
+                             { "cice_updated", cice },
+                             { "hsnow_updated", hsnow },
+                             { "hice_initial", hice0 },
+                             { "cice_initial", cice0 },
+                             { "hsnow_initial", hsnow0 },
+                         },
         getConfiguration() };
+    state.merge(iLateral->getStateDiagnostic());
+    state.merge(iVertical->getStateDiagnostic());
+    state.merge(iHealing->getStateDiagnostic());
+
+    return state;
 }
 
-ModelState IceGrowth::getStateRecursive(const OutputSpec& os) const
+ModelState IceGrowth::getStatePrognostic() const
 {
-    ModelState state(getState());
+    ModelState state;
     // Merge in other states here
-    state.merge(iLateral->getStateRecursive(os));
-    state.merge(iVertical->getStateRecursive(os));
-    state.merge(iHealing->getStateRecursive(os));
+    state.merge(iLateral->getStatePrognostic());
+    state.merge(iVertical->getStatePrognostic());
+    state.merge(iHealing->getStatePrognostic());
 
-    return os ? state : ModelState();
+    return state;
 }
 
 IceGrowth::HelpMap& IceGrowth::getHelpText(HelpMap& map, bool getAll)

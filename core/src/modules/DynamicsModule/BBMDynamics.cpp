@@ -12,7 +12,7 @@
 
 namespace Nextsim {
 
-static const std::vector<std::string> namedFields = { hiceName, ciceName, uName, vName };
+static const std::vector<std::string> namedFields = { uName, vName };
 static const std::map<std::string, std::pair<ModelArray::Type, double>> defaultFields = {
     { damageName, { ModelArray::Type::H, 1.0 } },
 };
@@ -66,6 +66,29 @@ void BBMDynamics::configure()
     params.oceanTurningAngle = getConfiguration(keyMap.at(ANGLE_KEY), oceanTurningAngleDefault);
 }
 
+ConfigMap BBMDynamics::getConfiguration() const
+{
+    return {
+        { keyMap.at(C_KEY), params.compactionParam },
+        { keyMap.at(NU_KEY), params.nu0 },
+        { keyMap.at(YOUNG_KEY), params.young },
+        { keyMap.at(P0_KEY), params.P0 },
+        { keyMap.at(LAMBDA0_KEY), params.lambda0 },
+        { keyMap.at(ALPHA_KEY), params.alpha },
+        { keyMap.at(EXPPMAX_KEY), params.expPMax },
+        { keyMap.at(MU_KEY), params.mu },
+        { keyMap.at(NMAX_KEY), params.comprCap },
+        { keyMap.at(CLAB_KEY), params.cLab },
+        { keyMap.at(NSTEPS_KEY), params.nSteps },
+        { keyMap.at(RHOI_KEY), params.rhoIce },
+        { keyMap.at(RHOA_KEY), params.rhoAtm },
+        { keyMap.at(RHOO_KEY), params.rhoOcean },
+        { keyMap.at(CATM_KEY), params.CAtm },
+        { keyMap.at(COCEAN_KEY), params.COcean },
+        { keyMap.at(FC_KEY), params.fc },
+        { keyMap.at(ANGLE_KEY), params.oceanTurningAngle },
+    };
+}
 BBMDynamics::BBMDynamics()
     : IDynamics(true)
     , kernel(params)
@@ -116,6 +139,10 @@ void BBMDynamics::setData(const ModelState::DataMap& ms)
             kernel.setData(fieldName, mask(data));
         }
     }
+
+    // Set the DG field data
+    kernel.setDGArray(hiceName, hiceDG.allComponents());
+    kernel.setDGArray(ciceName, ciceDG.allComponents());
 }
 
 void BBMDynamics::update(const TimestepTime& tst)
@@ -123,19 +150,17 @@ void BBMDynamics::update(const TimestepTime& tst)
     std::cout << tst.start << std::endl;
 
     // Fill the updated damage array with the initial value
-    damage = damage0.data();
+    damage = damage0;
 
     // set the updated ice thickness, concentration and damage
-    kernel.setData(hiceName, hice.data());
-    kernel.setData(ciceName, cice.data());
     kernel.setData(damageName, damage);
 
     // set the forcing velocities
-    kernel.setData(uWindName, uwind.data());
-    kernel.setData(vWindName, vwind.data());
-    kernel.setData(uOceanName, uocean.data());
-    kernel.setData(vOceanName, vocean.data());
-    kernel.setData(sshName, ssh.data());
+    kernel.setData(uWindName, uwind);
+    kernel.setData(vWindName, vwind);
+    kernel.setData(uOceanName, uocean);
+    kernel.setData(vOceanName, vocean);
+    kernel.setData(sshName, ssh);
 
     /*
      * Ice velocity components are stored in the dynamics, and not changed by the model outside the
@@ -144,8 +169,6 @@ void BBMDynamics::update(const TimestepTime& tst)
 
     kernel.update(tst);
 
-    hice.data() = kernel.getDG0Data(hiceName);
-    cice.data() = kernel.getDG0Data(ciceName);
     damage = kernel.getDG0Data(damageName);
 
     uice = kernel.getDG0Data(uName);
@@ -158,37 +181,6 @@ void BBMDynamics::update(const TimestepTime& tst)
     divergence = kernel.getDG0Data(divergenceName);
     sigmaI = kernel.getDG0Data(sigmaIName);
     sigmaII = kernel.getDG0Data(sigmaIIName);
-}
-
-// All data for prognostic output
-ModelState BBMDynamics::getState() const
-{
-    // Get the velocities from IDynamics
-    ModelState state(IDynamics::getState());
-
-    // Kernel prognostic fields
-    state.merge({
-        { hiceName, kernel.getDGData(hiceName) },
-        { ciceName, kernel.getDGData(ciceName) },
-        { damageName, kernel.getDGData(damageName) },
-    });
-
-    return state;
-}
-
-ModelState BBMDynamics::getStateRecursive(const OutputSpec& os) const
-{
-    // Base class state
-    ModelState state(IDynamics::getStateRecursive(os));
-
-    if (os.allComponents()) {
-        state.merge({
-            { hiceName, kernel.getDGData(hiceName) },
-            { ciceName, kernel.getDGData(ciceName) },
-            { damageName, kernel.getDGData(damageName) },
-        });
-    }
-    return state;
 }
 
 BBMDynamics::HelpMap& BBMDynamics::getHelpText(HelpMap& map, bool getAll)

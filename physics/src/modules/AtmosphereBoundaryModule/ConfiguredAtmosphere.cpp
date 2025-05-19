@@ -94,6 +94,20 @@ void ConfiguredAtmosphere::configure()
     tryConfigure(fluxImpl);
 }
 
+ConfigMap ConfiguredAtmosphere::getConfiguration() const
+{
+    return {
+        { keyMap.at(TAIR_KEY), tair0 },
+        { keyMap.at(TDEW_KEY), tdew0 },
+        { keyMap.at(PAIR_KEY), pair0 },
+        { keyMap.at(SW_KEY), sw0 },
+        { keyMap.at(LW_KEY), lw0 },
+        { keyMap.at(SNOW_KEY), snowfall0 },
+        { keyMap.at(RAIN_KEY), rain0 },
+        { keyMap.at(WIND_KEY), windspeed0 },
+    };
+}
+
 void ConfiguredAtmosphere::setData(const ModelState::DataMap& dm)
 {
 

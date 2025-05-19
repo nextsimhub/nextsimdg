@@ -193,28 +193,22 @@ class initMaker:
         sss[:, :] = self.sss
 
         # mask data
-        """ TODO: Figure out why this masking doesn't work
-        mdi = -3.282346e38  # Minus float max
-        cice[:, :] = cice[:, :] * mask[:, :] + antimask * mdi
-        cice.missing_value = mdi
-        hice[:, :] = hice[:, :] * mask[:, :] + antimask * mdi
-        hice.missing_value = mdi
-        hsnow[:, :] = hsnow[:, :] * mask[:, :] + antimask * mdi
-        hsnow.missing_value = mdi
-        damage[:, :] = damage[:, :] * mask[:, :] + antimask * mdi
-        damage.missing_value = mdi
-        u[:, :] = u[:, :] * mask[:, :] + antimask * mdi
-        u.missing_value = mdi
-        v[:, :] = v[:, :] * mask[:, :] + antimask * mdi
-        v.missing_value = mdi
-        tice[:, :, :] = tice[:, :, :] * mask[:, :] + antimask * mdi
-        tice.missing_value = mdi
-        grid_azimuth[:, :] = grid_azimuth[:, :] * mask[:, :] + antimask * mdi
-        grid_azimuth.missing_value = mdi
-        sss[:, :] = sss[:, :] * mask[:, :] + antimask * mdi
-        sss.missing_value = mdi
-        sst[:, :] = sst[:, :] * mask[:, :] + antimask * mdi
-        sst.missing_value = mdi
-        """
+        # TODO: Figure out why the missing data flag doesn't work
+        # We should be able to define a missing value like this
+        # mdi = -3.282346e38  # Minus float max
+        # and then mask like this
+        # cice[:, :] = cice[:, :] * mask[:, :] + antimask * mdi
+        # cice.missing_value = mdi
+        # but the model doesn't like this
+        cice[:, :] = cice[:, :] * mask[:, :]
+        hice[:, :] = hice[:, :] * mask[:, :]
+        hsnow[:, :] = hsnow[:, :] * mask[:, :]
+        damage[:, :] = damage[:, :] * mask[:, :]
+        u[:, :] = u[:, :] * mask[:, :]
+        v[:, :] = v[:, :] * mask[:, :]
+        tice[:, :, :] = tice[:, :, :] * mask[:, :]
+        grid_azimuth[:, :] = grid_azimuth[:, :] * mask[:, :]
+        sss[:, :] = sss[:, :] * mask[:, :]
+        sst[:, :] = sst[:, :] * mask[:, :]
 
         root.close()

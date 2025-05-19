@@ -94,9 +94,6 @@ TEST_CASE("Threshold ice")
         HField dqia_dt;
         HField subl;
         HField penSW;
-
-        ModelState getState() const override { return ModelState(); }
-        ModelState getState(const OutputLevel&) const override { return getState(); }
     } atmoState;
     atmoState.setData(ModelState::DataMap());
 
@@ -139,9 +136,6 @@ TEST_CASE("Threshold ice")
             subl[0] = 0;
             penSW[0] = 0;
         }
-
-        ModelState getState() const override { return ModelState(); }
-        ModelState getState(const OutputLevel&) const override { return getState(); }
 
         void update(const TimestepTime&) override { }
     } fluxData;

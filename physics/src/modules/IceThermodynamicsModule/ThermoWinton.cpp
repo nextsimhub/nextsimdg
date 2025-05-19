@@ -50,13 +50,30 @@ void ThermoWinton::configure()
     NZLevels::set(nLevels);
 }
 
-ModelState ThermoWinton::getStateRecursive(const OutputSpec& os) const
+ConfigMap ThermoWinton::getConfiguration() const
 {
-    ModelState state = { {},
-        {
-            { keyMap.at(KS_KEY), kappa_s },
-        } };
-    return os ? state : ModelState();
+    return {
+        { keyMap.at(KS_KEY), kappa_s },
+        { keyMap.at(FLOODING_KEY), doFlooding },
+    };
+}
+
+ModelState ThermoWinton::getStateDiagnostic() const
+{
+    ModelState state =  { {
+            { "snow_melt", snowMelt },
+            { "top_melt", topMelt },
+            { "bottom_melt", botMelt },
+    },
+            getConfiguration()
+    };
+
+    return state.merge(IIceThermodynamics::getStateDiagnostic());
+}
+
+ModelState ThermoWinton::getStatePrognostic() const
+{
+    return { { }, getConfiguration() };
 }
 
 ThermoWinton::HelpMap& ThermoWinton::getHelpText(HelpMap& map, bool getAll)
@@ -82,8 +99,8 @@ void ThermoWinton::setData(const ModelState::DataMap& state)
     snowToIce.resize();
 
     // The Winton scheme requires three temperature levels in the ice
-    if (tice0.data().size() != nLevels * hice.data().size()) {
-        double actualLevels = static_cast<double>(tice0.data().size()) / hice.data().size();
+    if (tice0.size() != nLevels * hice.size()) {
+        double actualLevels = static_cast<double>(tice0.size()) / hice.size();
         throw std::length_error(std::string("The inferred number of ice temperature levels is ")
             + std::to_string(actualLevels) + " when the Winton ice thermodynamics scheme expects "
             + std::to_string(nLevels));

@@ -51,18 +51,18 @@ def create_topaz_times(start_tm, stop_tm):
     return (unix_times, hour_times - topaz4_hours)
 
 # Returns the file name that holds the ERA5 data for a given field at a given time
-def era5_source_file_name(field, unix_time):
+def era5_source_file_name(field, unix_time, path):
     file_year = time.gmtime(unix_time).tm_year
-    return f"ERA5_{field}_y{file_year}.nc"
+    return f"{path}/ERA5_{field}_y{file_year}.nc"
 
 # Returns the file name that holds the TOPAZ data for a given field at a given time
-def topaz4_source_file_name(field, unix_time):
+def topaz4_source_file_name(field, unix_time, path):
     unix_tm = time.gmtime(unix_time)
     if field in ("u", "v", "ssh"):
         # Ocean currents come from the 30 m files
-        return f"TP4DAILY_{unix_tm.tm_year}{unix_tm.tm_mon:02}_30m.nc"
+        return f"{path}/TP4DAILY_{unix_tm.tm_year}{unix_tm.tm_mon:02}_30m.nc"
     else:
-        return f"TP4DAILY_{unix_tm.tm_year}{unix_tm.tm_mon:02}_3m.nc"
+        return f"{path}/TP4DAILY_{unix_tm.tm_year}{unix_tm.tm_mon:02}_3m.nc"
 
 # Returns bilinearly interpolated data given array of fractional indices
 # 2023-03-28 Add a wrap-around for the ERA longitude. This is formally
@@ -176,6 +176,7 @@ if __name__ == "__main__":
     parser.add_argument("--start", dest = "start", required = True, help = "The ISO start date for the forcing file.")
     parser.add_argument("--stop", dest = "stop", required = True, help = "The ISO end date for the forcing file.")
     parser.add_argument("--prefix", dest = "prefix", required = False, help = "A string to prefix the created files with.")
+    parser.add_argument("--forcing_path", default="", help="Path for the forcing files")
     args = parser.parse_args()
     # read the date range
     start_time = time.strptime(args.start, "%Y-%m-%d")
@@ -186,6 +187,8 @@ if __name__ == "__main__":
         filepfx = args.prefix + "."
     else:
         filepfx = ""
+
+    forcing_path = args.forcing_path
 
     # read a grid spec (from a restart file)
     root = netCDF4.Dataset(args.file, "r", format = "NETCDF4")
@@ -213,8 +216,13 @@ if __name__ == "__main__":
     element_y = 0.25 * (node_y[0:-1, 0:-1] + node_y[1:, 0:-1] + node_y[0:-1, 1:] + node_y[1:, 1:])
     element_z = 0.25 * (node_z[0:-1, 0:-1] + node_z[1:, 0:-1] + node_z[0:-1, 1:] + node_z[1:, 1:])
     
-    element_lon = np.degrees(np.arctan2(element_y, element_x))
-    element_lat = np.degrees(np.arctan2(element_z, np.hypot(element_x, element_y)))
+    # take grid coordinates out of the init file
+    element_lon[:, :] = datagrp["longitude"][:,:]
+    element_lat[:, :] = datagrp["latitude"][:,:]
+    # manual computation is slightly off and can create inconsistent forcings
+#    element_lon = np.degrees(np.arctan2(element_y, element_x))
+#    element_lat = np.degrees(np.arctan2(element_z, np.hypot(element_x, element_y)))
+
 
     # azimuth of the +y grid direction in radians
     element_azimuth = np.radians(element_lon * 0 + 45)
@@ -274,7 +282,7 @@ if __name__ == "__main__":
             era5_field = era5_translation[field_name]
             for target_t_index in range(len(unix_times_e)):
                 # get the source data
-                source_file = netCDF4.Dataset(era5_source_file_name(era5_field, unix_times_e[target_t_index]), "r")
+                source_file = netCDF4.Dataset(era5_source_file_name(era5_field, unix_times_e[target_t_index], forcing_path), "r")
                 source_lons = source_file["longitude"]
                 source_lats = source_file["latitude"]
                 target_time = era5_times[target_t_index]
@@ -293,8 +301,8 @@ if __name__ == "__main__":
             v_var = datagrp.createVariable("v", "f8", timefield_dims)
             for target_t_index in range(len(unix_times_e)):
                 # get the source data
-                u_file = netCDF4.Dataset(era5_source_file_name("u10", unix_times_e[target_t_index]), "r")
-                v_file = netCDF4.Dataset(era5_source_file_name("v10", unix_times_e[target_t_index]), "r")
+                u_file = netCDF4.Dataset(era5_source_file_name("u10", unix_times_e[target_t_index], forcing_path), "r")
+                v_file = netCDF4.Dataset(era5_source_file_name("v10", unix_times_e[target_t_index], forcing_path), "r")
                 source_lons = u_file["longitude"]
                 source_lats = u_file["latitude"]
                 target_time = era5_times[target_t_index]
@@ -361,7 +369,7 @@ if __name__ == "__main__":
     
     (unix_times_t, topaz4_times) = create_topaz_times(start_time, stop_time)
 
-    source_file = netCDF4.Dataset(topaz4_source_file_name("mlp", unix_times_t[0]), "r")
+    source_file = netCDF4.Dataset(topaz4_source_file_name("mlp", unix_times_t[0], forcing_path), "r")
     source_lats = source_file["latitude"][:, :]
     lat_array = source_lats[550:, 380]
     source_file.close()
@@ -383,13 +391,13 @@ if __name__ == "__main__":
     # For each field and time, get the corresponding file name for each dataset
     for field_name in ocean_fields:
         data = datagrp.createVariable(field_name, "f8", timefield_dims)
-        if not field_name in skip_ocean_fields:
+        if field_name not in skip_ocean_fields:
             topaz_field = topaz_translation[field_name]
             for target_t_index in range(len(unix_times_t)):
                 if field_name == ocean_fields[0]:
                     nc_times[target_t_index] = unix_times_t[target_t_index]
                 # get the source data
-                source_file = netCDF4.Dataset(topaz4_source_file_name(topaz_field, unix_times_t[target_t_index]), "r")
+                source_file = netCDF4.Dataset(topaz4_source_file_name(topaz_field, unix_times_t[target_t_index], forcing_path), "r")
                 target_time = topaz4_times[target_t_index]
                 source_times = source_file["time"]
                 time_index = (target_time - source_times[0]) // hr_per_day
@@ -411,8 +419,8 @@ if __name__ == "__main__":
     udata = datagrp.createVariable("u", "f8", timefield_dims)
     vdata = datagrp.createVariable("v", "f8", timefield_dims)
     for target_t_index in range (len(unix_times_t)):
-        u_source_file = netCDF4.Dataset(topaz4_source_file_name("u", unix_times_t[target_t_index]), "r")
-        v_source_file = netCDF4.Dataset(topaz4_source_file_name("v", unix_times_t[target_t_index]), "r")
+        u_source_file = netCDF4.Dataset(topaz4_source_file_name("u", unix_times_t[target_t_index], forcing_path), "r")
+        v_source_file = netCDF4.Dataset(topaz4_source_file_name("v", unix_times_t[target_t_index], forcing_path), "r")
         target_time = topaz4_times[target_t_index]
         source_times = u_source_file["time"]
         time_index = (target_time - source_times[0]) // hr_per_day

@@ -27,6 +27,13 @@ void MU71Atmosphere::configure()
     m_I0 = Configured::getConfiguration(keyMap.at(I0_KEY), i0_default);
 }
 
+ConfigMap MU71Atmosphere::getConfiguration() const
+{
+    return {
+        { keyMap.at(I0_KEY), m_I0 },
+    };
+}
+
 MU71Atmosphere::HelpMap& MU71Atmosphere::getHelpText(HelpMap& map, bool getAll)
 {
     map["FiniteElementFluxes"] = {

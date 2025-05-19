@@ -24,7 +24,7 @@ public:
     using BrittleCGDynamicsKernel<DGadvection>::damage;
     using BrittleCGDynamicsKernel<DGadvection>::params;
     using CGDynamicsKernel<DGadvection>::initialise;
-    BBMDynamicsKernel(const DynamicsParameters& paramsIn)
+    BBMDynamicsKernel(const BBMParameters& paramsIn)
         : BrittleCGDynamicsKernel<DGadvection>(bbmStressStep, paramsIn)
     {
     }

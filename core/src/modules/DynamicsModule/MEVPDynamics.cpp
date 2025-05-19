@@ -50,7 +50,24 @@ void MEVPDynamics::configure()
         = Configured::getConfiguration(keyMap.at(ANGLE_KEY), oceanTurningAngleDefault);
 }
 
-static const std::vector<std::string> namedFields = { hiceName, ciceName, uName, vName };
+ConfigMap MEVPDynamics::getConfiguration() const
+{
+    return {
+        { keyMap.at(PSTAR_KEY), params.pStar },
+        { keyMap.at(DELTA_KEY), params.deltaMin },
+        { keyMap.at(C_KEY), params.compactionParam },
+        { keyMap.at(NSTEPS_KEY), params.nSteps },
+        { keyMap.at(RHOI_KEY), params.rhoIce },
+        { keyMap.at(RHOA_KEY), params.rhoAtm },
+        { keyMap.at(RHOO_KEY), params.rhoOcean },
+        { keyMap.at(CATM_KEY), params.CAtm },
+        { keyMap.at(COCEAN_KEY), params.COcean },
+        { keyMap.at(FC_KEY), params.fc },
+        { keyMap.at(ANGLE_KEY), params.oceanTurningAngle },
+    };
+}
+
+static const std::vector<std::string> namedFields = { uName, vName };
 MEVPDynamics::MEVPDynamics()
     : IDynamics()
     , kernel(params)
@@ -84,30 +101,24 @@ void MEVPDynamics::setData(const ModelState::DataMap& ms)
     for (const auto& fieldName : namedFields) {
         kernel.setData(fieldName, ms.at(fieldName));
     }
+
+    // Set the DG field data
+    kernel.setDGArray(hiceName, hiceDG.allComponents());
+    kernel.setDGArray(ciceName, ciceDG.allComponents());
 }
 
 void MEVPDynamics::update(const TimestepTime& tst)
 {
     std::cout << tst.start << std::endl;
 
-    // set the updated ice thickness and concentration
-    kernel.setData(hiceName, hice.data());
-    kernel.setData(ciceName, cice.data());
-
     // set the forcing velocities
-    kernel.setData(uWindName, uwind.data());
-    kernel.setData(vWindName, vwind.data());
-    kernel.setData(uOceanName, uocean.data());
-    kernel.setData(vOceanName, vocean.data());
-    kernel.setData(sshName, ssh.data());
-
-    // kernel.setData(uName, uice);
-    // kernel.setData(vName, vice);
+    kernel.setData(uWindName, uwind);
+    kernel.setData(vWindName, vwind);
+    kernel.setData(uOceanName, uocean);
+    kernel.setData(vOceanName, vocean);
+    kernel.setData(sshName, ssh);
 
     kernel.update(tst);
-
-    hice.data() = kernel.getDG0Data(hiceName);
-    cice.data() = kernel.getDG0Data(ciceName);
 
     uice = kernel.getDG0Data(uName);
     vice = kernel.getDG0Data(vName);
@@ -119,20 +130,6 @@ void MEVPDynamics::update(const TimestepTime& tst)
     divergence = kernel.getDG0Data(divergenceName);
     sigmaI = kernel.getDG0Data(sigmaIName);
     sigmaII = kernel.getDG0Data(sigmaIIName);
-}
-
-ModelState MEVPDynamics::getStateRecursive(const OutputSpec& os) const
-{
-    // Base class state
-    ModelState state(IDynamics::getStateRecursive(os));
-
-    if (os.allComponents()) {
-        state.merge({
-            { hiceName, kernel.getDG0Data(hiceName) },
-            { ciceName, kernel.getDG0Data(ciceName) },
-        });
-    }
-    return state;
 }
 
 MEVPDynamics::HelpMap& MEVPDynamics::getHelpText(HelpMap& map, bool getAll)

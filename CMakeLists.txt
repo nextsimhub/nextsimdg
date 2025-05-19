@@ -32,16 +32,14 @@ if(NETCDF_CXX4_FOUND)
     set(netCDF_INCLUDE_DIR "${NETCDF_CXX4_INCLUDE_DIRS}")
     set(netCDF_LIB_DIR "${NETCDF_CXX4_LIBRARY_DIRS}")
 else()
-    find_package(netCDF REQUIRED)
-    if("${CMAKE_HOST_SYSTEM_NAME}" STREQUAL "Darwin")
-        set(NSDG_NetCDF_Library "netcdf-cxx4")
-    else()
-        set(NSDG_NetCDF_Library "netcdf_c++4")
-    endif()
+    find_package(NetCDF COMPONENTS C CXX REQUIRED)
+    set(NSDG_NetCDF_Library "${NetCDF_LIBRARIES}")
+    set(netCDF_INCLUDE_DIR "${NetCDF_INCLUDE_DIRS}")
 endif()
+
 target_include_directories(nextsimlib PUBLIC "${netCDF_INCLUDE_DIR}")
 target_link_directories(nextsimlib PUBLIC "${netCDF_LIB_DIR}")
-target_link_libraries(nextsimlib PUBLIC "${NSDG_NetCDF_Library}" "${FORTRAN_RUNTIME_LIB}")
+target_link_libraries(nextsimlib PUBLIC "${NSDG_NetCDF_Library}")
 
 if(BUILD_TESTS)
     # Add the doctest header library
@@ -148,6 +146,12 @@ if(ENABLE_XIOS)
         nextsimlib
         PRIVATE ${xios_INCLUDES} ${xios_EXTERNS}/blitz/ ${xios_EXTERNS}/rapidxml/include
     )
+    if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+        set(FORTRAN_RUNTIME_LIB "-lgfortran")
+    elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
+        set(FORTRAN_RUNTIME_LIB "-lifcore")
+    endif()
+    target_link_libraries(nextsimlib PUBLIC "${FORTRAN_RUNTIME_LIB}")
 endif()
 
 # OpenMP

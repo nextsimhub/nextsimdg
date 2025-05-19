@@ -156,8 +156,13 @@ public:
         double initialaverage = Nextsim::Tools::MeanValue(smesh, phi);
 
         // velocity field
-        Nextsim::Interpolations::Function2DG(smesh, dgtransport.GetVx(), VX);
-        Nextsim::Interpolations::Function2DG(smesh, dgtransport.GetVy(), VY);
+        Nextsim::DGVector<DG> vx;
+        Nextsim::DGVector<DG> vy;
+        vx.resize_by_mesh(smesh);
+        vy.resize_by_mesh(smesh);
+        Nextsim::Interpolations::Function2DG(smesh, vx, VX);
+        Nextsim::Interpolations::Function2DG(smesh, vy, VY);
+        dgtransport.setVelocities(vx, vy);
 
         // Write out initial solution
         std::string resultsdir = "test1_" + std::to_string(DG) + "_" + std::to_string(smesh.nx);
@@ -166,8 +171,8 @@ public:
             std::filesystem::create_directory(resultsdir);
 
             Nextsim::VTK::write_dg<DG>(resultsdir + "/dg", 0, phi, smesh);
-            Nextsim::VTK::write_dg<DG>(resultsdir + "/vx", 0, dgtransport.GetVx(), smesh);
-            Nextsim::VTK::write_dg<DG>(resultsdir + "/vy", 0, dgtransport.GetVy(), smesh);
+            Nextsim::VTK::write_dg<DG>(resultsdir + "/vx", 0, vx, smesh);
+            Nextsim::VTK::write_dg<DG>(resultsdir + "/vy", 0, vy, smesh);
         }
         std::cout << DG << "\t" << ProblemConfig::NT << "\t" << smesh.nx << "\t" << std::flush;
 

@@ -1,12 +1,13 @@
 /*!
  * @file ConfigOutput_test.cpp
  *
- * @date 24 Sep 2024
+ * @date 06 May 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
 #ifdef USE_MPI
 #include <doctest/extensions/doctest_mpi.h>
+#undef INFO
 #else
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include <doctest/doctest.h>
@@ -15,14 +16,15 @@
 #include "DiagnosticOutputModule/include/ConfigOutput.hpp"
 
 #include "include/FileCallbackCloser.hpp"
+#include "include/Finalizer.hpp"
 #include "include/IStructure.hpp"
 #include "include/ModelArray.hpp"
 #include "include/ModelArrayRef.hpp"
 #include "include/ModelComponent.hpp"
 #include "include/ModelMetadata.hpp"
 #include "include/ModelState.hpp"
-#include "include/NextsimModule.hpp"
 #include "include/NZLevels.hpp"
+#include "include/NextsimModule.hpp"
 #include "include/gridNames.hpp"
 
 #include <ncDim.h>
@@ -97,6 +99,18 @@ TEST_CASE("Test periodic output")
     ModelComponent::getStore().registerArray(Protected::T_ICE, &tice);
 
     ModelMetadata meta;
+    // Set up the coordinates, but use arrays filled with zeros
+    HField latlonData(ModelArray::Type::H);
+    latlonData = 0.;
+    VertexField coordsData(ModelArray::Type::VERTEX);
+    coordsData = 0.;
+    ModelState modelCoordinates = { {
+             { longitudeName, latlonData },
+             { latitudeName, latlonData },
+             { gridAzimuthName, latlonData },
+             { coordsName, coordsData },
+    }, { } };
+    meta.extractCoordinates(modelCoordinates);
     meta.setTime(TimePoint("2020-01-01T00:00:00Z"));
 
 #ifdef USE_MPI
@@ -177,7 +191,7 @@ TEST_CASE("Test periodic output")
     REQUIRE(timeDim.getSize() == hr_day);
 
     std::multimap<std::string, netCDF::NcVar> vars(dataGroup.getVars());
-    REQUIRE(vars.size() == fields.size() + 1); // +1 for the time variable
+    REQUIRE(vars.size() == fields.size() + 1 + 4); // +1 for the time variable + 4 for the coords
     for (auto field : fields) {
         REQUIRE(vars.count(field) == 1);
     }
@@ -190,6 +204,8 @@ TEST_CASE("Test periodic output")
     for (auto fileName : diagFiles) {
         std::filesystem::remove(fileName);
     }
+
+    Finalizer::finalize();
 }
 TEST_SUITE_END();
 }

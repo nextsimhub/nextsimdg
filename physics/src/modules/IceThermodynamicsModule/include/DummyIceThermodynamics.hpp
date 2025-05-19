@@ -23,8 +23,6 @@ public:
     }
     ~DummyIceThermodynamics() = default;
 
-    ModelState getStateRecursive(const OutputSpec& os) const override { return ModelState(); }
-
     void setData(const ModelState::DataMap& ms) override { IIceThermodynamics::setData(ms); }
     void update(const TimestepTime& tsTime) override { }
 

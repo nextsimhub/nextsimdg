@@ -1,7 +1,7 @@
 /*!
  * @file ParaGrid_test.cpp
  *
- * @date 24 Sep 2024
+ * @date 07 May 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -9,6 +9,7 @@
 #include <cstdlib>
 #ifdef USE_MPI
 #include <doctest/extensions/doctest_mpi.h>
+#undef INFO
 #else
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include <doctest/doctest.h>
@@ -16,11 +17,12 @@
 
 #include "include/Configurator.hpp"
 #include "include/ConfiguredModule.hpp"
+#include "include/Finalizer.hpp"
+#include "include/IStructure.hpp"
 #include "include/NZLevels.hpp"
+#include "include/NextsimModule.hpp"
 #include "include/ParaGridIO.hpp"
 #include "include/ParametricGrid.hpp"
-#include "include/IStructure.hpp"
-#include "include/NextsimModule.hpp"
 #include "include/gridNames.hpp"
 
 #include <cmath>
@@ -299,6 +301,8 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file")
     REQUIRE(ms.data.count(gridAzimuthName) > 0);
     REQUIRE(ms.data.at(gridAzimuthName)(0, 0) == gridAzimuth0);
     std::filesystem::remove(filename);
+
+    Finalizer::finalize();
 }
 
 #ifdef USE_MPI
@@ -469,6 +473,8 @@ TEST_CASE("Write a diagnostic ParaGrid file")
     ncFile.close();
 
     std::filesystem::remove(diagFile);
+
+    Finalizer::finalize();
 }
 
 #ifndef TEST_FILE_SOURCE
@@ -518,6 +524,8 @@ TEST_CASE("Test array ordering")
     REQUIRE(state.data.count(fieldName) > 0);
     index2d = state.data.at(fieldName);
     REQUIRE(index2d(3, 5) == 35);
+
+    Finalizer::finalize();
 }
 
 #ifdef USE_MPI
@@ -541,6 +549,8 @@ TEST_CASE("Check an exception is thrown for an invalid file name")
 #else
     REQUIRE_THROWS(state = gridIn.getModelState(longRandomFilename));
 #endif
+
+    Finalizer::finalize();
 }
 
 #ifdef USE_MPI
@@ -609,6 +619,8 @@ TEST_CASE("Check if a file with the old dimension names can be read")
     REQUIRE(ModelArray::dimensions(ModelArray::Type::Z)[0] == localNX);
     REQUIRE(ModelArray::dimensions(ModelArray::Type::Z)[1] == ny);
     REQUIRE(ModelArray::dimensions(ModelArray::Type::Z)[2] == NZLevels::get());
+
+    Finalizer::finalize();
 }
 
 TEST_SUITE_END();

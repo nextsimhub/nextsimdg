@@ -1,7 +1,7 @@
 /*!
  * @file BasicIceOceanHeatFlux.cpp
  *
- * @date Oct 19, 2021
+ * @date 07 Feb 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -27,6 +27,8 @@ void BasicIceOceanHeatFlux::updateElement(size_t i, const TimestepTime& tst)
     // Use the timestep length as the relaxation time scale
     if (cice[i] > 0.) {
         qio[i] = doOne(tf[i], sst[i], mlBulkCp[i], tst.step.seconds());
+    } else {
+        qio[i] = 0.;
     }
 }
 

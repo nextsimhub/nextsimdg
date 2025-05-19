@@ -1,7 +1,7 @@
 /*!
  * @file FiniteElementFluxes.hpp
  *
- * @date 24 Sep 2024
+ * @date 25 Feb 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -25,7 +25,6 @@ public:
         , evap(ModelArray::Type::H)
         , Q_lh_ow(ModelArray::Type::H)
         , Q_sh_ow(ModelArray::Type::H)
-        , Q_sw_ow(ModelArray::Type::H)
         , Q_lw_ow(ModelArray::Type::H)
         , Q_lh_ia(ModelArray::Type::H)
         , Q_sh_ia(ModelArray::Type::H)
@@ -42,6 +41,8 @@ public:
         , t_air(getStore())
         , t_dew2(getStore())
         , p_air(getStore())
+        , windSpeed(getStore())
+        , u_air(getStore())
         , v_air(getStore())
         , h_snow(getStore())
         , h_snow_true(getStore())
@@ -61,12 +62,11 @@ public:
         I0_KEY,
     };
     void configure() override;
+    ConfigMap getConfiguration() const override;
 
     void setData(const ModelState::DataMap&) override;
 
-    ModelState getState() const override;
-    ModelState getState(const OutputLevel&) const override;
-    ModelState getStateRecursive(const OutputSpec& os) const override;
+    ModelState getStateDiagnostic() const override;
 
     static HelpMap& getHelpText(HelpMap& map, bool getAll);
     static HelpMap& getHelpRecursive(HelpMap& map, bool getAll);
@@ -89,7 +89,6 @@ private:
     HField evap; // Open water evaporative mass flux [kg  m⁻²]
     HField Q_lh_ow; // Open water latent heat flux [W m⁻²]
     HField Q_sh_ow; // Open water sensible heat flux [W m⁻²]
-    HField Q_sw_ow; // Open water incident shortwave radiative flux [W m⁻²]
     HField Q_lw_ow; // Open water net longwave radiative flux [W m⁻²]
     HField Q_lh_ia; // Ice latent heat flux [W m⁻²]
     HField Q_sh_ia; // Ice sensible heat flux [W m⁻²]
@@ -109,7 +108,9 @@ private:
     ModelArrayRef<Protected::T_AIR> t_air;
     ModelArrayRef<Protected::DEW_2M> t_dew2;
     ModelArrayRef<Protected::P_AIR> p_air;
-    ModelArrayRef<Protected::WIND_SPEED> v_air;
+    ModelArrayRef<Protected::WIND_SPEED> windSpeed;
+    ModelArrayRef<Protected::WIND_U> u_air;
+    ModelArrayRef<Protected::WIND_V> v_air;
     ModelArrayRef<Protected::H_SNOW> h_snow; // cell-averaged value
     ModelArrayRef<Protected::HTRUE_SNOW> h_snow_true; // cell-averaged value
     ModelArrayRef<Protected::C_ICE> cice;

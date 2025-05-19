@@ -1,5 +1,17 @@
 # Sources for the main neXtSIM model
 
+if(ENABLE_XIOS)
+    set(XIOS_INCLUDE_LIST
+        "${xios_INCLUDES}"
+        "${xios_EXTERNS}/blitz/"
+        "${xios_EXTERNS}/rapidxml/include"
+    )
+    set(NextsimIncludeDirs "${NextsimIncludeDirs}" "${XIOS_INCLUDE_LIST}")
+    set(ParaGridIOImplSource "${CMAKE_CURRENT_SOURCE_DIR}/ParaGridIO_Xios.cpp")
+else()
+    set(ParaGridIOImplSource "${CMAKE_CURRENT_SOURCE_DIR}/ParaGridIO.cpp")
+endif()
+
 set(BaseSources
     "Logged.cpp"
     "ModelConfig.cpp"
@@ -11,7 +23,6 @@ set(BaseSources
     "CommandLineParser.cpp"
     "CommonRestartMetadata.cpp"
     "RectGridIO.cpp"
-    "ParaGridIO.cpp"
     "FileCallbackCloser.cpp"
     "Finalizer.cpp"
     "DevStep.cpp"
@@ -39,7 +50,12 @@ add_subdirectory("${ModuleDir}")
 
 list(TRANSFORM ModuleSources PREPEND "${ModuleDir}/")
 
-set(NextsimSourcesTemp "${BaseSources}" "${NextsimSources}" "${ModuleSources}")
+set(NextsimSourcesTemp
+    "${BaseSources}"
+    "${NextsimSources}"
+    "${ModuleSources}"
+    "${ParaGridIOImplSource}"
+)
 
 if(ENABLE_MPI)
     list(APPEND NextsimSourcesTemp "${ParallelNetCDFSources}")
