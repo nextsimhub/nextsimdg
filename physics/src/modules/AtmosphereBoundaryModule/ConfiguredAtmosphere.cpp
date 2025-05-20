@@ -1,7 +1,7 @@
 /*!
  * @file ConfiguredAtmosphere.cpp
  *
- * @date 30 Apr 2025
+ * @date 20 May 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -112,7 +112,8 @@ ConfigMap ConfiguredAtmosphere::getConfiguration() const
         { keyMap.at(LW_KEY), lw0 },
         { keyMap.at(SNOW_KEY), snowfall0 },
         { keyMap.at(RAIN_KEY), rain0 },
-        { keyMap.at(WIND_KEY), windspeed0 },
+        { keyMap.at(UWIND_KEY), uWind0 },
+        { keyMap.at(VWIND_KEY), vWind0 },
     };
 }
 

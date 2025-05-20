@@ -41,7 +41,9 @@ ocean_salinity = ocean_temperature / mu
 
 initializer.sss[:, :] = ocean_salinity
 initializer.sst[:, :] = ocean_temperature
-initializer.tice[:, :, :] = ice_salinity * mu
+initializer.tsurf[:, :] = ice_salinity * mu
+initializer.tbott = initializer.tsurf
+initializer.tintr = initializer.tsurf
 
 # All other variables are zero or not needed
 
