@@ -1,7 +1,7 @@
 /*!
  * @file IOceanBoundary.hpp
  *
- * @date 13 Feb 2025
+ * @date 29 Apr 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -74,9 +74,6 @@ public:
     }
     virtual ~IOceanBoundary() = default;
 
-    ModelState getState() const override { return ModelState(); }
-    ModelState getState(const OutputLevel&) const override { return getState(); }
-
     std::string getName() const override { return "IOceanBoundary"; }
     void setData(const ModelState::DataMap& ms) override
     {
@@ -126,31 +123,39 @@ public:
      */
     void mergeFluxes(const TimestepTime& tst)
     {
-        const double dt = tst.step.seconds();
+        dt = tst.step.seconds();
+        overElements(std::bind(&IOceanBoundary::mergeFluxesElement, this, std::placeholders::_1,
+                         std::placeholders::_2),
+            tst);
+    }
 
+private:
+    double dt;
+
+    void mergeFluxesElement(size_t i, const TimestepTime& tst)
+    {
         // Heat fluxes - partitioned in solar and non-solar
-        qswNet = cice * qswBase + (1 - cice) * qswow;
-        qNoSun = cice * qio + (1 - cice) * qow - qswNet;
+        qswNet[i] = cice[i] * qswBase[i] + (1 - cice[i]) * qswow[i];
+        qNoSun[i] = cice[i] * qio[i] + (1 - cice[i]) * qow[i] - qswNet[i];
 
         // Mass fluxes - fresh water and salt
         // ice volume change, both laterally and vertically
-        const HField deltaIceVol = newIce + deltaHice * cice;
+        const double deltaIceVol = newIce[i] + deltaHice[i] * cice[i];
         // change in snow volume due to melting (should be < 0)
-        const HField meltSnowVol = deltaSmelt * cice;
+        const double meltSnowVol = deltaSmelt[i] * cice[i];
         // Effective ice salinity is always less than or equal to the SSS, and here we use the right
         // units too
-        HField effectiveIceSal = sss;
-        effectiveIceSal.clampBelow(Ice::s);
-        effectiveIceSal *= 1e-3;
+        const double effectiveIceSal = 1e-3 * std::min(Ice::s, sss[i]);
 
         // Positive flux is up!
-        fwFlux = ((1 - effectiveIceSal) * Ice::rho * deltaIceVol + Ice::rhoSnow * meltSnowVol) / dt
-            + emp * (1 - cice);
-        sFlux = effectiveIceSal * Ice::rho * deltaIceVol / dt;
+        fwFlux[i]
+            = ((1 - effectiveIceSal) * Ice::rho * deltaIceVol + Ice::rhoSnow * meltSnowVol) / dt
+            + emp[i] * (1 - cice[i]);
+        sFlux[i] = effectiveIceSal * Ice::rho * deltaIceVol / dt;
 
         // Momentum fluxes
-        tauX = cice * tauXIO + (1 - cice) * tauXOW;
-        tauY = cice * tauYIO + (1 - cice) * tauYOW;
+        tauX[i] = cice[i] * tauXIO[i] + (1 - cice[i]) * tauXOW[i];
+        tauY[i] = cice[i] * tauYIO[i] + (1 - cice[i]) * tauYOW[i];
     }
 
 protected:

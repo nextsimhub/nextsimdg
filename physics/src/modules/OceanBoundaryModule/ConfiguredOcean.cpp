@@ -83,6 +83,29 @@ void ConfiguredOcean::configure()
     tryConfigure(Module::getImplementation<IIceOceanHeatFlux>());
 }
 
+ConfigMap ConfiguredOcean::getConfiguration() const
+{
+    return {
+        { keyMap.at(SST_KEY), sst0 },
+        { keyMap.at(SSS_KEY), sss0 },
+        { keyMap.at(MLD_KEY), mld0 },
+        { keyMap.at(CURRENTU_KEY), u0 },
+        { keyMap.at(CURRENTV_KEY), v0},
+    };
+}
+
+ModelState ConfiguredOcean::getStatePrognostic() const
+{
+    ModelState state = IOceanBoundary::getStatePrognostic();
+    return state.merge(slabOcean.getStatePrognostic());
+}
+
+ModelState ConfiguredOcean::getStateDiagnostic() const
+{
+    ModelState state = IOceanBoundary::getStateDiagnostic();
+    return state.merge(slabOcean.getStateDiagnostic());
+}
+
 void ConfiguredOcean::setData(const ModelState::DataMap& ms)
 {
     IOceanBoundary::setData(ms);

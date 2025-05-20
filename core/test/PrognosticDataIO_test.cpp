@@ -48,7 +48,6 @@ TEST_CASE("PrognosticData write test, including DG components")
     // Set the dimensions using the newer per-dimension interface.
     ModelArray::setDimension(ModelArray::Dimension::X, 2);
     ModelArray::setDimension(ModelArray::Dimension::Y, 2);
-    ModelArray::setDimension(ModelArray::Dimension::Z, 1);
     ModelArray::setDimension(
         ModelArray::Dimension::XVERTEX, ModelArray::size(ModelArray::Dimension::X) + 1);
     ModelArray::setDimension(
@@ -58,13 +57,11 @@ TEST_CASE("PrognosticData write test, including DG components")
 
     // Set the data, fill out the arrays
     ModelArray baseData(ModelArray::Type::H);
-    ModelArray zData(ModelArray::Type::Z);
     ModelArray dgData(ModelArray::Type::DG);
     ModelArray latitude(ModelArray::Type::H);
     ModelArray longitude(ModelArray::Type::H);
     ModelArray coords(ModelArray::Type::VERTEX);
     baseData.resize();
-    zData.resize();
     dgData.resize();
     coords.resize();
     size_t xMul = 1000;
@@ -75,7 +72,6 @@ TEST_CASE("PrognosticData write test, including DG components")
             size_t c = i * xMul + j * yMul;
             size_t idx = baseData.indexFromLocation({ i, j });
             baseData[idx] = c;
-            zData.zIndexAndLayer(idx, 0) = c;
             latitude(idx) = resn * j + 0.5 * resn;
             longitude(idx) = resn * i + 0.5 * resn;
             switch (ModelArray::nComponents(ModelArray::Type::DG)) {
@@ -102,14 +98,14 @@ TEST_CASE("PrognosticData write test, including DG components")
 
     // Create the data map
     std::map<std::string, size_t> offsets = { { ciceName, 10 }, { hiceName, 20 }, { hsnowName, 30 },
-        { sssName, 40 }, { sstName, 50 }, { ticeName, 60 }, { uName, 70 }, { vName, 80 } };
+        { sssName, 40 }, { sstName, 50 }, { tsurfName, 60 }, { uName, 70 }, { vName, 80 } };
     ModelState::DataMap inData = {
         { ciceName, dgData + offsets[ciceName] },
         { hiceName, dgData + offsets[hiceName] },
         { hsnowName, baseData + offsets[hsnowName] },
         { sssName, baseData + offsets[sssName] },
         { sstName, baseData + offsets[sstName] },
-        { ticeName, zData + offsets[ticeName] },
+        { tsurfName, baseData + offsets[tsurfName] },
         { uName, baseData + offsets[uName] },
         { vName, baseData + offsets[vName] },
         // grid coordinates and mask
@@ -145,6 +141,8 @@ TEST_CASE("PrognosticData write test, including DG components")
     size_t testComponent = 4;
     REQUIRE(cice.components(cice.indexFromLocation({ 1, 1 }))[testComponent]
         == 1 * xMul + 1 * yMul + testComponent + offsets[ciceName]);
+
+    REQUIRE(readData.count(tsurfName) > 0);
 
     std::filesystem::remove(filename);
 }

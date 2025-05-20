@@ -20,8 +20,6 @@ public:
     }
     ~DummyIceSpread() = default;
 
-    ModelState getStateRecursive(const OutputSpec& os) const override { return ModelState(); }
-
     void freeze(const TimestepTime& tstep, double hice, double hsnow, double deltaHi, double newIce,
         double& cice, double& qow, double& deltaCfreeze) override
     {

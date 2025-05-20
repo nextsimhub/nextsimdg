@@ -38,6 +38,7 @@ public:
     static HelpMap& getHelpRecursive(HelpMap& map, bool getAll);
 
     void configure() override;
+    ConfigMap getConfiguration() const override;
 
     //! Calculates the fluxes from the given values
     void update(const TimestepTime&) override;

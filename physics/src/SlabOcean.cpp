@@ -1,7 +1,7 @@
 /*!
  * @file SlabOcean.cpp
  *
- * @date 10 Feb 2025
+ * @date 29 Apr 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -38,6 +38,34 @@ void SlabOcean::configure()
     getStore().registerArray(Protected::SLAB_SSS, &sssSlab, RO);
 }
 
+ConfigMap SlabOcean::getConfiguration() const
+{
+    return {
+        { keyMap.at(TIMET_KEY), relaxationTimeT },
+        { keyMap.at(TIMES_KEY), relaxationTimeS },
+    };
+}
+
+ModelState SlabOcean::getStatePrognostic() const
+{
+    return { {
+                 { sstSlabName, sstSlab },
+                 { sssSlabName, sssSlab },
+             },
+        getConfiguration() };
+}
+
+ModelState SlabOcean::getStateDiagnostic() const
+{
+    ModelState state = { {
+                             { "Q_slab", qdw },
+                             { "F_slab", fdw },
+                         },
+        {} };
+
+    return state.merge(getStatePrognostic());
+}
+
 SlabOcean::HelpMap& SlabOcean::getHelpText(HelpMap& map, bool getAll)
 {
     map[className] = {
@@ -59,34 +87,30 @@ void SlabOcean::setData(const ModelState::DataMap& ms)
     sssSlab.resize();
 }
 
-ModelState SlabOcean::getState() const
-{
-    return { {
-                 { sstSlabName, sstSlab },
-                 { sssSlabName, sssSlab },
-             },
-        {} };
-}
-ModelState SlabOcean::getState(const OutputLevel&) const { return getState(); }
-
 void SlabOcean::update(const TimestepTime& tst)
 {
-    const double dt = tst.step.seconds();
+    dt = tst.step.seconds();
+    overElements(
+        std::bind(&SlabOcean::updateElement, this, std::placeholders::_1, std::placeholders::_2),
+        tst);
+}
 
+void SlabOcean::updateElement(size_t i, const TimestepTime& tst)
+{
     // Slab SST update
-    qdw = (sstExt - sst) * cpml / relaxationTimeT;
-    sstSlab = sst - dt * (qswNet + qNoSun - qdw) / cpml;
+    qdw[i] = (sstExt[i] - sst[i]) * cpml[i] / relaxationTimeT;
+    sstSlab[i] = sst[i] - dt * (qswNet[i] + qNoSun[i] - qdw[i]) / cpml[i];
 
     // Slab SSS update
-    const HField arealDensity = cpml / Water::cp; // density times depth, or cpml divided by cp
+    const double arealDensity = cpml[i] / Water::cp; // density times depth, or cpml divided by cp
     // This is simplified compared to the finiteelement.cpp calculation
     // Fdw = delS * mld * physical::rhow /(timeS*M_sss[i] - ddt*delS) where delS = sssSlab - sssExt
-    fdw = (1 - sssExt / sss) * arealDensity / relaxationTimeS;
+    fdw[i] = (1 - sssExt[i] / sss[i]) * arealDensity / relaxationTimeS;
 
     // Mass per unit area after all the changes in water volume
     // Clamp the denominator to be at least 1 m deep, i.e. at least Water::rho kg m⁻²
-    const HField denominator = (arealDensity - (fwFlux - fdw) * dt).clampAbove(Water::rhoOcean);
-    sssSlab = sss + (sss * fwFlux - fdw * dt) / denominator;
+    const double denominator = std::max(arealDensity - (fwFlux[i] - fdw[i]) * dt, Water::rhoOcean);
+    sssSlab[i] = sss[i] + (sss[i] * fwFlux[i] - fdw[i] * dt) / denominator;
 }
 
 } /* namespace Nextsim */

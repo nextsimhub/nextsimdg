@@ -34,7 +34,6 @@ if __name__ == "__main__":
     formatted[0] = "2010-01-01T00:00:00Z"
     datagrp = root.createGroup("data")
 
-    nLay = datagrp.createDimension("z", nLayers)
     yDim = datagrp.createDimension("y", nfirst)
     xDim = datagrp.createDimension("x", nsecond)
     yVertexDim = datagrp.createDimension("yvertex", nfirst + 1)
@@ -47,7 +46,6 @@ if __name__ == "__main__":
 
     field_dims = ("y", "x")
     coord_dims = ("yvertex", "xvertex", "ncoords")
-    zfield_dims = ("z", "y", "x")
 
     # Array coordinates
     space = 25000.0  # 25 km in metres
@@ -102,10 +100,10 @@ if __name__ == "__main__":
     sst[:, :] = mu * sss[:, :]
 
     # Ice temperature
-    tice = datagrp.createVariable("tice", "f8", zfield_dims)
+    tice = datagrp.createVariable("tice", "f8", field_dims)
     ice_melt = mu * 5  # Melting point of sea ice (salinity = 5) in ˚C
     # Tice outside the ice pack is the melting point of pure water ice, which is conveniently 0˚C
-    tice[0, :, :] = ice_melt
+    tice[:, :] = ice_melt
 
     # Ice starts at rest
     u = datagrp.createVariable("u", "f8", field_dims)

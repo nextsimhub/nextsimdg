@@ -1,12 +1,13 @@
 /*!
  * @file RectGrid_test.cpp
  *
- * @date 24 Sep 2024
+ * @date 09 Dec 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
 #ifdef USE_MPI
 #include <doctest/extensions/doctest_mpi.h>
+#undef INFO
 #else
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include <doctest/doctest.h>
@@ -14,7 +15,6 @@
 
 #include "include/CommonRestartMetadata.hpp"
 #include "include/IStructure.hpp"
-#include "include/NZLevels.hpp"
 #include "include/RectGridIO.hpp"
 #include "include/RectangularGrid.hpp"
 #include "include/gridNames.hpp"
@@ -49,9 +49,7 @@ TEST_CASE("Write and read a ModelState-based RectGrid restart file")
     double xFactor = 0.0001;
 
     // Create data for reference file
-    NZLevels::set(1);
     ModelArray::setDimensions(ModelArray::Type::H, { nx, ny });
-    ModelArray::setDimensions(ModelArray::Type::Z, { nx, ny, NZLevels::get() });
 
     HField fractional(ModelArray::Type::H);
     HField mask(ModelArray::Type::H);
@@ -70,7 +68,7 @@ TEST_CASE("Write and read a ModelState-based RectGrid restart file")
     HField hsnow = fractional + 5;
 
     HField ticeValue = -(fractional + 1);
-    ZField tice = ModelArray::ZField();
+    HField tice = ModelArray::HField();
     tice.setData(ticeValue);
 
     ModelState state = { {
@@ -78,7 +76,7 @@ TEST_CASE("Write and read a ModelState-based RectGrid restart file")
                              { "hice", hice },
                              { "cice", cice },
                              { "hsnow", hsnow },
-                             { "tice", tice },
+                             { "tsurf", tice },
                          },
         {} };
 
@@ -139,7 +137,6 @@ TEST_CASE("Write and read a ModelState-based RectGrid restart file")
     // Reset dimensions so it is possible to check if they
     // are read correctly from refeence file
     ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
-    ModelArray::setDimensions(ModelArray::Type::Z, { 1, 1, 1 });
     REQUIRE(ModelArray::dimensions(ModelArray::Type::H)[0] == 1);
     RectangularGrid gridIn;
     size_t targetX = 1;
@@ -159,13 +156,9 @@ TEST_CASE("Write and read a ModelState-based RectGrid restart file")
 #ifdef USE_MPI
     REQUIRE(ModelArray::dimensions(ModelArray::Type::H)[0] == metadataIn.localExtentX);
     REQUIRE(ModelArray::dimensions(ModelArray::Type::H)[1] == metadataIn.localExtentY);
-    REQUIRE(ModelArray::dimensions(ModelArray::Type::Z)[0] == metadataIn.localExtentX);
-    REQUIRE(ModelArray::dimensions(ModelArray::Type::Z)[1] == metadataIn.localExtentY);
 #else
     REQUIRE(ModelArray::dimensions(ModelArray::Type::H)[0] == nx);
     REQUIRE(ModelArray::dimensions(ModelArray::Type::H)[1] == ny);
-    REQUIRE(ModelArray::dimensions(ModelArray::Type::Z)[0] == nx);
-    REQUIRE(ModelArray::dimensions(ModelArray::Type::Z)[1] == ny);
 #endif
 #ifdef USE_MPI
     REQUIRE(ms.data.at("hice")(targetX, targetY)
@@ -174,14 +167,13 @@ TEST_CASE("Write and read a ModelState-based RectGrid restart file")
     REQUIRE(ms.data.at("hice")(targetX, targetY) == 1.0201);
 #endif
 
-    ZField ticeIn = ms.data.at("tice");
+    HField ticeIn = ms.data.at("tsurf");
 
-    REQUIRE(ticeIn.dimensions()[2] == 1);
 #ifdef USE_MPI
     REQUIRE(ticeIn(targetX, targetY, 0U)
         == -1.0201 - metadataIn.localCornerY * yFactor - metadataIn.localCornerX * xFactor);
 #else
-    REQUIRE(ticeIn(targetX, targetY, 0U) == -1.0201);
+    REQUIRE(ticeIn(targetX, targetY) == -1.0201);
 #endif
 
     // Check that the coordinates have been correctly written and read

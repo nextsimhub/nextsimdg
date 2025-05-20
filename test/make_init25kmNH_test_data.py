@@ -12,14 +12,11 @@ Code at the end of the file.
 def get_data(name):
     nx = 154
     ny = 121
-    nz = 3
     ncoords = 2
     if name == "nx":
         return nx
     elif name == "ny":
         return ny
-    elif name == "nz":
-        return nz
     elif name == "ncoords":
         return ncoords
     elif name == "longitude":
@@ -51992,7 +51989,7 @@ def get_data(name):
       NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, 
       NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN
             ]).reshape((ny, nx))
-    elif name == "tice":
+    elif name == "tsurf":
         return np.asarray([
   NaN, NaN, NaN, NaN, NaN, -1.64505209830731, -1.64567742687956, -1.64534436042695, 
       NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, 
@@ -56352,6 +56349,9 @@ def get_data(name):
       NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, 
       NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, 
       NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN,
+            ]).reshape((ny, nx))
+    elif name == "tinterior":
+        return np.asarray([
   NaN, NaN, NaN, NaN, NaN, -1.64505209830731, -1.64567742687956, -1.64534436042695, 
       NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, 
       NaN, NaN, -1.671505000187, -1.67394021813154, -1.67801904923567, 
@@ -60710,6 +60710,9 @@ def get_data(name):
       NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, 
       NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, 
       NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN,
+            ]).reshape((ny, nx))
+    elif name == "tbottom":
+        return np.asarray([
   NaN, NaN, NaN, NaN, NaN, -1.64505209830731, -1.64567742687956, -1.64534436042695, 
       NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, 
       NaN, NaN, -1.671505000187, -1.67394021813154, -1.67801904923567, 
@@ -65068,14 +65071,12 @@ def get_data(name):
       NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, 
       NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, 
       NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN
-            ]).reshape((nz, ny, nx))
+            ]).reshape((ny, nx))
 if __name__ == "__main__":
 
-    
     # Grid dimensions
     nx = get_data("nx")
     ny = get_data("ny")
-    nLayers = get_data("nz")
     ncg = 1
     n_dg = 1
     n_dgstress = 3
@@ -65100,7 +65101,6 @@ if __name__ == "__main__":
     formatted[0] = "2010-01-01T00:00:00Z"
     datagrp = root.createGroup("data")
 
-    nLay = datagrp.createDimension("zdim", nLayers)
     yDim = datagrp.createDimension("ydim", ny)
     xDim = datagrp.createDimension("xdim", nx)
     yVertexDim = datagrp.createDimension("yvertex", ny + 1)
@@ -65113,7 +65113,6 @@ if __name__ == "__main__":
     
     field_dims = ("ydim", "xdim")
     coord_dims = ("yvertex", "xvertex", "ncoords")
-    zfield_dims = ("zdim", "ydim", "xdim")
 
     datagrp.createVariable("coords", "f8", coord_dims)[:] = get_data("coords")
     datagrp.createVariable("longitude", "f8", field_dims)[:] = get_data("longitude")
@@ -65136,7 +65135,8 @@ if __name__ == "__main__":
     datagrp.createVariable("sst", "f8", field_dims)[:, :] = get_data("sst")
 
     # Ice temperature
-    datagrp.createVariable("tice", "f8", zfield_dims)[:, :, :] = get_data("tice")
+    for t_field in ("tsurf", "tinterior", "tbottom"):
+        datagrp.createVariable(t_field, "f8", field_dims)[:, :] = get_data(t_field)
     
     # Ice starts at rest
     datagrp.createVariable("u", "f8", field_dims)[:, :] = 0

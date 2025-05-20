@@ -31,7 +31,6 @@ std::map<ModelArray::Dimension, ModelArray::DimensionSpec> ModelArray::definedDi
     // set default global size, local size and start position for each dimension
     { ModelArray::Dimension::X, { "xdim", "x", 0, 0, 0 } },
     { ModelArray::Dimension::Y, { "ydim", "y", 0, 0, 0 } },
-    { ModelArray::Dimension::Z, { "zdim", "z", 1, 1, 0 } },
     { ModelArray::Dimension::XVERTEX, { "xvertex", "xvertex", 1, 1, 0 } }, // defined as x + 1
     { ModelArray::Dimension::YVERTEX, { "yvertex", "yvertex", 1, 1, 0 } }, // defined as y + 1
     { ModelArray::Dimension::XCG, { "x_cg", "x_cg", CGDEGREE, CGDEGREE, 0 } },
@@ -64,12 +63,6 @@ ModelArray::TypeDimensions ModelArray::typeDimensions = {
             ModelArray::Dimension::X,
             ModelArray::Dimension::Y,
         } },
-    { ModelArray::Type::Z,
-        {
-            ModelArray::Dimension::X,
-            ModelArray::Dimension::Y,
-            ModelArray::Dimension::Z,
-        } },
     { ModelArray::Type::DG,
         {
             ModelArray::Dimension::X,
@@ -92,7 +85,6 @@ const std::map<ModelArray::Type, std::string> ModelArray::typeNames = {
     { ModelArray::Type::VERTEX, "VertexField" },
     { ModelArray::Type::U, "UField" },
     { ModelArray::Type::V, "VField" },
-    { ModelArray::Type::Z, "ZField" },
     { ModelArray::Type::DG, "DGField" },
     { ModelArray::Type::DGSTRESS, "DGStressField" },
     { ModelArray::Type::CG, "CGField" },
@@ -109,7 +101,7 @@ bool ModelArray::hasDoF(const Type type)
 }
 
 ModelArray::SizeMap::SizeMap()
-    : m_sizes({ { Type::H, 0 }, { Type::VERTEX, 1 }, { Type::U, 0 }, { Type::V, 0 }, { Type::Z, 0 },
+    : m_sizes({ { Type::H, 0 }, { Type::VERTEX, 1 }, { Type::U, 0 }, { Type::V, 0 },
           { Type::DG, 0 }, { Type::DGSTRESS, 0 }, { Type::CG, 1 } })
 {
 }
@@ -120,7 +112,6 @@ ModelArray::DimensionMap::DimensionMap()
           { Type::VERTEX, { 1, 1 } },
           { Type::U, { 0, 0 } },
           { Type::V, { 0, 0 } },
-          { Type::Z, { 0, 0, 1 } },
           { Type::DG, { 0, 0 } },
           { Type::DGSTRESS, { 0, 0 } },
           { Type::CG, { 1, 1 } },

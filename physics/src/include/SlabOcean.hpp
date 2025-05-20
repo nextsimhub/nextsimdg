@@ -1,7 +1,7 @@
 /*!
  * @file SlabOcean.hpp
  *
- * @date 10 Feb 2025
+ * @date 29 Apr 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -46,12 +46,15 @@ public:
     };
 
     void configure() override;
+    ConfigMap getConfiguration() const override;
+
+    ModelState getStatePrognostic() const override;
+    ModelState getStateDiagnostic() const override;
+
     static HelpMap& getHelpText(HelpMap& map, bool getAll);
     static HelpMap& getHelpRecursive(HelpMap& map, bool getAll);
 
     void setData(const ModelState::DataMap& ms) override;
-    ModelState getState() const override;
-    ModelState getState(const OutputLevel&) const override;
     std::string getName() const override { return "SlabOcean"; }
 
     void update(const TimestepTime&);
@@ -82,6 +85,10 @@ private:
 
     double relaxationTimeT = defaultRelaxationTime;
     double relaxationTimeS = defaultRelaxationTime;
+
+    double dt;
+
+    void updateElement(size_t i, const TimestepTime& tst);
 };
 
 } /* namespace Nextsim */

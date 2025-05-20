@@ -54,6 +54,13 @@ void ERA5Atmosphere::configure()
     tryConfigure(fluxImpl);
 }
 
+ConfigMap ERA5Atmosphere::getConfiguration() const
+{
+    return {
+        { keyMap.at(FILEPATH_KEY), filePath },
+    };
+}
+
 void ERA5Atmosphere::update(const TimestepTime& tst)
 {
     // TODO: Get more authoritative names for the forcings

@@ -1,7 +1,8 @@
 /*!
  * @file    XiosAxis_test.cpp
  * @author  Joe Wallwork <jw2423@cam.ac.uk>
- * @date    03 Dec 2024
+ * @author  Adeleke Bankole <ab3191@cam.ac.uk>
+ * @date    23 Apr 2025
  * @brief   Tests for XIOS axes
  * @details
  * This test is designed to test axis functionality of the C++ interface
@@ -12,6 +13,7 @@
 #undef INFO
 
 #include "StructureModule/include/ParametricGrid.hpp"
+#include "include/Finalizer.hpp"
 #include "include/Xios.hpp"
 
 namespace Nextsim {
@@ -20,43 +22,44 @@ namespace Nextsim {
  * TestXiosAxis
  *
  * This function tests the axis functionality of the C++ interface for XIOS. It
- * needs to be run with 2 ranks i.e.,
+ * needs to be run with 3 ranks i.e.,
  *
- * `mpirun -n 2 ./testXiosAxis_MPI2`
+ * `mpirun -n 3 ./testXiosAxis_MPI3`
  *
  */
-MPI_TEST_CASE("TestXiosAxis", 2)
+MPI_TEST_CASE("TestXiosAxis", 3)
 {
     enableXios();
 
-    // Initialize an Xios instance called xios_handler
-    Xios xios_handler;
-    REQUIRE(xios_handler.isInitialized());
-    REQUIRE(xios_handler.getClientMPISize() == 2);
+    // Get the Xios singleton instance and check it's initialized
+    Xios& xiosHandler = Xios::getInstance();
+    REQUIRE(xiosHandler.isInitialized());
+    REQUIRE(xiosHandler.getClientMPISize() == 3);
 
     // --- Tests for axis API
     const std::string axisId = { "axis_A" };
-    REQUIRE_THROWS_WITH(xios_handler.getAxisSize(axisId), "Xios: Undefined axis 'axis_A'");
-    REQUIRE_THROWS_WITH(xios_handler.getAxisValues(axisId), "Xios: Undefined axis 'axis_A'");
-    xios_handler.createAxis(axisId);
-    REQUIRE_THROWS_WITH(xios_handler.createAxis(axisId), "Xios: Axis 'axis_A' already exists");
+    REQUIRE_THROWS_WITH(xiosHandler.getAxisSize(axisId), "Xios: Undefined axis 'axis_A'");
+    REQUIRE_THROWS_WITH(xiosHandler.getAxisValues(axisId), "Xios: Undefined axis 'axis_A'");
+    xiosHandler.createAxis(axisId);
+    REQUIRE_THROWS_WITH(xiosHandler.createAxis(axisId), "Xios: Axis 'axis_A' already exists");
     // Axis size
-    REQUIRE_THROWS_WITH(xios_handler.getAxisSize(axisId), "Xios: Undefined size for axis 'axis_A'");
+    REQUIRE_THROWS_WITH(xiosHandler.getAxisSize(axisId), "Xios: Undefined size for axis 'axis_A'");
     const size_t axisSize { 2 };
-    xios_handler.setAxisSize(axisId, axisSize);
-    REQUIRE(xios_handler.getAxisSize(axisId) == axisSize);
+    xiosHandler.setAxisSize(axisId, axisSize);
+    REQUIRE(xiosHandler.getAxisSize(axisId) == axisSize);
     // Axis values
     REQUIRE_THROWS_WITH(
-        xios_handler.getAxisValues(axisId), "Xios: Undefined values for axis 'axis_A'");
-    REQUIRE_THROWS_WITH(xios_handler.setAxisValues(axisId, { 0.0, 1.0, 2.0 }),
+        xiosHandler.getAxisValues(axisId), "Xios: Undefined values for axis 'axis_A'");
+    REQUIRE_THROWS_WITH(xiosHandler.setAxisValues(axisId, { 0.0, 1.0, 2.0 }),
         "Xios: Size incompatible with values for axis 'axis_A'");
     std::vector<double> axisValues { 0.0, 1.0 };
-    xios_handler.setAxisValues(axisId, axisValues);
-    std::vector<double> axis_A = xios_handler.getAxisValues(axisId);
+    xiosHandler.setAxisValues(axisId, axisValues);
+    std::vector<double> axis_A = xiosHandler.getAxisValues(axisId);
     REQUIRE(axis_A[0] == doctest::Approx(0.0));
     REQUIRE(axis_A[1] == doctest::Approx(1.0));
 
-    xios_handler.close_context_definition();
-    xios_handler.context_finalize();
+    xiosHandler.close_context_definition();
+    xiosHandler.context_finalize();
+    Finalizer::finalize();
 }
 }

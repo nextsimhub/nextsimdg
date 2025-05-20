@@ -44,19 +44,31 @@ public:
     }
     virtual ~IDynamics() = default;
 
-    ModelState getState() const override
+    ModelState getStatePrognostic() const override
     {
-        return { {
-                     { uName, mask(uice) },
-                     { vName, mask(vice) },
+        ModelState state = { {
+                { uName, mask(uice) },
+                { vName, mask(vice) },
                  },
-            {} };
+            getConfiguration()
+        };
+
+        if (m_usesDamage) {
+               ModelState::DataMap damageState = { { damageName, damage } };
+               state.merge(damageState);
+           }
+
+        return state;
     }
-    ModelState getState(const OutputLevel&) const override { return getState(); }
-    ModelState getStateRecursive(const OutputSpec& os) const override
+
+    ModelState getStateDiagnostic() const override
     {
-        // Ensure the base class implementation of getState() is called
-        return os ? IDynamics::getState() : ModelState();
+        ModelState state = { {
+                { "tau_x", taux },
+                { "tau_y", tauy },
+        }, { }
+        };
+        return state.merge(getStatePrognostic());
     }
 
     std::string getName() const override { return "IDynamics"; }
