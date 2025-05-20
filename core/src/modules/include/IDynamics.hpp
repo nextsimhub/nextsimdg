@@ -12,6 +12,8 @@
 #include "include/Time.hpp"
 #include "include/gridNames.hpp"
 
+#include <limits>
+
 namespace Nextsim {
 class IDynamics : public ModelComponent {
 public:
@@ -87,6 +89,14 @@ public:
     {
         advectedFields().push_back(std::make_shared<AdvectedField>(array));
     }
+
+    virtual void advectField(double timestep, ModelArray& field, double lowerLimit =
+            -std::numeric_limits<double>::infinity(), double upperLimit =
+            std::numeric_limits<double>::infinity())
+    {
+    }
+
+    virtual void prepareAdvection() = 0;
 protected:
     // Shared ice velocity arrays
     HField uice;

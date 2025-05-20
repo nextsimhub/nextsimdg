@@ -227,9 +227,9 @@ TEST_CASE("advection")
     DGVectorHolder<dg> snowHolder(hsnow);
     size_t nt = 50;
     for (size_t i = 0; i < nt; ++i) {
+        kernel.prepareAdvection();
+        kernel.advectField(tst.step.seconds(), snowHolder, 0.0);
         kernel.update(tst);
-        kernel.advectField(tst.step.seconds(), snowHolder);
-        Nextsim::LimitMin(snowHolder, 0.0);
 
         deltaH = hice - hice0;
         deltaC = cice - cice0;
