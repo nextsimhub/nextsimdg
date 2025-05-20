@@ -170,7 +170,7 @@ public:
 
     void advectionAndLimits(const TimestepTime& tst)
     {
-        prepareAdvection();
+//        prepareAdvection();
 
         //! Perform transport step
         dgtransport->step(tst.step.seconds(), cice);
@@ -185,6 +185,31 @@ public:
         for (DGVectorHolder<DGadvection>& field : advectedFields) {
             dgtransport->step(tst.step.seconds(), field);
         }
+    }
+
+    /*!
+     * Prepares the transport objects to perform the advection step.
+     */
+    virtual void prepareAdvection() = 0;
+
+    /*!
+     * Advects as field one timestep.
+     *
+     * @param timestep The advection timestep in seconds.
+     * @param field A reference to the field to be advected.
+     * @param lowerLimit The minimum value the field is allowed to take. Defaults to -∞.
+     * @param upperLimit The maximum value the field is allowed to take. Defaults to +∞.
+     *
+     * @return A reference to the advected array.
+     */
+    virtual DGVector<DGadvection>& advectField(double timestep, DGVector<DGadvection>& field,
+            double lowerLimit = -std::numeric_limits<double>::infinity(), double upperLimit =
+                    std::numeric_limits<double>::infinity()) = 0;
+
+    virtual void advectDynamicsFields(double timestep)
+    {
+        advectField(timestep, hice, 0.0);
+        advectField(timestep, cice, 0.0, 1.0);
     }
 
 protected:
@@ -229,11 +254,6 @@ protected:
      * Apply Dirichlet and periodic boundary conditions.
      */
     virtual void applyBoundaries() = 0;
-
-    /*!
-     * Prepares the transport objects to perform the advection step.
-     */
-    virtual void prepareAdvection() = 0;
 
 private:
     std::vector<DGVectorHolder<DGadvection>> advectedFields;

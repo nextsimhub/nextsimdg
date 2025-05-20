@@ -18,6 +18,7 @@
 #include "include/constants.hpp"
 
 #include <cmath>
+#include <limits>
 
 namespace Nextsim {
 
@@ -38,8 +39,9 @@ template <int DGadvection> class FreeDriftDynamicsKernel : public CGDynamicsKern
     using CGDynamicsKernel<DGadvection>::cosOceanAngle;
     using CGDynamicsKernel<DGadvection>::sinOceanAngle;
     using CGDynamicsKernel<DGadvection>::baseParams;
-
 public:
+    using CGDynamicsKernel<DGadvection>::advectField;
+
     FreeDriftDynamicsKernel(const DynamicsParameters& paramsIn)
         : CGDynamicsKernel<DGadvection>(paramsIn)
         , params(paramsIn)
@@ -58,20 +60,18 @@ public:
 
     void update(const TimestepTime& tst) override
     {
+        // Advect the ice here to match advection in the rest of the model.
+        advectField(tst.step.seconds(), hice, 0.0);
+        advectField(tst.step.seconds(), cice, 0.0, 1.0);
+
         updateMomentum(tst);
         applyBoundaries();
 
         // Let DynamicsKernel handle the advection step
-        advectionAndLimits(tst);
+//        advectionAndLimits(tst);
 
         updateIceOceanStress(u, v);
     };
-
-    DGVector<DGadvection>& advectField(double advectionDt, DGVector<DGadvection>& field)
-    {
-        dgtransport->step(advectionDt, field);
-        return field;
-    }
 
 protected:
     const DynamicsParameters& params;
