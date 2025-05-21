@@ -76,7 +76,7 @@ public:
         addBounds(Shared::C_ICE_DG, 0, 1); // Updated ice concentration
         addBounds(Shared::DAMAGE, 0, 1); // Updated ice thickness, ice average, m
         addBounds(Shared::DELTA_CICE, -0.1, 0.1); // Change in sea ice concentration
-        addBounds(Shared::DELTA_HICE, -0.1, 0.1); // Change in sea ice thickness, m
+        addBounds(Shared::DELTA_HICE, -0.3, 0.3); // Change in sea ice thickness, m
         addBounds(Shared::DQIA_DT, -1e3,
             1e3); // Derivative of Qᵢₐ w.r.t. ice surface temperature  W m⁻² K⁻¹
         addBounds(Shared::HSNOW_MELT, 0, 0.1); // Thickness of snow that melted, m
