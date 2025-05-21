@@ -1,7 +1,7 @@
 /*!
  * @file PrognosticData.cpp
  *
- * @date 12 Mar 2025
+ * @date 21 May 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Einar Ólason <einar.olason@nersc.no>
  */
@@ -63,8 +63,9 @@ void PrognosticData::configure()
 
     tryConfigure(iceGrowth);
 
-    if (getConfiguration(keyMap.at(CHECKFIELDS_KEY), checkFieldsDefault)) {
-        setFieldsToCheck(getConfiguration(keyMap.at(FIELDNAMES_KEY), fieldNamesDefault), pfx);
+    if (Configured::getConfiguration(keyMap.at(CHECKFIELDS_KEY), checkFieldsDefault)) {
+        setFieldsToCheck(
+            Configured::getConfiguration(keyMap.at(FIELDNAMES_KEY), fieldNamesDefault), pfx);
     }
 }
 

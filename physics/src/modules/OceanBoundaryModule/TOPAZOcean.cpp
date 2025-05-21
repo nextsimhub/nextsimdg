@@ -1,7 +1,7 @@
 /*!
  * @file TOPAZOcean.cpp
  *
- * @date 12 Mar 2025
+ * @date 21 May 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -67,15 +67,12 @@ void TOPAZOcean::configure()
     getStore().registerArray(Protected::EXT_SST, &sstExt, RO);
     getStore().registerArray(Protected::EXT_SSS, &sssExt, RO);
 
-    if (getConfiguration(keyMap.at(CHECKFIELDS_KEY), checkFieldsDefault)) {
+    if (Configured::getConfiguration(keyMap.at(CHECKFIELDS_KEY), checkFieldsDefault)) {
         setFieldsToCheck(fieldNamesDefault, pfx);
     }
 }
 
-ConfigMap TOPAZOcean::getConfiguration() const
-{
-    return { { keyMap.at(FILEPATH_KEY), filePath } };
-}
+ConfigMap TOPAZOcean::getConfiguration() const { return { { keyMap.at(FILEPATH_KEY), filePath } }; }
 
 void TOPAZOcean::updateBefore(const TimestepTime& tst)
 {

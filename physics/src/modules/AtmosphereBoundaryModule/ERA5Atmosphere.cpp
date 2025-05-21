@@ -1,7 +1,7 @@
 /*!
  * @file ERA5Atmosphere.cpp
  *
- * @date 12 Mar 2025
+ * @date 21 May 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -64,7 +64,7 @@ void ERA5Atmosphere::configure()
     fluxImpl = &Module::getImplementation<IFluxCalculation>();
     tryConfigure(fluxImpl);
 
-    if (getConfiguration(keyMap.at(CHECKFIELDS_KEY), checkFieldsDefault)) {
+    if (Configured::getConfiguration(keyMap.at(CHECKFIELDS_KEY), checkFieldsDefault)) {
         setFieldsToCheck(fieldNamesDefault, pfx);
     }
 }

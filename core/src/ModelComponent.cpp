@@ -1,7 +1,7 @@
 /*!
  * @file ModelComponent.cpp
  *
- * @date 25 Apr 2025
+ * @date 21 May 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -72,7 +72,7 @@ ModelArray ModelComponent::mask(const ModelArray& data, const double missingValu
     case (ModelArray::Type::H):
     case (ModelArray::Type::U):
     case (ModelArray::Type::V): {
-        return data * oceanMask() + MissingData::value() * (1 - oceanMask());
+        return data * getOceanMask() + MissingData::value() * (1 - getOceanMask());
         break;
     }
     }
