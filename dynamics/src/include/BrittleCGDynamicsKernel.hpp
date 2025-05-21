@@ -59,6 +59,8 @@ protected:
     using CGDynamicsKernel<DGadvection>::sinOceanAngle;
 
 public:
+    using CGDynamicsKernel<DGadvection>::advectField;
+
     BrittleCGDynamicsKernel(
         StressUpdateStep<DGadvection, DGstressComp>& stressStepIn, const BBMParameters& paramsIn)
         : CGDynamicsKernel<DGadvection>(paramsIn)
@@ -88,21 +90,34 @@ public:
     // The brittle rheologies use avgU and avgV to do the advection, not u and v, like mEVP
     void prepareAdvection() override { dgtransport->prepareAdvection(avgU, avgV); }
 
-    void update(const TimestepTime& tst) override
+    /*!
+     * Advection function for stress. Stress components have no limits.
+     *
+     * @param timestep Advection timestep length in seconds
+     * @param stessComp Stress component to advect
+     */
+    DGVector<DGstressComp>& advectStress(double advectionTS, DGVector<DGstressComp>& stressComp)
     {
-        // Let DynamicsKernel handle the advection step
-        advectionAndLimits(tst);
+        stresstransport->step(advectionTS, stressComp);
+        return stressComp;
+    }
+
+    void advectDynamicsFields(double timestep) override
+    {
+        // Let DynamicsKernel handle the advection of the ice.
+        DynamicsKernel<DGadvection, DGstressComp>::advectDynamicsFields(timestep);
+        advectField(timestep, damage, 1e-12, 1.0);
 
         //! Perform transport step for stress
         stresstransport->prepareAdvection(avgU, avgV);
-        stresstransport->step(tst.step.seconds(), s11);
-        stresstransport->step(tst.step.seconds(), s12);
-        stresstransport->step(tst.step.seconds(), s22);
+        advectStress(timestep, s11);
+        advectStress(timestep, s12);
+        advectStress(timestep, s22);
+    }
 
-        // Transport and limits for damage
-        dgtransport->step(tst.step.seconds(), damage);
-        Nextsim::LimitMax(damage, 1.0);
-        Nextsim::LimitMin(damage, 1e-12);
+    void update(const TimestepTime& tst) override
+    {
+        advectDynamicsFields(tst.step.seconds());
 
         prepareIteration({ { hiceName, hice }, { ciceName, cice } });
 
