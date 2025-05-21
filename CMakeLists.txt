@@ -49,6 +49,7 @@ if(BUILD_TESTS)
         TARGET doctest::doctest
         PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${DOCTEST_INCLUDE_DIR}"
     )
+    enable_testing() # Enable ctest
 endif()
 
 # Eigen
