@@ -1,7 +1,7 @@
 /*!
  * @file PhysicalBounds.hpp
  *
- * @date 11 Apr 2025
+ * @date 21 May 2025
  * @author Einar Ólason <einar.olason@nersc.no>
  */
 
@@ -69,6 +69,7 @@ public:
         addBounds(
             Protected::SLAB_QDW, -1e5, 1e5); // Slab ocean temperature nudging heat flux, W m⁻²
         addBounds(Protected::TF, -5, 0); // Ocean freezing temperature, ˚C
+        addBounds(Protected::T_SURF, -100, 0); // Ocean freezing temperature, ˚C
 
         // Shared arrays
         addBounds(Shared::C_ICE, 0, 1); // Updated ice concentration
@@ -94,6 +95,7 @@ public:
         addBounds(Shared::Q_SW_OW, -1e3, 1e-6); // Short-wave flux into ice free ocean W m⁻²
         addBounds(Shared::SUBLIM, -1e-3, 1e-3); // Upward sublimation rate kg m⁻² s⁻¹
         addBounds(Shared::T_ICE, -100, 0); // Updated ice temperatures, ˚C
+        addBounds(Shared::T_SURF, -100, 0); // Updated ice temperatures, ˚C
     }
 
     std::pair<double, double> getBounds(const std::string& key) const { return bounds.at(key); }
