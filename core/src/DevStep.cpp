@@ -1,7 +1,7 @@
 /*!
  * @file DevStep.cpp
  *
- * @date 05 May 2025
+ * @date 21 May 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -48,7 +48,8 @@ void DevStep::iterate(const TimestepTime& tst)
         lastOutput = mData->time();
     }
     // XIOS wants all the fields, every timestep, so I guess that's what everyone gets
-    Module::getImplementation<IDiagnosticOutput>().outputState(pData->getStateDiagnostic(), *mData, tst.step);
+    Module::getImplementation<IDiagnosticOutput>().outputState(
+        pData->getStateDiagnostic(), *mData, tst.step);
 }
 
 void DevStep::setRestartDetails(const Duration& restartPeriod, const std::string& fileName)
