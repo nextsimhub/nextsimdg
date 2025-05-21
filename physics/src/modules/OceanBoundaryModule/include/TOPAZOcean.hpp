@@ -33,6 +33,7 @@ public:
     static HelpMap& getHelpRecursive(HelpMap& map, bool getAll);
 
     void configure() override;
+    ConfigMap getConfiguration() const override;
 
     void updateBefore(const TimestepTime&) override;
     void updateAfter(const TimestepTime&) override;

@@ -10,8 +10,6 @@
 
 #include "include/IIceThermodynamics.hpp"
 
-#include "include/NZLevels.hpp"
-
 namespace Nextsim {
 
 class DummyIceThermodynamics : public IIceThermodynamics {
@@ -19,16 +17,11 @@ public:
     DummyIceThermodynamics()
         : IIceThermodynamics()
     {
-        NZLevels::set(getNZLevels());
     }
     ~DummyIceThermodynamics() = default;
 
-    ModelState getStateRecursive(const OutputSpec& os) const override { return ModelState(); }
-
     void setData(const ModelState::DataMap& ms) override { IIceThermodynamics::setData(ms); }
     void update(const TimestepTime& tsTime) override { }
-
-    size_t getNZLevels() const override { return 1; } // 1 is the minimum, I guess
 };
 
 } /* namespace Nextsim */

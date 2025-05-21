@@ -1,5 +1,5 @@
 # Build stage with Spack pre-installed and ready to be used
-FROM spack/ubuntu-jammy:0.21 AS builder
+FROM spack/ubuntu-noble:latest AS builder
 
 # Install software from spack_devenv.yaml
 RUN mkdir /opt/spack-environment
@@ -36,7 +36,7 @@ RUN cd /opt/spack-environment && \
     spack env activate --sh -d . > activate.sh
 
 # Bare OS image to run the installed executables
-FROM ubuntu:22.04
+FROM ubuntu:latest
 
 # Copy necessary files from the builder stage
 COPY --from=builder /opt/spack-environment /opt/spack-environment

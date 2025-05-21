@@ -24,6 +24,7 @@ class Slice;
 namespace Nextsim {
 
 class ModelArraySlice;
+class ConstModelArraySlice;
 /*
  * Set the storage order to row major. This matches with DGVector when there is
  * more than one DG component. If there is only one DG component (the finite
@@ -164,6 +165,7 @@ public:
      * Creates a ModelArraySlice.
      */
     ModelArraySlice operator[](const Slice&);
+    ConstModelArraySlice operator[](const Slice&) const;
 
     // ModelArray arithmetic
     //! In place addition of another ModelArray
@@ -571,32 +573,6 @@ public:
         static TypeMap comp0Map = definedComp0Map();
         return (comp0Map.count(withComponents) > 0) ? comp0Map.at(withComponents) : withComponents;
     }
-    /*!
-     * @brief Special access function for ZFields.
-     *
-     * @detail Index a ZField using an index from an HField of the same
-     * horizontal extent and a layer index for the final dimension.
-     *
-     * @param hIndex the equivalent positional index in an HField array
-     * @param layer the vertical layer to be accessed
-     */
-    double& zIndexAndLayer(size_t hIndex, size_t layer)
-    {
-        return this->operator[](zLayerIndex(hIndex, layer));
-    }
-    /*!
-     * @brief Special access function for ZFields, const version.
-     *
-     * @detail Index a ZField using an index from an HField of the same
-     * horizontal extent and a layer index for the final dimension.
-     *
-     * @param hIndex the equivalent positional index in an HField array
-     * @param layer the vertical layer to be accessed
-     */
-    const double& zIndexAndLayer(size_t hIndex, size_t layer) const
-    {
-        return this->operator[](zLayerIndex(hIndex, layer));
-    }
 
     /*!
      * @brief Returns the index for a given set of multi-dimensional location for this array's type.
@@ -646,20 +622,6 @@ public:
 
 protected:
     Type type;
-
-    /*!
-     * @brief Special access function for ZFields, common implementation version.
-     *
-     * @detail Index a ZField using an index from an HField of the same
-     * horizontal extent and a layer index for the final dimension.
-     *
-     * @param hIndex the equivalent positional index in an HField array
-     * @param layer the vertical layer to be accessed
-     */
-    size_t zLayerIndex(size_t hIndex, size_t layer) const
-    {
-        return hIndex + layer * dimensions()[0] * dimensions()[1];
-    }
 
 private:
     static bool areMapsInvalid;

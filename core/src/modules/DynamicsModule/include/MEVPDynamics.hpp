@@ -34,8 +34,8 @@ public:
     void update(const TimestepTime& tst) override;
 
     void setData(const ModelState::DataMap&) override;
-    ModelState getStateRecursive(const OutputSpec& os) const override;
     void configure() override;
+    ConfigMap getConfiguration() const override;
 
     enum {
         PSTAR_KEY,

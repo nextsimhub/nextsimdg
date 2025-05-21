@@ -64,16 +64,18 @@ void ModelComponent::noLandMask()
 
 ModelArray ModelComponent::mask(const ModelArray& data, const double missingValue)
 {
-    auto copy = data;
-    copy = missingValue;
-    const size_t nZ = data.getType() == ModelArray::Type::Z ? data.dimensions()[2] : 1;
-    for (size_t iOcean = 0; iOcean < nOcean; ++iOcean) {
-        const size_t i = oceanIndex[iOcean];
-        for (size_t k = 0; k < nZ; ++k) {
-            copy.zIndexAndLayer(i, k) = data.zIndexAndLayer(i, k);
-        }
+    switch (data.getType()) {
+    default: {
+        return ModelArray(data);
+        break;
     }
-    return copy;
+    case (ModelArray::Type::H):
+    case (ModelArray::Type::U):
+    case (ModelArray::Type::V): {
+        return data * oceanMask() + MissingData::value() * (1 - oceanMask());
+        break;
+    }
+    }
 }
 
 const ModelArray& ModelComponent::getOceanMask() { return oceanMaskSingleton(); }

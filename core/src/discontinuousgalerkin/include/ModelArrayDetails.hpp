@@ -14,14 +14,13 @@
 // Should be grouped with a consistent ModelArrayTypedefs.hpp and
 // ModelArrayDetails.cpp
 
-enum class Dimension { X, Y, Z, XVERTEX, YVERTEX, XCG, YCG, DG, DGSTRESS, NCOORDS, COUNT };
+enum class Dimension { X, Y, XVERTEX, YVERTEX, XCG, YCG, DG, DGSTRESS, NCOORDS, COUNT };
 
 enum class Type {
     H,
     VERTEX,
     U,
     V,
-    Z,
     DG,
     DGSTRESS,
     CG,
@@ -33,7 +32,6 @@ static ModelArray HField() { return ModelArray(Type::H); }
 static ModelArray VertexField() { return ModelArray(Type::VERTEX); }
 static ModelArray UField() { return ModelArray(Type::U); }
 static ModelArray VField() { return ModelArray(Type::V); }
-static ModelArray ZField() { return ModelArray(Type::Z); }
 static ModelArray DGField() { return ModelArray(Type::DG); }
 static ModelArray DGSField() { return ModelArray(Type::DGSTRESS); }
 static ModelArray CGField() { return ModelArray(Type::CG); }

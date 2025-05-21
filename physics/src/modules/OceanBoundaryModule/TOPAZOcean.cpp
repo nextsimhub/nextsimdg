@@ -72,6 +72,11 @@ void TOPAZOcean::configure()
     }
 }
 
+ConfigMap TOPAZOcean::getConfiguration() const
+{
+    return { { keyMap.at(FILEPATH_KEY), filePath } };
+}
+
 void TOPAZOcean::updateBefore(const TimestepTime& tst)
 {
     std::set<std::string> forcings = { sstName, sssName, mldName, uName, vName, sshName };

@@ -19,13 +19,12 @@ public:
     {
         dataMap = ms;
     }
-    ModelState getState(const OutputLevel&) const override { return getState(); }
-    ModelState getState() const override
+    ModelState getStateDiagnostic() const override
     {
         return { dataMap, {} };
     }
 
-    ModelState getStateRecursive(const OutputSpec& os) const override
+    ModelState getStatePrognostic() const override
     {
         return { dataMap, {} };
     }

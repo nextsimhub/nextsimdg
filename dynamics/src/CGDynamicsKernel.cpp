@@ -37,6 +37,7 @@ void CGDynamicsKernel<DGadvection>::initialise(
     pmap = std::make_unique<ParametricMomentumMap<CGdegree, DGadvection>>(*smesh);
     pmap->InitializeLumpedCGMassMatrix();
     pmap->InitializeDivSMatrices();
+    pmap->InitializeCGLandmask();
 
     u.resize_by_mesh(*smesh);
     v.resize_by_mesh(*smesh);

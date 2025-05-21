@@ -48,10 +48,7 @@ void DevStep::iterate(const TimestepTime& tst)
         lastOutput = mData->time();
     }
     // XIOS wants all the fields, every timestep, so I guess that's what everyone gets
-    OutputSpec os; // The default OutputSpec is all fields, but only cell average values
-    ModelState overallState = pData->getStateRecursive(os);
-    overallState.merge(ConfiguredModule::getAllModuleConfigurations());
-    Module::getImplementation<IDiagnosticOutput>().outputState(*mData);
+    Module::getImplementation<IDiagnosticOutput>().outputState(pData->getStateDiagnostic(), *mData);
 }
 
 void DevStep::setRestartDetails(const Duration& restartPeriod, const std::string& fileName)

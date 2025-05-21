@@ -1,8 +1,9 @@
 /*!
- * @file ParaGridIO.cpp
+ * @file ParaGridIO_Xios.cpp
  *
- * @date 09 Dec 2024
+ * @date 12 May 2025
  * @author Tim Spain <timothy.spain@nersc.no>
+ * @author Joe Wallwork <jw2423@cam.ac.uk>
  */
 
 #include "include/ParaGridIO.hpp"
@@ -10,7 +11,11 @@
 #include "include/CommonRestartMetadata.hpp"
 #include "include/FileCallbackCloser.hpp"
 #include "include/Finalizer.hpp"
+#include "include/Logged.hpp"
 #include "include/MissingData.hpp"
+#ifdef USE_XIOS
+#include "include/Xios.hpp"
+#endif
 #include "include/gridNames.hpp"
 
 #include <ncDim.h>
@@ -27,6 +32,7 @@
 
 namespace Nextsim {
 
+// TODO: XIOS implementation
 ParaGridIO::ParaGridIO(ParametricGrid& grid)
     : IParaGridIO(grid)
     , openFilesAndIndices(getOpenFilesAndIndices())
@@ -63,11 +69,21 @@ ParaGridIO::ParaGridIO(ParametricGrid& grid)
           // clang-format on
       })
 {
+    Logged::warning("XIOS integration has not yet been completed");
     static bool doneOnce = doOnce();
 }
 
 bool ParaGridIO::doOnce()
 {
+    Xios& xiosHandler = Xios::getInstance();
+    // NOTE: getInstance will automatically create XIOS input and output files if the
+    // XiosInput.filename and XiosOutput.filename parameters are set in the config.
+
+    // TODO: Setup XIOS in this method.
+    // * We can read the field names from the XiosConfig, too.
+    // * We can determine the read access for the fields from the XiosConfig, too.
+
+    // TODO: Register XIOS finalization and drop the following in that case.
     // Register the finalization function here
     Finalizer::registerUnique(closeAllFiles);
     // Since it should only ever run once, do further one-off initialization: allow distant
@@ -85,6 +101,7 @@ ModelState ParaGridIO::getModelState(const std::string& filePath, ModelMetadata&
 ModelState ParaGridIO::getModelState(const std::string& filePath)
 #endif
 {
+    // TODO: XIOS implementation
     ModelState state;
 
     try {
@@ -196,6 +213,8 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
 ModelState ParaGridIO::readForcingTimeStatic(
     const std::set<std::string>& forcings, const TimePoint& time, const std::string& filePath)
 {
+    // TODO: XIOS implementation
+
     ModelState state;
 
     try {
@@ -233,12 +252,7 @@ ModelState ParaGridIO::readForcingTimeStatic(
             extentArray.push_back(ModelArray::definedDimensions.at(*riter).localLength);
         }
 
-        auto availableForcings = dataGroup.getVars();
         for (const std::string& varName : forcings) {
-            // Don't try to read non-existent data
-            if (!availableForcings.count(varName)) {
-                continue;
-            }
             netCDF::NcVar var = dataGroup.getVar(varName);
             state.data[varName] = ModelArray(ModelArray::Type::H);
             ModelArray& data = state.data.at(varName);
@@ -258,6 +272,7 @@ ModelState ParaGridIO::readForcingTimeStatic(
 void ParaGridIO::dumpModelState(
     const ModelState& state, const ModelMetadata& metadata, const std::string& filePath)
 {
+    // TODO: XIOS implementation
 
 #ifdef USE_MPI
     netCDF::NcFilePar ncFile(filePath, netCDF::NcFile::replace, metadata.mpiComm);
@@ -298,31 +313,36 @@ void ParaGridIO::dumpModelState(
         dimMap.at(entry.second).push_back(ncFromMAMap.at(entry.first));
     }
 
-    // Assume that all fields in the supplied ModelState are necessary, and so write them to file.
+    std::set<std::string> restartFields = { hiceName, ciceName, hsnowName, ticeName, sstName,
+        sssName, maskName, coordsName, xName, yName, longitudeName, latitudeName, gridAzimuthName,
+        uName, vName, damageName }; // TODO and others
+    // If the above fields are found in the supplied ModelState, output them
     for (auto entry : state.data) {
-        // Get the type, then relevant vector of NetCDF dimensions
-        ModelArray::Type type = entry.second.getType();
-        std::vector<size_t> start;
-        std::vector<size_t> count;
-        if (ModelArray::hasDoF(type)) {
-            auto ncomps = entry.second.nComponents();
-            start.push_back(0);
-            count.push_back(ncomps);
-        }
-        for (ModelArray::Dimension dt : entry.second.typeDimensions.at(type)) {
-            auto dim = entry.second.definedDimensions.at(dt);
-            start.push_back(dim.start);
-            count.push_back(dim.localLength);
-        }
-        // dims are looped in [dg], x, y, [z] order so start and count
-        // order must be reveresed to match order netcdf expects
-        std::reverse(start.begin(), start.end());
-        std::reverse(count.begin(), count.end());
+        if (restartFields.count(entry.first)) {
+            // Get the type, then relevant vector of NetCDF dimensions
+            ModelArray::Type type = entry.second.getType();
+            std::vector<size_t> start;
+            std::vector<size_t> count;
+            if (ModelArray::hasDoF(type)) {
+                auto ncomps = entry.second.nComponents();
+                start.push_back(0);
+                count.push_back(ncomps);
+            }
+            for (ModelArray::Dimension dt : entry.second.typeDimensions.at(type)) {
+                auto dim = entry.second.definedDimensions.at(dt);
+                start.push_back(dim.start);
+                count.push_back(dim.localLength);
+            }
+            // dims are looped in [dg], x, y, [z] order so start and count
+            // order must be reveresed to match order netcdf expects
+            std::reverse(start.begin(), start.end());
+            std::reverse(count.begin(), count.end());
 
-        std::vector<netCDF::NcDim>& ncDims = dimMap.at(type);
-        netCDF::NcVar var(dataGroup.addVar(entry.first, netCDF::ncDouble, ncDims));
-        var.putAtt(mdiName, netCDF::ncDouble, MissingData::value());
-        var.putVar(start, count, entry.second.getData());
+            std::vector<netCDF::NcDim>& ncDims = dimMap.at(type);
+            netCDF::NcVar var(dataGroup.addVar(entry.first, netCDF::ncDouble, ncDims));
+            var.putAtt(mdiName, netCDF::ncDouble, MissingData::value());
+            var.putVar(start, count, entry.second.getData());
+        }
     }
 
     ncFile.close();
@@ -331,6 +351,8 @@ void ParaGridIO::dumpModelState(
 void ParaGridIO::writeDiagnosticTime(
     const ModelState& state, const ModelMetadata& meta, const std::string& filePath)
 {
+    // TODO: XIOS implementation
+
     bool isNew = openFilesAndIndices.count(filePath) <= 0;
     size_t nt = (isNew) ? 0 : ++openFilesAndIndices.at(filePath).second;
     if (isNew) {
@@ -481,6 +503,7 @@ void ParaGridIO::writeDiagnosticTime(
     }
 }
 
+// TODO: This method will likely be dropped in the XIOS implementation
 void ParaGridIO::close(const std::string& filePath)
 {
     if (getOpenFilesAndIndices().count(filePath) > 0) {
@@ -489,6 +512,7 @@ void ParaGridIO::close(const std::string& filePath)
     }
 }
 
+// TODO: This method will likely be dropped in the XIOS implementation
 void ParaGridIO::closeAllFiles()
 {
     std::cout << "ParaGridIO::closeAllFiles: closing " << getOpenFilesAndIndices().size()
