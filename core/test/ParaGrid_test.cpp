@@ -1,7 +1,7 @@
 /*!
  * @file ParaGrid_test.cpp
  *
- * @date 19 May 2025
+ * @date 23 May 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Tom Meltzer <tdm39@cam.ac.uk>
  */
@@ -115,12 +115,12 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file")
 
 #ifdef USE_MPI
     if (test_rank == 0) {
-        ModelArray::setDimension(ModelArray::Dimension::X, nx, 5, 0);
-        ModelArray::setDimension(ModelArray::Dimension::XVERTEX, nx + 1, 5 + 1, 0);
+        ModelArray::setDimension(ModelArray::Dimension::X, nx, 4, 0);
+        ModelArray::setDimension(ModelArray::Dimension::XVERTEX, nx + 1, 4 + 1, 0);
     }
     if (test_rank == 1) {
-        ModelArray::setDimension(ModelArray::Dimension::X, nx, 5, 5);
-        ModelArray::setDimension(ModelArray::Dimension::XVERTEX, nx + 1, 5 + 1, 5);
+        ModelArray::setDimension(ModelArray::Dimension::X, nx, 6, 4);
+        ModelArray::setDimension(ModelArray::Dimension::XVERTEX, nx + 1, 6 + 1, 4);
     }
     ModelArray::setDimension(ModelArray::Dimension::Y, ny, ny, 0);
     ModelArray::setDimension(ModelArray::Dimension::YVERTEX, ny + 1, ny + 1, 0);
@@ -196,22 +196,17 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file")
                               },
         {} };
 
+#ifdef USE_MPI
+    ModelMetadata& metadata = ModelMetadata::getInstance(partitionFilename, test_comm);
+#else
     ModelMetadata& metadata = ModelMetadata::getInstance();
+#endif
+
     metadata.setTime(TimePoint("2000-01-01T00:00:00Z"));
     // The coordinates are passed through the metadata object as affix
     // coordinates is the correct way to add coordinates to a ModelState
     metadata.extractCoordinates(coordState);
     metadata.affixCoordinates(state);
-
-#ifdef USE_MPI
-    metadata.setMpiMetadata(test_comm);
-    metadata.globalExtentX = nx;
-    metadata.globalExtentY = ny;
-    metadata.localCornerX = startX;
-    metadata.localCornerY = 0;
-    metadata.localExtentX = localNX;
-    metadata.localExtentY = ny;
-#endif
     grid.dumpModelState(state, metadata, filename, true);
 
     REQUIRE(std::filesystem::exists(std::filesystem::path(filename)));
@@ -237,9 +232,7 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file")
     gridIn.setIO(readIO);
 
 #ifdef USE_MPI
-    ModelMetadata& metadataIn = ModelMetadata::getInstance(partitionFilename, test_comm);
-    metadataIn.setTime(TimePoint(dateString));
-    ModelState ms = gridIn.getModelState(filename, metadataIn);
+    ModelState ms = gridIn.getModelState(filename, metadata);
 #else
     ModelState ms = gridIn.getModelState(filename);
 #endif
@@ -333,8 +326,6 @@ TEST_CASE("Write a diagnostic ParaGrid file")
     auto startX = ModelArray::definedDimensions.at(dimX).start;
     auto localNX = ModelArray::definedDimensions.at(dimX).localLength;
     auto dimXVertex = ModelArray::Dimension::XVERTEX;
-    auto localNXVertex = ModelArray::definedDimensions.at(dimXVertex).localLength;
-    auto startXVertex = ModelArray::definedDimensions.at(dimXVertex).start;
 
     HField fractional(ModelArray::Type::H);
     DGField fractionalDG(ModelArray::Type::DG);
@@ -390,16 +381,6 @@ TEST_CASE("Write a diagnostic ParaGrid file")
     metadata.extractCoordinates(coordState);
     metadata.affixCoordinates(state);
 
-#ifdef USE_MPI
-    metadata.setMpiMetadata(test_comm);
-    metadata.globalExtentX = nx;
-    metadata.globalExtentY = ny;
-    metadata.localCornerX = startX;
-    metadata.localCornerY = 0;
-    metadata.localExtentX = localNX;
-    metadata.localExtentY = ny;
-#endif
-
     for (int t = 1; t < 5; ++t) {
         hice += 100;
         cice += 100;
@@ -431,8 +412,6 @@ TEST_CASE("Write a diagnostic ParaGrid file")
     std::string structureType;
     structGrp.getAtt(grid.typeNodeName()).getValues(structureType);
     REQUIRE(structureType == grid.structureType());
-
-    // TODO test metadata
 
     // test data
     REQUIRE(dataGrp.getVarCount() == 7);
@@ -520,8 +499,7 @@ TEST_CASE("Check an exception is thrown for an invalid file name")
     // MD5 hash of the current output of $ date
     std::string longRandomFilename("a44f5cc1f7934a8ae8dd03a95308745d.nc");
 #ifdef USE_MPI
-    ModelMetadata& metadataIn = ModelMetadata::getInstance(partitionFilename, test_comm);
-    metadataIn.setTime(TimePoint(dateString));
+    ModelMetadata& metadataIn = ModelMetadata::getInstance();
     REQUIRE_THROWS(state = gridIn.getModelState(longRandomFilename, metadataIn));
 #else
     REQUIRE_THROWS(state = gridIn.getModelState(longRandomFilename));
@@ -541,9 +519,6 @@ TEST_CASE("Check if a file with the old dimension names can be read")
     Module::setImplementation<IStructure>("Nextsim::ParametricGrid");
 
     REQUIRE(Module::getImplementation<IStructure>().structureType() == "parametric_rectangular");
-
-    size_t nx = 2;
-    size_t ny = 1;
 
     ParametricGrid gridIn;
     ParaGridIO* readIO = new ParaGridIO(gridIn);
@@ -571,19 +546,6 @@ TEST_CASE("Check if a file with the old dimension names can be read")
 
 #ifdef USE_MPI
     ModelMetadata& metadata = ModelMetadata::getInstance();
-    metadata.setMpiMetadata(test_comm);
-    if (metadata.mpiMyRank == 0) {
-        metadata.localCornerX = 0;
-    }
-    if (metadata.mpiMyRank == 1) {
-        metadata.localCornerX = 1;
-    }
-    metadata.globalExtentX = nx;
-    metadata.globalExtentY = ny;
-    metadata.localCornerY = 0;
-    metadata.localExtentX = 1;
-    metadata.localExtentY = ny;
-    metadata.setTime(TimePoint(dateString));
     ModelState ms = gridIn.getModelState(inputFilename, metadata);
 #else
     ModelState ms = gridIn.getModelState(inputFilename);

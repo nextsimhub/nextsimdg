@@ -20,9 +20,9 @@ group: bounding_boxes {
   	int domain_extent_y(P) ;
   data:
 
-   domain_x = 0, 5 ;
+   domain_x = 0, 4 ;
 
-   domain_extent_x = 5, 5 ;
+   domain_extent_x = 4, 6 ;
 
    domain_y = 0, 0 ;
 
