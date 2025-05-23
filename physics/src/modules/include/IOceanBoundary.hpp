@@ -17,7 +17,7 @@ namespace Nextsim {
 class IOceanBoundary : public CheckingModelComponent {
 public:
     IOceanBoundary()
-        : qio(ModelArray::Type::H, { -1e3, 1e3 })
+        : qio(ModelArray::Type::H, { -1e8, 1e8 })
         , sst(ModelArray::Type::H, { -5, 50 })
         , sss(ModelArray::Type::H, { 0, 50 })
         , mld(ModelArray::Type::H, { 1e-3, 12e3 })
@@ -26,10 +26,10 @@ public:
         , u(ModelArray::Type::H, { -1, 1 })
         , v(ModelArray::Type::H, { -1, 1 })
         , ssh(ModelArray::Type::H, { -10, 10 })
-        , qNoSun(ModelArray::Type::H, { -1e3, 1e3 })
-        , qswNet(ModelArray::Type::H, { -1e3, 1e-6 })
-        , fwFlux(ModelArray::Type::H, { -1e-3, 1e-3 })
-        , sFlux(ModelArray::Type::H, { -1e-6, 1e-6 })
+        , qNoSun(ModelArray::Type::H, { -1e6, 1e6 })
+        , qswNet(ModelArray::Type::H, { -1e3, 1e3 })
+        , fwFlux(ModelArray::Type::H, { -1e-2, 1e-2 })
+        , sFlux(ModelArray::Type::H, { -1e-4, 1e-4 })
         , qswow(ModelArray::Type::H, { -1e3, 1e-6 })
         , qswBase(ModelArray::Type::H, { -1e3, 1e-6 })
         , tauX(ModelArray::Type::H, { -1, 1 })
