@@ -1,7 +1,7 @@
 /*!
  * @file IAtmosphereBoundary.hpp
  *
- * @date 16 Feb 2025
+ * @date 23 May 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -15,14 +15,22 @@
 namespace Nextsim {
 
 //! An interface class for the atmospheric inputs into the ice physics.
-class IAtmosphereBoundary: public CheckingModelComponent {
+class IAtmosphereBoundary : public CheckingModelComponent {
 public:
     IAtmosphereBoundary()
-            : qia(ModelArray::Type::H), dqia_dt(ModelArray::Type::H), qow(ModelArray::Type::H), subl(
-                    ModelArray::Type::H), snow(ModelArray::Type::H), rain(ModelArray::Type::H), evap(
-                    ModelArray::Type::H), emp(ModelArray::Type::H), uwind(ModelArray::Type::U), vwind(
-                    ModelArray::Type::V), penSW(ModelArray::Type::H), tauXOW(ModelArray::Type::H), tauYOW(
-                    ModelArray::Type::H)
+        : qia(ModelArray::Type::H, { -1e4, 1e4 })
+        , dqia_dt(ModelArray::Type::H)
+        , qow(ModelArray::Type::H, { -1e3, 1e3 })
+        , subl(ModelArray::Type::H)
+        , snow(ModelArray::Type::H, { 0, 1e-3 })
+        , rain(ModelArray::Type::H, { 0, 1e-3 })
+        , evap(ModelArray::Type::H, { 0, 1e-3 })
+        , emp(ModelArray::Type::H, { -1e-3, 1e-3 })
+        , uwind(ModelArray::Type::U, { -100, 100 })
+        , vwind(ModelArray::Type::V, { -100, 100 })
+        , penSW(ModelArray::Type::H)
+        , tauXOW(ModelArray::Type::H, { -10, 10 })
+        , tauYOW(ModelArray::Type::H, { -10, 10 })
     {
         m_couplingArrays.registerArray(CouplingFields::SUBL, &subl, RW);
         m_couplingArrays.registerArray(CouplingFields::SNOW, &snow, RW);
@@ -45,10 +53,7 @@ public:
     }
     virtual ~IAtmosphereBoundary() = default;
 
-    std::string getName() const override
-    {
-        return "IAtmosphereBoundary";
-    }
+    std::string getName() const override { return "IAtmosphereBoundary"; }
     void setData(const ModelState::DataMap& ms) override
     {
         qia.resize();
@@ -64,16 +69,22 @@ public:
         penSW.resize();
         tauXOW.resize();
         tauYOW.resize();
+
+        fieldsToCheck.emplace_back("qia", &qia);
+        fieldsToCheck.emplace_back("qow", &qow);
+        fieldsToCheck.emplace_back("snow", &snow);
+        fieldsToCheck.emplace_back("rain", &rain);
+        fieldsToCheck.emplace_back("evap", &evap);
+        fieldsToCheck.emplace_back("emp", &emp);
+        fieldsToCheck.emplace_back("uwind", &uwind);
+        fieldsToCheck.emplace_back("vwind", &vwind);
+        fieldsToCheck.emplace_back("tauXOW", &tauXOW);
+        fieldsToCheck.emplace_back("tauYOW", &tauYOW);
     }
-    virtual void update(const TimestepTime& tst)
-    {
-    }
+    virtual void update(const TimestepTime& tst) { }
 
 protected:
-    ModelArrayReferenceStore& couplingArrays()
-    {
-        return m_couplingArrays;
-    }
+    ModelArrayReferenceStore& couplingArrays() { return m_couplingArrays; }
 
     HField qia;
     HField dqia_dt;

@@ -1,7 +1,7 @@
 /*!
  * @file IOceanBoundary.hpp
  *
- * @date 29 Apr 2025
+ * @date 23 May 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -17,23 +17,23 @@ namespace Nextsim {
 class IOceanBoundary : public CheckingModelComponent {
 public:
     IOceanBoundary()
-        : qio(ModelArray::Type::H)
-        , sst(ModelArray::Type::H)
-        , sss(ModelArray::Type::H)
-        , mld(ModelArray::Type::H)
-        , cpml(ModelArray::Type::H)
-        , tf(ModelArray::Type::H)
-        , u(ModelArray::Type::H)
-        , v(ModelArray::Type::H)
-        , ssh(ModelArray::Type::H)
-        , qNoSun(ModelArray::Type::H)
-        , qswNet(ModelArray::Type::H)
-        , fwFlux(ModelArray::Type::H)
-        , sFlux(ModelArray::Type::H)
-        , qswow(ModelArray::Type::H)
-        , qswBase(ModelArray::Type::H)
-        , tauX(ModelArray::Type::H)
-        , tauY(ModelArray::Type::H)
+        : qio(ModelArray::Type::H, { -1e3, 1e3 })
+        , sst(ModelArray::Type::H, { -5, 50 })
+        , sss(ModelArray::Type::H, { 0, 50 })
+        , mld(ModelArray::Type::H, { 1e-3, 12e3 })
+        , cpml(ModelArray::Type::H, { 0, 1e11 })
+        , tf(ModelArray::Type::H, { -5, 0 })
+        , u(ModelArray::Type::H, { -1, 1 })
+        , v(ModelArray::Type::H, { -1, 1 })
+        , ssh(ModelArray::Type::H, { -10, 10 })
+        , qNoSun(ModelArray::Type::H, { -1e3, 1e3 })
+        , qswNet(ModelArray::Type::H, { -1e3, 1e-6 })
+        , fwFlux(ModelArray::Type::H, { -1e-3, 1e-3 })
+        , sFlux(ModelArray::Type::H, { -1e-6, 1e-6 })
+        , qswow(ModelArray::Type::H, { -1e3, 1e-6 })
+        , qswBase(ModelArray::Type::H, { -1e3, 1e-6 })
+        , tauX(ModelArray::Type::H, { -1, 1 })
+        , tauY(ModelArray::Type::H, { -1, 1 })
         , cice(getStore())
         , emp(getStore())
         , newIce(getStore())
@@ -94,6 +94,24 @@ public:
         qswBase.resize();
         tauX.resize();
         tauY.resize();
+
+        fieldsToCheck.emplace_back("qio", &qio);
+        fieldsToCheck.emplace_back("sst", &sst);
+        fieldsToCheck.emplace_back("sss", &sss);
+        fieldsToCheck.emplace_back("mld", &mld);
+        fieldsToCheck.emplace_back("cpml", &cpml);
+        fieldsToCheck.emplace_back("tf", &tf);
+        fieldsToCheck.emplace_back("u", &u);
+        fieldsToCheck.emplace_back("v", &v);
+        fieldsToCheck.emplace_back("ssh", &ssh);
+        fieldsToCheck.emplace_back("qNoSun", &qNoSun);
+        fieldsToCheck.emplace_back("qswNet", &qswNet);
+        fieldsToCheck.emplace_back("fwFlux", &fwFlux);
+        fieldsToCheck.emplace_back("sFlux", &sFlux);
+        fieldsToCheck.emplace_back("qswow", &qswow);
+        fieldsToCheck.emplace_back("qswBase", &qswBase);
+        fieldsToCheck.emplace_back("tauX", &tauX);
+        fieldsToCheck.emplace_back("tauY", &tauY);
 
         if (ms.count("sst")) {
             sst = ms.at("sst");

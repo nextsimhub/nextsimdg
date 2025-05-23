@@ -1,7 +1,7 @@
 /*!
  * @file TOPAZOcean.cpp
  *
- * @date 21 May 2025
+ * @date 23 May 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -22,29 +22,27 @@ bool TOPAZOcean::checkFieldsDefault = false;
 std::string TOPAZOcean::pfx = "TOPAZOcean";
 std::string TOPAZOcean::fileKey = pfx + ".file";
 std::string TOPAZOcean::checkFieldsKey = pfx + ".check_fields";
-std::string TOPAZOcean::fieldNamesKey = pfx + ".fields_names";
-std::string TOPAZOcean::fieldNamesDefault = "sst_ext,sss_ext,mld,ocean_u,ocean_v,ssh";
 
 static const std::map<int, std::string> keyMap = {
     { TOPAZOcean::FILEPATH_KEY, TOPAZOcean::fileKey },
-    { TOPAZOcean::FIELDNAMES_KEY, TOPAZOcean::fieldNamesKey },
     { TOPAZOcean::CHECKFIELDS_KEY, TOPAZOcean::checkFieldsKey },
 };
 
 TOPAZOcean::TOPAZOcean()
-    : sstExt(ModelArray::Type::H)
-    , sssExt(ModelArray::Type::H)
+    : sstExt(ModelArray::Type::H, { -5, 50 })
+    , sssExt(ModelArray::Type::H, { 0, 50 })
     , slabOcean(m_couplingArrays)
 {
 }
 
 ConfigurationHelp::HelpMap& TOPAZOcean::getHelpRecursive(HelpMap& map, bool getAll)
 {
-    auto options
-        = getCheckingHelpList(fieldNamesKey, fieldNamesDefault, checkFieldsKey, checkFieldsDefault);
-    options.push_back({ fileKey, ConfigType::STRING, {}, "", "",
-        "Path to the processed NetCDF file providing the TOPAZ forcings." });
-    map[pfx] = options;
+    map[pfx] = { { fileKey, ConfigType::STRING, {}, "", "",
+                     "Path to the processed NetCDF file providing the TOPAZ forcings." },
+        { checkFieldsKey, ConfigType::BOOLEAN, { "true", "false" },
+            ConfigurationHelp::toString(checkFieldsDefault), "",
+            "Set to true to check if the main module variables fall within a reasonable physical "
+            "range." } };
 
     return map;
 }
@@ -67,9 +65,7 @@ void TOPAZOcean::configure()
     getStore().registerArray(Protected::EXT_SST, &sstExt, RO);
     getStore().registerArray(Protected::EXT_SSS, &sssExt, RO);
 
-    if (Configured::getConfiguration(keyMap.at(CHECKFIELDS_KEY), checkFieldsDefault)) {
-        setFieldsToCheck(fieldNamesDefault, pfx);
-    }
+    boolCheckFields = Configured::getConfiguration(keyMap.at(CHECKFIELDS_KEY), checkFieldsDefault);
 }
 
 ConfigMap TOPAZOcean::getConfiguration() const { return { { keyMap.at(FILEPATH_KEY), filePath } }; }
@@ -96,8 +92,6 @@ void TOPAZOcean::updateBefore(const TimestepTime& tst)
         TimestepTime());
 
     pIOHeatFlux->update(tst);
-
-    checkFields(tst);
 }
 
 void TOPAZOcean::updateAfter(const TimestepTime& tst)
@@ -106,6 +100,9 @@ void TOPAZOcean::updateAfter(const TimestepTime& tst)
     slabOcean.update(tst);
     sst = ModelArrayRef<Protected::SLAB_SST, RO>(getStore());
     sss = ModelArrayRef<Protected::SLAB_SSS, RO>(getStore());
+
+    if (boolCheckFields || boolCheckAll())
+        checkFields(tst);
 }
 
 void TOPAZOcean::setFilePath(const std::string& filePathIn) { filePath = filePathIn; }
@@ -116,6 +113,10 @@ void TOPAZOcean::setData(const ModelState::DataMap& ms)
 
     sstExt.resize();
     sssExt.resize();
+
+    fieldsToCheck.emplace_back("sstExt", &sstExt);
+    fieldsToCheck.emplace_back("sssExt", &sssExt);
+
     slabOcean.setData(ms);
 }
 

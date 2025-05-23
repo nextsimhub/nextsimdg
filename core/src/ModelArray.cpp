@@ -1,12 +1,13 @@
 /*!
  * @file   ModelArray.cpp
  *
- * @date   Feb 24, 2022
+ * @date   23 May 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
 #include "include/ModelArray.hpp"
 
+#include "include/Model.hpp"
 #include "include/ModelArraySlice.hpp"
 
 #include <algorithm>
@@ -274,6 +275,43 @@ ModelArray::MultiDim ModelArray::locationFromIndex(Type type, size_t index)
         index /= theDim;
     }
     return loc;
+}
+
+void ModelArray::checkLimits(const ModelArray& mask) const
+{
+    // We need a sensible fill value for land points
+    const double fillValue = (lowerPhysicalLimit + upperPhysicalLimit) * 0.5;
+
+    // Mask the data with the land mask
+    const auto masked = (mask.data() == 1).select(m_data, fillValue);
+
+    // Check first for NaNs. The code is different for the bounds check, because Eigen doesn't
+    // return an index for NaN-checking.
+    if (masked.isNaN().any())
+        throw std::runtime_error("contains a NaN");
+
+    // Now we check the bounds and set the array index (i) and value if we're out of bounds
+    size_t i;
+    double value;
+    if (masked.minCoeff() < lowerPhysicalLimit) {
+        value = masked.col(0).minCoeff(&i);
+    } else if (masked.maxCoeff() > upperPhysicalLimit) {
+        value = masked.col(0).maxCoeff(&i);
+    } else {
+        return;
+    }
+
+    // If we haven't continue'd (or thrown an exception) by now, we have an error in the field
+    const std::vector<size_t> loc = locationFromIndex(type, i);
+    std::string locStr = "[";
+    for (const size_t& l : loc)
+        locStr += std::to_string(l) + ",";
+    locStr.pop_back();
+    locStr.push_back(']');
+
+    throw std::runtime_error("contains out-of-bounds value(s). " + std::to_string(value)
+        + " not in [" + std::to_string(lowerPhysicalLimit) + ","
+        + std::to_string(upperPhysicalLimit) + "]. Error at index " + locStr + ".");
 }
 
 void ModelArray::validateMaps()

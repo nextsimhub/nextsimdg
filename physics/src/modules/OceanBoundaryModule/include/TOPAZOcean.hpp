@@ -1,7 +1,7 @@
 /*!
  * @file TOPAZOcean.hpp
  *
- * @date 05 Mar 2025
+ * @date 23 May 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -25,7 +25,7 @@ public:
     TOPAZOcean();
     ~TOPAZOcean() = default;
 
-    enum { FILEPATH_KEY, CHECKFIELDS_KEY, FIELDNAMES_KEY };
+    enum { FILEPATH_KEY, CHECKFIELDS_KEY };
 
     void setData(const ModelState::DataMap&) override;
     std::string getName() const override { return "TOPAZOcean"; }
@@ -50,7 +50,6 @@ private:
     // be static.
     static std::string filePath, pfx;
     static bool checkFieldsDefault;
-    static std::string fieldNamesDefault;
 
     HField sstExt;
     HField sssExt;

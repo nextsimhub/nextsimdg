@@ -1,7 +1,7 @@
 /*!
  * @file ERA5Atmosphere.cpp
  *
- * @date 21 May 2025
+ * @date 23 May 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -10,8 +10,6 @@
 #include "include/Finalizer.hpp"
 #include "include/NextsimModule.hpp"
 #include "include/ParaGridIO.hpp"
-
-#include <include/PhysicalBounds.hpp>
 
 namespace Nextsim {
 
@@ -23,12 +21,9 @@ std::string ERA5Atmosphere::pfx = "ERA5Atmosphere";
 std::string ERA5Atmosphere::fileKey = pfx + ".file";
 std::string ERA5Atmosphere::checkFieldsKey = pfx + ".check_fields";
 std::string ERA5Atmosphere::fieldNamesKey = pfx + ".fields_names";
-std::string ERA5Atmosphere::fieldNamesDefault
-    = "tair,dew2m,pair,sw_in,lw_in,wind_speed,wind_u,wind_v";
 
 static const std::map<int, std::string> keyMap = {
     { ERA5Atmosphere::FILEPATH_KEY, ERA5Atmosphere::fileKey },
-    { ERA5Atmosphere::FIELDNAMES_KEY, ERA5Atmosphere::fieldNamesKey },
     { ERA5Atmosphere::CHECKFIELDS_KEY, ERA5Atmosphere::checkFieldsKey },
 };
 
@@ -45,11 +40,13 @@ ERA5Atmosphere::ERA5Atmosphere()
 
 ConfigurationHelp::HelpMap& ERA5Atmosphere::getHelpRecursive(HelpMap& map, bool getAll)
 {
-    auto options
-        = getCheckingHelpList(fieldNamesKey, fieldNamesDefault, checkFieldsKey, checkFieldsDefault);
-    options.push_back({ fileKey, ConfigType::STRING, {}, "", "",
-        "Path to the processed NetCDF file providing the ERA5 forcings." });
-    map[pfx] = options;
+    map[pfx] = { { fileKey, ConfigType::STRING, {}, "", "",
+                     "Path to the processed NetCDF file providing the ERA5 forcings." },
+        { checkFieldsKey, ConfigType::BOOLEAN, { "true", "false" },
+            ConfigurationHelp::toString(checkFieldsDefault), "",
+            "Set to true to check if the main module variables fall within a reasonable physical "
+            "range." } };
+
     Module::getHelpRecursive<IFluxCalculation>(map, getAll);
 
     return map;
@@ -64,9 +61,7 @@ void ERA5Atmosphere::configure()
     fluxImpl = &Module::getImplementation<IFluxCalculation>();
     tryConfigure(fluxImpl);
 
-    if (Configured::getConfiguration(keyMap.at(CHECKFIELDS_KEY), checkFieldsDefault)) {
-        setFieldsToCheck(fieldNamesDefault, pfx);
-    }
+    boolCheckFields = Configured::getConfiguration(keyMap.at(CHECKFIELDS_KEY), checkFieldsDefault);
 }
 
 ConfigMap ERA5Atmosphere::getConfiguration() const
@@ -94,9 +89,10 @@ void ERA5Atmosphere::update(const TimestepTime& tst)
     snow = 0; // FIXME get snow data
     emp = 0; // FIXME get E - P data
 
-    checkFields(tst);
-
     fluxImpl->update(tst);
+
+    if (boolCheckFields || boolCheckAll())
+        checkFields(tst);
 }
 
 void ERA5Atmosphere::setFilePath(const std::string& filePathIn) { filePath = filePathIn; }

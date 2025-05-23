@@ -1,7 +1,7 @@
 /*!
  * @file PrognosticData.hpp
  *
- * @date 16 Feb 2025
+ * @date 23 May 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -53,10 +53,7 @@ public:
      */
     void writeRestartFile(const std::string& filePath, const ModelMetadata& metadata) const;
 
-    enum {
-        FIELDNAMES_KEY,
-        CHECKFIELDS_KEY,
-    };
+    enum { CHECKFIELDS_KEY };
 
 private:
     HField m_snow;

@@ -1,7 +1,7 @@
 /*!
  * @file   ModelArray.hpp
  *
- * @date   31 Oct 2024
+ * @date   23 May 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -113,6 +113,19 @@ public:
      * Construct an unnamed ModelArray of Type::H
      */
     ModelArray();
+    /*!
+     * @brief Construct a ModelArray of the given type and name
+     *
+     * @param t The ModelArray::Type for the new object.
+     * @param bounds The physical lower and upper bounds for the new object. See lowerPhysicalLimit
+     * and upperPhysicalLimit.
+     */
+    ModelArray(const Type t, const std::pair<double, double>& bounds)
+        : ModelArray(t)
+    {
+        lowerPhysicalLimit = bounds.first;
+        upperPhysicalLimit = bounds.second;
+    }
     /*!
      * @brief Construct a ModelArray of the given type and name
      *
@@ -619,6 +632,18 @@ public:
     //! Returns whether the specified type of ModelArray has additional
     //! discontinuous Galerkin components.
     static bool hasDoF(const Type type);
+
+private:
+    double lowerPhysicalLimit = -std::numeric_limits<double>::infinity();
+    double upperPhysicalLimit = std::numeric_limits<double>::infinity();
+
+public:
+    void setLimits(const double lower, const double upper)
+    {
+        lowerPhysicalLimit = lower;
+        upperPhysicalLimit = upper;
+    }
+    void checkLimits(const ModelArray& mask) const;
 
 protected:
     Type type;

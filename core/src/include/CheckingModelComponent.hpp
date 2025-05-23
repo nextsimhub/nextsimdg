@@ -1,7 +1,7 @@
 /*!
  * @file CheckingModelComponent.cpp
  *
- * @date 12 Mar 2025
+ * @date 23 May 2025
  * @author Einar Ólason <einar.olason@nersc.no>
  */
 
@@ -10,51 +10,49 @@
 
 #include "include/ConfigurationHelp.hpp"
 #include "include/ModelComponent.hpp"
-#include "include/PhysicalBounds.hpp"
 
 namespace Nextsim {
 
 class CheckingModelComponent : public ModelComponent {
 
-public:
-    CheckingModelComponent();
+protected:
+    CheckingModelComponent() = default;
 
     /*!
      * @brief Check fields listed in fieldsToCheck. Throw a runtime_error if values are outside
      * bounds.
      */
-    void checkFields(const TimestepTime& tst);
+    void checkFields(const TimestepTime& tst)
+    {
+        for (auto& field : fieldsToCheck) {
+
+            try {
+                field.arrayRef->checkLimits(getOceanMask());
+            } catch (const std::exception& e) {
+                throw std::runtime_error(field.name + " check failed: " + e.what());
+            }
+        }
+    }
     class fieldInfo {
     public:
-        fieldInfo(std::string n, const ModelArray* a, const std::pair<double, double>& b)
+        fieldInfo(std::string n, const ModelArray* a)
             : name(std::move(n))
             , arrayRef(a)
-            , bounds(b)
         {
         }
 
         const std::string name;
         const ModelArray* arrayRef;
-        const std::pair<double, double> bounds;
     };
     std::vector<fieldInfo> fieldsToCheck;
 
-    /*!
-     * @brief Populate the internal fieldsToCheck vector from a list of TextTag strings and model
-     * component name. Use field names from ProtectedArrayNames.ipp and SharedArrayNames.ipp. The
-     * bounds are from PhysicalBounds.hpp.
-     */
-    void setFieldsToCheck(const std::string& listOfFields, const std::string& prefix);
+    bool boolCheckFields = false;
 
-    static const std::string all;
-
-    static ConfigurationHelp::OptionList getCheckingHelpList(const std::string& fieldNamesKey,
-        const std::string& fieldNamesDefault, const std::string& checkFieldsKey,
-        const bool checkFieldsDefault);
-
-private:
-    void setFieldsToCheck();
-    std::map<std::string, std::string> externalNames;
+    static bool& boolCheckAll()
+    {
+        static bool checkAll = false;
+        return checkAll;
+    }
 };
 
 } /* namespace Nextsim */

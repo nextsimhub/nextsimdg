@@ -1,6 +1,6 @@
 /*!
  * @file Iterator.cpp
- * @date 26 Feb 2025
+ * @date 23 May 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -47,7 +47,8 @@ void Iterator::run()
             iterant.iterate(tsTime);
         } catch (const std::exception& e) {
             iterant.stop(t);
-            throw;
+            throw std::runtime_error(
+                e.what() + std::string(" Execution halted at time step ") + tsTime.start.format());
         }
     }
 

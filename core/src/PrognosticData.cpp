@@ -1,7 +1,7 @@
 /*!
  * @file PrognosticData.cpp
  *
- * @date 21 May 2025
+ * @date 23 May 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Einar Ólason <einar.olason@nersc.no>
  */
@@ -15,24 +15,17 @@
 
 namespace Nextsim {
 
-static const std::string pfx = "PrognosticData";
-static const std::string fieldNamesKey = "debug.field_names";
 static const std::string checkFieldsKey = "debug.check_fields";
-
-static const std::map<int, std::string> keyMap = {
-    { PrognosticData::FIELDNAMES_KEY, fieldNamesKey },
-    { PrognosticData::CHECKFIELDS_KEY, checkFieldsKey },
-};
-
-static const std::string fieldNamesDefault = "hice,hsnow,cice,tice";
-static const bool checkFieldsDefault = true;
+static const std::map<int, std::string> keyMap
+    = { { PrognosticData::CHECKFIELDS_KEY, checkFieldsKey } };
+static constexpr bool checkFieldsDefault = false;
 
 PrognosticData::PrognosticData()
     : m_dt(1)
-    , m_snow(ModelArray::Type::H)
-    , m_damage(ModelArray::Type::H)
-    , hiceAdvection(ModelArray::AdvectionType)
-    , ciceAdvection(ModelArray::AdvectionType)
+    , m_snow(ModelArray::Type::H, { 0, 10 })
+    , m_damage(ModelArray::Type::H, { 0, 1 })
+    , hiceAdvection(ModelArray::AdvectionType, { 0, 50 })
+    , ciceAdvection(ModelArray::AdvectionType, { 0, 1 })
     , pAtmBdy(nullptr)
     , pOcnBdy(nullptr)
     , pDynamics(nullptr)
@@ -63,9 +56,11 @@ void PrognosticData::configure()
 
     tryConfigure(iceGrowth);
 
-    if (Configured::getConfiguration(keyMap.at(CHECKFIELDS_KEY), checkFieldsDefault)) {
-        setFieldsToCheck(
-            Configured::getConfiguration(keyMap.at(FIELDNAMES_KEY), fieldNamesDefault), pfx);
+    boolCheckAll() = Configured::getConfiguration(keyMap.at(CHECKFIELDS_KEY), checkFieldsDefault);
+    if (boolCheckAll()) {
+        for (const auto& field : getStore().getAllData()) {
+            fieldsToCheck.emplace_back(field.first, field.second);
+        }
     }
 }
 
@@ -139,7 +134,8 @@ void PrognosticData::update(const TimestepTime& tst)
 
     pOcnBdy->updateAfter(tst);
 
-    checkFields(tst);
+    if (boolCheckAll())
+        checkFields(tst);
 }
 
 void PrognosticData::updatePrognosticFields()
@@ -211,8 +207,11 @@ ModelState PrognosticData::getStatePrognostic() const
 
 PrognosticData::HelpMap& PrognosticData::getHelpText(HelpMap& map, bool getAll)
 {
-    map["Debug"]
-        = getCheckingHelpList(fieldNamesKey, fieldNamesDefault, checkFieldsKey, checkFieldsDefault);
+    map["debug"] = { { checkFieldsKey, ConfigType::BOOLEAN, { "true", "false" },
+        ConfigurationHelp::toString(checkFieldsDefault), "",
+        "Set to true to check if all variables in the ModelArrayReferenceStore fall within a "
+        "reasonable physical range." } };
+
     return map;
 }
 PrognosticData::HelpMap& PrognosticData::getHelpRecursive(HelpMap& map, bool getAll)

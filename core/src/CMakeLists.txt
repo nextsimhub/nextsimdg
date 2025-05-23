@@ -13,7 +13,6 @@ else()
 endif()
 
 set(BaseSources
-    "CheckingModelComponent.cpp"
     "Logged.cpp"
     "ModelConfig.cpp"
     "Model.cpp"
