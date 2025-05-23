@@ -123,8 +123,7 @@ public:
     ModelArray(const Type t, const std::pair<double, double>& bounds)
         : ModelArray(t)
     {
-        lowerPhysicalLimit = bounds.first;
-        upperPhysicalLimit = bounds.second;
+        setLimits(bounds.first, bounds.second);
     }
     /*!
      * @brief Construct a ModelArray of the given type and name
@@ -372,7 +371,6 @@ public:
                 m_data.resize(m_sz.at(type), Eigen::NoChange);
             }
         }
-        // m_data.setZero();
         m_data.setConstant(std::numeric_limits<float>::signaling_NaN());
     }
 
@@ -638,12 +636,14 @@ public:
 private:
     double lowerPhysicalLimit = -std::numeric_limits<double>::infinity();
     double upperPhysicalLimit = std::numeric_limits<double>::infinity();
+    double fillValue = 0.;
 
 public:
     void setLimits(const double lower, const double upper)
     {
         lowerPhysicalLimit = lower;
         upperPhysicalLimit = upper;
+        fillValue = (lowerPhysicalLimit + upperPhysicalLimit) * 0.5;
     }
     void checkLimits(const ModelArray& mask) const;
 

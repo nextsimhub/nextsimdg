@@ -279,9 +279,6 @@ ModelArray::MultiDim ModelArray::locationFromIndex(Type type, size_t index)
 
 void ModelArray::checkLimits(const ModelArray& mask) const
 {
-    // We need a sensible fill value for land points
-    const double fillValue = (lowerPhysicalLimit + upperPhysicalLimit) * 0.5;
-
     // Mask the data with the land mask
     const auto masked = (mask.data() == 1).select(m_data, fillValue);
 
