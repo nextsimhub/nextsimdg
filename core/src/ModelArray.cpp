@@ -285,7 +285,7 @@ void ModelArray::checkLimits(const ModelArray& mask) const
     // Check first for NaNs. The code is different for the bounds check, because Eigen doesn't
     // return an index for NaN-checking.
     if (masked.isNaN().any())
-        throw std::runtime_error("contains a NaN");
+        throw std::runtime_error("Field contains NaN.");
 
     // Now we check the bounds and set the array index (i) and value if we're out of bounds
     size_t i;
@@ -298,7 +298,7 @@ void ModelArray::checkLimits(const ModelArray& mask) const
         return;
     }
 
-    // If we haven't continue'd (or thrown an exception) by now, we have an error in the field
+    // If we haven't return'ed (or thrown an exception) by now, we have an error in the field
     const std::vector<size_t> loc = locationFromIndex(type, i);
     std::string locStr = "[";
     for (const size_t& l : loc)
@@ -306,7 +306,7 @@ void ModelArray::checkLimits(const ModelArray& mask) const
     locStr.pop_back();
     locStr.push_back(']');
 
-    throw std::runtime_error("contains out-of-bounds value(s). " + std::to_string(value)
+    throw std::runtime_error("Field contains out-of-bounds value(s), " + std::to_string(value)
         + " not in [" + std::to_string(lowerPhysicalLimit) + ","
         + std::to_string(upperPhysicalLimit) + "]. Error at index " + locStr + ".");
 }
