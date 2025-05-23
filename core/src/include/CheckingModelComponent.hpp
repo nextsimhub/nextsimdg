@@ -29,7 +29,7 @@ protected:
             try {
                 field.arrayRef->checkLimits(getOceanMask());
             } catch (const std::exception& e) {
-                throw std::runtime_error(field.name + " check failed: " + e.what());
+                throw std::runtime_error("Check failed for '" + field.name + "': " + e.what());
             }
         }
     }

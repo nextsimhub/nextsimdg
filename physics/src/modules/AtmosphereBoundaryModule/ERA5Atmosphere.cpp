@@ -92,7 +92,11 @@ void ERA5Atmosphere::update(const TimestepTime& tst)
     fluxImpl->update(tst);
 
     if (boolCheckFields || boolCheckAll())
-        checkFields(tst);
+        try {
+            checkFields(tst);
+        } catch (const std::exception& e) {
+            throw std::runtime_error("ERA5Atmosphere:update: " + std::string(e.what()));
+        }
 }
 
 void ERA5Atmosphere::setFilePath(const std::string& filePathIn) { filePath = filePathIn; }

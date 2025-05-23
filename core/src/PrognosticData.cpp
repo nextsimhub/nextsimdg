@@ -135,7 +135,11 @@ void PrognosticData::update(const TimestepTime& tst)
     pOcnBdy->updateAfter(tst);
 
     if (boolCheckAll())
-        checkFields(tst);
+        try {
+            checkFields(tst);
+        } catch (const std::exception& e) {
+            throw std::runtime_error("PrognosticData::update: " + std::string(e.what()));
+        }
 }
 
 void PrognosticData::updatePrognosticFields()
