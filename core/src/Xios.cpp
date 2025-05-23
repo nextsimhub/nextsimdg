@@ -471,9 +471,6 @@ xios::CAxis* Xios::getAxis(const std::string axisId)
 /*!
  * Create an axis with some ID.
  *
- * If the axis ID is 'z_axis' and a domain called 'xy_domain' exists then a grid called 'grid_3D'
- * will automatically be created with this axis and that domain.
- *
  * @param the axis ID
  */
 void Xios::createAxis(const std::string axisId)
@@ -491,16 +488,6 @@ void Xios::createAxis(const std::string axisId)
     cxios_axis_valid_id(&exists, axisId.c_str(), axisId.length());
     if (!exists) {
         throw std::runtime_error("Xios: Failed to create axis '" + axisId + "'");
-    }
-    if (axisId == "z_axis") {
-        // Create grid_3D associated with a domain called xy_domain and an axis called z_axis
-        const std::string domainId = "xy_domain";
-        cxios_domain_valid_id(&exists, domainId.c_str(), domainId.length());
-        if (exists) {
-            createGrid("grid_3D");
-            gridAddDomain("grid_3D", "xy_domain");
-            gridAddAxis("grid_3D", "z_axis");
-        }
     }
 }
 
@@ -625,8 +612,7 @@ xios::CDomain* Xios::getDomain(const std::string domainId)
  * Create a domain with some ID.
  *
  * If the domain ID is 'xy_domain' then a grid called 'grid_2D' will automatically be created with
- * this domain. If an axis called 'z_axis' also exists then a grid called 'grid_3D' will
- * automatically be created with this domain and that axis.
+ * this domain.
  *
  * @param the domain ID
  */
@@ -651,15 +637,6 @@ void Xios::createDomain(const std::string domainId)
         const std::string gridId = "grid_2D";
         createGrid(gridId);
         gridAddDomain(gridId, "xy_domain");
-
-        // Create grid_3D if there is also an axis called z_axis
-        const std::string axisId = "z_axis";
-        cxios_axis_valid_id(&exists, axisId.c_str(), axisId.length());
-        if (exists) {
-            createGrid("grid_3D");
-            gridAddDomain("grid_3D", "xy_domain");
-            gridAddAxis("grid_3D", "z_axis");
-        }
     }
 }
 

@@ -35,18 +35,18 @@ variables:
 		time_counter:time_origin = "2020-01-23 00:08:15" ;
 		time_counter:bounds = "time_counter_bounds" ;
 	double time_counter_bounds(time_counter, axis_nbounds) ;
+	float field_1D(time_counter, z_axis) ;
+		field_1D:online_operation = "instant" ;
+		field_1D:interval_operation = "5400 s" ;
+		field_1D:interval_write = "5400 s" ;
+		field_1D:cell_methods = "time: point" ;
+		field_1D:coordinates = "time_instant" ;
 	float field_2D(time_counter, lat, lon) ;
 		field_2D:online_operation = "instant" ;
 		field_2D:interval_operation = "5400 s" ;
 		field_2D:interval_write = "5400 s" ;
 		field_2D:cell_methods = "time: point" ;
 		field_2D:coordinates = "time_instant" ;
-	float field_3D(time_counter, z_axis, lat, lon) ;
-		field_3D:online_operation = "instant" ;
-		field_3D:interval_operation = "5400 s" ;
-		field_3D:interval_write = "5400 s" ;
-		field_3D:cell_methods = "time: point" ;
-		field_3D:coordinates = "time_instant" ;
 
 // global attributes:
 		:name = "xios_test_output" ;
@@ -79,6 +79,9 @@ data:
   99351165, 99351165,
   99356565, 99356565 ;
 
+ field_1D =
+  0, 1, 0, 1 ;
+
  field_2D =
   0, 1, 0, 1,
   2, 3, 2, 3,
@@ -88,22 +91,4 @@ data:
   2, 3, 2, 3,
   0, 1, 0, 1,
   2, 3, 2, 3 ;
-
- field_3D =
-  0, 1, 0, 1,
-  2, 3, 2, 3,
-  4, 5, 4, 5,
-  6, 7, 6, 7,
-  0, 1, 0, 1,
-  2, 3, 2, 3,
-  4, 5, 4, 5,
-  6, 7, 6, 7,
-  0, 1, 0, 1,
-  2, 3, 2, 3,
-  4, 5, 4, 5,
-  6, 7, 6, 7,
-  0, 1, 0, 1,
-  2, 3, 2, 3,
-  4, 5, 4, 5,
-  6, 7, 6, 7 ;
 }
