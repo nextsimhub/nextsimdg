@@ -1,7 +1,7 @@
 /*!
  * @file FiniteElementFluxes.cpp
  *
- * @date 11 Feb 2025
+ * @date 23 May 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -88,7 +88,6 @@ ModelState FiniteElementFluxes::getStateDiagnostic() const
 void FiniteElementFluxes::setData(const ModelState::DataMap& ms)
 {
     // Data arrays can now be set to the correct size
-    evap.resize();
     Q_lh_ow.resize();
     Q_sh_ow.resize();
     Q_lw_ow.resize();
@@ -174,8 +173,7 @@ void FiniteElementFluxes::calculateIce(size_t i, const TimestepTime& tst)
     double dQlh_dT = latentHeatIce(tsurf[i]) * dmdot_dT;
 
     // Sensible heat flux
-    Q_sh_ia[i]
-        = dragIce_t * rho_air[i] * cp_air[i] * windSpeed[i] * (tsurf[i] - t_air[i]);
+    Q_sh_ia[i] = dragIce_t * rho_air[i] * cp_air[i] * windSpeed[i] * (tsurf[i] - t_air[i]);
     double dQsh_dT = dragIce_t * rho_air[i] * cp_air[i] * windSpeed[i];
 
     // Shortwave flux
@@ -189,8 +187,7 @@ void FiniteElementFluxes::calculateIce(size_t i, const TimestepTime& tst)
 
     // Longwave flux
     Q_lw_ia[i] = stefanBoltzmannLaw(tsurf[i]) - lw_in[i];
-    double dQlw_dT
-        = 4 / kelvin(tsurf[i]) * stefanBoltzmannLaw(tsurf[i]);
+    double dQlw_dT = 4 / kelvin(tsurf[i]) * stefanBoltzmannLaw(tsurf[i]);
 
     // Total flux
     qia[i] = Q_lh_ia[i] + Q_sh_ia[i] + Q_sw_ia[i] + Q_lw_ia[i];

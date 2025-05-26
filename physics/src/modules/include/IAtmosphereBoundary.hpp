@@ -25,7 +25,6 @@ public:
         , snow(ModelArray::Type::H, { 0, 1e-3 })
         , rain(ModelArray::Type::H, { 0, 1e-3 })
         , evap(ModelArray::Type::H, { 0, 1e-3 })
-        , emp(ModelArray::Type::H, { -1e-3, 1e-3 })
         , uwind(ModelArray::Type::U, { -100, 100 })
         , vwind(ModelArray::Type::V, { -100, 100 })
         , penSW(ModelArray::Type::H)
@@ -46,7 +45,8 @@ public:
         getStore().registerArray(Shared::OW_STRESS_X, &tauXOW, RW);
         getStore().registerArray(Shared::OW_STRESS_Y, &tauYOW, RW);
         getStore().registerArray(Protected::SNOW, &snow, RO);
-        getStore().registerArray(Protected::EVAP_MINUS_PRECIP, &emp, RO);
+        getStore().registerArray(Shared::EVAP, &evap, RW);
+        getStore().registerArray(Shared::RAIN, &rain, RO);
         getStore().registerArray(Protected::WIND_U, &uwind, RO);
         getStore().registerArray(Protected::WIND_V, &vwind, RO);
         getStore().registerArray(Shared::Q_PEN_SW, &penSW, RW);
@@ -63,7 +63,6 @@ public:
         snow.resize();
         rain.resize();
         evap.resize();
-        emp.resize();
         uwind.resize();
         vwind.resize();
         penSW.resize();
@@ -93,7 +92,6 @@ protected:
     HField snow;
     HField rain;
     HField evap;
-    HField emp;
     UField uwind;
     VField vwind;
     HField penSW;
