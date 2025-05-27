@@ -90,6 +90,12 @@ MPI_TEST_CASE("TestXiosWrite", 2)
             hice(i, j) = 1.0 * (i + nx * j);
         }
     }
+    // Setup ModelState with field above
+    ModelState state = { {
+                             { "field_2D", field_2D },
+                         },
+        {} };
+    // TODO: Use hiceName: hice
 
     // Setup ModelState with field above
     ModelState state = { {
