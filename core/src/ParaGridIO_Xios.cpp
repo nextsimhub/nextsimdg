@@ -273,7 +273,7 @@ void ParaGridIO::dumpModelState(
 
     // TODO: coordsName, xName, yName, gridAzimuthName and others
     std::set<std::string> restartFields = { hiceName, ciceName, hsnowName, ticeName, sstName,
-        sssName, maskName, longitudeName, latitudeName, uName, vName, damageName, "field_2D" };
+        sssName, maskName, longitudeName, latitudeName, uName, vName, damageName };
     // If the above fields are found in the supplied ModelState, output them
     for (auto entry : state.data) {
         if (restartFields.count(entry.first)) {
