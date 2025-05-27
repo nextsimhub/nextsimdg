@@ -1,7 +1,7 @@
 /*!
  * @file ERA5Atmosphere.cpp
  *
- * @date 23 May 2025
+ * @date 27 May 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -29,6 +29,12 @@ static const std::map<int, std::string> keyMap = {
 
 ERA5Atmosphere::ERA5Atmosphere()
     : fluxImpl(nullptr)
+    , tair(ModelArray::Type::H, { -100, 100 })
+    , tdew(ModelArray::Type::H, { -100, 100 })
+    , pair(ModelArray::Type::H, { 500e2, 2000e2 })
+    , sw_in(ModelArray::Type::H, { -1e-6, 1e4 })
+    , lw_in(ModelArray::Type::H, { -1e-6, 1e4 })
+    , wind(ModelArray::Type::H, { 0, 100 })
 {
     getStore().registerArray(Protected::T_AIR, &tair, RO);
     getStore().registerArray(Protected::DEW_2M, &tdew, RO);
@@ -62,6 +68,13 @@ void ERA5Atmosphere::configure()
     tryConfigure(fluxImpl);
 
     boolCheckFields = Configured::getConfiguration(keyMap.at(CHECKFIELDS_KEY), checkFieldsDefault);
+
+    fieldsToCheck.emplace_back("tair", &tair);
+    fieldsToCheck.emplace_back("tdew", &tdew);
+    fieldsToCheck.emplace_back("pair", &pair);
+    fieldsToCheck.emplace_back("sw_in", &sw_in);
+    fieldsToCheck.emplace_back("lw_in", &lw_in);
+    fieldsToCheck.emplace_back("wind", &wind);
 }
 
 ConfigMap ERA5Atmosphere::getConfiguration() const
