@@ -641,7 +641,16 @@ void Xios::createDomain(const std::string domainId, ModelMetadata& metadata)
         gridAddDomain(gridId, "xy_domain");
     }
 
-    setDomainType(domainId, "rectilinear");
+    // Set domain type
+    const std::string domainType = "rectilinear";
+    if (cxios_is_defined_domain_type(domain)) {
+        Logged::warning("Xios: Overwriting type for domain '" + domainId + "'");
+    }
+    cxios_set_domain_type(domain, domainType.c_str(), domainType.length());
+    if (!cxios_is_defined_domain_type(domain)) {
+        throw std::runtime_error("Xios: Failed to set type for domain '" + domainId + "'");
+    }
+
     setDomainGlobalXSize(domainId, metadata.globalExtentX);
     setDomainGlobalYSize(domainId, metadata.globalExtentY);
     setDomainLocalXStart(domainId, metadata.localCornerX);
@@ -757,24 +766,6 @@ void Xios::setDomainLocalYStart(const std::string domainId, const size_t start)
     if (!cxios_is_defined_domain_jbegin(domain)) {
         throw std::runtime_error(
             "Xios: Failed to set local starting y-index for domain '" + domainId + "'");
-    }
-}
-
-/*!
- * Set the type of a given domain
- *
- * @param the domain ID
- * @param domain type to set
- */
-void Xios::setDomainType(const std::string domainId, const std::string domainType)
-{
-    xios::CDomain* domain = getDomain(domainId);
-    if (cxios_is_defined_domain_type(domain)) {
-        Logged::warning("Xios: Overwriting type for domain '" + domainId + "'");
-    }
-    cxios_set_domain_type(domain, domainType.c_str(), domainType.length());
-    if (!cxios_is_defined_domain_type(domain)) {
-        throw std::runtime_error("Xios: Failed to set type for domain '" + domainId + "'");
     }
 }
 

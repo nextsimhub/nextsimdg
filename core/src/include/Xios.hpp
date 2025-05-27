@@ -95,14 +95,12 @@ public:
 
     /* Domain */
     void createDomain(const std::string domainId, ModelMetadata& metadata);
-    void setDomainType(const std::string domainId, const std::string domainType);
     void setDomainGlobalXSize(const std::string domainId, const size_t size);
     void setDomainGlobalYSize(const std::string domainId, const size_t size);
     void setDomainLocalXSize(const std::string domainId, const size_t size);
     void setDomainLocalYSize(const std::string domainId, const size_t size);
     void setDomainLocalXStart(const std::string domainId, const size_t start);
     void setDomainLocalYStart(const std::string domainId, const size_t start);
-    std::string getDomainType(const std::string domainId);
     size_t getDomainGlobalXSize(const std::string domainId);
     size_t getDomainGlobalYSize(const std::string domainId);
     size_t getDomainLocalXSize(const std::string domainId);
