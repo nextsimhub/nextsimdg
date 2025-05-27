@@ -97,12 +97,8 @@ public:
     void createDomain(const std::string domainId, ModelMetadata& metadata);
     void setDomainLocalXSize(const std::string domainId, const size_t size);
     void setDomainLocalYSize(const std::string domainId, const size_t size);
-    void setDomainLocalXStart(const std::string domainId, const size_t start);
-    void setDomainLocalYStart(const std::string domainId, const size_t start);
     size_t getDomainLocalXSize(const std::string domainId);
     size_t getDomainLocalYSize(const std::string domainId);
-    size_t getDomainLocalXStart(const std::string domainId);
-    size_t getDomainLocalYStart(const std::string domainId);
 
     /* Grid */
     void createGrid(const std::string gridId);

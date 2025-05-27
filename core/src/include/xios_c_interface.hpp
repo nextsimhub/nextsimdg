@@ -101,8 +101,6 @@ void cxios_set_domain_ibegin(xios::CDomain* domain_hdl, int ibegin);
 void cxios_set_domain_jbegin(xios::CDomain* domain_hdl, int jbegin);
 void cxios_get_domain_ni(xios::CDomain* domain_hdl, int* ni);
 void cxios_get_domain_nj(xios::CDomain* domain_hdl, int* nj);
-void cxios_get_domain_ibegin(xios::CDomain* domain_hdl, int* ibegin);
-void cxios_get_domain_jbegin(xios::CDomain* domain_hdl, int* jbegin);
 bool cxios_is_defined_domain_type(xios::CDomain* axis_hdl);
 bool cxios_is_defined_domain_ni_glo(xios::CDomain* axis_hdl);
 bool cxios_is_defined_domain_nj_glo(xios::CDomain* axis_hdl);

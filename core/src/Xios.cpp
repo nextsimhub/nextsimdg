@@ -661,8 +661,18 @@ void Xios::createDomain(const std::string domainId, ModelMetadata& metadata)
         throw std::runtime_error("Xios: Failed to set global y-size for domain '" + domainId + "'");
     }
 
-    setDomainLocalXStart(domainId, metadata.localCornerX);
-    setDomainLocalYStart(domainId, metadata.localCornerY);
+    // Set local starts
+    cxios_set_domain_ibegin(domain, (int)metadata.localCornerX);
+    if (!cxios_is_defined_domain_ibegin(domain)) {
+        throw std::runtime_error(
+            "Xios: Failed to set local starting x-index for domain '" + domainId + "'");
+    }
+    cxios_set_domain_jbegin(domain, (int)metadata.localCornerY);
+    if (!cxios_is_defined_domain_jbegin(domain)) {
+        throw std::runtime_error(
+            "Xios: Failed to set local starting y-index for domain '" + domainId + "'");
+    }
+
     setDomainLocalXSize(domainId, metadata.localExtentX);
     setDomainLocalYSize(domainId, metadata.localExtentY);
 }
@@ -704,44 +714,6 @@ void Xios::setDomainLocalYSize(const std::string domainId, const size_t size)
 }
 
 /*!
- * Set the local starting x-index for a given domain
- *
- * @param the domain ID
- * @return the local starting x-index
- */
-void Xios::setDomainLocalXStart(const std::string domainId, const size_t start)
-{
-    xios::CDomain* domain = getDomain(domainId);
-    if (cxios_is_defined_domain_ibegin(domain)) {
-        Logged::warning("Xios: Overwriting local starting x-index for domain '" + domainId + "'");
-    }
-    cxios_set_domain_ibegin(domain, (int)start);
-    if (!cxios_is_defined_domain_ibegin(domain)) {
-        throw std::runtime_error(
-            "Xios: Failed to set local starting x-index for domain '" + domainId + "'");
-    }
-}
-
-/*!
- * Set the local starting y-index for a given domain
- *
- * @param the domain ID
- * @return the local starting y-index
- */
-void Xios::setDomainLocalYStart(const std::string domainId, const size_t start)
-{
-    xios::CDomain* domain = getDomain(domainId);
-    if (cxios_is_defined_domain_jbegin(domain)) {
-        Logged::warning("Xios: Overwriting local starting y-index for domain '" + domainId + "'");
-    }
-    cxios_set_domain_jbegin(domain, (int)start);
-    if (!cxios_is_defined_domain_jbegin(domain)) {
-        throw std::runtime_error(
-            "Xios: Failed to set local starting y-index for domain '" + domainId + "'");
-    }
-}
-
-/*!
  * Get the local number of points in the x-direction for a given domain
  *
  * @param the domain ID
@@ -773,42 +745,6 @@ size_t Xios::getDomainLocalYSize(const std::string domainId)
     int size;
     cxios_get_domain_nj(domain, &size);
     return (size_t)size;
-}
-
-/*!
- * Get the local starting x-index for a given domain
- *
- * @param the domain ID
- * @return the local starting x-index
- */
-size_t Xios::getDomainLocalXStart(const std::string domainId)
-{
-    xios::CDomain* domain = getDomain(domainId);
-    if (!cxios_is_defined_domain_ibegin(domain)) {
-        throw std::runtime_error(
-            "Xios: Undefined local starting x-index for domain '" + domainId + "'");
-    }
-    int start;
-    cxios_get_domain_ibegin(domain, &start);
-    return (size_t)start;
-}
-
-/*!
- * Get the local starting y-index for a given domain
- *
- * @param the domain ID
- * @return the local starting y-index
- */
-size_t Xios::getDomainLocalYStart(const std::string domainId)
-{
-    xios::CDomain* domain = getDomain(domainId);
-    if (!cxios_is_defined_domain_jbegin(domain)) {
-        throw std::runtime_error(
-            "Xios: Undefined local starting y-index for domain '" + domainId + "'");
-    }
-    int start;
-    cxios_get_domain_jbegin(domain, &start);
-    return (size_t)start;
 }
 
 /*!
