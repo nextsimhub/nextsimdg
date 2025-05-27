@@ -197,7 +197,6 @@ private:
     void write(const std::string fieldId, ModelArray& modelarray);
 
     /* Declare any classes that need to access private members */
-    friend ModelMetadata;
     friend ParaGridIO;
 };
 
