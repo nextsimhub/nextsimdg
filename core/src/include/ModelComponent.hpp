@@ -1,7 +1,7 @@
 /*!
  * @file ModelComponent.hpp
  *
- * @date 23 May 2025
+ * @date 26 May 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Einar Ólason <einar.olason@nersc.no>
  */
@@ -72,6 +72,10 @@ namespace Protected {
         = "SLAB_QDW"; // Slab ocean temperature nudging heat flux, W m⁻²
     inline constexpr TextTag SLAB_FDW
         = "SLAB_FDW"; // Slab ocean salinity nudging water flux, kg s⁻¹ m⁻²
+    inline constexpr TextTag SHEAR = "SHEAR"; // Instantaneous share rate, s⁻¹
+    inline constexpr TextTag DIV = "DIV"; // Instantaneous divergence , s⁻¹
+    inline constexpr TextTag SIGMAI = "SIGMAI"; // First invariant of the stress tensor Pa
+    inline constexpr TextTag SIGMAII = "SIGMAII"; // First invariant of the stress tensor Pa
 }
 
 namespace Shared {

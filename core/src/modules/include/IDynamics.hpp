@@ -1,7 +1,7 @@
 /*!
  * @file IDynamics.hpp
  *
- * @date 06 Dec 2024
+ * @date 26 May 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -25,6 +25,10 @@ public:
         , damage(ModelArray::Type::H)
         , taux(ModelArray::Type::H)
         , tauy(ModelArray::Type::H)
+        , shear(ModelArray::Type::H)
+        , divergence(ModelArray::Type::H)
+        , sigmaI(ModelArray::Type::H)
+        , sigmaII(ModelArray::Type::H)
         , hice(getStore())
         , cice(getStore())
         , hsnow(getStore())
@@ -38,25 +42,30 @@ public:
         , hiceDG(getStore())
         , ciceDG(getStore())
     {
-        getStore().registerArray(Shared::DAMAGE, &damage, RW);
+        getStore().registerArray(Protected::DIV, &divergence, RO);
+        getStore().registerArray(Protected::ICE_U, &uice, RO);
+        getStore().registerArray(Protected::ICE_V, &vice, RO);
         getStore().registerArray(Protected::IO_STRESS_X, &taux, RO);
         getStore().registerArray(Protected::IO_STRESS_Y, &tauy, RO);
+        getStore().registerArray(Protected::SHEAR, &shear, RO);
+        getStore().registerArray(Protected::SIGMAI, &sigmaI, RO);
+        getStore().registerArray(Protected::SIGMAII, &sigmaII, RO);
+        getStore().registerArray(Shared::DAMAGE, &damage, RW);
     }
     virtual ~IDynamics() = default;
 
     ModelState getStatePrognostic() const override
     {
         ModelState state = { {
-                { uName, mask(uice) },
-                { vName, mask(vice) },
-                 },
-            getConfiguration()
-        };
+                                 { uName, mask(uice) },
+                                 { vName, mask(vice) },
+                             },
+            getConfiguration() };
 
         if (m_usesDamage) {
-               ModelState::DataMap damageState = { { damageName, damage } };
-               state.merge(damageState);
-           }
+            ModelState::DataMap damageState = { { damageName, damage } };
+            state.merge(damageState);
+        }
 
         return state;
     }
@@ -64,10 +73,16 @@ public:
     ModelState getStateDiagnostic() const override
     {
         ModelState state = { {
-                { "tau_x", taux },
-                { "tau_y", tauy },
-        }, { }
-        };
+                                 { uIOStressName, taux },
+                                 { vIOStressName, tauy },
+                                 { uName, uice },
+                                 { vName, vice },
+                                 { shearName, shear },
+                                 { divergenceName, divergence },
+                                 { sigmaIName, sigmaI },
+                                 { sigmaIIName, sigmaII },
+                             },
+            {} };
         return state.merge(getStatePrognostic());
     }
 
@@ -80,6 +95,11 @@ public:
         if (!m_usesDamage) {
             damage = 0.;
         }
+
+        shear.resize();
+        divergence.resize();
+        sigmaI.resize();
+        sigmaII.resize();
     }
 
     virtual void update(const TimestepTime& tst) = 0;
@@ -98,6 +118,11 @@ protected:
     // Ice-ocean stress (for the coupler, mostly)
     HField taux;
     HField tauy;
+    // Diagnostic outputs of shear, divergence and the stress invariants
+    HField shear;
+    HField divergence;
+    HField sigmaI;
+    HField sigmaII;
     // References to the DG0 finite volume data arrays
     ModelArrayRef<Shared::H_ICE, RW> hice;
     ModelArrayRef<Shared::C_ICE, RW> cice;
