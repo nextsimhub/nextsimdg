@@ -761,52 +761,6 @@ void Xios::setDomainLocalYStart(const std::string domainId, const size_t start)
 }
 
 /*!
- * Set the local x-values for a given domain
- *
- * @param the domain ID
- * @return the local x-values
- */
-void Xios::setDomainLocalXValues(const std::string domainId, std::vector<double> values)
-{
-    xios::CDomain* domain = getDomain(domainId);
-    if (cxios_is_defined_domain_lonvalue_1d(domain)) {
-        Logged::warning("Xios: Overwriting local x-values for domain '" + domainId + "'");
-    }
-    if (!cxios_is_defined_domain_ni(domain)) {
-        setDomainLocalXSize(domainId, values.size());
-    }
-    int size = getDomainLocalXSize(domainId);
-    cxios_set_domain_lonvalue_1d(domain, values.data(), &size);
-    if (!cxios_is_defined_domain_lonvalue_1d(domain)) {
-        throw std::runtime_error(
-            "Xios: Failed to set local x-values for domain '" + domainId + "'");
-    }
-}
-
-/*!
- * Set the local y-values for a given domain
- *
- * @param the domain ID
- * @return the local y-values
- */
-void Xios::setDomainLocalYValues(const std::string domainId, std::vector<double> values)
-{
-    xios::CDomain* domain = getDomain(domainId);
-    if (cxios_is_defined_domain_latvalue_1d(domain)) {
-        Logged::warning("Xios: Overwriting local y-values for domain '" + domainId + "'");
-    }
-    if (!cxios_is_defined_domain_nj(domain)) {
-        setDomainLocalYSize(domainId, values.size());
-    }
-    int size = getDomainLocalYSize(domainId);
-    cxios_set_domain_latvalue_1d(domain, values.data(), &size);
-    if (!cxios_is_defined_domain_latvalue_1d(domain)) {
-        throw std::runtime_error(
-            "Xios: Failed to set local y-values for domain '" + domainId + "'");
-    }
-}
-
-/*!
  * Set the type of a given domain
  *
  * @param the domain ID
@@ -822,23 +776,6 @@ void Xios::setDomainType(const std::string domainId, const std::string domainTyp
     if (!cxios_is_defined_domain_type(domain)) {
         throw std::runtime_error("Xios: Failed to set type for domain '" + domainId + "'");
     }
-}
-
-/*!
- * Get the type of a given domain
- *
- * @param the domain ID
- * @return the corresponding domain type
- */
-std::string Xios::getDomainType(const std::string domainId)
-{
-    xios::CDomain* domain = getDomain(domainId);
-    if (!cxios_is_defined_domain_type(domain)) {
-        throw std::runtime_error("Xios: Undefined type for domain '" + domainId + "'");
-    }
-    char cStr[cStrLen];
-    cxios_get_domain_type(domain, cStr, cStrLen);
-    return convertCStrToCppStr(cStr, cStrLen);
 }
 
 /*!
@@ -943,46 +880,6 @@ size_t Xios::getDomainLocalYStart(const std::string domainId)
     int start;
     cxios_get_domain_jbegin(domain, &start);
     return (size_t)start;
-}
-
-/*!
- * Get the local x-values for a given domain
- *
- * @param the domain ID
- * @return the local x-values
- */
-std::vector<double> Xios::getDomainLocalXValues(const std::string domainId)
-{
-    xios::CDomain* domain = getDomain(domainId);
-    if (!cxios_is_defined_domain_lonvalue_1d(domain)) {
-        throw std::runtime_error("Xios: Undefined local x-values for domain '" + domainId + "'");
-    }
-    int size = getDomainLocalXSize(domainId);
-    double* values = new double[size];
-    cxios_get_domain_lonvalue_1d(domain, values, &size);
-    std::vector<double> vec(values, values + size);
-    delete[] values;
-    return vec;
-}
-
-/*!
- * Get the local y-values for a given domain
- *
- * @param the domain ID
- * @return the local y-values
- */
-std::vector<double> Xios::getDomainLocalYValues(const std::string domainId)
-{
-    xios::CDomain* domain = getDomain(domainId);
-    if (!cxios_is_defined_domain_latvalue_1d(domain)) {
-        throw std::runtime_error("Xios: Undefined local y-values for domain '" + domainId + "'");
-    }
-    int size = getDomainLocalYSize(domainId);
-    double* values = new double[size];
-    cxios_get_domain_latvalue_1d(domain, values, &size);
-    std::vector<double> vec(values, values + size);
-    delete[] values;
-    return vec;
 }
 
 /*!

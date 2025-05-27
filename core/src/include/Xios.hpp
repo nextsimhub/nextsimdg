@@ -102,8 +102,6 @@ public:
     void setDomainLocalYSize(const std::string domainId, const size_t size);
     void setDomainLocalXStart(const std::string domainId, const size_t start);
     void setDomainLocalYStart(const std::string domainId, const size_t start);
-    void setDomainLocalXValues(const std::string domainId, std::vector<double> values);
-    void setDomainLocalYValues(const std::string domainId, std::vector<double> values);
     std::string getDomainType(const std::string domainId);
     size_t getDomainGlobalXSize(const std::string domainId);
     size_t getDomainGlobalYSize(const std::string domainId);
@@ -111,8 +109,6 @@ public:
     size_t getDomainLocalYSize(const std::string domainId);
     size_t getDomainLocalXStart(const std::string domainId);
     size_t getDomainLocalYStart(const std::string domainId);
-    std::vector<double> getDomainLocalXValues(const std::string domainId);
-    std::vector<double> getDomainLocalYValues(const std::string domainId);
 
     /* Grid */
     void createGrid(const std::string gridId);
