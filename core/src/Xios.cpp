@@ -769,7 +769,19 @@ void Xios::gridAddAxis(const std::string gridId, const std::string axisId)
 void Xios::gridAddDomain(const std::string gridId, const std::string domainId)
 {
     xios::CDomain* domain = getDomain(domainId);
-    cxios_xml_tree_add_domaintogrid(getGrid(gridId), &domain, domainId.c_str(), domainId.length());
+    xios::CGrid* grid = getGrid(gridId);
+    cxios_xml_tree_add_domaintogrid(grid, &domain, domainId.c_str(), domainId.length());
+
+    // Check the domain was added successfully
+    std::vector<std::string> domainIds = grid->getDomainList();
+    if (domainIds.size() != 1) {
+        throw std::runtime_error("Xios: Unexpected number of domains in grid '" + gridId
+            + "': " + std::to_string(domainIds.size()));
+    }
+    if (domainIds[0] != domainId) {
+        throw std::runtime_error(
+            "Xios: Failed to add domain '" + domainId + "' to grid '" + gridId + "'");
+    }
 }
 
 /*!
@@ -781,17 +793,6 @@ void Xios::gridAddDomain(const std::string gridId, const std::string domainId)
 std::vector<std::string> Xios::getGridAxisIds(const std::string gridId)
 {
     return getGrid(gridId)->getAxisList();
-}
-
-/*!
- * Get all domain IDs associated with a given grid
- *
- * @param the grid ID
- * @return all domain IDs associated with the grid
- */
-std::vector<std::string> Xios::getGridDomainIds(const std::string gridId)
-{
-    return getGrid(gridId)->getDomainList();
 }
 
 /*!

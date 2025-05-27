@@ -42,11 +42,6 @@ MPI_TEST_CASE("TestXiosGrid", 2)
     ModelMetadata metadata("xios_test_partition_metadata_2.nc", test_comm);
     REQUIRE_THROWS_WITH(xiosHandler.createGrid(gridId), "Xios: Grid 'grid_2D' already exists");
 
-    // Check the domain was added
-    std::vector<std::string> domainIds = xiosHandler.getGridDomainIds(gridId);
-    REQUIRE(domainIds.size() == 1);
-    REQUIRE(domainIds[0] == "xy_domain");
-
     // Add a vertical axis, too
     const std::string axisId = "z_axis";
     xiosHandler.createAxis(axisId);
