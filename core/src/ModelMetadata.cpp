@@ -64,14 +64,7 @@ void ModelMetadata::getPartitionMetadata(std::string partitionFile)
     // Set up the XIOS Domain
     Xios& xiosHandler = Xios::getInstance();
     const std::string domainId = "xy_domain";
-    xiosHandler.createDomain(domainId);
-    xiosHandler.setDomainType(domainId, "rectilinear");
-    xiosHandler.setDomainGlobalXSize(domainId, globalExtentX);
-    xiosHandler.setDomainGlobalYSize(domainId, globalExtentY);
-    xiosHandler.setDomainLocalXStart(domainId, localCornerX);
-    xiosHandler.setDomainLocalYStart(domainId, localCornerY);
-    xiosHandler.setDomainLocalXSize(domainId, localExtentX);
-    xiosHandler.setDomainLocalYSize(domainId, localExtentY);
+    xiosHandler.createDomain(domainId, *this);
 #endif
 }
 

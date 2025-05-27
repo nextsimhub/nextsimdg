@@ -33,6 +33,7 @@
 #if USE_XIOS
 
 #include "include/Finalizer.hpp"
+#include "include/ModelMetadata.hpp"
 #include "include/Xios.hpp"
 
 #include <boost/algorithm/string.hpp>
@@ -609,14 +610,15 @@ xios::CDomain* Xios::getDomain(const std::string domainId)
 }
 
 /*!
- * Create a domain with some ID.
+ * Create a domain with some ID based off the provided metadata.
  *
  * If the domain ID is 'xy_domain' then a grid called 'grid_2D' will automatically be created with
  * this domain.
  *
  * @param the domain ID
+ * @param metadata ModelMetadata object containing the partition metadata
  */
-void Xios::createDomain(const std::string domainId)
+void Xios::createDomain(const std::string domainId, ModelMetadata& metadata)
 {
     bool exists;
     cxios_domain_valid_id(&exists, domainId.c_str(), domainId.length());
@@ -638,6 +640,14 @@ void Xios::createDomain(const std::string domainId)
         createGrid(gridId);
         gridAddDomain(gridId, "xy_domain");
     }
+
+    setDomainType(domainId, "rectilinear");
+    setDomainGlobalXSize(domainId, metadata.globalExtentX);
+    setDomainGlobalYSize(domainId, metadata.globalExtentY);
+    setDomainLocalXStart(domainId, metadata.localCornerX);
+    setDomainLocalYStart(domainId, metadata.localCornerY);
+    setDomainLocalXSize(domainId, metadata.localExtentX);
+    setDomainLocalYSize(domainId, metadata.localExtentY);
 }
 
 /*!

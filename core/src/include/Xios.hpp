@@ -26,7 +26,8 @@
 
 namespace Nextsim {
 
-// Forward declaration of ParaGridIO to avoid circular dependency
+// Forward declarations to avoid circular dependencies
+class ModelMetadata;
 class ParaGridIO;
 
 void enableXios();
@@ -93,7 +94,7 @@ public:
     std::vector<double> getAxisValues(const std::string axisId);
 
     /* Domain */
-    void createDomain(const std::string domainId);
+    void createDomain(const std::string domainId, ModelMetadata& metadata);
     void setDomainType(const std::string domainId, const std::string domainType);
     void setDomainGlobalXSize(const std::string domainId, const size_t size);
     void setDomainGlobalYSize(const std::string domainId, const size_t size);

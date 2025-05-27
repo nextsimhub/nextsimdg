@@ -13,6 +13,7 @@
 #include "StructureModule/include/ParametricGrid.hpp"
 #include "include/Configurator.hpp"
 #include "include/Finalizer.hpp"
+#include "include/ModelMetadata.hpp"
 #include "include/Xios.hpp"
 
 using namespace doctest;
@@ -54,15 +55,10 @@ MPI_TEST_CASE("TestXiosFile", 2)
     REQUIRE(size == 2);
     const size_t rank = xiosHandler.getClientMPIRank();
 
-    // Set dimensions consistently with input file
-    xiosHandler.createDomain("xy_domain");
-    xiosHandler.setDomainType("xy_domain", "rectilinear");
-    xiosHandler.setDomainGlobalXSize("xy_domain", 4);
-    xiosHandler.setDomainGlobalYSize("xy_domain", 2);
-    xiosHandler.setDomainLocalXStart("xy_domain", 2 * rank);
-    xiosHandler.setDomainLocalYStart("xy_domain", 0);
-    xiosHandler.setDomainLocalXValues("xy_domain", { -1.0 + rank, -0.5 + rank });
-    xiosHandler.setDomainLocalYValues("xy_domain", { -1.0, 1.0 });
+    // Create ModelMetadata instance, which will create the domain
+    ModelMetadata metadata("xios_test_partition_metadata_2.nc", test_comm);
+
+    // Create a vertical axis, too
     xiosHandler.createAxis("z_axis");
     xiosHandler.setAxisValues("z_axis", { 0.0, 1.0 });
 
