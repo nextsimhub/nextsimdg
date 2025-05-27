@@ -15,6 +15,7 @@
 #include "include/NextsimModule.hpp"
 #include "include/ParaGridIO.hpp"
 #include "include/Xios.hpp"
+#include "include/gridNames.hpp"
 
 #include <filesystem>
 
@@ -37,7 +38,7 @@ MPI_TEST_CASE("TestXiosRead", 2)
     config << "[XiosInput]" << std::endl;
     config << "period = P0-0T01:30:00" << std::endl;
     config << "filename = xios_test_input" << std::endl;
-    config << "field_names = field_2D" << std::endl;
+    config << "field_names = hice" << std::endl;
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
 
@@ -69,20 +70,20 @@ MPI_TEST_CASE("TestXiosRead", 2)
     // Create fields on the two grids
     // NOTE: Fields are created when the XIOS handler is constructed
     // NOTE: The 2D grid is created along with the 2D domain
-    xiosHandler.setFieldOperation("field_2D", "instant");
-    xiosHandler.setFieldGridRef("field_2D", "grid_2D");
+    xiosHandler.setFieldOperation(hiceName, "instant");
+    xiosHandler.setFieldGridRef(hiceName, "grid_2D");
     Duration timestep = xiosHandler.getCalendarTimestep();
-    xiosHandler.setFieldFreqOffset("field_2D", timestep);
+    xiosHandler.setFieldFreqOffset(hiceName, timestep);
 
     xiosHandler.close_context_definition();
 
     // Create HField and ZField instances to read the data into
-    HField field_2D(ModelArray::Type::H);
-    field_2D.resize();
+    HField hice(ModelArray::Type::H);
+    hice.resize();
 
     // Setup ModelState with field above
     ModelState state = { {
-                             { "field_2D", field_2D },
+                             { hiceName, hice },
                          },
         {} };
 
