@@ -51,12 +51,10 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     // Create ModelMetadata instance based off a partition metadata file
     ModelMetadata metadata("xios_test_partition_metadata_2.nc", test_comm);
 
-    // Create Xios singleton instance and check it's initialized
+    // Get the Xios singleton instance and check it's initialized
     Xios& xiosHandler = Xios::getInstance();
     REQUIRE(xiosHandler.isInitialized());
-    const size_t size = xiosHandler.getClientMPISize();
-    REQUIRE(size == 2);
-    const size_t rank = xiosHandler.getClientMPIRank();
+    REQUIRE(xiosHandler.getClientMPISize() == 2);
 
     // Set ModelArray dimensions
     const size_t nx_glo = 4;

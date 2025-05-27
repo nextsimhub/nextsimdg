@@ -54,9 +54,7 @@ MPI_TEST_CASE("TestXiosFile", 2)
     // Get the Xios singleton instance and check it's initialized
     Xios& xiosHandler = Xios::getInstance();
     REQUIRE(xiosHandler.isInitialized());
-    const size_t size = xiosHandler.getClientMPISize();
-    REQUIRE(size == 2);
-    const size_t rank = xiosHandler.getClientMPIRank();
+    REQUIRE(xiosHandler.getClientMPISize() == 2);
 
     // Create a vertical axis, too
     xiosHandler.createAxis("z_axis");
