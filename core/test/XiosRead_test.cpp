@@ -80,6 +80,12 @@ MPI_TEST_CASE("TestXiosRead", 2)
     HField field_2D(ModelArray::Type::H);
     field_2D.resize();
 
+    // Setup ModelState with field above
+    ModelState state = { {
+                             { "field_2D", field_2D },
+                         },
+        {} };
+
     // Check calendar step is zero initially
     REQUIRE(xiosHandler.getCalendarStep() == 0);
 
@@ -93,12 +99,16 @@ MPI_TEST_CASE("TestXiosRead", 2)
         metadata.incrementTime(timestep);
         REQUIRE(xiosHandler.getCalendarStep() == ts);
         // Receive data from XIOS that is read from disk
-        xiosHandler.read("field_2D", field_2D);
+        for (auto& entry : state.data) {
+            xiosHandler.read(entry.first, entry.second);
+        }
     }
 
-    for (size_t j = 0; j < ny; ++j) {
-        for (size_t i = 0; i < nx; ++i) {
-            REQUIRE(field_2D(i, j) == doctest::Approx(i + nx * j));
+    for (auto& entry : state.data) {
+        for (size_t j = 0; j < ny; ++j) {
+            for (size_t i = 0; i < nx; ++i) {
+                REQUIRE(entry.second(i, j) == doctest::Approx(i + nx * j));
+            }
         }
     }
     xiosHandler.context_finalize();
