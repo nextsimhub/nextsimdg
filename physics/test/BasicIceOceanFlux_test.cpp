@@ -28,7 +28,6 @@ TEST_SUITE_BEGIN("BasicIceOceanHeatFlux");
 TEST_CASE("Melting conditions")
 {
     ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
-    ModelArray::setDimensions(ModelArray::Type::Z, { 1, 1, 1 });
 
     Module::setImplementation<IFreezingPoint>("Nextsim::UnescoFreezing");
     UniformOcean ocnBdy;
@@ -42,7 +41,6 @@ TEST_CASE("Melting conditions")
             getStore().registerArray(Shared::H_ICE, &hice, RW);
             getStore().registerArray(Shared::C_ICE, &cice, RW);
             getStore().registerArray(Shared::H_SNOW, &hsnow, RW);
-            getStore().registerArray(Shared::T_ICE, &tice0, RW);
             getStore().registerArray(Protected::C_ICE, &cice, RO);
             getStore().registerArray(Protected::HTRUE_ICE, &hice0, RO);
             getStore().registerArray(Protected::HTRUE_SNOW, &hsnow0, RO);
@@ -55,7 +53,6 @@ TEST_CASE("Melting conditions")
             cice[0] = 0.5;
             hice[0] = 0.1; // Here we are using the cell-averaged thicknesses
             hsnow[0] = 0.01;
-            tice0[0] = -1.;
 
             hice0[0] = hice[0] / cice[0];
             hsnow0[0] = hsnow[0] / cice[0];
@@ -64,7 +61,6 @@ TEST_CASE("Melting conditions")
         HField hice;
         HField cice;
         HField hsnow;
-        HField tice0;
         HField hice0; // ice averaged ice thickness
         HField hsnow0; // ice averaged snow thickness
     } iceState;
@@ -85,7 +81,6 @@ TEST_CASE("Melting conditions")
 TEST_CASE("Freezing conditions")
 {
     ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
-    ModelArray::setDimensions(ModelArray::Type::Z, { 1, 1, 1 });
 
     Module::setImplementation<IFreezingPoint>("Nextsim::UnescoFreezing");
     UniformOcean ocnBdy;
@@ -99,7 +94,6 @@ TEST_CASE("Freezing conditions")
             getStore().registerArray(Protected::H_ICE, &hice, RO);
             getStore().registerArray(Protected::C_ICE, &cice, RO);
             getStore().registerArray(Protected::H_SNOW, &hsnow, RO);
-            getStore().registerArray(Protected::T_ICE, &tice0, RO);
             getStore().registerArray(Protected::C_ICE, &cice, RO);
             getStore().registerArray(Protected::HTRUE_ICE, &hice0, RO);
             getStore().registerArray(Protected::HTRUE_SNOW, &hsnow0, RO);
@@ -112,7 +106,6 @@ TEST_CASE("Freezing conditions")
             cice[0] = 0.5;
             hice[0] = 0.1; // Here we are using the cell-averaged thicknesses
             hsnow[0] = 0.01;
-            tice0[0] = -9.;
 
             hice0[0] = hice[0] / cice[0];
             hsnow0[0] = hsnow[0] / cice[0];
@@ -121,7 +114,6 @@ TEST_CASE("Freezing conditions")
         HField hice;
         HField cice;
         HField hsnow;
-        HField tice0;
         HField hice0; // ice averaged ice thickness
         HField hsnow0; // ice averaged snow thickness
     } iceState;

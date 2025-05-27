@@ -1,7 +1,7 @@
 /*!
  * @file IOceanBoundary.hpp
  *
- * @date 29 Apr 2025
+ * @date 23 May 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -35,7 +35,8 @@ public:
         , tauX(ModelArray::Type::H)
         , tauY(ModelArray::Type::H)
         , cice(getStore())
-        , emp(getStore())
+        , evap(getStore())
+        , rain(getStore())
         , newIce(getStore())
         , deltaHice(getStore())
         , deltaSmelt(getStore())
@@ -150,7 +151,7 @@ private:
         // Positive flux is up!
         fwFlux[i]
             = ((1 - effectiveIceSal) * Ice::rho * deltaIceVol + Ice::rhoSnow * meltSnowVol) / dt
-            + emp[i] * (1 - cice[i]);
+            + (evap[i] - rain[i]) * (1 - cice[i]);
         sFlux[i] = effectiveIceSal * Ice::rho * deltaIceVol / dt;
 
         // Momentum fluxes
@@ -180,9 +181,10 @@ protected:
     ModelArrayReferenceStore m_couplingArrays;
 
     ModelArrayRef<Protected::C_ICE, RO> cice;
-    ModelArrayRef<Protected::EVAP_MINUS_PRECIP, RO> emp;
     ModelArrayRef<Protected::IO_STRESS_X> tauXIO;
     ModelArrayRef<Protected::IO_STRESS_X> tauYIO;
+    ModelArrayRef<Shared::EVAP, RW> evap;
+    ModelArrayRef<Shared::RAIN, RO> rain;
     ModelArrayRef<Shared::NEW_ICE, RW> newIce;
     ModelArrayRef<Shared::DELTA_HICE, RW> deltaHice;
     ModelArrayRef<Shared::HSNOW_MELT, RW> deltaSmelt;

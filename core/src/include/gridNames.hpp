@@ -17,6 +17,7 @@ static const std::string hiceName = "hice";
 static const std::string ciceName = "cice";
 static const std::string hsnowName = "hsnow";
 static const std::string ticeName = "tice";
+static const std::string tsurfName = "tsurf";
 static const std::string maskName = "mask";
 static const std::string uName = "u";
 static const std::string vName = "v";

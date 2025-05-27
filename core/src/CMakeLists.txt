@@ -32,7 +32,6 @@ set(BaseSources
     "ModelComponent.cpp"
     "ModelMetadata.cpp"
     "NetcdfMetadataConfiguration.cpp"
-    "NZLevels.cpp"
     "PrognosticData.cpp"
     "PDWriter.cpp"
     "Time.cpp"

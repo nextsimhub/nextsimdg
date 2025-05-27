@@ -1,7 +1,7 @@
 /*!
  * @file BBMDynamics.cpp
  *
- * @date 19 May 2025
+ * @date 26 May 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Einar Ólason <einar.olason@nersc.no>
  */
@@ -98,13 +98,6 @@ BBMDynamics::BBMDynamics()
     : IDynamics(true)
     , kernel(params)
 {
-    getStore().registerArray(Protected::ICE_U, &uice, RO);
-    getStore().registerArray(Protected::ICE_V, &vice, RO);
-
-    getStore().registerArray(Protected::SHEAR, &shear, RO);
-    getStore().registerArray(Protected::DIV, &divergence, RO);
-    getStore().registerArray(Protected::SIGMAI, &sigmaI, RO);
-    getStore().registerArray(Protected::SIGMAII, &sigmaII, RO);
 }
 
 void BBMDynamics::setData(const ModelState::DataMap& ms)

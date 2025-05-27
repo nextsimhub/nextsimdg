@@ -1,7 +1,7 @@
 /*!
  * @file IDynamics.hpp
  *
- * @date 19 May 2025
+ * @date 26 May 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -42,9 +42,15 @@ public:
         , hiceDG(getStore())
         , ciceDG(getStore())
     {
-        getStore().registerArray(Shared::DAMAGE, &damage, RW);
+        getStore().registerArray(Protected::DIV, &divergence, RO);
+        getStore().registerArray(Protected::ICE_U, &uice, RO);
+        getStore().registerArray(Protected::ICE_V, &vice, RO);
         getStore().registerArray(Protected::IO_STRESS_X, &taux, RO);
         getStore().registerArray(Protected::IO_STRESS_Y, &tauy, RO);
+        getStore().registerArray(Protected::SHEAR, &shear, RO);
+        getStore().registerArray(Protected::SIGMAI, &sigmaI, RO);
+        getStore().registerArray(Protected::SIGMAII, &sigmaII, RO);
+        getStore().registerArray(Shared::DAMAGE, &damage, RW);
     }
     virtual ~IDynamics() = default;
 

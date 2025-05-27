@@ -54,7 +54,6 @@ public:
     void writeRestartFile(const std::string& filePath, const ModelMetadata& metadata) const;
 
 private:
-    ZField m_tice;
     HField m_snow;
     HField m_damage;
     double m_dt;

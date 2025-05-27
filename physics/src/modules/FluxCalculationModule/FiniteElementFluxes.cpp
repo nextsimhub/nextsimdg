@@ -1,7 +1,7 @@
 /*!
  * @file FiniteElementFluxes.cpp
  *
- * @date 11 Feb 2025
+ * @date 23 May 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -88,7 +88,6 @@ ModelState FiniteElementFluxes::getStateDiagnostic() const
 void FiniteElementFluxes::setData(const ModelState::DataMap& ms)
 {
     // Data arrays can now be set to the correct size
-    evap.resize();
     Q_lh_ow.resize();
     Q_sh_ow.resize();
     Q_lw_ow.resize();
@@ -169,28 +168,26 @@ void FiniteElementFluxes::calculateIce(size_t i, const TimestepTime& tst)
 
     // Heat flux ice-atmosphere
     // Latent heat from sublimation
-    Q_lh_ia[i] = subl[i] * latentHeatIce(tice.zIndexAndLayer(i, 0));
+    Q_lh_ia[i] = subl[i] * latentHeatIce(tsurf[i]);
     double dmdot_dT = dragIce_t * rho_air[i] * windSpeed[i] * dshice_dT[i];
-    double dQlh_dT = latentHeatIce(tice.zIndexAndLayer(i, 0)) * dmdot_dT;
+    double dQlh_dT = latentHeatIce(tsurf[i]) * dmdot_dT;
 
     // Sensible heat flux
-    Q_sh_ia[i] = dragIce_t * rho_air[i] * cp_air[i] * windSpeed[i]
-        * (tice.zIndexAndLayer(i, 0) - t_air[i]);
+    Q_sh_ia[i] = dragIce_t * rho_air[i] * cp_air[i] * windSpeed[i] * (tsurf[i] - t_air[i]);
     double dQsh_dT = dragIce_t * rho_air[i] * cp_air[i] * windSpeed[i];
 
     // Shortwave flux
     double albedoValue, i0;
     std::tie(albedoValue, i0)
-        = iIceAlbedoImpl->surfaceShortWaveBalance(tice.zIndexAndLayer(i, 0), h_snow_true[i], m_I0);
+        = iIceAlbedoImpl->surfaceShortWaveBalance(tsurf[i], h_snow_true[i], m_I0);
     Q_sw_ia[i] = -sw_in[i] * (1. - albedoValue) * (1. - i0);
     const double extinction = 0.; // TODO: Replace with de Beer's law or a module
     penSW[i] = sw_in[i] * (1. - albedoValue) * i0 * (1. - extinction);
     Q_sw_base[i] = sw_in[i] * (1. - albedoValue) * i0 * extinction;
 
     // Longwave flux
-    Q_lw_ia[i] = stefanBoltzmannLaw(tice.zIndexAndLayer(i, 0)) - lw_in[i];
-    double dQlw_dT
-        = 4 / kelvin(tice.zIndexAndLayer(i, 0)) * stefanBoltzmannLaw(tice.zIndexAndLayer(i, 0));
+    Q_lw_ia[i] = stefanBoltzmannLaw(tsurf[i]) - lw_in[i];
+    double dQlw_dT = 4 / kelvin(tsurf[i]) * stefanBoltzmannLaw(tsurf[i]);
 
     // Total flux
     qia[i] = Q_lh_ia[i] + Q_sh_ia[i] + Q_sw_ia[i] + Q_lw_ia[i];
@@ -237,7 +234,7 @@ void FiniteElementFluxes::calculateAtmos(size_t i, const TimestepTime& tst)
     sh_water[i] = FiniteElementSpecHum::water()(sst[i], p_air[i], sss[i]);
     // ...over the ice
     std::pair<double, double> iceData
-        = FiniteElementSpecHum::ice().valueAndDerivative(tice.zIndexAndLayer(i, 0), p_air[i]);
+        = FiniteElementSpecHum::ice().valueAndDerivative(tsurf[i], p_air[i]);
     sh_ice[i] = iceData.first;
     dshice_dT[i] = iceData.second;
     // Density of the wet air

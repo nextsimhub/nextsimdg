@@ -90,20 +90,6 @@ public:
         return dataReference->operator()(i, j, k);
     }
 
-    /*!
-     * @brief Special access function for ZFields.
-     *
-     * @detail Index the referenced ZField using an index from an HField of the
-     * same horizontal extent and a layer index for the final dimension.
-     *
-     * @param hIndex the equivalent positional index in an HField array
-     * @param layer the vertical layer to be accessed
-     */
-    const double& zIndexAndLayer(size_t hIndex, size_t layer)
-    {
-        return dataReference->zIndexAndLayer(hIndex, layer);
-    }
-
     //! Copies component 0 to an appropriate ModelArray type.
     operator ModelArray() const
     {
@@ -262,20 +248,6 @@ public:
     double& operator()(size_t i, size_t j, size_t k) const
     {
         return dataReference->operator()(i, j, k);
-    }
-
-    /*!
-     * @brief Special access function for ZFields.
-     *
-     * @detail Index the referenced ZField using an index from an HField of the
-     * same horizontal extent and a layer index for the final dimension.
-     *
-     * @param hIndex the equivalent positional index in an HField array
-     * @param layer the vertical layer to be accessed
-     */
-    double& zIndexAndLayer(size_t hIndex, size_t layer)
-    {
-        return dataReference->zIndexAndLayer(hIndex, layer);
     }
 
     //! Copies component 0 to an appropriate ModelArray type.

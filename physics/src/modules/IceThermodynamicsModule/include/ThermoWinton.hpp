@@ -39,11 +39,14 @@ public:
     void setData(const ModelState::DataMap&) override;
     void update(const TimestepTime& tsTime) override;
 
-    size_t getNZLevels() const override;
+    static const std::string tInteriorName;
+    static const std::string tBottomName;
 
 private:
     void calculateElement(size_t i, const TimestepTime& tst);
 
+    HField tInternal;
+    HField tBottom;
     HField snowMelt;
     HField topMelt;
     HField botMelt;
