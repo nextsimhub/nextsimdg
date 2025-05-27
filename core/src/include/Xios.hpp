@@ -26,6 +26,9 @@
 
 namespace Nextsim {
 
+// Forward declaration of ParaGridIO to avoid circular dependency
+class ParaGridIO;
+
 void enableXios();
 
 class Xios : public Configured<Xios> {
@@ -142,7 +145,6 @@ public:
     std::vector<std::string> fileGetFieldIds(const std::string fileId);
 
     /* I/O */
-    void write(const std::string fieldId, ModelArray& modelarray);
     void read(const std::string fieldId, ModelArray& modelarray);
 
     enum {
@@ -208,6 +210,12 @@ private:
     xios::CFileGroup* getFileGroup();
     xios::CFile* getFile(const std::string fileId);
     void setFileMode(const std::string fileId, const std::string mode);
+
+    /* I/O */
+    void write(const std::string fieldId, ModelArray& modelarray);
+
+    /* Declare any classes that need to access private members */
+    friend ParaGridIO;
 };
 
 }
