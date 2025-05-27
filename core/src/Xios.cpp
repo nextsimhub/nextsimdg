@@ -615,11 +615,11 @@ xios::CDomain* Xios::getDomain(const std::string domainId)
  * If the domain ID is 'xy_domain' then a grid called 'grid_2D' will automatically be created with
  * this domain.
  *
- * @param the domain ID
  * @param metadata ModelMetadata object containing the partition metadata
  */
-void Xios::createDomain(const std::string domainId, ModelMetadata& metadata)
+void Xios::affixModelMetadata(ModelMetadata& metadata)
 {
+    const std::string domainId = "xy_domain";
     bool exists;
     cxios_domain_valid_id(&exists, domainId.c_str(), domainId.length());
     if (exists) {

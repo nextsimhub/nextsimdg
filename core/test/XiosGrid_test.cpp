@@ -34,6 +34,7 @@ MPI_TEST_CASE("TestXiosGrid", 2)
 
     // Get the Xios singleton instance and check it's initialized
     Xios& xiosHandler = Xios::getInstance();
+    xiosHandler.affixModelMetadata(metadata);
     REQUIRE(xiosHandler.isInitialized());
     REQUIRE(xiosHandler.getClientMPISize() == 2);
 

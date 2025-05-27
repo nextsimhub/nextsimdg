@@ -93,6 +93,9 @@ public:
     size_t getAxisSize(const std::string axisId);
     std::vector<double> getAxisValues(const std::string axisId);
 
+    /* Domain */
+    void affixModelMetadata(ModelMetadata& metadata);
+
     /* Grid */
     void createGrid(const std::string gridId);
     void gridAddAxis(std::string axisId, const std::string domainId);
@@ -172,7 +175,6 @@ private:
     /* Domain */
     xios::CDomainGroup* getDomainGroup();
     xios::CDomain* getDomain(const std::string domainId);
-    void createDomain(const std::string domainId, ModelMetadata& metadata);
 
     /* Field */
     xios::CFieldGroup* getFieldGroup();
