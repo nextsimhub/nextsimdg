@@ -1,7 +1,7 @@
 /*!
  * @file IAtmosphereBoundary.hpp
  *
- * @date 23 May 2025
+ * @date 27 May 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -20,7 +20,7 @@ public:
     IAtmosphereBoundary()
         : qia(ModelArray::Type::H, { -1e4, 1e4 })
         , dqia_dt(ModelArray::Type::H)
-        , qow(ModelArray::Type::H, { -1e3, 1e3 })
+        , qow(ModelArray::Type::H, { -1e4, 1e4 })
         , subl(ModelArray::Type::H)
         , snow(ModelArray::Type::H, { 0, 1e-3 })
         , rain(ModelArray::Type::H, { 0, 1e-3 })

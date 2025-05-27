@@ -1,7 +1,7 @@
 /*!
  * @file IOceanBoundary.hpp
  *
- * @date 23 May 2025
+ * @date 27 May 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -28,12 +28,12 @@ public:
         , ssh(ModelArray::Type::H, { -10, 10 })
         , qNoSun(ModelArray::Type::H, { -1e6, 1e6 })
         , qswNet(ModelArray::Type::H, { -1e3, 1e3 })
-        , fwFlux(ModelArray::Type::H, { -1e-2, 1e-2 })
-        , sFlux(ModelArray::Type::H, { -1e-4, 1e-4 })
+        , fwFlux(ModelArray::Type::H, { -1e-1, 1e-1 })
+        , sFlux(ModelArray::Type::H, { -1e-3, 1e-3 })
         , qswow(ModelArray::Type::H, { -1e3, 1e-6 })
         , qswBase(ModelArray::Type::H, { -1e3, 1e-6 })
-        , tauX(ModelArray::Type::H, { -1, 1 })
-        , tauY(ModelArray::Type::H, { -1, 1 })
+        , tauX(ModelArray::Type::H, { -10, 10 })
+        , tauY(ModelArray::Type::H, { -10, 10 })
         , cice(getStore())
         , evap(getStore())
         , rain(getStore())
