@@ -591,10 +591,9 @@ xios::CDomainGroup* Xios::getDomainGroup()
 /*!
  * Get the domain associated with a given ID
  *
- * @param the domain ID
  * @return a pointer to the XIOS CDomain object
  */
-xios::CDomain* Xios::getDomain(const std::string domainId)
+xios::CDomain* Xios::getDomain()
 {
     bool exists;
     cxios_domain_valid_id(&exists, domainId.c_str(), domainId.length());
@@ -619,7 +618,6 @@ xios::CDomain* Xios::getDomain(const std::string domainId)
  */
 void Xios::affixModelMetadata(ModelMetadata& metadata)
 {
-    const std::string domainId = "xy_domain";
     bool exists;
     cxios_domain_valid_id(&exists, domainId.c_str(), domainId.length());
     if (exists) {
@@ -634,12 +632,12 @@ void Xios::affixModelMetadata(ModelMetadata& metadata)
     if (!exists) {
         throw std::runtime_error("Xios: Failed to create domain '" + domainId + "'");
     }
-    if (domainId == "xy_domain") {
-        // Create grid_2D associated with a domain called xy_domain
-        const std::string gridId = "grid_2D";
-        createGrid(gridId);
-        gridAddDomain(gridId, "xy_domain");
-    }
+
+    // Create grid_2D associated with the domain
+    const std::string gridId = "grid_2D";
+    createGrid(gridId);
+    xios::CGrid* grid = getGrid(gridId);
+    cxios_xml_tree_add_domaintogrid(grid, &domain, domainId.c_str(), domainId.length());
 
     // Set domain type
     const std::string domainType = "rectilinear";
@@ -758,30 +756,6 @@ void Xios::gridAddAxis(const std::string gridId, const std::string axisId)
 {
     xios::CAxis* axis = getAxis(axisId);
     cxios_xml_tree_add_axistogrid(getGrid(gridId), &axis, axisId.c_str(), axisId.length());
-}
-
-/*!
- * Associate a domain with a grid
- *
- * @param the grid ID
- * @param the domain ID
- */
-void Xios::gridAddDomain(const std::string gridId, const std::string domainId)
-{
-    xios::CDomain* domain = getDomain(domainId);
-    xios::CGrid* grid = getGrid(gridId);
-    cxios_xml_tree_add_domaintogrid(grid, &domain, domainId.c_str(), domainId.length());
-
-    // Check the domain was added successfully
-    std::vector<std::string> domainIds = grid->getDomainList();
-    if (domainIds.size() != 1) {
-        throw std::runtime_error("Xios: Unexpected number of domains in grid '" + gridId
-            + "': " + std::to_string(domainIds.size()));
-    }
-    if (domainIds[0] != domainId) {
-        throw std::runtime_error(
-            "Xios: Failed to add domain '" + domainId + "' to grid '" + gridId + "'");
-    }
 }
 
 /*!

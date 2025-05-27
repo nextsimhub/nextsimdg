@@ -98,7 +98,7 @@ public:
 
     /* Grid */
     void createGrid(const std::string gridId);
-    void gridAddAxis(std::string axisId, const std::string domainId);
+    void gridAddAxis(std::string axisId, const std::string gridId);
     std::vector<std::string> getGridAxisIds(const std::string gridId);
 
     /* Field */
@@ -173,8 +173,9 @@ private:
     xios::CAxis* getAxis(const std::string axisId);
 
     /* Domain */
+    const std::string domainId = "xy_domain";
     xios::CDomainGroup* getDomainGroup();
-    xios::CDomain* getDomain(const std::string domainId);
+    xios::CDomain* getDomain();
 
     /* Field */
     xios::CFieldGroup* getFieldGroup();
@@ -186,7 +187,6 @@ private:
     /* Grid */
     xios::CGridGroup* getGridGroup();
     xios::CGrid* getGrid(const std::string gridId);
-    void gridAddDomain(const std::string gridId, const std::string domainId);
 
     /* File */
     xios::CFileGroup* getFileGroup();
