@@ -89,6 +89,12 @@ MPI_TEST_CASE("TestXiosWrite", 2)
             field_2D(i, j) = 1.0 * (i + nx * j);
         }
     }
+    // Setup ModelState with field above
+    ModelState state = { {
+                             { "field_2D", field_2D },
+                         },
+        {} };
+    // TODO: Use hiceName: hice
 
     // Check calendar step is zero initially
     REQUIRE(xiosHandler.getCalendarStep() == 0);
@@ -102,8 +108,7 @@ MPI_TEST_CASE("TestXiosWrite", 2)
         // Update the current timestep and verify it's updated in XIOS
         metadata.incrementTime(timestep);
         REQUIRE(xiosHandler.getCalendarStep() == ts);
-        // Send data to XIOS to be written to disk
-        xiosHandler.write("field_2D", field_2D);
+        grid.dumpModelState(state, metadata, "xios_test_output", true);
     }
 
     // Check the files have indeed been created then remove it
