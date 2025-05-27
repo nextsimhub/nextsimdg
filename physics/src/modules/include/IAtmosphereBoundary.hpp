@@ -74,7 +74,6 @@ public:
         fieldsToCheck.emplace_back("snow", &snow);
         fieldsToCheck.emplace_back("rain", &rain);
         fieldsToCheck.emplace_back("evap", &evap);
-        fieldsToCheck.emplace_back("emp", &emp);
         fieldsToCheck.emplace_back("uwind", &uwind);
         fieldsToCheck.emplace_back("vwind", &vwind);
         fieldsToCheck.emplace_back("tauXOW", &tauXOW);
