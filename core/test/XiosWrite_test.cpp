@@ -48,6 +48,9 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     ParaGridIO* pio = new ParaGridIO(grid);
     grid.setIO(pio);
 
+    // Create ModelMetadata instance based off a partition metadata file
+    ModelMetadata metadata("xios_test_partition_metadata_2.nc", test_comm);
+
     // Create Xios singleton instance and check it's initialized
     Xios& xiosHandler = Xios::getInstance();
     REQUIRE(xiosHandler.isInitialized());
@@ -63,9 +66,6 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     const size_t nz = 2;
     ModelArray::setDimension(ModelArray::Dimension::X, nx_glo, nx, 0);
     ModelArray::setDimension(ModelArray::Dimension::Y, ny_glo, ny, 0);
-
-    // Create ModelMetadata instance, which will create the domain
-    ModelMetadata metadata("xios_test_partition_metadata_2.nc", test_comm);
 
     // Create a field on the grid
     // NOTE: Fields are created when the XIOS handler is constructed

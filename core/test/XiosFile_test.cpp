@@ -48,15 +48,15 @@ MPI_TEST_CASE("TestXiosFile", 2)
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
 
+    // Create ModelMetadata instance based off a partition metadata file
+    ModelMetadata metadata("xios_test_partition_metadata_2.nc", test_comm);
+
     // Get the Xios singleton instance and check it's initialized
     Xios& xiosHandler = Xios::getInstance();
     REQUIRE(xiosHandler.isInitialized());
     const size_t size = xiosHandler.getClientMPISize();
     REQUIRE(size == 2);
     const size_t rank = xiosHandler.getClientMPIRank();
-
-    // Create ModelMetadata instance, which will create the domain
-    ModelMetadata metadata("xios_test_partition_metadata_2.nc", test_comm);
 
     // Create a vertical axis, too
     xiosHandler.createAxis("z_axis");

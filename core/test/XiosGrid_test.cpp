@@ -29,6 +29,9 @@ MPI_TEST_CASE("TestXiosGrid", 2)
 {
     enableXios();
 
+    // Create ModelMetadata instance based off a partition metadata file
+    ModelMetadata metadata("xios_test_partition_metadata_2.nc", test_comm);
+
     // Get the Xios singleton instance and check it's initialized
     Xios& xiosHandler = Xios::getInstance();
     REQUIRE(xiosHandler.isInitialized());
@@ -36,10 +39,7 @@ MPI_TEST_CASE("TestXiosGrid", 2)
     REQUIRE(size == 2);
     const size_t rank = xiosHandler.getClientMPIRank();
 
-    // Create ModelMetadata instance, which will create the domain
     const std::string gridId = "grid_2D";
-    REQUIRE_THROWS_WITH(xiosHandler.getGridAxisIds(gridId), "Xios: Undefined grid 'grid_2D'");
-    ModelMetadata metadata("xios_test_partition_metadata_2.nc", test_comm);
     REQUIRE_THROWS_WITH(xiosHandler.createGrid(gridId), "Xios: Grid 'grid_2D' already exists");
 
     // Add a vertical axis, too
