@@ -651,48 +651,20 @@ void Xios::createDomain(const std::string domainId, ModelMetadata& metadata)
         throw std::runtime_error("Xios: Failed to set type for domain '" + domainId + "'");
     }
 
-    setDomainGlobalXSize(domainId, metadata.globalExtentX);
-    setDomainGlobalYSize(domainId, metadata.globalExtentY);
+    // Set global sizes
+    cxios_set_domain_ni_glo(domain, (int)metadata.globalExtentX);
+    if (!cxios_is_defined_domain_ni_glo(domain)) {
+        throw std::runtime_error("Xios: Failed to set global x-size for domain '" + domainId + "'");
+    }
+    cxios_set_domain_nj_glo(domain, (int)metadata.globalExtentY);
+    if (!cxios_is_defined_domain_nj_glo(domain)) {
+        throw std::runtime_error("Xios: Failed to set global y-size for domain '" + domainId + "'");
+    }
+
     setDomainLocalXStart(domainId, metadata.localCornerX);
     setDomainLocalYStart(domainId, metadata.localCornerY);
     setDomainLocalXSize(domainId, metadata.localExtentX);
     setDomainLocalYSize(domainId, metadata.localExtentY);
-}
-
-/*!
- * Set the global number of points in the x-direction for a given domain
- *
- * @param the domain ID
- * @param the global number of points in the x-direction
- */
-void Xios::setDomainGlobalXSize(const std::string domainId, const size_t size)
-{
-    xios::CDomain* domain = getDomain(domainId);
-    if (cxios_is_defined_domain_ni_glo(domain)) {
-        Logged::warning("Xios: Overwriting global x-size for domain '" + domainId + "'");
-    }
-    cxios_set_domain_ni_glo(domain, (int)size);
-    if (!cxios_is_defined_domain_ni_glo(domain)) {
-        throw std::runtime_error("Xios: Failed to set global x-size for domain '" + domainId + "'");
-    }
-}
-
-/*!
- * Set the global number of points in the y-direction for a given domain
- *
- * @param the domain ID
- * @param the global number of points in the y-direction
- */
-void Xios::setDomainGlobalYSize(const std::string domainId, const size_t size)
-{
-    xios::CDomain* domain = getDomain(domainId);
-    if (cxios_is_defined_domain_nj_glo(domain)) {
-        Logged::warning("Xios: Overwriting global y-size for domain '" + domainId + "'");
-    }
-    cxios_set_domain_nj_glo(domain, (int)size);
-    if (!cxios_is_defined_domain_nj_glo(domain)) {
-        throw std::runtime_error("Xios: Failed to set global y-size for domain '" + domainId + "'");
-    }
 }
 
 /*!
@@ -767,40 +739,6 @@ void Xios::setDomainLocalYStart(const std::string domainId, const size_t start)
         throw std::runtime_error(
             "Xios: Failed to set local starting y-index for domain '" + domainId + "'");
     }
-}
-
-/*!
- * Get the global number of points in the x-direction for a given domain
- *
- * @param the domain ID
- * @return the global number of points in the x-direction
- */
-size_t Xios::getDomainGlobalXSize(const std::string domainId)
-{
-    xios::CDomain* domain = getDomain(domainId);
-    if (!cxios_is_defined_domain_ni_glo(domain)) {
-        throw std::runtime_error("Xios: Undefined global x-size for domain '" + domainId + "'");
-    }
-    int size;
-    cxios_get_domain_ni_glo(domain, &size);
-    return (size_t)size;
-}
-
-/*!
- * Get the global number of points in the y-direction for a given domain
- *
- * @param the domain ID
- * @return the global number of points in the y-direction
- */
-size_t Xios::getDomainGlobalYSize(const std::string domainId)
-{
-    xios::CDomain* domain = getDomain(domainId);
-    if (!cxios_is_defined_domain_nj_glo(domain)) {
-        throw std::runtime_error("Xios: Undefined global y-size for domain '" + domainId + "'");
-    }
-    int size;
-    cxios_get_domain_nj_glo(domain, &size);
-    return (size_t)size;
 }
 
 /*!
