@@ -1123,7 +1123,7 @@ xios::CField* Xios::getField(const std::string fieldId)
 }
 
 // Extract the field_names entry from the XiosInput or XiosOutput section of the config
-std::vector<std::string> Xios::configGetFieldNames(const bool reading)
+std::set<std::string> Xios::configGetFieldNames(const bool reading)
 {
     std::string fieldsStr;
     if (reading) {
@@ -1134,13 +1134,13 @@ std::vector<std::string> Xios::configGetFieldNames(const bool reading)
             Configured::getConfiguration(keyMap.at(OUTPUT_FIELD_NAMES_KEY), std::string()))
             >> fieldsStr;
     }
-    std::vector<std::string> fieldNames;
+    std::set<std::string> fieldNames;
     if (fieldsStr.length() > 0) {
         const char delim = ',';
         std::istringstream iss(fieldsStr);
         std::string item;
         while (std::getline(iss, item, delim)) {
-            fieldNames.push_back(item);
+            fieldNames.insert(item);
         }
     }
     return fieldNames;
@@ -1150,15 +1150,8 @@ std::vector<std::string> Xios::configGetFieldNames(const bool reading)
 // the map key
 bool Xios::configCheckField(const std::string fieldId, const bool reading)
 {
-    std::vector<std::string> fieldNames = configGetFieldNames(reading);
-    bool found = false;
-    for (std::string fieldName : fieldNames) {
-        if (fieldName == fieldId) {
-            found = true;
-            break;
-        }
-    }
-    return found;
+    std::set<std::string> fieldNames = configGetFieldNames(reading);
+    return fieldNames.find(fieldId) != fieldNames.end();
 }
 
 /*!
@@ -1687,6 +1680,12 @@ void Xios::fileAddField(const std::string fileId, const std::string fieldId)
  */
 void Xios::write(const std::string fieldId, ModelArray& modelarray)
 {
+    const bool readAccess = false;
+    std::set<std::string> fieldNames = configGetFieldNames(readAccess);
+    if (fieldNames.find(fieldId) == fieldNames.end()) {
+        throw std::runtime_error(
+            "Xios::write: field " + fieldId + " has not been configured for writing with XIOS.");
+    }
     auto ndim = modelarray.nDimensions();
     auto dims = modelarray.dimensions();
     if (ndim == 2) {
@@ -1705,6 +1704,12 @@ void Xios::write(const std::string fieldId, ModelArray& modelarray)
  */
 void Xios::read(const std::string fieldId, ModelArray& modelarray)
 {
+    const bool readAccess = true;
+    std::set<std::string> fieldNames = configGetFieldNames(readAccess);
+    if (fieldNames.find(fieldId) == fieldNames.end()) {
+        throw std::runtime_error(
+            "Xios::read: field " + fieldId + " has not been configured for reading with XIOS.");
+    }
     auto ndim = modelarray.nDimensions();
     auto dims = modelarray.dimensions();
     if (ndim == 2) {

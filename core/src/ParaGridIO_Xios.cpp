@@ -276,8 +276,8 @@ void ParaGridIO::dumpModelState(
         sssName, maskName, longitudeName, latitudeName, uName, vName, damageName };
     // If the above fields are found in the supplied ModelState, output them
     for (auto entry : state.data) {
-        if (restartFields.count(entry.first)) {
-            const std::string fieldId = entry.first;
+        const std::string fieldId = entry.first;
+        if (restartFields.count(fieldId)) {
             if (xiosHandler.getFieldReadAccess(fieldId)) {
                 throw std::runtime_error("ParaGridIO::dumpModelState: field " + fieldId
                     + " is not configured for writing, but is being written to file.");
