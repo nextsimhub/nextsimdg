@@ -673,78 +673,15 @@ void Xios::createDomain(const std::string domainId, ModelMetadata& metadata)
             "Xios: Failed to set local starting y-index for domain '" + domainId + "'");
     }
 
-    setDomainLocalXSize(domainId, metadata.localExtentX);
-    setDomainLocalYSize(domainId, metadata.localExtentY);
-}
-
-/*!
- * Set the local number of points in the x-direction for a given domain
- *
- * @param the domain ID
- * @param the local number of points in the x-direction
- */
-void Xios::setDomainLocalXSize(const std::string domainId, const size_t size)
-{
-    xios::CDomain* domain = getDomain(domainId);
-    if (cxios_is_defined_domain_ni(domain)) {
-        Logged::warning("Xios: Overwriting local x-size for domain '" + domainId + "'");
-    }
-    cxios_set_domain_ni(domain, (int)size);
+    // Set local sizes
+    cxios_set_domain_ni(domain, (int)metadata.localExtentX);
     if (!cxios_is_defined_domain_ni(domain)) {
         throw std::runtime_error("Xios: Failed to set local x-size for domain '" + domainId + "'");
     }
-}
-
-/*!
- * Set the local number of points in the y-direction for a given domain
- *
- * @param the domain ID
- * @param the local number of points in the y-direction
- */
-void Xios::setDomainLocalYSize(const std::string domainId, const size_t size)
-{
-    xios::CDomain* domain = getDomain(domainId);
-    if (cxios_is_defined_domain_nj(domain)) {
-        Logged::warning("Xios: Overwriting local y-size for domain '" + domainId + "'");
-    }
-    cxios_set_domain_nj(domain, (int)size);
+    cxios_set_domain_nj(domain, (int)metadata.localExtentY);
     if (!cxios_is_defined_domain_nj(domain)) {
         throw std::runtime_error("Xios: Failed to set local y-size for domain '" + domainId + "'");
     }
-}
-
-/*!
- * Get the local number of points in the x-direction for a given domain
- *
- * @param the domain ID
- * @return the local number of points in the x-direction
- */
-size_t Xios::getDomainLocalXSize(const std::string domainId)
-{
-    xios::CDomain* domain = getDomain(domainId);
-    if (!cxios_is_defined_domain_ni(domain)) {
-        throw std::runtime_error("Xios: Undefined local x-size for domain '" + domainId + "'");
-    }
-    int size;
-    cxios_get_domain_ni(domain, &size);
-    return (size_t)size;
-}
-
-/*!
- * Get the local number of points in the y-direction for a given domain
- *
- * @param the domain ID
- * @return the local number of points in the y-direction
- */
-size_t Xios::getDomainLocalYSize(const std::string domainId)
-{
-    xios::CDomain* domain = getDomain(domainId);
-    if (!cxios_is_defined_domain_nj(domain)) {
-        throw std::runtime_error("Xios: Undefined local y-size for domain '" + domainId + "'");
-    }
-    int size;
-    cxios_get_domain_nj(domain, &size);
-    return (size_t)size;
 }
 
 /*!
