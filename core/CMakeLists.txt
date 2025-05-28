@@ -1,5 +1,6 @@
 add_subdirectory(src)
 if(BUILD_TESTS) #(NOT(CMAKE_BUILD_TYPE STREQUAL "Release"))
+    enable_testing()
     add_subdirectory(test)
 endif()
 

@@ -110,9 +110,9 @@ private:
     // Angle from model reference to grid north (+y for grids) TODO: what for meshes? N/A?
     ModelArray m_gridAzimuth;
     // Are the coordinates Cartesian? x & y versus longitude and latitude
-    bool isCartesian;
+    bool isCartesian = false;
     // Are the more complex coordinates stored?
-    bool hasParameters;
+    bool hasParameters = false;
 #ifdef USE_MPI
     const std::string bboxName = "bounding_boxes";
 #endif

@@ -30,7 +30,6 @@ TEST_SUITE_BEGIN("ThermoIce0Temperature");
 TEST_CASE("Melting conditions")
 {
     ModelArray::setDimensions(ModelArray::Type::H, { 1 });
-    ModelArray::setDimensions(ModelArray::Type::Z, { 1, 1 });
 
     Module::Module<IFreezingPoint>::setImplementation("Nextsim::UnescoFreezing");
     Module::Module<IIceAlbedo>::setImplementation("Nextsim::CCSMIceAlbedo");
@@ -52,7 +51,6 @@ TEST_CASE("Melting conditions")
             registerProtectedArray(ProtectedArray::C_ICE, &cice);
             registerProtectedArray(ProtectedArray::HTRUE_SNOW, &hsnow);
             registerProtectedArray(ProtectedArray::SNOW, &snow);
-            registerProtectedArray(ProtectedArray::T_ICE, &tice0);
         }
         std::string getName() const override { return "IceTemperatureData"; }
 
@@ -62,14 +60,12 @@ TEST_CASE("Melting conditions")
             hice[0] = 0.1 / cice[0]; // Here we are using the true thicknesses
             hsnow[0] = 0.01 / cice[0];
             snow[0] = 0.00;
-            tice0[0] = -1;
         }
 
         HField hice;
         HField cice;
         HField hsnow;
         HField snow;
-        HField tice0;
 
         ModelState getState() const override { return ModelState(); }
         ModelState getState(const OutputLevel&) const override { return getState(); }
@@ -105,22 +101,25 @@ TEST_CASE("Melting conditions")
     TimestepTime tst = { 0, 600 };
     ThermoIce0 ti0t;
     ti0t.configure();
+
+    HField tSurf;
+    tSurf = -1.;
+    ti0t.setData({ { tsurfName, tSurf } });
     ti0t.update(tst);
 
-    ModelArrayRef<ModelComponent::SharedArray::T_ICE, MARBackingStore, RO> tice(
-        ModelComponent::getSharedArray());
+    ModelState::DataMap outState = ti0t.getStateRecursive(OutputSpec()).data;
     ModelArrayRef<ModelComponent::SharedArray::Q_IC, MARBackingStore, RO> qic(
         ModelComponent::getSharedArray());
 
     double prec = 1e-5;
-    REQUIRE(tice[0] == 0.0);
+    REQUIRE(outState.count(tsurfName) > 0);
+    REQUIRE(outState.at(tsurfName) == 0.0);
     REQUIRE(qic[0] == doctest::Approx(-4.60879).epsilon(prec));
 }
 
 TEST_CASE("Freezing conditions")
 {
     ModelArray::setDimensions(ModelArray::Type::H, { 1 });
-    ModelArray::setDimensions(ModelArray::Type::Z, { 1, 1 });
 
     Module::Module<IFreezingPoint>::setImplementation("Nextsim::UnescoFreezing");
     Module::Module<IIceAlbedo>::setImplementation("Nextsim::CCSMIceAlbedo");
@@ -146,7 +145,6 @@ TEST_CASE("Freezing conditions")
             registerProtectedArray(ProtectedArray::TF, &tf);
             registerProtectedArray(ProtectedArray::SNOW, &snow);
             registerProtectedArray(ProtectedArray::ML_BULK_CP, &mlbhc);
-            registerProtectedArray(ProtectedArray::T_ICE, &tice0);
         }
         std::string getName() const override { return "IceTemperatureData"; }
 
@@ -160,7 +158,6 @@ TEST_CASE("Freezing conditions")
             snow[0] = 1e-3;
             tf[0] = Module::getImplementation<IFreezingPoint>()(sss[0]);
             mlbhc[0] = 4.29151e7;
-            tice0[0] = -9.;
         }
 
         HField hice;
@@ -171,7 +168,6 @@ TEST_CASE("Freezing conditions")
         HField tf;
         HField snow;
         HField mlbhc; // Mixed layer bulk heat capacity
-        HField tice0;
 
         ModelState getState() const override { return ModelState(); }
         ModelState getState(const OutputLevel&) const override { return getState(); }
@@ -206,15 +202,20 @@ TEST_CASE("Freezing conditions")
     TimestepTime tst = { 0, 600 };
     ThermoIce0 ti0t;
     ti0t.configure();
+
+    HField tSurf;
+    tSurf = -9.;
+    ti0t.setData({ { tsurfName, tSurf } });
     ti0t.update(tst);
 
-    ModelArrayRef<ModelComponent::SharedArray::T_ICE, MARBackingStore, RO> tice(
-        ModelComponent::getSharedArray());
+    ModelState::DataMap outState = ti0t.getStateRecursive(OutputSpec()).data;
     ModelArrayRef<ModelComponent::SharedArray::Q_IC, MARBackingStore, RO> qic(
         ModelComponent::getSharedArray());
 
     double prec = 1e-5;
-    REQUIRE(tice[0] == doctest::Approx(-8.90443).epsilon(prec));
+    REQUIRE(outState.count(tsurfName) > 0);
+    REQUIRE(outState.at(tsurfName) == doctest::Approx(-8.90443).epsilon(prec));
+//    REQUIRE(tice[0] == doctest::Approx(-8.90443).epsilon(prec));
     REQUIRE(qic[0] == doctest::Approx(44.4839).epsilon(prec));
 }
 TEST_SUITE_END();

@@ -38,6 +38,34 @@ void SlabOcean::configure()
     getStore().registerArray(Protected::SLAB_SSS, &sssSlab, RO);
 }
 
+ConfigMap SlabOcean::getConfiguration() const
+{
+    return {
+        { keyMap.at(TIMET_KEY), relaxationTimeT },
+        { keyMap.at(TIMES_KEY), relaxationTimeS },
+    };
+}
+
+ModelState SlabOcean::getStatePrognostic() const
+{
+    return { {
+                 { sstSlabName, sstSlab },
+                 { sssSlabName, sssSlab },
+             },
+        getConfiguration() };
+}
+
+ModelState SlabOcean::getStateDiagnostic() const
+{
+    ModelState state = { {
+                             { "Q_slab", qdw },
+                             { "F_slab", fdw },
+                         },
+        {} };
+
+    return state.merge(getStatePrognostic());
+}
+
 SlabOcean::HelpMap& SlabOcean::getHelpText(HelpMap& map, bool getAll)
 {
     map[className] = {
@@ -58,16 +86,6 @@ void SlabOcean::setData(const ModelState::DataMap& ms)
     sstSlab.resize();
     sssSlab.resize();
 }
-
-ModelState SlabOcean::getState() const
-{
-    return { {
-                 { sstSlabName, sstSlab },
-                 { sssSlabName, sssSlab },
-             },
-        {} };
-}
-ModelState SlabOcean::getState(const OutputLevel&) const { return getState(); }
 
 void SlabOcean::update(const TimestepTime& tst)
 {

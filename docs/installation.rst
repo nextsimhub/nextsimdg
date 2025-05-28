@@ -219,3 +219,28 @@ build arguments (``--build-arg`` that can be specified at build time). For examp
 
 For a full list of options, please see ``Dockerfile.production``. By default ``MPI`` and ``xios``
 options are disabled and the number of build jobs is 1.
+
+Running Tests
+-------------
+
+After building the code, you can run the tests provided with the repository using `ctest`. This ensures that the installation and build process was successful.
+
+To run all tests, navigate to the `build` directory and execute:
+
+.. code-block:: console
+
+    ctest
+
+If you want to see more detailed output for each test, use the `-V` option:
+
+.. code-block:: console
+
+    ctest -V
+
+If you want to run a subset of tests, you can use the `-R` option with a regular expression to match the test names. For example, to run only the tests related to `XIOS`, use:
+
+.. code-block:: console
+
+    ctest -R Xios
+
+For more information on `ctest` options, you can refer to the official `ctest` documentation.

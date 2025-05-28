@@ -28,7 +28,9 @@ public:
         PHIM_KEY,
     };
 
-    ModelState getStateRecursive(const OutputSpec& os) const override;
+    ConfigMap getConfiguration() const override;
+
+    ModelState getStateDiagnostic() const override;
 
     static HelpMap& getHelpText(HelpMap& map, bool getAll);
     static HelpMap& getHelpRecursive(HelpMap&, bool getAll);

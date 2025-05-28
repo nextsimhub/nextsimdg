@@ -1,7 +1,7 @@
 /*!
  * @file ModelComponent.hpp
  *
- * @date 11 Feb 2025
+ * @date 26 May 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Einar Ólason <einar.olason@nersc.no>
  */
@@ -34,6 +34,7 @@ namespace Protected {
     inline constexpr TextTag C_ICE = "C_ICE0"; // Ice concentration
     inline constexpr TextTag H_SNOW = "H_SNOW_cell"; // Snow depth, cell average, m
     inline constexpr TextTag T_ICE = "T_ICE0"; // Ice temperature, ˚C
+    inline constexpr TextTag T_SURF = "T_SURF0"; // Ice surface temperature, ˚C
     inline constexpr TextTag DAMAGE = "DAMAGE0"; // Ice damage 0–1
     // External data fields
     inline constexpr TextTag T_AIR = "T_AIR"; // Air temperature, ˚C
@@ -51,8 +52,6 @@ namespace Protected {
     inline constexpr TextTag EXT_SST
         = "EXT_SST"; // sea surface temperature from coupling or forcing, ˚C
     inline constexpr TextTag SSH = "SSH"; // sea surface height, m
-    inline constexpr TextTag EVAP_MINUS_PRECIP
-        = "E-P"; // E-P atmospheric freshwater flux, kg s⁻¹ m⁻²
     // Derived fields, calculated once per timestep
     inline constexpr TextTag ML_BULK_CP = "CPML"; // Mixed layer bulk heat capacity J K⁻¹ m⁻²
     inline constexpr TextTag TF = "TF"; // Ocean freezing temperature, ˚C
@@ -74,6 +73,10 @@ namespace Protected {
         = "SLAB_QDW"; // Slab ocean temperature nudging heat flux, W m⁻²
     inline constexpr TextTag SLAB_FDW
         = "SLAB_FDW"; // Slab ocean salinity nudging water flux, kg s⁻¹ m⁻²
+    inline constexpr TextTag SHEAR = "SHEAR"; // Instantaneous share rate, s⁻¹
+    inline constexpr TextTag DIV = "DIV"; // Instantaneous divergence , s⁻¹
+    inline constexpr TextTag SIGMAI = "SIGMAI"; // First invariant of the stress tensor Pa
+    inline constexpr TextTag SIGMAII = "SIGMAII"; // First invariant of the stress tensor Pa
 }
 
 namespace Shared {
@@ -84,6 +87,7 @@ namespace Shared {
     inline constexpr TextTag C_ICE_DG = "C_ICE_DG"; // Temporary DG cice tag
     inline constexpr TextTag H_SNOW = "H_SNOW"; // Updated snow depth, ice average, m
     inline constexpr TextTag T_ICE = "T_ICE"; // Updated ice temperatures, ˚C
+    inline constexpr TextTag T_SURF = "T_SURF"; // Updated ice surface temperature, ˚C
     inline constexpr TextTag DAMAGE = "DAMAGE"; // Updated damage 0–1
     // Heat fluxes
     inline constexpr TextTag Q_IA = "Q_IA"; // Ice to atmosphere heat flux W m⁻²
@@ -96,6 +100,8 @@ namespace Shared {
     inline constexpr TextTag Q_SW_OW = "Q_SW_OW"; // Shortwave flux in open water W m⁻²
     inline constexpr TextTag Q_SW_BASE = "Q_SW_BASE"; // Shortwave flux at the base of the ice W m⁻²
     // Mass fluxes
+    inline constexpr TextTag EVAP = "EVAP"; // evaporation mass flux kg s⁻¹ m⁻²
+    inline constexpr TextTag RAIN = "RAIN"; // liquid mass flux kg s⁻¹ m⁻²
     inline constexpr TextTag HSNOW_MELT = "HSNOW_MELT"; // Thickness of snow that melted, m
     // Momentum fluxes
     inline constexpr TextTag OW_STRESS_X = "OW_STRESS_X"; // x(east)-ward open ocean stress, Pa
@@ -158,37 +164,32 @@ public:
      */
     virtual void setData(const ModelState::DataMap& state) = 0;
     /*!
-     * @brief Returns a ModelState from this component.
+     * @brief Returns all data and configuration from this component.
      *
-     * @details The ModelState is map between field names and ModelArray data
-     * arrays. The intention is to merge together different ModelSatates to
-     * produce a combined state. The returned ModelState will include the
-     * states of any subsidiary components held by the object. This is the
-     * default level of output and should include all and only fields to be
-     * placed in the restart file.
+     * @details The state returned by this function contains all
+     * available data in this component and all components that it calls.
      */
-    virtual ModelState getState() const = 0;
+    virtual ModelState getStateDiagnostic() const { return getStatePrognostic(); }
     /*!
-     * @brief Returns a ModelState from this component at a specified level.
+     * @brief Returns a ModelState from this component at a specified level of detail.
      *
      * @details See the zero argument version for more details. The output
      * levels reuse those defined in the Logged class. The default level is
      * NOTICE, and only levels such as INFO, DEBUG and TRACE should be used,
      * and should provide extra diagnostic fields.
      */
-    virtual ModelState getState(const OutputLevel&) const = 0;
+    virtual ModelState getStateDiagnostic(const OutputLevel&) const { return getStateDiagnostic(); }
 
     /*!
-     * @brief Returns the state of the ModelComponent and any ModelComponents
+     * @brief Returns the state of the ModelComponent.
+     *
+     * @details Returns the state of the ModelComponent and any ModelComponents
      * it depends on.
      *
-     * @details Used to traverse the current tree of ModelComponents and return
-     * the overall model state for diagnostic output.
+     * @details The state returned by this function contains all the
+     * data necessary to restart this component and all components that it calls.
      */
-    virtual ModelState getStateRecursive(const OutputSpec& os) const
-    {
-        return os ? getState() : ModelState();
-    }
+    virtual ModelState getStatePrognostic() const { return { {}, getConfiguration() }; }
 
     /*!
      * @brief Returns the ModelArrayRef backing store for column physics fields.
@@ -226,6 +227,11 @@ protected:
      * @brief Returns the ocean mask.
      */
     static const ModelArray& oceanMask();
+
+    /*!
+     * @brief Returns a map of the configuration used by the component.
+     */
+    virtual ConfigMap getConfiguration() const { return {}; }
 
 protected:
     static ModelArray& oceanMaskSingleton()

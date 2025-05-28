@@ -36,8 +36,6 @@ MPI_TEST_CASE("TestXiosCalendar", 1)
     config << "[model]" << std::endl;
     config << "start = 2023-03-17T17:11:00Z" << std::endl;
     config << "time_step = P0-0T01:00:00" << std::endl;
-    config << "[XiosOutput]" << std::endl;
-    config << "period = P0-0T03:00:00" << std::endl;
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
 

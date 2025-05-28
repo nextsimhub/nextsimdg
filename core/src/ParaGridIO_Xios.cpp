@@ -1,7 +1,7 @@
 /*!
  * @file ParaGridIO_Xios.cpp
  *
- * @date 29 Apr 2025
+ * @date 12 May 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Joe Wallwork <jw2423@cam.ac.uk>
  */
@@ -13,7 +13,9 @@
 #include "include/Finalizer.hpp"
 #include "include/Logged.hpp"
 #include "include/MissingData.hpp"
-#include "include/NZLevels.hpp"
+#ifdef USE_XIOS
+#include "include/Xios.hpp"
+#endif
 #include "include/gridNames.hpp"
 
 #include <ncDim.h>
@@ -39,8 +41,6 @@ ParaGridIO::ParaGridIO(ParametricGrid& grid)
           // Accept post-May 2024 (xdim, ydim, zdim) dimension names and pre-May 2024 (x, y, z)
         { "yx", ModelArray::Type::H },
         { "ydimxdim", ModelArray::Type::H },
-        { "zyx", ModelArray::Type::Z },
-        { "zdimydimxdim", ModelArray::Type::Z },
         { "yxdg_comp", ModelArray::Type::DG },
         { "ydimxdimdg_comp", ModelArray::Type::DG },
         { "yxdgstress_comp", ModelArray::Type::DGSTRESS },
@@ -53,7 +53,6 @@ ParaGridIO::ParaGridIO(ParametricGrid& grid)
           // clang-format off
         { ModelArray::Dimension::X, false },
         { ModelArray::Dimension::Y, false },
-        { ModelArray::Dimension::Z, false },
         { ModelArray::Dimension::XCG, true },
         { ModelArray::Dimension::YCG, true },
         { ModelArray::Dimension::DG, true },
@@ -76,8 +75,15 @@ ParaGridIO::ParaGridIO(ParametricGrid& grid)
 
 bool ParaGridIO::doOnce()
 {
-    // TODO: Setup XIOS in this method
+    Xios& xiosHandler = Xios::getInstance();
+    // NOTE: getInstance will call the constructor for the Xios handler class the first time it is
+    // called. This will automatically:
+    // * Create XIOS input and output files if the XiosInput.filename and XiosOutput.filename
+    //   entries are set in the config.
+    // * Create all fields found in the config based off the field names found in the
+    //   XiosInput.field_names and XiosOutput.field_names entries in the config.
 
+    // TODO: Register XIOS finalization and drop the following in that case.
     // Register the finalization function here
     Finalizer::registerUnique(closeAllFiles);
     // Since it should only ever run once, do further one-off initialization: allow distant
@@ -129,40 +135,30 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
                     std::string("No netCDF dimension found corresponding to the dimension named ")
                     + dimensionSpec.name + std::string(" or ") + dimensionSpec.altName);
             }
-            if (dimType == ModelArray::Dimension::Z) {
-                // A special case, as the number of levels in the file might not be
-                // the number that the selected ice thermodynamics requires.
 #ifdef USE_MPI
-                ModelArray::setDimension(dimType, NZLevels::get(), NZLevels::get(), 0);
-#else
-                ModelArray::setDimension(dimType, NZLevels::get());
-#endif
+            auto dimName = dim.getName();
+            size_t localLength = 0;
+            size_t start = 0;
+            if (dimType == ModelArray::Dimension::X) {
+                localLength = metadata.localExtentX;
+                start = metadata.localCornerX;
+            } else if (dimType == ModelArray::Dimension::Y) {
+                localLength = metadata.localExtentY;
+                start = metadata.localCornerY;
+            } else if (dimType == ModelArray::Dimension::XVERTEX) {
+                localLength = metadata.localExtentX + 1;
+                start = metadata.localCornerX;
+            } else if (dimType == ModelArray::Dimension::YVERTEX) {
+                localLength = metadata.localExtentY + 1;
+                start = metadata.localCornerY;
             } else {
-#ifdef USE_MPI
-                auto dimName = dim.getName();
-                size_t localLength = 0;
-                size_t start = 0;
-                if (dimType == ModelArray::Dimension::X) {
-                    localLength = metadata.localExtentX;
-                    start = metadata.localCornerX;
-                } else if (dimType == ModelArray::Dimension::Y) {
-                    localLength = metadata.localExtentY;
-                    start = metadata.localCornerY;
-                } else if (dimType == ModelArray::Dimension::XVERTEX) {
-                    localLength = metadata.localExtentX + 1;
-                    start = metadata.localCornerX;
-                } else if (dimType == ModelArray::Dimension::YVERTEX) {
-                    localLength = metadata.localExtentY + 1;
-                    start = metadata.localCornerY;
-                } else {
-                    localLength = dim.getSize();
-                    start = 0;
-                }
-                ModelArray::setDimension(dimType, dim.getSize(), localLength, start);
-#else
-                ModelArray::setDimension(dimType, dim.getSize());
-#endif
+                localLength = dim.getSize();
+                start = 0;
             }
+            ModelArray::setDimension(dimType, dim.getSize(), localLength, start);
+#else
+            ModelArray::setDimension(dimType, dim.getSize());
+#endif
         }
 
         // Get all vars in the data group, and load them into a new ModelState

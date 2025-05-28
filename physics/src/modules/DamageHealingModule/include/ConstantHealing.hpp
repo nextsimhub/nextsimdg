@@ -26,7 +26,7 @@ public:
     void configure() override;
     enum { TD_KEY };
 
-    ModelState getStateRecursive(const OutputSpec& os) const override;
+    ConfigMap getConfiguration() const override;
 
     static HelpMap& getHelpText(HelpMap& map, bool getAll);
     static HelpMap& getHelpRecursive(HelpMap&, bool getAll);

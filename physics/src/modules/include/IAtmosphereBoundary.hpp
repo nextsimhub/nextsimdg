@@ -1,7 +1,7 @@
 /*!
  * @file IAtmosphereBoundary.hpp
  *
- * @date 11 Feb 2025
+ * @date 23 May 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -25,7 +25,6 @@ public:
         , snow(ModelArray::Type::H)
         , rain(ModelArray::Type::H)
         , evap(ModelArray::Type::H)
-        , emp(ModelArray::Type::H)
         , uwind(ModelArray::Type::U)
         , vwind(ModelArray::Type::V)
         , penSW(ModelArray::Type::H)
@@ -46,15 +45,13 @@ public:
         getStore().registerArray(Shared::OW_STRESS_X, &tauXOW, RW);
         getStore().registerArray(Shared::OW_STRESS_Y, &tauYOW, RW);
         getStore().registerArray(Protected::SNOW, &snow, RO);
-        getStore().registerArray(Protected::EVAP_MINUS_PRECIP, &emp, RO);
+        getStore().registerArray(Shared::EVAP, &evap, RW);
+        getStore().registerArray(Shared::RAIN, &rain, RO);
         getStore().registerArray(Protected::WIND_U, &uwind, RO);
         getStore().registerArray(Protected::WIND_V, &vwind, RO);
         getStore().registerArray(Shared::Q_PEN_SW, &penSW, RW);
     }
     virtual ~IAtmosphereBoundary() = default;
-
-    ModelState getState() const override { return ModelState(); }
-    ModelState getState(const OutputLevel&) const override { return getState(); }
 
     std::string getName() const override { return "IAtmosphereBoundary"; }
     void setData(const ModelState::DataMap& ms) override
@@ -66,7 +63,6 @@ public:
         snow.resize();
         rain.resize();
         evap.resize();
-        emp.resize();
         uwind.resize();
         vwind.resize();
         penSW.resize();
@@ -85,7 +81,6 @@ protected:
     HField snow;
     HField rain;
     HField evap;
-    HField emp;
     UField uwind;
     VField vwind;
     HField penSW;

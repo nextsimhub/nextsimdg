@@ -1,7 +1,7 @@
 /*!
  * @file FiniteElementFluxes_test.cpp
  *
- * @date 11 Feb 2025
+ * @date 23 May 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -29,7 +29,6 @@ TEST_SUITE_BEGIN("FiniteElementFluxes");
 TEST_CASE("Melting conditions")
 {
     ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
-    ModelArray::setDimensions(ModelArray::Type::Z, { 1, 1, 1 });
 
     Module::Module<IFreezingPoint>::setImplementation("Nextsim::UnescoFreezing");
     Module::Module<IIceAlbedo>::setImplementation("Nextsim::CCSMIceAlbedo");
@@ -81,8 +80,6 @@ TEST_CASE("Melting conditions")
             lw_in = 330;
         }
         std::string getName() const override { return "AtmData"; }
-        ModelState getState() const override { return ModelState(); }
-        ModelState getState(const OutputLevel&) const override { return getState(); }
 
     private:
         HField tair;
@@ -105,6 +102,7 @@ TEST_CASE("Melting conditions")
             getStore().registerArray(Protected::C_ICE, &cice, RO);
             getStore().registerArray(Protected::H_SNOW, &hsnow, RO);
             getStore().registerArray(Protected::T_ICE, &tice0, RO);
+            getStore().registerArray(Protected::T_SURF, &tsurf, RO);
             getStore().registerArray(Protected::HTRUE_ICE, &hice0, RO);
             getStore().registerArray(Protected::HTRUE_SNOW, &hsnow0, RO);
         }
@@ -117,6 +115,7 @@ TEST_CASE("Melting conditions")
             hice[0] = 0.1; // Here we are using the cell-averaged thicknesses
             hsnow[0] = 0.01;
             tice0[0] = -1.;
+            tsurf[0] = -1.;
 
             hice0[0] = hice[0] / cice[0];
             hsnow0[0] = hsnow[0] / cice[0];
@@ -126,10 +125,9 @@ TEST_CASE("Melting conditions")
         HField cice;
         HField hsnow;
         HField tice0;
+        HField tsurf;
         HField hice0; // ice averaged ice thickness
         HField hsnow0; // ice averaged snow thickness
-        ModelState getState() const override { return ModelState(); }
-        ModelState getState(const OutputLevel&) const override { return getState(); }
     } iceState;
     iceState.setData(ModelState().data);
 
@@ -161,6 +159,10 @@ TEST_CASE("Melting conditions")
     subl.resize();
     ModelComponent::getStore().registerArray(Shared::SUBLIM, &subl, RW);
 
+    HField evap;
+    evap.resize();
+    ModelComponent::getStore().registerArray(Shared::EVAP, &evap, RW);
+
     HField tauX;
     HField tauY;
     tauX.resize();
@@ -188,7 +190,6 @@ TEST_CASE("Melting conditions")
 TEST_CASE("Freezing conditions")
 {
     ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
-    ModelArray::setDimensions(ModelArray::Type::Z, { 1, 1, 1 });
 
     Module::Module<IFreezingPoint>::setImplementation("Nextsim::UnescoFreezing");
     Module::Module<IIceAlbedo>::setImplementation("Nextsim::CCSMIceAlbedo");
@@ -238,8 +239,6 @@ TEST_CASE("Freezing conditions")
             lw_in = 265;
         }
         std::string getName() const override { return "AtmData"; }
-        ModelState getState() const override { return ModelState(); }
-        ModelState getState(const OutputLevel&) const override { return getState(); }
 
     private:
         HField tair;
@@ -262,6 +261,7 @@ TEST_CASE("Freezing conditions")
             getStore().registerArray(Protected::C_ICE, &cice, RO);
             getStore().registerArray(Protected::H_SNOW, &hsnow, RO);
             getStore().registerArray(Protected::T_ICE, &tice0, RO);
+            getStore().registerArray(Protected::T_SURF, &tsurf, RO);
             getStore().registerArray(Protected::HTRUE_ICE, &hice0, RO);
             getStore().registerArray(Protected::HTRUE_SNOW, &hsnow0, RO);
         }
@@ -274,6 +274,7 @@ TEST_CASE("Freezing conditions")
             hice[0] = 0.1; // Here we are using the cell-averaged thicknesses
             hsnow[0] = 0.01;
             tice0[0] = -9.;
+            tsurf[0] = -9.;
 
             hice0[0] = hice[0] / cice[0];
             hsnow0[0] = hsnow[0] / cice[0];
@@ -283,11 +284,10 @@ TEST_CASE("Freezing conditions")
         HField cice;
         HField hsnow;
         HField tice0;
+        HField tsurf;
         HField hice0; // ice averaged ice thickness
         HField hsnow0; // ice averaged snow thickness
 
-        ModelState getState() const override { return ModelState(); }
-        ModelState getState(const OutputLevel&) const override { return getState(); }
     } iceState;
     iceState.setData(ModelState().data);
 
@@ -310,6 +310,10 @@ TEST_CASE("Freezing conditions")
     HField subl;
     subl.resize();
     ModelComponent::getStore().registerArray(Shared::SUBLIM, &subl, RW);
+
+    HField evap;
+    evap.resize();
+    ModelComponent::getStore().registerArray(Shared::EVAP, &evap, RW);
 
     HField tauX;
     HField tauY;

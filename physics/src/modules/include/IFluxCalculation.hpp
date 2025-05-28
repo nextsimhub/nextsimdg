@@ -1,7 +1,7 @@
 /*!
  * @file IFluxCalculation.hpp
  *
- * @date 11 Feb 2025
+ * @date 23 May 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -19,6 +19,7 @@ class IFluxCalculation : public ModelComponent {
 public:
     IFluxCalculation()
         : qow(getStore())
+        , evap(getStore())
         , subl(getStore())
         , qia(getStore())
         , penSW(getStore())
@@ -33,13 +34,6 @@ public:
 
     void setData(const ModelState::DataMap& ms) override { }
 
-    ModelState getState() const override { return ModelState(); }
-    ModelState getState(const OutputLevel&) const override { return getState(); }
-    ModelState getStateRecursive(const OutputSpec& os) const override
-    {
-        return os ? getState() : ModelState();
-    }
-
     std::string getName() const override { return "IFluxCalculation"; }
 
     /*!
@@ -53,6 +47,7 @@ protected:
     // All fluxes are positive upwards, including incident radiation fluxes
     // The flux fields are owned by IAtmosphereBoundary
     ModelArrayRef<Shared::Q_OW, RW> qow;
+    ModelArrayRef<Shared::EVAP, RW> evap;
     ModelArrayRef<Shared::SUBLIM, RW> subl;
     ModelArrayRef<Shared::Q_IA, RW> qia;
     ModelArrayRef<Shared::Q_PEN_SW, RW> penSW;

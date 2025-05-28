@@ -56,6 +56,11 @@ void TOPAZOcean::configure()
     getStore().registerArray(Protected::EXT_SSS, &sssExt, RO);
 }
 
+ConfigMap TOPAZOcean::getConfiguration() const
+{
+    return { { keyMap.at(FILEPATH_KEY), filePath } };
+}
+
 void TOPAZOcean::updateBefore(const TimestepTime& tst)
 {
     std::set<std::string> forcings = { sstName, sssName, mldName, uName, vName, sshName };
