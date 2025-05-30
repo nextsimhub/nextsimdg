@@ -1,7 +1,7 @@
 /*!
  * @file   ModelArray.cpp
  *
- * @date   23 May 2025
+ * @date   30 May 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -280,7 +280,7 @@ ModelArray::MultiDim ModelArray::locationFromIndex(Type type, size_t index)
 void ModelArray::checkLimits(const ModelArray& mask) const
 {
     // Mask the data with the land mask
-    const auto masked = (mask.data() == 1).select(m_data, fillValue);
+    const auto masked = (mask.data() == 1).select(m_data.col(0), fillValue);
 
     // Check first for NaNs. The code is different for the bounds check, because Eigen doesn't
     // return an index for NaN-checking.
