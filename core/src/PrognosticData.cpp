@@ -1,7 +1,7 @@
 /*!
  * @file PrognosticData.cpp
  *
- * @date 23 May 2025
+ * @date 30 May 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Einar Ólason <einar.olason@nersc.no>
  */
@@ -134,12 +134,11 @@ void PrognosticData::update(const TimestepTime& tst)
 
     pOcnBdy->updateAfter(tst);
 
-    if (boolCheckAll())
-        try {
-            checkFields(tst);
-        } catch (const std::exception& e) {
-            throw std::runtime_error("PrognosticData::update: " + std::string(e.what()));
-        }
+    try {
+        checkFields();
+    } catch (const std::exception& e) {
+        throw std::runtime_error("PrognosticData::update: " + std::string(e.what()));
+    }
 }
 
 void PrognosticData::updatePrognosticFields()

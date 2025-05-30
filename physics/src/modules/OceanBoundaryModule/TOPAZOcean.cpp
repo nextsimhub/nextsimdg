@@ -1,7 +1,7 @@
 /*!
  * @file TOPAZOcean.cpp
  *
- * @date 23 May 2025
+ * @date 30 May 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -101,12 +101,11 @@ void TOPAZOcean::updateAfter(const TimestepTime& tst)
     sst = ModelArrayRef<Protected::SLAB_SST, RO>(getStore());
     sss = ModelArrayRef<Protected::SLAB_SSS, RO>(getStore());
 
-    if (boolCheckFields || boolCheckAll())
-        try {
-            checkFields(tst);
-        } catch (const std::exception& e) {
-            throw std::runtime_error("TOPAZOcean::updateAfter: " + std::string(e.what()));
-        }
+    try {
+        checkFields();
+    } catch (const std::exception& e) {
+        throw std::runtime_error("TOPAZOcean::updateAfter: " + std::string(e.what()));
+    }
 }
 
 void TOPAZOcean::setFilePath(const std::string& filePathIn) { filePath = filePathIn; }

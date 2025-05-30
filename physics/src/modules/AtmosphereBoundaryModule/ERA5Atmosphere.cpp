@@ -1,7 +1,7 @@
 /*!
  * @file ERA5Atmosphere.cpp
  *
- * @date 27 May 2025
+ * @date 30 May 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -104,12 +104,11 @@ void ERA5Atmosphere::update(const TimestepTime& tst)
 
     fluxImpl->update(tst);
 
-    if (boolCheckFields || boolCheckAll())
-        try {
-            checkFields(tst);
-        } catch (const std::exception& e) {
-            throw std::runtime_error("ERA5Atmosphere:update: " + std::string(e.what()));
-        }
+    try {
+        checkFields();
+    } catch (const std::exception& e) {
+        throw std::runtime_error("ERA5Atmosphere:update: " + std::string(e.what()));
+    }
 }
 
 void ERA5Atmosphere::setFilePath(const std::string& filePathIn) { filePath = filePathIn; }

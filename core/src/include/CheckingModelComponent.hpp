@@ -1,7 +1,7 @@
 /*!
  * @file CheckingModelComponent.cpp
  *
- * @date 23 May 2025
+ * @date 30 May 2025
  * @author Einar Ólason <einar.olason@nersc.no>
  */
 
@@ -22,9 +22,13 @@ protected:
      * @brief Check fields listed in fieldsToCheck. Throw a runtime_error if values are outside
      * bounds.
      */
-    void checkFields(const TimestepTime& tst)
+    void checkFields() const
     {
-        for (auto& field : fieldsToCheck) {
+        // Do nothing if checks are not enabled
+        if (!boolCheckFields && !boolCheckAll())
+            return;
+
+        for (const auto& field : fieldsToCheck) {
 
             try {
                 field.arrayRef->checkLimits(getOceanMask());
