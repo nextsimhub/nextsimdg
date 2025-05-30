@@ -3,7 +3,7 @@
  * @author  Tom Meltzer <tdm39@cam.ac.uk>
  * @author  Joe Wallwork <jw2423@cam.ac.uk>
  * @author  Adeleke Bankole <ab3191@cam.ac.uk>
- * @date    12 May 2025
+ * @date    19 May 2025
  * @brief   XIOS interface header
  * @details
  *
@@ -114,20 +114,16 @@ public:
 
     /* Grid */
     void createGrid(const std::string gridId);
-    void setGridName(const std::string gridId, const std::string name);
-    std::string getGridName(const std::string gridId);
     void gridAddAxis(std::string axisId, const std::string domainId);
     void gridAddDomain(const std::string gridId, const std::string domainId);
-    std::vector<std::string> gridGetAxisIds(const std::string gridId);
-    std::vector<std::string> gridGetDomainIds(const std::string gridId);
+    std::vector<std::string> getGridAxisIds(const std::string gridId);
+    std::vector<std::string> getGridDomainIds(const std::string gridId);
 
     /* Field */
     void createField(const std::string fieldId);
-    void setFieldName(const std::string fieldId, const std::string name);
     void setFieldOperation(const std::string fieldId, const std::string operation);
     void setFieldGridRef(const std::string fieldId, const std::string gridRef);
     void setFieldFreqOffset(const std::string fieldId, const Duration freqOffset);
-    std::string getFieldName(const std::string fieldId);
     std::string getFieldOperation(const std::string fieldId);
     std::string getFieldGridRef(const std::string fieldId);
     bool getFieldReadAccess(const std::string fieldId);
@@ -139,7 +135,6 @@ public:
     void setFileOutputFreq(const std::string fileId, const Duration outputFreq);
     void setFileSplitFreq(const std::string fileId, const Duration splitFreq);
     void setFileParAccess(const std::string fileId, const std::string parAccess);
-    std::string getFileName(const std::string fileId);
     std::string getFileType(const std::string fileId);
     Duration getFileOutputFreq(const std::string fileId);
     Duration getFileSplitFreq(const std::string fileId);
@@ -214,7 +209,6 @@ private:
     /* File */
     xios::CFileGroup* getFileGroup();
     xios::CFile* getFile(const std::string fileId);
-    void setFileName(const std::string fileId, const std::string fileName);
     void setFileMode(const std::string fileId, const std::string mode);
 };
 
