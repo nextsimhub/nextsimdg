@@ -16,9 +16,12 @@
 namespace Nextsim {
 
 static const std::string checkFieldsKey = "debug.check_fields";
+static const std::string checkFieldsFastKey = "debug.check_fields_fast";
 static const std::map<int, std::string> keyMap
-    = { { PrognosticData::CHECKFIELDS_KEY, checkFieldsKey } };
+    = { { PrognosticData::CHECKFIELDS_KEY, checkFieldsKey },
+          { PrognosticData::CHECKFIELDSFAST_KEY, checkFieldsFastKey } };
 static constexpr bool checkFieldsDefault = false;
+static constexpr bool checkFieldsFastDefault = true;
 
 PrognosticData::PrognosticData()
     : m_dt(1)
@@ -57,10 +60,17 @@ void PrognosticData::configure()
     tryConfigure(iceGrowth);
 
     boolCheckAll() = Configured::getConfiguration(keyMap.at(CHECKFIELDS_KEY), checkFieldsDefault);
+    boolCheckFields
+        = Configured::getConfiguration(keyMap.at(CHECKFIELDS_KEY), checkFieldsFastDefault);
     if (boolCheckAll()) {
         for (const auto& field : getStore().getAllData()) {
             fieldsToCheck.emplace_back(field.first, field.second);
         }
+    } else if (boolCheckFields) {
+        fieldsToCheck.emplace_back("thickness", &hiceAdvection);
+        fieldsToCheck.emplace_back("concentration", &ciceAdvection);
+        fieldsToCheck.emplace_back("u_velocity", getStore().getArrayRef(Protected::ICE_U));
+        fieldsToCheck.emplace_back("v_velocity", getStore().getArrayRef(Protected::ICE_V));
     }
 }
 
@@ -210,10 +220,16 @@ ModelState PrognosticData::getStatePrognostic() const
 
 PrognosticData::HelpMap& PrognosticData::getHelpText(HelpMap& map, bool getAll)
 {
-    map["debug"] = { { checkFieldsKey, ConfigType::BOOLEAN, { "true", "false" },
-        ConfigurationHelp::toString(checkFieldsDefault), "",
-        "Set to true to check if all variables in the ModelArrayReferenceStore fall within a "
-        "reasonable physical range." } };
+    map["debug"] = {
+        { checkFieldsKey, ConfigType::BOOLEAN, { "true", "false" },
+            ConfigurationHelp::toString(checkFieldsDefault), "",
+            "Set to true to check if all variables in the ModelArrayReferenceStore fall within a "
+            "reasonable physical range." },
+        { checkFieldsFastKey, ConfigType::BOOLEAN, { "true", "false" },
+            ConfigurationHelp::toString(checkFieldsFastDefault), "",
+            "Set to true to check if thickness, concentration, and velocities fall within a "
+            "reasonable physical range." }
+    };
 
     return map;
 }
