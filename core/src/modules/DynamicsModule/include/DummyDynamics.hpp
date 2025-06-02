@@ -1,7 +1,7 @@
 /*!
  * @file DummyDynamics.hpp
  *
- * @date 24 Sep 2024
+ * @date 02 Jun 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -20,6 +20,14 @@ public:
 
     std::string getName() const override { return "DummyDynamics"; }
     void update(const TimestepTime& tst) override {};
+    void setData(const ModelState::DataMap& state) override
+    {
+        IDynamics::setData(state);
+
+        // Set the ice velocity to zero so that we don't trip the PrognosticData field checks.
+        uice = 0.;
+        vice = 0.;
+    }
 };
 }
 
