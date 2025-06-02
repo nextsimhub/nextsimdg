@@ -1,7 +1,7 @@
 /*!
  * @file PrognosticData.cpp
  *
- * @date 30 May 2025
+ * @date 02 Jun 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Einar Ólason <einar.olason@nersc.no>
  */
@@ -202,7 +202,7 @@ ModelState PrognosticData::getStateDiagnostic() const
 ModelState PrognosticData::getStatePrognostic() const
 {
     ModelState state = { {
-                             { "mask", ModelArray(getOceanMask()) }, // make a copy
+                             { "mask", ModelArray(oceanMask()) }, // make a copy
                              { "hice", hiceAdvection },
                              { "cice", ciceAdvection },
                              { "hsnow", mask(m_snow) },

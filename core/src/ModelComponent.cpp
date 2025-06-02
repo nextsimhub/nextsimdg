@@ -1,7 +1,7 @@
 /*!
  * @file ModelComponent.cpp
  *
- * @date 21 May 2025
+ * @date 02 Jun 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -35,13 +35,13 @@ void ModelComponent::setOceanMask(const ModelArray& mask)
     // 1. Count the number of non-land squares
     nOcean = 0;
     for (size_t i = 0; i < ModelArray::size(ModelArray::Type::H); ++i) {
-        if (getOceanMask()[i] > 0)
+        if (oceanMask()[i] > 0)
             ++nOcean;
     }
     oceanIndex.resize(nOcean);
     size_t iOceanIndex = 0;
     for (size_t i = 0; i < ModelArray::size(ModelArray::Type::H); ++i) {
-        if (getOceanMask()[i] > 0) {
+        if (oceanMask()[i] > 0) {
             oceanIndex[iOceanIndex++] = i;
         }
     }
@@ -72,6 +72,6 @@ ModelArray ModelComponent::mask(const ModelArray& data, const double missingValu
     return copy;
 }
 
-const ModelArray& ModelComponent::getOceanMask() { return oceanMaskSingleton(); }
+const ModelArray& ModelComponent::oceanMask() { return oceanMaskSingleton(); }
 
 } /* namespace Nextsim */

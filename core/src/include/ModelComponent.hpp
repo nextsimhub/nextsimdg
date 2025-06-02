@@ -1,7 +1,7 @@
 /*!
  * @file ModelComponent.hpp
  *
- * @date 26 May 2025
+ * @date 02 Jun 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Einar Ólason <einar.olason@nersc.no>
  */
@@ -226,7 +226,7 @@ protected:
     /*!
      * @brief Returns the ocean mask.
      */
-    static const ModelArray& getOceanMask();
+    static const ModelArray& oceanMask();
 
     /*!
      * @brief Returns a map of the configuration used by the component.

@@ -1,7 +1,7 @@
 /*!
  * @file CheckingModelComponent.cpp
  *
- * @date 30 May 2025
+ * @date 02 Jun 2025
  * @author Einar Ólason <einar.olason@nersc.no>
  */
 
@@ -31,7 +31,7 @@ protected:
         for (const auto& field : fieldsToCheck) {
 
             try {
-                field.arrayRef->checkLimits(getOceanMask());
+                field.arrayRef->checkLimits(oceanMask());
             } catch (const std::exception& e) {
                 throw std::runtime_error("Check failed for '" + field.name + "': " + e.what());
             }
