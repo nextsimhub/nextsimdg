@@ -1,7 +1,7 @@
 /*!
  * @file IceGrowth_test.cpp
  *
- * @date 22 Nov 2024
+ * @date 02 Jun 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -48,6 +48,7 @@ TEST_CASE("New ice formation")
             dqia_dt = 4.5036;
             qow = 307.546;
             subl = 0.; // Seems unlikely…
+            penSW = 0.;
             snow = 0.;
             rain = 0.;
             evap = 0.; // Seems unlikely…
@@ -128,6 +129,7 @@ TEST_CASE("Melting conditions")
             dqia_dt = 19.7016;
             qow = -109.923;
             subl = -7.3858e-06;
+            penSW = 0.;
             snow = 0.;
             rain = 0.;
             evap = 0.; // Seems unlikely…
@@ -220,6 +222,7 @@ TEST_CASE("Freezing conditions")
             dqia_dt = 16.7615;
             qow = 143.266;
             subl = 2.15132e-6;
+            penSW = 0.;
             snow = 1e-3;
             rain = 0.;
             evap = -1e-3; // E-P = 0
@@ -312,6 +315,7 @@ TEST_CASE("Dummy ice")
             dqia_dt = 0.;
             qow = 0.;
             subl = 0.;
+            penSW = 0.;
             snow = 0.;
             rain = 0.;
             evap = 0.; // E-P = 0
@@ -414,6 +418,7 @@ TEST_CASE("Zero thickness")
             dqia_dt = 19.7016;
             qow = -109.923;
             subl = -7.3858e-06;
+            penSW = 0.;
             snow = 0.;
             rain = 0.;
             evap = 0.; // Seems unlikely…
@@ -519,6 +524,7 @@ TEST_CASE("Turn off thermo")
             dqia_dt = 16.7615;
             qow = 143.266;
             subl = 2.15132e-6;
+            penSW = 0.;
             snow = 1e-3;
             rain = 0.;
             evap = -1e-3; // E-P = 0
