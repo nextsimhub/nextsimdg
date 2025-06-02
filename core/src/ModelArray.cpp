@@ -1,18 +1,15 @@
 /*!
  * @file   ModelArray.cpp
  *
- * @date   30 May 2025
+ * @date   02 Jun 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
 #include "include/ModelArray.hpp"
 
-#include "include/Model.hpp"
 #include "include/ModelArraySlice.hpp"
 
 #include <algorithm>
-#include <cstdarg>
-#include <iterator>
 #include <set>
 #include <string>
 #include <utility>
