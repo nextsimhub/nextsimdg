@@ -1,7 +1,7 @@
 /*!
  * @file KokkosBrittleCGDynamicsKernel.cpp
  *
- * @date 16 Apr 2025
+ * @date 02 Jun 2025
  * @author Robert Jendersie <robert.jendersie@ovgu.de>
  */
 
@@ -247,7 +247,7 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::updateMomentumDevice(const Devi
              * dteOverMass * cPrime * std::copysign(sinOceanAngle, lat[i]);
              */
             const FloatType beta = deltaT * params.fc + dteOverMass * cPrime * sinOceanAngle;
-            const FloatType rDenom = 1 / (SQR(alpha) + SQR(beta));
+            const FloatType rDenom = 1 / (sqr(alpha) + sqr(beta));
 
             // Atmospheric drag
             const FloatType dragAtm

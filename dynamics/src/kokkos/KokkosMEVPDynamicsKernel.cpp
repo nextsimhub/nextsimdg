@@ -1,7 +1,7 @@
 /*!
  * @file KokkosMEVPDynamicsKernel.cpp
  *
- * @date 16 Apr 2025
+ * @date 02 Jun 2025
  * @author Robert Jendersie <robert.jendersie@ovgu.de>
  */
 
@@ -247,9 +247,9 @@ void KokkosMEVPDynamicsKernel<DGadvection>::updateMomentumDevice(const DeviceVie
             const FloatType v = vDevice(i);
             const FloatType uOcnRel = u - uOceanDevice(i);
             const FloatType vOcnRel = v - vOceanDevice(i);
-            const FloatType absatm = Kokkos::sqrt(SQR(uAtmosDevice(i)) + SQR(vAtmosDevice(i)));
+            const FloatType absatm = Kokkos::sqrt(sqr(uAtmosDevice(i)) + sqr(vAtmosDevice(i)));
             // note that the sign of uOcnRel is irrelevant here
-            const FloatType absocn = Kokkos::sqrt(SQR(uOcnRel) + SQR(vOcnRel));
+            const FloatType absocn = Kokkos::sqrt(sqr(uOcnRel) + sqr(vOcnRel));
 
             // TODO: Take the sign of lat into account for Coriolis term
             uDevice(i) = (1.0

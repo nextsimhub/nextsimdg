@@ -1,6 +1,6 @@
 /*!
  * @file dgLimit.cpp
- * @date 27 September 2024
+ * @date 02 Jun 2025
  * @author Robert Jendersie <robert.jendersie@ovgu.de>
  */
 
@@ -13,16 +13,16 @@ void limitMax(const KokkosDeviceView<DGVector<1>>& dg, FloatType max)
 {
     Kokkos::parallel_for(
         "limitMax", dg.size(),
-        KOKKOS_LAMBDA(const DeviceIndex i) { dg(i) = std::min(dg(i), max); });
+        KOKKOS_LAMBDA(const DeviceIndex i) { dg(i) = Kokkos::fmin(dg(i), max); });
 }
 
 void limitMax(const KokkosDeviceView<DGVector<3>>& dg, FloatType max)
 {
     Kokkos::parallel_for(
         "limitMax", dg.extent(0), KOKKOS_LAMBDA(const DeviceIndex i) {
-            dg(i, 0) = std::min(max, dg(i, 0));
+            dg(i, 0) = Kokkos::fmin(max, dg(i, 0));
             const FloatType l0 = static_cast<FloatType>(2.0)
-                * std::max(Kokkos::abs(dg(i, 1) + dg(i, 2)), Kokkos::abs(dg(i, 1) - dg(i, 2)));
+                * Kokkos::fmax(Kokkos::abs(dg(i, 1) + dg(i, 2)), Kokkos::abs(dg(i, 1) - dg(i, 2)));
             if (l0 == 0)
                 return;
             const FloatType ex = dg(i, 0) + l0 - max;
@@ -40,7 +40,7 @@ void limitMax(const KokkosDeviceView<DGVector<6>>& dgDevice, FloatType max)
         "limitMax", dgDevice.extent(0), KOKKOS_LAMBDA(const DeviceIndex i) {
             auto dg = makeEigenMap(dgDevice);
 
-            dg(i, 0) = std::min(max, dg(i, 0));
+            dg(i, 0) = Kokkos::fmin(max, dg(i, 0));
 
             const FloatType maxvalue = (dg.block<1, 6>(i, 0) * PSI63).maxCoeff();
 
@@ -59,16 +59,16 @@ void limitMin(const KokkosDeviceView<DGVector<1>>& dg, FloatType min)
 {
     Kokkos::parallel_for(
         "limitMin", dg.size(),
-        KOKKOS_LAMBDA(const DeviceIndex i) { dg(i) = std::max(dg(i), min); });
+        KOKKOS_LAMBDA(const DeviceIndex i) { dg(i) = Kokkos::fmax(dg(i), min); });
 }
 
 void limitMin(const KokkosDeviceView<DGVector<3>>& dg, FloatType min)
 {
     Kokkos::parallel_for(
         "limitMin", dg.extent(0), KOKKOS_LAMBDA(const DeviceIndex i) {
-            dg(i, 0) = std::max(min, dg(i, 0));
+            dg(i, 0) = Kokkos::fmax(min, dg(i, 0));
             const FloatType l0 = static_cast<FloatType>(2.0)
-                * std::max(Kokkos::abs(dg(i, 1) + dg(i, 2)), Kokkos::abs(dg(i, 1) - dg(i, 2)));
+                * Kokkos::fmax(Kokkos::abs(dg(i, 1) + dg(i, 2)), Kokkos::abs(dg(i, 1) - dg(i, 2)));
             if (l0 == 0)
                 return;
 
@@ -81,12 +81,12 @@ void limitMin(const KokkosDeviceView<DGVector<3>>& dg, FloatType min)
 }
 void limitMin(const KokkosDeviceView<DGVector<6>>& dgDevice, FloatType min)
 {
-	const auto PSI63 = PSI<6, 3>;
+    const auto PSI63 = PSI<6, 3>;
     Kokkos::parallel_for(
         "limitMin", dgDevice.extent(0), KOKKOS_LAMBDA(const DeviceIndex i) {
-			auto dg = makeEigenMap(dgDevice);
+            auto dg = makeEigenMap(dgDevice);
 
-            dg(i, 0) = std::max(min, dg(i, 0));
+            dg(i, 0) = Kokkos::fmax(min, dg(i, 0));
 
             const FloatType minvalue = (dg.block<1, 6>(i, 0) * PSI63).minCoeff();
 

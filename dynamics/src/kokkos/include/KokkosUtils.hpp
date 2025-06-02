@@ -1,7 +1,7 @@
 /*!
  * @file KokkosUtils.hpp
  *
- * @date 16 Apr 2025
+ * @date 02 Jun 2025
  * @author Robert Jendersie <robert.jendersie@ovgu.de>
  */
 
@@ -294,6 +294,8 @@ KOKKOS_IMPL_FUNCTION auto makeEigenMap(const Kokkos::View<DataType, Properties..
         return MapType(view.data(), view.extent(0), view.extent(1));
     }
 }
+
+template <typename T> constexpr KOKKOS_IMPL_FUNCTION T sqr(T x) { return x * x; }
 
 } // namespace nextsim
 

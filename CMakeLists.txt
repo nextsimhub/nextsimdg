@@ -154,8 +154,8 @@ endif()
 
 # Kokkos
 IF (WITH_KOKKOS)
-    #if nextsimlib is a shared library than kokkos need to be build
-    # with position independent code
+    #If nextsimlib is a shared library than kokkos need to be build
+    # with position independent code.
     get_target_property(target_type nextsimlib TYPE)
     if (${target_type} STREQUAL "SHARED_LIBRARY")
         # target specific property is difficult here
@@ -182,9 +182,10 @@ IF (WITH_KOKKOS)
         if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
             message("Clang is currently not supported with CUDA.")
         else()
-            # disable warning caused by eigen
+            set(Kokkos_ENABLE_CUDA_CONSTEXPR ON)
+            # Disable warning caused by Eigen:
             # "calling a __host__ function from a __host__ __device__ function is not allowed"
-            # it is not sufficient to disable this for just CUDA code, i.e. with the generator expression
+            # It is not sufficient to disable this for just CUDA code, i.e. with the generator expression:
             # $<$<COMPILE_LANGUAGE:CUDA>:-Xcudafe --diag_suppress=20014>
             target_compile_options(nextsimlib PUBLIC -Xcudafe --diag_suppress=20014)
         endif()

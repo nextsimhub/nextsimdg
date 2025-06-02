@@ -1,6 +1,6 @@
 /*!
  * @file KokkosCGDynamicsKernel.cpp
- * @date 16 Apr 2025
+ * @date 02 Jun 2025
  * @author Robert Jendersie <robert.jendersie@ovgu.de>
  */
 
@@ -146,12 +146,12 @@ void KokkosCGDynamicsKernel<DGadvection>::prepareIterationDevice(const DeviceVie
      */
     Kokkos::parallel_for(
         "limitCGA", cgADevice.extent(0), KOKKOS_LAMBDA(const DeviceIndex idx) {
-            cgADevice(idx) = std::clamp(
-                cgADevice(idx), static_cast<FloatType>(0.0), static_cast<FloatType>(1.0));
+            cgADevice(idx) = Kokkos::fmin(Kokkos::fmax(cgADevice(idx), static_cast<FloatType>(0.0)),
+                static_cast<FloatType>(1.0));
         });
     Kokkos::parallel_for(
         "limitCGH", cgHDevice.extent(0), KOKKOS_LAMBDA(const DeviceIndex idx) {
-            cgHDevice(idx) = std::max(cgHDevice(idx), static_cast<FloatType>(0.05));
+            cgHDevice(idx) = Kokkos::fmax(cgHDevice(idx), static_cast<FloatType>(0.05));
         });
 }
 

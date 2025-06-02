@@ -1,6 +1,6 @@
 /*!
  * @file KokkosDGTransport.cpp
- * @date 01 Apr 2025
+ * @date 02 Jun 2025
  * @author Robert Jendersie <robert.jendersie@ovgu.de>
  */
 
@@ -593,9 +593,9 @@ void KokkosDGTransport<DG>::addEdgeXTermsDevice(FloatType dt,
                 // FloatType
                 constexpr FloatType zero = 0;
                 Kokkos::atomic_sub(&phiupDevice(c1),
-                    dt * (std::max(vel, zero) * bottom + std::min(vel, zero) * top));
+                    dt * (Kokkos::fmax(vel, zero) * bottom + Kokkos::fmin(vel, zero) * top));
                 Kokkos::atomic_add(&phiupDevice(c2),
-                    dt * (std::max(vel, zero) * bottom + std::min(vel, zero) * top));
+                    dt * (Kokkos::fmax(vel, zero) * bottom + Kokkos::fmin(vel, zero) * top));
             });
     } else {
         const auto PSIe1D = PSIe<EDGE_DOFS, GP1D>;
@@ -663,9 +663,9 @@ void KokkosDGTransport<DG>::addEdgeYTermsDevice(FloatType dt,
                 // FloatType
                 constexpr FloatType zero = 0;
                 Kokkos::atomic_sub(&phiupDevice(c1),
-                    dt * (std::max(vel, zero) * left + std::min(vel, zero) * right));
+                    dt * (Kokkos::fmax(vel, zero) * left + Kokkos::fmin(vel, zero) * right));
                 Kokkos::atomic_add(&phiupDevice(c2),
-                    dt * (std::max(vel, zero) * left + std::min(vel, zero) * right));
+                    dt * (Kokkos::fmax(vel, zero) * left + Kokkos::fmin(vel, zero) * right));
             });
     } else {
         const auto PSIe1D = PSIe<EDGE_DOFS, GP1D>;
