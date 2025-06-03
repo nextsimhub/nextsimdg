@@ -1,6 +1,6 @@
 /*!
  * @file Tools.hpp
- * @date 24 Sep 2024
+ * @date 19 May 2025
  * @author Piotr Minakowski <piotr.minakowski@ovgu.de>
  */
 
@@ -112,7 +112,6 @@ namespace Tools {
                         * (((e11_gauss.array() - e22_gauss.array()).square()
                                + 4.0 * e12_gauss.array().square() + 1.e-20)
                                 .sqrt()
-                                .log10()
                             * ParametricTools::J<NGP>(smesh, i).array() * GAUSSWEIGHTS<NGP>.array())
                               .matrix()
                               .transpose());

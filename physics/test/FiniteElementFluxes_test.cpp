@@ -1,7 +1,7 @@
 /*!
  * @file FiniteElementFluxes_test.cpp
  *
- * @date 11 Feb 2025
+ * @date 23 May 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -159,6 +159,10 @@ TEST_CASE("Melting conditions")
     subl.resize();
     ModelComponent::getStore().registerArray(Shared::SUBLIM, &subl, RW);
 
+    HField evap;
+    evap.resize();
+    ModelComponent::getStore().registerArray(Shared::EVAP, &evap, RW);
+
     HField tauX;
     HField tauY;
     tauX.resize();
@@ -306,6 +310,10 @@ TEST_CASE("Freezing conditions")
     HField subl;
     subl.resize();
     ModelComponent::getStore().registerArray(Shared::SUBLIM, &subl, RW);
+
+    HField evap;
+    evap.resize();
+    ModelComponent::getStore().registerArray(Shared::EVAP, &evap, RW);
 
     HField tauX;
     HField tauY;

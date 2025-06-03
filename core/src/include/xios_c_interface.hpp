@@ -2,7 +2,7 @@
  * @file    xios_c_interface.hpp
  * @author  Tom Meltzer <tdm39@cam.ac.uk>
  * @author  Joe Wallwork <jw2423@cam.ac.uk>
- * @date    09 Dec 2024
+ * @date    19 May 2025
  * @brief   C interface for XIOS library
  * @details
  * This interface is based on an earlier version provided by Laurent as part of
@@ -131,7 +131,6 @@ void cxios_xml_tree_add_grid(
 void cxios_grid_handle_create(xios::CGrid** _ret, const char* _id, int _id_len);
 void cxios_grid_valid_id(bool* _ret, const char* _id, int _id_len);
 void cxios_set_grid_name(xios::CGrid* _ret, const char* name, int name_size);
-void cxios_get_grid_name(xios::CGrid* _ret, char* name, int name_size);
 bool cxios_is_defined_grid_name(xios::CGrid* file_hdl);
 void cxios_xml_tree_add_axistogrid(
     xios::CGrid* grid, xios::CAxis** axis, const char* _id, int _id_len);
@@ -151,7 +150,6 @@ void cxios_set_field_operation(xios::CField* _ret, const char* operation, int op
 void cxios_set_field_grid_ref(xios::CField* _ret, const char* grid_ref, int grid_ref_size);
 void cxios_set_field_read_access(xios::CField* _ret, bool read_access);
 void cxios_set_field_freq_offset(xios::CField* _ret, cxios_duration freq_offset);
-void cxios_get_field_name(xios::CField* _ret, char* name, int name_size);
 void cxios_get_field_operation(xios::CField* _ret, char* operation, int operation_size);
 void cxios_get_field_grid_ref(xios::CField* _ret, char* grid_ref, int grid_ref_size);
 void cxios_get_field_read_access(xios::CField* _ret, bool* read_access);
@@ -176,7 +174,6 @@ void cxios_set_file_output_freq(xios::CFile* file_hdl, cxios_duration output_fre
 void cxios_set_file_split_freq(xios::CFile* file_hdl, cxios_duration split_freq_c);
 void cxios_set_file_mode(xios::CFile* file_hdl, const char* mode, int mode_size);
 void cxios_set_file_par_access(xios::CFile* file_hdl, const char* par_access, int par_access_size);
-void cxios_get_file_name(xios::CFile* file_hdl, char* name, int name_size);
 void cxios_get_file_type(xios::CFile* file_hdl, char* type, int type_size);
 void cxios_get_file_output_freq(xios::CFile* file_hdl, cxios_duration* output_freq_c);
 void cxios_get_file_split_freq(xios::CFile* file_hdl, cxios_duration* split_freq_c);

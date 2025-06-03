@@ -1,7 +1,7 @@
 /*!
  * @file FreeDriftDynamics.hpp
  *
- * @date 19 Nov 2024
+ * @date 26 May 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -31,8 +31,6 @@ public:
         : IDynamics()
         , kernel(params)
     {
-        getStore().registerArray(Protected::ICE_U, &uice, RO);
-        getStore().registerArray(Protected::ICE_V, &vice, RO);
     }
 
     std::string getName() const override { return "FreeDriftDynamics"; }

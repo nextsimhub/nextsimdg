@@ -1,7 +1,7 @@
 /*!
  * @file BBMDynamics.cpp
  *
- * @date 05 Dec 2024
+ * @date 26 May 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Einar Ólason <einar.olason@nersc.no>
  */
@@ -90,8 +90,6 @@ BBMDynamics::BBMDynamics()
     : IDynamics(true)
     , kernel(params)
 {
-    getStore().registerArray(Protected::ICE_U, &uice, RO);
-    getStore().registerArray(Protected::ICE_V, &vice, RO);
 }
 
 void BBMDynamics::setData(const ModelState::DataMap& ms)
@@ -168,6 +166,11 @@ void BBMDynamics::update(const TimestepTime& tst)
 
     taux = kernel.getDG0Data(uIOStressName);
     tauy = kernel.getDG0Data(vIOStressName);
+
+    shear = kernel.getDG0Data(shearName);
+    divergence = kernel.getDG0Data(divergenceName);
+    sigmaI = kernel.getDG0Data(sigmaIName);
+    sigmaII = kernel.getDG0Data(sigmaIIName);
 }
 
 BBMDynamics::HelpMap& BBMDynamics::getHelpText(HelpMap& map, bool getAll)

@@ -1,7 +1,7 @@
 /*!
  * @file ModelComponent.hpp
  *
- * @date 11 Feb 2025
+ * @date 26 May 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Einar Ólason <einar.olason@nersc.no>
  */
@@ -52,8 +52,6 @@ namespace Protected {
     inline constexpr TextTag EXT_SST
         = "EXT_SST"; // sea surface temperature from coupling or forcing, ˚C
     inline constexpr TextTag SSH = "SSH"; // sea surface height, m
-    inline constexpr TextTag EVAP_MINUS_PRECIP
-        = "E-P"; // E-P atmospheric freshwater flux, kg s⁻¹ m⁻²
     // Derived fields, calculated once per timestep
     inline constexpr TextTag ML_BULK_CP = "CPML"; // Mixed layer bulk heat capacity J K⁻¹ m⁻²
     inline constexpr TextTag TF = "TF"; // Ocean freezing temperature, ˚C
@@ -75,6 +73,10 @@ namespace Protected {
         = "SLAB_QDW"; // Slab ocean temperature nudging heat flux, W m⁻²
     inline constexpr TextTag SLAB_FDW
         = "SLAB_FDW"; // Slab ocean salinity nudging water flux, kg s⁻¹ m⁻²
+    inline constexpr TextTag SHEAR = "SHEAR"; // Instantaneous share rate, s⁻¹
+    inline constexpr TextTag DIV = "DIV"; // Instantaneous divergence , s⁻¹
+    inline constexpr TextTag SIGMAI = "SIGMAI"; // First invariant of the stress tensor Pa
+    inline constexpr TextTag SIGMAII = "SIGMAII"; // First invariant of the stress tensor Pa
 }
 
 namespace Shared {
@@ -98,6 +100,8 @@ namespace Shared {
     inline constexpr TextTag Q_SW_OW = "Q_SW_OW"; // Shortwave flux in open water W m⁻²
     inline constexpr TextTag Q_SW_BASE = "Q_SW_BASE"; // Shortwave flux at the base of the ice W m⁻²
     // Mass fluxes
+    inline constexpr TextTag EVAP = "EVAP"; // evaporation mass flux kg s⁻¹ m⁻²
+    inline constexpr TextTag RAIN = "RAIN"; // liquid mass flux kg s⁻¹ m⁻²
     inline constexpr TextTag HSNOW_MELT = "HSNOW_MELT"; // Thickness of snow that melted, m
     // Momentum fluxes
     inline constexpr TextTag OW_STRESS_X = "OW_STRESS_X"; // x(east)-ward open ocean stress, Pa

@@ -1,7 +1,7 @@
 /*!
  * @file IAtmosphereBoundary.hpp
  *
- * @date 11 Feb 2025
+ * @date 23 May 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -15,14 +15,21 @@
 namespace Nextsim {
 
 //! An interface class for the atmospheric inputs into the ice physics.
-class IAtmosphereBoundary: public ModelComponent {
+class IAtmosphereBoundary : public ModelComponent {
 public:
     IAtmosphereBoundary()
-            : qia(ModelArray::Type::H), dqia_dt(ModelArray::Type::H), qow(ModelArray::Type::H), subl(
-                    ModelArray::Type::H), snow(ModelArray::Type::H), rain(ModelArray::Type::H), evap(
-                    ModelArray::Type::H), emp(ModelArray::Type::H), uwind(ModelArray::Type::U), vwind(
-                    ModelArray::Type::V), penSW(ModelArray::Type::H), tauXOW(ModelArray::Type::H), tauYOW(
-                    ModelArray::Type::H)
+        : qia(ModelArray::Type::H)
+        , dqia_dt(ModelArray::Type::H)
+        , qow(ModelArray::Type::H)
+        , subl(ModelArray::Type::H)
+        , snow(ModelArray::Type::H)
+        , rain(ModelArray::Type::H)
+        , evap(ModelArray::Type::H)
+        , uwind(ModelArray::Type::U)
+        , vwind(ModelArray::Type::V)
+        , penSW(ModelArray::Type::H)
+        , tauXOW(ModelArray::Type::H)
+        , tauYOW(ModelArray::Type::H)
     {
         m_couplingArrays.registerArray(CouplingFields::SUBL, &subl, RW);
         m_couplingArrays.registerArray(CouplingFields::SNOW, &snow, RW);
@@ -38,17 +45,15 @@ public:
         getStore().registerArray(Shared::OW_STRESS_X, &tauXOW, RW);
         getStore().registerArray(Shared::OW_STRESS_Y, &tauYOW, RW);
         getStore().registerArray(Protected::SNOW, &snow, RO);
-        getStore().registerArray(Protected::EVAP_MINUS_PRECIP, &emp, RO);
+        getStore().registerArray(Shared::EVAP, &evap, RW);
+        getStore().registerArray(Shared::RAIN, &rain, RO);
         getStore().registerArray(Protected::WIND_U, &uwind, RO);
         getStore().registerArray(Protected::WIND_V, &vwind, RO);
         getStore().registerArray(Shared::Q_PEN_SW, &penSW, RW);
     }
     virtual ~IAtmosphereBoundary() = default;
 
-    std::string getName() const override
-    {
-        return "IAtmosphereBoundary";
-    }
+    std::string getName() const override { return "IAtmosphereBoundary"; }
     void setData(const ModelState::DataMap& ms) override
     {
         qia.resize();
@@ -58,22 +63,16 @@ public:
         snow.resize();
         rain.resize();
         evap.resize();
-        emp.resize();
         uwind.resize();
         vwind.resize();
         penSW.resize();
         tauXOW.resize();
         tauYOW.resize();
     }
-    virtual void update(const TimestepTime& tst)
-    {
-    }
+    virtual void update(const TimestepTime& tst) { }
 
 protected:
-    ModelArrayReferenceStore& couplingArrays()
-    {
-        return m_couplingArrays;
-    }
+    ModelArrayReferenceStore& couplingArrays() { return m_couplingArrays; }
 
     HField qia;
     HField dqia_dt;
@@ -82,7 +81,6 @@ protected:
     HField snow;
     HField rain;
     HField evap;
-    HField emp;
     UField uwind;
     VField vwind;
     HField penSW;

@@ -1,7 +1,7 @@
 /*!
  * @file gridNames.hpp
  *
- * @date Aug 23, 2024
+ * @date 19 May 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -24,6 +24,10 @@ static const std::string vName = "v";
 static const std::string sstName = "sst";
 static const std::string sssName = "sss";
 static const std::string damageName = "damage";
+static const std::string shearName = "shear";
+static const std::string divergenceName = "divergence";
+static const std::string sigmaIName = "sigmaI";
+static const std::string sigmaIIName = "sigmaII";
 
 static const std::string uWindName = "uwind";
 static const std::string vWindName = "vwind";
