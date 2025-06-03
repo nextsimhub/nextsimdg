@@ -170,7 +170,7 @@ public:
     }
 
     //! Returns the number of dimensions defined for this slice.
-    const size_t n() const { return bounds.size(); }
+    size_t n() const { return bounds.size(); }
 };
 
 //! Inserts a textual representation of a Bounds object into a stream.

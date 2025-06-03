@@ -182,12 +182,16 @@ IF (WITH_KOKKOS)
         if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
             message("Clang is currently not supported with CUDA.")
         else()
-            set(Kokkos_ENABLE_CUDA_CONSTEXPR ON)
             # Disable warning caused by Eigen:
             # "calling a __host__ function from a __host__ __device__ function is not allowed"
             # It is not sufficient to disable this for just CUDA code, i.e. with the generator expression:
             # $<$<COMPILE_LANGUAGE:CUDA>:-Xcudafe --diag_suppress=20014>
-            target_compile_options(nextsimlib PUBLIC -Xcudafe --diag_suppress=20014)
+            # "#68-D: integer conversion resulted in a change of sign"
+            # This warning is also caused by CPU code (e.g. Slice.hpp) and should be fixed at some point.
+            target_compile_options(nextsimlib PUBLIC 
+                "SHELL:-Xcudafe --diag_suppress=20014" 
+                "SHELL:-Xcudafe --diag_suppress=68"
+            )
         endif()
     endif()
     # stdandard is not set correctly for amdclang based on just the target property
