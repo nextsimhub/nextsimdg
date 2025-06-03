@@ -1,6 +1,6 @@
 import netCDF4
 import numpy as np
-
+import os
 
 class initMaker:
     """
@@ -92,7 +92,10 @@ class initMaker:
                 raise RuntimeError("Incorrect array shape")
 
     def __del__(self):
-        self.__writeFile__()
+        if os.path.isfile(self.__fname):
+            print(f"Skipping creation of {self.__fname} because the file already exists")
+        else:
+            self.__writeFile__()
 
     def __writeFile__(self):
         """
