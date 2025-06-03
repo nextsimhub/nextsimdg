@@ -1,7 +1,7 @@
 /*!
  * @file ThermoWinton.cpp
  *
- * @date 20 Nov 2024
+ * @date 02 May 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -162,9 +162,8 @@ void ThermoWinton::setData(const ModelState::DataMap& state)
 
 void ThermoWinton::update(const TimestepTime& tst)
 {
-    overElements(std::bind(&ThermoWinton::calculateElement, this, std::placeholders::_1,
-                     std::placeholders::_2),
-        tst);
+    overElements(
+        [this](const size_t i, const TimestepTime& tsTime) { calculateElement(i, tsTime); }, tst);
 }
 
 void ThermoWinton::calculateElement(size_t i, const TimestepTime& tst)

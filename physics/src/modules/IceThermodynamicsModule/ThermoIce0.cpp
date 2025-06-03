@@ -1,7 +1,7 @@
 /*!
  * @file ThermoIce0.cpp
  *
- * @date 07 Feb 2025
+ * @date 02 May 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -32,9 +32,8 @@ ThermoIce0::ThermoIce0()
 
 void ThermoIce0::update(const TimestepTime& tsTime)
 {
-    overElements(std::bind(&ThermoIce0::calculateElement, this, std::placeholders::_1,
-                     std::placeholders::_2),
-        tsTime);
+    overElements(
+        [this](size_t i, const TimestepTime& tst) { this->calculateElement(i, tst); }, tsTime);
 }
 
 static const std::map<int, std::string> keyMap = {

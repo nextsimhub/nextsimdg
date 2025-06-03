@@ -87,9 +87,7 @@ void TOPAZOcean::updateBefore(const TimestepTime& tst)
     }
 
     cpml = Water::rhoOcean * Water::cp * mld;
-    overElements(
-        std::bind(&TOPAZOcean::updateTf, this, std::placeholders::_1, std::placeholders::_2),
-        TimestepTime());
+    overElements([this](size_t i, const TimestepTime& tsTime) { this->updateTf(i, tsTime); }, tst);
 
     pIOHeatFlux->update(tst);
 }

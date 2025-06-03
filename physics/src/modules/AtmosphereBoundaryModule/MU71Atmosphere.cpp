@@ -67,9 +67,8 @@ void MU71Atmosphere::update(const Nextsim::TimestepTime& tst)
     isLeap = ((tst.start.gmtime()->tm_year % 4 == 0) && (tst.start.gmtime()->tm_year % 100 != 0))
         || (tst.start.gmtime()->tm_year % 400 == 0);
 
-    overElements(std::bind(&MU71Atmosphere::calculateElement, this, std::placeholders::_1,
-                     std::placeholders::_2),
-        tst);
+    overElements(
+        [this](size_t i, const TimestepTime& tsTime) { this->calculateElement(i, tsTime); }, tst);
 }
 
 void MU71Atmosphere::calculateElement(size_t i, const TimestepTime& tst)

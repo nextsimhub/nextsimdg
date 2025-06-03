@@ -1,7 +1,7 @@
 /*!
  * @file IceGrowth.cpp
  *
- * @date 20 Nov 2024
+ * @date 02 May 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Einar Ólason <einar.olason@nersc.no>
  */
@@ -155,9 +155,7 @@ void IceGrowth::update(const TimestepTime& tsTime)
 {
     // Copy the ice data from the prognostic fields to the modifiable fields.
     initializeThicknesses();
-    overElements(
-        std::bind(&IceGrowth::applyLimits, this, std::placeholders::_1, std::placeholders::_2),
-        tsTime);
+    overElements([this](size_t i, const TimestepTime& tst) { this->applyLimits(i, tst); }, tsTime);
 
     // The snowMelt array is not currently filled with data, but it used elsewhere
     // FIXME calculate a true value for snowMelt
@@ -166,9 +164,8 @@ void IceGrowth::update(const TimestepTime& tsTime)
     if (doThermo) {
         iVertical->update(tsTime);
         // new ice formation
-        overElements(std::bind(&IceGrowth::updateWrapper, this, std::placeholders::_1,
-                         std::placeholders::_2),
-            tsTime);
+        overElements(
+            [this](size_t i, const TimestepTime& tst) { this->updateWrapper(i, tst); }, tsTime);
     }
 
     // Damage always heals, even if there's no active thermo
@@ -179,8 +176,8 @@ void IceGrowth::update(const TimestepTime& tsTime)
 void IceGrowth::initializeThicknesses()
 {
     cice = cice0;
-    overElements(std::bind(&IceGrowth::initializeThicknessesElement, this, std::placeholders::_1,
-                     std::placeholders::_2),
+    overElements(
+        [this](size_t i, const TimestepTime& tst) { this->initializeThicknessesElement(i, tst); },
         TimestepTime());
 }
 

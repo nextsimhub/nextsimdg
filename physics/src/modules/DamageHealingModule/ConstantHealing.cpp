@@ -1,7 +1,7 @@
 /*!
  * @file ConstantHealing.hpp
  *
- * @date 21 Nov 2024
+ * @date 02 May 2025
  * @author Einar Ólason <einar.olason@nersc.no>
  */
 
@@ -45,9 +45,8 @@ ConstantHealing::HelpMap& ConstantHealing::getHelpRecursive(HelpMap& map, bool g
  * 2. Constant healing with a given time scale (tD) */
 void ConstantHealing::update(const TimestepTime& tstep)
 {
-    overElements(std::bind(&ConstantHealing::updateElement, this, std::placeholders::_1,
-                     std::placeholders::_2),
-        tstep);
+    overElements(
+        [this](size_t i, const TimestepTime& tsTime) { this->updateElement(i, tsTime); }, tstep);
 }
 
 void ConstantHealing::updateElement(size_t i, const TimestepTime& tstep)

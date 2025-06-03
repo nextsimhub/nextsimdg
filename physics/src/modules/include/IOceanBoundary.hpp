@@ -143,8 +143,8 @@ public:
     void mergeFluxes(const TimestepTime& tst)
     {
         dt = tst.step.seconds();
-        overElements(std::bind(&IOceanBoundary::mergeFluxesElement, this, std::placeholders::_1,
-                         std::placeholders::_2),
+        overElements([this](const size_t i,
+                         const TimestepTime& tsTime) { this->mergeFluxesElement(i, tsTime); },
             tst);
     }
 
