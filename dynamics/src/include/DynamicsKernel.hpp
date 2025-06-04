@@ -118,15 +118,6 @@ public:
         }
     }
 
-    template <typename C>
-    void setAdvectedFields(C& fieldContainer)
-    {
-        advectedFields.clear();
-        for (auto field : fieldContainer) {
-            advectedFields.push_back(DGVectorHolder<DGadvection>(*field));
-        }
-    }
-
     /*!
      * @brief Returns an HField ModelArray containing the DG0 finite volume
      * component of the named dynamics field.
@@ -177,11 +168,6 @@ public:
         Nextsim::LimitMax(cice, 1.0);
         Nextsim::LimitMin(cice, 0.0);
         Nextsim::LimitMin(hice, 0.0);
-
-        // Advect all other fields
-        for (DGVectorHolder<DGadvection>& field : advectedFields) {
-            dgtransport->step(tst.step.seconds(), field);
-        }
     }
 
     /*!
@@ -272,12 +258,6 @@ protected:
      * Apply Dirichlet and periodic boundary conditions.
      */
     virtual void applyBoundaries() = 0;
-
-private:
-    std::vector<DGVectorHolder<DGadvection>> advectedFields;
-
-    // A map from field name to the type of
-    std::unordered_map<std::string, ModelArray::Type> fieldType;
 };
 
 }

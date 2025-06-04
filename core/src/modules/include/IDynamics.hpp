@@ -85,11 +85,6 @@ public:
      */
     virtual bool usesDamage() const { return m_usesDamage; }
 
-    void addAdvectedField(AdvectedField& array)
-    {
-        advectedFields().push_back(std::make_shared<AdvectedField>(array));
-    }
-
     virtual void advectField(double timestep, ModelArray& field, double lowerLimit =
             -std::numeric_limits<double>::infinity(), double upperLimit =
             std::numeric_limits<double>::infinity())
@@ -123,13 +118,6 @@ protected:
     // Store the h_ice and c_ice DG fields here, rather than in the kernel.
     ModelArrayRef<Shared::H_ICE_DG, RW> hiceDG;
     ModelArrayRef<Shared::C_ICE_DG, RW> ciceDG;
-
-    using advectedFieldContainer = std::vector<std::shared_ptr<ModelArray>>;
-    static advectedFieldContainer& advectedFields()
-    {
-        static advectedFieldContainer advFields;
-        return advFields;
-    }
 
     /*
      * Checks and returns if the provided data map is spherical
