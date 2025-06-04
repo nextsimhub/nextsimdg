@@ -27,6 +27,10 @@ public:
     void prepareAdvection() override { kernel.prepareAdvection(); }
     void update(const TimestepTime& tst) override;
 
+    void advectField(double timestep, ModelArray& field, double lowerLimit =
+            -std::numeric_limits<double>::infinity(), double upperLimit =
+            std::numeric_limits<double>::infinity()) override;
+
     void setData(const ModelState::DataMap&) override;
     void configure() override;
     ConfigMap getConfiguration() const override;

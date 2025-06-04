@@ -193,7 +193,8 @@ public:
     virtual void prepareAdvection() = 0;
 
     /*!
-     * Advects as field one timestep.
+     * A wrapper to advect a ModelArray field one timestep.
+     *
      *
      * @param timestep The advection timestep in seconds.
      * @param field A reference to the field to be advected.
@@ -202,14 +203,34 @@ public:
      *
      * @return A reference to the advected array.
      */
-    virtual DGVector<DGadvection>& advectField(double timestep, DGVector<DGadvection>& field,
+    ModelArray& advectField(double timestep, ModelArray& field,
+            double lowerLimit = -std::numeric_limits<double>::infinity(), double upperLimit =
+                    std::numeric_limits<double>::infinity())
+    {
+        DGVectorHolder<DGadvection> holder(field);
+        advectDGVField(timestep, holder, lowerLimit, upperLimit);
+        return field;
+    }
+
+
+    /*!
+     * Advects a field one timestep.
+     *
+     * @param timestep The advection timestep in seconds.
+     * @param field A reference to the field to be advected.
+     * @param lowerLimit The minimum value the field is allowed to take. Defaults to -∞.
+     * @param upperLimit The maximum value the field is allowed to take. Defaults to +∞.
+     *
+     * @return A reference to the advected array.
+     */
+    virtual DGVector<DGadvection>& advectDGVField(double timestep, DGVector<DGadvection>& field,
             double lowerLimit = -std::numeric_limits<double>::infinity(), double upperLimit =
                     std::numeric_limits<double>::infinity()) = 0;
 
     virtual void advectDynamicsFields(double timestep)
     {
-        advectField(timestep, hice, 0.0);
-        advectField(timestep, cice, 0.0, 1.0);
+        advectDGVField(timestep, hice, 0.0);
+        advectDGVField(timestep, cice, 0.0, 1.0);
     }
 
 protected:

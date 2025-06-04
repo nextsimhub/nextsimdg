@@ -228,7 +228,7 @@ TEST_CASE("advection")
     size_t nt = 50;
     for (size_t i = 0; i < nt; ++i) {
         kernel.prepareAdvection();
-        kernel.advectField(tst.step.seconds(), snowHolder, 0.0);
+        kernel.advectDGVField(tst.step.seconds(), snowHolder, 0.0);
         kernel.update(tst);
 
         deltaH = hice - hice0;

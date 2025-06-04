@@ -166,6 +166,12 @@ void BBMDynamics::update(const TimestepTime& tst)
     sigmaII = kernel.getDG0Data(sigmaIIName);
 }
 
+void BBMDynamics::advectField(double timestep, ModelArray& field, double lowerLimit, double upperLimit)
+{
+    kernel.advectField(timestep, field, lowerLimit, upperLimit);
+}
+
+
 BBMDynamics::HelpMap& BBMDynamics::getHelpText(HelpMap& map, bool getAll)
 {
     map["BBMDynamics"] = {

@@ -416,7 +416,7 @@ template <int DGadvection> void CGDynamicsKernel<DGadvection>::applyBoundaries()
 }
 
 template <int DGadvection>
-DGVector<DGadvection>& CGDynamicsKernel<DGadvection>::advectField(double timestep,
+DGVector<DGadvection>& CGDynamicsKernel<DGadvection>::advectDGVField(double timestep,
         DGVector<DGadvection>& field, double lowerLimit, double upperLimit)
 {
     dgtransport->step(timestep, field);
