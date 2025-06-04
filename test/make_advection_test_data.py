@@ -3,48 +3,32 @@ import numpy as np
 import numpy.ma as ma
 import time
 import math
-from math import nan as NaN
-
-"""
-Code at the end of the file.
-"""
-
-nx = 50
-ny = 21
-nz = 1
-ncoords = 2
-
-lon0 = 0.
-dlon = 0.1
-lat0 = -1.
-dlat = 0.1
 
 ice_dim = 16
 ice_start = 2
 snow_offset = 4
 snow_hw = 4
 ice_stop = ice_start + ice_dim + 1
-cice = np.zeros((ny, nx))
-cice[ice_start:ice_stop, ice_start:ice_stop] = 1.0
-cice[0, :] = NaN
-cice[-1, :] = NaN
-cice[:, 0] = NaN
-cice[:, -1] = NaN
-cice[ice_start, :] *= 0.5
-cice[ice_stop-1, :] *= 0.5
-cice[:, ice_start] *= 0.5
-cice[:, ice_stop-1] *= 0.5
-
-# An array containing 1 where there is *any* ice, 0 otherwise
-ice_mask = np.clip(cice * 1000, 0., 1.)
 
 def get_data(name):
+    nxNH = 154
+    nyNH = 121
+    nx = 50
+    ny = 21
+    x0 = 30
+    y0 = 30
+    
+    lon0 = 0.
+    dlon = 0.25
+    lat0 = -2.5
+    dlat = 0.25
+
+
+    ncoords = 2
     if name == "nx":
         return nx
     elif name == "ny":
         return ny
-    elif name == "nz":
-        return nz
     elif name == "ncoords":
         return ncoords
     elif name == "longitude":
@@ -66,38 +50,32 @@ def get_data(name):
     elif name == "grid_azimuth":
         return np.zeros((ny, nx))
     elif name == "mask":
-        mask = np.ones((ny, nx))
-        # Solid boundary on the edges
-        mask[0, :] = 0
-        mask[-1, :] = 0
-        mask[:, 0] = 0
-        mask[:, -1] = 0
-        return mask
+        mask_data = np.ones((ny, nx))
+        mask_data[0, :] = 0
+        mask_data[-1, :] = 0
+        mask_data[:, 0] = 0
+        mask_data[:, -1] = 0
+        return mask_data
     elif name == "cice":
+        cice = np.ones((ny, nx))
+        cice[:ice_start, :] = 0.
+        cice[:, :ice_start] = 0.
+        cice[ice_start + ice_dim + 1:, :] = 0.
+        cice[:, ice_start + ice_dim + 1:] = 0.
         return cice
-    elif name == "hice":
-        return cice
-    elif name == "hsnow":
-        hsnow1d = np.zeros((nx))
-        hsnow1d[ice_start + snow_offset:ice_start + snow_offset + 2*snow_hw - 1] = [0.25, 0.5, 0.75, 1.0, 0.75, 0.5, 0.25]
-        return cice * 0#hsnow1d
+    elif name =="hice":
+        return get_data("cice")
     elif name == "sss":
         return np.ones((ny, nx)) * 35
     elif name =="sst":
         return np.ones((ny, nx)) * 35 * -0.0555
-    elif name == "tice":
-        return cice * -1.5
-    elif name == "u":
-        u0 = 0.1
-        return ice_mask * u0
-    elif name == "v":
-        return np.zeros((ny, nx))
-    
+    elif name == "tsurf":
+        return get_data("cice") * -1.5
 if __name__ == "__main__":
+
     # Grid dimensions
     nx = get_data("nx")
     ny = get_data("ny")
-    nLayers = get_data("nz")
     ncg = 1
     n_dg = 1
     n_dgstress = 3
@@ -122,7 +100,6 @@ if __name__ == "__main__":
     formatted[0] = "2010-01-01T00:00:00Z"
     datagrp = root.createGroup("data")
 
-    nLay = datagrp.createDimension("zdim", nLayers)
     yDim = datagrp.createDimension("ydim", ny)
     xDim = datagrp.createDimension("xdim", nx)
     yVertexDim = datagrp.createDimension("yvertex", ny + 1)
@@ -135,20 +112,24 @@ if __name__ == "__main__":
     
     field_dims = ("ydim", "xdim")
     coord_dims = ("yvertex", "xvertex", "ncoords")
-    zfield_dims = ("zdim", "ydim", "xdim")
 
     datagrp.createVariable("coords", "f8", coord_dims)[:] = get_data("coords")
     datagrp.createVariable("longitude", "f8", field_dims)[:] = get_data("longitude")
     datagrp.createVariable("latitude", "f8", field_dims)[:] = get_data("latitude")
     
     datagrp.createVariable("grid_azimuth", "f8", field_dims)[:] = get_data("grid_azimuth")
-    
+
     datagrp.createVariable("mask", "f8", field_dims)[:, :] = get_data("mask")
 
     datagrp.createVariable("cice", "f8", field_dims)[:, :] = get_data("cice")
     datagrp.createVariable("hice", "f8", field_dims)[:, :] = get_data("hice")
     
-    datagrp.createVariable("hsnow", "f8", field_dims)[:, :] = get_data("hsnow")
+    # Snow thickness. Zero everywhere on the ocean
+    hsnow = 0 * get_data("hice")
+    snow_start = ice_start + snow_offset
+    snow_stop = ice_stop - snow_offset
+    hsnow[snow_start:snow_stop, snow_start:snow_stop] = 0.75
+    datagrp.createVariable("hsnow", "f8", field_dims)[:, :] = hsnow
 
     # SSS
     datagrp.createVariable("sss", "f8", field_dims)[:, :] = get_data("sss")
@@ -157,11 +138,11 @@ if __name__ == "__main__":
     datagrp.createVariable("sst", "f8", field_dims)[:, :] = get_data("sst")
 
     # Ice temperature
-    datagrp.createVariable("tice", "f8", zfield_dims)[:, :, :] = get_data("tice")
+    datagrp.createVariable("tsurf", "f8", field_dims)[:, :] = get_data("tsurf")
     
     # Ice starts at rest
-    datagrp.createVariable("u", "f8", field_dims)[:, :] = get_data("u")
+    datagrp.createVariable("u", "f8", field_dims)[:, :] = 0
 
-    datagrp.createVariable("v", "f8", field_dims)[:, :] = get_data("v")
+    datagrp.createVariable("v", "f8", field_dims)[:, :] = 0
     
     root.close()
