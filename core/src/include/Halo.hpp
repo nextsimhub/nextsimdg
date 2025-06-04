@@ -151,11 +151,9 @@ private:
             if (m_ma.getType() == ModelArray::Type::VERTEX) {
                 // because vertex points lie along the domain boundaries we need offset the
                 // slices by and additional row/column
-                // m_ma[m_innerSlicesVertexAdjusted.at(edge)].copyToBuffer(send[i], offset);
                 tempBuffer(Eigen::seqN(beg, num), Eigen::all)
                     = static_cast<ModelArray::DataType>(m_ma[m_innerSlicesVertexAdjusted.at(edge)]);
             } else {
-                // m_ma[m_innerSlices.at(edge)].copyToBuffer(send[i], offset);
                 tempBuffer(Eigen::seqN(beg, num), Eigen::all)
                     = static_cast<ModelArray::DataType>(m_ma[m_innerSlices.at(edge)]);
             }
