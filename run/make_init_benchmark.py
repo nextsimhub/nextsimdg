@@ -5,7 +5,7 @@ from math import sin
 
 # Domain size [km]
 L = 512
-for res in [2, 4, 8, 16]:
+for res in [1, 2, 4, 8, 16]:
 
     nfirst = int(L / res)
     nsecond = int(L / res)
