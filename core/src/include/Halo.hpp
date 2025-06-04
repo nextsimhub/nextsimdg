@@ -1,7 +1,7 @@
 /*!
  * @file Halo.hpp
  *
- * @date 19 May 2025
+ * @date 04 Jun 2025
  * @author Tom Meltzer <tdm39@cam.ac.uk>
  */
 
@@ -17,6 +17,7 @@
 #include "Slice.hpp"
 #include "include/ModelArray.hpp"
 #include "include/ModelArraySlice.hpp"
+#include "include/ModelMPI.hpp"
 #include "include/ModelMetadata.hpp"
 #include "mpi.h"
 
@@ -46,7 +47,6 @@ public:
      */
     Halo(ModelArray& ma)
         : m_ma(ma)
-        , m_metadata(ModelMetadata::getInstance())
     {
         m_innerNx = ma.innerDimensions()[0];
         m_innerNy = ma.innerDimensions()[1];
@@ -59,7 +59,6 @@ public:
             recv[i].resize(m_perimeterLength, 0.0);
         }
         m_edgeLengths = { m_innerNx, m_innerNy, m_innerNx, m_innerNy }; // order is Bottom
-        m_comm = m_metadata.mpiComm;
 
         m_outerSlices = {
             { Edge::LEFT, VBounds({ { 0 }, { 1, m_innerNy + haloWidth } }) },
@@ -96,14 +95,12 @@ private:
     size_t m_innerNy; // local extent in y-direction
     size_t m_perimeterLength; // length of perimeter of domain
     size_t m_numComps; // number of DG components
-    ModelMetadata& m_metadata; // reference to metadata singleton
     std::array<size_t, Edge::N_EDGE> m_edgeLengths; // array containing length of each edge
     std::array<Edge, Edge::N_EDGE> edges = ModelMetadata::edges; // array of edge enums
     std::map<Edge, Slice> m_outerSlices;
     std::map<Edge, Slice> m_innerSlices;
     std::map<Edge, Slice> m_innerSlicesVertexAdjusted;
     MPI_Win m_win; // RMA memory window object (used for sharing send buffers between ranks)
-    MPI_Comm m_comm; // RMA memory window object (used for sharing send buffers between ranks)
 
     std::map<Edge, Edge> oppositeEdge = {
         { Edge::LEFT, Edge::RIGHT },
@@ -121,8 +118,9 @@ private:
     void openMemoryWindow(size_t idx)
     {
         // create a RMA memory window which all ranks will be able to access
+        auto& modelMPI = ModelMPI::getInstance();
         MPI_Win_create(&send[idx][0], m_perimeterLength * sizeof(double), sizeof(double),
-            MPI_INFO_NULL, m_comm, &m_win);
+            MPI_INFO_NULL, modelMPI.getComm(), &m_win);
         // remove fence and check that no proceding RMA calls have been made
         MPI_Win_fence(MPI_MODE_NOPRECEDE, m_win);
     }
@@ -182,17 +180,18 @@ private:
         for (size_t comp = 0; comp < m_numComps; comp++) {
             // open memory window to send buffer on other ranks
             openMemoryWindow(comp);
+            auto& metadata = ModelMetadata::getInstance();
 
             // get non-periodic neighbours and populate recv buffer (if the exist)
             for (auto edge : edges) {
-                auto numNeighbours = m_metadata.neighbourRanks[edge].size();
+                auto numNeighbours = metadata.neighbourRanks[edge].size();
                 if (numNeighbours) {
                     // get data for each neighbour that exists along a given edge
                     for (size_t i = 0; i < numNeighbours; ++i) {
-                        int fromRank = m_metadata.neighbourRanks[edge][i];
-                        size_t count = m_metadata.neighbourExtents[edge][i];
-                        size_t disp = m_metadata.neighbourHaloSend[edge][i];
-                        size_t recvOffset = m_metadata.neighbourHaloRecv[edge][i];
+                        int fromRank = metadata.neighbourRanks[edge][i];
+                        size_t count = metadata.neighbourExtents[edge][i];
+                        size_t disp = metadata.neighbourHaloSend[edge][i];
+                        size_t recvOffset = metadata.neighbourHaloRecv[edge][i];
                         if (m_ma.getType() == ModelArray::Type::VERTEX) {
                             vertexAdjustedPositions(
                                 count = count, disp = disp, recvOffset = recvOffset, edge = edge);
@@ -205,14 +204,14 @@ private:
 
             // get periodic neighbours and populate recv buffer (if they exist)
             for (auto edge : edges) {
-                auto numNeighbours = m_metadata.neighbourRanksPeriodic[edge].size();
+                auto numNeighbours = metadata.neighbourRanksPeriodic[edge].size();
                 if (numNeighbours) {
                     // get data for each neighbour that exists along a given edge
                     for (size_t i = 0; i < numNeighbours; ++i) {
-                        int fromRank = m_metadata.neighbourRanksPeriodic[edge][i];
-                        size_t count = m_metadata.neighbourExtentsPeriodic[edge][i];
-                        size_t disp = m_metadata.neighbourHaloSendPeriodic[edge][i];
-                        size_t recvOffset = m_metadata.neighbourHaloRecvPeriodic[edge][i];
+                        int fromRank = metadata.neighbourRanksPeriodic[edge][i];
+                        size_t count = metadata.neighbourExtentsPeriodic[edge][i];
+                        size_t disp = metadata.neighbourHaloSendPeriodic[edge][i];
+                        size_t recvOffset = metadata.neighbourHaloRecvPeriodic[edge][i];
                         if (m_ma.getType() == ModelArray::Type::VERTEX) {
                             vertexAdjustedPositions(
                                 count = count, disp = disp, recvOffset = recvOffset, edge = edge);

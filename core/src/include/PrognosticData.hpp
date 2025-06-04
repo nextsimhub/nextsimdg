@@ -1,7 +1,7 @@
 /*!
  * @file PrognosticData.hpp
  *
- * @date Mar 1, 2022
+ * @date 04 Jun 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -51,7 +51,7 @@ public:
      * Writes a restart file to the specified file path.
      * @param filePath the file path to write the restart file to.
      */
-    void writeRestartFile(const std::string& filePath, const ModelMetadata& metadata) const;
+    void writeRestartFile(const std::string& filePath) const;
 
 private:
     HField m_snow;

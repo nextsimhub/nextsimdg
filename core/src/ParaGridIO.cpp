@@ -1,7 +1,7 @@
 /*!
  * @file ParaGridIO.cpp
  *
- * @date 19 May 2025
+ * @date 04 Jun 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -12,6 +12,7 @@
 #include "include/Finalizer.hpp"
 #ifdef USE_MPI
 #include "include/Halo.hpp"
+#include "include/ModelMPI.hpp"
 #endif
 #include "include/MissingData.hpp"
 #include "include/gridNames.hpp"
@@ -82,17 +83,14 @@ bool ParaGridIO::doOnce()
 
 ParaGridIO::~ParaGridIO() = default;
 
-#ifdef USE_MPI
-ModelState ParaGridIO::getModelState(const std::string& filePath, ModelMetadata& metadata)
-#else
 ModelState ParaGridIO::getModelState(const std::string& filePath)
-#endif
 {
     ModelState state;
 
     try {
 #ifdef USE_MPI
-        netCDF::NcFilePar ncFile(filePath, netCDF::NcFile::read, metadata.mpiComm);
+        auto& modelMPI = ModelMPI::getInstance();
+        netCDF::NcFilePar ncFile(filePath, netCDF::NcFile::read, modelMPI.getComm());
 #else
         netCDF::NcFile ncFile(filePath, netCDF::NcFile::read);
 #endif
@@ -125,18 +123,19 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
             auto dimName = dim.getName();
             size_t localLength = 0;
             size_t start = 0;
+            auto& metadata = ModelMetadata::getInstance();
             if (dimType == ModelArray::Dimension::X) {
-                localLength = metadata.localExtentX;
-                start = metadata.localCornerX;
+                localLength = metadata.getLocalExtentX();
+                start = metadata.getLocalCornerX();
             } else if (dimType == ModelArray::Dimension::Y) {
-                localLength = metadata.localExtentY;
-                start = metadata.localCornerY;
+                localLength = metadata.getLocalExtentY();
+                start = metadata.getLocalCornerY();
             } else if (dimType == ModelArray::Dimension::XVERTEX) {
-                localLength = metadata.localExtentX + 1;
-                start = metadata.localCornerX;
+                localLength = metadata.getLocalExtentX() + 1;
+                start = metadata.getLocalCornerX();
             } else if (dimType == ModelArray::Dimension::YVERTEX) {
-                localLength = metadata.localExtentY + 1;
-                start = metadata.localCornerY;
+                localLength = metadata.getLocalExtentY() + 1;
+                start = metadata.getLocalCornerY();
             } else {
                 localLength = dim.getSize();
                 start = 0;
@@ -287,20 +286,20 @@ ModelState ParaGridIO::readForcingTimeStatic(
     return state;
 }
 
-void ParaGridIO::dumpModelState(
-    const ModelState& state, const ModelMetadata& metadata, const std::string& filePath)
+void ParaGridIO::dumpModelState(const ModelState& state, const std::string& filePath)
 {
 
 #ifdef USE_MPI
-    netCDF::NcFilePar ncFile(filePath, netCDF::NcFile::replace, metadata.mpiComm);
+    auto& modelMPI = ModelMPI::getInstance();
+    netCDF::NcFilePar ncFile(filePath, netCDF::NcFile::replace, modelMPI.getComm());
 #else
     netCDF::NcFile ncFile(filePath, netCDF::NcFile::replace);
 #endif
 
-    CommonRestartMetadata::writeStructureType(ncFile, metadata);
+    CommonRestartMetadata::writeStructureType(ncFile);
     netCDF::NcGroup metaGroup = ncFile.addGroup(IStructure::metadataNodeName());
     netCDF::NcGroup dataGroup = ncFile.addGroup(IStructure::dataNodeName());
-    CommonRestartMetadata::writeRestartMetadata(metaGroup, metadata);
+    CommonRestartMetadata::writeRestartMetadata(metaGroup);
 
     // Dump the dimensions and number of components
     std::map<ModelArray::Dimension, netCDF::NcDim> ncFromMAMap;
@@ -360,8 +359,7 @@ void ParaGridIO::dumpModelState(
     ncFile.close();
 }
 
-void ParaGridIO::writeDiagnosticTime(
-    const ModelState& state, const ModelMetadata& meta, const std::string& filePath)
+void ParaGridIO::writeDiagnosticTime(const ModelState& state, const std::string& filePath)
 {
     bool isNew = openFilesAndIndices.count(filePath) <= 0;
     size_t nt = (isNew) ? 0 : ++openFilesAndIndices.at(filePath).second;
@@ -371,9 +369,10 @@ void ParaGridIO::writeDiagnosticTime(
         // Piecewise construction is necessary to correctly construct the file handle/time index
         // pair
 #ifdef USE_MPI
+        auto& modelMPI = ModelMPI::getInstance();
         openFilesAndIndices.emplace(std::piecewise_construct, std::make_tuple(filePath),
             std::forward_as_tuple(std::piecewise_construct,
-                std::forward_as_tuple(filePath, netCDF::NcFile::replace, meta.mpiComm),
+                std::forward_as_tuple(filePath, netCDF::NcFile::replace, modelMPI.getComm()),
                 std::forward_as_tuple(nt)));
 #else
         openFilesAndIndices.emplace(std::piecewise_construct, std::make_tuple(filePath),
@@ -393,8 +392,8 @@ void ParaGridIO::writeDiagnosticTime(
 
     if (isNew) {
         // Write the common structure and time metadata
-        CommonRestartMetadata::writeStructureType(ncFile, meta);
-        CommonRestartMetadata::writeRestartMetadata(metaGroup, meta);
+        CommonRestartMetadata::writeStructureType(ncFile);
+        CommonRestartMetadata::writeRestartMetadata(metaGroup);
     }
     // Get the unlimited time dimension, creating it if necessary
     netCDF::NcDim timeDim = (isNew) ? dataGroup.addDim(timeName) : dataGroup.getDim(timeName);
@@ -477,7 +476,8 @@ void ParaGridIO::writeDiagnosticTime(
     std::vector<netCDF::NcDim> timeDimVec = { timeDim };
     netCDF::NcVar timeVar((isNew) ? dataGroup.addVar(timeName, netCDF::ncDouble, timeDimVec)
                                   : dataGroup.getVar(timeName));
-    double secondsSinceEpoch = (meta.time() - TimePoint()).seconds();
+    auto& metadata = ModelMetadata::getInstance();
+    double secondsSinceEpoch = (metadata.time() - TimePoint()).seconds();
 #ifdef USE_MPI
     netCDF::setVariableCollective(timeVar, dataGroup);
 #endif

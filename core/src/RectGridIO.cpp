@@ -1,7 +1,7 @@
 /*!
  * @file RectGridIO.cpp
  *
- * @date Feb 8, 2022
+ * @date 04 Jun 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Kacper Kornet <kk562@cam.ac.uk>
  */
@@ -12,6 +12,7 @@
 #include "include/IStructure.hpp"
 #include "include/MissingData.hpp"
 #include "include/ModelArray.hpp"
+#include "include/ModelMPI.hpp"
 #include "include/ModelState.hpp"
 #include "include/gridNames.hpp"
 
@@ -33,8 +34,8 @@
 namespace Nextsim {
 
 #ifdef USE_MPI
-void dimensionSetter(const netCDF::NcGroup& dataGroup, const std::string& fieldName,
-    ModelArray::Type type, ModelMetadata& metadata)
+void dimensionSetter(
+    const netCDF::NcGroup& dataGroup, const std::string& fieldName, ModelArray::Type type)
 {
     size_t nDims = dataGroup.getVar(fieldName).getDimCount();
     ModelArray::MultiDim dims;
@@ -45,8 +46,9 @@ void dimensionSetter(const netCDF::NcGroup& dataGroup, const std::string& fieldN
     // The dimensions in the netCDF are in the reverse order compared to ModelArray
     std::reverse(dims.begin(), dims.end());
     // Replace X, Y dimensions with local extends
-    dims[0] = metadata.localExtentX;
-    dims[1] = metadata.localExtentY;
+    auto& metadata = ModelMetadata::getInstance();
+    dims[0] = metadata.getLocalExtentX();
+    dims[1] = metadata.getLocalExtentY();
     ModelArray::setDimensions(type, dims);
 }
 #else
@@ -65,29 +67,17 @@ void dimensionSetter(
 }
 #endif
 
-#ifdef USE_MPI
-ModelState RectGridIO::getModelState(const std::string& filePath, ModelMetadata& metadata)
-#else
 ModelState RectGridIO::getModelState(const std::string& filePath)
-#endif
 {
     ModelState state;
 #ifdef USE_MPI
-    netCDF::NcFilePar ncFile(filePath, netCDF::NcFile::read, metadata.mpiComm);
+    auto& modelMPI = ModelMPI::getInstance();
+    netCDF::NcFilePar ncFile(filePath, netCDF::NcFile::read, modelMPI.getComm());
 #else
     netCDF::NcFile ncFile(filePath, netCDF::NcFile::read);
 #endif
     netCDF::NcGroup dataGroup(ncFile.getGroup(IStructure::dataNodeName()));
 
-#ifdef USE_MPI
-    // Get the sizes of the four types of field
-    // HField from hice
-    dimensionSetter(dataGroup, hiceName, ModelArray::Type::H, metadata);
-    // UField from hice
-    dimensionSetter(dataGroup, hiceName, ModelArray::Type::U, metadata);
-    // VField from hice
-    dimensionSetter(dataGroup, hiceName, ModelArray::Type::V, metadata);
-#else
     // Get the sizes of the four types of field
     // HField from hice
     dimensionSetter(dataGroup, hiceName, ModelArray::Type::H);
@@ -95,17 +85,17 @@ ModelState RectGridIO::getModelState(const std::string& filePath)
     dimensionSetter(dataGroup, hiceName, ModelArray::Type::U);
     // VField from hice
     dimensionSetter(dataGroup, hiceName, ModelArray::Type::V);
-#endif
 
 #ifdef USE_MPI
     // Set the origins and extensions for reading 2D data based
     // on MPI decomposition
     std::vector<size_t> start(2);
     std::vector<size_t> size(2);
-    start[0] = metadata.localCornerY;
-    start[1] = metadata.localCornerX;
-    size[0] = metadata.localExtentY;
-    size[1] = metadata.localExtentX;
+    auto& metadata = ModelMetadata::getInstance();
+    start[0] = metadata.getLocalCornerY();
+    start[1] = metadata.getLocalCornerX();
+    size[0] = metadata.getLocalExtentY();
+    size[1] = metadata.getLocalExtentX();
 #else
     std::vector<size_t> start = { 0, 0 };
     std::vector<size_t> size = ModelArray::dimensions(ModelArray::Type::H);
@@ -138,20 +128,21 @@ ModelState RectGridIO::getModelState(const std::string& filePath)
     return state;
 }
 
-void RectGridIO::dumpModelState(const ModelState& state, const ModelMetadata& metadata,
-    const std::string& filePath, bool isRestart) const
+void RectGridIO::dumpModelState(
+    const ModelState& state, const std::string& filePath, bool isRestart) const
 {
 #ifdef USE_MPI
-    netCDF::NcFilePar ncFile(filePath, netCDF::NcFile::replace, metadata.mpiComm);
+    auto& modelMPI = ModelMPI::getInstance();
+    netCDF::NcFilePar ncFile(filePath, netCDF::NcFile::replace, modelMPI.getComm());
 #else
     netCDF::NcFile ncFile(filePath, netCDF::NcFile::replace);
 #endif
 
-    CommonRestartMetadata::writeStructureType(ncFile, metadata);
+    CommonRestartMetadata::writeStructureType(ncFile);
     netCDF::NcGroup metaGroup = ncFile.addGroup(IStructure::metadataNodeName());
     netCDF::NcGroup dataGroup = ncFile.addGroup(IStructure::dataNodeName());
 
-    CommonRestartMetadata::writeRestartMetadata(metaGroup, metadata);
+    CommonRestartMetadata::writeRestartMetadata(metaGroup);
     typedef ModelArray::Type Type;
 
     int nx = ModelArray::dimensions(Type::H)[0];
@@ -162,8 +153,9 @@ void RectGridIO::dumpModelState(const ModelState& state, const ModelMetadata& me
     // Create the dimension data, since it has to be in the same group as the
     // data or the parent group
 #ifdef USE_MPI
-    netCDF::NcDim xDim = dataGroup.addDim(dimensionNames[0], metadata.globalExtentX);
-    netCDF::NcDim yDim = dataGroup.addDim(dimensionNames[1], metadata.globalExtentY);
+    auto& metadata = ModelMetadata::getInstance();
+    netCDF::NcDim xDim = dataGroup.addDim(dimensionNames[0], metadata.getGlobalExtentX());
+    netCDF::NcDim yDim = dataGroup.addDim(dimensionNames[1], metadata.getGlobalExtentY());
 #else
     netCDF::NcDim xDim = dataGroup.addDim(dimensionNames[0], nx);
     netCDF::NcDim yDim = dataGroup.addDim(dimensionNames[1], ny);
@@ -172,10 +164,10 @@ void RectGridIO::dumpModelState(const ModelState& state, const ModelMetadata& me
 #ifdef USE_MPI
     // Set the origins and extensions for reading 2D data based
     // on MPI decomposition
-    std::vector<size_t> start2 = { static_cast<size_t>(metadata.localCornerY),
-        static_cast<size_t>(metadata.localCornerX) };
-    std::vector<size_t> size2 = { static_cast<size_t>(metadata.localExtentY),
-        static_cast<size_t>(metadata.localExtentX) };
+    std::vector<size_t> start2 = { static_cast<size_t>(metadata.getLocalCornerY()),
+        static_cast<size_t>(metadata.getLocalCornerX()) };
+    std::vector<size_t> size2 = { static_cast<size_t>(metadata.getLocalExtentY()),
+        static_cast<size_t>(metadata.getLocalExtentX()) };
 #endif
 
     for (const auto entry : state.data) {

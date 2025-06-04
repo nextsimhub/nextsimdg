@@ -1,7 +1,7 @@
 /*!
  * @file ParaGrid_test.cpp
  *
- * @date 23 May 2025
+ * @date 04 Jun 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Tom Meltzer <tdm39@cam.ac.uk>
  */
@@ -20,6 +20,7 @@
 #include "include/ConfiguredModule.hpp"
 #include "include/Finalizer.hpp"
 #ifdef USE_MPI
+#include "ModelMPI.hpp"
 #include "include/Halo.hpp"
 #endif
 #include "include/IStructure.hpp"
@@ -197,9 +198,11 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file")
         {} };
 
 #ifdef USE_MPI
-    ModelMetadata& metadata = ModelMetadata::getInstance(partitionFilename, test_comm);
+    auto& modelMPI = ModelMPI::getInstance(test_comm);
+    // std::cout << "size = " << modelMPI.m_size << std::endl;
+    auto& metadata = ModelMetadata::getInstance(partitionFilename);
 #else
-    ModelMetadata& metadata = ModelMetadata::getInstance();
+    auto& metadata = ModelMetadata::getInstance();
 #endif
 
     metadata.setTime(TimePoint("2000-01-01T00:00:00Z"));
@@ -207,7 +210,7 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file")
     // coordinates is the correct way to add coordinates to a ModelState
     metadata.extractCoordinates(coordState);
     metadata.affixCoordinates(state);
-    grid.dumpModelState(state, metadata, filename, true);
+    grid.dumpModelState(state, filename, true);
 
     REQUIRE(std::filesystem::exists(std::filesystem::path(filename)));
 
@@ -231,11 +234,7 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file")
     ParaGridIO* readIO = new ParaGridIO(gridIn);
     gridIn.setIO(readIO);
 
-#ifdef USE_MPI
-    ModelState ms = gridIn.getModelState(filename, metadata);
-#else
     ModelState ms = gridIn.getModelState(filename);
-#endif
 
     REQUIRE(ms.data.size() == state.data.size());
 
@@ -374,7 +373,10 @@ TEST_CASE("Write a diagnostic ParaGrid file")
                               },
         {} };
 
-    ModelMetadata& metadata = ModelMetadata::getInstance();
+#ifdef USE_MPI
+    auto& modelMPI = ModelMPI::getInstance();
+#endif
+    auto& metadata = ModelMetadata::getInstance();
     metadata.setTime(TimePoint("2000-01-01T00:00:00Z"));
     // The coordinates are passed through the metadata object as affix
     // coordinates is the correct way to add coordinates to a ModelState
@@ -395,7 +397,7 @@ TEST_CASE("Write a diagnostic ParaGrid file")
             {} };
         metadata.incrementTime(Duration(3600));
 
-        grid.dumpModelState(state, metadata, diagFile, false);
+        grid.dumpModelState(state, diagFile, false);
     }
     pio->close(diagFile);
 
@@ -499,11 +501,10 @@ TEST_CASE("Check an exception is thrown for an invalid file name")
     // MD5 hash of the current output of $ date
     std::string longRandomFilename("a44f5cc1f7934a8ae8dd03a95308745d.nc");
 #ifdef USE_MPI
-    ModelMetadata& metadataIn = ModelMetadata::getInstance();
-    REQUIRE_THROWS(state = gridIn.getModelState(longRandomFilename, metadataIn));
-#else
-    REQUIRE_THROWS(state = gridIn.getModelState(longRandomFilename));
+    auto& modelMPI = ModelMPI::getInstance();
+    auto& metadataIn = ModelMetadata::getInstance();
 #endif
+    REQUIRE_THROWS(state = gridIn.getModelState(longRandomFilename));
 
     Finalizer::finalize();
 }
@@ -543,20 +544,16 @@ TEST_CASE("Check if a file with the old dimension names can be read")
     // In the full model numbers of DG components are set at compile time, so they are not reset
     REQUIRE(ModelArray::nComponents(ModelArray::Type::DG) == DG);
     REQUIRE(ModelArray::nComponents(ModelArray::Type::VERTEX) == ModelArray::nCoords);
-
-#ifdef USE_MPI
-    ModelMetadata& metadata = ModelMetadata::getInstance();
-    ModelState ms = gridIn.getModelState(inputFilename, metadata);
-#else
     ModelState ms = gridIn.getModelState(inputFilename);
-#endif
 
-    auto localNX = metadata.localExtentX;
 #ifdef USE_MPI
+    auto& modelMPI = ModelMPI::getInstance();
+    auto& metadata = ModelMetadata::getInstance();
+    auto localNX = metadata.getLocalExtentX();
     REQUIRE(ModelArray::dimensions(ModelArray::Type::H)[0] == localNX + 2 * Halo::haloWidth);
     REQUIRE(ModelArray::dimensions(ModelArray::Type::H)[1] == ny + 2 * Halo::haloWidth);
 #else
-    REQUIRE(ModelArray::dimensions(ModelArray::Type::H)[0] == localNX);
+    REQUIRE(ModelArray::dimensions(ModelArray::Type::H)[0] == nx);
     REQUIRE(ModelArray::dimensions(ModelArray::Type::H)[1] == ny);
 #endif
 
@@ -564,5 +561,4 @@ TEST_CASE("Check if a file with the old dimension names can be read")
 }
 
 TEST_SUITE_END();
-
 }

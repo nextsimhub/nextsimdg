@@ -1,7 +1,7 @@
 /*!
  * @file ModelMetadata.hpp
  *
- * @date 19 May 2025
+ * @date 04 Jun 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Tom Meltzer <tdm39@cam.ac.uk>
  */
@@ -32,30 +32,35 @@ class CommonRestartMetadata;
 class ModelMetadata {
 private:
 #ifdef USE_MPI
-    ModelMetadata(std::string partitionFile, MPI_Comm comm);
+    ModelMetadata(std::string partitionFile);
 #else
     ModelMetadata();
 #endif
     // Prevent copying
     ModelMetadata(const ModelMetadata&) = delete;
-    // ModelMetadata& operator=(const ModelMetadata&) = delete;
-
     //! Performs some one-time initialization for the class. Returns true.
     static bool doOnce();
 
 public:
 #ifdef USE_MPI
-    inline static ModelMetadata& getInstance(
-        std::string partitionFile = "partition.nc", MPI_Comm comm = nullptr)
+    inline static ModelMetadata& getInstance(std::string partitionFile = "")
     {
-        static ModelMetadata instance = ModelMetadata(partitionFile, comm);
-        return instance;
+        static ModelMetadata instance = ModelMetadata(partitionFile);
+        if (instance.isInitialized) {
+            return instance;
+        } else {
+            throw std::runtime_error("ModelMetadata :: Object needs to be initialized before use.");
+        }
     }
 #else
     inline static ModelMetadata& getInstance()
     {
         static ModelMetadata instance = ModelMetadata();
-        return instance;
+        if (instance.isInitialized) {
+            return instance;
+        } else {
+            throw std::runtime_error("ModelMetadata :: Object needs to be initialized before use.");
+        }
     }
 #endif
 
@@ -68,12 +73,14 @@ public:
      * @param time TimePoint instance encoding the current time.
      */
     void setTime(const TimePoint& time);
+
     /*!
      * @brief Increments the model time metadata value.
      *
      * @param step Duration of the time increment to add.
      */
     void incrementTime(const Duration& step);
+
     //! Returns the current model time.
     inline const TimePoint& time() const { return m_time; }
 
@@ -105,7 +112,6 @@ public:
     ModelState& affixCoordinates(ModelState& state) const;
 
 #ifdef USE_MPI
-    void setMpiMetadata(MPI_Comm comm);
     /*!
      * @brief Extracts and sets MPI partition metadata from partition file
      *
@@ -113,17 +119,41 @@ public:
      */
     void getPartitionMetadata(std::string partitionFile);
 
+    /*!
+     * @brief Gets the local X coordinate of the partition's lower-left corner.
+     * @return The X index of the local partition's corner.
+     */
+    int getLocalCornerX() const;
+    /*!
+     * @brief Gets the local Y coordinate of the partition's lower-left corner.
+     * @return The Y index of the local partition's corner.
+     */
+    int getLocalCornerY() const;
+    /*!
+     * @brief Gets the extent of the partition in the X direction.
+     * @return The number of grid points in X for the local partition.
+     */
+    int getLocalExtentX() const;
+    /*!
+     * @brief Gets the extent of the partition in the Y direction.
+     * @return The number of grid points in Y for the local partition.
+     */
+    int getLocalExtentY() const;
+    /*!
+     * @brief Gets the global extent of the grid in the X direction.
+     * @return The total number of grid points in X for the global domain.
+     */
+    int getGlobalExtentX() const;
+    /*!
+     * @brief Gets the global extent of the grid in the Y direction.
+     * @return The total number of grid points in Y for the global domain.
+     */
+    int getGlobalExtentY() const;
+
     enum Edge { BOTTOM, RIGHT, TOP, LEFT, N_EDGE };
     // An array to allow the edges to be accessed in the correct order.
     static constexpr std::array<Edge, N_EDGE> edges = { BOTTOM, RIGHT, TOP, LEFT };
     std::array<std::string, N_EDGE> edgeNames = { "bottom", "right", "top", "left" };
-
-    MPI_Comm mpiComm;
-    int mpiSize = 0;
-    int mpiMyRank = -1;
-    int localCornerX, localCornerY;
-    int localExtentX, localExtentY;
-    int globalExtentX, globalExtentY;
     // mpi rank ID and extent for each edge direction
     std::array<std::vector<int>, N_EDGE> neighbourRanks;
     std::array<std::vector<int>, N_EDGE> neighbourExtents;
@@ -143,6 +173,10 @@ private:
      */
     void readNeighbourData(netCDF::NcFile& ncFile);
 
+#ifdef USE_MPI
+    void setMpiMetadata(MPI_Comm comm);
+#endif
+
     TimePoint m_time;
     ConfigMap m_config;
 
@@ -157,7 +191,12 @@ private:
     bool isCartesian = false;
     // Are the more complex coordinates stored?
     bool hasParameters = false;
+    // has metadata been initialized
+    bool isInitialized = false;
 #ifdef USE_MPI
+    int localCornerX, localCornerY;
+    int localExtentX, localExtentY;
+    int globalExtentX, globalExtentY;
     const std::string bboxName = "bounding_boxes";
     const std::string neighbourName = "connectivity";
 #endif

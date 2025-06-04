@@ -1,7 +1,7 @@
 /*!
  * @file    XiosWrite_test.cpp
  * @author  Joe Wallwork <jw2423@cam.ac.uk>
- * @date    07 May 2025
+ * @date    04 Jun 2025
  * @brief   Tests for XIOS write functionality
  * @details
  * This test is designed to test the file writing functionality of the C++
@@ -13,12 +13,16 @@
 
 #include "StructureModule/include/ParametricGrid.hpp"
 #include "include/Finalizer.hpp"
+#include "include/ModelMPI.hpp"
 #include "include/ModelMetadata.hpp"
 #include "include/NextsimModule.hpp"
 #include "include/ParaGridIO.hpp"
 #include "include/Xios.hpp"
 
 #include <filesystem>
+
+const std::string testFilesDir = TEST_FILES_DIR;
+const std::string partitionFilename = testFilesDir + "/partition_metadata_2.nc";
 
 namespace Nextsim {
 
@@ -109,7 +113,8 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     REQUIRE_FALSE(std::filesystem::exists("xios_test_output*.nc"));
 
     // Create ModelMetadata instance
-    ModelMetadata metadata;
+    auto& modelMPI = ModelMPI::getInstance(test_comm);
+    auto& metadata = ModelMetadata::getInstance(partitionFilename);
     metadata.setTime(xiosHandler.getCalendarStart());
 
     // Simulate 4 iterations (timesteps)

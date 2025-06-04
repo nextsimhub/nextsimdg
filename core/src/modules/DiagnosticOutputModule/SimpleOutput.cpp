@@ -1,7 +1,7 @@
 /*!
  * @file SimpleOutput.cpp
  *
- * @date 24 Sep 2024
+ * @date 04 Jun 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -15,8 +15,9 @@
 
 namespace Nextsim {
 
-void SimpleOutput::outputState(const ModelState& diagState, const ModelMetadata& meta)
+void SimpleOutput::outputState(const ModelState& diagState)
 {
+    auto& meta = ModelMetadata::getInstance();
     std::stringstream startStream;
     startStream << meta.time();
     std::string timeFileName = m_filePrefix + "." + startStream.str() + ".nc";
@@ -33,6 +34,6 @@ void SimpleOutput::outputState(const ModelState& diagState, const ModelMetadata&
         if (entry.second)
             state.data.at(entry.first) = *entry.second;
     }
-    StructureFactory::fileFromState(state, meta, timeFileName);
+    StructureFactory::fileFromState(state, timeFileName);
 }
 } /* namespace Nextsim */

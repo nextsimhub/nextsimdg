@@ -1,11 +1,12 @@
 /*!
  * @file CommonRestartMetadata.cpp
  *
- * @date Jun 30, 2022
+ * @date 04 Jun 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
 #include "include/CommonRestartMetadata.hpp"
+#include "include/ModelMetadata.hpp"
 
 #include <cstdint>
 #include <cstring>
@@ -15,18 +16,18 @@
 
 namespace Nextsim {
 
-netCDF::NcGroup& CommonRestartMetadata::writeStructureType(
-    netCDF::NcFile& rootGroup, const ModelMetadata& metadata)
+netCDF::NcGroup& CommonRestartMetadata::writeStructureType(netCDF::NcFile& rootGroup)
 {
+    auto& metadata = ModelMetadata::getInstance();
     netCDF::NcGroup structGroup = rootGroup.addGroup(IStructure::structureNodeName());
     structGroup.putAtt(IStructure::typeNodeName(), metadata.structureName());
     return rootGroup;
 }
 
-netCDF::NcGroup& CommonRestartMetadata::writeRestartMetadata(
-    netCDF::NcGroup& metaGroup, const ModelMetadata& metadata)
+netCDF::NcGroup& CommonRestartMetadata::writeRestartMetadata(netCDF::NcGroup& metaGroup)
 {
     // Structure type
+    auto& metadata = ModelMetadata::getInstance();
     metaGroup.putAtt(IStructure::typeNodeName(), metadata.structureName());
 
     // Current time

@@ -1,17 +1,17 @@
 /*!
  * @file ModelMetadata_test.cpp
  *
- * @date 19 May 2025
+ * @date 04 Jun 2025
  * @author Tom Meltzer <tdm39@cam.ac.uk>
  */
 
 #include <doctest/extensions/doctest_mpi.h>
 #include <iostream>
 
+#include "ModelMPI.hpp"
 #include "ModelMetadata.hpp"
 
 const std::string testFilesDir = TEST_FILES_DIR;
-const std::string partitionFilenameCB = testFilesDir + "/partition_metadata_3_cb.nc";
 const std::string partitionFilenamePB = testFilesDir + "/partition_metadata_3_pb.nc";
 
 namespace Nextsim {
@@ -24,8 +24,9 @@ constexpr ModelMetadata::Edge LEFT = ModelMetadata::Edge::LEFT;
 typedef std::vector<int> vec;
 
 // these tests are the same for closed boundary conditions (BC) and peridic BC
-static void testNonPeriodicBC(ModelMetadata& meta, int test_rank)
+static void testNonPeriodicBC(int test_rank)
 {
+    auto& meta = ModelMetadata::getInstance();
     if (test_rank == 0) {
         REQUIRE(meta.neighbourRanks[LEFT].size() == 0);
         REQUIRE(meta.neighbourRanks[RIGHT] == vec { 2 });
@@ -60,28 +61,13 @@ static void testNonPeriodicBC(ModelMetadata& meta, int test_rank)
 }
 
 TEST_SUITE_BEGIN("ModelMetadata");
-MPI_TEST_CASE("Test getPartitionMetadata closed boundary", 3)
-{
-    ModelMetadata& meta = ModelMetadata::getInstance(partitionFilenameCB, test_comm);
-    REQUIRE(meta.mpiComm == test_comm);
-    // this metadata is specific to the non-periodic boundary conditions
-    testNonPeriodicBC(meta, test_rank);
-
-    // This metadata is specific to the periodic boundary conditions.
-    // They are all zero because the input metadata file `partitionFilenameCB` does not use periodic
-    // boundary conditions.
-    REQUIRE(meta.neighbourRanksPeriodic[LEFT].size() == 0);
-    REQUIRE(meta.neighbourRanksPeriodic[RIGHT].size() == 0);
-    REQUIRE(meta.neighbourRanksPeriodic[BOTTOM].size() == 0);
-    REQUIRE(meta.neighbourRanksPeriodic[TOP].size() == 0);
-}
-
 MPI_TEST_CASE("Test getPartitionMetadata periodic boundary", 3)
 {
-    ModelMetadata& meta = ModelMetadata::getInstance(partitionFilenamePB, test_comm);
-    REQUIRE(meta.mpiComm == test_comm);
+    auto& modelMPI = ModelMPI::getInstance(test_comm);
+    auto& meta = ModelMetadata::getInstance(partitionFilenamePB);
+    REQUIRE(modelMPI.getComm() == test_comm);
     // this metadata should be identical to the Closed Boundary version so we check it again
-    testNonPeriodicBC(meta, test_rank);
+    testNonPeriodicBC(test_rank);
 
     // this metadata is specific to the periodic boundary conditions
     if (test_rank == 0) {

@@ -1,7 +1,7 @@
 /*!
  * @file ParametricGrid.hpp
  *
- * @date Oct 24, 2022
+ * @date 04 Jun 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Kacper Kornet <kk562@cam.ac.uk>
  */
@@ -35,26 +35,19 @@ public:
     }
 
     // Read/write override functions
-#ifdef USE_MPI
-    ModelState getModelState(const std::string& filePath, ModelMetadata& metadata) override
-    {
-        return pio ? pio->getModelState(filePath, metadata) : ModelState();
-    }
-#else
     ModelState getModelState(const std::string& filePath) override
     {
         return pio ? pio->getModelState(filePath) : ModelState();
     }
-#endif
 
-    void dumpModelState(const ModelState& state, const ModelMetadata& metadata,
-        const std::string& filePath, bool isRestart = false) const override
+    void dumpModelState(
+        const ModelState& state, const std::string& filePath, bool isRestart = false) const override
     {
         if (pio) {
             if (isRestart) {
-                pio->dumpModelState(state, metadata, filePath);
+                pio->dumpModelState(state, filePath);
             } else {
-                pio->writeDiagnosticTime(state, metadata, filePath);
+                pio->writeDiagnosticTime(state, filePath);
             }
         }
     }
@@ -68,20 +61,13 @@ public:
         }
         virtual ~IParaGridIO() = default;
 
-#ifdef USE_MPI
-        virtual ModelState getModelState(const std::string& filePath, ModelMetadata& metadata) = 0;
-#else
         virtual ModelState getModelState(const std::string& filePath) = 0;
-#endif
-        virtual void dumpModelState(
-            const ModelState& state, const ModelMetadata& metadata, const std::string& filePath)
-            = 0;
+
+        virtual void dumpModelState(const ModelState& state, const std::string& filePath) = 0;
         virtual ModelState readForcingTime(const std::set<std::string>& forcings,
             const TimePoint& time, const std::string& filePath)
             = 0;
-        virtual void writeDiagnosticTime(
-            const ModelState& state, const ModelMetadata& meta, const std::string& filePath)
-            = 0;
+        virtual void writeDiagnosticTime(const ModelState& state, const std::string& filePath) = 0;
 
     protected:
         IParaGridIO() = delete;

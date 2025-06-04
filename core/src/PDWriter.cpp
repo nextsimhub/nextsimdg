@@ -1,7 +1,7 @@
 /*!
  * @file PDWriter.cpp
  *
- * @date 19 May 2025
+ * @date 04 Jun 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -13,17 +13,16 @@
 #include "include/StructureFactory.hpp"
 
 namespace Nextsim {
-void PrognosticData::writeRestartFile(
-    const std::string& filePath, const ModelMetadata& metadata) const
+void PrognosticData::writeRestartFile(const std::string& filePath) const
 {
     Logged::notice(std::string("  Writing state-based restart file: ") + filePath + '\n');
 
     ModelState state = getStatePrognostic();
     state.merge(ModelConfig::getConfig());
 
-    ModelMetadata& meta = ModelMetadata::getInstance();
+    auto& meta = ModelMetadata::getInstance();
     meta.affixCoordinates(state);
 
-    StructureFactory::fileFromState(state, meta, filePath, true);
+    StructureFactory::fileFromState(state, filePath, true);
 }
 }

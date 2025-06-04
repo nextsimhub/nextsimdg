@@ -1,7 +1,7 @@
 /*!
  * @file ModelMetadata.cpp
  *
- * @date 19 May 2025
+ * @date 04 Jun 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Tom Meltzer <tdm39@cam.ac.uk>
  */
@@ -10,6 +10,7 @@
 
 #include "include/Finalizer.hpp"
 #include "include/IStructure.hpp"
+#include "include/ModelMPI.hpp"
 #include "include/NextsimModule.hpp"
 #include "include/gridNames.hpp"
 #ifdef USE_XIOS
@@ -35,24 +36,20 @@ const std::string& ModelMetadata::structureName() const
 }
 
 #ifdef USE_MPI
-ModelMetadata::ModelMetadata(std::string partitionFile, MPI_Comm comm)
+ModelMetadata::ModelMetadata(std::string partitionFile)
 {
-    static bool doneOnce = doOnce();
-    setMpiMetadata(comm);
     getPartitionMetadata(partitionFile);
-}
-
-void ModelMetadata::setMpiMetadata(MPI_Comm comm)
-{
-    mpiComm = comm;
-    MPI_Comm_size(mpiComm, &mpiSize);
-    MPI_Comm_rank(mpiComm, &mpiMyRank);
+    static bool doneOnce = doOnce();
+    isInitialized = true;
 }
 
 void ModelMetadata::readNeighbourData(netCDF::NcFile& ncFile)
 {
     netCDF::NcGroup neighbourGroup(ncFile.getGroup(neighbourName));
     std::string varName {};
+    auto& modelMPI = ModelMPI::getInstance();
+    auto mpiSize = modelMPI.getSize();
+    auto mpiMyRank = modelMPI.getRank();
     for (auto edge : edges) {
         size_t nStart = 0; // start point in metadata arrays
         size_t count = 0; // number of elements to read from metadata arrays
@@ -65,7 +62,7 @@ void ModelMetadata::readNeighbourData(netCDF::NcFile& ncFile)
             { 0 }, { static_cast<size_t>(mpiSize) }, &numNeighbours[0]);
 
         // compute start index for each process
-        MPI_Exscan(&numNeighbours[mpiMyRank], &nStart, 1, MPI_INT, MPI_SUM, mpiComm);
+        MPI_Exscan(&numNeighbours[mpiMyRank], &nStart, 1, MPI_INT, MPI_SUM, modelMPI.getComm());
         // how many elements to read for each process
         count = numNeighbours[mpiMyRank];
 
@@ -98,7 +95,7 @@ void ModelMetadata::readNeighbourData(netCDF::NcFile& ncFile)
             { 0 }, { static_cast<size_t>(mpiSize) }, &numNeighbours[0]);
 
         // compute start index for each process
-        MPI_Exscan(&numNeighbours[mpiMyRank], &nStart, 1, MPI_INT, MPI_SUM, mpiComm);
+        MPI_Exscan(&numNeighbours[mpiMyRank], &nStart, 1, MPI_INT, MPI_SUM, modelMPI.getComm());
         // how many elements to read for each process
         count = numNeighbours[mpiMyRank];
 
@@ -128,12 +125,15 @@ void ModelMetadata::readNeighbourData(netCDF::NcFile& ncFile)
     }
 }
 
+// rename
 void ModelMetadata::getPartitionMetadata(std::string partitionFile)
 {
     // TODO: Move the reading of the partition file to its own class
     netCDF::NcFile ncFile(partitionFile, netCDF::NcFile::read);
     int sizes = ncFile.getDim("L").getSize();
     int nBoxes = ncFile.getDim("P").getSize();
+    auto& modelMPI = ModelMPI::getInstance();
+    auto mpiSize = modelMPI.getSize();
     if (nBoxes != mpiSize) {
         std::string errorMsg = "Number of MPI ranks " + std::to_string(mpiSize) + " <> "
             + std::to_string(nBoxes) + "\n";
@@ -143,7 +143,7 @@ void ModelMetadata::getPartitionMetadata(std::string partitionFile)
     globalExtentY = ncFile.getDim("NY").getSize();
     netCDF::NcGroup bboxGroup(ncFile.getGroup(bboxName));
 
-    std::vector<size_t> rank(1, mpiMyRank);
+    std::vector<size_t> rank(1, modelMPI.getRank());
     bboxGroup.getVar("domain_x").getVar(rank, &localCornerX);
     bboxGroup.getVar("domain_y").getVar(rank, &localCornerY);
     bboxGroup.getVar("domain_extent_x").getVar(rank, &localExtentX);
@@ -153,9 +153,20 @@ void ModelMetadata::getPartitionMetadata(std::string partitionFile)
 
     ncFile.close();
 }
+
+int ModelMetadata::getLocalCornerX() const { return localCornerX; }
+int ModelMetadata::getLocalCornerY() const { return localCornerY; }
+int ModelMetadata::getLocalExtentX() const { return localExtentX; }
+int ModelMetadata::getLocalExtentY() const { return localExtentY; }
+int ModelMetadata::getGlobalExtentX() const { return globalExtentX; }
+int ModelMetadata::getGlobalExtentY() const { return globalExtentY; }
 #else
 
-ModelMetadata::ModelMetadata() { static bool doneOnce = doOnce(); }
+ModelMetadata::ModelMetadata()
+{
+    isInitialized = true;
+    static bool doneOnce = doOnce();
+}
 
 #endif
 

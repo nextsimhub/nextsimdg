@@ -1,6 +1,6 @@
 /*!
  * @file Model.hpp
- * @date 19 May 2025
+ * @date 04 Jun 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Kacper Kornet <kk562@cam.ac.uk>
  */
@@ -25,12 +25,8 @@ namespace Nextsim {
 //! A class that encapsulates the whole of the model
 class Model : public Configured<Model> {
 public:
-#ifdef USE_MPI
-    Model(MPI_Comm comm);
-#else
     Model(); // TODO add arguments to pass the desired
              // environment and configuration to the model
-#endif
     ~Model(); // Finalize the model. Collect data and so on.
 
     void configure() override;
@@ -64,9 +60,6 @@ public:
     //! Sets the filename of the restart file that would currently be written out.
     void setFinalFilename(const std::string& finalFile);
 
-    //! Gets the model metadata instance
-    ModelMetadata& metadata();
-
     // Configuration option that holds the restart file name
     const static std::string restartOptionName;
 
@@ -74,7 +67,6 @@ private:
     Iterator iterator;
     DevStep modelStep; // Change the model step calculation here
     PrognosticData pData;
-    ModelMetadata& m_etadata = ModelMetadata::getInstance();
 
     std::string initialFileName;
     std::string finalFileName;

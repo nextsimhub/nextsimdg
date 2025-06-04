@@ -1,6 +1,6 @@
 /*!
  * @file Model.cpp
- * @date 12 Aug 2021
+ * @date 04 Jun 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Kacper Kornet <kk562@cam.ac.uk>
  */
@@ -42,16 +42,9 @@ static const std::map<int, std::string> keyMap = {
     { Model::RESTARTOUTFILE_KEY, "model.restart_file" },
 };
 
-#ifdef USE_MPI
-Model::Model(MPI_Comm comm)
-#else
 Model::Model()
-#endif
     : iterator(modelStep)
 {
-#ifdef USE_MPI
-    m_etadata.setMpiMetadata(comm);
-#endif
     finalFileName = std::string("restart") + TimePoint::ymdhmsFormat + ".nc";
 }
 
@@ -71,11 +64,6 @@ void Model::configure()
         = Configured::getConfiguration(keyMap.at(RUNLENGTH_KEY), std::string());
     ModelConfig::stepStr = Configured::getConfiguration(keyMap.at(TIMESTEP_KEY), std::string());
 
-    // Set the time correspond to the current (initial) model state
-    TimePoint timeNow = iterator.parseAndSet(ModelConfig::startTimeStr, ModelConfig::stopTimeStr,
-        ModelConfig::durationStr, ModelConfig::stepStr);
-    m_etadata.setTime(timeNow);
-
     // Configure the missing data value
     MissingData::setValue(
         Configured::getConfiguration(keyMap.at(MISSINGVALUE_KEY), MissingData::defaultValue));
@@ -92,14 +80,17 @@ void Model::configure()
 #ifdef USE_MPI
     std::string partitionFile
         = Configured::getConfiguration(keyMap.at(PARTITIONFILE_KEY), std::string("partition.nc"));
-    m_etadata.getPartitionMetadata(partitionFile);
+    auto& metadata = ModelMetadata::getInstance(partitionFile);
+#else
+    auto& metadata = ModelMetadata::getInstance();
 #endif
 
-#ifdef USE_MPI
-    ModelState initialState(StructureFactory::stateFromFile(initialFileName, m_etadata));
-#else
+    // Set the time correspond to the current (initial) model state
+    TimePoint timeNow = iterator.parseAndSet(ModelConfig::startTimeStr, ModelConfig::stopTimeStr,
+        ModelConfig::durationStr, ModelConfig::stepStr);
+    metadata.setTime(timeNow);
+
     ModelState initialState(StructureFactory::stateFromFile(initialFileName));
-#endif
 
     // The period with which to write restart files.
     std::string restartPeriodStr
@@ -107,10 +98,9 @@ void Model::configure()
     restartPeriod = Duration(restartPeriodStr);
 
     // Get the coordinates from the ModelState for persistence
-    m_etadata.extractCoordinates(initialState);
+    metadata.extractCoordinates(initialState);
 
     modelStep.setData(pData);
-    modelStep.setMetadata(m_etadata);
     modelStep.setRestartDetails(restartPeriod, finalFileName);
     pData.setData(initialState.data);
 }
@@ -177,9 +167,9 @@ void Model::run()
 //! Write a restart file for the model.
 void Model::writeRestartFile()
 {
-    std::string formattedFileName = m_etadata.time().format(finalFileName);
-    pData.writeRestartFile(formattedFileName, m_etadata);
+    auto& metadata = ModelMetadata::getInstance();
+    std::string formattedFileName = metadata.time().format(finalFileName);
+    pData.writeRestartFile(formattedFileName);
 }
 
-ModelMetadata& Model::metadata() { return m_etadata; }
 } /* namespace Nextsim */

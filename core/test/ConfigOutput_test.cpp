@@ -1,7 +1,7 @@
 /*!
  * @file ConfigOutput_test.cpp
  *
- * @date 19 May 2025
+ * @date 04 Jun 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -21,6 +21,7 @@
 #include "include/ModelArray.hpp"
 #include "include/ModelArrayRef.hpp"
 #include "include/ModelComponent.hpp"
+#include "include/ModelMPI.hpp"
 #include "include/ModelMetadata.hpp"
 #include "include/ModelState.hpp"
 #include "include/NextsimModule.hpp"
@@ -98,7 +99,12 @@ TEST_CASE("Test periodic output")
     ModelComponent::getStore().registerArray(Protected::H_SNOW, &hsnow);
     ModelComponent::getStore().registerArray(Protected::T_SURF, &tsurf);
 
-    ModelMetadata& meta = ModelMetadata::getInstance();
+#ifdef USE_MPI
+    auto& modelMPI = ModelMPI::getInstance(test_comm);
+    auto& meta = ModelMetadata::getInstance(partition_filename);
+#else
+    auto& meta = ModelMetadata::getInstance();
+#endif
     // Set up the coordinates, but use arrays filled with zeros
     HField latlonData(ModelArray::Type::H);
     latlonData = 0.;
@@ -113,10 +119,6 @@ TEST_CASE("Test periodic output")
         {} };
     meta.extractCoordinates(modelCoordinates);
     meta.setTime(TimePoint("2020-01-01T00:00:00Z"));
-
-#ifdef USE_MPI
-    meta.setMpiMetadata(test_comm);
-#endif
 
     IDiagnosticOutput& ido = Module::getImplementation<IDiagnosticOutput>();
     tryConfigure(ido);
@@ -154,7 +156,7 @@ TEST_CASE("Test periodic output")
             hsnow += hourIncr;
             ModelState state = { { { "top_melt", topMelt } }, {} };
 
-            ido.outputState(state, meta);
+            ido.outputState(state);
             meta.incrementTime(Duration(3600.));
         }
     }

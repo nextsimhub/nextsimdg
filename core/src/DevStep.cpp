@@ -1,7 +1,7 @@
 /*!
  * @file DevStep.cpp
  *
- * @date 2 Jul 2024
+ * @date 04 Jun 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -15,7 +15,6 @@ namespace Nextsim {
 
 DevStep::DevStep()
     : pData(nullptr)
-    , mData(nullptr)
     , m_restartPeriod(0)
 {
 }
@@ -41,14 +40,15 @@ void DevStep::iterate(const TimestepTime& tst)
     pData->update(tst);
     // The state of the model has now advanced by one timestep, so update the
     // model metadata timestamp.
-    mData->incrementTime(tst.step);
-    if ((m_restartPeriod.seconds() > 0) && (mData->time() >= lastOutput + m_restartPeriod)) {
-        std::string currentFileName = mData->time().format(m_restartFileName);
-        pData->writeRestartFile(currentFileName, *mData);
-        lastOutput = mData->time();
+    auto& mData = ModelMetadata::getInstance();
+    mData.incrementTime(tst.step);
+    if ((m_restartPeriod.seconds() > 0) && (mData.time() >= lastOutput + m_restartPeriod)) {
+        std::string currentFileName = mData.time().format(m_restartFileName);
+        pData->writeRestartFile(currentFileName);
+        lastOutput = mData.time();
     }
     // XIOS wants all the fields, every timestep, so I guess that's what everyone gets
-    Module::getImplementation<IDiagnosticOutput>().outputState(pData->getStateDiagnostic(), *mData);
+    Module::getImplementation<IDiagnosticOutput>().outputState(pData->getStateDiagnostic());
 }
 
 void DevStep::setRestartDetails(const Duration& restartPeriod, const std::string& fileName)
