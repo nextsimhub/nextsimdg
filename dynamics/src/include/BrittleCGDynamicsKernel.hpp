@@ -37,6 +37,7 @@ protected:
     using DynamicsKernel<DGadvection, DGstressComp>::applyBoundaries;
     using DynamicsKernel<DGadvection, DGstressComp>::advectionAndLimits;
     using DynamicsKernel<DGadvection, DGstressComp>::dgtransport;
+    using DynamicsKernel<DGadvection, DGstressComp>::advectDGVField;
 
     using CGDynamicsKernel<DGadvection>::u;
     using CGDynamicsKernel<DGadvection>::v;
@@ -106,7 +107,7 @@ public:
     {
         // Let DynamicsKernel handle the advection of the ice.
         DynamicsKernel<DGadvection, DGstressComp>::advectDynamicsFields(timestep);
-        advectField(timestep, damage, 1e-12, 1.0);
+        advectDGVField(timestep, damage, 1e-12, 1.0);
 
         //! Perform transport step for stress
         stresstransport->prepareAdvection(avgU, avgV);

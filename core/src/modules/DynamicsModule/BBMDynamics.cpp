@@ -163,6 +163,12 @@ void BBMDynamics::update(const TimestepTime& tst)
     tauy = kernel.getDG0Data(vIOStressName);
 }
 
+void BBMDynamics::advectField(double timestep, ModelArray& field, double lowerLimit, double upperLimit)
+{
+    kernel.advectField(timestep, field, lowerLimit, upperLimit);
+}
+
+
 BBMDynamics::HelpMap& BBMDynamics::getHelpText(HelpMap& map, bool getAll)
 {
     map["BBMDynamics"] = {

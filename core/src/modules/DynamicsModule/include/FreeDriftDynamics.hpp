@@ -81,8 +81,7 @@ public:
                 -std::numeric_limits<double>::infinity(), double upperLimit =
                 std::numeric_limits<double>::infinity()) override
     {
-        DGVectorHolder<DGCOMP> holder(field);
-        kernel.advectField(timestep, holder, lowerLimit, upperLimit);
+        kernel.advectField(timestep, field, lowerLimit, upperLimit);
     }
 
     void prepareAdvection() override

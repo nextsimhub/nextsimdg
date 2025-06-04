@@ -40,6 +40,7 @@ template <int DGadvection> class FreeDriftDynamicsKernel : public CGDynamicsKern
     using CGDynamicsKernel<DGadvection>::sinOceanAngle;
     using CGDynamicsKernel<DGadvection>::baseParams;
 public:
+    using DynamicsKernel<DGadvection, DGstressComp>::advectDGVField;
     using CGDynamicsKernel<DGadvection>::advectField;
 
     FreeDriftDynamicsKernel(const DynamicsParameters& paramsIn)
@@ -61,8 +62,8 @@ public:
     void update(const TimestepTime& tst) override
     {
         // Advect the ice here to match advection in the rest of the model.
-        advectField(tst.step.seconds(), hice, 0.0);
-        advectField(tst.step.seconds(), cice, 0.0, 1.0);
+        advectDGVField(tst.step.seconds(), hice, 0.0);
+        advectDGVField(tst.step.seconds(), cice, 0.0, 1.0);
 
         updateMomentum(tst);
         applyBoundaries();
