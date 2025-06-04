@@ -109,9 +109,6 @@ void PrognosticData::setData(const ModelState::DataMap& ms)
     pOcnBdy->setData(ms);
     pDynamics->setData(ms);
     iceGrowth.setData(ms);
-
-    // Set advected fields
-//    pDynamics->addAdvectedField(hsnow);
 }
 
 void PrognosticData::update(const TimestepTime& tst)
