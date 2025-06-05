@@ -1,17 +1,19 @@
 /*!
  * @file TOPAZOcean.cpp
  *
- * @date 7 Sep 2023
+ * @date 02 May 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
 #include "include/TOPAZOcean.hpp"
 
-#include "include/IIceOceanHeatFlux.hpp"
+#include "include/Finalizer.hpp"
 #include "include/IFreezingPoint.hpp"
-#include "include/Module.hpp"
+#include "include/IIceOceanHeatFlux.hpp"
+#include "include/NextsimModule.hpp"
 #include "include/ParaGridIO.hpp"
 #include "include/constants.hpp"
+#include "include/gridNames.hpp"
 
 namespace Nextsim {
 
@@ -20,14 +22,14 @@ std::string TOPAZOcean::filePath;
 static const std::string pfx = "TOPAZOcean";
 static const std::string fileKey = pfx + ".file";
 
-template <>
-const std::map<int, std::string> Configured<TOPAZOcean>::keyMap = {
+static const std::map<int, std::string> keyMap = {
     { TOPAZOcean::FILEPATH_KEY, fileKey },
 };
 
 TOPAZOcean::TOPAZOcean()
     : sstExt(ModelArray::Type::H)
     , sssExt(ModelArray::Type::H)
+    , slabOcean(m_couplingArrays)
 {
 }
 
@@ -43,43 +45,51 @@ ConfigurationHelp::HelpMap& TOPAZOcean::getHelpRecursive(HelpMap& map, bool getA
 
 void TOPAZOcean::configure()
 {
+    Finalizer::registerUnique(Module::finalize<IIceOceanHeatFlux>);
+    Finalizer::registerUnique(Module::finalize<IFreezingPoint>);
+
     filePath = Configured::getConfiguration(keyMap.at(FILEPATH_KEY), std::string());
 
     slabOcean.configure();
 
     getStore().registerArray(Protected::EXT_SST, &sstExt, RO);
     getStore().registerArray(Protected::EXT_SSS, &sssExt, RO);
+}
 
+ConfigMap TOPAZOcean::getConfiguration() const
+{
+    return { { keyMap.at(FILEPATH_KEY), filePath } };
 }
 
 void TOPAZOcean::updateBefore(const TimestepTime& tst)
 {
-    // TODO: Get more authoritative names for the forcings
-    std::set<std::string> forcings = { "sst", "sss", "mld", "u", "v" };
+    std::set<std::string> forcings = { sstName, sssName, mldName, uName, vName, sshName };
 
     ModelState state = ParaGridIO::readForcingTimeStatic(forcings, tst.start, filePath);
-    sstExt = state.data.at("sst");
-    sssExt = state.data.at("sss");
-    mld = state.data.at("mld");
-    u = state.data.at("u");
-    v = state.data.at("v");
+    sstExt = state.data.at(sstName);
+    sssExt = state.data.at(sssName);
+    mld = state.data.at(mldName);
+    u = state.data.at(uName);
+    v = state.data.at(vName);
+    if (state.data.count(sshName)) {
+        ssh = state.data.at(sshName);
+    } else {
+        ssh = 0.;
+    }
 
-    cpml = Water::rho * Water::cp * mld;
-    overElements(std::bind(&TOPAZOcean::updateTf, this, std::placeholders::_1,
-                     std::placeholders::_2),
-        TimestepTime());
+    cpml = Water::rhoOcean * Water::cp * mld;
+    overElements([this](size_t i, const TimestepTime& tsTime) { this->updateTf(i, tsTime); }, tst);
 
     Module::getImplementation<IIceOceanHeatFlux>().update(tst);
-
 }
 
 void TOPAZOcean::updateAfter(const TimestepTime& tst)
 {
+    mergeFluxes(tst);
     slabOcean.update(tst);
-    sst = ModelArrayRef<Protected::SLAB_SST, RO>(getStore()).data();
-    sss = ModelArrayRef<Protected::SLAB_SSS, RO>(getStore()).data();
+    sst = ModelArrayRef<Protected::SLAB_SST, RO>(getStore());
+    sss = ModelArrayRef<Protected::SLAB_SSS, RO>(getStore());
 }
-
 
 void TOPAZOcean::setFilePath(const std::string& filePathIn) { filePath = filePathIn; }
 

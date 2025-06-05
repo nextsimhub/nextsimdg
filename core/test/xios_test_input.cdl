@@ -1,0 +1,109 @@
+netcdf xios_test_output {
+dimensions:
+	axis_nbounds = 2 ;
+	lon = 4 ;
+	lat = 2 ;
+	z_axis = 2 ;
+	time_counter = UNLIMITED ; // (4 currently)
+variables:
+	float lat(lat) ;
+		lat:axis = "Y" ;
+		lat:standard_name = "latitude" ;
+		lat:long_name = "Latitude" ;
+		lat:units = "degrees_north" ;
+	float lon(lon) ;
+		lon:axis = "X" ;
+		lon:standard_name = "longitude" ;
+		lon:long_name = "Longitude" ;
+		lon:units = "degrees_east" ;
+	float z_axis(z_axis) ;
+		z_axis:name = "z_axis" ;
+	double time_instant(time_counter) ;
+		time_instant:standard_name = "time" ;
+		time_instant:long_name = "Time axis" ;
+		time_instant:calendar = "gregorian" ;
+		time_instant:units = "seconds since 2020-01-23 00:08:15" ;
+		time_instant:time_origin = "2020-01-23 00:08:15" ;
+		time_instant:bounds = "time_instant_bounds" ;
+	double time_instant_bounds(time_counter, axis_nbounds) ;
+	double time_counter(time_counter) ;
+		time_counter:axis = "T" ;
+		time_counter:standard_name = "time" ;
+		time_counter:long_name = "Time axis" ;
+		time_counter:calendar = "gregorian" ;
+		time_counter:units = "seconds since 2020-01-23 00:08:15" ;
+		time_counter:time_origin = "2020-01-23 00:08:15" ;
+		time_counter:bounds = "time_counter_bounds" ;
+	double time_counter_bounds(time_counter, axis_nbounds) ;
+	float field_2D(time_counter, lat, lon) ;
+		field_2D:online_operation = "instant" ;
+		field_2D:interval_operation = "5400 s" ;
+		field_2D:interval_write = "5400 s" ;
+		field_2D:cell_methods = "time: point" ;
+		field_2D:coordinates = "time_instant" ;
+	float field_3D(time_counter, z_axis, lat, lon) ;
+		field_3D:online_operation = "instant" ;
+		field_3D:interval_operation = "5400 s" ;
+		field_3D:interval_write = "5400 s" ;
+		field_3D:cell_methods = "time: point" ;
+		field_3D:coordinates = "time_instant" ;
+
+// global attributes:
+		:name = "xios_test_output" ;
+		:description = "Created by xios" ;
+		:title = "Created by xios" ;
+		:Conventions = "CF-1.6" ;
+		:timeStamp = "2024-Aug-27 08:47:07 GMT" ;
+		:uuid = "28e10e5f-e296-4219-903d-bc75bd2e4a9a" ;
+data:
+
+ lat = -1, 1 ;
+
+ lon = -1, -0.5, 0, 0.5 ;
+
+ z_axis = 0, 1 ;
+
+ time_instant = 99340365, 99345765, 99351165, 99356565 ;
+
+ time_instant_bounds =
+  99340365, 99340365,
+  99345765, 99345765,
+  99351165, 99351165,
+  99356565, 99356565 ;
+
+ time_counter = 99340365, 99345765, 99351165, 99356565 ;
+
+ time_counter_bounds =
+  99340365, 99340365,
+  99345765, 99345765,
+  99351165, 99351165,
+  99356565, 99356565 ;
+
+ field_2D =
+  0, 1, 0, 1,
+  2, 3, 2, 3,
+  0, 1, 0, 1,
+  2, 3, 2, 3,
+  0, 1, 0, 1,
+  2, 3, 2, 3,
+  0, 1, 0, 1,
+  2, 3, 2, 3 ;
+
+ field_3D =
+  0, 1, 0, 1,
+  2, 3, 2, 3,
+  4, 5, 4, 5,
+  6, 7, 6, 7,
+  0, 1, 0, 1,
+  2, 3, 2, 3,
+  4, 5, 4, 5,
+  6, 7, 6, 7,
+  0, 1, 0, 1,
+  2, 3, 2, 3,
+  4, 5, 4, 5,
+  6, 7, 6, 7,
+  0, 1, 0, 1,
+  2, 3, 2, 3,
+  4, 5, 4, 5,
+  6, 7, 6, 7 ;
+}

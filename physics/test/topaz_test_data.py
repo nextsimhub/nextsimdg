@@ -122,6 +122,7 @@ sss = datagrp.createVariable("sss", "f8", timefield_dims)
 mld = datagrp.createVariable("mld", "f8", timefield_dims)
 u = datagrp.createVariable("u", "f8", timefield_dims)
 v = datagrp.createVariable("v", "f8", timefield_dims)
+ssh = datagrp.createVariable("ssh", "f8", timefield_dims)
 
 # 12 monthly values
 for t in range(12):
@@ -141,5 +142,8 @@ for t in range(12):
     
     v[t, :, :] = (200 + test_data + 100*t) * mask + mdi * antimask
     v.missing_value = mdi
-    
+
+    ssh[t, :, :] = (test_data + 20 + t) * mask + mdi * antimask
+    ssh.missing_value = mdi
+
 root.close()

@@ -1,0 +1,47 @@
+Bootstrap: docker
+From: ubuntu:22.04
+Stage: build
+
+
+%post
+    # install apt libraries
+    apt-get update --fix-missing
+    apt-get install -y --no-install-recommends \
+        build-essential \
+        ca-certificates \
+        cmake \
+        libnetcdf-c++4-dev \
+        libboost-all-dev \
+        libeigen3-dev \
+        netcdf-bin \
+        python3-pip \
+        wget
+
+    # install python packages
+    pip install \
+        matplotlib \
+        netcdf4 \
+        numpy
+
+    # update certificates and clean up
+    update-ca-certificates
+    apt-get clean
+    rm -rf /var/lib/apt/lists/*
+
+%test
+    grep -q NAME=\"Ubuntu\" /etc/os-release
+    if [ $? -eq 0 ]
+    then
+        echo "Container base is Ubuntu as expected."
+    else
+        echo "Container base is not Ubuntu."
+        exit 1
+    fi
+
+%labels
+    Author Timothy Williams
+    Version v0.0.1
+
+%help
+    This is an ubuntu container with required external libraries
+    to compile and run nextsimdg

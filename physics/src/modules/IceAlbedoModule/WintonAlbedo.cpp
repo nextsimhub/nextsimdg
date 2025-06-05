@@ -1,7 +1,7 @@
 /*!
  * @file WintonAlbedo.cpp
  *
- * @date Jan 11, 2024
+ * @date 20 Nov 2024
  * @author Tim Spain
  * @author Einar Ólason <einar.olason@nersc.no>
  */
@@ -65,12 +65,12 @@ ConfigMap WintonAlbedo::getConfiguration() const
 WintonAlbedo::HelpMap& WintonAlbedo::getHelpText(HelpMap& map, bool getAll)
 {
     map[pfx] = {
-        { iceAlbedoKey, ConfigType::NUMERIC, { "0", "1" }, std::to_string(ICE_ALBEDO0), "",
-            "Albedo of snow-free ice." },
-        { snowAlbedoKey, ConfigType::NUMERIC, { "0", "1" }, std::to_string(SNOW_ALBEDO0), "",
-            "Albedo of dry snow." },
-        { meltAlbedoKey, ConfigType::NUMERIC, { "0", "1" }, std::to_string(MELT_ALBEDO0), "",
-            "Albedo of melting snow." },
+        { iceAlbedoKey, ConfigType::NUMERIC, { "0", "1" }, ConfigurationHelp::toString(ICE_ALBEDO0),
+            "", "Albedo of snow-free ice." },
+        { snowAlbedoKey, ConfigType::NUMERIC, { "0", "1" },
+            ConfigurationHelp::toString(SNOW_ALBEDO0), "", "Albedo of dry snow." },
+        { meltAlbedoKey, ConfigType::NUMERIC, { "0", "1" },
+            ConfigurationHelp::toString(MELT_ALBEDO0), "", "Albedo of melting snow." },
     };
     return map;
 }

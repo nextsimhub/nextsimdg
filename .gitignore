@@ -17,3 +17,6 @@ Results
 *.DS_Store
 *.nc
 __pycache__/
+*.sif
+.*sw?
+/run/*.cdl

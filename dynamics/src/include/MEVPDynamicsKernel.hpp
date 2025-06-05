@@ -19,7 +19,7 @@ template <int DGadvection> class MEVPDynamicsKernel : public VPCGDynamicsKernel<
 public:
     using CGDynamicsKernel<DGadvection>::pmap;
     using CGDynamicsKernel<DGadvection>::initialise;
-    MEVPDynamicsKernel(const DynamicsParameters& paramsIn)
+    MEVPDynamicsKernel(const VPParameters& paramsIn)
         : VPCGDynamicsKernel<DGadvection>(MEVPStressStep, paramsIn)
     {
     }
@@ -27,12 +27,10 @@ public:
     void initialise(const ModelArray& coords, bool isSpherical, const ModelArray& mask) override
     {
         CGDynamicsKernel<DGadvection>::initialise(coords, isSpherical, mask);
-        MEVPStressStep.setPMap(pmap);
+        MEVPStressStep.setPMap(pmap.get());
     }
 
 private:
-    //! Rheology-Parameters
-    Nextsim::VPParameters VP;
     MEVPStressUpdateStep<DGadvection, DGstressComp, CGdegree> MEVPStressStep;
 };
 

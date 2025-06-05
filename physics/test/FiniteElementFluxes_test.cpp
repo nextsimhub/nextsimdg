@@ -1,7 +1,7 @@
 /*!
  * @file FiniteElementFluxes_test.cpp
  *
- * @date 7 Sep 2023
+ * @date 23 May 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -17,7 +17,7 @@
 #include "include/ModelArray.hpp"
 #include "include/ModelArrayRef.hpp"
 #include "include/ModelComponent.hpp"
-#include "include/Module.hpp"
+#include "include/NextsimModule.hpp"
 #include "include/Time.hpp"
 #include "include/UnescoFreezing.hpp"
 #include "include/UniformOcean.hpp"
@@ -29,21 +29,17 @@ TEST_SUITE_BEGIN("FiniteElementFluxes");
 TEST_CASE("Melting conditions")
 {
     ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
-    ModelArray::setDimensions(ModelArray::Type::Z, { 1, 1, 1 });
+
+    Module::Module<IFreezingPoint>::setImplementation("Nextsim::UnescoFreezing");
+    Module::Module<IIceAlbedo>::setImplementation("Nextsim::CCSMIceAlbedo");
 
     std::stringstream config;
-    config << "[Modules]" << std::endl;
-    config << "FreezingPointModule = Nextsim::UnescoFreezing" << std::endl;
-    config << "IceAlbedoModule = Nextsim::CCSMIceAlbedo" << std::endl;
-    config << std::endl;
     config << "[CCSMIceAlbedo]" << std::endl;
     config << "iceAlbedo = 0.63" << std::endl;
     config << "snowAlbedo = 0.88" << std::endl;
 
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
-
-    ConfiguredModule::parseConfigurator();
 
     Module::setImplementation<IFreezingPoint>("Nextsim::UnescoFreezing");
 
@@ -52,11 +48,14 @@ TEST_CASE("Melting conditions")
 
     class AtmosphereData : public ModelComponent {
     public:
-        AtmosphereData() {
+        AtmosphereData()
+        {
             getStore().registerArray(Protected::T_AIR, &tair, RO);
             getStore().registerArray(Protected::DEW_2M, &tdew, RO);
             getStore().registerArray(Protected::P_AIR, &pair, RO);
             getStore().registerArray(Protected::WIND_SPEED, &windSpeed, RO);
+            getStore().registerArray(Protected::WIND_U, &u_air, RO);
+            getStore().registerArray(Protected::WIND_V, &v_air, RO);
             getStore().registerArray(Protected::SW_IN, &sw_in, RO);
             getStore().registerArray(Protected::LW_IN, &lw_in, RO);
         }
@@ -66,6 +65,8 @@ TEST_CASE("Melting conditions")
             tdew.resize();
             pair.resize();
             windSpeed.resize();
+            u_air.resize();
+            v_air.resize();
             sw_in.resize();
             lw_in.resize();
 
@@ -73,18 +74,20 @@ TEST_CASE("Melting conditions")
             tdew = 2;
             pair = 100000.;
             windSpeed = 5;
+            u_air = 3;
+            v_air = 4;
             sw_in = 50;
             lw_in = 330;
         }
         std::string getName() const override { return "AtmData"; }
-        ModelState getState() const override { return ModelState(); }
-        ModelState getState(const OutputLevel&) const override { return getState(); }
 
     private:
         HField tair;
         HField tdew;
         HField pair;
         HField windSpeed;
+        HField u_air;
+        HField v_air;
         HField sw_in;
         HField lw_in;
         HField snowfall;
@@ -99,9 +102,9 @@ TEST_CASE("Melting conditions")
             getStore().registerArray(Protected::C_ICE, &cice, RO);
             getStore().registerArray(Protected::H_SNOW, &hsnow, RO);
             getStore().registerArray(Protected::T_ICE, &tice0, RO);
+            getStore().registerArray(Protected::T_SURF, &tsurf, RO);
             getStore().registerArray(Protected::HTRUE_ICE, &hice0, RO);
             getStore().registerArray(Protected::HTRUE_SNOW, &hsnow0, RO);
-
         }
         std::string getName() const override { return "ProgData"; }
 
@@ -112,6 +115,7 @@ TEST_CASE("Melting conditions")
             hice[0] = 0.1; // Here we are using the cell-averaged thicknesses
             hsnow[0] = 0.01;
             tice0[0] = -1.;
+            tsurf[0] = -1.;
 
             hice0[0] = hice[0] / cice[0];
             hsnow0[0] = hsnow[0] / cice[0];
@@ -121,10 +125,9 @@ TEST_CASE("Melting conditions")
         HField cice;
         HField hsnow;
         HField tice0;
-        HField hice0;  // ice averaged ice thickness
+        HField tsurf;
+        HField hice0; // ice averaged ice thickness
         HField hsnow0; // ice averaged snow thickness
-        ModelState getState() const override { return ModelState(); }
-        ModelState getState(const OutputLevel&) const override { return getState(); }
     } iceState;
     iceState.setData(ModelState().data);
 
@@ -140,6 +143,14 @@ TEST_CASE("Melting conditions")
     penSW.resize();
     ModelComponent::getStore().registerArray(Shared::Q_PEN_SW, &penSW, RW);
 
+    HField qsw_ow;
+    qsw_ow.resize();
+    ModelComponent::getStore().registerArray(Shared::Q_SW_OW, &qsw_ow, RW);
+
+    HField qsw_base;
+    qsw_base.resize();
+    ModelComponent::getStore().registerArray(Shared::Q_SW_BASE, &qsw_base, RW);
+
     HField dqia_dt;
     dqia_dt.resize();
     ModelComponent::getStore().registerArray(Shared::DQIA_DT, &dqia_dt, RW);
@@ -147,6 +158,17 @@ TEST_CASE("Melting conditions")
     HField subl;
     subl.resize();
     ModelComponent::getStore().registerArray(Shared::SUBLIM, &subl, RW);
+
+    HField evap;
+    evap.resize();
+    ModelComponent::getStore().registerArray(Shared::EVAP, &evap, RW);
+
+    HField tauX;
+    HField tauY;
+    tauX.resize();
+    tauY.resize();
+    ModelComponent::getStore().registerArray(Shared::OW_STRESS_X, &tauX, RW);
+    ModelComponent::getStore().registerArray(Shared::OW_STRESS_Y, &tauY, RW);
 
     TimestepTime tst = { TimePoint("2000-001"), Duration("P0-0T0:10:0") };
     // OceanState is independently updated
@@ -161,26 +183,23 @@ TEST_CASE("Melting conditions")
     REQUIRE(qia[0] == doctest::Approx(-85.6364).epsilon(prec));
     REQUIRE(dqia_dt[0] == doctest::Approx(19.7016).epsilon(prec));
     REQUIRE(subl[0] == doctest::Approx(-7.3858e-06).epsilon(prec));
+    REQUIRE(tauX[0] == doctest::Approx(1.89732e-2).epsilon(prec));
+    REQUIRE(tauY[0] == doctest::Approx(2.52976e-2).epsilon(prec));
 }
 
 TEST_CASE("Freezing conditions")
 {
     ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
-    ModelArray::setDimensions(ModelArray::Type::Z, { 1, 1, 1 });
 
+    Module::Module<IFreezingPoint>::setImplementation("Nextsim::UnescoFreezing");
+    Module::Module<IIceAlbedo>::setImplementation("Nextsim::CCSMIceAlbedo");
     std::stringstream config;
-    config << "[Modules]" << std::endl;
-    config << "FreezingPointModule = Nextsim::UnescoFreezing" << std::endl;
-    config << "IceAlbedoModule = Nextsim::CCSMIceAlbedo" << std::endl;
-    config << std::endl;
     config << "[CCSMIceAlbedo]" << std::endl;
     config << "iceAlbedo = 0.63" << std::endl;
     config << "snowAlbedo = 0.88" << std::endl;
 
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
-
-    ConfiguredModule::parseConfigurator();
 
     Module::setImplementation<IFreezingPoint>("Nextsim::UnescoFreezing");
 
@@ -195,6 +214,8 @@ TEST_CASE("Freezing conditions")
             getStore().registerArray(Protected::DEW_2M, &tdew, RO);
             getStore().registerArray(Protected::P_AIR, &pair, RO);
             getStore().registerArray(Protected::WIND_SPEED, &windSpeed, RO);
+            getStore().registerArray(Protected::WIND_U, &u_air, RO);
+            getStore().registerArray(Protected::WIND_V, &v_air, RO);
             getStore().registerArray(Protected::SW_IN, &sw_in, RO);
             getStore().registerArray(Protected::LW_IN, &lw_in, RO);
         }
@@ -204,24 +225,28 @@ TEST_CASE("Freezing conditions")
             tdew.resize();
             pair.resize();
             windSpeed.resize();
+            u_air.resize();
+            v_air.resize();
             sw_in.resize();
             lw_in.resize();
             tair = -12;
             tdew = -12;
             pair = 100000.;
             windSpeed = 5;
+            u_air = 3;
+            v_air = 4;
             sw_in = 0;
             lw_in = 265;
         }
         std::string getName() const override { return "AtmData"; }
-        ModelState getState() const override { return ModelState(); }
-        ModelState getState(const OutputLevel&) const override { return getState(); }
 
     private:
         HField tair;
         HField tdew;
         HField pair;
         HField windSpeed;
+        HField u_air;
+        HField v_air;
         HField sw_in;
         HField lw_in;
         HField snowfall;
@@ -236,6 +261,7 @@ TEST_CASE("Freezing conditions")
             getStore().registerArray(Protected::C_ICE, &cice, RO);
             getStore().registerArray(Protected::H_SNOW, &hsnow, RO);
             getStore().registerArray(Protected::T_ICE, &tice0, RO);
+            getStore().registerArray(Protected::T_SURF, &tsurf, RO);
             getStore().registerArray(Protected::HTRUE_ICE, &hice0, RO);
             getStore().registerArray(Protected::HTRUE_SNOW, &hsnow0, RO);
         }
@@ -248,6 +274,7 @@ TEST_CASE("Freezing conditions")
             hice[0] = 0.1; // Here we are using the cell-averaged thicknesses
             hsnow[0] = 0.01;
             tice0[0] = -9.;
+            tsurf[0] = -9.;
 
             hice0[0] = hice[0] / cice[0];
             hsnow0[0] = hsnow[0] / cice[0];
@@ -257,11 +284,10 @@ TEST_CASE("Freezing conditions")
         HField cice;
         HField hsnow;
         HField tice0;
-        HField hice0;  // ice averaged ice thickness
+        HField tsurf;
+        HField hice0; // ice averaged ice thickness
         HField hsnow0; // ice averaged snow thickness
 
-        ModelState getState() const override { return ModelState(); }
-        ModelState getState(const OutputLevel&) const override { return getState(); }
     } iceState;
     iceState.setData(ModelState().data);
 
@@ -285,6 +311,17 @@ TEST_CASE("Freezing conditions")
     subl.resize();
     ModelComponent::getStore().registerArray(Shared::SUBLIM, &subl, RW);
 
+    HField evap;
+    evap.resize();
+    ModelComponent::getStore().registerArray(Shared::EVAP, &evap, RW);
+
+    HField tauX;
+    HField tauY;
+    tauX.resize();
+    tauY.resize();
+    ModelComponent::getStore().registerArray(Shared::OW_STRESS_X, &tauX, RW);
+    ModelComponent::getStore().registerArray(Shared::OW_STRESS_Y, &tauY, RW);
+
     TimestepTime tst = { TimePoint("2000-001"), Duration("P0-0T0:10:0") };
     // OceanState is independently updated
     FiniteElementFluxes fef;
@@ -298,6 +335,8 @@ TEST_CASE("Freezing conditions")
     REQUIRE(qia[0] == doctest::Approx(42.2955).epsilon(prec));
     REQUIRE(dqia_dt[0] == doctest::Approx(16.7615).epsilon(prec));
     REQUIRE(subl[0] == doctest::Approx(2.15132e-6).epsilon(prec));
+    REQUIRE(tauX[0] == doctest::Approx(2.00279e-2).epsilon(prec));
+    REQUIRE(tauY[0] == doctest::Approx(2.67038e-2).epsilon(prec));
 }
 TEST_SUITE_END();
 

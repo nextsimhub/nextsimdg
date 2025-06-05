@@ -1,10 +1,11 @@
 /*!
  * @file    XiosField_test.cpp
- * @author  Joe Wallwork <jw2423@cam.ac.uk
- * @date    26 July 2024
- * @brief   Tests for XIOS axes
+ * @author  Joe Wallwork <jw2423@cam.ac.uk>
+ * @author  Adeleke Bankole <ab3191@cam.ac.uk>
+ * @date    19 May 2025
+ * @brief   Tests for XIOS fields
  * @details
- * This test is designed to test axis functionality of the C++ interface
+ * This test is designed to test field functionality of the C++ interface
  * for XIOS.
  *
  */
@@ -12,10 +13,8 @@
 #undef INFO
 
 #include "StructureModule/include/ParametricGrid.hpp"
-#include "include/Configurator.hpp"
+#include "include/Finalizer.hpp"
 #include "include/Xios.hpp"
-
-#include <iostream>
 
 namespace Nextsim {
 
@@ -23,56 +22,72 @@ namespace Nextsim {
  * TestXiosField
  *
  * This function tests the field functionality of the C++ interface for XIOS. It
- * needs to be run with 2 ranks i.e.,
+ * needs to be run with 3 ranks i.e.,
  *
- * `mpirun -n 2 ./testXiosField_MPI2`
+ * `mpirun -n 3 ./testXiosField_MPI3`
  *
  */
-MPI_TEST_CASE("TestXiosField", 2)
+MPI_TEST_CASE("TestXiosField", 3)
 {
-
-    // Enable XIOS in the 'config'
-    Configurator::clearStreams();
+    // Enable XIOS in the 'config' and provide parameters to configure it
+    enableXios();
     std::stringstream config;
-    config << "[xios]" << std::endl << "enable = true" << std::endl;
+    config << "[XiosOutput]" << std::endl;
+    config << "period = P0-0T03:00:00" << std::endl;
+    config << "filename = xios_test_output" << std::endl;
+    config << "field_names = field_A" << std::endl;
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
 
-    // Initialize an Xios instance called xios_handler
-    Xios xios_handler;
-    REQUIRE(xios_handler.isInitialized());
-    const size_t size = xios_handler.getClientMPISize();
-    REQUIRE(size == 2);
-    const size_t rank = xios_handler.getClientMPIRank();
+    // Get the Xios singleton instance and check it's initialized
+    Xios& xiosHandler = Xios::getInstance();
+    REQUIRE(xiosHandler.isInitialized());
+    const size_t size = xiosHandler.getClientMPISize();
+    REQUIRE(size == 3);
+    const size_t rank = xiosHandler.getClientMPIRank();
 
-    // Set timestep as a minimum
-    xios_handler.setCalendarTimestep(Duration("P0-0T01:00:00"));
+    // Create an axis with two points
+    xiosHandler.createAxis("axis_A");
+    xiosHandler.setAxisValues("axis_A", { 0.0, 1.0 });
 
-    // Axis setup
-    xios_handler.createAxis("axis_A");
-    xios_handler.setAxisValues("axis_A", { 0, 1 });
-
-    // Grid setup
-    xios_handler.createGrid("grid_1D");
-    xios_handler.gridAddAxis("grid_1D", "axis_A");
+    // Create a 1D grid comprised of the single axis
+    xiosHandler.createGrid("grid_1D");
+    xiosHandler.gridAddAxis("grid_1D", "axis_A");
 
     // --- Tests for field API
-    const std::string fieldId = { "field_A" };
-    xios_handler.createField(fieldId);
-    // Field name
-    const std::string fieldName = { "test_field" };
-    xios_handler.setFieldName(fieldId, fieldName);
-    REQUIRE(xios_handler.getFieldName(fieldId) == fieldName);
+    // Field creation
+    // NOTE: Fields associated with files are automatically created with the appropriate read access
+    // based off the XiosInput.field_names or XiosOutput.field_names entries in the config when the
+    // file is created at initialisation
+    const std::string fieldId = "field_A";
+    REQUIRE_THROWS_WITH(xiosHandler.createField(fieldId), "Xios: Field 'field_A' already exists");
+    // Disallow creation of fields that aren't in either config section
+    REQUIRE_THROWS_WITH(xiosHandler.createField("field_B"),
+        "Xios: Field 'field_B' cannot be found in the XiosInput or XiosOutput config sections");
     // Operation
-    const std::string operation = { "instant" };
-    xios_handler.setFieldOperation(fieldId, operation);
-    REQUIRE(xios_handler.getFieldOperation(fieldId) == operation);
+    REQUIRE_THROWS_WITH(
+        xiosHandler.getFieldOperation(fieldId), "Xios: Undefined operation for field 'field_A'");
+    const std::string operation = "instant";
+    xiosHandler.setFieldOperation(fieldId, operation);
+    REQUIRE(xiosHandler.getFieldOperation(fieldId) == operation);
     // Grid reference
-    const std::string gridRef = { "grid_2D" };
-    xios_handler.setFieldGridRef(fieldId, gridRef);
-    REQUIRE(xios_handler.getFieldGridRef(fieldId) == gridRef);
+    REQUIRE_THROWS_WITH(
+        xiosHandler.getFieldGridRef(fieldId), "Xios: Undefined grid reference for field 'field_A'");
+    const std::string gridRef = "grid_1D";
+    xiosHandler.setFieldGridRef(fieldId, gridRef);
+    REQUIRE(xiosHandler.getFieldGridRef(fieldId) == gridRef);
+    // Read access
+    // NOTE: createFile parses the associated field names, creates corresponding fields, and calls
+    // setFieldReadAccess (see above note)
+    REQUIRE(!xiosHandler.getFieldReadAccess(fieldId));
+    // Frequency offset
+    Duration freqOffset = xiosHandler.getCalendarTimestep();
+    xiosHandler.setFieldFreqOffset(fieldId, freqOffset);
+    // TODO: Overload == for Duration
+    REQUIRE(xiosHandler.getFieldFreqOffset(fieldId).seconds() == freqOffset.seconds());
 
-    xios_handler.close_context_definition();
-    xios_handler.context_finalize();
+    xiosHandler.close_context_definition();
+    xiosHandler.context_finalize();
+    Finalizer::finalize();
 }
 }

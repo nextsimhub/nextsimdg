@@ -1,14 +1,18 @@
 /*!
  * @file ModelMetadata.cpp
  *
- * @date Jun 29, 2022
+ * @date 19 May 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
 #include "include/ModelMetadata.hpp"
 
-#include "include/StructureModule.hpp"
+#include "include/IStructure.hpp"
+#include "include/NextsimModule.hpp"
 #include "include/gridNames.hpp"
+#ifdef USE_XIOS
+#include "include/Xios.hpp"
+#endif
 
 #ifdef USE_MPI
 #include <ncDim.h>
@@ -49,15 +53,29 @@ void ModelMetadata::getPartitionMetadata(std::string partitionFile)
             + std::to_string(nBoxes) + "\n";
         throw std::runtime_error(errorMsg);
     }
-    globalExtentX = ncFile.getDim("globalX").getSize();
-    globalExtentY = ncFile.getDim("globalY").getSize();
+    globalExtentX = ncFile.getDim("NX").getSize();
+    globalExtentY = ncFile.getDim("NY").getSize();
     netCDF::NcGroup bboxGroup(ncFile.getGroup(bboxName));
     std::vector<size_t> index(1, mpiMyRank);
-    bboxGroup.getVar("global_x").getVar(index, &localCornerX);
-    bboxGroup.getVar("global_y").getVar(index, &localCornerY);
-    bboxGroup.getVar("local_extent_x").getVar(index, &localExtentX);
-    bboxGroup.getVar("local_extent_y").getVar(index, &localExtentY);
+    bboxGroup.getVar("domain_x").getVar(index, &localCornerX);
+    bboxGroup.getVar("domain_y").getVar(index, &localCornerY);
+    bboxGroup.getVar("domain_extent_x").getVar(index, &localExtentX);
+    bboxGroup.getVar("domain_extent_y").getVar(index, &localExtentY);
     ncFile.close();
+
+#ifdef USE_XIOS
+    // Set up the XIOS Domain
+    Xios& xiosHandler = Xios::getInstance();
+    const std::string domainId = "xy_domain";
+    xiosHandler.createDomain(domainId);
+    xiosHandler.setDomainType(domainId, "rectilinear");
+    xiosHandler.setDomainGlobalXSize(domainId, globalExtentX);
+    xiosHandler.setDomainGlobalYSize(domainId, globalExtentY);
+    xiosHandler.setDomainLocalXStart(domainId, localCornerX);
+    xiosHandler.setDomainLocalYStart(domainId, localCornerY);
+    xiosHandler.setDomainLocalXSize(domainId, localExtentX);
+    xiosHandler.setDomainLocalYSize(domainId, localExtentY);
+#endif
 }
 
 #endif
@@ -102,4 +120,29 @@ ModelState& ModelMetadata::affixCoordinates(ModelState& state) const
     }
     return state;
 }
+
+void ModelMetadata::setTime(const TimePoint& time)
+{
+    m_time = time;
+#ifdef USE_XIOS
+    Xios& xiosHandler = Xios::getInstance();
+    if (!xiosHandler.isInitialized()) {
+        throw std::runtime_error("ModelMetadata: Xios handler has not been initialized");
+    }
+    xiosHandler.setCalendarStart(time);
+#endif
+}
+
+void ModelMetadata::incrementTime(const Duration& step)
+{
+    m_time += step;
+#ifdef USE_XIOS
+    Xios& xiosHandler = Xios::getInstance();
+    if (!xiosHandler.isInitialized()) {
+        throw std::runtime_error("ModelMetadata: Xios handler has not been initialized");
+    }
+    xiosHandler.incrementCalendar();
+#endif
+}
+
 } /* namespace Nextsim */

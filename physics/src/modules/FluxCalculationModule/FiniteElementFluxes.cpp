@@ -1,14 +1,16 @@
 /*!
  * @file FiniteElementFluxes.cpp
  *
- * @date Apr 29, 2022
+ * @date 23 May 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
 #include "include/FiniteElementFluxes.hpp"
 
+#include "include/Finalizer.hpp"
 #include "include/FiniteElementSpecHum.hpp"
-#include "include/IceAlbedoModule.hpp"
+#include "include/IIceAlbedo.hpp"
+#include "include/NextsimModule.hpp"
 #include "include/constants.hpp"
 
 #include <memory>
@@ -29,8 +31,7 @@ static const double dragIce_t_default = 1.3e-3;
 static const double oceanAlbedo_default = 0.07;
 static const double i0_default = 0.17;
 
-template <>
-const std::map<int, std::string> Configured<FiniteElementFluxes>::keyMap = {
+static const std::map<int, std::string> keyMap = {
     { FiniteElementFluxes::DRAGOCEANQ_KEY, "nextsim_thermo.drag_ocean_q" },
     { FiniteElementFluxes::DRAGOCEANT_KEY, "nextsim_thermo.drag_ocean_t" },
     { FiniteElementFluxes::DRAGICET_KEY, "nextsim_thermo.drag_ice_t" },
@@ -40,6 +41,8 @@ const std::map<int, std::string> Configured<FiniteElementFluxes>::keyMap = {
 
 void FiniteElementFluxes::configure()
 {
+    Finalizer::registerUnique(Module::finalize<IIceAlbedo>);
+
     iIceAlbedoImpl = &Module::getImplementation<IIceAlbedo>();
     tryConfigure(iIceAlbedoImpl);
 
@@ -50,13 +53,43 @@ void FiniteElementFluxes::configure()
     m_I0 = Configured::getConfiguration(keyMap.at(I0_KEY), i0_default);
 }
 
+ConfigMap FiniteElementFluxes::getConfiguration() const
+{
+    return {
+        { keyMap.at(DRAGOCEANQ_KEY), dragOcean_q },
+        { keyMap.at(DRAGOCEANT_KEY), dragOcean_t },
+        { keyMap.at(DRAGICET_KEY), dragIce_t },
+        { keyMap.at(OCEANALBEDO_KEY), m_oceanAlbedo },
+        { keyMap.at(I0_KEY), m_I0 },
+    };
+}
+
+ModelState FiniteElementFluxes::getStateDiagnostic() const
+{
+    return { {
+                 { "evap", evap },
+                 { "Q_lh_ow", Q_lh_ow },
+                 { "Q_sh_ow", Q_sh_ow },
+                 { "Q_lw_ow", Q_lw_ow },
+                 { "Q_lh_ia", Q_lh_ia },
+                 { "Q_sh_ia", Q_sh_ia },
+                 { "Q_sw_ia", Q_sw_ia },
+                 { "Q_lw_ia", Q_lw_ia },
+                 { "rho_air", rho_air },
+                 { "cp_air", cp_air },
+                 { "sh_air", sh_air },
+                 { "sh_water", sh_water },
+                 { "sh_ice", sh_ice },
+                 { "dshice_dT", dshice_dT },
+             },
+        getConfiguration() };
+}
+
 void FiniteElementFluxes::setData(const ModelState::DataMap& ms)
 {
     // Data arrays can now be set to the correct size
-    evap.resize();
     Q_lh_ow.resize();
     Q_sh_ow.resize();
-    Q_sw_ow.resize();
     Q_lw_ow.resize();
     Q_lh_ia.resize();
     Q_sh_ia.resize();
@@ -70,31 +103,23 @@ void FiniteElementFluxes::setData(const ModelState::DataMap& ms)
     dshice_dT.resize();
 }
 
-ModelState FiniteElementFluxes::getState() const { return { {}, {} }; }
-
-ModelState FiniteElementFluxes::getState(const OutputLevel&) const { return getState(); }
-
-ModelState FiniteElementFluxes::getStateRecursive(const OutputSpec& os) const
-{
-    ModelState state(getState());
-    return os ? state : ModelState();
-}
-
 FiniteElementFluxes::HelpMap& FiniteElementFluxes::getHelpText(HelpMap& map, bool getAll)
 {
     map["FiniteElementFluxes"] = {
         { keyMap.at(DRAGOCEANQ_KEY), ConfigType::NUMERIC, { "0", "∞" },
-            std::to_string(dragOcean_q_default), "??",
+            ConfigurationHelp::toString(dragOcean_q_default), "??",
             "Coefficient for evaporative mass flux calculation." },
         { keyMap.at(DRAGOCEANT_KEY), ConfigType::NUMERIC, { "0", "∞" },
-            std::to_string(dragOcean_t_default), "??",
+            ConfigurationHelp::toString(dragOcean_t_default), "??",
             "Coefficient for sensible heat flux calculation." },
         { keyMap.at(DRAGICET_KEY), ConfigType::NUMERIC, { "0", "∞" },
-            std::to_string(dragIce_t_default), "??", "Ice drag coefficient for heat fluxes." },
+            ConfigurationHelp::toString(dragIce_t_default), "??",
+            "Ice drag coefficient for heat fluxes." },
         { keyMap.at(OCEANALBEDO_KEY), ConfigType::NUMERIC, { "0", "∞" },
-            std::to_string(oceanAlbedo_default), "", "Shortwave albedo of open ocean water." },
-        { keyMap.at(I0_KEY), ConfigType::NUMERIC, { "0", "∞" }, std::to_string(i0_default), "",
-            "Transmissivity of ice." },
+            ConfigurationHelp::toString(oceanAlbedo_default), "",
+            "Shortwave albedo of open ocean water." },
+        { keyMap.at(I0_KEY), ConfigType::NUMERIC, { "0", "∞" },
+            ConfigurationHelp::toString(i0_default), "", "Transmissivity of ice." },
     };
     return map;
 }
@@ -108,15 +133,17 @@ FiniteElementFluxes::HelpMap& FiniteElementFluxes::getHelpRecursive(HelpMap& map
 void FiniteElementFluxes::calculateOW(size_t i, const TimestepTime& tst)
 {
     // Mass flux from open water (evaporation)
-    evap[i] = dragOcean_q * rho_air[i] * v_air[i] * (sh_water[i] - sh_air[i]);
+    evap[i] = dragOcean_q * rho_air[i] * windSpeed[i] * (sh_water[i] - sh_air[i]);
     // Momentum flux from open water (drag pressure)
-    // TODO
+    /* Drag the ocean experiences from the wind - still only used in the coupled case */
+    tau_x_ow[i] = rho_air[i] * dragOcean_m(windSpeed[i]) * u_air[i] * windSpeed[i];
+    tau_y_ow[i] = rho_air[i] * dragOcean_m(windSpeed[i]) * v_air[i] * windSpeed[i];
 
     // Heat flux open water
     //   Latent heat from evaporation (and condensation)
     Q_lh_ow[i] = evap[i] * latentHeatWater(sst[i]);
     //   Sensible heat
-    Q_sh_ow[i] = dragOcean_t * rho_air[i] * cp_air[i] * v_air[i] * (sst[i] - t_air[i]);
+    Q_sh_ow[i] = dragOcean_t * rho_air[i] * cp_air[i] * windSpeed[i] * (sst[i] - t_air[i]);
     //   Shortwave flux
     Q_sw_ow[i] = -sw_in[i] * (1 - m_oceanAlbedo);
     // Longwave flux
@@ -125,34 +152,46 @@ void FiniteElementFluxes::calculateOW(size_t i, const TimestepTime& tst)
     qow[i] = Q_lh_ow[i] + Q_sh_ow[i] + Q_sw_ow[i] + Q_lw_ow[i];
 }
 
+// Drag coefficient from Gill(1982) / Smith (1980)
+// Could be replaced by a  module ... but we'll probably never do that
+inline double FiniteElementFluxes::dragOcean_m(double windSpeed)
+{
+    return 1e-3 * std::max(1., std::min(2., 0.61 + 0.063 * windSpeed));
+}
+
 void FiniteElementFluxes::calculateIce(size_t i, const TimestepTime& tst)
 {
     // Mass flux ice
-    subl[i] = dragIce_t * rho_air[i] * v_air[i] * (sh_ice[i] - sh_air[i]);
+    subl[i] = dragIce_t * rho_air[i] * windSpeed[i] * (sh_ice[i] - sh_air[i]);
 
     // Momentum flux is dealt with by the ice dynamics
 
     // Heat flux ice-atmosphere
     // Latent heat from sublimation
-    Q_lh_ia[i] = subl[i] * latentHeatIce(tice.zIndexAndLayer(i, 0));
-    double dmdot_dT = dragIce_t * rho_air[i] * v_air[i] * dshice_dT[i];
-    double dQlh_dT = latentHeatIce(tice.zIndexAndLayer(i, 0)) * dmdot_dT;
+    Q_lh_ia[i] = subl[i] * latentHeatIce(tsurf[i]);
+    double dmdot_dT = dragIce_t * rho_air[i] * windSpeed[i] * dshice_dT[i];
+    double dQlh_dT = latentHeatIce(tsurf[i]) * dmdot_dT;
+
     // Sensible heat flux
-    Q_sh_ia[i]
-        = dragIce_t * rho_air[i] * cp_air[i] * v_air[i] * (tice.zIndexAndLayer(i, 0) - t_air[i]);
-    double dQsh_dT = dragIce_t * rho_air[i] * cp_air[i] * v_air[i];
+    Q_sh_ia[i] = dragIce_t * rho_air[i] * cp_air[i] * windSpeed[i] * (tsurf[i] - t_air[i]);
+    double dQsh_dT = dragIce_t * rho_air[i] * cp_air[i] * windSpeed[i];
+
     // Shortwave flux
     double albedoValue, i0;
     std::tie(albedoValue, i0)
-        = iIceAlbedoImpl->surfaceShortWaveBalance(tice.zIndexAndLayer(i, 0), h_snow_true[i], m_I0);
+        = iIceAlbedoImpl->surfaceShortWaveBalance(tsurf[i], h_snow_true[i], m_I0);
     Q_sw_ia[i] = -sw_in[i] * (1. - albedoValue) * (1. - i0);
-    penSW[i] = sw_in[i] * (1. - albedoValue) * i0;
+    const double extinction = 0.; // TODO: Replace with de Beer's law or a module
+    penSW[i] = sw_in[i] * (1. - albedoValue) * i0 * (1. - extinction);
+    Q_sw_base[i] = sw_in[i] * (1. - albedoValue) * i0 * extinction;
+
     // Longwave flux
-    Q_lw_ia[i] = stefanBoltzmannLaw(tice.zIndexAndLayer(i, 0)) - lw_in[i];
-    double dQlw_dT
-        = 4 / kelvin(tice.zIndexAndLayer(i, 0)) * stefanBoltzmannLaw(tice.zIndexAndLayer(i, 0));
+    Q_lw_ia[i] = stefanBoltzmannLaw(tsurf[i]) - lw_in[i];
+    double dQlw_dT = 4 / kelvin(tsurf[i]) * stefanBoltzmannLaw(tsurf[i]);
+
     // Total flux
     qia[i] = Q_lh_ia[i] + Q_sh_ia[i] + Q_sw_ia[i] + Q_lw_ia[i];
+
     // Total temperature dependence of flux
     dqia_dt[i] = dQlh_dT + dQsh_dT + dQlw_dT;
 }
@@ -166,24 +205,21 @@ void FiniteElementFluxes::update(const TimestepTime& tst)
 
 void FiniteElementFluxes::updateAtmosphere(const TimestepTime& tst)
 {
-    overElements(std::bind(&FiniteElementFluxes::calculateAtmos, this, std::placeholders::_1,
-                     std::placeholders::_2),
-        tst);
+    overElements(
+        [this](size_t i, const TimestepTime& tsTime) { this->calculateAtmos(i, tsTime); }, tst);
 }
 
 void FiniteElementFluxes::updateOW(const TimestepTime& tst)
 {
-    overElements(std::bind(&FiniteElementFluxes::calculateOW, this, std::placeholders::_1,
-                     std::placeholders::_2),
-        tst);
+    overElements(
+        [this](size_t i, const TimestepTime& tsTime) { this->calculateOW(i, tsTime); }, tst);
 }
 
 void FiniteElementFluxes::updateIce(const TimestepTime& tst)
 {
     iIceAlbedoImpl->setTime(tst.start);
-    overElements(std::bind(&FiniteElementFluxes::calculateIce, this, std::placeholders::_1,
-                     std::placeholders::_2),
-        tst);
+    overElements(
+        [this](size_t i, const TimestepTime& tsTime) { this->calculateIce(i, tsTime); }, tst);
 }
 
 void FiniteElementFluxes::calculateAtmos(size_t i, const TimestepTime& tst)
@@ -195,7 +231,7 @@ void FiniteElementFluxes::calculateAtmos(size_t i, const TimestepTime& tst)
     sh_water[i] = FiniteElementSpecHum::water()(sst[i], p_air[i], sss[i]);
     // ...over the ice
     std::pair<double, double> iceData
-        = FiniteElementSpecHum::ice().valueAndDerivative(tice.zIndexAndLayer(i, 0), p_air[i]);
+        = FiniteElementSpecHum::ice().valueAndDerivative(tsurf[i], p_air[i]);
     sh_ice[i] = iceData.first;
     dshice_dT[i] = iceData.second;
     // Density of the wet air

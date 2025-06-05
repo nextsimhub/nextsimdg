@@ -10,9 +10,10 @@
 #include "include/Configurator.hpp"
 #include "include/ConfiguredModule.hpp"
 #include "include/DevStep.hpp"
+#include "include/Finalizer.hpp"
 #include "include/IDiagnosticOutput.hpp"
 #include "include/MissingData.hpp"
-#include "include/Module.hpp"
+#include "include/NextsimModule.hpp"
 #include "include/StructureFactory.hpp"
 
 #include <string>
@@ -22,20 +23,12 @@
 
 namespace Nextsim {
 
-template <typename Key, typename Value>
-static std::map<Key, Value> combineMaps(std::map<Key, Value>& map1, std::map<Key, Value>& map2)
-{
-    std::map<Key, Value> map3 = map1;
-    map3.merge(map2);
-    return map3;
-}
-
 // Map of configuration that will be written to the restart file
-static std::map<int, std::string> interimKeyMap = ModelConfig::keyMap;
 const std::string Model::restartOptionName = "model.init_file";
 // Map of all configuration keys for the main model, including those not to be
 // written to the restart file.
-static std::map<int, std::string> modelConfigKeyMap = {
+static const std::map<int, std::string> keyMap = {
+#include "include/ModelConfigMapElements.ipp"
     { Model::RESTARTFILE_KEY, Model::restartOptionName },
 #ifdef USE_MPI
     { Model::PARTITIONFILE_KEY, "model.partition_file" },
@@ -49,40 +42,20 @@ static std::map<int, std::string> modelConfigKeyMap = {
     { Model::RESTARTOUTFILE_KEY, "model.restart_file" },
 };
 
-// Merge the configuration from ModelConfig into the Model keyMap.
-template <>
-const std::map<int, std::string> Configured<Model>::keyMap
-    = combineMaps(interimKeyMap, modelConfigKeyMap);
-
 #ifdef USE_MPI
 Model::Model(MPI_Comm comm)
 #else
 Model::Model()
 #endif
+    : iterator(modelStep)
 {
 #ifdef USE_MPI
     m_etadata.setMpiMetadata(comm);
 #endif
-
-    iterator.setIterant(&modelStep);
-
     finalFileName = std::string("restart") + TimePoint::ymdhmsFormat + ".nc";
 }
 
-Model::~Model()
-{
-    /*
-     * Try writing out a valid restart file. If the model and computer are in a
-     * state where this can be completed, great! If they are not then the
-     * restart file is unlikely to be valid or otherwise stored properly, and
-     * we abandon the writing.
-     */
-    try {
-        writeRestartFile();
-    } catch (std::exception& e) {
-        // If there are any exceptions at all, fail without writing
-    }
-}
+Model::~Model() { }
 
 void Model::configure()
 {
@@ -104,8 +77,8 @@ void Model::configure()
     m_etadata.setTime(timeNow);
 
     // Configure the missing data value
-    MissingData::value
-        = Configured::getConfiguration(keyMap.at(MISSINGVALUE_KEY), MissingData::defaultValue);
+    MissingData::setValue(
+        Configured::getConfiguration(keyMap.at(MISSINGVALUE_KEY), MissingData::defaultValue));
 
     // Parse the initial restart file name and the pattern for output restart files
     initialFileName = Configured::getConfiguration(keyMap.at(RESTARTFILE_KEY), std::string());
@@ -155,19 +128,26 @@ Model::HelpMap& Model::getHelpText(HelpMap& map, bool getAll)
             "Model start time, formatted as an ISO8601 date. "
             "Non-calendretical runs can start from year 0 or 1. " },
         { keyMap.at(STOPTIME_KEY), ConfigType::STRING, {}, "", "",
-            "Model stop time, formatted as an ISO8601 data. "
+            "Model stop time, formatted as an ISO8601 date. "
             " Will be overridden if a model run length is set. " },
         { keyMap.at(RUNLENGTH_KEY), ConfigType::STRING, {}, "", "",
-            "Model run length, formatted as an ISO8601 duration (P prefix). "
+            "Model run length, formatted as an ISO8601 duration (P prefix) or an integer number of "
+            "seconds. "
             "Overrides the stop time if set. " },
         { keyMap.at(TIMESTEP_KEY), ConfigType::STRING, {}, "", "",
-            "Model physics timestep, formatted as an ISO8601 duration (P prefix). " },
+            "Model physics timestep, formatted as an ISO8601 duration (P prefix) or an integer "
+            "number of seconds. " },
         { keyMap.at(RESTARTFILE_KEY), ConfigType::STRING, {}, "", "",
-            "The file path to the restart file to use for the run." },
+            "The file path to the initial restart file to be used for the run." },
         { keyMap.at(RESTARTPERIOD_KEY), ConfigType::STRING, {}, "0", "",
             "The period between restart file outputs, formatted as an ISO8601 "
             "duration (P prefix) or number of seconds. A value of zero "
             "ensures no intermediate restart files are written." },
+        { keyMap.at(RESTARTOUTFILE_KEY), ConfigType::STRING, {}, "restart%Y-%m-%dT%H:%M:%SZ.nc", "",
+            "The file name or file name pattern to be used for the output restart files. A fixed "
+            "name can be used, which will be overwritten every time a restart checkpoint is "
+            "created. Otherwise the file name may include formatting codes supported by the C/C++ "
+            "time library to create a new file at every restart checkpoint." },
         { keyMap.at(MISSINGVALUE_KEY), ConfigType::NUMERIC, { "-∞", "∞" }, "-2³⁰⁰", "",
             "Missing data indicator used for input and output." },
 #ifdef USE_MPI
@@ -187,7 +167,12 @@ Model::HelpMap& Model::getHelpRecursive(HelpMap& map, bool getAll)
     return map;
 }
 
-void Model::run() { iterator.run(); }
+void Model::run()
+{
+    iterator.run();
+    writeRestartFile();
+    Finalizer::finalize();
+}
 
 //! Write a restart file for the model.
 void Model::writeRestartFile()

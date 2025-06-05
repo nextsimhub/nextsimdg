@@ -100,6 +100,7 @@ TEST_CASE("DGVector from ModelArray::Type::H")
         }
     }
     DGVector<DG> dest(smesh);
+    dest.zero();
     DGModelArray::ma2dg<DG>(source, dest);
 
     // Did it work?
@@ -278,6 +279,41 @@ TEST_CASE("Test the HField/DG0 transfer") // (It would be a silly case to get wr
     REQUIRE(source(targetPoint, 1) == retained);
     REQUIRE(source(targetPoint, 0) != retained);
 }
+
+TEST_CASE("dgVector from Eigen::Matrix")
+{
+    static const int DG = 3;
+    const size_t nx = 5;
+    const size_t ny = 7;
+
+    ParametricMesh smesh(CoordinateSystem);
+    smesh.nelements = nx * ny;
+
+    DGVector<DG>::EigenDGVector emat(smesh.nelements, DG);
+    DGVector<DG>& dgv = reinterpret_cast<DGVector<DG>&>(emat);
+    emat.setZero();
+    REQUIRE(dgv(1, 1) == 0.);
+    emat(1, 1) = 11.;
+    REQUIRE(dgv(1, 1) == 11.);
+}
+
+TEST_CASE("dgVector from Eigen::Array")
+{
+    static const int DG = 3;
+    const size_t nx = 5;
+    const size_t ny = 7;
+
+    ParametricMesh smesh(CoordinateSystem);
+    smesh.nelements = nx * ny;
+
+    Eigen::Array<double, Eigen::Dynamic, DG, Eigen::RowMajor> earr(smesh.nelements, DG);
+    DGVector<DG>& dgv = reinterpret_cast<DGVector<DG>&>(earr);
+    earr.setZero();
+    REQUIRE(dgv(2, 2) == 0.);
+    earr(2, 2) = 22.;
+    REQUIRE(dgv(2, 2) == 22.);
+}
+
 TEST_SUITE_END();
 
 }

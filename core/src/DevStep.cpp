@@ -8,8 +8,9 @@
 #include "include/DevStep.hpp"
 
 #include "include/ConfiguredModule.hpp"
+#include "include/Finalizer.hpp"
 #include "include/IDiagnosticOutput.hpp"
-#include "include/Module.hpp"
+#include "include/NextsimModule.hpp"
 namespace Nextsim {
 
 DevStep::DevStep()
@@ -21,6 +22,7 @@ DevStep::DevStep()
 
 void DevStep::init()
 {
+    Finalizer::registerUnique(Module::finalize<IDiagnosticOutput>);
     IDiagnosticOutput& ido = Module::getImplementation<IDiagnosticOutput>();
     ido.setFilenamePrefix("diagnostic");
     tryConfigure(ido);
@@ -46,10 +48,7 @@ void DevStep::iterate(const TimestepTime& tst)
         lastOutput = mData->time();
     }
     // XIOS wants all the fields, every timestep, so I guess that's what everyone gets
-    OutputSpec os; // The default OutputSpec is all fields, but only cell average values
-    ModelState overallState = pData->getStateRecursive(os);
-    overallState.merge(ConfiguredModule::getAllModuleConfigurations());
-    Module::getImplementation<IDiagnosticOutput>().outputState(*mData);
+    Module::getImplementation<IDiagnosticOutput>().outputState(pData->getStateDiagnostic(), *mData);
 }
 
 void DevStep::setRestartDetails(const Duration& restartPeriod, const std::string& fileName)

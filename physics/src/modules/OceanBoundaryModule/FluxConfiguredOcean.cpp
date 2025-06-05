@@ -1,14 +1,14 @@
 /*!
  * @file FluxConfiguredOcean.cpp
  *
- * @date Sep 29, 2022
+ * @date 06 Dec 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
 #include "include/FluxConfiguredOcean.hpp"
 
 #include "include/IFreezingPoint.hpp"
-#include "include/Module.hpp"
+#include "include/NextsimModule.hpp"
 #include "include/constants.hpp"
 
 namespace Nextsim {
@@ -28,8 +28,7 @@ static const std::string mldKey = pfx + ".mld";
 static const std::string uKey = pfx + ".current_u";
 static const std::string vKey = pfx + ".current_v";
 
-template <>
-const std::map<int, std::string> Configured<FluxConfiguredOcean>::keyMap = {
+static const std::map<int, std::string> keyMap = {
     { FluxConfiguredOcean::QIO_KEY, qioKey },
     { FluxConfiguredOcean::SST_KEY, sstKey },
     { FluxConfiguredOcean::SSS_KEY, sssKey },
@@ -41,17 +40,17 @@ const std::map<int, std::string> Configured<FluxConfiguredOcean>::keyMap = {
 ConfigurationHelp::HelpMap& FluxConfiguredOcean::getHelpRecursive(HelpMap& map, bool getAll)
 {
     map[pfx] = {
-        { qioKey, ConfigType::NUMERIC, { "-∞", "∞" }, std::to_string(qio0), "",
+        { qioKey, ConfigType::NUMERIC, { "-∞", "∞" }, ConfigurationHelp::toString(qio0), "",
             "Ocean to ice heat flux (W m⁻²)." },
-        { sstKey, ConfigType::NUMERIC, { "-273", "374" }, std::to_string(sst0), "",
+        { sstKey, ConfigType::NUMERIC, { "-273", "374" }, ConfigurationHelp::toString(sst0), "",
             "Sea surface temperature (˚C)." },
-        { sssKey, ConfigType::NUMERIC, { "0", "1000" }, std::to_string(sss0), "",
+        { sssKey, ConfigType::NUMERIC, { "0", "1000" }, ConfigurationHelp::toString(sss0), "",
             "Sea surface salinity (PSU)." },
-        { mldKey, ConfigType::NUMERIC, { "0", "10984" }, std::to_string(mld0), "",
+        { mldKey, ConfigType::NUMERIC, { "0", "10984" }, ConfigurationHelp::toString(mld0), "",
             "Mixed layer depth (m)." },
-        { uKey, ConfigType::NUMERIC, { "-∞", "∞" }, std::to_string(u0), "",
+        { uKey, ConfigType::NUMERIC, { "-∞", "∞" }, ConfigurationHelp::toString(u0), "",
             "Ocean current in the x (eastward) direction (m s⁻¹)." },
-        { vKey, ConfigType::NUMERIC, { "-∞", "∞" }, std::to_string(v0), "",
+        { vKey, ConfigType::NUMERIC, { "-∞", "∞" }, ConfigurationHelp::toString(v0), "",
             "Ocean current in the y (northward) direction (m s⁻¹)." },
 
     };
@@ -68,6 +67,17 @@ void FluxConfiguredOcean::configure()
     v0 = Configured<FluxConfiguredOcean>::getConfiguration(keyMap.at(CURRENTV_KEY), v0);
 }
 
+ConfigMap FluxConfiguredOcean::getConfiguration() const
+{
+    return {
+        { keyMap.at(QIO_KEY), qio0 },
+        { keyMap.at(SST_KEY), sst0 },
+        { keyMap.at(SSS_KEY), sss0 },
+        { keyMap.at(MLD_KEY), mld0 },
+        { keyMap.at(CURRENTU_KEY), u0 },
+        { keyMap.at(CURRENTV_KEY), v0 },
+    };
+}
 void FluxConfiguredOcean::setData(const ModelState::DataMap& ms)
 {
     IOceanBoundary::setData(ms);
@@ -79,6 +89,10 @@ void FluxConfiguredOcean::setData(const ModelState::DataMap& ms)
     v = v0;
     tf = Module::getImplementation<IFreezingPoint>()(sss[0]);
     cpml = Water::rho * Water::cp * mld[0];
+
+    /* It's only the SSH gradient which has an effect, so being able to set a constant SSH is
+     * useless. */
+    ssh = 0.;
 }
 
 } /* namespace Nextsim */

@@ -1,7 +1,7 @@
 /*!
  * @file IceGrowth_test.cpp
  *
- * @date Apr 8, 2022
+ * @date 22 Nov 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -12,13 +12,12 @@
 #include "include/IceGrowth.hpp"
 
 #include "include/Configurator.hpp"
-#include "include/ConfiguredModule.hpp"
 #include "include/IAtmosphereBoundary.hpp"
 #include "include/IFreezingPoint.hpp"
 #include "include/ModelArray.hpp"
 #include "include/ModelArrayRef.hpp"
 #include "include/ModelComponent.hpp"
-#include "include/Module.hpp"
+#include "include/NextsimModule.hpp"
 #include "include/Time.hpp"
 #include "include/UnescoFreezing.hpp"
 #include "include/UniformOcean.hpp"
@@ -31,17 +30,10 @@ TEST_SUITE_BEGIN("IceGrowth");
 TEST_CASE("New ice formation")
 {
     ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
-    ModelArray::setDimensions(ModelArray::Type::Z, { 1, 1, 1 });
 
-    std::stringstream config;
-    config << "[Modules]" << std::endl;
-    config << "LateralIceSpreadModule = Nextsim::HiblerSpread" << std::endl;
-    config << "IceThermodynamicsModule = Nextsim::ThermoIce0" << std::endl;
-
-    std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
-    Configurator::addStream(std::move(pcstream));
-
-    ConfiguredModule::parseConfigurator();
+    Module::Module<ILateralIceSpread>::setImplementation("Nextsim::HiblerSpread");
+    Module::Module<IIceThermodynamics>::setImplementation("Nextsim::ThermoIce0");
+    Module::setImplementation<IFreezingPoint>("Nextsim::UnescoFreezing");
 
     class AtmosphereBoundary : public IAtmosphereBoundary {
     public:
@@ -72,7 +64,6 @@ TEST_CASE("New ice formation")
             getStore().registerArray(Protected::H_ICE, &hice, RO);
             getStore().registerArray(Protected::C_ICE, &cice, RO);
             getStore().registerArray(Protected::H_SNOW, &hsnow, RO);
-            getStore().registerArray(Protected::T_ICE, &tice0, RO);
         }
         std::string getName() const override { return "PrognosticData"; }
 
@@ -82,29 +73,32 @@ TEST_CASE("New ice formation")
             cice = 0.5;
             hice = 0.1; // Cell averaged
             hsnow = 0; // Cell averaged
-            tice0 = -2;
         }
 
         HField hice;
         HField cice;
         HField hsnow;
-        ZField tice0;
-
-        ModelState getState() const override { return ModelState(); }
-        ModelState getState(const OutputLevel&) const override { return getState(); }
     } proData;
     proData.setData(ModelState().data);
-
-    Module::setImplementation<IFreezingPoint>("Nextsim::UnescoFreezing");
 
     UniformOcean ocnBdy(-1.5, 32., 10.25);
     ocnBdy.setQio(124.689);
     ocnBdy.setData(ModelState().data);
 
+    HField damage(ModelArray::Type::H);
+    HField oldDamage(ModelArray::Type::H);
+    damage = 1;
+    ModelComponent::getStore().registerArray(Shared::DAMAGE, &damage, RW);
+    ModelComponent::getStore().registerArray(Protected::DAMAGE, &oldDamage, RO);
+
     TimestepTime tst = { TimePoint("2000-001"), Duration("P0-1") };
     IceGrowth ig;
     ig.configure();
-    ig.setData(ModelState().data);
+
+    HField tsurf;
+    tsurf = -2.;
+    ModelState::DataMap dataMap = { { tsurfName, tsurf } };
+    ig.setData(dataMap);
     ocnBdy.updateBefore(tst);
     ig.update(tst);
 
@@ -117,17 +111,9 @@ TEST_CASE("New ice formation")
 TEST_CASE("Melting conditions")
 {
     ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
-    ModelArray::setDimensions(ModelArray::Type::Z, { 1, 1, 1 });
 
-    std::stringstream config;
-    config << "[Modules]" << std::endl;
-    config << "LateralIceSpreadModule = Nextsim::HiblerSpread" << std::endl;
-    config << "IceThermodynamicsModule = Nextsim::ThermoIce0" << std::endl;
-
-    std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
-    Configurator::addStream(std::move(pcstream));
-
-    ConfiguredModule::parseConfigurator();
+    Module::Module<ILateralIceSpread>::setImplementation("Nextsim::HiblerSpread");
+    Module::Module<IIceThermodynamics>::setImplementation("Nextsim::ThermoIce0");
 
     class AtmosphericBoundary : public IAtmosphereBoundary {
     public:
@@ -159,7 +145,6 @@ TEST_CASE("Melting conditions")
             getStore().registerArray(Protected::H_ICE, &hice, RO);
             getStore().registerArray(Protected::C_ICE, &cice, RO);
             getStore().registerArray(Protected::H_SNOW, &hsnow, RO);
-            getStore().registerArray(Protected::T_ICE, &tice0, RO);
         }
         std::string getName() const override { return "PrognosticData"; }
 
@@ -169,16 +154,11 @@ TEST_CASE("Melting conditions")
             cice = 0.5;
             hice = 0.1; // Cell averaged
             hsnow = 0.01; // Cell averaged
-            tice0 = -1;
         }
 
         HField hice;
         HField cice;
         HField hsnow;
-        ZField tice0;
-
-        ModelState getState() const override { return ModelState(); }
-        ModelState getState(const OutputLevel&) const override { return getState(); }
     } proData;
     proData.setData(ModelState().data);
 
@@ -188,10 +168,20 @@ TEST_CASE("Melting conditions")
     ocnBdy.setQio(53717.8);
     ocnBdy.setData(ModelState().data);
 
+    HField damage(ModelArray::Type::H);
+    HField oldDamage(ModelArray::Type::H);
+    damage = 1;
+    ModelComponent::getStore().registerArray(Shared::DAMAGE, &damage, RW);
+    ModelComponent::getStore().registerArray(Protected::DAMAGE, &oldDamage, RO);
+
     TimestepTime tst = { TimePoint("2000-001"), Duration("P0-0T0:10:0") };
     IceGrowth ig;
     ig.configure();
-    ig.setData(ModelState().data);
+
+    HField tsurf;
+    tsurf = -1.;
+    ModelState::DataMap dataMap = { { tsurfName, tsurf } };
+    ig.setData(dataMap);
     ocnBdy.updateBefore(tst);
     ig.update(tst);
 
@@ -213,17 +203,9 @@ TEST_CASE("Melting conditions")
 TEST_CASE("Freezing conditions")
 {
     ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
-    ModelArray::setDimensions(ModelArray::Type::Z, { 1, 1, 1 });
 
-    std::stringstream config;
-    config << "[Modules]" << std::endl;
-    config << "LateralIceSpreadModule = Nextsim::HiblerSpread" << std::endl;
-    config << "IceThermodynamicsModule = Nextsim::ThermoIce0" << std::endl;
-
-    std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
-    Configurator::addStream(std::move(pcstream));
-
-    ConfiguredModule::parseConfigurator();
+    Module::Module<ILateralIceSpread>::setImplementation("Nextsim::HiblerSpread");
+    Module::Module<IIceThermodynamics>::setImplementation("Nextsim::ThermoIce0");
 
     class AtmosphereBoundary : public IAtmosphereBoundary {
     public:
@@ -254,7 +236,6 @@ TEST_CASE("Freezing conditions")
             getStore().registerArray(Protected::H_ICE, &hice, RO);
             getStore().registerArray(Protected::C_ICE, &cice, RO);
             getStore().registerArray(Protected::H_SNOW, &hsnow, RO);
-            getStore().registerArray(Protected::T_ICE, &tice0, RO);
         }
         std::string getName() const override { return "PrognosticData"; }
 
@@ -264,16 +245,11 @@ TEST_CASE("Freezing conditions")
             cice = 0.5;
             hice = 0.1; // Cell averaged
             hsnow = 0.01; // Cell averaged
-            tice0 = -9;
         }
 
         HField hice;
         HField cice;
         HField hsnow;
-        ZField tice0;
-
-        ModelState getState() const override { return ModelState(); }
-        ModelState getState(const OutputLevel&) const override { return getState(); }
     } proData;
     proData.setData(ModelState().data);
 
@@ -283,10 +259,20 @@ TEST_CASE("Freezing conditions")
     ocnBdy.setQio(73.9465);
     ocnBdy.setData(ModelState().data);
 
+    HField damage(ModelArray::Type::H);
+    HField oldDamage(ModelArray::Type::H);
+    damage = 1;
+    ModelComponent::getStore().registerArray(Shared::DAMAGE, &damage, RW);
+    ModelComponent::getStore().registerArray(Protected::DAMAGE, &oldDamage, RO);
+
     TimestepTime tst = { TimePoint("2000-001"), Duration("P0-0T0:10:0") };
     IceGrowth ig;
     ig.configure();
-    ig.setData(ModelState().data);
+
+    HField tsurf;
+    tsurf = -9.;
+    ModelState::DataMap dataMap = { { tsurfName, tsurf } };
+    ig.setData(dataMap);
     ocnBdy.updateBefore(tst);
     ig.update(tst);
 
@@ -309,7 +295,6 @@ TEST_CASE("Freezing conditions")
 TEST_CASE("Dummy ice")
 {
     ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
-    ModelArray::setDimensions(ModelArray::Type::Z, { 1, 1, 1 });
 
     Module::setImplementation<ILateralIceSpread>("Nextsim::DummyIceSpread");
     Module::setImplementation<IIceThermodynamics>("Nextsim::DummyIceThermodynamics");
@@ -349,7 +334,6 @@ TEST_CASE("Dummy ice")
             getStore().registerArray(Protected::H_ICE, &hice, RO);
             getStore().registerArray(Protected::C_ICE, &cice, RO);
             getStore().registerArray(Protected::H_SNOW, &hsnow, RO);
-            getStore().registerArray(Protected::T_ICE, &tice0, RO);
         }
         std::string getName() const override { return "PrognosticData"; }
 
@@ -359,16 +343,11 @@ TEST_CASE("Dummy ice")
             cice = cice0;
             hice = hice0; // Cell averaged
             hsnow = hsnow0; // Cell averaged
-            tice0 = tice00;
         }
 
         HField hice;
         HField cice;
         HField hsnow;
-        ZField tice0;
-
-        ModelState getState() const override { return ModelState(); }
-        ModelState getState(const OutputLevel&) const override { return getState(); }
     } proData;
     proData.setData(ModelState().data);
 
@@ -376,11 +355,21 @@ TEST_CASE("Dummy ice")
     ocnBdy.setQio(0.);
     ocnBdy.setData(ModelState().data);
 
+    HField damage(ModelArray::Type::H);
+    HField oldDamage(ModelArray::Type::H);
+    damage = 1;
+    ModelComponent::getStore().registerArray(Shared::DAMAGE, &damage, RW);
+    ModelComponent::getStore().registerArray(Protected::DAMAGE, &oldDamage, RO);
+
     TimestepTime tst = { TimePoint("2000-001"), Duration("P0-0T0:10:0") };
 
     IceGrowth ig;
     ig.configure();
-    ig.setData(ModelState().data);
+
+    HField tsurf;
+    tsurf = tice00;
+    ModelState::DataMap dataMap = { { tsurfName, tsurf } };
+    ig.setData(dataMap);
     ocnBdy.updateBefore(tst);
 
     ig.update(tst);
@@ -408,17 +397,9 @@ TEST_CASE("Dummy ice")
 TEST_CASE("Zero thickness")
 {
     ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
-    ModelArray::setDimensions(ModelArray::Type::Z, { 1, 1, 1 });
 
-    std::stringstream config;
-    config << "[Modules]" << std::endl;
-    config << "LateralIceSpreadModule = Nextsim::HiblerSpread" << std::endl;
-    config << "IceThermodynamicsModule = Nextsim::ThermoIce0" << std::endl;
-
-    std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
-    Configurator::addStream(std::move(pcstream));
-
-    ConfiguredModule::parseConfigurator();
+    Module::Module<ILateralIceSpread>::setImplementation("Nextsim::HiblerSpread");
+    Module::Module<IIceThermodynamics>::setImplementation("Nextsim::ThermoIce0");
 
     class AtmosphericBoundary : public IAtmosphereBoundary {
     public:
@@ -450,7 +431,6 @@ TEST_CASE("Zero thickness")
             getStore().registerArray(Protected::H_ICE, &hice, RO);
             getStore().registerArray(Protected::C_ICE, &cice, RO);
             getStore().registerArray(Protected::H_SNOW, &hsnow, RO);
-            getStore().registerArray(Protected::T_ICE, &tice0, RO);
         }
         std::string getName() const override { return "PrognosticData"; }
 
@@ -460,16 +440,11 @@ TEST_CASE("Zero thickness")
             cice = 0.5;
             hice = 0.1; // Cell averaged
             hsnow = 0.01; // Cell averaged
-            tice0 = -1;
         }
 
         HField hice;
         HField cice;
         HField hsnow;
-        ZField tice0;
-
-        ModelState getState() const override { return ModelState(); }
-        ModelState getState(const OutputLevel&) const override { return getState(); }
     } proData;
     proData.setData(ModelState().data);
 
@@ -477,16 +452,21 @@ TEST_CASE("Zero thickness")
     ocnBdy.setQio(53717.8); // 57 kW m⁻² to go from -1 to -1.75 over the whole mixed layer in 600 s
     ocnBdy.setData(ModelState().data);
 
+    HField damage(ModelArray::Type::H);
+    HField oldDamage(ModelArray::Type::H);
+    damage = 1;
+    ModelComponent::getStore().registerArray(Shared::DAMAGE, &damage, RW);
+    ModelComponent::getStore().registerArray(Protected::DAMAGE, &oldDamage, RO);
+
     class ZeroThicknessIce : public IIceThermodynamics {
         void setData(const ModelState::DataMap&) override { }
         void update(const TimestepTime& tsTime) override
         {
             deltaHi[0] = -hice[0];
             hice[0] = 0;
-            tice[0] = 0;
+            tsurf[0] = 0;
             snowToIce[0] = 0;
         }
-        size_t getNZLevels() const override { return 1; }
     };
     Module::Module<IIceThermodynamics>::setExternalImplementation(
         Module::newImpl<IIceThermodynamics, ZeroThicknessIce>);
@@ -494,7 +474,11 @@ TEST_CASE("Zero thickness")
     TimestepTime tst = { TimePoint("2000-001"), Duration("P0-1") };
     IceGrowth ig;
     ig.configure();
-    ig.setData(ModelState().data);
+
+    HField tsurf;
+    tsurf = -1.;
+    ModelState::DataMap dataMap = { { tsurfName, tsurf } };
+    ig.setData(dataMap);
     ocnBdy.updateBefore(tst);
     ig.update(tst);
 
@@ -512,20 +496,15 @@ TEST_CASE("Zero thickness")
 TEST_CASE("Turn off thermo")
 {
     ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
-    ModelArray::setDimensions(ModelArray::Type::Z, { 1, 1, 1 });
 
+    Module::Module<ILateralIceSpread>::setImplementation("Nextsim::HiblerSpread");
+    Module::Module<IIceThermodynamics>::setImplementation("Nextsim::ThermoIce0");
     std::stringstream config;
-    config << "[Modules]" << std::endl;
-    config << "LateralIceSpreadModule = Nextsim::HiblerSpread" << std::endl;
-    config << "IceThermodynamicsModule = Nextsim::ThermoIce0" << std::endl;
-    config << std::endl;
     config << "[nextsim_thermo]" << std::endl;
     config << "use_thermo_forcing = false" << std::endl;
 
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
-
-    ConfiguredModule::parseConfigurator();
 
     class AtmosphereBoundary : public IAtmosphereBoundary {
     public:
@@ -556,7 +535,6 @@ TEST_CASE("Turn off thermo")
             getStore().registerArray(Protected::H_ICE, &hice, RO);
             getStore().registerArray(Protected::C_ICE, &cice, RO);
             getStore().registerArray(Protected::H_SNOW, &hsnow, RO);
-            getStore().registerArray(Protected::T_ICE, &tice0, RO);
         }
         std::string getName() const override { return "PrognosticData"; }
 
@@ -566,16 +544,11 @@ TEST_CASE("Turn off thermo")
             cice = 0.5;
             hice = 0.1; // Cell averaged
             hsnow = 0.01; // Cell averaged
-            tice0 = -9;
         }
 
         HField hice;
         HField cice;
         HField hsnow;
-        ZField tice0;
-
-        ModelState getState() const override { return ModelState(); }
-        ModelState getState(const OutputLevel&) const override { return getState(); }
     } proData;
     proData.setData(ModelState().data);
 
@@ -604,10 +577,20 @@ TEST_CASE("Turn off thermo")
     } ocnBdy;
     ocnBdy.setData(ModelState().data);
 
+    HField damage(ModelArray::Type::H);
+    HField oldDamage(ModelArray::Type::H);
+    damage = 1;
+    ModelComponent::getStore().registerArray(Shared::DAMAGE, &damage, RW);
+    ModelComponent::getStore().registerArray(Protected::DAMAGE, &oldDamage, RO);
+
     TimestepTime tst = { TimePoint("2000-001"), Duration("P0-0T0:10:0") };
     IceGrowth ig;
     ig.configure();
-    ig.setData(ModelState().data);
+
+    HField tsurf;
+    tsurf = -9.;
+    ModelState::DataMap dataMap = { { tsurfName, tsurf } };
+    ig.setData(dataMap);
     ocnBdy.updateBefore(tst);
     ig.update(tst);
 

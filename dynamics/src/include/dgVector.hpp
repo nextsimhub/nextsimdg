@@ -1,6 +1,6 @@
 /*!
  * @file dgVector.hpp
- * @date 1 Mar 2022
+ * @date 24 Sep 2024
  * @author Thomas Richter <thomas.richter@ovgu.de>
  */
 
@@ -12,7 +12,7 @@
 #include <iostream>
 
 namespace Nextsim {
-//#define CELLDOFS(DGdegree) (DGdegree == 0 ? 1 : (DGdegree == 1 ? 3 : (DGdegree == 2 ? 6 : -1)))
+// #define CELLDOFS(DGdegree) (DGdegree == 0 ? 1 : (DGdegree == 1 ? 3 : (DGdegree == 2 ? 6 : -1)))
 
 template <int DG> class LocalDGVector : public Eigen::Matrix<double, 1, DG> {
 public:

@@ -1,12 +1,9 @@
 add_subdirectory(src)
-if (NOT(CMAKE_BUILD_TYPE STREQUAL "Release"))
+if(BUILD_TESTS) #(NOT(CMAKE_BUILD_TYPE STREQUAL "Release"))
+    enable_testing()
     add_subdirectory(test)
 endif()
 
-set(NextsimSources
-    "${NextsimSources}"
-    PARENT_SCOPE)
+set(NextsimSources "${NextsimSources}" PARENT_SCOPE)
 
-set(NextsimIncludeDirs
-    "${NextsimIncludeDirs}"
-    PARENT_SCOPE)
+set(NextsimIncludeDirs "${NextsimIncludeDirs}" PARENT_SCOPE)

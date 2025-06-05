@@ -1,7 +1,7 @@
 /*!
  * @file SlabOcean.cpp
  *
- * @date 7 Sep 2023
+ * @date 08 May 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -23,8 +23,7 @@ static const std::string className = "SlabOcean";
 static const std::string relaxationTimeTName = "timeT";
 static const std::string relaxationTimeSName = "timeS";
 
-template <>
-const std::map<int, std::string> Configured<SlabOcean>::keyMap = {
+static const std::map<int, std::string> keyMap = {
     { SlabOcean::TIMET_KEY, className + "." + relaxationTimeTName },
     { SlabOcean::TIMES_KEY, className + "." + relaxationTimeSName },
 };
@@ -39,14 +38,42 @@ void SlabOcean::configure()
     getStore().registerArray(Protected::SLAB_SSS, &sssSlab, RO);
 }
 
+ConfigMap SlabOcean::getConfiguration() const
+{
+    return {
+        { keyMap.at(TIMET_KEY), relaxationTimeT },
+        { keyMap.at(TIMES_KEY), relaxationTimeS },
+    };
+}
+
+ModelState SlabOcean::getStatePrognostic() const
+{
+    return { {
+                 { sstSlabName, sstSlab },
+                 { sssSlabName, sssSlab },
+             },
+        getConfiguration() };
+}
+
+ModelState SlabOcean::getStateDiagnostic() const
+{
+    ModelState state = { {
+                             { "Q_slab", qdw },
+                             { "F_slab", fdw },
+                         },
+        {} };
+
+    return state.merge(getStatePrognostic());
+}
+
 SlabOcean::HelpMap& SlabOcean::getHelpText(HelpMap& map, bool getAll)
 {
     map[className] = {
         { keyMap.at(TIMET_KEY), ConfigType::NUMERIC, { "0", "∞" },
-            std::to_string(defaultRelaxationTime), "s",
+            ConfigurationHelp::toString(defaultRelaxationTime), "s",
             "Relaxation time of the slab ocean to external temperature forcing." },
         { keyMap.at(TIMES_KEY), ConfigType::NUMERIC, { "0", "∞" },
-            std::to_string(defaultRelaxationTime), "s",
+            ConfigurationHelp::toString(defaultRelaxationTime), "s",
             "Relaxation time of the slab ocean to external salinity forcing." },
     };
     return map;
@@ -60,48 +87,30 @@ void SlabOcean::setData(const ModelState::DataMap& ms)
     sssSlab.resize();
 }
 
-ModelState SlabOcean::getState() const
-{
-    return { {
-                 { sstSlabName, sstSlab },
-                 { sssSlabName, sssSlab },
-             },
-        {} };
-}
-ModelState SlabOcean::getState(const OutputLevel&) const { return getState(); }
-
-std::unordered_set<std::string> SlabOcean::hFields() const { return { sstSlabName, sssSlabName }; }
-
 void SlabOcean::update(const TimestepTime& tst)
 {
-    double dt = tst.step.seconds();
+    dt = tst.step.seconds();
+    overElements(
+        [this](const size_t i, const TimestepTime& tsTime) { this->updateElement(i, tsTime); },
+        tst);
+}
+
+void SlabOcean::updateElement(size_t i, const TimestepTime& tst)
+{
     // Slab SST update
-    qdw = (sstExt - sst) * cpml / relaxationTimeT;
-    HField qioMean = qio * cice; // cice at start of TS, not updated
-    HField qowMean = qow * (1 - cice); // 1- cice = open water fraction
-    sstSlab = sst - dt * (qioMean + qowMean - qdw) / cpml;
+    qdw[i] = (sstExt[i] - sst[i]) * cpml[i] / relaxationTimeT;
+    sstSlab[i] = sst[i] - dt * (qswNet[i] + qNoSun[i] - qdw[i]) / cpml[i];
+
     // Slab SSS update
-    HField arealDensity = cpml / Water::cp; // density times depth, or cpml divided by cp
+    const double arealDensity = cpml[i] / Water::cp; // density times depth, or cpml divided by cp
     // This is simplified compared to the finiteelement.cpp calculation
     // Fdw = delS * mld * physical::rhow /(timeS*M_sss[i] - ddt*delS) where delS = sssSlab - sssExt
-    fdw = (1 - sssExt / sss) * arealDensity / relaxationTimeS;
-    // ice volume change, both laterally and vertically
-    HField deltaIceVol = newIce + deltaHice * cice;
-    // change in snow volume due to melting (should be < 0)
-    HField meltSnowVol = deltaSmelt * cice;
+    fdw[i] = (1 - sssExt[i] / sss[i]) * arealDensity / relaxationTimeS;
+
     // Mass per unit area after all the changes in water volume
-    HField denominator
-        = arealDensity - deltaIceVol * Ice::rho - meltSnowVol * Ice::rhoSnow - (emp - fdw) * dt;
     // Clamp the denominator to be at least 1 m deep, i.e. at least Water::rho kg m⁻²
-    denominator.clampAbove(Water::rho);
-    // Effective ice salinity is always less than or equal to the SSS
-    HField effectiveIceSal = sss;
-    effectiveIceSal.clampBelow(Ice::s);
-    sssSlab = sss
-        + ((sss - effectiveIceSal) * Ice::rho * deltaIceVol // Change due to ice changes
-              + sss * meltSnowVol
-              + (emp - fdw) * dt) // snow melt, precipitation and nudging fluxes.
-            / denominator;
+    const double denominator = std::max(arealDensity - (fwFlux[i] - fdw[i]) * dt, Water::rhoOcean);
+    sssSlab[i] = sss[i] + (sss[i] * fwFlux[i] - fdw[i] * dt) / denominator;
 }
 
 } /* namespace Nextsim */

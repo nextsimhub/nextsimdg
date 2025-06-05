@@ -1,7 +1,9 @@
 /*!
  * @file    Xios.cpp
- * @author  Joe Wallwork <jw2423@cam.ac.uk
- * @date    31 July 2024
+ * @author  Tom Meltzer <tdm39@cam.ac.uk>
+ * @author  Joe Wallwork <jw2423@cam.ac.uk>
+ * @author  Adeleke Bankole <ab3191@cam.ac.uk>
+ * @date    23 May 2025
  * @brief   XIOS interface implementation
  * @details
  *
@@ -13,17 +15,33 @@
  * To enable XIOS in nextSIM-DG add the following lines to the config file.
  *   [xios]
  *   enable = true
+ *
+ * The start time, timestep, and output period will also be read from the
+ * following config file entries. (Values shown below are the defaults, while
+ * ellipses imply that no default is set.)
+ *   [model]
+ *   start = 1970-01-01T00:00:00Z
+ *   time_step = P0-0T01:00:00
+ *   [XiosInput]
+ *   period = ...
+ *   filename = ...
+ *   field_names = ...
+ *   [XiosOutput]
+ *   period = ...
+ *   filename = ...
+ *   field_names = ...
  */
 #include <boost/date_time/posix_time/time_parsers.hpp>
 #if USE_XIOS
 
-#include "include/ModelArray.hpp"
+#include "include/Finalizer.hpp"
 #include "include/Xios.hpp"
 
 #include <boost/algorithm/string.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/format.hpp>
 #include <boost/format/group.hpp>
+#include <filesystem>
 #include <include/xios_c_interface.hpp>
 #include <iostream>
 #include <mpi.h>
@@ -32,16 +50,67 @@
 
 namespace Nextsim {
 
-template <>
-const std::map<int, std::string> Configured<Xios>::keyMap
-    = { { Xios::ENABLED_KEY, "xios.enable" } };
+static const std::string xOutputPfx = "XiosOutput";
+static const std::string xInputPfx = "XiosInput";
+static const std::map<int, std::string> keyMap = { { Xios::ENABLED_KEY, "xios.enable" },
+    { Xios::START_TIME_KEY, "model.start" }, { Xios::TIME_STEP_KEY, "model.time_step" },
+    { Xios::OUTPUT_PERIOD_KEY, xOutputPfx + ".period" },
+    { Xios::OUTPUT_FILENAME_KEY, xOutputPfx + ".filename" },
+    { Xios::OUTPUT_FIELD_NAMES_KEY, xOutputPfx + ".field_names" },
+    { Xios::INPUT_PERIOD_KEY, xInputPfx + ".period" },
+    { Xios::INPUT_FILENAME_KEY, xInputPfx + ".filename" },
+    { Xios::INPUT_FIELD_NAMES_KEY, xInputPfx + ".field_names" } };
+
+//! Enable XIOS in the 'config'
+void enableXios()
+{
+    std::stringstream config;
+    config << "[xios]" << std::endl << "enable = true" << std::endl;
+    Configurator::addStream(std::unique_ptr<std::istream>(new std::stringstream(config.str())));
+}
 
 /*!
- * Constructor
+ * Constructor: Configure an XIOS server
  *
- * Configure an XIOS server
+ * @param calendartype Type of calendar to use
  */
-Xios::Xios() { configure(); }
+Xios::Xios(const std::string contextid, const std::string calendartype)
+{
+    static bool firstTime = true;
+    contextId = contextid;
+    calendarType = calendartype;
+    configure();
+    static bool doneOnce = doOnce();
+
+    // Create the input and output files (if found in the config)
+    if (firstTime) {
+        for (int key : { INPUT_FILENAME_KEY, OUTPUT_FILENAME_KEY }) {
+            std::string filenameStr;
+            istringstream(Configured::getConfiguration(keyMap.at(key), std::string()))
+                >> filenameStr;
+            if (filenameStr.length() > 0) {
+                filenameStr = ((std::filesystem::path)filenameStr).replace_extension();
+                createFile(filenameStr);
+
+                // Set file name
+                xios::CFile* file = getFile(filenameStr);
+                cxios_set_file_name(file, filenameStr.c_str(), filenameStr.length());
+                if (!cxios_is_defined_file_name(file)) {
+                    throw std::runtime_error(
+                        "Xios: Failed to set name for file '" + filenameStr + "'");
+                }
+            }
+        }
+    }
+    firstTime = false;
+}
+
+bool Xios::doOnce()
+{
+    // Register the finalization function here
+    Finalizer::registerUnique(finalize);
+    return true;
+}
 
 //! Destructor
 Xios::~Xios() { finalize(); }
@@ -62,12 +131,13 @@ void Xios::context_finalize()
     }
 }
 
-//! Close context and finialize server
+//! Finalize XIOS server
 void Xios::finalize()
 {
     if (isEnabled) {
         cxios_finalize();
     }
+    isEnabled = false;
 }
 
 /*!
@@ -81,13 +151,34 @@ void Xios::configure()
     // Check if XIOS is enabled in the nextSIM-DG configuration
     istringstream(Configured::getConfiguration(keyMap.at(ENABLED_KEY), std::string()))
         >> std::boolalpha >> isEnabled;
+
+    // Extract the start time from the model configuration
+    std::string startTimeStr;
+    istringstream(Configured::getConfiguration(keyMap.at(START_TIME_KEY), std::string()))
+        >> startTimeStr;
+    if (startTimeStr.length() == 0) {
+        Logged::warning("Xios: Setting default start: 1970-01-01T00:00:00Z");
+        startTimeStr = "1970-01-01T00:00:00Z";
+    }
+    startTime = TimePoint(startTimeStr);
+
+    // Extract the timestep from the model configuration
+    std::string timeStepStr;
+    istringstream(Configured::getConfiguration(keyMap.at(TIME_STEP_KEY), std::string()))
+        >> timeStepStr;
+    if (timeStepStr.length() == 0) {
+        Logged::warning("Xios: Setting default time_step: P0-0T01:00:00");
+        timeStepStr = "P0-0T01:00:00";
+    }
+    timestep = Duration(timeStepStr);
+
     if (isEnabled) {
         configureServer();
     }
 }
 
 //! Configure calendar settings
-void Xios::configureServer(const std::string calendarType)
+void Xios::configureServer()
 {
     // Initialize XIOS Server process and store MPI communicator
     clientId = "client";
@@ -100,13 +191,20 @@ void Xios::configureServer(const std::string calendarType)
     MPI_Comm_size(clientComm, &mpi_size);
 
     // Initialize 'nextSIM-DG' context
-    contextId = "nextSIM-DG";
     cxios_context_initialize(contextId.c_str(), contextId.length(), &clientComm_F);
 
     // Initialize calendar wrapper for 'nextSIM-DG' context
     cxios_get_current_calendar_wrapper(&clientCalendar);
     cxios_set_calendar_wrapper_type(clientCalendar, calendarType.c_str(), calendarType.length());
+    cxios_set_calendar_wrapper_timestep(clientCalendar, convertDurationToXios(timestep));
     cxios_create_calendar(clientCalendar);
+    cxios_update_calendar_timestep(clientCalendar);
+
+    // Set default calendar origin
+    setCalendarOrigin(TimePoint("1970-01-01T00:00:00Z")); // Unix epoch
+
+    // Set start time from configuration file
+    setCalendarStart(TimePoint(startTime));
 }
 
 /*!
@@ -126,7 +224,7 @@ int Xios::getClientMPIRank() { return mpi_rank; }
  */
 bool Xios::isInitialized()
 {
-    bool init { false };
+    bool init = false;
     cxios_context_is_initialized(contextId.c_str(), contextId.length(), &init);
     return init;
 }
@@ -175,6 +273,46 @@ cxios_date Xios::convertStringToXiosDatetime(const std::string datetimeStr, cons
 }
 
 /*!
+ * Convert a C-string to a C++ `std::string`.
+ *
+ * @param C-string
+ * @param length of C-string
+ * @return C++ string version
+ */
+std::string Xios::convertCStrToCppStr(const char* cStr, int cStrLen)
+{
+    std::string cppStr(cStr, cStrLen);
+    boost::algorithm::trim_right(cppStr);
+    return cppStr;
+}
+
+/*!
+ * Convert an XIOS duration object into a nextSIM-DG one.
+ *
+ * @param XIOS duration object
+ * @return nextSIM-DG version
+ */
+Duration Xios::convertDurationFromXios(const cxios_duration duration)
+{
+    char cStr[cStrLen];
+    cxios_duration_convert_to_string(duration, cStr, cStrLen);
+    std::string durationStr = convertCStrToCppStr(cStr, cStrLen);
+    boost::erase_all(durationStr, "s");
+    return Duration(std::stod(durationStr));
+}
+
+/*!
+ * Convert a nextSIM-DG duration object into an XIOS one.
+ *
+ * @param nextSIM-DG duration object
+ * @return XIOS version
+ */
+cxios_duration Xios::convertDurationToXios(const Duration duration)
+{
+    return cxios_duration({ 0.0, 0.0, 0.0, 0.0, 0.0, duration.seconds() });
+}
+
+/*!
  * Set calendar origin
  *
  * @param origin
@@ -203,10 +341,21 @@ void Xios::setCalendarStart(const TimePoint start)
  */
 void Xios::setCalendarTimestep(const Duration timestep)
 {
-    cxios_duration duration { 0.0, 0.0, 0.0, 0.0, 0.0, timestep.seconds() };
-    cxios_set_calendar_wrapper_timestep(clientCalendar, duration);
+    cxios_set_calendar_wrapper_timestep(clientCalendar, convertDurationToXios(timestep));
     cxios_update_calendar_timestep(clientCalendar);
 }
+
+/*!
+ * Update XIOS calendar iteration/step number to some value
+ *
+ * @param Step number to update to
+ */
+void Xios::setCalendarStep(const int stepNumber) { cxios_update_calendar(stepNumber); }
+
+/*!
+ * Increment XIOS' calendar iteration/step number by one.
+ */
+void Xios::incrementCalendar() { setCalendarStep(getCalendarStep() + 1); }
 
 /*!
  * Get calendar type
@@ -217,9 +366,7 @@ std::string Xios::getCalendarType()
 {
     char cStr[cStrLen];
     cxios_get_calendar_wrapper_type(clientCalendar, cStr, cStrLen);
-    std::string calendarType(cStr, cStrLen);
-    boost::algorithm::trim_right(calendarType);
-    return calendarType;
+    return convertCStrToCppStr(cStr, cStrLen);
 }
 
 /*!
@@ -229,6 +376,9 @@ std::string Xios::getCalendarType()
  */
 TimePoint Xios::getCalendarOrigin()
 {
+    if (!cxios_is_defined_calendar_wrapper_time_origin(clientCalendar)) {
+        throw std::runtime_error("Xios: Calendar origin has not been set");
+    }
     cxios_date calendar_origin;
     cxios_get_calendar_wrapper_date_time_origin(clientCalendar, &calendar_origin);
     return TimePoint(convertXiosDatetimeToString(calendar_origin, true));
@@ -241,6 +391,9 @@ TimePoint Xios::getCalendarOrigin()
  */
 TimePoint Xios::getCalendarStart()
 {
+    if (!cxios_is_defined_calendar_wrapper_start_date(clientCalendar)) {
+        throw std::runtime_error("Xios: Calendar start date has not been set");
+    }
     cxios_date calendar_start;
     cxios_get_calendar_wrapper_date_start_date(clientCalendar, &calendar_start);
     return TimePoint(convertXiosDatetimeToString(calendar_start, true));
@@ -253,14 +406,12 @@ TimePoint Xios::getCalendarStart()
  */
 Duration Xios::getCalendarTimestep()
 {
+    if (!cxios_is_defined_calendar_wrapper_timestep(clientCalendar)) {
+        throw std::runtime_error("Xios: Calendar timestep has not been set");
+    }
     cxios_duration calendar_timestep;
     cxios_get_calendar_wrapper_timestep(clientCalendar, &calendar_timestep);
-    char cStr[cStrLen];
-    cxios_duration_convert_to_string(calendar_timestep, cStr, cStrLen);
-    std::string durationStr(cStr, cStrLen);
-    boost::algorithm::trim_right(durationStr);
-    boost::erase_all(durationStr, "s");
-    return Duration(std::stod(durationStr));
+    return convertDurationFromXios(calendar_timestep);
 }
 
 /*!
@@ -283,20 +434,13 @@ std::string Xios::getCurrentDate(const bool isoFormat)
 }
 
 /*!
- * Update XIOS calendar iteration/step number
- *
- * @param current step number
- */
-void Xios::updateCalendar(const int stepNumber) { cxios_update_calendar(stepNumber); }
-
-/*!
  * Get the axis_definition group
  *
  * @return a pointer to the XIOS CAxisGroup object
  */
 xios::CAxisGroup* Xios::getAxisGroup()
 {
-    const std::string groupId = { "axis_definition" };
+    const std::string groupId = "axis_definition";
     xios::CAxisGroup* group = NULL;
     cxios_axisgroup_handle_create(&group, groupId.c_str(), groupId.length());
     if (!group) {
@@ -313,6 +457,11 @@ xios::CAxisGroup* Xios::getAxisGroup()
  */
 xios::CAxis* Xios::getAxis(const std::string axisId)
 {
+    bool exists;
+    cxios_axis_valid_id(&exists, axisId.c_str(), axisId.length());
+    if (!exists) {
+        throw std::runtime_error("Xios: Undefined axis '" + axisId + "'");
+    }
     xios::CAxis* axis = NULL;
     cxios_axis_handle_create(&axis, axisId.c_str(), axisId.length());
     if (!axis) {
@@ -322,16 +471,38 @@ xios::CAxis* Xios::getAxis(const std::string axisId)
 }
 
 /*!
- * Create an axis with some ID
+ * Create an axis with some ID.
+ *
+ * If the axis ID is 'z_axis' and a domain called 'xy_domain' exists then a grid called 'grid_3D'
+ * will automatically be created with this axis and that domain.
  *
  * @param the axis ID
  */
 void Xios::createAxis(const std::string axisId)
 {
+    bool exists;
+    cxios_axis_valid_id(&exists, axisId.c_str(), axisId.length());
+    if (exists) {
+        throw std::runtime_error("Xios: Axis '" + axisId + "' already exists");
+    }
     xios::CAxis* axis = NULL;
     cxios_xml_tree_add_axis(getAxisGroup(), &axis, axisId.c_str(), axisId.length());
     if (!axis) {
         throw std::runtime_error("Xios: Null pointer for axis '" + axisId + "'");
+    }
+    cxios_axis_valid_id(&exists, axisId.c_str(), axisId.length());
+    if (!exists) {
+        throw std::runtime_error("Xios: Failed to create axis '" + axisId + "'");
+    }
+    if (axisId == "z_axis") {
+        // Create grid_3D associated with a domain called xy_domain and an axis called z_axis
+        const std::string domainId = "xy_domain";
+        cxios_domain_valid_id(&exists, domainId.c_str(), domainId.length());
+        if (exists) {
+            createGrid("grid_3D");
+            gridAddDomain("grid_3D", "xy_domain");
+            gridAddAxis("grid_3D", "z_axis");
+        }
     }
 }
 
@@ -422,7 +593,7 @@ std::vector<double> Xios::getAxisValues(const std::string axisId)
  */
 xios::CDomainGroup* Xios::getDomainGroup()
 {
-    const std::string groupId = { "domain_definition" };
+    const std::string groupId = "domain_definition";
     xios::CDomainGroup* group = NULL;
     cxios_domaingroup_handle_create(&group, groupId.c_str(), groupId.length());
     if (!group) {
@@ -439,6 +610,11 @@ xios::CDomainGroup* Xios::getDomainGroup()
  */
 xios::CDomain* Xios::getDomain(const std::string domainId)
 {
+    bool exists;
+    cxios_domain_valid_id(&exists, domainId.c_str(), domainId.length());
+    if (!exists) {
+        throw std::runtime_error("Xios: Undefined domain '" + domainId + "'");
+    }
     xios::CDomain* domain = NULL;
     cxios_domain_handle_create(&domain, domainId.c_str(), domainId.length());
     if (!domain) {
@@ -448,16 +624,44 @@ xios::CDomain* Xios::getDomain(const std::string domainId)
 }
 
 /*!
- * Create a domain with some ID
+ * Create a domain with some ID.
+ *
+ * If the domain ID is 'xy_domain' then a grid called 'grid_2D' will automatically be created with
+ * this domain. If an axis called 'z_axis' also exists then a grid called 'grid_3D' will
+ * automatically be created with this domain and that axis.
  *
  * @param the domain ID
  */
 void Xios::createDomain(const std::string domainId)
 {
+    bool exists;
+    cxios_domain_valid_id(&exists, domainId.c_str(), domainId.length());
+    if (exists) {
+        throw std::runtime_error("Xios: Domain '" + domainId + "' already exists");
+    }
     xios::CDomain* domain = NULL;
     cxios_xml_tree_add_domain(getDomainGroup(), &domain, domainId.c_str(), domainId.length());
     if (!domain) {
         throw std::runtime_error("Xios: Null pointer for domain '" + domainId + "'");
+    }
+    cxios_domain_valid_id(&exists, domainId.c_str(), domainId.length());
+    if (!exists) {
+        throw std::runtime_error("Xios: Failed to create domain '" + domainId + "'");
+    }
+    if (domainId == "xy_domain") {
+        // Create grid_2D associated with a domain called xy_domain
+        const std::string gridId = "grid_2D";
+        createGrid(gridId);
+        gridAddDomain(gridId, "xy_domain");
+
+        // Create grid_3D if there is also an axis called z_axis
+        const std::string axisId = "z_axis";
+        cxios_axis_valid_id(&exists, axisId.c_str(), axisId.length());
+        if (exists) {
+            createGrid("grid_3D");
+            gridAddDomain("grid_3D", "xy_domain");
+            gridAddAxis("grid_3D", "z_axis");
+        }
     }
 }
 
@@ -583,6 +787,9 @@ void Xios::setDomainLocalXValues(const std::string domainId, std::vector<double>
     if (cxios_is_defined_domain_lonvalue_1d(domain)) {
         Logged::warning("Xios: Overwriting local x-values for domain '" + domainId + "'");
     }
+    if (!cxios_is_defined_domain_ni(domain)) {
+        setDomainLocalXSize(domainId, values.size());
+    }
     int size = getDomainLocalXSize(domainId);
     cxios_set_domain_lonvalue_1d(domain, values.data(), &size);
     if (!cxios_is_defined_domain_lonvalue_1d(domain)) {
@@ -602,6 +809,9 @@ void Xios::setDomainLocalYValues(const std::string domainId, std::vector<double>
     xios::CDomain* domain = getDomain(domainId);
     if (cxios_is_defined_domain_latvalue_1d(domain)) {
         Logged::warning("Xios: Overwriting local y-values for domain '" + domainId + "'");
+    }
+    if (!cxios_is_defined_domain_nj(domain)) {
+        setDomainLocalYSize(domainId, values.size());
     }
     int size = getDomainLocalYSize(domainId);
     cxios_set_domain_latvalue_1d(domain, values.data(), &size);
@@ -643,9 +853,7 @@ std::string Xios::getDomainType(const std::string domainId)
     }
     char cStr[cStrLen];
     cxios_get_domain_type(domain, cStr, cStrLen);
-    std::string domainType(cStr, cStrLen);
-    boost::algorithm::trim_right(domainType);
-    return domainType;
+    return convertCStrToCppStr(cStr, cStrLen);
 }
 
 /*!
@@ -799,7 +1007,7 @@ std::vector<double> Xios::getDomainLocalYValues(const std::string domainId)
  */
 xios::CGridGroup* Xios::getGridGroup()
 {
-    const std::string groupId = { "grid_definition" };
+    const std::string groupId = "grid_definition";
     xios::CGridGroup* group = NULL;
     cxios_gridgroup_handle_create(&group, groupId.c_str(), groupId.length());
     if (!group) {
@@ -816,6 +1024,11 @@ xios::CGridGroup* Xios::getGridGroup()
  */
 xios::CGrid* Xios::getGrid(const std::string gridId)
 {
+    bool exists;
+    cxios_grid_valid_id(&exists, gridId.c_str(), gridId.length());
+    if (!exists) {
+        throw std::runtime_error("Xios: Undefined grid '" + gridId + "'");
+    }
     xios::CGrid* grid = NULL;
     cxios_grid_handle_create(&grid, gridId.c_str(), gridId.length());
     if (!grid) {
@@ -831,45 +1044,21 @@ xios::CGrid* Xios::getGrid(const std::string gridId)
  */
 void Xios::createGrid(const std::string gridId)
 {
+    bool exists;
+    cxios_grid_valid_id(&exists, gridId.c_str(), gridId.length());
+    if (exists) {
+        throw std::runtime_error("Xios: Grid '" + gridId + "' already exists");
+    }
     xios::CGrid* grid = NULL;
     cxios_xml_tree_add_grid(getGridGroup(), &grid, gridId.c_str(), gridId.length());
     if (!grid) {
         throw std::runtime_error("Xios: Null pointer for grid '" + gridId + "'");
     }
-}
-
-/*!
- * Get the name of a grid with a given ID
- *
- * @param the grid ID
- * @return name of the corresponding grid
- */
-std::string Xios::getGridName(const std::string gridId)
-{
-    xios::CGrid* grid = getGrid(gridId);
-    if (!cxios_is_defined_grid_name(grid)) {
-        throw std::runtime_error("Xios: Undefined name for grid '" + gridId + "'");
+    cxios_grid_valid_id(&exists, gridId.c_str(), gridId.length());
+    if (!exists) {
+        throw std::runtime_error("Xios: Failed to create grid '" + gridId + "'");
     }
-    char cStr[cStrLen];
-    cxios_get_grid_name(grid, cStr, cStrLen);
-    std::string gridName(cStr, cStrLen);
-    boost::algorithm::trim_right(gridName);
-    return gridName;
-}
-
-/*!
- * Set the name of a grid with a given ID
- *
- * @param the grid ID
- * @param name to set
- */
-void Xios::setGridName(const std::string gridId, const std::string gridName)
-{
-    xios::CGrid* grid = getGrid(gridId);
-    if (cxios_is_defined_grid_name(grid)) {
-        Logged::warning("Xios: Overwriting name for grid '" + gridId + "'");
-    }
-    cxios_set_grid_name(grid, gridName.c_str(), gridName.length());
+    cxios_set_grid_name(grid, gridId.c_str(), gridId.length());
     if (!cxios_is_defined_grid_name(grid)) {
         throw std::runtime_error("Xios: Failed to set name for grid '" + gridId + "'");
     }
@@ -905,7 +1094,7 @@ void Xios::gridAddDomain(const std::string gridId, const std::string domainId)
  * @param the grid ID
  * @return all axis IDs associated with the grid
  */
-std::vector<std::string> Xios::gridGetAxisIds(const std::string gridId)
+std::vector<std::string> Xios::getGridAxisIds(const std::string gridId)
 {
     return getGrid(gridId)->getAxisList();
 }
@@ -916,7 +1105,7 @@ std::vector<std::string> Xios::gridGetAxisIds(const std::string gridId)
  * @param the grid ID
  * @return all domain IDs associated with the grid
  */
-std::vector<std::string> Xios::gridGetDomainIds(const std::string gridId)
+std::vector<std::string> Xios::getGridDomainIds(const std::string gridId)
 {
     return getGrid(gridId)->getDomainList();
 }
@@ -928,7 +1117,7 @@ std::vector<std::string> Xios::gridGetDomainIds(const std::string gridId)
  */
 xios::CFieldGroup* Xios::getFieldGroup()
 {
-    const std::string groupId = { "field_definition" };
+    const std::string groupId = "field_definition";
     xios::CFieldGroup* group = NULL;
     cxios_fieldgroup_handle_create(&group, groupId.c_str(), groupId.length());
     if (!group) {
@@ -945,12 +1134,56 @@ xios::CFieldGroup* Xios::getFieldGroup()
  */
 xios::CField* Xios::getField(const std::string fieldId)
 {
+    bool exists;
+    cxios_field_valid_id(&exists, fieldId.c_str(), fieldId.length());
+    if (!exists) {
+        throw std::runtime_error("Xios: Undefined field '" + fieldId + "'");
+    }
     xios::CField* field = NULL;
     cxios_field_handle_create(&field, fieldId.c_str(), fieldId.length());
     if (!field) {
         throw std::runtime_error("Xios: Null pointer for field '" + fieldId + "'");
     }
     return field;
+}
+
+// Extract the field_names entry from the XiosInput or XiosOutput section of the config
+std::vector<std::string> Xios::configGetFieldNames(const bool reading)
+{
+    std::string fieldsStr;
+    if (reading) {
+        istringstream(Configured::getConfiguration(keyMap.at(INPUT_FIELD_NAMES_KEY), std::string()))
+            >> fieldsStr;
+    } else {
+        istringstream(
+            Configured::getConfiguration(keyMap.at(OUTPUT_FIELD_NAMES_KEY), std::string()))
+            >> fieldsStr;
+    }
+    std::vector<std::string> fieldNames;
+    if (fieldsStr.length() > 0) {
+        const char delim = ',';
+        std::istringstream iss(fieldsStr);
+        std::string item;
+        while (std::getline(iss, item, delim)) {
+            fieldNames.push_back(item);
+        }
+    }
+    return fieldNames;
+}
+
+// Check whether a fieldId exists in a string of field names separated by commas, as determined by
+// the map key
+bool Xios::configCheckField(const std::string fieldId, const bool reading)
+{
+    std::vector<std::string> fieldNames = configGetFieldNames(reading);
+    bool found = false;
+    for (std::string fieldName : fieldNames) {
+        if (fieldName == fieldId) {
+            found = true;
+            break;
+        }
+    }
+    return found;
 }
 
 /*!
@@ -960,28 +1193,37 @@ xios::CField* Xios::getField(const std::string fieldId)
  */
 void Xios::createField(const std::string fieldId)
 {
+    // Check if the field already exists
+    bool exists;
+    cxios_field_valid_id(&exists, fieldId.c_str(), fieldId.length());
+    if (exists) {
+        throw std::runtime_error("Xios: Field '" + fieldId + "' already exists");
+    }
+
+    // Check that the field is in the XiosOutput or XiosInput config
+    bool readAccess = configCheckField(fieldId, true);
+    bool writeAccess = configCheckField(fieldId, false);
+    if (!(readAccess || writeAccess)) {
+        throw std::runtime_error("Xios: Field '" + fieldId
+            + "' cannot be found in the XiosInput or XiosOutput config sections");
+    }
+
+    // Determine whether the field has read access
+    if (readAccess && writeAccess) {
+        throw std::runtime_error("Xios: Field '" + fieldId
+            + "' found in both the XiosInput and XiosOutput config sections");
+        // TODO: Refactor to allow a field to be both read and written
+    }
+
+    // Attempt to create the field
     xios::CField* field = NULL;
     cxios_xml_tree_add_field(getFieldGroup(), &field, fieldId.c_str(), fieldId.length());
     if (!field) {
         throw std::runtime_error("Xios: Null pointer for field '" + fieldId + "'");
     }
-}
-
-/*!
- * Set the name of a field with a given ID
- *
- * @param the field ID
- * @param name to set
- */
-void Xios::setFieldName(const std::string fieldId, const std::string fieldName)
-{
-    xios::CField* field = getField(fieldId);
-    if (cxios_is_defined_field_name(field)) {
-        Logged::warning("Xios: Overwriting name for field '" + fieldId + "'");
-    }
-    cxios_set_field_name(field, fieldName.c_str(), fieldName.length());
-    if (!cxios_is_defined_field_name(field)) {
-        throw std::runtime_error("Xios: Failed to set name for field '" + fieldId + "'");
+    cxios_field_valid_id(&exists, fieldId.c_str(), fieldId.length());
+    if (!exists) {
+        throw std::runtime_error("Xios: Failed to create field '" + fieldId + "'");
     }
 }
 
@@ -1022,22 +1264,40 @@ void Xios::setFieldGridRef(const std::string fieldId, const std::string gridRef)
 }
 
 /*!
- * Get the name of a field with a given ID
+ * Set the read access for a field with a given ID
  *
  * @param the field ID
- * @return name of the corresponding field
+ * @param read access to set
  */
-std::string Xios::getFieldName(const std::string fieldId)
+void Xios::setFieldReadAccess(const std::string fieldId, const bool readAccess)
 {
     xios::CField* field = getField(fieldId);
-    if (!cxios_is_defined_field_name(field)) {
-        throw std::runtime_error("Xios: Undefined name for field '" + fieldId + "'");
+    if (cxios_is_defined_field_read_access(field)) {
+        Logged::warning("Xios: Overwriting read access for field '" + fieldId + "'");
     }
-    char cStr[cStrLen];
-    cxios_get_field_name(field, cStr, cStrLen);
-    std::string fieldName(cStr, cStrLen);
-    boost::algorithm::trim_right(fieldName);
-    return fieldName;
+    cxios_set_field_read_access(field, readAccess);
+    if (!cxios_is_defined_field_read_access(field)) {
+        throw std::runtime_error("Xios: Failed to set read access for field '" + fieldId + "'");
+    }
+}
+
+/*!
+ * Set the frequency offset for a field with a given ID
+ *
+ * @param the field ID
+ * @param frequency offset to set
+ */
+void Xios::setFieldFreqOffset(const std::string fieldId, const Duration freqOffset)
+{
+    xios::CField* field = getField(fieldId);
+    if (cxios_is_defined_field_freq_offset(field)) {
+        Logged::warning("Xios: Overwriting frequency offset for field '" + fieldId + "'");
+    }
+    cxios_set_field_freq_offset(field, convertDurationToXios(freqOffset));
+    if (!cxios_is_defined_field_freq_offset(field)) {
+        throw std::runtime_error(
+            "Xios: Failed to set frequency offset for field '" + fieldId + "'");
+    }
 }
 
 /*!
@@ -1054,9 +1314,7 @@ std::string Xios::getFieldOperation(const std::string fieldId)
     }
     char cStr[cStrLen];
     cxios_get_field_operation(field, cStr, cStrLen);
-    std::string operation(cStr, cStrLen);
-    boost::algorithm::trim_right(operation);
-    return operation;
+    return convertCStrToCppStr(cStr, cStrLen);
 }
 
 /*!
@@ -1073,9 +1331,43 @@ std::string Xios::getFieldGridRef(const std::string fieldId)
     }
     char cStr[cStrLen];
     cxios_get_field_grid_ref(field, cStr, cStrLen);
-    std::string gridRef(cStr, cStrLen);
-    boost::algorithm::trim_right(gridRef);
-    return gridRef;
+    return convertCStrToCppStr(cStr, cStrLen);
+}
+
+/*!
+ * Get the read access associated with a field with a given ID
+ *
+ * @param the field ID
+ * @return read access used for the corresponding field
+ */
+bool Xios::getFieldReadAccess(const std::string fieldId)
+{
+    xios::CField* field = getField(fieldId);
+    if (!cxios_is_defined_field_read_access(field)) {
+        throw std::runtime_error("Xios: Undefined read access for field '" + fieldId + "'");
+    }
+    bool readAccess;
+    cxios_get_field_read_access(field, &readAccess);
+    return readAccess;
+}
+
+/*!
+ * Get the frequency offset associated with a field with a given ID
+ *
+ * @param the field ID
+ * @return frequency offset used for the corresponding field
+ */
+Duration Xios::getFieldFreqOffset(const std::string fieldId)
+{
+    xios::CField* field = getField(fieldId);
+    if (!cxios_is_defined_field_freq_offset(field)) {
+        throw std::runtime_error("Xios: Undefined frequency offset for field '" + fieldId + "'");
+    }
+    cxios_duration duration;
+    cxios_get_field_freq_offset(field, &duration);
+    char cStr[cStrLen];
+    cxios_duration_convert_to_string(duration, cStr, cStrLen);
+    return convertDurationFromXios(duration);
 }
 
 /*!
@@ -1085,7 +1377,7 @@ std::string Xios::getFieldGridRef(const std::string fieldId)
  */
 xios::CFileGroup* Xios::getFileGroup()
 {
-    const std::string groupId = { "file_definition" };
+    const std::string groupId = "file_definition";
     xios::CFileGroup* group = NULL;
     cxios_filegroup_handle_create(&group, groupId.c_str(), groupId.length());
     if (!group) {
@@ -1102,6 +1394,11 @@ xios::CFileGroup* Xios::getFileGroup()
  */
 xios::CFile* Xios::getFile(const std::string fileId)
 {
+    bool exists;
+    cxios_file_valid_id(&exists, fileId.c_str(), fileId.length());
+    if (!exists) {
+        throw std::runtime_error("Xios: Undefined file '" + fileId + "'");
+    }
     xios::CFile* file = NULL;
     cxios_file_handle_create(&file, fileId.c_str(), fileId.length());
     if (!file) {
@@ -1118,36 +1415,85 @@ xios::CFile* Xios::getFile(const std::string fileId)
 void Xios::createFile(const std::string fileId)
 {
     xios::CFile* file = NULL;
-    bool valid;
-    cxios_file_valid_id(&valid, fileId.c_str(), fileId.length());
-    if (valid) {
+    bool exists;
+    cxios_file_valid_id(&exists, fileId.c_str(), fileId.length());
+    if (exists) {
         throw std::runtime_error("Xios: File '" + fileId + "' already exists");
     }
     cxios_xml_tree_add_file(getFileGroup(), &file, fileId.c_str(), fileId.length());
     if (!file) {
         throw std::runtime_error("Xios: Null pointer for file '" + fileId + "'");
     }
-    cxios_file_valid_id(&valid, fileId.c_str(), fileId.length());
-    if (!valid) {
-        throw std::runtime_error("Xios: Failed to create valid file '" + fileId + "'");
+    cxios_file_valid_id(&exists, fileId.c_str(), fileId.length());
+    if (!exists) {
+        throw std::runtime_error("Xios: Failed to create file '" + fileId + "'");
     }
-}
 
-/*!
- * Set the name of a file with a given ID
- *
- * @param the file ID
- * @param file name to set
- */
-void Xios::setFileName(const std::string fileId, const std::string fileName)
-{
-    xios::CFile* file = getFile(fileId);
-    if (cxios_is_defined_file_name(file)) {
-        Logged::warning("Xios: Overwriting name for file '" + fileId + "'");
+    // Determine whether the file is configured for reading or writing
+    std::string inputFilenameStr;
+    istringstream(Configured::getConfiguration(keyMap.at(INPUT_FILENAME_KEY), std::string()))
+        >> inputFilenameStr;
+    bool readAccess = ((inputFilenameStr.length() > 0) && (inputFilenameStr == fileId));
+    std::string outputFilenameStr;
+    istringstream(Configured::getConfiguration(keyMap.at(OUTPUT_FILENAME_KEY), std::string()))
+        >> outputFilenameStr;
+    bool writeAccess = ((outputFilenameStr.length() > 0) && (outputFilenameStr == fileId));
+
+    // Check that the filename is not in both the XiosOutput and XiosInput config sections
+    if (readAccess && writeAccess) {
+        throw std::runtime_error("Xios: File '" + fileId
+            + "' found in both the XiosInput and XiosOutput config sections");
+        // TODO: Refactor to allow a field to be both read and written
     }
-    cxios_set_file_name(file, fileName.c_str(), fileName.length());
-    if (!cxios_is_defined_file_name(file)) {
-        throw std::runtime_error("Xios: Failed to set name for file '" + fileId + "'");
+
+    // Terminate early for special unit test cases, for which IDs start with 'unittest'
+    if (fileId.rfind("unittest", 0) == 0) {
+        Logged::warning("Xios: Special 'unittest' ID found; skipping automated setup. Are you sure "
+                        "you want to do this?");
+        return;
+    }
+
+    // Check that the filename is in the XiosOutput or XiosInput config section
+    if (!(readAccess || writeAccess)) {
+        throw std::runtime_error("Xios: File '" + fileId
+            + "' cannot be found in the XiosInput or XiosOutput config sections");
+    }
+
+    // Set the file mode and some defaults
+    if (readAccess) {
+        setFileMode(fileId, "read");
+    } else {
+        setFileMode(fileId, "write");
+    }
+    setFileType(fileId, "one_file");
+    setFileParAccess(fileId, "collective");
+
+    // Set the input or output period based on the model configuration
+    std::string periodStr;
+    if (readAccess) {
+        istringstream(Configured::getConfiguration(keyMap.at(INPUT_PERIOD_KEY), std::string()))
+            >> periodStr;
+    } else {
+        istringstream(Configured::getConfiguration(keyMap.at(OUTPUT_PERIOD_KEY), std::string()))
+            >> periodStr;
+    }
+    if (periodStr.length() > 0) {
+        setFileOutputFreq(fileId, Duration(periodStr));
+    }
+
+    // Create all fields found in the config based off the field names found in the
+    // XiosInput.field_names or XiosOutput.field_names entries in the config.
+    for (std::string fieldId : configGetFieldNames(readAccess)) {
+        createField(fieldId);
+        fileAddField(fileId, fieldId);
+        setFieldReadAccess(fieldId, readAccess);
+
+        // Set field name
+        xios::CField* field = getField(fieldId);
+        cxios_set_field_name(field, fieldId.c_str(), fieldId.length());
+        if (!cxios_is_defined_field_name(field)) {
+            throw std::runtime_error("Xios: Failed to set name for field '" + fieldId + "'");
+        }
     }
 }
 
@@ -1175,14 +1521,13 @@ void Xios::setFileType(const std::string fileId, const std::string fileType)
  * @param the file ID
  * @param output frequency to set
  */
-void Xios::setFileOutputFreq(const std::string fileId, const std::string freq)
+void Xios::setFileOutputFreq(const std::string fileId, const Duration freq)
 {
     xios::CFile* file = getFile(fileId);
     if (cxios_is_defined_file_output_freq(file)) {
         Logged::warning("Xios: Overwriting output frequency for file '" + fileId + "'");
     }
-    cxios_set_file_output_freq(
-        file, cxios_duration_convert_from_string(freq.c_str(), freq.length()));
+    cxios_set_file_output_freq(file, convertDurationToXios(freq));
     if (!cxios_is_defined_file_output_freq(file)) {
         throw std::runtime_error("Xios: Failed to set output frequency for file '" + fileId + "'");
     }
@@ -1194,36 +1539,52 @@ void Xios::setFileOutputFreq(const std::string fileId, const std::string freq)
  * @param the file ID
  * @param split frequency to set
  */
-void Xios::setFileSplitFreq(const std::string fileId, const std::string freq)
+void Xios::setFileSplitFreq(const std::string fileId, const Duration freq)
 {
     xios::CFile* file = getFile(fileId);
     if (cxios_is_defined_file_split_freq(file)) {
         Logged::warning("Xios: Split frequency already set for file '" + fileId + "'");
     }
-    cxios_set_file_split_freq(
-        file, cxios_duration_convert_from_string(freq.c_str(), freq.length()));
+    cxios_set_file_split_freq(file, convertDurationToXios(freq));
     if (!cxios_is_defined_file_split_freq(file)) {
         throw std::runtime_error("Xios: Failed to set split frequency for file '" + fileId + "'");
     }
 }
 
 /*!
- * Get the name of a file with a given ID
+ * Set the mode of a file with a given ID
  *
  * @param the file ID
- * @return name of the corresponding file
+ * @param file mode to set
  */
-std::string Xios::getFileName(const std::string fileId)
+void Xios::setFileMode(const std::string fileId, const std::string mode)
 {
     xios::CFile* file = getFile(fileId);
-    if (!cxios_is_defined_file_name(file)) {
-        throw std::runtime_error("Xios: Undefined name for file '" + fileId + "'");
+    if (cxios_is_defined_file_mode(file)) {
+        Logged::warning("Xios: Overwriting mode for file '" + fileId + "'");
     }
-    char cStr[cStrLen];
-    cxios_get_file_name(file, cStr, cStrLen);
-    std::string fileName(cStr, cStrLen);
-    boost::algorithm::trim_right(fileName);
-    return fileName;
+    cxios_set_file_mode(file, mode.c_str(), mode.length());
+    if (!cxios_is_defined_file_mode(file)) {
+        throw std::runtime_error("Xios: Failed to set mode for file '" + fileId + "'");
+    }
+}
+
+/*!
+ * Set the parallel access mode of a file with a given ID
+ *
+ * @param the file ID
+ * @param parallel access mode to set
+ */
+void Xios::setFileParAccess(const std::string fileId, const std::string parAccess)
+{
+    xios::CFile* file = getFile(fileId);
+    if (cxios_is_defined_file_par_access(file)) {
+        Logged::warning("Xios: Overwriting parallel access for file '" + fileId + "'");
+    }
+    cxios_set_file_par_access(file, parAccess.c_str(), parAccess.length());
+    if (!cxios_is_defined_file_par_access(file)) {
+        throw std::runtime_error("Xios: Failed to set parallel access for file '" + fileId + "'");
+    }
 }
 
 /*!
@@ -1235,14 +1596,12 @@ std::string Xios::getFileName(const std::string fileId)
 std::string Xios::getFileType(const std::string fileId)
 {
     xios::CFile* file = getFile(fileId);
-    if (!cxios_is_defined_file_name(file)) {
+    if (!cxios_is_defined_file_type(file)) {
         throw std::runtime_error("Xios: Undefined type for file '" + fileId + "'");
     }
     char cStr[cStrLen];
     cxios_get_file_type(file, cStr, cStrLen);
-    std::string fileType(cStr, cStrLen);
-    boost::algorithm::trim_right(fileType);
-    return fileType;
+    return convertCStrToCppStr(cStr, cStrLen);
 }
 
 /*!
@@ -1251,19 +1610,15 @@ std::string Xios::getFileType(const std::string fileId)
  * @param the file ID
  * @return the corresponding output frequency
  */
-std::string Xios::getFileOutputFreq(const std::string fileId)
+Duration Xios::getFileOutputFreq(const std::string fileId)
 {
     xios::CFile* file = getFile(fileId);
     if (!cxios_is_defined_file_output_freq(file)) {
-        throw std::runtime_error("Xios: Undefined type for file '" + fileId + "'");
+        throw std::runtime_error("Xios: Undefined output frequency for file '" + fileId + "'");
     }
     cxios_duration duration;
     cxios_get_file_output_freq(file, &duration);
-    char cStr[cStrLen];
-    cxios_duration_convert_to_string(duration, cStr, cStrLen);
-    std::string outputFreq(cStr, cStrLen);
-    boost::algorithm::trim_right(outputFreq);
-    return outputFreq;
+    return convertDurationFromXios(duration);
 }
 
 /*!
@@ -1272,19 +1627,53 @@ std::string Xios::getFileOutputFreq(const std::string fileId)
  * @param the file ID
  * @return split frequency of the corresponding file
  */
-std::string Xios::getFileSplitFreq(const std::string fileId)
+Duration Xios::getFileSplitFreq(const std::string fileId)
 {
     xios::CFile* file = getFile(fileId);
     if (!cxios_is_defined_file_split_freq(file)) {
-        throw std::runtime_error("Xios: Undefined values for file '" + fileId + "'");
+        throw std::runtime_error("Xios: Undefined split frequency for file '" + fileId + "'");
     }
     cxios_duration duration;
     cxios_get_file_split_freq(file, &duration);
+    return convertDurationFromXios(duration);
+}
+
+/*!
+ * Get the mode of a file with a given ID
+ *
+ * @param the file ID
+ * @return mode of the corresponding file
+ */
+std::string Xios::getFileMode(const std::string fileId)
+{
+    xios::CFile* file = getFile(fileId);
+    if (!cxios_is_defined_file_mode(file)) {
+        throw std::runtime_error("Xios: Undefined mode for file '" + fileId + "'");
+    }
     char cStr[cStrLen];
-    cxios_duration_convert_to_string(duration, cStr, cStrLen);
-    std::string freq(cStr, cStrLen);
-    boost::algorithm::trim_right(freq);
-    return freq;
+    cxios_get_file_mode(file, cStr, cStrLen);
+    std::string mode(cStr, cStrLen);
+    boost::algorithm::trim_right(mode);
+    return mode;
+}
+
+/*!
+ * Get the parallel access mode of a file with a given ID
+ *
+ * @param the file ID
+ * @return parallel access mode of the corresponding file
+ */
+std::string Xios::getFileParAccess(const std::string fileId)
+{
+    xios::CFile* file = getFile(fileId);
+    if (!cxios_is_defined_file_par_access(file)) {
+        throw std::runtime_error("Xios: Undefined parallel access for file '" + fileId + "'");
+    }
+    char cStr[cStrLen];
+    cxios_get_file_par_access(file, cStr, cStrLen);
+    std::string parAccess(cStr, cStrLen);
+    boost::algorithm::trim_right(parAccess);
+    return parAccess;
 }
 
 /*!
@@ -1334,6 +1723,30 @@ void Xios::write(const std::string fieldId, ModelArray& modelarray)
     } else if (ndim == 4) {
         cxios_write_data_k84(fieldId.c_str(), fieldId.length(), modelarray.getData(), dims[0],
             dims[1], dims[2], dims[3], -1);
+    } else {
+        throw std::invalid_argument("Only ModelArrays of dimension 2, 3, or 4 are supported");
+    }
+}
+
+/*!
+ * Receive field from XIOS server that has been read from file.
+ *
+ * @param field name
+ * @param reference to the ModelArray containing the data to be written
+ */
+void Xios::read(const std::string fieldId, ModelArray& modelarray)
+{
+    auto ndim = modelarray.nDimensions();
+    auto dims = modelarray.dimensions();
+    if (ndim == 2) {
+        cxios_read_data_k82(
+            fieldId.c_str(), fieldId.length(), modelarray.getData(), dims[0], dims[1]);
+    } else if (ndim == 3) {
+        cxios_read_data_k83(
+            fieldId.c_str(), fieldId.length(), modelarray.getData(), dims[0], dims[1], dims[2]);
+    } else if (ndim == 4) {
+        cxios_read_data_k84(fieldId.c_str(), fieldId.length(), modelarray.getData(), dims[0],
+            dims[1], dims[2], dims[3]);
     } else {
         throw std::invalid_argument("Only ModelArrays of dimension 2, 3, or 4 are supported");
     }

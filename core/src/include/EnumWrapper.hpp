@@ -1,7 +1,7 @@
 /*!
  * @file EnumWrapper.hpp
  *
- * @date Oct 15, 2021
+ * @date 24 Sep 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -85,7 +85,7 @@ public:
         map = inMap;
     }
 
-    friend std::istream& operator>><E>(std::istream& is, EnumWrapper<E>&);
+    friend std::istream& operator>> <E>(std::istream& is, EnumWrapper<E>&);
 
 private:
     //! The public, static mapping between input strings and enum values.

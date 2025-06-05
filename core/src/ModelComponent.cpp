@@ -1,7 +1,7 @@
 /*!
  * @file ModelComponent.cpp
  *
- * @date Feb 28, 2022
+ * @date 25 Apr 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -11,41 +11,14 @@
 
 namespace Nextsim {
 
-std::unordered_map<std::string, ModelComponent*> ModelComponent::registeredModules;
-ModelArrayReferenceStore ModelComponent::store;
-ModelArray* ModelComponent::p_oceanMaskH = nullptr;
-size_t ModelComponent::nOcean;
+size_t ModelComponent::nOcean = 0;
 std::vector<size_t> ModelComponent::oceanIndex;
 
-ModelComponent::ModelComponent() { noLandMask(); }
-
-void ModelComponent::setAllModuleData(const ModelState& stateIn)
+ModelComponent::ModelComponent()
 {
-    for (auto entry : registeredModules) {
-        entry.second->setData(stateIn.data);
-    }
-}
-ModelState ModelComponent::getAllModuleState()
-{
-    ModelState overallState;
-    for (auto entry : registeredModules) {
-        overallState.data.merge(entry.second->getState().data);
-    }
-    return overallState;
-}
-
-void ModelComponent::registerModule() { registeredModules[getName()] = this; }
-
-void ModelComponent::unregisterAllModules() { registeredModules.clear(); }
-
-void ModelComponent::getAllFieldNames(std::unordered_set<std::string>& uF,
-    std::unordered_set<std::string>& vF, std::unordered_set<std::string>& zF)
-{
-    for (auto entry : registeredModules) {
-        uF.merge(entry.second->uFields());
-        vF.merge(entry.second->vFields());
-        zF.merge(entry.second->zFields());
-    }
+    // We only set no land mask if the mask hasn't been set by someone else.
+    if (nOcean == 0)
+        noLandMask();
 }
 
 /*
@@ -55,23 +28,17 @@ void ModelComponent::getAllFieldNames(std::unordered_set<std::string>& uF,
  */
 void ModelComponent::setOceanMask(const ModelArray& mask)
 {
-    if (p_oceanMaskH)
-        delete p_oceanMaskH;
-    p_oceanMaskH = new ModelArray(ModelArray::Type::H);
-    ModelArray& oceanMaskH = *p_oceanMaskH;
-    oceanMaskH.resize();
-    oceanMaskH = mask;
-
+    oceanMaskSingleton() = mask;
     // Generate the oceanIndex to grid index mapping
     // 1. Count the number of non-land squares
     for (size_t i = 0; i < ModelArray::size(ModelArray::Type::H); ++i) {
-        if (oceanMaskH[i] > 0)
+        if (oceanMask()[i] > 0)
             ++nOcean;
     }
     oceanIndex.resize(nOcean);
     size_t iOceanIndex = 0;
     for (size_t i = 0; i < ModelArray::size(ModelArray::Type::H); ++i) {
-        if (oceanMaskH[i] > 0) {
+        if (oceanMask()[i] > 0) {
             oceanIndex[iOceanIndex++] = i;
         }
     }
@@ -80,11 +47,10 @@ void ModelComponent::setOceanMask(const ModelArray& mask)
 // Fills the nOcean and OceanIndex variables for the zero land case
 void ModelComponent::noLandMask()
 {
-    if (p_oceanMaskH)
-        delete p_oceanMaskH;
-    p_oceanMaskH = new ModelArray(ModelArray::Type::H);
-    p_oceanMaskH->resize();
-    *p_oceanMaskH = 1.; // All ocean
+    ModelArray newOceanMask(ModelArray::Type::H);
+    newOceanMask.resize();
+    newOceanMask = 1.; // All ocean
+    oceanMaskSingleton() = newOceanMask;
 
     nOcean = ModelArray::size(ModelArray::Type::H);
     oceanIndex.resize(nOcean);
@@ -103,25 +69,12 @@ ModelArray ModelComponent::mask(const ModelArray& data)
     case (ModelArray::Type::H):
     case (ModelArray::Type::U):
     case (ModelArray::Type::V): {
-        return data * oceanMask() + MissingData::value * (1 - oceanMask());
-        break;
-    }
-    case (ModelArray::Type::Z): {
-        ModelArray copy = ModelArray::ZField();
-        copy = MissingData::value;
-        size_t nZ = data.dimensions()[data.nDimensions() - 1];
-        for (size_t iOcean = 0; iOcean < nOcean; ++iOcean) {
-            size_t i = oceanIndex[iOcean];
-            for (size_t k = 0; k < nZ; ++k) {
-                copy.zIndexAndLayer(i, k) = data.zIndexAndLayer(i, k);
-            }
-        }
-        return copy;
+        return data * oceanMask() + MissingData::value() * (1 - oceanMask());
         break;
     }
     }
 }
 
-const ModelArray& ModelComponent::oceanMask() { return *p_oceanMaskH; }
+const ModelArray& ModelComponent::oceanMask() { return oceanMaskSingleton(); }
 
 } /* namespace Nextsim */

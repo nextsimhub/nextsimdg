@@ -1,7 +1,7 @@
 /*!
  * @file ConfigOutput.hpp
  *
- * @date 2 Jul 2024
+ * @date 24 Sep 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -38,20 +38,16 @@ public:
     // IDiagnosticOutput overrides
     void setFilenamePrefix(const std::string& filePrefix) override { m_filePrefix = filePrefix; }
     void setModelStart(const TimePoint& modelStart) override;
-    void outputState(const ModelMetadata& meta) override;
-
+    void outputState(const ModelState& state, const ModelMetadata& meta) override;
 
     // ModelComponent overrides
     inline std::string getName() const override { return "ConfigOutput"; };
     inline void setData(const ModelState::DataMap&) override {};
-    inline ModelState getState() const override { return ModelState(); };
-    inline ModelState getState(const OutputLevel&) const override { return ModelState(); };
 
     // Configured overrides
     static HelpMap& getHelpRecursive(HelpMap& map, bool getAll);
     static HelpMap& getHelpText(HelpMap& map, bool getAll);
     void configure() override;
-    ModelState getStateRecursive(const OutputSpec& os) const override;
 
 private:
     std::string m_filePrefix;
@@ -71,7 +67,6 @@ private:
     static const std::string defaultLastOutput;
 
     std::map<std::string, std::string> reverseExternalNames;
-
 };
 
 } /* namespace Nextsim */

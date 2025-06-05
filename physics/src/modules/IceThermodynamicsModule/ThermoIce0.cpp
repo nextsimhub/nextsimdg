@@ -1,18 +1,17 @@
 /*!
  * @file ThermoIce0.cpp
  *
- * @date Mar 17, 2022
+ * @date 02 May 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
 #include "include/ThermoIce0.hpp"
 
-#include "include/IceMinima.hpp"
-#include "include/FreezingPointModule.hpp"
+#include "include/IFreezingPoint.hpp"
 #include "include/IceGrowth.hpp"
 #include "include/IceMinima.hpp"
 #include "include/ModelArray.hpp"
-#include "include/NZLevels.hpp"
+#include "include/NextsimModule.hpp"
 #include "include/constants.hpp"
 
 namespace Nextsim {
@@ -20,7 +19,6 @@ namespace Nextsim {
 double ThermoIce0::kappa_s;
 static const double k_sDefault = 0.3096;
 const double ThermoIce0::freezingPointIce = -Water::mu * Ice::s;
-const size_t ThermoIce0::nZLevels = 1;
 
 ThermoIce0::ThermoIce0()
     : IIceThermodynamics()
@@ -34,36 +32,49 @@ ThermoIce0::ThermoIce0()
 
 void ThermoIce0::update(const TimestepTime& tsTime)
 {
-    overElements(std::bind(&ThermoIce0::calculateElement, this, std::placeholders::_1,
-                     std::placeholders::_2),
-        tsTime);
+    overElements(
+        [this](size_t i, const TimestepTime& tst) { this->calculateElement(i, tst); }, tsTime);
 }
 
-template <>
-const std::map<int, std::string> Configured<ThermoIce0>::keyMap = {
+static const std::map<int, std::string> keyMap = {
     { ThermoIce0::KS_KEY, IIceThermodynamics::getKappaSConfigKey() },
 };
 
 void ThermoIce0::configure()
 {
     kappa_s = Configured::getConfiguration(keyMap.at(KS_KEY), k_sDefault);
-    NZLevels::set(nZLevels);
 }
 
-ModelState ThermoIce0::getStateRecursive(const OutputSpec& os) const
+ConfigMap ThermoIce0::getConfiguration() const
 {
-    ModelState state = { {},
-        {
-            { keyMap.at(KS_KEY), kappa_s },
-        } };
-    return os ? state : ModelState();
+    return { { keyMap.at(KS_KEY), kappa_s } };
+}
+
+ModelState ThermoIce0::getStateDiagnostic() const
+{
+    ModelState state = { {
+        { "snow_melt", snowMelt },
+        { "top_melt", topMelt },
+        { "bottom_melt", botMelt },
+        { "Q_ic", qic },
+    },
+            getConfiguration()
+    };
+
+    return state.merge(IIceThermodynamics::getStateDiagnostic());
+}
+
+ModelState ThermoIce0::getStatePrognostic() const
+{
+    ModelState state = IIceThermodynamics::getStatePrognostic();
+    return state.merge(getConfiguration());
 }
 
 ThermoIce0::HelpMap& ThermoIce0::getHelpText(HelpMap& map, bool getAll)
 {
     map["ThermoIce0"] = {
-        { keyMap.at(KS_KEY), ConfigType::NUMERIC, { "0", "∞" }, std::to_string(k_sDefault),
-            "W K⁻¹ m⁻¹", "Thermal conductivity of snow." },
+        { keyMap.at(KS_KEY), ConfigType::NUMERIC, { "0", "∞" },
+            ConfigurationHelp::toString(k_sDefault), "W K⁻¹ m⁻¹", "Thermal conductivity of snow." },
     };
     return map;
 }
@@ -88,6 +99,7 @@ void ThermoIce0::calculateElement(size_t i, const TimestepTime& tst)
     if (hice[i] == 0. || cice[i] == 0.) {
         deltaHi[i] = 0.;
         snowToIce[i] = 0.;
+        tsurf[i] = freezingPointIce;
 
         return;
     }
@@ -101,11 +113,12 @@ void ThermoIce0::calculateElement(size_t i, const TimestepTime& tst)
 
     // Create a reference to the local updated Tice value here to avoid having
     // to write the array access expression out in full every time
-    double& tice_i = tice.zIndexAndLayer(i, 0);
+    double& tice_i = tsurf[i];
+    double tice0 = tsurf[i];
     double k_lSlab = kappa_s * Ice::kappa / (kappa_s * hice[i] + Ice::kappa * hsnow[i]) * gamma;
-    qic[i] = k_lSlab * (tf[i] - tice0.zIndexAndLayer(i, 0));
+    qic[i] = k_lSlab * (tf[i] - tice0);
     double remainingFlux = qic[i] - (qia[i] + (1. - beta) * penSw[i]);
-    tice_i = tice0.zIndexAndLayer(i, 0) + remainingFlux / (k_lSlab + dQia_dt[i]);
+    tice_i = tice0 + remainingFlux / (k_lSlab + dQia_dt[i]);
 
     // Clamp the temperature of the ice to a maximum of the melting point
     // of ice or snow
@@ -129,7 +142,7 @@ void ThermoIce0::calculateElement(size_t i, const TimestepTime& tst)
     hice[i] += deltaHi[i];
 
     // Then add snowfall back on top if there's still ice
-    if ( hice[i] > 0. )
+    if (hice[i] > 0.)
         hsnow[i] += snowfall[i] * tst.step / Ice::rhoSnow;
 
     // Amount of melting (only) at the top and bottom of the ice
@@ -168,9 +181,8 @@ void ThermoIce0::calculateElement(size_t i, const TimestepTime& tst)
         cice[i] = 0.;
         hice[i] = 0.;
         hsnow[i] = 0.;
-        tice.zIndexAndLayer(i, 0) = celsius(Ice::Tm);
+        tsurf[i] = celsius(Ice::Tm);
     }
 }
 
-size_t ThermoIce0::getNZLevels() const { return nZLevels; }
 } /* namespace Nextsim */

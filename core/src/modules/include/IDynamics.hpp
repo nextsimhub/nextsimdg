@@ -1,7 +1,7 @@
 /*!
  * @file IDynamics.hpp
  *
- * @date 7 Sep 2023
+ * @date 26 May 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -23,6 +23,12 @@ public:
         : uice(ModelArray::Type::H)
         , vice(ModelArray::Type::H)
         , damage(ModelArray::Type::H)
+        , taux(ModelArray::Type::H)
+        , tauy(ModelArray::Type::H)
+        , shear(ModelArray::Type::H)
+        , divergence(ModelArray::Type::H)
+        , sigmaI(ModelArray::Type::H)
+        , sigmaII(ModelArray::Type::H)
         , hice(getStore())
         , cice(getStore())
         , hsnow(getStore())
@@ -31,25 +37,53 @@ public:
         , vwind(getStore())
         , uocean(getStore())
         , vocean(getStore())
+        , ssh(getStore())
         , m_usesDamage(usesDamageIn)
+        , hiceDG(getStore())
+        , ciceDG(getStore())
     {
+        getStore().registerArray(Protected::DIV, &divergence, RO);
+        getStore().registerArray(Protected::ICE_U, &uice, RO);
+        getStore().registerArray(Protected::ICE_V, &vice, RO);
+        getStore().registerArray(Protected::IO_STRESS_X, &taux, RO);
+        getStore().registerArray(Protected::IO_STRESS_Y, &tauy, RO);
+        getStore().registerArray(Protected::SHEAR, &shear, RO);
+        getStore().registerArray(Protected::SIGMAI, &sigmaI, RO);
+        getStore().registerArray(Protected::SIGMAII, &sigmaII, RO);
         getStore().registerArray(Shared::DAMAGE, &damage, RW);
     }
     virtual ~IDynamics() = default;
 
-    ModelState getState() const override
+    ModelState getStatePrognostic() const override
     {
-        return { {
-                     { uName, mask(uice) },
-                     { vName, mask(vice) },
-                 },
-            {} };
+        ModelState state = { {
+                                 { uName, mask(uice) },
+                                 { vName, mask(vice) },
+                             },
+            getConfiguration() };
+
+        if (m_usesDamage) {
+            ModelState::DataMap damageState = { { damageName, damage } };
+            state.merge(damageState);
+        }
+
+        return state;
     }
-    ModelState getState(const OutputLevel&) const override { return getState(); }
-    ModelState getStateRecursive(const OutputSpec& os) const override
+
+    ModelState getStateDiagnostic() const override
     {
-        // Ensure the base class implementation of getState() is called
-        return os ? IDynamics::getState() : ModelState();
+        ModelState state = { {
+                                 { uIOStressName, taux },
+                                 { vIOStressName, tauy },
+                                 { uName, uice },
+                                 { vName, vice },
+                                 { shearName, shear },
+                                 { divergenceName, divergence },
+                                 { sigmaIName, sigmaI },
+                                 { sigmaIIName, sigmaII },
+                             },
+            {} };
+        return state.merge(getStatePrognostic());
     }
 
     std::string getName() const override { return "IDynamics"; }
@@ -61,6 +95,11 @@ public:
         if (!m_usesDamage) {
             damage = 0.;
         }
+
+        shear.resize();
+        divergence.resize();
+        sigmaI.resize();
+        sigmaII.resize();
     }
 
     virtual void update(const TimestepTime& tst) = 0;
@@ -76,21 +115,33 @@ protected:
     HField vice;
     // Updated damage array
     HField damage;
+    // Ice-ocean stress (for the coupler, mostly)
+    HField taux;
+    HField tauy;
+    // Diagnostic outputs of shear, divergence and the stress invariants
+    HField shear;
+    HField divergence;
+    HField sigmaI;
+    HField sigmaII;
     // References to the DG0 finite volume data arrays
     ModelArrayRef<Shared::H_ICE, RW> hice;
     ModelArrayRef<Shared::C_ICE, RW> cice;
     ModelArrayRef<Shared::H_SNOW, RW> hsnow;
     ModelArrayRef<Protected::DAMAGE, RO> damage0;
-    // ModelArrayRef<ModelComponent::SharedArray::D, MARBackingStore, RW> damage;
 
     // References to the forcing velocity arrays
     ModelArrayRef<Protected::WIND_U> uwind;
     ModelArrayRef<Protected::WIND_V> vwind;
     ModelArrayRef<Protected::OCEAN_U> uocean;
     ModelArrayRef<Protected::OCEAN_V> vocean;
+    ModelArrayRef<Protected::SSH> ssh;
 
     // Does this implementation of the dynamics use damage?
     bool m_usesDamage;
+
+    // Store the h_ice and c_ice DG fields here, rather than in the kernel.
+    ModelArrayRef<Shared::H_ICE_DG, RW> hiceDG;
+    ModelArrayRef<Shared::C_ICE_DG, RW> ciceDG;
 
     /*
      * Checks and returns if the provided data map is spherical

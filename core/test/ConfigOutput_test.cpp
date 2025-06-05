@@ -1,24 +1,29 @@
 /*!
  * @file ConfigOutput_test.cpp
  *
- * @date 11 May 2023
+ * @date 06 May 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
+#ifdef USE_MPI
+#include <doctest/extensions/doctest_mpi.h>
+#undef INFO
+#else
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include <doctest/doctest.h>
+#endif
 
 #include "DiagnosticOutputModule/include/ConfigOutput.hpp"
 
 #include "include/FileCallbackCloser.hpp"
+#include "include/Finalizer.hpp"
 #include "include/IStructure.hpp"
 #include "include/ModelArray.hpp"
 #include "include/ModelArrayRef.hpp"
 #include "include/ModelComponent.hpp"
 #include "include/ModelMetadata.hpp"
 #include "include/ModelState.hpp"
-#include "include/Module.hpp"
-#include "include/NZLevels.hpp"
+#include "include/NextsimModule.hpp"
 #include "include/gridNames.hpp"
 
 #include <ncDim.h>
@@ -26,74 +31,106 @@
 #include <ncGroup.h>
 #include <ncVar.h>
 
-#include <sstream>
 #include <filesystem>
+#include <sstream>
+
+const std::string test_files_dir = TEST_FILES_DIR;
+#ifdef USE_MPI
+const std::string partition_filename = test_files_dir + "/partition_metadata_2.nc";
+#endif
 
 namespace Nextsim {
 
 TEST_SUITE_BEGIN("ConfigOutput");
+#ifdef USE_MPI
+MPI_TEST_CASE("Test periodic output", 2)
+#else
 TEST_CASE("Test periodic output")
+#endif
 {
     size_t nx = 2;
     size_t ny = 5;
-    size_t nz = 3;
-    NZLevels::set(nz);
 
+#ifdef USE_MPI
+    if (test_rank == 0) {
+        ModelArray::setDimension(ModelArray::Dimension::X, nx, 1, 0);
+    }
+    if (test_rank == 1) {
+        ModelArray::setDimension(ModelArray::Dimension::X, nx, 1, 1);
+    }
+    ModelArray::setDimension(ModelArray::Dimension::Y, ny, ny, 0);
+#else
     ModelArray::setDimension(ModelArray::Dimension::X, nx);
     ModelArray::setDimension(ModelArray::Dimension::Y, ny);
-    ModelArray::setDimension(ModelArray::Dimension::Z, NZLevels::get());
+#endif
 
+    Module::Module<IDiagnosticOutput>::setImplementation("Nextsim::ConfigOutput");
     std::stringstream config;
-    config << "[Modules]" << std::endl;
-    config << "DiagnosticOutputModule = Nextsim::ConfigOutput" << std::endl;
-    config << std::endl;
     config << "[ConfigOutput]" << std::endl;
     config << "period = 3600" << std::endl; // Output every hour
     config << "start = 2020-01-11T00:00:00Z" << std::endl; // start after 10 days
-    config << "field_names = " << hiceName << "," << ciceName << "," << ticeName << std::endl;
+    config << "field_names = " << hiceName << "," << ciceName << "," << tsurfName << "," << "top_melt" << std::endl;
     config << "filename = diag%m%d.nc" << std::endl;
     config << "file_period = 86400" << std::endl; // Files every day
 
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
 
-    ConfiguredModule::parseConfigurator();
-
     Module::setImplementation<IStructure>("Nextsim::ParametricGrid");
 
     HField hice(ModelArray::Type::H);
     HField cice(ModelArray::Type::H);
     HField hsnow(ModelArray::Type::H);
-    ZField tice(ModelArray::Type::Z);
+    HField tsurf(ModelArray::Type::H);
+
+    // An internal diagnostic field, not made available through the data store
+    HField topMelt(ModelArray::Type::H);
 
     hice.resize();
     cice.resize();
     hsnow.resize();
-    tice.resize();
+    tsurf.resize();
+    topMelt.resize();
 
     ModelComponent::getStore().registerArray(Protected::H_ICE, &hice);
     ModelComponent::getStore().registerArray(Protected::C_ICE, &cice);
     ModelComponent::getStore().registerArray(Protected::H_SNOW, &hsnow);
-    ModelComponent::getStore().registerArray(Protected::T_ICE, &tice);
+    ModelComponent::getStore().registerArray(Protected::T_SURF, &tsurf);
 
     ModelMetadata meta;
+    // Set up the coordinates, but use arrays filled with zeros
+    HField latlonData(ModelArray::Type::H);
+    latlonData = 0.;
+    VertexField coordsData(ModelArray::Type::VERTEX);
+    coordsData = 0.;
+    ModelState modelCoordinates = { {
+             { longitudeName, latlonData },
+             { latitudeName, latlonData },
+             { gridAzimuthName, latlonData },
+             { coordsName, coordsData },
+    }, { } };
+    meta.extractCoordinates(modelCoordinates);
     meta.setTime(TimePoint("2020-01-01T00:00:00Z"));
+
+#ifdef USE_MPI
+    meta.setMpiMetadata(test_comm);
+#endif
 
     IDiagnosticOutput& ido = Module::getImplementation<IDiagnosticOutput>();
     tryConfigure(ido);
 
-    for (size_t k = 0; k < nz; ++k) {
-        for (size_t j = 0; j < ny; ++j) {
-            for (size_t i = 0; i < nx; ++i) {
-                tice(i, j, k) = 0.1 * k + 0.4 + 0.01 * (j * nx + i);
-            }
-        }
-    }
+    auto dimX = ModelArray::Dimension::X;
+    auto startX = ModelArray::definedDimensions.at(dimX).start;
+    auto localNX = ModelArray::definedDimensions.at(dimX).localLength;
+
     for (size_t j = 0; j < ny; ++j) {
-        for (size_t i = 0; i < nx; ++i) {
-            hice(i, j) = 0 + 0.01 * (j * nx + i);
-            cice(i, j) = 0.1 + 0.01 * (j * nx + i);
-            hsnow(i, j) = 0.2 + 0.01 * (j * nx + i);
+        for (size_t i = 0; i < localNX; ++i) {
+            hice(i, j) = 0 + 0.01 * (j * nx + (i + startX));
+            cice(i, j) = 0.1 + 0.01 * (j * nx + (i + startX));
+            hsnow(i, j) = 0.2 + 0.01 * (j * nx + (i + startX));
+            tsurf(i, j) = 0.4 + 0.01 * (j * nx + (i + startX));
+            topMelt(i, j) = 0.6 + 0.01 * (j * nx + (i + startX));
+
         }
     }
     std::vector<std::string> diagFiles;
@@ -108,15 +145,15 @@ TEST_CASE("Test periodic output")
         hice += dayIncr;
         cice += dayIncr;
         hsnow += dayIncr;
-        tice += dayIncr;
+        tsurf += dayIncr;
         for (size_t hour = 0; hour < hr_day; ++hour) {
             double hourIncr = 1;
             hice += hourIncr;
             cice += hourIncr;
             hsnow += hourIncr;
-            ModelState state;
+            ModelState state = { { { "top_melt", topMelt } }, { } };
 
-            ido.outputState(meta);
+            ido.outputState(state, meta);
             meta.incrementTime(Duration(3600.));
         }
     }
@@ -135,7 +172,7 @@ TEST_CASE("Test periodic output")
     REQUIRE(!std::filesystem::exists(pfx + "10" + sfx));
 
     const std::string specFile = diagFiles[5];
-    std::set<std::string> fields = { "hice", "cice", "tice" };
+    std::set<std::string> fields = { "hice", "cice", "tsurf", "top_melt" };
 
     // Read the netCDF file directly
     netCDF::NcFile ncFile(specFile, netCDF::NcFile::read);
@@ -149,7 +186,7 @@ TEST_CASE("Test periodic output")
     REQUIRE(timeDim.getSize() == hr_day);
 
     std::multimap<std::string, netCDF::NcVar> vars(dataGroup.getVars());
-    REQUIRE(vars.size() == fields.size() + 1); // +1 for the time variable
+    REQUIRE(vars.size() == fields.size() + 1 + 4); // +1 for the time variable + 4 for the coords
     for (auto field : fields) {
         REQUIRE(vars.count(field) == 1);
     }
@@ -162,6 +199,8 @@ TEST_CASE("Test periodic output")
     for (auto fileName : diagFiles) {
         std::filesystem::remove(fileName);
     }
+
+    Finalizer::finalize();
 }
 TEST_SUITE_END();
 }

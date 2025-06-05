@@ -1,7 +1,7 @@
 /*!
  * @file ModelArrayDetails.cpp
  *
- * @date Oct 19, 2022
+ * @date 24 Sep 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -9,10 +9,11 @@
 
 namespace Nextsim {
 std::map<ModelArray::Dimension, ModelArray::DimensionSpec> ModelArray::definedDimensions = {
-    { ModelArray::Dimension::X, { "x", "x", 1 } },
-    { ModelArray::Dimension::Y, { "y", "y", 1 } },
-    { ModelArray::Dimension::Z, { "z", "z", 1 } },
-    { ModelArray::Dimension::U, { "u", "u", 1 } },
+    { ModelArray::Dimension::X, { "x", "x", 1, 1, 0 } },
+    { ModelArray::Dimension::Y, { "y", "y", 1, 1, 0 } },
+    { ModelArray::Dimension::Z, { "z", "z", 1, 1, 0 } },
+    { ModelArray::Dimension::U, { "u", "u", 1, 1, 0 } },
+    { ModelArray::Dimension::COMP, { "comp", "comp", 1, 1, 0} },
 };
 
 ModelArray::TypeDimensions ModelArray::typeDimensions = {
@@ -43,6 +44,11 @@ ModelArray::TypeDimensions ModelArray::typeDimensions = {
             ModelArray::Dimension::Z,
             ModelArray::Dimension::U,
         } },
+    { ModelArray::Type::TWOCOMP,
+        {
+            ModelArray::Dimension::X,
+            ModelArray::Dimension::Y,
+        } },
 };
 
 const std::map<ModelArray::Type, std::string> ModelArray::typeNames = {
@@ -51,6 +57,7 @@ const std::map<ModelArray::Type, std::string> ModelArray::typeNames = {
     { ModelArray::Type::ZUFIELD, "TwoDField" },
     { ModelArray::Type::THREED, "ThreeDField" },
     { ModelArray::Type::FOURD, "FourDField" },
+    { ModelArray::Type::TWOCOMP, "TwoDField+components" },
 };
 
 ModelArray::ModelArray()
@@ -58,30 +65,40 @@ ModelArray::ModelArray()
 {
 }
 
-bool ModelArray::hasDoF(const Type type) { return false; }
+bool ModelArray::hasDoF(const Type type) { return type == ModelArray::Type::TWOCOMP; }
 
 ModelArray::SizeMap::SizeMap()
     : m_sizes({
-        { Type::ONED, 1 },
-        { Type::TWOD, 1 },
-        { Type::ZUFIELD, 1 },
-        { Type::THREED, 1 },
-        { Type::FOURD, 1 },
-    })
+          { Type::ONED, 1 },
+          { Type::TWOD, 1 },
+          { Type::ZUFIELD, 1 },
+          { Type::THREED, 1 },
+          { Type::FOURD, 1 },
+          { Type::TWOCOMP, 1 },
+      })
 {
 }
 
 ModelArray::DimensionMap::DimensionMap()
     : m_dimensions({
-        { Type::ONED, { 1 } },
-        { Type::TWOD, { 1, 1 } },
-        { Type::ZUFIELD, { 1, 1 } },
-        { Type::THREED, { 1, 1, 1 } },
-        { Type::FOURD, { 1, 1, 1, 1 } },
-    })
+          { Type::ONED, { 1 } },
+          { Type::TWOD, { 1, 1 } },
+          { Type::ZUFIELD, { 1, 1 } },
+          { Type::THREED, { 1, 1, 1 } },
+          { Type::FOURD, { 1, 1, 1, 1 } },
+          { Type::TWOCOMP, { 1, 1 } },
+      })
 {
 }
 
-const std::map<ModelArray::Type, ModelArray::Dimension> ModelArray::componentMap = {};
+const std::map<ModelArray::Type, ModelArray::Dimension> ModelArray::componentMap = {
+        { Type::TWOCOMP, Dimension::COMP },
+};
 
+const ModelArray::TypeMap ModelArray::definedComp0Map()
+{
+    return {
+        { Type::TWOCOMP, Type::TWOD },
+    };
+};
 }

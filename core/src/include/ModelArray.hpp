@@ -1,7 +1,7 @@
 /*!
- * @file ModelData.hpp
+ * @file   ModelArray.hpp
  *
- * @date Feb 24, 2022
+ * @date   31 Oct 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -15,8 +15,16 @@
 #include <utility>
 #include <vector>
 
+#include "indexer.hpp"
+
+namespace ArraySlicer {
+class Slice;
+}
+
 namespace Nextsim {
 
+class ModelArraySlice;
+class ConstModelArraySlice;
 /*
  * Set the storage order to row major. This matches with DGVector when there is
  * more than one DG component. If there is only one DG component (the finite
@@ -26,6 +34,8 @@ namespace Nextsim {
  * components, so the choice of storage order should not matter.
  */
 const static Eigen::StorageOptions majority = Eigen::RowMajor;
+
+using Indexer::indexer;
 
 /*!
  * @brief A class that holds the array data for the model.
@@ -46,6 +56,7 @@ const static Eigen::StorageOptions majority = Eigen::RowMajor;
  */
 class ModelArray {
 public:
+    using Slice = ArraySlicer::Slice;
     // Forward defines make Eclipse less red and squiggly
     enum class Type;
     enum class Dimension;
@@ -57,9 +68,28 @@ public:
     struct DimensionSpec {
         std::string name;
         std::string altName;
-        size_t length;
+        size_t globalLength;
+        size_t localLength;
+        size_t start;
+#ifdef USE_MPI
+        void setLengths(size_t globalLength, size_t localLength, size_t start)
+        {
+            this->globalLength = globalLength;
+            this->localLength = localLength;
+            this->start = start;
+        }
+#else
+        void setLengths(size_t length)
+        {
+            // if MPI is not used then localLength and globalLength are set to the same value
+            this->globalLength = length;
+            this->localLength = length;
+            this->start = 0;
+        }
+#endif
     };
-    typedef std::map<Type, std::vector<Dimension>> TypeDimensions;
+
+    using TypeDimensions = std::map<Type, std::vector<Dimension>>;
 
     //! The dimensions that make up each defined type. Defined in ModelArrayDetails.cpp
     static TypeDimensions typeDimensions;
@@ -70,10 +100,14 @@ public:
     // The dimension that defines the components of each ModelArray type, if any
     static const std::map<Type, Dimension> componentMap;
 
-    typedef Eigen::Array<double, Eigen::Dynamic, Eigen::Dynamic, majority> DataType;
+    using DataType = Eigen::Array<double, Eigen::Dynamic, Eigen::Dynamic, majority>;
 
-    typedef DataType::RowXpr Component;
-    typedef DataType::ConstRowXpr ConstComponent;
+    // Data types of all components ate a particular location.
+    using Components = DataType::RowXpr;
+    using ConstComponents = DataType::ConstRowXpr;
+    // Data types of a particular component (at all locations).
+    using Component = DataType::ColXpr;
+    using ConstComponent = DataType::ConstColXpr;
 
     /*!
      * Construct an unnamed ModelArray of Type::H
@@ -98,6 +132,40 @@ public:
      * @param val The value to be assigned.
      */
     ModelArray& operator=(const double& val);
+
+    /*!
+     * @brief Assigns an entire ModelArray from the data contained in a ModelArraySlice.
+     *
+     * @details Given a ModelArraySlice, copy all of the data from that slice
+     * into all of the model array. For only copying to some of a ModelArray,
+     * please see ModelArraySlice::operator=(ModelArray&). The shape of the
+     * slice must match, up to any number of trailing length 1 dimensions.
+     */
+    ModelArray& operator=(const ModelArraySlice&);
+
+    /*!
+     * @brief Assign a DataType to an existing ModelArray.
+     *
+     * @param src The DataType object to be assigned.
+     */
+    ModelArray& operator=(const DataType& src)
+    {
+        m_data = src;
+        return *this;
+    }
+    /*!
+     * Casts the data to a DataType reference.
+     */
+    operator DataType&() { return m_data; }
+    /*!
+     * Casts the data to a const DataType reference
+     */
+    operator const DataType&() const { return m_data; }
+    /*!
+     * Creates a ModelArraySlice.
+     */
+    ModelArraySlice operator[](const Slice&);
+    ConstModelArraySlice operator[](const Slice&) const;
 
     // ModelArray arithmetic
     //! In place addition of another ModelArray
@@ -216,7 +284,7 @@ public:
      */
     ModelArray& clampBelow(const ModelArray& minArr);
 
-    typedef std::vector<size_t> MultiDim;
+    using MultiDim = std::vector<size_t>;
 
     //! Returns the number of dimensions of this type of ModelArray.
     size_t nDimensions() const { return nDimensions(type); }
@@ -232,8 +300,8 @@ public:
     static size_t size(Type type) { return m_sz.at(type); }
     //! Returns the size of the data array of this object.
     size_t trueSize() const { return m_data.rows(); }
-    //! Returns the size of a dimension
-    static size_t size(Dimension dim) { return definedDimensions.at(dim).length; }
+    //! Returns the local size of a dimension
+    static size_t size(Dimension dim) { return definedDimensions.at(dim).localLength; }
 
     //! Returns a read-only pointer to the underlying data buffer.
     const double* getData() const { return m_data.data(); }
@@ -273,7 +341,11 @@ public:
      * @param dim The dimension to be altered.
      * @param length The new length of the dimension.
      */
-    static void setDimension(Dimension dim, size_t length);
+#ifdef USE_MPI
+    static void setDimension(Dimension dim, size_t globalLength, size_t localLength, size_t size);
+#else
+    static void setDimension(Dimension dim, size_t globalLength);
+#endif
 
     //! Conditionally updates the size of the object data buffer to match the
     //! class specification.
@@ -281,7 +353,8 @@ public:
     {
         if (size() != trueSize()) {
             if (hasDoF(type)) {
-                m_data.resize(m_sz.at(type), definedDimensions.at(componentMap.at(type)).length);
+                m_data.resize(
+                    m_sz.at(type), definedDimensions.at(componentMap.at(type)).localLength);
             } else {
                 m_data.resize(m_sz.at(type), Eigen::NoChange);
             }
@@ -326,43 +399,30 @@ public:
 
 private:
     // Fast special case for 1-d indexing
-    template <typename T, typename I> static inline T indexr(const T* dims, I first)
+    template <typename T = size_t, typename C, typename I> static inline T indexr(C dims, I first)
     {
         return static_cast<T>(first);
     }
 
     // Fast special case for 2-d indexing
-    template <typename T, typename I> static inline T indexr(const T* dims, I first, I second)
+    template <typename T = size_t, typename C, typename I>
+    static inline T indexr(C dims, I first, I second)
     {
         return first + second * dims[0];
     }
 
     // Indices as separate function parameters
-    template <typename T, typename I, typename... Args>
-    static inline T indexr(const T* dims, I first, Args... args)
+    template <typename T = size_t, typename C, typename I, typename... Args>
+    static inline T indexr(C dims, I first, Args... args)
     {
-        std::initializer_list<I> loc { first, args... };
-        return indexrHelper(dims, loc);
+        return indexer(dims, { static_cast<size_t>(first), static_cast<size_t>(args)... });
     }
 
     // Indices as a Dimensions object
-    template <typename T> static T indexr(const T* dims, const ModelArray::MultiDim& loc)
+    template <typename T = size_t, typename C>
+    static T indexr(C dims, const ModelArray::MultiDim& loc)
     {
-        return indexrHelper(dims, loc);
-    }
-
-    // Generic index generator that will work on any container
-    template <typename T, typename C> static T indexrHelper(const T* dims, const C& loc)
-    {
-        size_t ndims = loc.size();
-        T stride = 1;
-        T ii = 0;
-        auto iloc = begin(loc);
-        for (size_t dim = 0; dim < ndims; ++dim) {
-            ii += stride * (*iloc++);
-            stride *= dims[dim];
-        }
-        return ii;
+        return indexer(dims, loc);
     }
 
 public:
@@ -394,7 +454,7 @@ public:
      */
     template <typename... Args> const double& operator()(Args... args) const
     {
-        return (*this)[indexr(dimensions().data(), args...)];
+        return (*this)[indexr(dimensions(), args...)];
     }
 
     /*!
@@ -444,7 +504,8 @@ public:
     static void setNComponents(Type type, size_t nComp)
     {
         if (hasDoF(type)) {
-            definedDimensions.at(componentMap.at(type)).length = nComp;
+            definedDimensions.at(componentMap.at(type)).localLength = nComp;
+            definedDimensions.at(componentMap.at(type)).globalLength = nComp;
         }
     }
 
@@ -461,43 +522,56 @@ public:
      *
      * @param i one-dimensional index of the target point.
      */
-    Component components(size_t i) { return m_data.row(i); }
+    Components components(size_t i) { return m_data.row(i); }
 
-    const ConstComponent components(size_t i) const { return m_data.row(i); }
+    const ConstComponents components(size_t i) const { return m_data.row(i); }
 
     /*!
      * @brief Accesses the full Discontinuous Galerkin coefficient vector at the specified location.
      *
      * @param dims indexing argument of the target point.
      */
-    Component components(const MultiDim& loc);
-    const ConstComponent components(const MultiDim& loc) const;
+    Components components(const MultiDim& loc);
+    const ConstComponents components(const MultiDim& loc) const;
 
     /*!
-     * @brief Special access function for ZFields.
+     * Returns a particular component at all locations.
      *
-     * @detail Index a ZField using an index from an HField of the same
-     * horizontal extent and a layer index for the final dimension.
-     *
-     * @param hIndex the equivalent positional index in an HField array
-     * @param layer the vertical layer to be accessed
+     * @param comp The index of the component to be returned. Defaults to component 0.
      */
-    double& zIndexAndLayer(size_t hIndex, size_t layer)
+    Component component(size_t compo = 0) { return m_data.col(compo); }
+    const ConstComponent component(size_t compo = 0) const { return m_data.col(compo); }
+
+    /*!
+     * Implicitly converts a ModelArray to a Component, assuming component zero
+     */
+    operator Component() { return this->component(); }
+    /*!
+     * Assigns from a component to the ModelArray. Let Eigen handle size, broadcasting, &c.
+     */
+    ModelArray& operator=(const Component& src)
     {
-        return this->operator[](zLayerIndex(hIndex, layer));
+        m_data = src;
+        return *this;
     }
     /*!
-     * @brief Special access function for ZFields, const version.
-     *
-     * @detail Index a ZField using an index from an HField of the same
-     * horizontal extent and a layer index for the final dimension.
-     *
-     * @param hIndex the equivalent positional index in an HField array
-     * @param layer the vertical layer to be accessed
+     * Assigns from a const component to the ModelArray. Let Eigen handle size, broadcasting, &c.
      */
-    const double& zIndexAndLayer(size_t hIndex, size_t layer) const
+    ModelArray& operator=(const ConstComponent& src)
     {
-        return this->operator[](zLayerIndex(hIndex, layer));
+        m_data = src;
+        return *this;
+    }
+    using TypeMap = std::map<ModelArray::Type, ModelArray::Type>;
+
+private:
+    static const TypeMap definedComp0Map();
+
+public:
+    static ModelArray::Type component0Type(ModelArray::Type withComponents)
+    {
+        static TypeMap comp0Map = definedComp0Map();
+        return (comp0Map.count(withComponents) > 0) ? comp0Map.at(withComponents) : withComponents;
     }
 
     /*!
@@ -537,7 +611,7 @@ public:
     //! specified type of ModelArray.
     inline static size_t nComponents(const Type type)
     {
-        return (hasDoF(type)) ? definedDimensions.at(componentMap.at(type)).length : 1;
+        return (hasDoF(type)) ? definedDimensions.at(componentMap.at(type)).localLength : 1;
     }
     //! Returns whether this type of ModelArray has additional discontinuous
     //! Galerkin components.
@@ -548,20 +622,6 @@ public:
 
 protected:
     Type type;
-
-    /*!
-     * @brief Special access function for ZFields, common implementation version.
-     *
-     * @detail Index a ZField using an index from an HField of the same
-     * horizontal extent and a layer index for the final dimension.
-     *
-     * @param hIndex the equivalent positional index in an HField array
-     * @param layer the vertical layer to be accessed
-     */
-    size_t zLayerIndex(size_t hIndex, size_t layer) const
-    {
-        return hIndex + layer * dimensions()[0] * dimensions()[1];
-    }
 
 private:
     static bool areMapsInvalid;
@@ -602,9 +662,13 @@ private:
     };
     static DimensionMap m_dims;
     DataType m_data;
+
+    // ModelArraySlice needs access to the internals for fast slcing
+    friend ModelArraySlice;
 };
 
 #include "include/ModelArrayTypedefs.hpp"
+using AdvectedField = ModelArray;
 
 // ModelArray arithmetic with doubles
 ModelArray operator+(const double&, const ModelArray&);

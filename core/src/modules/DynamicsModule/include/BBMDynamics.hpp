@@ -1,7 +1,7 @@
 /*!
  * @file BBMDynamics.hpp
  *
- * @date Jan 5, 2024
+ * @date 27 Mar 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -9,7 +9,7 @@
 #define BBMDYNAMICS_HPP
 
 #include "include/BBMDynamicsKernel.hpp"
-#include "include/MEBParameters.hpp"
+#include "include/BBMParameters.hpp"
 #include "include/IDynamics.hpp"
 
 #ifndef DGCOMP
@@ -19,7 +19,7 @@
 
 namespace Nextsim {
 
-class BBMDynamics : public IDynamics {
+class BBMDynamics : public IDynamics, public Configured<BBMDynamics> {
 public:
     BBMDynamics();
 
@@ -27,12 +27,36 @@ public:
     void update(const TimestepTime& tst) override;
 
     void setData(const ModelState::DataMap&) override;
-    ModelState getState() const override;
-    ModelState getStateRecursive(const OutputSpec& os) const override;
-private:
-    BBMDynamicsKernel<DGCOMP> kernel;
-    MEBParameters params;
+    void configure() override;
+    ConfigMap getConfiguration() const override;
 
+    enum {
+        C_KEY,
+        NU_KEY,
+        YOUNG_KEY,
+        P0_KEY,
+        LAMBDA0_KEY,
+        ALPHA_KEY,
+        EXPPMAX_KEY,
+        MU_KEY,
+        NMAX_KEY,
+        CLAB_KEY,
+        NSTEPS_KEY,
+        RHOI_KEY,
+        RHOA_KEY,
+        RHOO_KEY,
+        CATM_KEY,
+        COCEAN_KEY,
+        FC_KEY,
+        ANGLE_KEY,
+    };
+
+    static HelpMap& getHelpText(HelpMap& map, bool getAll);
+    static HelpMap& getHelpRecursive(HelpMap&, bool getAll);
+
+private:
+    BBMParameters params;
+    BBMDynamicsKernel<DGCOMP> kernel;
 };
 
 } /* namespace Nextsim */

@@ -11,12 +11,6 @@
 
 namespace Nextsim {
 
-std::vector<std::unique_ptr<std::istream>> Configurator::sources;
-int Configurator::m_argc;
-char** Configurator::m_argv;
-static NoAdditionalConfiguration noAddConf;
-Configurator::AdditionalConfiguration* Configurator::p_addConf = &noAddConf;
-
 boost::program_options::variables_map Configurator::parse(
     const boost::program_options::options_description& opt)
 {
@@ -25,9 +19,9 @@ boost::program_options::variables_map Configurator::parse(
     // Parse the command file for any overrides
     int use_argc;
     char** use_argv;
-    if (m_argc && m_argv) {
-        use_argc = m_argc;
-        use_argv = m_argv;
+    if (commandLine().m_argc && commandLine().m_argv) {
+        use_argc = commandLine().m_argc;
+        use_argv = commandLine().m_argv;
     } else {
         // Use a fake command line to ensure at least one parse happens in all cases
         use_argc = 1;
@@ -44,7 +38,7 @@ boost::program_options::variables_map Configurator::parse(
     boost::program_options::store(parsed, vm);
 
     // Parse the named streams for configuration
-    for (auto iter = sources.begin(); iter != sources.end(); ++iter) {
+    for (auto iter = sources().begin(); iter != sources().end(); ++iter) {
         try {
             boost::program_options::store(
                 boost::program_options::parse_config_file(**iter, opt, true), vm);
@@ -66,12 +60,12 @@ void Configurator::addSStream(const std::stringstream& sstream)
     addStream(std::move(std::unique_ptr<std::istream>(new std::stringstream(sstream.str()))));
 }
 
-void Configurator::setAdditionalConfiguration(AdditionalConfiguration* pAC) { p_addConf = pAC; }
+void Configurator::setAdditionalConfiguration(AdditionalConfiguration* pAC) { addConf() = pAC; }
 
 void Configurator::getAdditionalConfiguration(const std::string& source)
 {
-    if (p_addConf) {
-        addSStream(p_addConf->read(source));
+    if (addConf()) {
+        addSStream(addConf()->read(source));
     }
 }
 

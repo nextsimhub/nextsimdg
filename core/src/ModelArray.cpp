@@ -1,11 +1,13 @@
 /*!
- * @file ModelData.cpp
+ * @file   ModelArray.cpp
  *
- * @date Feb 24, 2022
+ * @date   Feb 24, 2022
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
 #include "include/ModelArray.hpp"
+
+#include "include/ModelArraySlice.hpp"
 
 #include <algorithm>
 #include <cstdarg>
@@ -46,6 +48,11 @@ ModelArray& ModelArray::operator=(const double& fill)
     setData(fill);
 
     return *this;
+}
+
+ModelArray& ModelArray::operator=(const ModelArraySlice& mas)
+{
+    return mas.copyToModelArray(*this);
 }
 
 ModelArray ModelArray::operator+(const ModelArray& addend) const
@@ -188,7 +195,7 @@ void ModelArray::setDimensions(Type type, const MultiDim& newDims)
 {
     std::vector<Dimension>& dimSpecs = typeDimensions.at(type);
     for (size_t i = 0; i < dimSpecs.size(); ++i) {
-        definedDimensions.at(dimSpecs[i]).length = newDims[i];
+        definedDimensions.at(dimSpecs[i]).localLength = newDims[i];
     }
     validateMaps();
 }
@@ -200,15 +207,21 @@ void ModelArray::setNComponents(std::map<Type, size_t> cMap)
     }
 }
 
-void ModelArray::setDimension(Dimension dim, size_t length)
+#ifdef USE_MPI
+void ModelArray::setDimension(Dimension dim, size_t globalLength, size_t localLength, size_t start)
 {
-    definedDimensions.at(dim).length = length;
+    definedDimensions.at(dim).setLengths(globalLength, localLength, start);
+#else
+void ModelArray::setDimension(Dimension dim, size_t globalLength)
+{
+    definedDimensions.at(dim).setLengths(globalLength);
+#endif
     validateMaps();
 }
 
 const double& ModelArray::operator[](const MultiDim& loc) const
 {
-    return (*this)[indexr(this->dimensions().data(), loc)];
+    return (*this)[indexr(this->dimensions(), loc)];
 }
 
 double& ModelArray::operator[](const MultiDim& dims)
@@ -216,14 +229,21 @@ double& ModelArray::operator[](const MultiDim& dims)
     return const_cast<double&>(std::as_const(*this)[dims]);
 }
 
-ModelArray::Component ModelArray::components(const MultiDim& loc)
+ModelArraySlice ModelArray::operator[](const Slice& slice) { return ModelArraySlice(*this, slice); }
+
+ConstModelArraySlice ModelArray::operator[](const Slice& slice) const
 {
-    return components(indexr(dimensions().data(), loc));
+    return ConstModelArraySlice(*this, slice);
 }
 
-const ModelArray::ConstComponent ModelArray::components(const MultiDim& loc) const
+ModelArray::Components ModelArray::components(const MultiDim& loc)
 {
-    return components(indexr(dimensions().data(), loc));
+    return components(indexr(dimensions(), loc));
+}
+
+const ModelArray::ConstComponents ModelArray::components(const MultiDim& loc) const
+{
+    return components(indexr(dimensions(), loc));
 }
 
 /*!
@@ -234,7 +254,7 @@ const ModelArray::ConstComponent ModelArray::components(const MultiDim& loc) con
  */
 size_t ModelArray::indexFromLocation(Type type, const MultiDim& loc)
 {
-    return indexr(m_dims.at(type).data(), loc);
+    return indexr(m_dims.at(type), loc);
 }
 
 /*!
@@ -271,7 +291,7 @@ void ModelArray::DimensionMap::validate()
         std::vector<Dimension>& typeDims = entry.second;
         dims.resize(typeDims.size());
         for (size_t i = 0; i < typeDims.size(); ++i) {
-            dims[i] = definedDimensions.at(typeDims[i]).length;
+            dims[i] = definedDimensions.at(typeDims[i]).localLength;
         }
     }
 }
@@ -282,7 +302,7 @@ void ModelArray::SizeMap::validate()
         size_t size = 1;
         std::vector<Dimension>& typeDims = entry.second;
         for (size_t i = 0; i < typeDims.size(); ++i) {
-            size *= definedDimensions.at(typeDims[i]).length;
+            size *= definedDimensions.at(typeDims[i]).localLength;
         }
         m_sizes.at(entry.first) = size;
     }

@@ -1,6 +1,6 @@
 /*!
  * @file ParametricMesh.hpp
- * @date 9 Juli 2022
+ * @date 09 Jan 2025
  * @author Thomas Richter <thomas.richter@ovgu.de>
  */
 
@@ -19,7 +19,6 @@
 #include <vector>
 
 namespace Nextsim {
-
 inline constexpr double SQR(double x) { return x * x; }
 
 /*!
@@ -155,6 +154,7 @@ public:
             vertices(i, 0) = atan2(y2, x2);
         }
     }
+
     //! Rotation back to normal
     void RotatePoleFromGreenland()
     {
@@ -253,6 +253,7 @@ public:
 
         return ecoords;
     }
+
     const Eigen::Matrix<Nextsim::FloatType, 2, 2> coordinatesOfEdgeY(const size_t eid) const
     {
         const size_t ex = eid % (nx + 1); //! x-index of the corresponding element (possibly nx+1)
@@ -273,26 +274,8 @@ public:
     /*!
      * return the area of the mesh element with index eid
      */
-    double area(const size_t eid) const
-    {
-        const size_t nid = eid2nid(eid);
+    double area(const size_t eid) const;
 
-        const double a = (vertices.block<1, 2>(nid, 0) - vertices.block<1, 2>(nid + 1, 0))
-                             .squaredNorm(); // lower
-        const double b = (vertices.block<1, 2>(nid + 1, 0) - vertices.block<1, 2>(nid + nx + 2, 0))
-                             .squaredNorm(); // right
-        const double c
-            = (vertices.block<1, 2>(nid + 1 + nx, 0) - vertices.block<1, 2>(nid + 2 + nx, 0))
-                  .squaredNorm(); // top
-        const double d = (vertices.block<1, 2>(nid, 0) - vertices.block<1, 2>(nid + nx + 1, 0))
-                             .squaredNorm(); // left
-        const double e = (vertices.block<1, 2>(nid, 0) - vertices.block<1, 2>(nid + nx + 2, 0))
-                             .squaredNorm(); // diag 1
-        const double f = (vertices.block<1, 2>(nid + 1, 0) - vertices.block<1, 2>(nid + nx + 1, 0))
-                             .squaredNorm(); // diag 2
-
-        return 0.25 * sqrt(4.0 * e * f - SQR(b + d - a - c));
-    }
     /*!
      * return the mesh size (as square root of area)  of the mesh element eid
      */
@@ -370,7 +353,6 @@ public:
                 return Vertex({ vertices(nnodes - 1, 0), vertices(nnodes - 1, 1) });
             }
             abort();
-
         } else
             abort();
     }
@@ -440,7 +422,6 @@ public:
     double hmin() const; //! returns the minimum mesh size
     double area() const; //! returns the area of the domain
 };
-
 } /* namespace Nextsim */
 
 #endif /* __MESH_HPP */

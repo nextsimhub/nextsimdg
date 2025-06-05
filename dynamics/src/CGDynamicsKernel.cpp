@@ -1,8 +1,9 @@
 /*!
  * @file CGDynamicsKernel.cpp
  *
- * @date Jan 26, 2024
+ * @date 27 Mar 2025
  * @author Tim Spain <timothy.spain@nersc.no>
+ * @author Robert Jendersie <robert.jendersie@ovgu.de>
  */
 
 /*
@@ -11,6 +12,7 @@
 
 #include "include/CGDynamicsKernel.hpp"
 #include "include/ModelArray.hpp"
+#include "include/constants.hpp"
 
 #include "include/Interpolations.hpp"
 #include "include/ParametricMap.hpp"
@@ -20,21 +22,31 @@
 namespace Nextsim {
 
 template <int DGadvection>
+CGDynamicsKernel<DGadvection>::CGDynamicsKernel(const DynamicsParameters& params)
+    : baseParams(params)
+{
+}
+
+template <int DGadvection>
 void CGDynamicsKernel<DGadvection>::initialise(
     const ModelArray& coords, bool isSpherical, const ModelArray& mask)
 {
     DynamicsKernel<DGadvection, DGstressComp>::initialise(coords, isSpherical, mask);
 
     //! Initialize the parametric momentum map
-    pmap = new ParametricMomentumMap<CGdegree>(*smesh);
+    pmap = std::make_unique<ParametricMomentumMap<CGdegree, DGadvection>>(*smesh);
     pmap->InitializeLumpedCGMassMatrix();
     pmap->InitializeDivSMatrices();
+    pmap->InitializeCGLandmask();
 
     u.resize_by_mesh(*smesh);
     v.resize_by_mesh(*smesh);
 
     cgH.resize_by_mesh(*smesh);
     cgA.resize_by_mesh(*smesh);
+
+    xGradSeaSurfaceHeight.resize_by_mesh(*smesh);
+    yGradSeaSurfaceHeight.resize_by_mesh(*smesh);
 
     dStressX.resize_by_mesh(*smesh);
     dStressY.resize_by_mesh(*smesh);
@@ -44,38 +56,27 @@ void CGDynamicsKernel<DGadvection>::initialise(
 
     uAtmos.resize_by_mesh(*smesh);
     vAtmos.resize_by_mesh(*smesh);
+
+    uIceOceanStress.resize_by_mesh(*smesh);
+    vIceOceanStress.resize_by_mesh(*smesh);
+
+    cosOceanAngle = std::cos(radians(baseParams.oceanTurningAngle));
+    sinOceanAngle = std::sin(radians(baseParams.oceanTurningAngle));
 }
 
 template <int DGadvection>
 void CGDynamicsKernel<DGadvection>::setData(const std::string& name, const ModelArray& data)
 {
-    if (name == uName) {
-        // FIXME take into account possibility to restart form CG
-        // CGModelArray::ma2cg(data, u);
-        DGVector<DGadvection> utmp(*smesh);
-        DGModelArray::ma2dg(data, utmp);
-        Nextsim::Interpolations::DG2CG(*smesh, u, utmp);
-    } else if (name == vName) {
-        // CGModelArray::ma2cg(data, v);
-        DGVector<DGadvection> vtmp(*smesh);
-        DGModelArray::ma2dg(data, vtmp);
-        Nextsim::Interpolations::DG2CG(*smesh, v, vtmp);
-    } else if (name == uWindName) {
-        DGVector<DGadvection> utmp(*smesh);
-        DGModelArray::ma2dg(data, utmp);
-        Nextsim::Interpolations::DG2CG(*smesh, uAtmos, utmp);
-    } else if (name == vWindName) {
-        DGVector<DGadvection> vtmp(*smesh);
-        DGModelArray::ma2dg(data, vtmp);
-        Nextsim::Interpolations::DG2CG(*smesh, vAtmos, vtmp);
-    } else if (name == uOceanName) {
-        DGVector<DGadvection> utmp(*smesh);
-        DGModelArray::ma2dg(data, utmp);
-        Nextsim::Interpolations::DG2CG(*smesh, uOcean, utmp);
-    } else if (name == vOceanName) {
-        DGVector<DGadvection> vtmp(*smesh);
-        DGModelArray::ma2dg(data, vtmp);
-        Nextsim::Interpolations::DG2CG(*smesh, vOcean, vtmp);
+    const std::map<std::string, CGVector<CGdegree>*> targetMap = {
+        { uName, &u },
+        { vName, &v },
+        { uWindName, &uAtmos },
+        { vWindName, &vAtmos },
+        { uOceanName, &uOcean },
+        { vOceanName, &vOcean },
+    };
+    if (targetMap.count(name)) {
+        ma2cg(data, *targetMap.at(name));
     } else {
         DynamicsKernel<DGadvection, DGstressComp>::setData(name, data);
     }
@@ -94,6 +95,16 @@ ModelArray CGDynamicsKernel<DGadvection>::getDG0Data(const std::string& name) co
         DGVector<DGadvection> vtmp(*smesh);
         Nextsim::Interpolations::CG2DG(*smesh, vtmp, v);
         return DGModelArray::dg2ma(vtmp, data);
+    } else if (name == uIOStressName) {
+        ModelArray data(ModelArray::Type::U);
+        DGVector<DGadvection> utmp(*smesh);
+        Nextsim::Interpolations::CG2DG(*smesh, utmp, uIceOceanStress);
+        return DGModelArray::dg2ma(utmp, data);
+    } else if (name == vIOStressName) {
+        ModelArray data(ModelArray::Type::V);
+        DGVector<DGadvection> vtmp(*smesh);
+        Nextsim::Interpolations::CG2DG(*smesh, vtmp, vIceOceanStress);
+        return DGModelArray::dg2ma(vtmp, data);
     } else {
         return DynamicsKernel<DGadvection, DGstressComp>::getDG0Data(name);
     }
@@ -104,6 +115,141 @@ template <int DGadvection> void CGDynamicsKernel<DGadvection>::prepareAdvection(
     dgtransport->prepareAdvection(u, v);
 }
 
+template <int DGadvection>
+void CGDynamicsKernel<DGadvection>::computeGradientOfSeaSurfaceHeight(
+    const DGVector<1>& seaSurfaceHeight)
+{
+    // First transform to CG1 Vector and do all computations in CG1
+    CGVector<1> cgSeasurfaceHeight(*smesh);
+    Interpolations::DG2CG(*smesh, cgSeasurfaceHeight, seaSurfaceHeight);
+
+    CGVector<1> uGrad(*smesh);
+    CGVector<1> vGrad(*smesh);
+    uGrad.setZero();
+    vGrad.setZero();
+
+    // parallelization in stripes
+    for (size_t p = 0; p < 2; ++p) {
+#pragma omp parallel for schedule(static)
+        for (size_t cy = 0; cy < smesh->ny; ++cy) {
+            //!< loop over all cells of the mesh
+            if (cy % 2 == p) {
+                size_t eid = smesh->nx * cy;
+                size_t cg1id = cy * (smesh->nx + 1);
+                for (size_t cx = 0; cx < smesh->nx; ++cx, ++eid, ++cg1id) {
+                    // get local CG nodes
+                    Eigen::Vector<Nextsim::FloatType, 4> loc_cgSSH = { cgSeasurfaceHeight(cg1id),
+                        cgSeasurfaceHeight(cg1id + 1), cgSeasurfaceHeight(cg1id + smesh->nx + 1),
+                        cgSeasurfaceHeight(cg1id + smesh->nx + 1 + 1) };
+
+                    // compute grad
+                    Eigen::Vector<Nextsim::FloatType, 4> tx = pmap->dX_SSH[eid] * loc_cgSSH;
+                    Eigen::Vector<Nextsim::FloatType, 4> ty = pmap->dY_SSH[eid] * loc_cgSSH;
+
+                    // add global vector
+                    uGrad(cg1id) -= tx(0);
+                    uGrad(cg1id + 1) -= tx(1);
+                    uGrad(cg1id + smesh->nx + 1) -= tx(2);
+                    uGrad(cg1id + smesh->nx + 1 + 1) -= tx(3);
+                    vGrad(cg1id) -= ty(0);
+                    vGrad(cg1id + 1) -= ty(1);
+                    vGrad(cg1id + smesh->nx + 1) -= ty(2);
+                    vGrad(cg1id + smesh->nx + 1 + 1) -= ty(3);
+                }
+            }
+        }
+    }
+
+    // scale with mass
+#pragma omp parallel for
+    for (size_t i = 0; i < uGrad.rows(); ++i) {
+        uGrad(i) /= pmap->lumpedcg1mass(i);
+        vGrad(i) /= pmap->lumpedcg1mass(i);
+    }
+
+    ///// correct boundary (just extend in last elements)
+    size_t cg1row = smesh->nx + 1;
+    size_t topleft = smesh->ny * cg1row;
+    for (size_t i = 1; i < smesh->nx; ++i) // bottom / top
+    {
+        uGrad(i) = uGrad(i + cg1row);
+        vGrad(i) = vGrad(i + cg1row);
+        uGrad(topleft + i) = uGrad(topleft + i - cg1row);
+        vGrad(topleft + i) = vGrad(topleft + i - cg1row);
+    }
+    for (size_t i = 1; i < smesh->ny; ++i) // left / right
+    {
+        uGrad(i * cg1row) = uGrad(i * cg1row + 1);
+        vGrad(i * cg1row) = vGrad(i * cg1row + 1);
+
+        uGrad(i * cg1row + cg1row - 1) = uGrad(i * cg1row + cg1row - 1 - 1);
+        vGrad(i * cg1row + cg1row - 1) = vGrad(i * cg1row + cg1row - 1 - 1);
+    }
+    // corners
+    uGrad(0) = uGrad(cg1row + 1);
+    vGrad(0) = vGrad(cg1row + 1);
+    uGrad(smesh->nx) = uGrad(smesh->nx + cg1row - 1);
+    vGrad(smesh->nx) = vGrad(smesh->nx + cg1row - 1);
+    uGrad(smesh->ny * cg1row) = uGrad((smesh->ny - 1) * cg1row + 1);
+    vGrad(smesh->ny * cg1row) = vGrad((smesh->ny - 1) * cg1row + 1);
+    uGrad((smesh->ny + 1) * cg1row - 1) = uGrad((smesh->ny) * cg1row - 1 - 1);
+    vGrad((smesh->ny + 1) * cg1row - 1) = vGrad((smesh->ny) * cg1row - 1 - 1);
+
+    // Interpolate to CG2 (maybe own function in interpolation?)
+    if constexpr (CGDEGREE == 1) {
+        xGradSeaSurfaceHeight = uGrad;
+        yGradSeaSurfaceHeight = vGrad;
+    } else {
+        // outer nodes
+        size_t icg1 = 0;
+#pragma omp parallel for
+        for (size_t iy = 0; iy <= smesh->ny; ++iy) {
+            size_t icg2 = (2 * smesh->nx + 1) * 2 * iy;
+            for (size_t ix = 0; ix <= smesh->nx; ++ix, ++icg1, icg2 += 2) {
+                xGradSeaSurfaceHeight(icg2) = uGrad(icg1);
+                yGradSeaSurfaceHeight(icg2) = vGrad(icg1);
+            }
+        }
+        // along lines
+#pragma omp parallel for
+        for (size_t iy = 0; iy <= smesh->ny; ++iy) // horizontal
+        {
+            size_t icg1 = (smesh->nx + 1) * iy;
+            size_t icg2 = (2 * smesh->nx + 1) * 2 * iy + 1;
+            for (size_t ix = 0; ix < smesh->nx; ++ix, ++icg1, icg2 += 2) {
+                xGradSeaSurfaceHeight(icg2) = 0.5 * (uGrad(icg1) + uGrad(icg1 + 1));
+                yGradSeaSurfaceHeight(icg2) = 0.5 * (vGrad(icg1) + vGrad(icg1 + 1));
+            }
+        }
+#pragma omp parallel for
+        for (size_t iy = 0; iy < smesh->ny; ++iy) // vertical
+        {
+            size_t icg1 = (smesh->nx + 1) * iy;
+            size_t icg2 = (2 * smesh->nx + 1) * (2 * iy + 1);
+            for (size_t ix = 0; ix <= smesh->nx; ++ix, ++icg1, icg2 += 2) {
+                xGradSeaSurfaceHeight(icg2) = 0.5 * (uGrad(icg1) + uGrad(icg1 + cg1row));
+                yGradSeaSurfaceHeight(icg2) = 0.5 * (vGrad(icg1) + vGrad(icg1 + cg1row));
+            }
+        }
+
+        // midpoints
+#pragma omp parallel for
+        for (size_t iy = 0; iy < smesh->ny; ++iy) // vertical
+        {
+            size_t icg1 = (smesh->nx + 1) * iy;
+            size_t icg2 = (2 * smesh->nx + 1) * (2 * iy + 1) + 1;
+            for (size_t ix = 0; ix < smesh->nx; ++ix, ++icg1, icg2 += 2) {
+                xGradSeaSurfaceHeight(icg2) = 0.25
+                    * (uGrad(icg1) + uGrad(icg1 + 1) + uGrad(icg1 + cg1row)
+                        + uGrad(icg1 + cg1row + 1));
+                yGradSeaSurfaceHeight(icg2) = 0.25
+                    * (vGrad(icg1) + vGrad(icg1 + 1) + vGrad(icg1 + cg1row)
+                        + vGrad(icg1 + cg1row + 1));
+            }
+        }
+    }
+}
+
 template <int DGadvection> void CGDynamicsKernel<DGadvection>::prepareIteration(const DataMap& data)
 {
     // interpolate ice height and concentration to local cg Variables
@@ -112,10 +258,18 @@ template <int DGadvection> void CGDynamicsKernel<DGadvection>::prepareIteration(
     Interpolations::DG2CG(*smesh, cgA, data.at(ciceName));
     VectorManipulations::CGAveragePeriodic(*smesh, cgA);
 
-    // limit A to [0,1] and H to [0, ...)
+    // Reinit the gradient of the sea surface height. Not done by
+    // DataMap as seaSurfaceHeight is always dG(0)
+    computeGradientOfSeaSurfaceHeight(DynamicsKernel<DGadvection, DGstressComp>::seaSurfaceHeight);
+
+    /* limit A to [0,1] and H to [5 cm, ...)
+     * This limit on H is equivalent to assuming that ice thinner than 5 cm is always in free drift,
+     * which is reasonable. We need a limit of the order of cm here, so that the solver remains
+     * stable. With a limit of the order of mm, we need a much smaller time step to remain stable.
+     */
     cgA = cgA.cwiseMin(1.0);
-    cgA = cgA.cwiseMax(1.e-4);
-    cgH = cgH.cwiseMax(1.e-4);
+    cgA = cgA.cwiseMax(0.0);
+    cgH = cgH.cwiseMax(0.05);
 }
 
 template <int CG>
@@ -284,6 +438,22 @@ template <int DGadvection> void CGDynamicsKernel<DGadvection>::applyBoundaries()
     dirichletZero(u);
     dirichletZero(v);
     // TODO Periodic boundary conditions.
+}
+
+template <int DGadvection>
+void CGDynamicsKernel<DGadvection>::updateIceOceanStress(
+    const CGVector<CGdegree>& uIce, const CGVector<CGdegree>& vIce)
+{
+    const double FOcean = baseParams.COcean * baseParams.rhoOcean;
+
+#pragma omp parallel for
+    for (int i = 0; i < uIceOceanStress.rows(); ++i) {
+        const FloatType uOceanRel = uOcean(i) - uIce(i);
+        const FloatType vOceanRel = vOcean(i) - vIce(i);
+        const FloatType cPrime = FOcean * std::hypot(uOceanRel, vOceanRel);
+        uIceOceanStress(i) = cPrime * (uOceanRel * cosOceanAngle - vOceanRel * sinOceanAngle);
+        vIceOceanStress(i) = cPrime * (vOceanRel * cosOceanAngle + uOceanRel * sinOceanAngle);
+    }
 }
 
 // Instantiate the templates for all (1, 3, 6) degrees of DGadvection

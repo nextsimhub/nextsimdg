@@ -1,15 +1,15 @@
 /*
  * @file IIceOceanHeatFlux.hpp
  *
- * @date Oct 19, 2021
+ * @date 24 Sep 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
 #ifndef IICEOCEANHEATFLUX_HPP
 #define IICEOCEANHEATFLUX_HPP
 
-#include "include/ModelArrayRef.hpp"
 #include "include/ModelArray.hpp"
+#include "include/ModelArrayRef.hpp"
 #include "include/ModelComponent.hpp"
 #include "include/Time.hpp"
 
@@ -29,13 +29,6 @@ public:
 
     // This superclass has no state
     void setData(const ModelState::DataMap&) override {};
-    ModelState getState() const override { return ModelState(); }
-    ModelState getState(const OutputLevel&) const override { return getState(); }
-    ModelState getStateRecursive(const OutputSpec& os) const override
-    {
-        return os ? getState() : ModelState();
-    }
-    // …but it does have a name
     std::string getName() const override { return "IIceOceanHeatFlux"; }
 
     /*!

@@ -1,7 +1,7 @@
 /*!
  * @file ConfigOutput.cpp
  *
- * @date 2 Jul 2024
+ * @date 02 May 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -17,7 +17,7 @@
 namespace Nextsim {
 
 const std::string ConfigOutput::all = "ALL";
-const std::string ConfigOutput::defaultLastOutput = "0-01-01T00:00:00Z";
+const std::string ConfigOutput::defaultLastOutput = "0000-01-01T00:00:00Z";
 
 static const std::regex ncSuffix(".nc$");
 
@@ -31,8 +31,7 @@ static const std::string filePeriodKey = pfx + ".file_period";
 // Access the model.start key. There's no clean way of getting this from Model, I think.
 static const std::string modelStartKey = "model.start";
 
-template <>
-const std::map<int, std::string> Configured<ConfigOutput>::keyMap = {
+static const std::map<int, std::string> keyMap = {
     { ConfigOutput::PERIOD_KEY, periodKey },
     { ConfigOutput::START_KEY, startKey },
     { ConfigOutput::FIELDNAMES_KEY, fieldNamesKey },
@@ -141,7 +140,7 @@ void ConfigOutput::setModelStart(const TimePoint& modelStart)
     }
 }
 
-void ConfigOutput::outputState(const ModelMetadata& meta)
+void ConfigOutput::outputState(const ModelState& diagState, const ModelMetadata& meta)
 {
     const TimePoint& time = meta.time();
     if (currentFileName == "" || (lastFileChange + fileChangePeriod <= time)) {
@@ -154,13 +153,14 @@ void ConfigOutput::outputState(const ModelMetadata& meta)
         lastFileChange = time;
     }
 
-    ModelState state;
+    ModelState state { { }, diagState.config };
     auto storeData = ModelComponent::getStore().getAllData();
     if (outputAllTheFields) {
         // If the internal to external name lookup table is still empty, fill it
         if (reverseExternalNames.empty()) {
             for (auto entry : externalNames) {
-                // Add the reverse lookup between external and internal names, if one has not been added
+                // Add the reverse lookup between external and internal names, if one has not been
+                // added
                 if (!reverseExternalNames.count(entry.second)) {
                     reverseExternalNames[entry.second] = entry.first;
                 }
@@ -179,14 +179,21 @@ void ConfigOutput::outputState(const ModelMetadata& meta)
             }
         }
     } else {
-        // Filter only the given fields to the output state
+        // Filter the passed state by the field names for output
+        for (auto& entry : diagState.data) {
+            if (fieldsForOutput.count(entry.first) > 0) {
+                state.data[entry.first] = entry.second;
+            }
+        }
+
+        // Get data from the data store for any named fields that have an external name that matches.
         for (const auto& fieldExtName : fieldsForOutput) {
-            if (externalNames.count(fieldExtName) && storeData.count(externalNames.at(fieldExtName)) && storeData.at(externalNames.at(fieldExtName))) {
-                    state.data[fieldExtName] = *storeData.at(externalNames.at(fieldExtName));
+            if (externalNames.count(fieldExtName) && storeData.count(externalNames.at(fieldExtName))
+                && storeData.at(externalNames.at(fieldExtName))) {
+                state.data[fieldExtName] = *storeData.at(externalNames.at(fieldExtName));
             }
         }
     }
-
 
     /*
      * Produce output either:
@@ -195,11 +202,11 @@ void ConfigOutput::outputState(const ModelMetadata& meta)
      *      last output time.
      */
     Duration timeSinceOutput = meta.time() - lastOutput;
-    if (timeSinceOutput.seconds() > 0 && (
-            everyTS ||
-            std::fmod(timeSinceOutput.seconds(), outputPeriod.seconds()) == 0.)) {
+    if (timeSinceOutput.seconds() > 0
+        && (everyTS || std::fmod(timeSinceOutput.seconds(), outputPeriod.seconds()) == 0.)) {
         Logged::info("ConfigOutput: Outputting " + std::to_string(state.data.size()) + " fields to "
             + currentFileName + " at " + meta.time().format() + "\n");
+        meta.affixCoordinates(state);
         StructureFactory::fileFromState(state, meta, currentFileName, false);
         lastOutput = meta.time();
     }
@@ -212,16 +219,6 @@ std::string concatenateFields(const std::set<std::string>& strSet)
         outStr += str + ",";
     }
     return outStr;
-}
-
-ModelState ConfigOutput::getStateRecursive(const OutputSpec& os) const
-{
-    return { {},
-        {
-            { keyMap.at(PERIOD_KEY), outputPeriod.format() },
-            { keyMap.at(START_KEY), lastOutput.format() }, // FIXME Not necessarily the start date!
-            { keyMap.at(FIELDNAMES_KEY), concatenateFields(fieldsForOutput) },
-        } };
 }
 
 } /* namespace Nextsim */

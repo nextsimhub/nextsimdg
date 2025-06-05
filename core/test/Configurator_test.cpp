@@ -1,7 +1,7 @@
 /*!
  * @file Configurator_test.cpp
  *
- * @date Oct 8, 2021
+ * @date 24 Sep 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -61,8 +61,7 @@ private:
     std::string name;
 };
 
-template<>
-const std::map<int, std::string> Nextsim::Configured<Config2>::keyMap = {
+const std::map<int, std::string> keyMap2 = {
         {Config2::VALUE_KEY, "config.value"},
         {Config2::NAME_KEY, "config.name"},
 };
@@ -70,16 +69,15 @@ const std::map<int, std::string> Nextsim::Configured<Config2>::keyMap = {
 Config2::Config2()
     : value(0)
 {
-addOption<int>(keyMap.at(VALUE_KEY), -1);
-addOption<std::string>(keyMap.at(NAME_KEY), "");
+    addOption<int>(keyMap2.at(VALUE_KEY), -1);
+    addOption<std::string>(keyMap2.at(NAME_KEY), "");
 }
 
 void Config2::configure()
 {
-    value = retrieveValue<int>(keyMap.at(VALUE_KEY));
-    name = retrieveValue<std::string>(keyMap.at(NAME_KEY));
+    value = retrieveValue<int>(keyMap2.at(VALUE_KEY));
+    name = retrieveValue<std::string>(keyMap2.at(NAME_KEY));
 }
-
 
 class Config3 : public Nextsim::Configured<Config3> {
 public:
@@ -88,10 +86,10 @@ public:
         WEIGHT_KEY,
     };
     Config3()
-    : value(0)
-    , weight(0.)
-{
-}
+        : value(0)
+        , weight(0.)
+    {
+    }
     int getValue() { return value; }
     double getWeight() { return weight; }
 
@@ -102,16 +100,15 @@ private:
     double weight;
 };
 
-template<>
-const std::map<int, std::string> Nextsim::Configured<Config3>::keyMap = {
-        {Config3::VALUE_KEY, "config.value"},
-        {Config3::WEIGHT_KEY, "data.weight"},
+const std::map<int, std::string> keyMap3 = {
+    {Config3::VALUE_KEY, "config.value"},
+    {Config3::WEIGHT_KEY, "data.weight"},
 };
 
 void Config3::configure()
 {
-    value = Configured::getConfiguration(keyMap.at(VALUE_KEY), -1);
-    weight = Configured::getConfiguration(keyMap.at(WEIGHT_KEY), 1.);
+    value = Configured::getConfiguration(keyMap3.at(VALUE_KEY), -1);
+    weight = Configured::getConfiguration(keyMap3.at(WEIGHT_KEY), 1.);
 }
 
 namespace Nextsim {
@@ -198,7 +195,6 @@ TEST_CASE("Parse config streams for two overlapping class, try")
     Config3::clearConfigurationMap();
     Config2 config;
     Config3 confih;
-
 
     int target = 69105;
     std::string targetName = "Zork II";

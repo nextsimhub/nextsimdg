@@ -1,7 +1,7 @@
 /*!
  * @file BenchmarkOcean.cpp
  *
- * @date 19 Apr 2023
+ * @date 23 Aug 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -24,6 +24,7 @@ void BenchmarkOcean::setData(const ModelState::DataMap& ms)
     mld = 10.;
     cpml = Water::rho * Water::cp * mld[0];
     qio = 0;
+    ssh = 0.;
 
     // The time and length scales of the current generation function
     constexpr double L = 512000.; // Size of the domain in km

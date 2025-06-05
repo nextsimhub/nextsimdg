@@ -1,15 +1,17 @@
 /*!
  * @file ConfigurationHelp.hpp
  *
- * @date Aug 12, 2022
+ * @date 20 Nov 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
 #ifndef CONFIGURATIONHELP_HPP
 #define CONFIGURATIONHELP_HPP
 
+#include <iomanip>
 #include <list>
 #include <map>
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -28,6 +30,14 @@ public:
     std::string defaultValue;
     std::string units;
     std::string text;
+
+    // Ever so slightly better formatting than std::to_string
+    template <typename T> static std::string toString(const T input, const int n = 6)
+    {
+        std::ostringstream output;
+        output << std::setprecision(n) << input;
+        return output.str();
+    }
 };
 
 } /* namespace Nextsim */
