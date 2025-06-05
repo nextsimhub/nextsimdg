@@ -1,7 +1,7 @@
 /*!
  * @file OASISCoupledOcean.cpp
  *
- * @date 21 Mar 2025
+ * @date 05 Jun 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Einar Ólason <einar.olason@nersc.no>
  */
@@ -147,22 +147,22 @@ void OASISCoupledOcean::configure()
     Finalizer::registerUnique(Module::finalize<IIceOceanHeatFlux>);
     Finalizer::registerUnique(Module::finalize<IFreezingPoint>);
 
-    SSTKey = getConfiguration(SSTConfigKey, SSTKeyDefault);
-    SSSKey = getConfiguration(SSSConfigKey, SSSKeyDefault);
-    UOceanKey = getConfiguration(UOceanConfigKey, UOceanKeyDefault);
-    VOceanKey = getConfiguration(VOceanConfigKey, VOceanKeyDefault);
-    SSHKey = getConfiguration(SSHConfigKey, SSHKeyDefault);
-    MLDKey = getConfiguration(MLDConfigKey, MLDKeyDefault);
-    TauXKey = getConfiguration(TauXConfigKey, TauXKeyDefault);
-    TauYKey = getConfiguration(TauYConfigKey, TauYKeyDefault);
-    TauModKey = getConfiguration(TauModConfigKey, TauModKeyDefault);
-    EMPKey = getConfiguration(EMPConfigKey, EMPKeyDefault);
-    QNoSunKey = getConfiguration(QNoSunConfigKey, QNoSunKeyDefault);
-    QSWKey = getConfiguration(QSWConfigKey, QSWKeyDefault);
-    SFluxKey = getConfiguration(SFluxConfigKey, SFluxKeyDefault);
-    CIceKey = getConfiguration(CIceConfigKey, CIceKeyDefault);
+    SSTKey = Configured::getConfiguration(SSTConfigKey, SSTKeyDefault);
+    SSSKey = Configured::getConfiguration(SSSConfigKey, SSSKeyDefault);
+    UOceanKey = Configured::getConfiguration(UOceanConfigKey, UOceanKeyDefault);
+    VOceanKey = Configured::getConfiguration(VOceanConfigKey, VOceanKeyDefault);
+    SSHKey = Configured::getConfiguration(SSHConfigKey, SSHKeyDefault);
+    MLDKey = Configured::getConfiguration(MLDConfigKey, MLDKeyDefault);
+    TauXKey = Configured::getConfiguration(TauXConfigKey, TauXKeyDefault);
+    TauYKey = Configured::getConfiguration(TauYConfigKey, TauYKeyDefault);
+    TauModKey = Configured::getConfiguration(TauModConfigKey, TauModKeyDefault);
+    EMPKey = Configured::getConfiguration(EMPConfigKey, EMPKeyDefault);
+    QNoSunKey = Configured::getConfiguration(QNoSunConfigKey, QNoSunKeyDefault);
+    QSWKey = Configured::getConfiguration(QSWConfigKey, QSWKeyDefault);
+    SFluxKey = Configured::getConfiguration(SFluxConfigKey, SFluxKeyDefault);
+    CIceKey = Configured::getConfiguration(CIceConfigKey, CIceKeyDefault);
 
-    firstLayerDepth = getConfiguration(layerDepthConfigKey, FIRST_LAYER_DEPTH);
+    firstLayerDepth = Configured::getConfiguration(layerDepthConfigKey, FIRST_LAYER_DEPTH);
 
     cplStringsIn = { SSTKey, SSSKey, UOceanKey, VOceanKey, SSHKey };
     if (Configured::getConfiguration(exchangeFirstLayerConfigKey, exchangeFirstLayerDefault)) {
