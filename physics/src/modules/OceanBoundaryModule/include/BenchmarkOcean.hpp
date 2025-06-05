@@ -1,7 +1,7 @@
 /*!
  * @file BenchmarkOcean.hpp
  *
- * @date 24 Sep 2024
+ * @date 05 Jun 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -18,7 +18,7 @@ public:
         : IOceanBoundary()
     {
     }
-    ~BenchmarkOcean() = default;
+    ~BenchmarkOcean() override = default;
 
     void setData(const ModelState::DataMap&) override;
     std::string getName() const override { return "BenchmarkOcean"; }

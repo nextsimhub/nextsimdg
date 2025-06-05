@@ -1,7 +1,7 @@
 /*!
  * @file BenchmarkCoordinates.cpp
  *
- * @date 26 Sept 2023
+ * @date 05 Jun 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -31,9 +31,9 @@ void BenchmarkCoordinates::setData()
         dy = 512e3 / m_ny;
 
         for (size_t j = 0; j < m_ny; ++j) {
-            double yVal = j * dy;
+            const double yVal = j * dy;
             for (size_t i = 0; i < m_nx; ++i) {
-                double xVal = i * dx;
+                const double xVal = i * dx;
                 m_x(i, j) = xVal;
                 m_y(i, j) = yVal;
             }
@@ -41,4 +41,15 @@ void BenchmarkCoordinates::setData()
         isInitialized = true;
     }
 }
+
+ModelArray BenchmarkCoordinates::xPrime(const double timeFraction, const double cycloneDuration)
+{
+    return m_x - m_nx * dx * 0.5 * (1. + timeFraction / cycloneDuration);
+}
+
+ModelArray BenchmarkCoordinates::yPrime(const double timeFraction, const double cycloneDuration)
+{
+    return m_y - m_ny * dy * 0.5 * (1. + timeFraction / cycloneDuration);
+}
+
 } /* namespace Nextsim */

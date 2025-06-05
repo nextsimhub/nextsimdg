@@ -1,7 +1,7 @@
 /*!
  * @file BenchmarkCoordinates.hpp
  *
- * @date 26 Sept 2023
+ * @date 05 Jun 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -16,9 +16,6 @@ namespace Nextsim {
 //! BenchmarkAtmosphere classes
 class BenchmarkCoordinates {
 public:
-    static double dx;
-    static double dy;
-
     //! Sets the data for the benchmark after the initial restart file has been read
     static void setData();
 
@@ -45,6 +42,16 @@ public:
      */
     static const ModelArray fy() { return m_y / (m_ny * dy); }
 
+    /*!
+     * Returns the x coordinate of distance from the centre of the cyclone (m)
+     */
+    static ModelArray xPrime(const double timeFraction, const double cycloneDuration);
+
+    /*!
+     * Returns the y coordinate of distance from the centre of the cyclone (m)
+     */
+    static ModelArray yPrime(const double timeFraction, const double cycloneDuration);
+
 private:
     BenchmarkCoordinates() = default;
     ~BenchmarkCoordinates() = default;
@@ -58,6 +65,10 @@ private:
     // x and y coordinate arrays
     static HField m_x;
     static HField m_y;
+
+    // Grid spacing in metres
+    static double dx;
+    static double dy;
 };
 
 } /* namespace Nextsim */
