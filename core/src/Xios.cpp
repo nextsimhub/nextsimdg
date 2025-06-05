@@ -1,9 +1,7 @@
 /*!
- * @file    Xios.cpp
  * @author  Tom Meltzer <tdm39@cam.ac.uk>
  * @author  Joe Wallwork <jw2423@cam.ac.uk>
  * @author  Adeleke Bankole <ab3191@cam.ac.uk>
- * @date    23 May 2025
  * @brief   XIOS interface implementation
  * @details
  *

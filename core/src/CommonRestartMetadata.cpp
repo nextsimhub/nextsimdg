@@ -1,8 +1,5 @@
 /*!
- * @file CommonRestartMetadata.cpp
- *
- * @date Jun 30, 2022
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #include "include/CommonRestartMetadata.hpp"

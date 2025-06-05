@@ -1,8 +1,5 @@
 /*
- * @file FiniteElementSpecHum.cpp
- *
- * @date May 3, 2022
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #include "include/FiniteElementSpecHum.hpp"

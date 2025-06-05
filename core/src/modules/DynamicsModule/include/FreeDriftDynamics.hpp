@@ -1,8 +1,6 @@
 /*!
- * @file FreeDriftDynamics.hpp
  *
- * @date 26 May 2025
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #ifndef FREEDRIFTDYNAMICS_HPP

@@ -1,8 +1,5 @@
 /*!
- * @file PrognosticData.hpp
- *
- * @date Mar 1, 2022
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #ifndef PROGNOSTICDATA_HPP

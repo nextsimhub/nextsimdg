@@ -1,8 +1,5 @@
 /*!
- * @file FileCallbackCloser.cpp
- *
- * @date 15 May 2023
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #include "include/FileCallbackCloser.hpp"

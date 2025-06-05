@@ -1,7 +1,5 @@
 /*!
- * @file dgLimit.hpp
- * @date 30 April 2022
- * @author Thomas Richter <thomas.richter@ovgu.de>
+ * @author  Thomas Richter <thomas.richter@ovgu.de>
  */
 
 #ifndef __DGLIMIT_HPP

@@ -1,9 +1,6 @@
 /*!
- * @file VPCGDynamicsKernel.hpp
- *
- * @date 30 Apr 2025
- * @author Tim Spain <timothy.spain@nersc.no>
- * @author Robert Jendersie <robert.jendersie@ovgu.de>
+ * @author  Tim Spain <timothy.spain@nersc.no>
+ * @author  Robert Jendersie <robert.jendersie@ovgu.de>
  */
 
 #ifndef VPCGDYNAMICSKERNEL_HPP

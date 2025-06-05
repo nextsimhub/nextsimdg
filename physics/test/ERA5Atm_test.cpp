@@ -1,8 +1,5 @@
 /*!
- * @file ERA5Atm_test.cpp
- *
- * @date 7 Sep 2023
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #ifdef USE_MPI
@@ -34,17 +31,14 @@ namespace Nextsim {
 class NullFlux : public IFluxCalculation {
 public:
     NullFlux()
-    : IFluxCalculation()
+        : IFluxCalculation()
     {
     }
     void update(const TimestepTime&) override { }
 
 } nullFlux;
 
-std::unique_ptr<IFluxCalculation> setNullFlux()
-{
-    return std::make_unique<NullFlux>();
-}
+std::unique_ptr<IFluxCalculation> setNullFlux() { return std::make_unique<NullFlux>(); }
 
 TEST_SUITE_BEGIN("ERA5Atmosphere");
 #ifdef USE_MPI

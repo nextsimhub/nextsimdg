@@ -1,9 +1,6 @@
 /*!
- * @file PrognosticData.cpp
- *
- * @date 21 Nov 2024
- * @author Tim Spain <timothy.spain@nersc.no>
- * @author Einar Ólason <einar.olason@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
+ * @author  Einar Ólason <einar.olason@nersc.no>
  */
 
 #include "include/PrognosticData.hpp"

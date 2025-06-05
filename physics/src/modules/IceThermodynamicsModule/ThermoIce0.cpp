@@ -1,8 +1,5 @@
 /*!
- * @file ThermoIce0.cpp
- *
- * @date 02 May 2025
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #include "include/ThermoIce0.hpp"
@@ -45,21 +42,17 @@ void ThermoIce0::configure()
     kappa_s = Configured::getConfiguration(keyMap.at(KS_KEY), k_sDefault);
 }
 
-ConfigMap ThermoIce0::getConfiguration() const
-{
-    return { { keyMap.at(KS_KEY), kappa_s } };
-}
+ConfigMap ThermoIce0::getConfiguration() const { return { { keyMap.at(KS_KEY), kappa_s } }; }
 
 ModelState ThermoIce0::getStateDiagnostic() const
 {
     ModelState state = { {
-        { "snow_melt", snowMelt },
-        { "top_melt", topMelt },
-        { "bottom_melt", botMelt },
-        { "Q_ic", qic },
-    },
-            getConfiguration()
-    };
+                             { "snow_melt", snowMelt },
+                             { "top_melt", topMelt },
+                             { "bottom_melt", botMelt },
+                             { "Q_ic", qic },
+                         },
+        getConfiguration() };
 
     return state.merge(IIceThermodynamics::getStateDiagnostic());
 }

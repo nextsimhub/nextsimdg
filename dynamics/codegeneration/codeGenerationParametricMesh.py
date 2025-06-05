@@ -7,7 +7,7 @@ nextsimDG
 
 code generation for paramtric mesh using Q1 mapping
 
-@author: richter
+@author  Thomas Richter <thomas.richter@ovgu.de>
 """
 
 import basisfunctions as bf

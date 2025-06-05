@@ -1,3 +1,6 @@
+/*!
+ * @author  Tim Spain <timothy.spain@nersc.no>
+ */
 #include <ncCheck.h>
 #include <netcdf.h>
 #include <netcdf_par.h>

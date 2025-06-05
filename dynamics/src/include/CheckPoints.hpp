@@ -1,7 +1,5 @@
 /*!
- * @file CheckPoints.hpp
- * @date 1 Jun 2022
- * @author Piotr Minakowski <piotr.minakowski@ovgu.de>
+ * @author  Piotr Minakowski <piotr.minakowski@ovgu.de>
  */
 
 #ifndef __CHECKPOINTS_HPP

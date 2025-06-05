@@ -1,8 +1,6 @@
 /*!
- * @file FiniteElementFluxes.hpp
  *
- * @date 23 May 2025
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #ifndef FINITEELEMENTFLUXES_HPP

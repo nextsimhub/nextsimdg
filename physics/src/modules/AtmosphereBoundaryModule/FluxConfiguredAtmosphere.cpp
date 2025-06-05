@@ -1,8 +1,5 @@
 /*!
- * @file FluxConfiguredAtmosphere.cpp
- *
- * @date 20 Nov 2024
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #include "include/FluxConfiguredAtmosphere.hpp"
@@ -82,15 +79,15 @@ void FluxConfiguredAtmosphere::configure()
 ConfigMap FluxConfiguredAtmosphere::getConfiguration() const
 {
     return {
-       { keyMap.at(QIA_KEY), qia0 },
-       { keyMap.at(DQIA_DT_KEY), dqia_dt0 },
-       { keyMap.at(QOW_KEY), qow0 },
-       { keyMap.at(SUBL_KEY), subl0 },
-       { keyMap.at(SNOW_KEY), snowfall0 },
-       { keyMap.at(RAIN_KEY), rain0 },
-       { keyMap.at(EVAP_KEY), evap0 },
-       { keyMap.at(WINDU_KEY), u0 },
-       { keyMap.at(WINDV_KEY), v0 },
+        { keyMap.at(QIA_KEY), qia0 },
+        { keyMap.at(DQIA_DT_KEY), dqia_dt0 },
+        { keyMap.at(QOW_KEY), qow0 },
+        { keyMap.at(SUBL_KEY), subl0 },
+        { keyMap.at(SNOW_KEY), snowfall0 },
+        { keyMap.at(RAIN_KEY), rain0 },
+        { keyMap.at(EVAP_KEY), evap0 },
+        { keyMap.at(WINDU_KEY), u0 },
+        { keyMap.at(WINDV_KEY), v0 },
     };
 }
 

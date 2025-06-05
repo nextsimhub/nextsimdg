@@ -1,8 +1,6 @@
 /*!
- * @file MU71Albedo.hpp
  *
- * @date Wed 24 Aug 2022 08:00:31 CEST
- * @author Einar Örn Ólason <einar.olason@nersc.no>
+ * @author  Einar Örn Ólason <einar.olason@nersc.no>
  */
 
 #ifndef SEASONALICEALBEDO_HPP

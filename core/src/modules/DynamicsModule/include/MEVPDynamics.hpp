@@ -1,10 +1,8 @@
 /*!
- * @file MEVPDynamics.hpp
  *
- * @date 27 Mar 2025
- * @author Tim Spain <timothy.spain@nersc.no>
- * @author Piotr Minakowski <piotr.minakowski@ovgu.de>
- * @author Einar Ólason <einar.olason@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
+ * @author  Piotr Minakowski <piotr.minakowski@ovgu.de>
+ * @author  Einar Ólason <einar.olason@nersc.no>
  */
 
 #ifndef MEVPDYNAMICS_HPP

@@ -1,10 +1,6 @@
 /*!
- * @file ParametricMesh_test.cpp
- *
+ * @author  Tim Spain <timothy.spain@nersc.no>
  * @brief Test the ParametricMesh class, especially processing from ModelArray files.
- *
- * @date Dec 15, 2023
- * @author Tim Spain <timothy.spain@nersc.no>
  */
 
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN

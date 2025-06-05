@@ -1,8 +1,5 @@
 /*!
- * @file MEVPStressUpdateStep.hpp
- *
- * @date 19 Nov 2024
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #ifndef MEVPSTRESSUPDATESTEP_HPP
