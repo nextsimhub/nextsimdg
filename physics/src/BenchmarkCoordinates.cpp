@@ -20,8 +20,9 @@ HField BenchmarkCoordinates::m_y(ModelArray::Type::H);
 void BenchmarkCoordinates::setData()
 {
     if (!isInitialized) {
-        m_nx = ModelArray::dimensions(ModelArray::Type::H)[0];
-        m_ny = ModelArray::dimensions(ModelArray::Type::H)[1];
+        // Subtract 2 to account for the solid boundaries.
+        m_nx = ModelArray::dimensions(ModelArray::Type::H)[0] - 2;
+        m_ny = ModelArray::dimensions(ModelArray::Type::H)[1] - 2;
 
         m_x.resize();
         m_y.resize();

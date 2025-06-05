@@ -12,6 +12,10 @@ for res in [2, 4, 8, 16]:
 
     fname = f"init_benchmark_{nfirst}x{nsecond}.nc"
 
+    # Add two to account for the solid boundaries
+    nfirst += 2
+    nsecond += 2
+
     initializer = initMaker(fname, nfirst, nsecond, res*1e3, checkZeros=False)
     # The model expects everything in metres, while the benchmark problem in Mehlman et al. (2021) is defined in km.
 
