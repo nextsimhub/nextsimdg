@@ -35,13 +35,13 @@ ndg = 6
 if len(hsnow.shape) != n_hsnow_dim:
     print(f"Error: variable {hsnow_name} has the incorrect number of dimensions, expected {n_hsnow_dim}, got {len(hsnow.shape)}.")
     sys.exit(4)
-if hsnow.shape[0] != ny:
+if hsnow.shape[1] != ny:
     print(f"Error: incorrect first dimension for variable {hsnow_name}, expected {ny}, got {hsnow.shape[0]}")
     sys.exit(5)
-if hsnow.shape[1] != nx:
+if hsnow.shape[2] != nx:
     print(f"Error: incorrect second dimension for variable {hsnow_name}, expected {nx}, got {hsnow.shape[1]}")
     sys.exit(6)
-if hsnow.shape[2] != ndg:
+if hsnow.shape[3] != ndg:
     print(f"Error: incorrect number of DG components for variable {hsnow_name}, expected {ndg}, got {hsnow.shape[2]}")
     sys.exit(7)
 
