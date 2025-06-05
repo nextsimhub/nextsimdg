@@ -12,6 +12,7 @@
     { "cice", "C_ICE0" }, // Ice concentration
     { "hsnow", "H_SNOW_cell" }, // Snow depth, cell average, m
     { "tice", "T_ICE0" }, // Ice temperature, ˚C
+    { "tsurf", "T_SURF0" }, // Ice surface temperature, ˚C
     { "tair", "T_AIR" }, // Air temperature, ˚C
     { "dew2m", "DEW_2M" }, // Dew point at 2 m, ˚C
     { "pair", "P_AIR" }, // sea level air pressure, Pa
@@ -43,3 +44,7 @@
     { "ssh", "SSH" }, // Slab ocean salinity nudging water flux, kg s⁻¹ m⁻²
     { "taux", "IO_STRESS_X" }, // Ice-ocean stress x(east) direction, Pa
     { "tauy", "IO_STRESS_Y" }, // Ice-ocean stress y(north) direction, Pa
+    { "shear", "SHEAR" }, // The instantaneous share rate, s⁻¹
+    { "divergence", "DIV" }, // The instantaneous divergence, s⁻¹
+    { "sigma_I", "SIGMAI" }, // The first stress invariant, Pa
+    { "sigma_II", "SIGMAII" }, // The first stress invariant, Pa

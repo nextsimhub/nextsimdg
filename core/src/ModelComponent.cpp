@@ -1,7 +1,7 @@
 /*!
  * @file ModelComponent.cpp
  *
- * @date Feb 28, 2022
+ * @date 25 Apr 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -11,10 +11,15 @@
 
 namespace Nextsim {
 
-size_t ModelComponent::nOcean;
+size_t ModelComponent::nOcean = 0;
 std::vector<size_t> ModelComponent::oceanIndex;
 
-ModelComponent::ModelComponent() { noLandMask(); }
+ModelComponent::ModelComponent()
+{
+    // We only set no land mask if the mask hasn't been set by someone else.
+    if (nOcean == 0)
+        noLandMask();
+}
 
 /*
  * This assumes that the HField array size has already been set in the restart
@@ -65,19 +70,6 @@ ModelArray ModelComponent::mask(const ModelArray& data)
     case (ModelArray::Type::U):
     case (ModelArray::Type::V): {
         return data * oceanMask() + MissingData::value() * (1 - oceanMask());
-        break;
-    }
-    case (ModelArray::Type::Z): {
-        ModelArray copy = ModelArray::ZField();
-        copy = MissingData::value();
-        size_t nZ = data.dimensions()[data.nDimensions() - 1];
-        for (size_t iOcean = 0; iOcean < nOcean; ++iOcean) {
-            size_t i = oceanIndex[iOcean];
-            for (size_t k = 0; k < nZ; ++k) {
-                copy.zIndexAndLayer(i, k) = data.zIndexAndLayer(i, k);
-            }
-        }
-        return copy;
         break;
     }
     }

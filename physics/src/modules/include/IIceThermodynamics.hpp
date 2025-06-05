@@ -9,9 +9,12 @@
 #define IICETHERMODYNAMICS_HPP
 
 #include "include/ConfigurationHelp.hpp"
+#include "include/gridNames.hpp"
 #include "include/ModelArray.hpp"
 #include "include/ModelArrayRef.hpp"
+#include "include/ModelArraySlice.hpp"
 #include "include/ModelComponent.hpp"
+#include "include/Slice.hpp"
 #include "include/Time.hpp"
 
 namespace Nextsim {
@@ -23,16 +26,37 @@ public:
     std::string getName() const override { return "IceThermodynamics"; }
     void setData(const ModelState::DataMap& ms) override
     {
-        tice.resize();
+        tsurf.resize();
+        if (ms.count(tsurfName) > 0) {
+            tsurf = ms.at(tsurfName);
+        } else if (static_cast<ModelArray>(tice0).nDimensions() == 2) {
+            tsurf = tice0;
+        } else {
+            tsurf = static_cast<ModelArray>(tice0)[z0Slice];
+        }
         deltaHi.resize();
         snowToIce.resize();
     }
-    ModelState getState() const override { return ModelState(); }
-    ModelState getState(const OutputLevel&) const override { return getState(); }
-    ModelState getStateRecursive(const OutputSpec& os) const override
-    {
-        return os ? getState() : ModelState();
+
+    ModelState getStatePrognostic() const override {
+        return { {
+            { tsurfName, tsurf },
+        }, getConfiguration() };
     }
+
+    ModelState getStateDiagnostic() const override
+    {
+        ModelState state = { {
+            { "delta_H_ice", deltaHi },
+            { "snow_to_ice", snowToIce },
+        },
+                getConfiguration()
+        };
+        state.merge(getStatePrognostic());
+
+        return state;
+    }
+
     /*!
      * Updates the ice thermodynamic and thickness growth calculation for the timestep.
      *
@@ -40,15 +64,11 @@ public:
      */
     virtual void update(const TimestepTime& tsTime) = 0;
 
-    virtual void initialiseTice() { tice = tice0; }
-
     inline static std::string getKappaSConfigKey() { return "nextsim_thermo.ks"; }
-
-    virtual size_t getNZLevels() const = 0;
 
 protected:
     IIceThermodynamics()
-        : tice(ModelArray::Type::Z)
+        : tsurf(ModelArray::Type::H)
         , deltaHi(ModelArray::Type::H)
         , snowToIce(ModelArray::Type::H)
         , hice(getStore())
@@ -67,7 +87,7 @@ protected:
         , qswBase(getStore())
     {
         getStore().registerArray(Shared::DELTA_HICE, &deltaHi, RW);
-        getStore().registerArray(Shared::T_ICE, &tice, RW);
+        getStore().registerArray(Protected::T_SURF, &tsurf, RO);
     }
 
     ModelArrayRef<Shared::H_ICE, RW> hice; // From IceGrowth
@@ -86,10 +106,12 @@ protected:
     ModelArrayRef<Protected::SNOW> snowfall; // From ExternalData
     ModelArrayRef<Protected::SSS> sss; // From ExternalData (possibly PrognosticData)
     // Owned, shared arrays
-    HField tice;
+    HField tsurf;
     HField deltaHi;
     // Owned, Module-private arrays
     HField snowToIce;
+
+    const ArraySlicer::Slice z0Slice {{{ }, { }, {0}}};
 };
 
 } /* namespace Nextsim */

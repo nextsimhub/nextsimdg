@@ -6,19 +6,16 @@ import netCDF4
 
 nx = 20
 ny = 30
-nLayers = 1
 
 root = netCDF4.Dataset(f"init_rect{nx}x{ny}.nc", "w", format="NETCDF4")
 
 metagrp = root.createGroup("structure")
 metagrp.type = "simple_rectangular"
 
-
 datagrp = root.createGroup("data")
 
 xDim = datagrp.createDimension("xdim", nx)
 yDim = datagrp.createDimension("ydim", ny)
-nLay = datagrp.createDimension("nLayers", nLayers)
 
 hfield_dims = ("ydim", "xdim")
 
@@ -90,8 +87,8 @@ hice = datagrp.createVariable("hice", "f8", hfield_dims)
 hice[:,:] = cice[:,:] * 2
 hsnow = datagrp.createVariable("hsnow", "f8", hfield_dims)
 hsnow[:,:] = cice[:,:] / 2
-tice = datagrp.createVariable("tice", "f8", ("nLayers", "ydim", "xdim"))
-tice[0,:,:] = -0.5 - cice[:,:]
+tsurf = datagrp.createVariable("tsurf", "f8", ("ydim", "xdim"))
+tsurf[:,:] = -0.5 - cice[:,:]
 
 mdi = -2.**300
 # mask data
@@ -101,7 +98,7 @@ hice[:,:] = hice[:,:] * mask[:,:] + antimask * mdi
 hice.missing_value = mdi
 hsnow[:,:] = hsnow[:,:] * mask[:,:] + antimask * mdi
 hsnow.missing_value = mdi
-tice[0,:,:] = tice[0,:,:] * mask[:,:] + antimask * mdi
-tice.missing_value = mdi
+tsurf[:,:] = tsurf[:,:] * mask[:,:] + antimask * mdi
+tsurf.missing_value = mdi
 
 root.close()

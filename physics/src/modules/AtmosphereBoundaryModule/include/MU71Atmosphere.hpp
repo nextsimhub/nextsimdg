@@ -33,6 +33,7 @@ public:
         I0_KEY,
     };
     void configure() override;
+    ConfigMap getConfiguration() const override;
 
     static HelpMap& getHelpText(HelpMap& map, bool getAll);
     static HelpMap& getHelpRecursive(HelpMap& map, bool getAll);
@@ -47,7 +48,7 @@ private:
      */
     void calculateElement(size_t i, const TimestepTime& tst);
 
-    ModelArrayRef<Protected::T_ICE> tice;
+    ModelArrayRef<Protected::T_SURF> tsurf;
     ModelArrayRef<Protected::HTRUE_SNOW> h_snow_true; // cell-averaged value
 
     /*!

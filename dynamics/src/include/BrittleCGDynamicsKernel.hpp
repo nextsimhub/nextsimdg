@@ -188,6 +188,9 @@ protected:
 
 #pragma omp parallel for
         for (size_t i = 0; i < u.rows(); ++i) {
+            if (pmap->cglandmask(i) == 0)
+                continue;
+
             // FIXME dte_over_mass should include snow in the total mass
             const double dteOverMass = deltaT / (params.rhoIce * cgH(i));
             // Memoized initial velocity values

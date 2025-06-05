@@ -23,16 +23,16 @@ public:
         KS_KEY,
     };
     void configure() override;
+    ConfigMap getConfiguration() const override;
 
-    ModelState getStateRecursive(const OutputSpec& os) const override;
+    ModelState getStateDiagnostic() const override;
+    ModelState getStatePrognostic() const override;
 
     static HelpMap& getHelpText(HelpMap& map, bool getAll);
     static HelpMap& getHelpRecursive(HelpMap& map, bool getAll);
 
     void setData(const ModelState::DataMap&) override;
     void update(const TimestepTime& tsTime) override;
-
-    size_t getNZLevels() const override;
 
 private:
     void calculateElement(size_t i, const TimestepTime& tst);
@@ -47,8 +47,6 @@ private:
     static double kappa_s;
 
     bool doFlooding = true; // TODO: read from configuration
-
-    static const size_t nZLevels;
 };
 
 } /* namespace Nextsim */

@@ -1,6 +1,6 @@
 /*!
  * @file    ParametricMap.hpp
- * @date    Dec 13, 2022
+ * @date    19 Feb 2025
  * @author  Thomas Richter <thomas.richter@ovgu.de>
  */
 
@@ -68,6 +68,8 @@ public:
     CGVector<CG> lumpedcgmass;
     //! Vector to store the lumpes mass matrix in CG1. Neede to compute SeasurfaceGradient
     CGVector<1> lumpedcg1mass;
+    //! Vector to store the landmask in the CG-degrees of freedom
+    CGVector<CG> cglandmask;
 
     /*!
      * These matrices realize the integration of (-div S, phi) = (S, nabla phi)
@@ -128,6 +130,8 @@ public:
     void InitializeLumpedCGMassMatrix();
     //! initializes div-matrices for the stress update
     void InitializeDivSMatrices();
+    //! initializes the CG landmask
+    void InitializeCGLandmask();
 };
 
 }

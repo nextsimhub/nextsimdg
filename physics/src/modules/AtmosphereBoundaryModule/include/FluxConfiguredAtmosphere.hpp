@@ -39,6 +39,7 @@ public:
     static HelpMap& getHelpRecursive(HelpMap& map, bool getAll);
 
     void configure() override;
+    ConfigMap getConfiguration() const override;
 
 protected:
     //! Performs the implementation specific updates. Does nothing.

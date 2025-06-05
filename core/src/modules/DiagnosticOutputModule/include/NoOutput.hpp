@@ -18,13 +18,10 @@ public:
 
     void setFilenamePrefix(const std::string& filePrefix) override {};
 
-    void outputState(const ModelMetadata& meta) override {};
+    void outputState(const ModelState& state, const ModelMetadata& meta) override {};
 
     // ModelComponent functions
     std::string getName() const override { return "NoOutput"; }
-    // No configuration in getState
-    ModelState getState() const override { return ModelState(); }
-    ModelState getState(const OutputLevel&) const override { return getState(); }
 };
 
 } /* namespace Nextsim */

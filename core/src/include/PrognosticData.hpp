@@ -34,9 +34,8 @@ public:
     std::string getName() const override { return "PrognosticData"; };
 
     void setData(const ModelState::DataMap& ms) override;
-    ModelState getState() const override;
-    ModelState getState(const OutputLevel& lvl) const override { return getState(); }
-    ModelState getStateRecursive(const OutputSpec& os) const override;
+    ModelState getStateDiagnostic() const override;
+    ModelState getStatePrognostic() const override;
 
     void setMetadata(const ModelMetadata& metadata);
 
@@ -57,7 +56,6 @@ public:
     void writeRestartFile(const std::string& filePath, const ModelMetadata& metadata) const;
 
 private:
-    ZField m_tice;
     HField m_snow;
     HField m_damage;
     double m_dt;

@@ -37,6 +37,15 @@ if(ENABLE_MPI)
         PRIVATE USE_MPI TEST_FILES_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}\"
     )
     target_link_libraries(testTOPAZOcn_MPI1 PRIVATE nextsimlib doctest::doctest)
+
+    # In the MPI tests it's important to include the "-ns" flag which tells
+    # doctest to fail if test has been skipped. Without this, the test will
+    # technically pass if we run with fewer ranks than requested.
+    add_test(NAME testERA5Atm_MPI1
+        COMMAND ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} 1 testERA5Atm_MPI1 -ns)
+    add_test(NAME testTOPAZOcn_MPI1 COMMAND
+        ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} 1 testTOPAZOcn_MPI1 -ns)
+
     if (ENABLE_OASIS)
         add_executable(testOASISCoupledOcean_MPI2 "OASISCoupledOcean_test.cpp" "MainMPI.cpp")
         target_include_directories(testOASISCoupledOcean_MPI2
@@ -126,4 +135,25 @@ else()
         PRIVATE "${ModulesRoot}/DamageHealingModule" "${ModulesRoot}/DamageHealingModule"
     )
     target_link_libraries(testDamageHealing PRIVATE nextsimlib doctest::doctest)
+
+    set(TEST_EXECUTABLES
+        testERA5Atm
+        testTOPAZOcn
+        testIceGrowth
+        testThermoWinton
+        testFEFluxes
+        testBIOHFluxes
+        testSpecHum
+        testThermoIce0
+        testIceMinima
+        testConstantOcn
+        testSlabOcn
+        testUniformOcean
+        testBenchmarkBoundaries
+        testDamageHealing
+    )
+
+    foreach(test_exec IN LISTS TEST_EXECUTABLES)
+        add_test(NAME ${test_exec} COMMAND ${test_exec})
+    endforeach()
 endif()

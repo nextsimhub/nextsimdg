@@ -1,7 +1,7 @@
 /*!
  * @file TOPAZOcean.cpp
  *
- * @date 10 Feb 2025
+ * @date 02 May 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -56,6 +56,11 @@ void TOPAZOcean::configure()
     getStore().registerArray(Protected::EXT_SSS, &sssExt, RO);
 }
 
+ConfigMap TOPAZOcean::getConfiguration() const
+{
+    return { { keyMap.at(FILEPATH_KEY), filePath } };
+}
+
 void TOPAZOcean::updateBefore(const TimestepTime& tst)
 {
     std::set<std::string> forcings = { sstName, sssName, mldName, uName, vName, sshName };
@@ -73,9 +78,7 @@ void TOPAZOcean::updateBefore(const TimestepTime& tst)
     }
 
     cpml = Water::rhoOcean * Water::cp * mld;
-    overElements(
-        std::bind(&TOPAZOcean::updateTf, this, std::placeholders::_1, std::placeholders::_2),
-        TimestepTime());
+    overElements([this](size_t i, const TimestepTime& tsTime) { this->updateTf(i, tsTime); }, tst);
 
     Module::getImplementation<IIceOceanHeatFlux>().update(tst);
 }

@@ -1,0 +1,60 @@
+netcdf xios_test_partition_metadata_2 {
+dimensions:
+	NX = 4 ;
+	NY = 2 ;
+	P = 2 ;
+	T = UNLIMITED ; // (0 currently)
+	B = UNLIMITED ; // (0 currently)
+	L = 1 ;
+	R = 1 ;
+
+group: bounding_boxes {
+  variables:
+  	int domain_x(P) ;
+  	int domain_y(P) ;
+  	int domain_extent_x(P) ;
+  	int domain_extent_y(P) ;
+  data:
+
+   domain_x = 0, 2 ;
+
+   domain_y = 0, 0 ;
+
+   domain_extent_x = 2, 2 ;
+
+   domain_extent_y = 2, 2 ;
+  } // group bounding_boxes
+
+group: connectivity {
+  variables:
+  	int top_neighbors(P) ;
+  	int top_neighbor_ids(T) ;
+  	int top_neighbor_halos(T) ;
+  	int bottom_neighbors(P) ;
+  	int bottom_neighbor_ids(B) ;
+  	int bottom_neighbor_halos(B) ;
+  	int left_neighbors(P) ;
+  	int left_neighbor_ids(L) ;
+  	int left_neighbor_halos(L) ;
+  	int right_neighbors(P) ;
+  	int right_neighbor_ids(R) ;
+  	int right_neighbor_halos(R) ;
+  data:
+
+   top_neighbors = 0, 0 ;
+
+   bottom_neighbors = 0, 0 ;
+
+   left_neighbors = 0, 1 ;
+
+   left_neighbor_ids = 0 ;
+
+   left_neighbor_halos = 2 ;
+
+   right_neighbors = 1, 0 ;
+
+   right_neighbor_ids = 1 ;
+
+   right_neighbor_halos = 2 ;
+  } // group connectivity
+}

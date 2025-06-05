@@ -15,7 +15,10 @@ on:
 
 jobs:
   clang-format:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
+
+    timeout-minutes: 5
+
     steps:
     - uses: actions/checkout@v2
     - name: clang-format
@@ -31,6 +34,9 @@ jobs:
 
   cmake-lint:
     runs-on: ubuntu-latest
+
+    timeout-minutes: 5
+
     steps:
     - uses: actions/checkout@v2
     - name: cmake-format

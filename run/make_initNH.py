@@ -88,7 +88,6 @@ if __name__ == "__main__":
     nfirst = grid.dimensions["x"].size
     nsecond = grid.dimensions["y"].size
     print(f"grid size: {nfirst} x {nsecond}")
-    nLayers = 3
     ncg = 1
     n_dg = 1
     n_dgstress = 3
@@ -115,7 +114,6 @@ if __name__ == "__main__":
     formatted[0] = "2010-01-01T00:00:00Z"
     datagrp = root.createGroup("data")
 
-    nLay = datagrp.createDimension("zdim", nLayers)
     yDim = datagrp.createDimension("ydim", nfirst)
     xDim = datagrp.createDimension("xdim", nsecond)
     yVertexDim = datagrp.createDimension("yvertex", nfirst + 1)
@@ -128,7 +126,6 @@ if __name__ == "__main__":
     
     field_dims = ("ydim", "xdim")
     coord_dims = ("yvertex", "xvertex", "ncoords")
-    zfield_dims = ("zdim", "ydim", "xdim")
 
     # Array coordinates
     node_lon = np.zeros((nfirst + 1, nsecond + 1))
@@ -226,14 +223,16 @@ if __name__ == "__main__":
     sst[:, :] = sst_data * noice + mu * sss_data * isice
 
     # Ice temperature
-    tice = datagrp.createVariable("tice", "f8", zfield_dims)
+    tsurf = datagrp.createVariable("tsurf", "f8", field_dims)
+    tintr = datagrp.createVariable("tinterior", "f8", field_dims)
+    tbott = datagrp.createVariable("tbottom", "f8", field_dims)
     #ice_melt = mu * 5 # Melting point of sea ice (salinity = 5) in ˚C
     ice_melt = mu
     # Tice outside the ice pack is the melting point of pure water ice, which is conveniently 0˚C
     ice_temp2d = np.fmin(sst_data, ice_melt)
-    tice[0, :, :] = ice_temp2d
-    tice[1, :, :] = ice_temp2d
-    tice[2, :, :] = ice_temp2d
+    tsurf[:, :] = ice_temp2d
+    tintr[:, :] = ice_temp2d
+    tbott[:, :] = ice_temp2d
     
     uv_source_file = netCDF4.Dataset(topaz4_source_file_name("u", data_time), "r")
 

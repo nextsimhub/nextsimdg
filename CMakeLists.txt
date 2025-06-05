@@ -40,7 +40,7 @@ endif()
 
 target_include_directories(nextsimlib PUBLIC "${netCDF_INCLUDE_DIR}")
 target_link_directories(nextsimlib PUBLIC "${netCDF_LIB_DIR}")
-target_link_libraries(nextsimlib PUBLIC "${NSDG_NetCDF_Library}" "${FORTRAN_RUNTIME_LIB}")
+target_link_libraries(nextsimlib PUBLIC "${NSDG_NetCDF_Library}")
 
 if(BUILD_TESTS)
     # Add the doctest header library
@@ -50,6 +50,7 @@ if(BUILD_TESTS)
         TARGET doctest::doctest
         PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${DOCTEST_INCLUDE_DIR}"
     )
+    enable_testing() # Enable ctest
 endif()
 
 # Eigen
@@ -147,6 +148,12 @@ if(ENABLE_XIOS)
         nextsimlib
         PRIVATE ${xios_INCLUDES} ${xios_EXTERNS}/blitz/ ${xios_EXTERNS}/rapidxml/include
     )
+    if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+        set(FORTRAN_RUNTIME_LIB "-lgfortran")
+    elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
+        set(FORTRAN_RUNTIME_LIB "-lifcore")
+    endif()
+    target_link_libraries(nextsimlib PUBLIC "${FORTRAN_RUNTIME_LIB}")
 endif()
 
 # Do we want to include the OASIS interface? It'll only work if we have MPI

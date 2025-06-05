@@ -13,7 +13,6 @@
 #include "include/MissingData.hpp"
 #include "include/ModelArray.hpp"
 #include "include/ModelState.hpp"
-#include "include/NZLevels.hpp"
 #include "include/gridNames.hpp"
 
 #ifdef USE_MPI
@@ -45,9 +44,6 @@ void dimensionSetter(const netCDF::NcGroup& dataGroup, const std::string& fieldN
     }
     // The dimensions in the netCDF are in the reverse order compared to ModelArray
     std::reverse(dims.begin(), dims.end());
-    // A special case for Type::Z: use NZLevels for the third dimension
-    if (type == ModelArray::Type::Z)
-        dims[2] = NZLevels::get();
     // Replace X, Y dimensions with local extends
     dims[0] = metadata.localExtentX;
     dims[1] = metadata.localExtentY;
@@ -65,9 +61,6 @@ void dimensionSetter(
     }
     // The dimensions in the netCDF are in the reverse order compared to ModelArray
     std::reverse(dims.begin(), dims.end());
-    // A special case for Type::Z: use NZLevels for the third dimension
-    if (type == ModelArray::Type::Z)
-        dims[2] = NZLevels::get();
     ModelArray::setDimensions(type, dims);
 }
 #endif
@@ -94,8 +87,6 @@ ModelState RectGridIO::getModelState(const std::string& filePath)
     dimensionSetter(dataGroup, hiceName, ModelArray::Type::U, metadata);
     // VField from hice
     dimensionSetter(dataGroup, hiceName, ModelArray::Type::V, metadata);
-    // ZField from tice
-    dimensionSetter(dataGroup, ticeName, ModelArray::Type::Z, metadata);
 #else
     // Get the sizes of the four types of field
     // HField from hice
@@ -104,8 +95,6 @@ ModelState RectGridIO::getModelState(const std::string& filePath)
     dimensionSetter(dataGroup, hiceName, ModelArray::Type::U);
     // VField from hice
     dimensionSetter(dataGroup, hiceName, ModelArray::Type::V);
-    // ZField from tice
-    dimensionSetter(dataGroup, ticeName, ModelArray::Type::Z);
 #endif
 
 #ifdef USE_MPI
@@ -130,6 +119,8 @@ ModelState RectGridIO::getModelState(const std::string& filePath)
     dataGroup.getVar(ciceName).getVar(start, size, &state.data[ciceName][0]);
     state.data[hsnowName] = ModelArray::HField();
     dataGroup.getVar(hsnowName).getVar(start, size, &state.data[hsnowName][0]);
+    state.data[tsurfName] = ModelArray::HField();
+    dataGroup.getVar(tsurfName).getVar(start, size, &state.data[tsurfName][0]);
     // coordinates on the H grid
     if (dataGroup.getVars().count(xName) > 0) {
         state.data[xName] = ModelArray::HField();
@@ -142,16 +133,6 @@ ModelState RectGridIO::getModelState(const std::string& filePath)
         state.data[latitudeName] = ModelArray::HField();
         dataGroup.getVar(latitudeName).getVar(start, size, &state.data[latitudeName][0]);
     }
-
-    // Z direction is outside MPI ifdef as the domain is never decomposed in this direction
-
-    // Since the ZFierld might not have the same dimensions as the tice field
-    // in the file, a little more work is required.
-    state.data[ticeName] = ModelArray::ZField();
-    start.insert(start.begin(), 0);
-    std::vector<size_t> zArrayDims = ModelArray::dimensions(ModelArray::Type::Z);
-    std::reverse(zArrayDims.begin(), zArrayDims.end());
-    dataGroup.getVar(ticeName).getVar(start, zArrayDims, &state.data[ticeName][0]);
 
     ncFile.close();
     return state;
@@ -175,10 +156,8 @@ void RectGridIO::dumpModelState(const ModelState& state, const ModelMetadata& me
 
     int nx = ModelArray::dimensions(Type::H)[0];
     int ny = ModelArray::dimensions(Type::H)[1];
-    int nz = ModelArray::dimensions(Type::Z)[2];
 
-    std::vector<std::string> dimensionNames
-        = { "xdim", "ydim", "zdim", "t", "component", "u", "v", "w" };
+    std::vector<std::string> dimensionNames = { "xdim", "ydim", "t", "component", "u", "v", "w" };
 
     // Create the dimension data, since it has to be in the same group as the
     // data or the parent group
@@ -189,37 +168,23 @@ void RectGridIO::dumpModelState(const ModelState& state, const ModelMetadata& me
     netCDF::NcDim xDim = dataGroup.addDim(dimensionNames[0], nx);
     netCDF::NcDim yDim = dataGroup.addDim(dimensionNames[1], ny);
 #endif
-    netCDF::NcDim zDim = dataGroup.addDim(dimensionNames[2], nz);
     std::vector<netCDF::NcDim> dims2 = { yDim, xDim };
-    std::vector<netCDF::NcDim> dims3 = { zDim, yDim, xDim };
 #ifdef USE_MPI
-    // Set the origins and extensions for reading 3D data based
-    // on MPI decomposition
-    std::vector<size_t> start3 = { 0, static_cast<size_t>(metadata.localCornerY),
-        static_cast<size_t>(metadata.localCornerX) };
-    std::vector<size_t> size3 = { static_cast<size_t>(nz),
-        static_cast<size_t>(metadata.localExtentY), static_cast<size_t>(metadata.localExtentX) };
     // Set the origins and extensions for reading 2D data based
     // on MPI decomposition
-    std::vector<size_t> start2(start3.begin() + 1, start3.end());
-    std::vector<size_t> size2(size3.begin() + 1, size3.end());
+    std::vector<size_t> start2 = { static_cast<size_t>(metadata.localCornerY),
+        static_cast<size_t>(metadata.localCornerX) };
+    std::vector<size_t> size2 = { static_cast<size_t>(metadata.localExtentY),
+        static_cast<size_t>(metadata.localExtentX) };
 #endif
 
     for (const auto entry : state.data) {
         const std::string& name = entry.first;
-        if (entry.second.getType() == ModelArray::Type::H && entry.second.trueSize() > 0) {
+        if (entry.second.trueSize() > 0) {
             netCDF::NcVar var(dataGroup.addVar(name, netCDF::ncDouble, dims2));
             var.putAtt(mdiName, netCDF::ncDouble, MissingData::value());
 #ifdef USE_MPI
             var.putVar(start2, size2, entry.second.getData());
-#else
-            var.putVar(entry.second.getData());
-#endif
-        } else if (entry.second.getType() == ModelArray::Type::Z && entry.second.trueSize() > 0) {
-            netCDF::NcVar var(dataGroup.addVar(name, netCDF::ncDouble, dims3));
-            var.putAtt(mdiName, netCDF::ncDouble, MissingData::value());
-#ifdef USE_MPI
-            var.putVar(start3, size3, entry.second.getData());
 #else
             var.putVar(entry.second.getData());
 #endif
