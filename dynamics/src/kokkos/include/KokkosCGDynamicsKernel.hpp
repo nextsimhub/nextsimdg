@@ -48,10 +48,14 @@ public:
         = KokkosDeviceMapView<typename ParametricMomentumMap<CGdegree, DGadvection>::DivMatrix>;
     using GradMapDevice
         = KokkosDeviceMapView<typename ParametricMomentumMap<CGdegree, DGadvection>::GradMatrix>;
+    using GaussMapDevice = KokkosDeviceMapView<
+        typename ParametricMomentumMap<CGdegree, DGadvection>::GaussMapMatrix>;
 
     KokkosCGDynamicsKernel(const DynamicsParameters& params);
 
     void initialise(const ModelArray& coords, bool isSpherical, const ModelArray& mask) override;
+
+    ModelArray getDG0Data(const std::string& name) const override;
 
     void advectAndLimit(const FloatType dt,
         const ConstKokkosDeviceView<CGVector<CGdegree>>& cgUDevice,
@@ -90,6 +94,19 @@ public:
         const ConstDeviceViewCG& vIceDevice, const ConstDeviceViewCG& uOceanDevice,
         const ConstDeviceViewCG& vOceanDevice, const DynamicsParameters& params,
         FloatType cosOceanAngle, FloatType sinOceanAngle);
+
+    // functionality from Tools.hpp
+    static void computeShearDevice(const DeviceViewAdvect& destDevice,
+        const ConstDeviceViewStress& e11Device, const ConstDeviceViewStress& e12Device,
+        const ConstDeviceViewStress& e22Device, const GaussMapDevice& iMJwPSIDevice);
+
+    static void computeTensorInvariantIDevice(const DeviceViewStress& destDevice,
+        const ConstDeviceViewStress& e11Device, const ConstDeviceViewStress& e12Device,
+        const ConstDeviceViewStress& e22Device);
+
+    static void computeTensorInvariantIIDevice(const DeviceViewStress& destDevice,
+        const ConstDeviceViewStress& e11Device, const ConstDeviceViewStress& e12Device,
+        const ConstDeviceViewStress& e22Device);
 
 protected:
     // currently not used
@@ -145,6 +162,11 @@ protected:
     DeviceViewStress e22Device;
     HostViewStress e22Host;
 
+    // vector used to temporary store computed properties like shear for getDG0Data
+    DGVector<DGstressComp> tempData;
+    DeviceViewStress tempDataDevice;
+    HostViewStress tempDataHost;
+
     // precomputed parametric map
     DivMapDevice divS1Device;
     DivMapDevice divS2Device;
@@ -167,8 +189,6 @@ protected:
     // parametric map precomputed transforms
     // todo: refactor into KokkosParametricMap with switch for precomputed / on-the-fly
     ConstDeviceViewCG lumpedCGMassDevice;
-    using GaussMapDevice = KokkosDeviceMapView<
-        typename ParametricMomentumMap<CGdegree, DGadvection>::GaussMapMatrix>;
     GaussMapDevice iMJwPSIDevice;
     ConstDeviceBitset cgLandMaskDevice;
 

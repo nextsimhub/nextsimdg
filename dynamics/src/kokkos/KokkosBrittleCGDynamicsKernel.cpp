@@ -197,7 +197,7 @@ ModelArray KokkosBrittleCGDynamicsKernel<DGadvection>::getDG0Data(const std::str
         ModelArray data(ModelArray::Type::H);
         return DGModelArray::dg2ma(damage, data);
     } else {
-        return CGDynamicsKernel<DGadvection>::getDG0Data(name);
+        return KokkosCGDynamicsKernel<DGadvection>::getDG0Data(name);
     }
 }
 

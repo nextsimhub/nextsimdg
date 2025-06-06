@@ -56,6 +56,9 @@ void KokkosCGDynamicsKernel<DGadvection>::initialise(
     std::tie(e12Host, e12Device) = makeKokkosDualView("e12", this->e12);
     std::tie(e22Host, e22Device) = makeKokkosDualView("e22", this->e22);
 
+    tempData.resize_by_mesh(*this->smesh);
+    std::tie(tempDataHost, tempDataDevice) = makeKokkosDualView("tempData", (this->tempData));
+
     assert(this->pmap);
     divS1Device = makeKokkosDeviceViewMap("divS1", this->pmap->divS1, MakeViewOptions::DEVICE_COPY);
     divS2Device = makeKokkosDeviceViewMap("divS2", this->pmap->divS2, MakeViewOptions::DEVICE_COPY);
@@ -106,6 +109,35 @@ void KokkosCGDynamicsKernel<DGadvection>::initialise(
 
 /*************************************************************/
 template <int DGadvection>
+ModelArray KokkosCGDynamicsKernel<DGadvection>::getDG0Data(const std::string& name) const
+{
+    HField data(ModelArray::Type::H);
+    if (name == shearName) {
+        // todo: perform computation no GPU and copy only the result
+        Kokkos::deep_copy(this->e11Host, this->e11Device);
+        Kokkos::deep_copy(this->e12Host, this->e12Device);
+        Kokkos::deep_copy(this->e22Host, this->e22Device);
+        return DGModelArray::dg2ma(
+            Tools::Shear(*this->smesh, this->e11, this->e12, this->e22), data);
+    } else if (name == divergenceName) {
+        computeTensorInvariantIDevice(tempDataDevice, e11Device, e12Device, e22Device);
+        Kokkos::deep_copy(this->tempDataHost, this->tempDataDevice);
+        return DGModelArray::dg2ma(tempData, data);
+    } else if (name == sigmaIName) {
+        computeTensorInvariantIDevice(tempDataDevice, s11Device, s12Device, s22Device);
+        Kokkos::deep_copy(this->tempDataHost, this->tempDataDevice);
+        return DGModelArray::dg2ma(tempData, data);
+    } else if (name == sigmaIIName) {
+        computeTensorInvariantIIDevice(tempDataDevice, s11Device, s12Device, s22Device);
+        Kokkos::deep_copy(this->tempDataHost, this->tempDataDevice);
+        return DGModelArray::dg2ma(tempData, data);
+    } else {
+        return CGDynamicsKernel<DGadvection>::getDG0Data(name);
+    }
+}
+
+/*************************************************************/
+template <int DGadvection>
 void KokkosCGDynamicsKernel<DGadvection>::advectAndLimit(const FloatType dt,
     const ConstKokkosDeviceView<CGVector<CGdegree>>& cgUDevice,
     const ConstKokkosDeviceView<CGVector<CGdegree>>& cgVDevice)
@@ -122,12 +154,13 @@ void KokkosCGDynamicsKernel<DGadvection>::advectAndLimit(const FloatType dt,
     limitMin(hiceDevice, 0.0);
 }
 
+/*************************************************************/
 template <int DGadvection>
 void KokkosCGDynamicsKernel<DGadvection>::updateGradientOfSeaSurfaceHeight()
 {
     // Reinit the gradient of the sea surface height. Not done by DataMap as seaSurfaceHeight is
-    // always dG(0). Currently done on CPU because their are no dependencies on other computations
-    // and the cost is small (<3% of dynamics with a single thread).
+    // always dG(0). Currently done on CPU because their are no dependencies on other
+    // computations and the cost is small (<3% of dynamics with a single thread).
     this->computeGradientOfSeaSurfaceHeight(this->seaSurfaceHeight);
     auto execSpace = Kokkos::DefaultExecutionSpace();
     Kokkos::deep_copy(
@@ -150,9 +183,10 @@ void KokkosCGDynamicsKernel<DGadvection>::prepareIterationDevice(const DeviceVie
     // VectorManipulations::CGAveragePeriodic(*smesh, cgA);
 
     /* limit A to [0,1] and H to [5 cm, ...)
-     * This limit on H is equivalent to assuming that ice thinner than 5 cm is always in free drift,
-     * which is reasonable. We need a limit of the order of cm here, so that the solver remains
-     * stable. With a limit of the order of mm, we need a much smaller time step to remain stable.
+     * This limit on H is equivalent to assuming that ice thinner than 5 cm is always in free
+     * drift, which is reasonable. We need a limit of the order of cm here, so that the solver
+     * remains stable. With a limit of the order of mm, we need a much smaller time step to
+     * remain stable.
      */
     Kokkos::parallel_for(
         "limitCGA", cgADevice.extent(0), KOKKOS_LAMBDA(const DeviceIndex idx) {
@@ -184,6 +218,7 @@ static KOKKOS_IMPL_FUNCTION Eigen::Matrix<FloatType, CGDOFS(CG), 1> cgToLocal(
     }
 }
 
+/*************************************************************/
 template <int DGadvection>
 void KokkosCGDynamicsKernel<DGadvection>::projectVelocityToStrainDevice(
     const ConstDeviceViewCG& uDevice, const ConstDeviceViewCG& vDevice,
@@ -235,6 +270,7 @@ void KokkosCGDynamicsKernel<DGadvection>::projectVelocityToStrainDevice(
         });
 }
 
+/*************************************************************/
 template <int DGadvection>
 void KokkosCGDynamicsKernel<DGadvection>::dirichletZero(
     const DeviceViewCG& v, const ConstDeviceBitset& cgLandMaskDevice)
@@ -250,6 +286,7 @@ void KokkosCGDynamicsKernel<DGadvection>::dirichletZero(
         });
 }
 
+/*************************************************************/
 template <int DGadvection>
 void KokkosCGDynamicsKernel<DGadvection>::computeStressDivergenceDevice(
     const DeviceViewCG& dStressXDevice, const DeviceViewCG& dStressYDevice,
@@ -324,6 +361,7 @@ void KokkosCGDynamicsKernel<DGadvection>::computeStressDivergenceDevice(
     //   VectorManipulations::CGAveragePeriodic(*smesh, ty);
 }
 
+/*************************************************************/
 template <int DGadvection>
 void KokkosCGDynamicsKernel<DGadvection>::applyBoundariesDevice(const DeviceViewCG& uDevice,
     const DeviceViewCG& vDevice, const ConstDeviceBitset& cgLandMaskDevice, DeviceIndex nx,
@@ -335,6 +373,7 @@ void KokkosCGDynamicsKernel<DGadvection>::applyBoundariesDevice(const DeviceView
     // TODO Periodic boundary conditions.
 }
 
+/*************************************************************/
 template <int DGadvection>
 void KokkosCGDynamicsKernel<DGadvection>::updateIceOceanStressDevice(
     const DeviceViewCG& uIceOceanStressDevice, const DeviceViewCG& vIceOceanStressDevice,
@@ -357,8 +396,42 @@ void KokkosCGDynamicsKernel<DGadvection>::updateIceOceanStressDevice(
         });
 }
 
+/*************************************************************/
+template <int DGadvection>
+void KokkosCGDynamicsKernel<DGadvection>::computeTensorInvariantIDevice(
+    const DeviceViewStress& destDevice, const ConstDeviceViewStress& e11Device,
+    const ConstDeviceViewStress& e12Device, const ConstDeviceViewStress& e22Device)
+{
+    Kokkos::parallel_for(
+        "computeTensorInvariant", destDevice.extent(0), KOKKOS_LAMBDA(const DeviceIndex i) {
+            auto dest = makeEigenMap(destDevice);
+            const auto e11 = makeEigenMap(e11Device);
+            const auto e12 = makeEigenMap(e12Device);
+            const auto e22 = makeEigenMap(e22Device);
+
+            dest.row(i) = 0.5 * (e11.row(i) + e22.row(i));
+        });
+}
+
+template <int DGadvection>
+void KokkosCGDynamicsKernel<DGadvection>::computeTensorInvariantIIDevice(
+    const DeviceViewStress& destDevice, const ConstDeviceViewStress& e11Device,
+    const ConstDeviceViewStress& e12Device, const ConstDeviceViewStress& e22Device)
+{
+    Kokkos::parallel_for(
+        "computeTensorInvariant", destDevice.extent(0), KOKKOS_LAMBDA(const DeviceIndex i) {
+            auto dest = makeEigenMap(destDevice);
+            const auto e11 = makeEigenMap(e11Device);
+            const auto e12 = makeEigenMap(e12Device);
+            const auto e22 = makeEigenMap(e22Device);
+
+            dest.row(i)
+                = ((0.5 * (e11.row(i) - e22.row(i))).array().square() + e12.row(i).array().square())
+                      .sqrt();
+        });
+}
+
 template class KokkosCGDynamicsKernel<1>;
 template class KokkosCGDynamicsKernel<3>;
 template class KokkosCGDynamicsKernel<6>;
-
 }
