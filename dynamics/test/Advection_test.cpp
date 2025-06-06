@@ -1,6 +1,6 @@
 /*!
  * @file Advection_test.cpp
- * @date 30 Apr 2025
+ * @date 05 Jun 2025
  * @author Thomas Richter <thomas.richter@ovgu.de>
  */
 
@@ -264,6 +264,8 @@ TEST_CASE("Advection")
 {
     std::cout << std::setprecision(4) << std::scientific;
 
+    // Exact values taken 25/06/2024 after some plausibility check of the results
+    // and by checking the theoretical order of convergence to be expected
     // New values 07/04/2025 after reimplementation of boundary data. Dirichlet data is now
     // realized using the landmaks info. Therefore, the physical domain shrinks by one layer all
     // around and this slightly changes the exact values.
@@ -282,6 +284,18 @@ TEST_CASE("Advection")
 }
 TEST_CASE("Distorted Mesh")
 {
+    // std::array<std::array<double, 6>, 3> exact
+    //     = { std::array<double, 6>(
+    //             { 5.0958748236875594e-02, 4.8461087243594887e-02, 4.3918572621094686e-02,
+    //                 3.7038043078562323e-02, 2.8334464207979679e-02, 1.9666196904181983e-02 }),
+    //           std::array<double, 6>(
+    //               { 3.2033423984965226e-02, 1.5639052766007147e-02, 6.7926997203524983e-03,
+    //                   2.7369916393700151e-03, 9.2109964949992139e-04, 2.5128064874203957e-04 }),
+    //           std::array<double, 6>(
+    //               { 1.1830071142946669e-02, 4.9207680503709564e-03, 1.5831512504162868e-03,
+    //                   3.8869595113351363e-04, 6.7162895595772516e-05, 7.5853786764529606e-06 })
+    //                   };
+
     // New values 07/04/2025 after reimplementation of boundary data. Dirichlet data is now
     // realized using the landmaks info. Therefore, the physical domain shrinks by one layer all
     // around and this slightly changes the exact values.

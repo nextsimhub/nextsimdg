@@ -65,7 +65,6 @@ TEST_CASE("Test readmesh")
     REQUIRE(smesh.landmask[nx - 1]);
     REQUIRE(!smesh.landmask[(ny - 1) * nx]);
 
-
     // No periodic boundary conditions
     REQUIRE(smesh.periodic.size() == 0);
 }

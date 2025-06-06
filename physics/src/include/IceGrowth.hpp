@@ -1,7 +1,7 @@
 /*!
  * @file IceGrowth.hpp
  *
- * @date Jul 5, 2022
+ * @date 04 Jun 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Einar Ólason <einar.olason@nersc.no>
  */
@@ -47,9 +47,6 @@ public:
 
     void update(const TimestepTime&);
 
-    static double minimumIceThickness() { return IceMinima::h(); }
-    static double minimumIceConcentration() { return IceMinima::c(); }
-
     /*!
      * Updates the true ice and snow thickness arrays from the cell averages.
      */
@@ -68,38 +65,17 @@ private:
     HField hice; // Updated true ice thickness, m
     HField cice; // Updated ice concentration
     HField hsnow; // Updated true snow thickness, m
-    HField newice; // New ice over open water this timestep, m
     HField hice0; // Timestep initial true ice thickness, m
     HField hsnow0; // Timestep initial true snow thickness, m
-
-    HField snowMelt; // Ocean to snow transfer of freshwater kg m⁻²
-    // Since ILateralSpread is purely per-element, hold Δcice here
-    HField deltaCIce; // Change in ice concentration
-    // Owned data fields, not shared
-    HField deltaCFreeze; // New ice concentration due to freezing (+ve)
-    HField deltaCMelt; // Ice concentration loss due to melting (-ve)
 
     ModelArrayRef<Protected::H_ICE> hIceCell; // Timestep initial cell averaged ice thickness, m
     ModelArrayRef<Protected::H_SNOW> hSnowCell; // Timestep initial cell averaged snow thickness, m
     ModelArrayRef<Protected::C_ICE> cice0; // Timestep initial ice concentration
     ModelArrayRef<Shared::Q_OW, RW> qow; // open water heat flux, from FluxCalculation
-    ModelArrayRef<Protected::ML_BULK_CP>
-        mixedLayerBulkHeatCapacity; // J K⁻¹ m⁻², from atmospheric state
-    ModelArrayRef<Protected::SST> sst; // sea surface temperature, ˚C
-    ModelArrayRef<Protected::TF> tf; // ocean freezing point, ˚C
     ModelArrayRef<Shared::DELTA_HICE> deltaHi; // New ice thickness this timestep, m
 
     bool doThermo = true; // Perform any thermodynamics calculations at all
 
-    void newIceFormation(size_t i, const TimestepTime&);
-    void lateralIceSpread(size_t i, const TimestepTime&);
-    void applyLimits(size_t i, const TimestepTime&);
-    void updateWrapper(size_t i, const TimestepTime& tst)
-    {
-        newIceFormation(i, tst);
-        lateralIceSpread(i, tst);
-        applyLimits(i, tst);
-    }
     void initializeThicknessesElement(size_t i, const TimestepTime&);
 };
 

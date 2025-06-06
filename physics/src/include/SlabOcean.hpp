@@ -1,7 +1,7 @@
 /*!
  * @file SlabOcean.hpp
  *
- * @date 29 Apr 2025
+ * @date 03 Jun 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -79,9 +79,6 @@ private:
     ModelArrayRef<CouplingFields::FWFLUX, RO> fwFlux;
     ModelArrayRef<CouplingFields::SFLUX, RO> sFlux;
     // TODO ModelArrayRef to assimilation flux
-
-    static const std::string sstSlabName;
-    static const std::string sssSlabName;
 
     double relaxationTimeT = defaultRelaxationTime;
     double relaxationTimeS = defaultRelaxationTime;
