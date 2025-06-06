@@ -1,7 +1,7 @@
 /*!
  * @file IOceanBoundary.hpp
  *
- * @date 27 May 2025
+ * @date 03 Jun 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -10,6 +10,7 @@
 
 #include "include/CheckingModelComponent.hpp"
 #include "include/constants.hpp"
+#include "include/gridNames.hpp"
 
 namespace Nextsim {
 
@@ -114,11 +115,11 @@ public:
         fieldsToCheck.emplace_back("tauX", &tauX);
         fieldsToCheck.emplace_back("tauY", &tauY);
 
-        if (ms.count("sst")) {
-            sst = ms.at("sst");
+        if (ms.count(sstName)) {
+            sst = ms.at(sstName);
         }
-        if (ms.count("sss")) {
-            sss = ms.at("sss");
+        if (ms.count(sssName)) {
+            sss = ms.at(sssName);
         }
     }
 

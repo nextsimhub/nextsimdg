@@ -1,7 +1,7 @@
 /*!
  * @file TOPAZOcean.cpp
  *
- * @date 30 May 2025
+ * @date 03 Jun 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -104,6 +104,18 @@ void TOPAZOcean::updateAfter(const TimestepTime& tst)
     } catch (const std::exception& e) {
         throw std::runtime_error("TOPAZOcean::updateAfter: " + std::string(e.what()));
     }
+}
+
+ModelState TOPAZOcean::getStatePrognostic() const
+{
+    ModelState state = IOceanBoundary::getStatePrognostic();
+    return state.merge(slabOcean.getStatePrognostic());
+}
+
+ModelState TOPAZOcean::getStateDiagnostic() const
+{
+    ModelState state = IOceanBoundary::getStateDiagnostic();
+    return state.merge(slabOcean.getStateDiagnostic());
 }
 
 void TOPAZOcean::setFilePath(const std::string& filePathIn) { filePath = filePathIn; }

@@ -65,20 +65,6 @@ TEST_CASE("Test readmesh")
     REQUIRE(smesh.landmask[nx - 1]);
     REQUIRE(!smesh.landmask[(ny - 1) * nx]);
 
-    // Dirichlet conditions
-    // Element 5 comes first, and is closed on edges 0 & 3
-    REQUIRE(smesh.dirichlet[0][0] == 5);
-    REQUIRE(smesh.dirichlet[3][0] == 5);
-    // Element 7 is the first with a closed edge 1
-    REQUIRE(smesh.dirichlet[1][0] == 7);
-    // Element 48 is the first with a closed edge 2
-    REQUIRE(smesh.dirichlet[2][0] == 48);
-    // sizes of the Dirichlet arrays
-    REQUIRE(smesh.dirichlet[0].size() == 369);
-    REQUIRE(smesh.dirichlet[1].size() == 384);
-    REQUIRE(smesh.dirichlet[0].size() == smesh.dirichlet[2].size());
-    REQUIRE(smesh.dirichlet[1].size() == smesh.dirichlet[3].size());
-
     // No periodic boundary conditions
     REQUIRE(smesh.periodic.size() == 0);
 }
@@ -119,21 +105,6 @@ TEST_CASE("Compare readmesh and landmask reading")
         REQUIRE(fromArrays.landmask[idx] == fromFile.landmask[idx]);
     }
 
-    // Dirichlet conditions
-    fromArrays.dirichletFromMask();
-    for (ParametricMesh::Edge edge : ParametricMesh::edges) {
-        fromArrays.dirichletFromEdge(edge);
-    }
-    fromArrays.sortDirichlet();
-    for (ParametricMesh::Edge edge : ParametricMesh::edges) {
-        REQUIRE(fromArrays.dirichlet[edge].size() == fromFile.dirichlet[edge].size());
-    }
-
-    for (ParametricMesh::Edge edge : ParametricMesh::edges) {
-        for (size_t idx = 0; idx < fromArrays.dirichlet[edge].size(); ++idx) {
-            REQUIRE(fromArrays.dirichlet[edge][idx] == fromFile.dirichlet[edge][idx]);
-        }
-    }
     // No periodic boundary conditions
     REQUIRE(fromArrays.periodic.size() == 0);
 }
