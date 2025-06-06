@@ -122,7 +122,7 @@ public:
         Index stop;
         Int step;
         Bounds()
-            : Bounds(0, {}, 1)
+            : Bounds(0, Index(), 1)
         {
         }
         Bounds(Index i)
@@ -144,7 +144,10 @@ public:
         }
         std::ostream& print(std::ostream& os) const
         {
-            return os << start << ":" << stop << ":" << step;
+            start.print(os);
+            os << ":";
+            stop.print(os);
+            return os << ":" << step;
         }
         friend SliceIter;
     };

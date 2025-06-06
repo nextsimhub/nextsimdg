@@ -1,7 +1,7 @@
 /*!
  * @file ThermoWinton.hpp
  *
- * @date 24 Sep 2024
+ * @date 02 May 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -28,20 +28,25 @@ public:
         FLOODING_KEY,
     };
     void configure() override;
+    ConfigMap getConfiguration() const override;
 
-    ModelState getStateRecursive(const OutputSpec& os) const override;
+    ModelState getStateDiagnostic() const override;
+    ModelState getStatePrognostic() const override;
 
     static HelpMap& getHelpText(HelpMap& map, bool getAll);
     static HelpMap& getHelpRecursive(HelpMap& map, bool getAll);
 
     void setData(const ModelState::DataMap&) override;
-    void update(const TimestepTime& tsTime) override;
+    void update(const TimestepTime& tst) override;
 
-    size_t getNZLevels() const override;
+    static const std::string tInteriorName;
+    static const std::string tBottomName;
 
 private:
     void calculateElement(size_t i, const TimestepTime& tst);
 
+    HField tInternal;
+    HField tBottom;
     HField snowMelt;
     HField topMelt;
     HField botMelt;

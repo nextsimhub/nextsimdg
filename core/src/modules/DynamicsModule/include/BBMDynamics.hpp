@@ -28,10 +28,8 @@ public:
     void update(const TimestepTime& tst) override;
 
     void setData(const ModelState::DataMap&) override;
-    ModelState getState() const override;
-     ModelState getState(const OutputLevel&) const override { return getState(); }
-    ModelState getStateRecursive(const OutputSpec& os) const override;
     void configure() override;
+    ConfigMap getConfiguration() const override;
 
     enum {
         C_KEY,

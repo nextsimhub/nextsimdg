@@ -1,6 +1,6 @@
 /*!
  * @file Advection_test.cpp
- * @date 19 August 2024
+ * @date 05 Jun 2025
  * @author Thomas Richter <thomas.richter@ovgu.de>
  */
 
@@ -223,29 +223,19 @@ void create_rectanglemesh(Nextsim::ParametricMesh& smesh, const double Lx, const
         }
 
     //// Boundary
-    // landmask: set all to ice
+    // landmask: set all to ice but outer layer along the domain
     smesh.landmask.resize(smesh.nelements, 1);
-
-    smesh.dirichlet[0].resize(smesh.nx); // bottom boundary
     for (size_t i = 0; i < smesh.nx; ++i)
-        smesh.dirichlet[0][i] = i;
-
-    smesh.dirichlet[1].resize(smesh.ny); // right boundary
-    for (size_t i = 0; i < smesh.ny; ++i)
-        smesh.dirichlet[1][i] = i * Nx + Nx - 1;
-
-    smesh.dirichlet[2].resize(smesh.nx); // top boundary
+        smesh.landmask[i] = 0;
     for (size_t i = 0; i < smesh.nx; ++i)
-        smesh.dirichlet[2][i] = Nx * (Ny - 1) + i;
-
-    smesh.dirichlet[3].resize(smesh.ny); // left boundary
+        smesh.landmask[smesh.nx * (smesh.ny - 1) + i] = 0;
     for (size_t i = 0; i < smesh.ny; ++i)
-        smesh.dirichlet[3][i] = i * Nx;
-
-    // no other boundaries.
+        smesh.landmask[i * smesh.nx] = 0;
+    for (size_t i = 0; i < smesh.ny; ++i)
+        smesh.landmask[(i + 1) * smesh.nx - 1] = 0;
 }
 
-template <int DG> void run(double distort, const std::array<std::array<double, 6>, 3>& exact)
+template <int DG> void run(double distort, const std::array<std::array<double, 4>, 3>& exact)
 {
     Nextsim::ParametricMesh smesh(Nextsim::CARTESIAN); // 0 means no output
 
@@ -276,16 +266,16 @@ TEST_CASE("Advection")
 
     // Exact values taken 25/06/2024 after some plausibility check of the results
     // and by checking the theoretical order of convergence to be expected
-    std::array<std::array<double, 6>, 3> exact
-        = { std::array<double, 6>(
-                { 5.1256149074257538e-02, 4.8288256703303903e-02, 4.3105635248809886e-02,
-                    3.5793986049422598e-02, 2.6937487824223016e-02, 1.8456775604583933e-02 }),
-              std::array<double, 6>(
-                  { 2.9450967798560313e-02, 1.3427281824939470e-02, 5.8574889800512000e-03,
-                      2.2756813704797301e-03, 7.3564079504566610e-04, 1.9177169540867740e-04 }),
-              std::array<double, 6>(
-                  { 9.9340386651904228e-03, 4.0274889287136816e-03, 1.2400186092664943e-03,
-                      2.8460130790583933e-04, 4.5459555769938981e-05, 4.6851425365137733e-06 }) };
+    // New values 07/04/2025 after reimplementation of boundary data. Dirichlet data is now
+    // realized using the landmaks info. Therefore, the physical domain shrinks by one layer all
+    // around and this slightly changes the exact values.
+    std::array<std::array<double, 4>, 3> exact
+        = { std::array<double, 4>({ 5.0568601321622546e-02, 4.8785010758681462e-02,
+                4.3807523095968269e-02, 3.6079575213776381e-02 }),
+              std::array<double, 4>({ 2.8463796850208754e-02, 1.4000140482658283e-02,
+                  5.8605850177331619e-03, 2.2757018442945147e-03 }),
+              std::array<double, 4>({ 1.0146940898974235e-02, 4.0853715304369851e-03,
+                  1.2400975498406005e-03, 2.8460132054714237e-04 }) };
 
     std::cout << std::endl << "DG\tNT\tNX\tmass loss\terror\t\texact" << std::endl;
     run<1>(0.0, exact);
@@ -294,16 +284,28 @@ TEST_CASE("Advection")
 }
 TEST_CASE("Distorted Mesh")
 {
-    std::array<std::array<double, 6>, 3> exact
-        = { std::array<double, 6>(
-                { 5.0958748236875594e-02, 4.8461087243594887e-02, 4.3918572621094686e-02,
-                    3.7038043078562323e-02, 2.8334464207979679e-02, 1.9666196904181983e-02 }),
-              std::array<double, 6>(
-                  { 3.2033423984965226e-02, 1.5639052766007147e-02, 6.7926997203524983e-03,
-                      2.7369916393700151e-03, 9.2109964949992139e-04, 2.5128064874203957e-04 }),
-              std::array<double, 6>(
-                  { 1.1830071142946669e-02, 4.9207680503709564e-03, 1.5831512504162868e-03,
-                      3.8869595113351363e-04, 6.7162895595772516e-05, 7.5853786764529606e-06 }) };
+    // std::array<std::array<double, 6>, 3> exact
+    //     = { std::array<double, 6>(
+    //             { 5.0958748236875594e-02, 4.8461087243594887e-02, 4.3918572621094686e-02,
+    //                 3.7038043078562323e-02, 2.8334464207979679e-02, 1.9666196904181983e-02 }),
+    //           std::array<double, 6>(
+    //               { 3.2033423984965226e-02, 1.5639052766007147e-02, 6.7926997203524983e-03,
+    //                   2.7369916393700151e-03, 9.2109964949992139e-04, 2.5128064874203957e-04 }),
+    //           std::array<double, 6>(
+    //               { 1.1830071142946669e-02, 4.9207680503709564e-03, 1.5831512504162868e-03,
+    //                   3.8869595113351363e-04, 6.7162895595772516e-05, 7.5853786764529606e-06 })
+    //                   };
+
+    // New values 07/04/2025 after reimplementation of boundary data. Dirichlet data is now
+    // realized using the landmaks info. Therefore, the physical domain shrinks by one layer all
+    // around and this slightly changes the exact values.
+    std::array<std::array<double, 4>, 3> exact
+        = { std::array<double, 4>({ 4.8195942137802428e-02, 4.9345757529052611e-02,
+                4.4903895856787640e-02, 3.7467928845481245e-02 }),
+              std::array<double, 4>({ 3.2422647655365219e-02, 1.7062569520319999e-02,
+                  6.8213111669173628e-03, 2.7372092446537699e-03 }),
+              std::array<double, 4>({ 1.2603978369132178e-02, 5.1434197544894689e-03,
+                  1.5845944976351275e-03, 3.8869603127842235e-04 }) };
 
     std::cout << std::endl << "Distorted mesh" << std::endl;
     std::cout << "DG\tNT\tNX\tmass loss\terror\t\texact" << std::endl;

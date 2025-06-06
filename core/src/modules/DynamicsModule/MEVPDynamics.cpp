@@ -1,7 +1,7 @@
 /*!
  * @file MEVPDynamics.cpp
  *
- * @date 16 Apr 2025
+ * @date 26 May 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Piotr Minakowski <piotr.minakowski@ovgu.de>
  * @author Einar Ólason <einar.olason@nersc.no>
@@ -50,13 +50,28 @@ void MEVPDynamics::configure()
         = Configured::getConfiguration(keyMap.at(ANGLE_KEY), oceanTurningAngleDefault);
 }
 
+ConfigMap MEVPDynamics::getConfiguration() const
+{
+    return {
+        { keyMap.at(PSTAR_KEY), params.pStar },
+        { keyMap.at(DELTA_KEY), params.deltaMin },
+        { keyMap.at(C_KEY), params.compactionParam },
+        { keyMap.at(NSTEPS_KEY), params.nSteps },
+        { keyMap.at(RHOI_KEY), params.rhoIce },
+        { keyMap.at(RHOA_KEY), params.rhoAtm },
+        { keyMap.at(RHOO_KEY), params.rhoOcean },
+        { keyMap.at(CATM_KEY), params.CAtm },
+        { keyMap.at(COCEAN_KEY), params.COcean },
+        { keyMap.at(FC_KEY), params.fc },
+        { keyMap.at(ANGLE_KEY), params.oceanTurningAngle },
+    };
+}
+
 static const std::vector<std::string> namedFields = { uName, vName };
 MEVPDynamics::MEVPDynamics()
     : IDynamics()
     , kernel(params)
 {
-    getStore().registerArray(Protected::ICE_U, &uice, RO);
-    getStore().registerArray(Protected::ICE_V, &vice, RO);
 }
 
 void MEVPDynamics::setData(const ModelState::DataMap& ms)
@@ -105,20 +120,11 @@ void MEVPDynamics::update(const TimestepTime& tst)
 
     taux = kernel.getDG0Data(uIOStressName);
     tauy = kernel.getDG0Data(vIOStressName);
-}
 
-ModelState MEVPDynamics::getStateRecursive(const OutputSpec& os) const
-{
-    // Base class state
-    ModelState state(IDynamics::getStateRecursive(os));
-
-    if (os.allComponents()) {
-        state.merge({
-            { hiceName, kernel.getDG0Data(hiceName) },
-            { ciceName, kernel.getDG0Data(ciceName) },
-        });
-    }
-    return state;
+    shear = kernel.getDG0Data(shearName);
+    divergence = kernel.getDG0Data(divergenceName);
+    sigmaI = kernel.getDG0Data(sigmaIName);
+    sigmaII = kernel.getDG0Data(sigmaIIName);
 }
 
 MEVPDynamics::HelpMap& MEVPDynamics::getHelpText(HelpMap& map, bool getAll)

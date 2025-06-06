@@ -67,6 +67,17 @@ void FluxConfiguredOcean::configure()
     v0 = Configured<FluxConfiguredOcean>::getConfiguration(keyMap.at(CURRENTV_KEY), v0);
 }
 
+ConfigMap FluxConfiguredOcean::getConfiguration() const
+{
+    return {
+        { keyMap.at(QIO_KEY), qio0 },
+        { keyMap.at(SST_KEY), sst0 },
+        { keyMap.at(SSS_KEY), sss0 },
+        { keyMap.at(MLD_KEY), mld0 },
+        { keyMap.at(CURRENTU_KEY), u0 },
+        { keyMap.at(CURRENTV_KEY), v0 },
+    };
+}
 void FluxConfiguredOcean::setData(const ModelState::DataMap& ms)
 {
     IOceanBoundary::setData(ms);

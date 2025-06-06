@@ -1,7 +1,7 @@
 /*!
  * @file DynamicsKernel.hpp
  *
- * @date Jan 5, 2024
+ * @date 19 May 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -54,11 +54,6 @@ public:
         if (isSpherical)
             smesh->RotatePoleToGreenland();
         smesh->landmaskFromModelArray(mask);
-        smesh->dirichletFromMask();
-        // TODO: handle periodic and open edges
-        for (ParametricMesh::Edge edge : ParametricMesh::edges) {
-            smesh->dirichletFromEdge(edge);
-        }
 
         //! Initialize transport
         dgtransport = std::make_unique<Nextsim::DGTransport<DGadvection>>(*smesh);
@@ -136,6 +131,14 @@ public:
         if (name == hiceName || name == ciceName) {
             throw std::runtime_error(
                 std::string("DynamicsKernel::getDG0Data: Use array sharing for ") + name);
+        } else if (name == shearName) {
+            return DGModelArray::dg2ma(Tools::Shear(*smesh, e11, e12, e22), data);
+        } else if (name == divergenceName) {
+            return DGModelArray::dg2ma(Tools::TensorInvI(*smesh, e11, e12, e22), data);
+        } else if (name == sigmaIName) {
+            return DGModelArray::dg2ma(Tools::TensorInvI(*smesh, s11, s12, s22), data);
+        } else if (name == sigmaIIName) {
+            return DGModelArray::dg2ma(Tools::TensorInvII(*smesh, s11, s12, s22), data);
         } else {
             // Any other named field must exist
             return DGModelArray::dg2ma(advectedFields.at(name), data);

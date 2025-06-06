@@ -227,27 +227,20 @@ template <int DG> void DGTransport<DG>::reinitnormalvelocity()
         }
     }
 
-    // Take care of the boundaries. Usually, the normal velocity is the average velocity
-    // from left and from the right. Hence, we get the factor 0.5 above. At boundaries,
-    // the normal is set only once, from the inside. These edges must be scaled with 2.0
-
-    for (size_t seg = 0; seg < 4; ++seg) // run over the 4 segments (bot, right, top, left)
-    {
+    // TR 07.04.2025
+    // correction of the normal velocity is needed on the mesh-boundary, where each edge
+    // only has one neighbor. Above, we sum both sides, weighted with 0.5. Therefore,
+    // we must scale the outer edges with 2. This is only used for inflow/outflow
+    // Neumann boundaries.
 #pragma omp parallel for
-        for (size_t i = 0; i < smesh.dirichlet[seg].size(); ++i) {
-            const size_t eid = smesh.dirichlet[seg][i]; //! The i of the boundary element
-            const size_t ix = eid % smesh.nx; //! x & y indices of the element
-            const size_t iy = eid / smesh.nx;
-
-            if (seg == 0) // bottom
-                normalvel_X.row(smesh.nx * iy + ix) *= 2.0;
-            else if (seg == 1) // right
-                normalvel_Y.row((smesh.nx + 1) * iy + ix + 1) *= 2.0;
-            else if (seg == 2) // top
-                normalvel_X.row(smesh.nx * (iy + 1) + ix) *= 2.0;
-            else if (seg == 3) // left
-                normalvel_Y.row((smesh.nx + 1) * iy + ix) *= 2.0;
-        }
+    for (size_t i = 0; i < smesh.nx; ++i) {
+        normalvel_X.row(i) *= 2.0; // bottom
+        normalvel_X.row(i + smesh.nx * smesh.ny) *= 2.0; // top
+    }
+#pragma omp parallel for
+    for (size_t i = 0; i < smesh.ny; ++i) {
+        normalvel_Y.row(i * (smesh.nx + 1)) *= 2.0; // left
+        normalvel_Y.row(i * (smesh.nx + 1) + smesh.nx) *= 2.0; // right
     }
 }
 
@@ -480,29 +473,41 @@ void DGTransport<DG>::DGTransportOperator(const ParametricMesh& smesh, const dou
         }
     }
 
-    // Dirichlet
-    for (size_t seg = 0; seg < 4; ++seg) // run over the 4 segments (bot, right, top, left)
-    {
-#pragma omp parallel for
-        for (size_t i = 0; i < smesh.dirichlet[seg].size(); ++i) {
-            const size_t eid = smesh.dirichlet[seg][i];
-            const size_t ix = eid % smesh.nx; // compute 'coordinate' of element
-            const size_t iy = eid / smesh.nx;
+    // TR 07.04.2025
+    //
+    // Dirichlet: we do not need to do anything special in DGTransport. On Dirichlet
+    // boundaries, the normal velocity is zero. Hence, any flux is zero.
 
-            if (seg == 0) // bottom
-                boundary_lower(smesh, dt, phiup, phi, normalvel_X, eid, smesh.nx * iy + ix);
-            else if (seg == 1) // right
-                boundary_right(
-                    smesh, dt, phiup, phi, normalvel_Y, eid, (smesh.nx + 1) * iy + ix + 1);
-            else if (seg == 2) // top
-                boundary_upper(smesh, dt, phiup, phi, normalvel_X, eid, smesh.nx * (iy + 1) + ix);
-            else if (seg == 3) // left
-                boundary_left(smesh, dt, phiup, phi, normalvel_Y, eid, (smesh.nx + 1) * iy + ix);
-            else {
-                std::cerr << "Wrong Dirichlet boundary information in the mesh. Boundary side "
-                          << smesh.dirichlet[seg][i] << " not valid" << std::endl;
-                abort();
-            }
+    //
+    // Neumann inflow / outflow
+    // This can only appear on outer mesh-boundaries, whenever the element at the edge
+    // is ice.
+
+    // TO DISCUSS: there can't be in/outflow and periodic on the same edge. We either need a
+    // structure for in/outflow or we say: either there is an in/outflow boundary or periodic. But
+    // not both..
+    if (smesh.periodic.size() == 0) {
+#pragma omp parallel for
+        for (size_t i = 0; i < smesh.nx; ++i) {
+            const size_t element_lower = i;
+            const size_t edge_lower = i;
+            const size_t element_upper = i + smesh.nx * (smesh.ny - 1);
+            const size_t edge_upper = i + smesh.nx * smesh.ny;
+            if (smesh.landmask[element_lower] == 1)
+                boundary_lower(smesh, dt, phiup, phi, normalvel_X, element_lower, edge_lower);
+            if (smesh.landmask[element_upper] == 1)
+                boundary_upper(smesh, dt, phiup, phi, normalvel_X, element_upper, edge_upper);
+        }
+#pragma omp parallel for
+        for (size_t i = 0; i < smesh.ny; ++i) {
+            const size_t element_left = i * smesh.nx;
+            const size_t edge_left = i * (smesh.nx + 1);
+            const size_t element_right = (i + 1) * smesh.nx - 1;
+            const size_t edge_right = i * (smesh.nx + 1) + smesh.nx;
+            if (smesh.landmask[element_left] == 1)
+                boundary_left(smesh, dt, phiup, phi, normalvel_Y, element_left, edge_left);
+            if (smesh.landmask[element_right] == 1)
+                boundary_right(smesh, dt, phiup, phi, normalvel_Y, element_right, edge_right);
         }
     }
 

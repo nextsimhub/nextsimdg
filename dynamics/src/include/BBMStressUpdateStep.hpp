@@ -1,8 +1,9 @@
 /*!
  * @file BBMStressUpdateStep.hpp
  *
- * @date 19 Nov 2024
+ * @date 27 May 2025
  * @author Tim Spain <timothy.spain@nersc.no>
+ * @author Tim Williams <timothy.williams@nersc.no>
  */
 
 #ifndef BBMSTRESSUPDATESTEP_HPP
@@ -82,7 +83,7 @@ public:
 
             //! BBM  Computing tildeP according to (Eqn. 7b and Eqn. 8)
             // (Eqn. 8)
-            const EdgeVec Pmax = params.P0 * hGauss.array().pow(params.expPMax) * expC.array();
+            const EdgeVec Pmax = params.P0 * hGauss.array().pow(params.expPMax + 1) * expC.array();
 
             // (Eqn. 7b) Prepare tildeP
             // tildeP must be capped at 1 to get an elastic response

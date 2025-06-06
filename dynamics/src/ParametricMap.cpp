@@ -1,7 +1,7 @@
 /*!
  * @file ParametricMap.cpp
  *
- * @date Aug 23, 2024
+ * @date 19 Feb 2025
  * @author Thomas Richter <thomas.richter@ovgu.de>
  */
 
@@ -356,6 +356,26 @@ template <int CG, int DG> void ParametricMomentumMap<CG, DG>::InitializeDivSMatr
 
         } else
             abort();
+    }
+}
+
+//!
+template <int CG, int DG> void ParametricMomentumMap<CG, DG>::InitializeCGLandmask()
+{
+    cglandmask.resize_by_mesh(smesh);
+    for (size_t i = 0; i < cglandmask.size(); ++i)
+        cglandmask[i] = 1.0;
+
+    size_t eid = 0;
+    const size_t dofsinrow = CG * smesh.nx + 1;
+    for (size_t iy = 0; iy < smesh.ny; ++iy) {
+        size_t cgid = iy * CG * dofsinrow; // first cg index in row
+        for (size_t ix = 0; ix < smesh.nx; ++ix, ++eid, cgid += CG) {
+            if (smesh.landmask[eid] == 0) // on land
+                for (size_t cy = 0; cy <= CG; ++cy)
+                    for (size_t cx = 0; cx <= CG; ++cx)
+                        cglandmask[cgid + cy * dofsinrow + cx] = 0;
+        }
     }
 }
 

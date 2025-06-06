@@ -1,7 +1,7 @@
 /*!
  * @file ModelMetadata.cpp
  *
- * @date 21 August 2024
+ * @date 19 May 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -10,6 +10,9 @@
 #include "include/IStructure.hpp"
 #include "include/NextsimModule.hpp"
 #include "include/gridNames.hpp"
+#ifdef USE_XIOS
+#include "include/Xios.hpp"
+#endif
 
 #ifdef USE_MPI
 #include <ncDim.h>
@@ -59,6 +62,20 @@ void ModelMetadata::getPartitionMetadata(std::string partitionFile)
     bboxGroup.getVar("domain_extent_x").getVar(index, &localExtentX);
     bboxGroup.getVar("domain_extent_y").getVar(index, &localExtentY);
     ncFile.close();
+
+#ifdef USE_XIOS
+    // Set up the XIOS Domain
+    Xios& xiosHandler = Xios::getInstance();
+    const std::string domainId = "xy_domain";
+    xiosHandler.createDomain(domainId);
+    xiosHandler.setDomainType(domainId, "rectilinear");
+    xiosHandler.setDomainGlobalXSize(domainId, globalExtentX);
+    xiosHandler.setDomainGlobalYSize(domainId, globalExtentY);
+    xiosHandler.setDomainLocalXStart(domainId, localCornerX);
+    xiosHandler.setDomainLocalYStart(domainId, localCornerY);
+    xiosHandler.setDomainLocalXSize(domainId, localExtentX);
+    xiosHandler.setDomainLocalYSize(domainId, localExtentY);
+#endif
 }
 
 #endif
@@ -103,4 +120,29 @@ ModelState& ModelMetadata::affixCoordinates(ModelState& state) const
     }
     return state;
 }
+
+void ModelMetadata::setTime(const TimePoint& time)
+{
+    m_time = time;
+#ifdef USE_XIOS
+    Xios& xiosHandler = Xios::getInstance();
+    if (!xiosHandler.isInitialized()) {
+        throw std::runtime_error("ModelMetadata: Xios handler has not been initialized");
+    }
+    xiosHandler.setCalendarStart(time);
+#endif
+}
+
+void ModelMetadata::incrementTime(const Duration& step)
+{
+    m_time += step;
+#ifdef USE_XIOS
+    Xios& xiosHandler = Xios::getInstance();
+    if (!xiosHandler.isInitialized()) {
+        throw std::runtime_error("ModelMetadata: Xios handler has not been initialized");
+    }
+    xiosHandler.incrementCalendar();
+#endif
+}
+
 } /* namespace Nextsim */

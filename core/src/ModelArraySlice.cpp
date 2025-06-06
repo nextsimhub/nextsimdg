@@ -49,6 +49,39 @@ ModelArraySlice& ModelArraySlice::operator=(ModelArray& ma)
     return *this;
 }
 
+ModelArraySlice& ModelArraySlice::operator=(const ModelArray::DataType& buffer)
+{
+    SliceIter thisIter(slice, data.dimensions());
+    // The iterator for the buffer must have the same dimensions as the target slice.
+    Slice::VBounds bufferBounds(data.nDimensions(), Slice::Bounds());
+    ModelArray::MultiDim bufferDims(data.nDimensions());
+    for (size_t dim = 0; dim < data.nDimensions(); ++dim) {
+        bufferDims[dim] = thisIter.nElements(dim);
+    }
+    SliceIter bufferIter(bufferBounds, bufferDims);
+    copySliceWithIters(buffer, bufferIter, data.m_data, thisIter);
+
+    return *this;
+}
+
+ModelArraySlice::operator ModelArray::DataType()
+{
+    SliceIter thisIter(slice, data.dimensions());
+    Slice::VBounds bufferBounds(data.nDimensions(), Slice::Bounds());
+    ModelArray::MultiDim bufferDims(data.nDimensions());
+    size_t nElements = 1;
+    for (size_t dim = 0; dim < data.nDimensions(); ++dim) {
+        bufferDims[dim] = thisIter.nElements(dim);
+        nElements *= bufferDims[dim];
+    }
+    SliceIter bufferIter(bufferBounds, bufferDims);
+    ModelArray::DataType buffer;
+    buffer.resize(nElements, data.nComponents());
+    copySliceWithIters(data.m_data, thisIter, buffer, bufferIter);
+
+    return buffer;
+}
+
 ModelArray& ModelArraySlice::copyToModelArray(ModelArray& target) const
 {
     copyBetweenMAandMASlice(target, *this, false, "ModelArraySlice::copyToModelArray(ModelArray)");

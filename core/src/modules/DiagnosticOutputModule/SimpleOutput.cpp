@@ -15,7 +15,7 @@
 
 namespace Nextsim {
 
-void SimpleOutput::outputState(const ModelMetadata& meta)
+void SimpleOutput::outputState(const ModelState& diagState, const ModelMetadata& meta)
 {
     std::stringstream startStream;
     startStream << meta.time();
@@ -25,12 +25,13 @@ void SimpleOutput::outputState(const ModelMetadata& meta)
     Logged::info(
         "Outputting " + std::to_string(externalNames.size()) + " fields to " + timeFileName + "\n");
 
+    // Take the passed state, and add the files in the data store
+    ModelState state = diagState;
     // Create the output by iterating over all fields referenced in ModelState
-    ModelState state;
     auto storeData = ModelComponent::getStore().getAllData();
     for (auto entry : storeData) {
         if (entry.second)
-            state.data[entry.first] = *entry.second;
+            state.data.at(entry.first) = *entry.second;
     }
     StructureFactory::fileFromState(state, meta, timeFileName);
 }
