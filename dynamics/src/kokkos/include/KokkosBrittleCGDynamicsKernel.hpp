@@ -54,9 +54,9 @@ public:
         const ConstDeviceViewCG& dStressXDevice, const ConstDeviceViewCG& dStressYDevice,
         const ConstDeviceViewCG& xGradSeaSurfaceHeightDevice,
         const ConstDeviceViewCG& yGradSeaSurfaceHeightDevice,
-        const ConstDeviceViewCG& lumpedCGMassDevice, const FloatType deltaT,
-        const BBMParameters& params, FloatType cosOceanAngle, FloatType sinOceanAngle,
-        DeviceIndex nSteps);
+        const ConstDeviceViewCG& lumpedCGMassDevice, const ConstDeviceBitset& cgLandMaskDevice,
+        const FloatType deltaT, const BBMParameters& params, FloatType cosOceanAngle,
+        FloatType sinOceanAngle, DeviceIndex nSteps);
 
 protected:
     virtual void updateStressHighOrderDevice(const DeviceViewStress& s11Device,

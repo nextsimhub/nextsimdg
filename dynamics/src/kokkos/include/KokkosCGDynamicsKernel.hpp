@@ -65,8 +65,7 @@ public:
         const ConstDeviceViewAdvect& hiceDevice, const ConstDeviceViewAdvect& ciceDevice,
         const Interpolations::KokkosDG2CGInterpolator<CGdegree, DGadvection>& dG2CGInterpolator);
 
-    static void dirichletZero(const DeviceViewCG& v, DeviceIndex nx, DeviceIndex ny,
-        const KokkosMesh::DirichletData& dirichlet);
+    static void dirichletZero(const DeviceViewCG& v, const ConstDeviceBitset& cgLandMaskDevice);
 
     static void projectVelocityToStrainDevice(const ConstDeviceViewCG& uDevice,
         const ConstDeviceViewCG& vDevice, const DeviceViewStress& e11Device,
@@ -80,11 +79,11 @@ public:
         const ConstDeviceViewStress& s12Device, const ConstDeviceViewStress& s22Device,
         const ConstDeviceBitset& landMaskDevice, const DivMapDevice& divS1Device,
         const DivMapDevice& divS2Device, const DivMapDevice& divMDevice,
-        const KokkosMesh::DirichletData& dirichletDevice, DeviceIndex nx, DeviceIndex ny,
+        const ConstDeviceBitset& cgLandMaskDevice, DeviceIndex nx, DeviceIndex ny,
         COORDINATES coordinates);
 
     static void applyBoundariesDevice(const DeviceViewCG& uDevice, const DeviceViewCG& vDevice,
-        const KokkosMesh::DirichletData& dirichletDevice, DeviceIndex nx, DeviceIndex ny);
+        const ConstDeviceBitset& cgLandMaskDevice, DeviceIndex nx, DeviceIndex ny);
 
     static void updateIceOceanStressDevice(const DeviceViewCG& uIceOceanStressDevice,
         const DeviceViewCG& vIceOceanStressDevice, const ConstDeviceViewCG& uIceDevice,
@@ -171,6 +170,7 @@ protected:
     using GaussMapDevice = KokkosDeviceMapView<
         typename ParametricMomentumMap<CGdegree, DGadvection>::GaussMapMatrix>;
     GaussMapDevice iMJwPSIDevice;
+    ConstDeviceBitset cgLandMaskDevice;
 
     // held as a pointer because these objects are initialized by their constructors
     std::unique_ptr<KokkosMesh> meshData;

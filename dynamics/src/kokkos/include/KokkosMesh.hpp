@@ -18,15 +18,6 @@ struct KokkosMesh {
     using ConstDeviceViewVertex = ConstKokkosDeviceView<decltype(ParametricMesh::vertices)>;
     ConstDeviceViewVertex vertices;
 
-    // Use raw array here since we wan't to access it in device code.
-    // std::array is technically possible with Kokkos_ENABLE_CUDA_CONSTEXPR=ON
-    /*    using DirichletData = std::array<
-            KokkosDeviceMapView<typename
-       decltype(ParametricMesh::dirichlet)::value_type::value_type>, ParametricMesh::N_EDGE>;*/
-    using DirichletData = KokkosDeviceMapView<typename decltype(ParametricMesh::dirichlet)::
-            value_type::value_type>[ParametricMesh::N_EDGE];
-    DirichletData dirichletDevice;
-
     ConstDeviceBitset landMaskDevice;
 
     COORDINATES coordinateSystem;

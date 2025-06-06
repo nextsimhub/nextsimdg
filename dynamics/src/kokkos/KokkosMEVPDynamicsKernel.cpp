@@ -106,7 +106,7 @@ void KokkosMEVPDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
         timerDivergence.start();
         Base::computeStressDivergenceDevice(this->dStressXDevice, this->dStressYDevice,
             this->s11Device, this->s12Device, this->s22Device, this->meshData->landMaskDevice,
-            this->divS1Device, this->divS2Device, this->divMDevice, this->meshData->dirichletDevice,
+            this->divS1Device, this->divS2Device, this->divMDevice, this->cgLandMaskDevice,
             this->smesh->nx, this->smesh->ny, this->smesh->CoordinateSystem);
         timerDivergence.stop();
 
@@ -115,12 +115,12 @@ void KokkosMEVPDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
             this->cgHDevice, this->cgADevice, this->uAtmosDevice, this->vAtmosDevice,
             this->uOceanDevice, this->vOceanDevice, this->dStressXDevice, this->dStressYDevice,
             this->xGradSeaSurfaceHeightDevice, this->yGradSeaSurfaceHeightDevice,
-            this->lumpedCGMassDevice, tst, params, beta);
+            this->lumpedCGMassDevice, this->cgLandMaskDevice, tst, params, beta);
         timerMomentum.stop();
 
         timerBoundary.start();
-        Base::applyBoundariesDevice(this->uDevice, this->vDevice, this->meshData->dirichletDevice,
-            this->smesh->nx, this->smesh->ny);
+        Base::applyBoundariesDevice(
+            this->uDevice, this->vDevice, this->cgLandMaskDevice, this->smesh->nx, this->smesh->ny);
         timerBoundary.stop();
     }
     timerMevp.stop();
@@ -203,8 +203,8 @@ void KokkosMEVPDynamicsKernel<DGadvection>::updateStressHighOrderDevice(
                         * (PDelta.array()
                                 * ((5.0 / 8.0) * e11Gauss.array() + (3.0 / 8.0) * e22Gauss.array())
                             - 0.5 * P.array())
-                              .matrix()
-                              .transpose()))
+                            .matrix()
+                            .transpose()))
                       .transpose();
             s22.row(i) = fac * s22.row(i)
                 + (map
@@ -212,8 +212,8 @@ void KokkosMEVPDynamicsKernel<DGadvection>::updateStressHighOrderDevice(
                         * (PDelta.array()
                                 * ((5.0 / 8.0) * e22Gauss.array() + (3.0 / 8.0) * e11Gauss.array())
                             - 0.5 * P.array())
-                              .matrix()
-                              .transpose()))
+                            .matrix()
+                            .transpose()))
                       .transpose();
             s12.row(i) = fac * s12.row(i)
                 + (map
@@ -233,7 +233,8 @@ void KokkosMEVPDynamicsKernel<DGadvection>::updateMomentumDevice(const DeviceVie
     const ConstDeviceViewCG& vOceanDevice, const ConstDeviceViewCG& dStressXDevice,
     const ConstDeviceViewCG& dStressYDevice, const ConstDeviceViewCG& xGradSeaSurfaceHeightDevice,
     const ConstDeviceViewCG& yGradSeaSurfaceHeight, const ConstDeviceViewCG& lumpedCGMassDevice,
-    const TimestepTime& tst, const VPParameters& params, FloatType beta)
+    const ConstDeviceBitset& cgLandMaskDevice, const TimestepTime& tst, const VPParameters& params,
+    FloatType beta)
 {
     // Update the velocity
     const FloatType deltaT = tst.step.seconds();
@@ -243,6 +244,10 @@ void KokkosMEVPDynamicsKernel<DGadvection>::updateMomentumDevice(const DeviceVie
     //      update by a loop.. implicit parts and h-dependent
     Kokkos::parallel_for(
         "updateMomentum", uDevice.extent(0), KOKKOS_LAMBDA(const DeviceIndex i) {
+            if (!cgLandMaskDevice.test(i)) {
+                return;
+            }
+
             const FloatType u = uDevice(i);
             const FloatType v = vDevice(i);
             const FloatType uOcnRel = u - uOceanDevice(i);

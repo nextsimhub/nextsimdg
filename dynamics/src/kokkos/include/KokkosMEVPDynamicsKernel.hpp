@@ -69,8 +69,8 @@ public:
         const ConstDeviceViewCG& dStressXDevice, const ConstDeviceViewCG& dStressYDevice,
         const ConstDeviceViewCG& xGradSeaSurfaceHeightDevice,
         const ConstDeviceViewCG& yGradSeaSurfaceHeightDevice,
-        const ConstDeviceViewCG& lumpedCGMassDevice, const TimestepTime& tst,
-        const VPParameters& params, FloatType beta);
+        const ConstDeviceViewCG& lumpedCGMassDevice, const ConstDeviceBitset& cgLandMaskDevice,
+        const TimestepTime& tst, const VPParameters& params, FloatType beta);
 
 private:
     // Step-initial ice velocity

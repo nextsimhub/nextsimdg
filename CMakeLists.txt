@@ -197,9 +197,12 @@ IF (WITH_KOKKOS)
             # $<$<COMPILE_LANGUAGE:CUDA>:-Xcudafe --diag_suppress=20014>
             # "#68-D: integer conversion resulted in a change of sign"
             # This warning is also caused by CPU code (e.g. Slice.hpp) and should be fixed at some point.
+            # "#611-D: overloaded virtual function "[...]" is only partially overridden in class "[...]"
+            # Caused by child classes of ModelComponent.
             target_compile_options(nextsimlib PUBLIC 
                 "SHELL:-Xcudafe --diag_suppress=20014" 
                 "SHELL:-Xcudafe --diag_suppress=68"
+                "SHELL:-Xcudafe --diag_suppress=611"
             )
         endif()
     endif()

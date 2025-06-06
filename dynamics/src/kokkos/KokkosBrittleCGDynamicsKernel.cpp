@@ -137,7 +137,7 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
         timerDivergence.start();
         Base::computeStressDivergenceDevice(this->dStressXDevice, this->dStressYDevice,
             this->s11Device, this->s12Device, this->s22Device, this->meshData->landMaskDevice,
-            this->divS1Device, this->divS2Device, this->divMDevice, this->meshData->dirichletDevice,
+            this->divS1Device, this->divS2Device, this->divMDevice, this->cgLandMaskDevice,
             this->smesh->nx, this->smesh->ny, this->smesh->CoordinateSystem);
         timerDivergence.stop();
 
@@ -146,13 +146,13 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
             this->cgHDevice, this->cgADevice, this->uAtmosDevice, this->vAtmosDevice,
             this->uOceanDevice, this->vOceanDevice, this->dStressXDevice, this->dStressYDevice,
             this->xGradSeaSurfaceHeightDevice, this->yGradSeaSurfaceHeightDevice,
-            this->lumpedCGMassDevice, this->deltaT, this->params, this->cosOceanAngle,
-            this->sinOceanAngle, params.nSteps);
+            this->lumpedCGMassDevice, this->cgLandMaskDevice, this->deltaT, this->params,
+            this->cosOceanAngle, this->sinOceanAngle, params.nSteps);
         timerMomentum.stop();
 
         timerBoundary.start();
-        Base::applyBoundariesDevice(this->uDevice, this->vDevice, this->meshData->dirichletDevice,
-            this->smesh->nx, this->smesh->ny);
+        Base::applyBoundariesDevice(
+            this->uDevice, this->vDevice, this->cgLandMaskDevice, this->smesh->nx, this->smesh->ny);
         timerBoundary.stop();
     }
     timerBBM.stop();
@@ -221,15 +221,19 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::updateMomentumDevice(const Devi
     const ConstDeviceViewCG& dStressXDevice, const ConstDeviceViewCG& dStressYDevice,
     const ConstDeviceViewCG& xGradSeaSurfaceHeightDevice,
     const ConstDeviceViewCG& yGradSeaSurfaceHeightDevice,
-    const ConstDeviceViewCG& lumpedCGMassDevice, const FloatType deltaT,
-    const BBMParameters& params, FloatType cosOceanAngle, FloatType sinOceanAngle,
-    DeviceIndex nSteps)
+    const ConstDeviceViewCG& lumpedCGMassDevice, const ConstDeviceBitset& cgLandMaskDevice,
+    const FloatType deltaT, const BBMParameters& params, FloatType cosOceanAngle,
+    FloatType sinOceanAngle, DeviceIndex nSteps)
 {
     const FloatType FOcean = params.COcean * params.rhoOcean;
     const FloatType FAtm = params.CAtm * params.rhoAtm;
 
     Kokkos::parallel_for(
         "updateMomentum", uDevice.extent(0), KOKKOS_LAMBDA(const DeviceIndex i) {
+            if (!cgLandMaskDevice.test(i)) {
+                return;
+            }
+
             // FIXME dte_over_mass should include snow in the total mass
             const FloatType dteOverMass = deltaT / (params.rhoIce * cgHDevice(i));
             // Memoized initial velocity values

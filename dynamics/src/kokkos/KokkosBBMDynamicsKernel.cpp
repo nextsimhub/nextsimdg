@@ -103,7 +103,7 @@ void KokkosBBMDynamicsKernel<DGadvection>::updateStressHighOrderDevice(
 
             //! BBM  Computing tildeP according to (Eqn. 7b and Eqn. 8)
             // (Eqn. 8)
-            const auto Pmax = params.P0 * hGauss.array().pow(params.expPMax) * expC.array();
+            const auto Pmax = params.P0 * hGauss.array().pow(params.expPMax + 1) * expC.array();
 
             // (Eqn. 7b) Prepare tildeP
             // tildeP must be capped at 1 to get an elastic response

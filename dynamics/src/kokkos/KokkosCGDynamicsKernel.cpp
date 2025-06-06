@@ -82,6 +82,16 @@ void KokkosCGDynamicsKernel<DGadvection>::initialise(
     iMJwPSIDevice
         = makeKokkosDeviceViewMap("iMJwPSI", this->pmap->iMJwPSI, MakeViewOptions::DEVICE_COPY);
 
+    const size_t n_cg = static_cast<size_t>(this->pmap->cglandmask.rows());
+    std::vector<bool> cgLandMask(n_cg, false);
+    for (size_t i = 0; i < n_cg; ++i) {
+        const auto v = this->pmap->cglandmask(i);
+        // landmask is not stored as bool
+        assert(v == 0 || v == 1);
+        cgLandMask[i] = v != 0.0;
+    }
+    cgLandMaskDevice = makeKokkosDeviceBitset(cgLandMask);
+
     assert(this->smesh);
     meshData = std::make_unique<KokkosMesh>(*this->smesh);
     cG2DGAdvectInterpolator
@@ -226,125 +236,19 @@ void KokkosCGDynamicsKernel<DGadvection>::projectVelocityToStrainDevice(
 }
 
 template <int DGadvection>
-void KokkosCGDynamicsKernel<DGadvection>::dirichletZero(const DeviceViewCG& v, DeviceIndex nx,
-    DeviceIndex ny, const KokkosMesh::DirichletData& dirichlet)
+void KokkosCGDynamicsKernel<DGadvection>::dirichletZero(
+    const DeviceViewCG& v, const ConstDeviceBitset& cgLandMaskDevice)
 {
-    // bot
+    // TR 07.04.2025: Dirichlet Zero (u=v=0) holds on land and on the boundary between
+    // land and ice. Hence on all elements with landmask = 0, or, on cg nodes with
+    // cglandmask = 0
     Kokkos::parallel_for(
-        "dirichletZeroBot", dirichlet[0].extent(0), KOKKOS_LAMBDA(const DeviceIndex i) {
-            const DeviceIndex eid = dirichlet[0][i];
-            const DeviceIndex ix = eid % nx; // compute coordinates of element
-            const DeviceIndex iy = eid / nx;
-            for (DeviceIndex j = 0; j < CGdegree + 1; ++j) {
-                v(iy * CGdegree * (CGdegree * nx + 1) + CGdegree * ix + j) = 0.0;
-            }
-        });
-    // right
-    Kokkos::parallel_for(
-        "dirichletZeroRight", dirichlet[1].extent(0), KOKKOS_LAMBDA(const DeviceIndex i) {
-            const DeviceIndex eid = dirichlet[1][i];
-            const DeviceIndex ix = eid % nx; // compute coordinates of element
-            const DeviceIndex iy = eid / nx;
-            for (DeviceIndex j = 0; j < CGdegree + 1; ++j) {
-                v(iy * CGdegree * (CGdegree * nx + 1) + CGdegree * ix + CGdegree
-                    + (CGdegree * nx + 1) * j)
-                    = 0.0;
-            }
-        });
-    // top
-    Kokkos::parallel_for(
-        "dirichletZeroTop", dirichlet[2].extent(0), KOKKOS_LAMBDA(const DeviceIndex i) {
-            const DeviceIndex eid = dirichlet[2][i];
-            const DeviceIndex ix = eid % nx; // compute coordinates of element
-            const DeviceIndex iy = eid / nx;
-            for (DeviceIndex j = 0; j < CGdegree + 1; ++j) {
-                v((iy + 1) * CGdegree * (CGdegree * nx + 1) + CGdegree * ix + j) = 0.0;
-            }
-        });
-    // left
-    Kokkos::parallel_for(
-        "dirichletZeroLeft", dirichlet[3].extent(0), KOKKOS_LAMBDA(const DeviceIndex i) {
-            const DeviceIndex eid = dirichlet[3][i];
-            const DeviceIndex ix = eid % nx; // compute coordinates of element
-            const DeviceIndex iy = eid / nx;
-            for (DeviceIndex j = 0; j < CGdegree + 1; ++j) {
-                v(iy * CGdegree * (CGdegree * nx + 1) + CGdegree * ix + (CGdegree * nx + 1) * j)
-                    = 0.0;
+        "dirichletZero", v.extent(0), KOKKOS_LAMBDA(const DeviceIndex i) {
+            if (!cgLandMaskDevice.test(i)) {
+                v(i) = 0.0;
             }
         });
 }
-/*
-template <typename DeviceViewCG, typename KokkosDeviceMapView>
-void CGAveragePeriodic(DeviceViewCG& v, DeviceIndex nx, const std::array<KokkosDeviceMapView, 4>&
-periodic)
-{
-    // the two segments bottom, right, top, left, are each processed in parallel
-    for (size_t seg = 0; seg < smesh.periodic.size(); ++seg) {
-        // #pragma omp parallel for
-        for (size_t i = 0; i < smesh.periodic[seg].size(); ++i) {
-
-            const size_t ptype = smesh.periodic[seg][i][0];
-            const size_t eid_lb = smesh.periodic[seg][i][2];
-            const size_t eid_rt = smesh.periodic[seg][i][1];
-
-            size_t ix_lb = eid_lb % smesh.nx;
-            size_t iy_lb = eid_lb / smesh.nx;
-            size_t i0_lb = (CG * smesh.nx + 1) * CG * iy_lb
-                + CG * ix_lb; // lower/left index in left/bottom element
-            size_t ix_rt = eid_rt % smesh.nx;
-            size_t iy_rt = eid_rt / smesh.nx;
-            size_t i0_rt = (CG * smesh.nx + 1) * CG * iy_rt
-                + CG * ix_rt; // lower/left index in right/top element
-
-            if (ptype == 0) // X-edge, bottom/top
-            {
-                for (size_t j = 0; j <= CG; ++j) {
-                    v(i0_lb + j) = 0.5 * (v(i0_lb + j) + v(i0_rt + CG * (CG * smesh.nx + 1) + j));
-                    v(i0_rt + CG * (CG * smesh.nx + 1) + j) = v(i0_lb + j);
-                }
-            } else if (ptype == 1) // Y-edge, left/right
-            {
-                for (size_t j = 0; j <= CG; ++j) {
-                    const size_t i1 = i0_lb + j * (CG * smesh.nx + 1);
-                    const size_t i2 = i0_rt + CG + j * (CG * smesh.nx + 1);
-                    v(i1) = 0.5 * (v(i1) + v(i2));
-                    v(i2) = v(i1);
-                }
-            } else
-                abort();
-        }
-    }
-    }*/
-
-/*
-template <int DGadvection>
-KOKKOS_INLINE_FUNCTION static void addStressTensorCell(const size_t eid, const size_t cx, const
-size_t cy)
-{
- auto divS1 = _buffers.divS1Device[eid];
- auto divS2 = _buffers.divS2Device[eid];
- Eigen::Vector<Nextsim::FloatType, CGdof> tx
-     = (divS1 * s11.row(eid).transpose() + divS2 * s12.row(eid).transpose());
- Eigen::Vector<Nextsim::FloatType, CGdof> ty
-     = (divS1 * s12.row(eid).transpose() + divS2 * s22.row(eid).transpose());
-
- if (coordinates == SPHERICAL) {
-     auto divM = _buffers.divMDevice[eid];
-     tx += divM * s12.row(eid).transpose();
-     ty -= divM * s11.row(eid).transpose();
- }
- const unsigned cgRow = CGdegree * nx + 1;
- const unsigned cg_i
-     = CGdegree * cgRow * cy + CGdegree * cx; //!< lower left CG-index in element (cx,cy)
-
- // Fill the stress divergence values
- for (int row = 0; row <= CGdegree; ++row) {
-     for (int col = 0; col <= CGdegree; ++col) {
-         _buffers.dStressXDevice(cg_i + col + row * cgRow, 0) -= tx(col + (CGdegree + 1) * row);
-         _buffers.dStressYDevice(cg_i + col + row * cgRow, 0) -= ty(col + (CGdegree + 1) * row);
-     }
- }
-}*/
 
 template <int DGadvection>
 void KokkosCGDynamicsKernel<DGadvection>::computeStressDivergenceDevice(
@@ -352,8 +256,8 @@ void KokkosCGDynamicsKernel<DGadvection>::computeStressDivergenceDevice(
     const ConstDeviceViewStress& s11Device, const ConstDeviceViewStress& s12Device,
     const ConstDeviceViewStress& s22Device, const ConstDeviceBitset& landMaskDevice,
     const DivMapDevice& divS1Device, const DivMapDevice& divS2Device,
-    const DivMapDevice& divMDevice, const KokkosMesh::DirichletData& dirichletDevice,
-    DeviceIndex nx, DeviceIndex ny, COORDINATES coordinates)
+    const DivMapDevice& divMDevice, const ConstDeviceBitset& cgLandMaskDevice, DeviceIndex nx,
+    DeviceIndex ny, COORDINATES coordinates)
 {
     using CGVec = Eigen::Vector<Nextsim::FloatType, CGdof>;
     //    static PerfTimer timerDivZero("divZeroGPU");
@@ -411,8 +315,8 @@ void KokkosCGDynamicsKernel<DGadvection>::computeStressDivergenceDevice(
     //    timerDivComp.stop();
     // set zero on the Dirichlet boundaries
     //   timerDivDirichlet.start();
-    dirichletZero(dStressXDevice, nx, ny, dirichletDevice);
-    dirichletZero(dStressYDevice, nx, ny, dirichletDevice);
+    dirichletZero(dStressXDevice, cgLandMaskDevice);
+    dirichletZero(dStressYDevice, cgLandMaskDevice);
     //  timerDivDirichlet.stop();
 
     // todo: add the contributions on the periodic boundaries
@@ -422,11 +326,11 @@ void KokkosCGDynamicsKernel<DGadvection>::computeStressDivergenceDevice(
 
 template <int DGadvection>
 void KokkosCGDynamicsKernel<DGadvection>::applyBoundariesDevice(const DeviceViewCG& uDevice,
-    const DeviceViewCG& vDevice, const KokkosMesh::DirichletData& dirichletDevice, DeviceIndex nx,
+    const DeviceViewCG& vDevice, const ConstDeviceBitset& cgLandMaskDevice, DeviceIndex nx,
     DeviceIndex ny)
 {
-    dirichletZero(uDevice, nx, ny, dirichletDevice);
-    dirichletZero(vDevice, nx, ny, dirichletDevice);
+    dirichletZero(uDevice, cgLandMaskDevice);
+    dirichletZero(vDevice, cgLandMaskDevice);
 
     // TODO Periodic boundary conditions.
 }

@@ -289,44 +289,34 @@ void KokkosDGTransport<DG>::reinitNormalVelocityDevice(const DeviceViewEdge& nor
             addRowAtomic(normalVelXDevice, vel2, cx + mesh.nx);
         });
 
-    // Take care of the boundaries. Usually, the normal velocity is the average velocity
-    // from left and from the right. Hence, we get the factor 0.5 above. At boundaries,
-    // the normal is set only once, from the inside. These edges must be scaled with 2.0
+    // TR 07.04.2025
+    // correction of the normal velocity is needed on the mesh-boundary, where each edge
+    // only has one neighbor. Above, we sum both sides, weighted with 0.5. Therefore,
+    // we must scale the outer edges with 2. This is only used for inflow/outflow
+    // Neumann boundaries.
     // bot
     Kokkos::parallel_for(
-        "dirichletBot", mesh.dirichletDevice[0].extent(0), KOKKOS_LAMBDA(const DeviceIndex i) {
-            const DeviceIndex eid = mesh.dirichletDevice[0][i];
-            const DeviceIndex ix = eid % mesh.nx; // compute coordinates of element
-            const DeviceIndex iy = eid / mesh.nx;
+        "dirichletBot", mesh.nx, KOKKOS_LAMBDA(const DeviceIndex i) {
             auto normalVelX = makeEigenMap(normalVelXDevice);
-            normalVelX.row(mesh.nx * iy + ix) *= 2.0;
+            normalVelX.row(i) *= 2.0;
         });
     // right
     Kokkos::parallel_for(
-        "dirichletRight", mesh.dirichletDevice[1].extent(0), KOKKOS_LAMBDA(const DeviceIndex i) {
-            const DeviceIndex eid = mesh.dirichletDevice[1][i];
-            const DeviceIndex ix = eid % mesh.nx; // compute coordinates of element
-            const DeviceIndex iy = eid / mesh.nx;
+        "dirichletRight", mesh.ny, KOKKOS_LAMBDA(const DeviceIndex i) {
             auto normalVelY = makeEigenMap(normalVelYDevice);
-            normalVelY.row((mesh.nx + 1) * iy + ix + 1) *= 2.0;
+            normalVelY.row(i * (mesh.nx + 1) + mesh.nx) *= 2.0;
         });
     // top
     Kokkos::parallel_for(
-        "dirichletTop", mesh.dirichletDevice[2].extent(0), KOKKOS_LAMBDA(const DeviceIndex i) {
-            const DeviceIndex eid = mesh.dirichletDevice[2][i];
-            const DeviceIndex ix = eid % mesh.nx; // compute coordinates of element
-            const DeviceIndex iy = eid / mesh.nx;
+        "dirichletTop", mesh.nx, KOKKOS_LAMBDA(const DeviceIndex i) {
             auto normalVelX = makeEigenMap(normalVelXDevice);
-            normalVelX.row(mesh.nx * (iy + 1) + ix) *= 2.0;
+            normalVelX.row(i + mesh.nx * mesh.ny) *= 2.0;
         });
-    // left
+    // Left
     Kokkos::parallel_for(
-        "dirichletLeft", mesh.dirichletDevice[3].extent(0), KOKKOS_LAMBDA(const DeviceIndex i) {
-            const DeviceIndex eid = mesh.dirichletDevice[3][i];
-            const DeviceIndex ix = eid % mesh.nx; // compute coordinates of element
-            const DeviceIndex iy = eid / mesh.nx;
+        "dirichletLeft", mesh.ny, KOKKOS_LAMBDA(const DeviceIndex i) {
             auto normalVelY = makeEigenMap(normalVelYDevice);
-            normalVelY.row((mesh.nx + 1) * iy + ix) *= 2.0;
+            normalVelY.row(i * (mesh.nx + 1)) *= 2.0;
         });
 }
 
@@ -712,13 +702,12 @@ void KokkosDGTransport<DG>::addBoundaryTermsDevice(FloatType dt,
     // bot
     const auto PSIew0 = PSIe_w<DG, EDGE_DOFS, 0>;
     Kokkos::parallel_for(
-        "dirichletTermBot", meshDevice.dirichletDevice[0].extent(0),
-        KOKKOS_LAMBDA(const DeviceIndex i) {
-            const DeviceIndex eid = meshDevice.dirichletDevice[0][i];
-            //    const DeviceIndex ix = eid % meshDevice.nx; // compute coordinates of element
-            //    const DeviceIndex iy = eid / meshDevice.nx;
-            const DeviceIndex c = eid;
-            const DeviceIndex e = eid;
+        "dirichletTermBot", meshDevice.nx, KOKKOS_LAMBDA(const DeviceIndex i) {
+            const DeviceIndex c = i;
+            if (!meshDevice.landMaskDevice.test(c)) {
+                return;
+            }
+            const DeviceIndex e = i;
 
             const auto normalVelX = makeEigenMap(normalVelXDevice);
             const LocalVec<EDGE_DOFS> velGauss = normalVelX.row(e) * PSIeE;
@@ -732,13 +721,12 @@ void KokkosDGTransport<DG>::addBoundaryTermsDevice(FloatType dt,
     // right
     const auto PSIew1 = PSIe_w<DG, EDGE_DOFS, 1>;
     Kokkos::parallel_for(
-        "dirichletTermRight", meshDevice.dirichletDevice[1].extent(0),
-        KOKKOS_LAMBDA(const DeviceIndex i) {
-            const DeviceIndex eid = meshDevice.dirichletDevice[1][i];
-            const DeviceIndex ix = eid % meshDevice.nx; // compute coordinates of element
-            const DeviceIndex iy = eid / meshDevice.nx;
-            const DeviceIndex c = eid;
-            const DeviceIndex e = (meshDevice.nx + 1) * iy + ix + 1;
+        "dirichletTermRight", meshDevice.ny, KOKKOS_LAMBDA(const DeviceIndex i) {
+            const DeviceIndex c = (i + 1) * meshDevice.nx - 1;
+            if (!meshDevice.landMaskDevice.test(c)) {
+                return;
+            }
+            const DeviceIndex e = i * (meshDevice.nx + 1) + meshDevice.nx;
 
             const auto normalVelY = makeEigenMap(normalVelYDevice);
             const LocalVec<EDGE_DOFS> velGauss = normalVelY.row(e) * PSIeE;
@@ -752,13 +740,12 @@ void KokkosDGTransport<DG>::addBoundaryTermsDevice(FloatType dt,
     // top
     const auto PSIew2 = PSIe_w<DG, EDGE_DOFS, 2>;
     Kokkos::parallel_for(
-        "dirichletTermTop", meshDevice.dirichletDevice[2].extent(0),
-        KOKKOS_LAMBDA(const DeviceIndex i) {
-            const DeviceIndex eid = meshDevice.dirichletDevice[2][i];
-            const DeviceIndex ix = eid % meshDevice.nx; // compute coordinates of element
-            const DeviceIndex iy = eid / meshDevice.nx;
-            const DeviceIndex c = eid;
-            const DeviceIndex e = meshDevice.nx * (iy + 1) + ix;
+        "dirichletTermTop", meshDevice.nx, KOKKOS_LAMBDA(const DeviceIndex i) {
+            const DeviceIndex c = i + meshDevice.nx * (meshDevice.ny - 1);
+            if (!meshDevice.landMaskDevice.test(c)) {
+                return;
+            }
+            const DeviceIndex e = i + meshDevice.nx * meshDevice.ny;
 
             const auto normalVelX = makeEigenMap(normalVelXDevice);
             const LocalVec<EDGE_DOFS> velGauss = normalVelX.row(e) * PSIeE;
@@ -772,13 +759,12 @@ void KokkosDGTransport<DG>::addBoundaryTermsDevice(FloatType dt,
     // left
     const auto PSIew3 = PSIe_w<DG, EDGE_DOFS, 3>;
     Kokkos::parallel_for(
-        "dirichletTermLeft", meshDevice.dirichletDevice[3].extent(0),
-        KOKKOS_LAMBDA(const DeviceIndex i) {
-            const DeviceIndex eid = meshDevice.dirichletDevice[3][i];
-            const DeviceIndex ix = eid % meshDevice.nx; // compute coordinates of element
-            const DeviceIndex iy = eid / meshDevice.nx;
-            const DeviceIndex c = eid;
-            const DeviceIndex e = (meshDevice.nx + 1) * iy + ix;
+        "dirichletTermLeft", meshDevice.ny, KOKKOS_LAMBDA(const DeviceIndex i) {
+            const DeviceIndex c = i * meshDevice.nx;
+            if (!meshDevice.landMaskDevice.test(c)) {
+                return;
+            }
+            const DeviceIndex e = i * (meshDevice.nx + 1);
 
             const auto normalVelY = makeEigenMap(normalVelYDevice);
             const LocalVec<EDGE_DOFS> velGauss = normalVelY.row(e) * PSIeE;
