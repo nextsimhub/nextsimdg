@@ -8,6 +8,7 @@
 
 #include "include/PrognosticData.hpp"
 
+#include "include/FieldAdvection.hpp"
 #include "include/Finalizer.hpp"
 #include "include/ModelArrayRef.hpp"
 #include "include/NextsimModule.hpp"
@@ -117,7 +118,8 @@ void PrognosticData::update(const TimestepTime& tst)
     pAtmBdy->update(tst);
     pDynamics->prepareAdvection();
 
-    pDynamics->advectField(tst.step.seconds(), hsnow);
+    //pDynamics->advectField(tst.step.seconds(), hsnow);
+    FieldAdvection::advectField(hsnow, tst, 0.);
 
     // Take the updated values of the true ice and snow thicknesses, and reset hice0 and hsnow0
     // IceGrowth updates its own fields during update
