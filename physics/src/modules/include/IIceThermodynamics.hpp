@@ -8,6 +8,7 @@
 #ifndef IICETHERMODYNAMICS_HPP
 #define IICETHERMODYNAMICS_HPP
 
+#include "include/FieldAdvection.hpp"
 #include "include/ConfigurationHelp.hpp"
 #include "include/gridNames.hpp"
 #include "include/ModelArray.hpp"
@@ -62,7 +63,10 @@ public:
      *
      * @param tStep The object containing the timestep start and duration times.
      */
-    virtual void update(const TimestepTime& tsTime) = 0;
+    virtual void update(const TimestepTime& tsTime)
+    {
+        FieldAdvection::advectField(tsurf, tsTime);
+    }
 
     inline static std::string getKappaSConfigKey() { return "nextsim_thermo.ks"; }
 
