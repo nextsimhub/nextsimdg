@@ -1,7 +1,7 @@
 /*!
  * @file ModelMetadata.cpp
  *
- * @date 19 May 2025
+ * @date 06 Jun 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -188,7 +188,6 @@ void ModelMetadata::initOasis(const bool writeOasisGrid)
     }
 }
 #endif
-
 
 void ModelMetadata::setTime(const TimePoint& time)
 {
