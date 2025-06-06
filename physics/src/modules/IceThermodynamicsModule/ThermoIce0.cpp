@@ -32,6 +32,7 @@ ThermoIce0::ThermoIce0()
 
 void ThermoIce0::update(const TimestepTime& tsTime)
 {
+    IIceThermodynamics::update(tsTime);
     overElements(std::bind(&ThermoIce0::calculateElement, this, std::placeholders::_1,
                      std::placeholders::_2),
         tsTime);

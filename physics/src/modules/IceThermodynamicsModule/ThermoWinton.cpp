@@ -162,6 +162,11 @@ void ThermoWinton::setData(const ModelState::DataMap& state)
 
 void ThermoWinton::update(const TimestepTime& tst)
 {
+    // Advect ice temperatures
+    IIceThermodynamics::update(tst);
+    FieldAdvection::advectField(tInternal, tst);
+    FieldAdvection::advectField(tBottom, tst);
+    // Perform the rest of the thermodynamics using the advected temperatures
     overElements(std::bind(&ThermoWinton::calculateElement, this, std::placeholders::_1,
                      std::placeholders::_2),
         tst);
