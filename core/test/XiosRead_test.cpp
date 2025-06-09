@@ -51,23 +51,15 @@ MPI_TEST_CASE("TestXiosRead", 2)
     ParaGridIO* pio = new ParaGridIO(grid);
     grid.setIO(pio);
 
-    // Create ModelMetadata instance based off a partition metadata file
-    ModelMetadata metadata("xios_test_partition_metadata_2.nc", test_comm);
-
     // Get the Xios singleton instance and check it's initialized
     Xios& xiosHandler = Xios::getInstance();
-    xiosHandler.affixModelMetadata(metadata);
     REQUIRE(xiosHandler.isInitialized());
     REQUIRE(xiosHandler.getClientMPISize() == 2);
 
-    // Set ModelArray dimensions
-    const size_t nx_glo = 4;
-    const size_t ny_glo = 2;
-    const size_t nx = 2;
-    const size_t ny = 2;
-    const size_t nz = 2;
-    ModelArray::setDimension(ModelArray::Dimension::X, nx_glo, nx, 0);
-    ModelArray::setDimension(ModelArray::Dimension::Y, ny_glo, ny, 0);
+    // Create ModelMetadata instance based off a partition metadata file
+    // NOTE: ModelArray dimensions are determined from the input file, if present
+    ModelMetadata metadata("xios_test_partition_metadata_2.nc", test_comm);
+    xiosHandler.affixModelMetadata(metadata);
 
     // Create fields on the two grids
     // NOTE: Fields are created when the XIOS handler is constructed
@@ -94,6 +86,10 @@ MPI_TEST_CASE("TestXiosRead", 2)
 
     // Check the input file exists
     REQUIRE(std::filesystem::exists(filename));
+
+    // TODO: Determine these from the config above
+    const size_t nx = 2;
+    const size_t ny = 2;
 
     // Simulate 4 iterations (timesteps)
     metadata.setTime(xiosHandler.getCalendarStart());

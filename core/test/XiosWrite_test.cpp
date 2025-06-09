@@ -48,14 +48,14 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     ParaGridIO* pio = new ParaGridIO(grid);
     grid.setIO(pio);
 
-    // Create ModelMetadata instance based off a partition metadata file
-    ModelMetadata metadata("xios_test_partition_metadata_2.nc", test_comm);
-
     // Get the Xios singleton instance and check it's initialized
     Xios& xiosHandler = Xios::getInstance();
-    xiosHandler.affixModelMetadata(metadata);
     REQUIRE(xiosHandler.isInitialized());
     REQUIRE(xiosHandler.getClientMPISize() == 2);
+
+    // Create ModelMetadata instance based off a partition metadata file
+    ModelMetadata metadata("xios_test_partition_metadata_2.nc", test_comm);
+    xiosHandler.affixModelMetadata(metadata);
 
     // Set ModelArray dimensions
     const size_t nx_glo = 4;
