@@ -93,8 +93,8 @@ ParaGridIO::~ParaGridIO() = default;
 
 ModelState ParaGridIO::getModelState(const std::string& filePath, ModelMetadata& metadata)
 {
-    // TODO: XIOS implementation
     ModelState state;
+    Xios& xiosHandler = Xios::getInstance();
 
     try {
         netCDF::NcFilePar ncFile(filePath, netCDF::NcFile::read, metadata.mpiComm);
@@ -163,31 +163,35 @@ ModelState ParaGridIO::getModelState(const std::string& filePath, ModelMetadata&
             ModelArray& data = state.data.at(varName);
             data.resize();
 
-            std::vector<size_t> start;
-            std::vector<size_t> count;
-            if (ModelArray::hasDoF(type)) {
-                auto ncomps = data.nComponents();
-                start.push_back(0);
-                count.push_back(ncomps);
-            }
-            for (ModelArray::Dimension dt : ModelArray::typeDimensions.at(type)) {
-                auto dim = ModelArray::definedDimensions.at(dt);
-                start.push_back(dim.start);
-                count.push_back(dim.localLength);
-            }
-            // dims are looped in [dg], x, y, [z] order so start and count
-            // order must be reveresed to match order netcdf expects
-            std::reverse(start.begin(), start.end());
-            std::reverse(count.begin(), count.end());
-
-            var.getVar(start, count, &data[0]);
+            ncFile.close();
         }
-        ncFile.close();
     } catch (const netCDF::exceptions::NcException& nce) {
         std::string ncWhat(nce.what());
         ncWhat += ": " + filePath;
         throw std::runtime_error(ncWhat);
     }
+
+    // Get all vars in the data group, and load them into a new ModelState
+    const bool readAccess = true;
+    for (std::string fieldId : xiosHandler.configGetFieldNames(readAccess)) {
+        HField field(ModelArray::Type::H); // TODO: Support other dimTypes
+        field.resize();
+        state.merge(ModelState { { { fieldId, field } }, {} });
+    }
+    // TODO: coordsName, xName, yName, gridAzimuthName and others
+    std::set<std::string> restartFields = { hiceName, ciceName, hsnowName, ticeName, sstName,
+        sssName, maskName, longitudeName, latitudeName, uName, vName, damageName };
+    for (auto& entry : state.data) {
+        const std::string fieldId = entry.first;
+        if (restartFields.count(fieldId)) {
+            if (!xiosHandler.getFieldReadAccess(fieldId)) {
+                throw std::runtime_error("ParaGridIO::getModelState: field " + fieldId
+                    + " is not configured for reading, but is being read from file.");
+            };
+            xiosHandler.read(fieldId, entry.second);
+        }
+    }
+
     return state;
 }
 
@@ -253,7 +257,8 @@ void ParaGridIO::dumpModelState(
 {
     Xios& xiosHandler = Xios::getInstance();
 
-    // Assume that all fields in the supplied ModelState are necessary, and so write them to file.
+    // Assume that all fields in the supplied ModelState are necessary, and so write them to
+    // file.
     for (auto entry : state.data) {
         const std::string fieldId = entry.first;
         if (xiosHandler.getFieldReadAccess(fieldId)) {

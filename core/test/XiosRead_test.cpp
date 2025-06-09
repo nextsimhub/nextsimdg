@@ -19,6 +19,9 @@
 
 #include <filesystem>
 
+const std::string testFilesDir = TEST_FILES_DIR;
+const std::string filename = testFilesDir + "/xios_test_input.nc";
+
 namespace Nextsim {
 
 /*!
@@ -86,17 +89,11 @@ MPI_TEST_CASE("TestXiosRead", 2)
                          },
         {} };
 
-    // Setup ModelState with field above
-    ModelState state = { {
-                             { "field_2D", field_2D },
-                         },
-        {} };
-
     // Check calendar step is zero initially
     REQUIRE(xiosHandler.getCalendarStep() == 0);
 
     // Check the input file exists
-    REQUIRE(std::filesystem::exists("xios_test_input.nc"));
+    REQUIRE(std::filesystem::exists(filename));
 
     // Simulate 4 iterations (timesteps)
     metadata.setTime(xiosHandler.getCalendarStart());
@@ -104,16 +101,12 @@ MPI_TEST_CASE("TestXiosRead", 2)
         // Update the current timestep and verify it's updated in XIOS
         metadata.incrementTime(timestep);
         REQUIRE(xiosHandler.getCalendarStep() == ts);
-        // Receive data from XIOS that is read from disk
+        ModelState state = grid.getModelState(filename, metadata);
         for (auto& entry : state.data) {
-            xiosHandler.read(entry.first, entry.second);
-        }
-    }
-
-    for (auto& entry : state.data) {
-        for (size_t j = 0; j < ny; ++j) {
-            for (size_t i = 0; i < nx; ++i) {
-                REQUIRE(entry.second(i, j) == doctest::Approx(i + nx * j));
+            for (size_t j = 0; j < ny; ++j) {
+                for (size_t i = 0; i < nx; ++i) {
+                    REQUIRE(entry.second(i, j) == doctest::Approx(i + nx * j));
+                }
             }
         }
     }
