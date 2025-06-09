@@ -91,21 +91,13 @@ bool ParaGridIO::doOnce()
 
 ParaGridIO::~ParaGridIO() = default;
 
-#ifdef USE_MPI
 ModelState ParaGridIO::getModelState(const std::string& filePath, ModelMetadata& metadata)
-#else
-ModelState ParaGridIO::getModelState(const std::string& filePath)
-#endif
 {
     // TODO: XIOS implementation
     ModelState state;
 
     try {
-#ifdef USE_MPI
         netCDF::NcFilePar ncFile(filePath, netCDF::NcFile::read, metadata.mpiComm);
-#else
-        netCDF::NcFile ncFile(filePath, netCDF::NcFile::read);
-#endif
 
         // Dimensions and DG components
         std::multimap<std::string, netCDF::NcDim> dimMap = ncFile.getDims();
@@ -129,7 +121,6 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
                     std::string("No netCDF dimension found corresponding to the dimension named ")
                     + dimensionSpec.name + std::string(" or ") + dimensionSpec.altName);
             }
-#ifdef USE_MPI
             auto dimName = dim.getName();
             size_t localLength = 0;
             size_t start = 0;
@@ -150,9 +141,6 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
                 start = 0;
             }
             ModelArray::setDimension(dimType, dim.getSize(), localLength, start);
-#else
-            ModelArray::setDimension(dimType, dim.getSize());
-#endif
         }
 
         // Get all valid variables and load them into a new ModelState
@@ -288,17 +276,10 @@ void ParaGridIO::writeDiagnosticTime(
         // Set the initial time to be zero (assigned above)
         // Piecewise construction is necessary to correctly construct the file handle/time index
         // pair
-#ifdef USE_MPI
         openFilesAndIndices.emplace(std::piecewise_construct, std::make_tuple(filePath),
             std::forward_as_tuple(std::piecewise_construct,
                 std::forward_as_tuple(filePath, netCDF::NcFile::replace, meta.mpiComm),
                 std::forward_as_tuple(nt)));
-#else
-        openFilesAndIndices.emplace(std::piecewise_construct, std::make_tuple(filePath),
-            std::forward_as_tuple(std::piecewise_construct,
-                std::forward_as_tuple(filePath, netCDF::NcFile::replace),
-                std::forward_as_tuple(nt)));
-#endif
     }
     // Get the file handle
     NetCDFFileType& ncFile = openFilesAndIndices.at(filePath).first;
@@ -389,9 +370,7 @@ void ParaGridIO::writeDiagnosticTime(
     netCDF::NcVar timeVar(
         (isNew) ? ncFile.addVar(timeName, netCDF::ncDouble, timeDimVec) : ncFile.getVar(timeName));
     double secondsSinceEpoch = (meta.time() - TimePoint()).seconds();
-#ifdef USE_MPI
     netCDF::setVariableCollective(timeVar, ncFile);
-#endif
     timeVar.putVar({ nt }, { 1 }, &secondsSinceEpoch);
 
     // Write the data
@@ -404,9 +383,7 @@ void ParaGridIO::writeDiagnosticTime(
             // Land mask in a new file (since it was skipped above in existing files)
             netCDF::NcVar var(ncFile.addVar(maskName, netCDF::ncDouble, maskDims));
             // No missing data
-#ifdef USE_MPI
             netCDF::setVariableCollective(var, ncFile);
-#endif
             var.putVar(maskIndexes, maskExtents, entry.second.getData());
 
         } else {
@@ -416,9 +393,7 @@ void ParaGridIO::writeDiagnosticTime(
                                       : ncFile.getVar(entry.first));
             if (isNew)
                 var.putAtt(mdiName, netCDF::ncDouble, MissingData::value());
-#ifdef USE_MPI
             netCDF::setVariableCollective(var, ncFile);
-#endif
             var.putVar(startMap.at(type), countMap.at(type), entry.second.getData());
         }
     }
