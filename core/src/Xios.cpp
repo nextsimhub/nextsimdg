@@ -32,8 +32,10 @@
 #include <boost/date_time/posix_time/time_parsers.hpp>
 #if USE_XIOS
 
+#include "StructureModule/include/ParametricGrid.hpp"
 #include "include/Finalizer.hpp"
 #include "include/ModelMetadata.hpp"
+#include "include/ParallelNetcdfFile.hpp"
 #include "include/Xios.hpp"
 
 #include <boost/algorithm/string.hpp>
@@ -44,6 +46,11 @@
 #include <include/xios_c_interface.hpp>
 #include <iostream>
 #include <mpi.h>
+#include <ncDim.h>
+#include <ncException.h>
+#include <ncFile.h>
+#include <ncGroup.h>
+#include <ncVar.h>
 #include <regex>
 #include <string>
 
@@ -83,20 +90,22 @@ Xios::Xios(const std::string contextid, const std::string calendartype)
 
     // Create the input and output files (if found in the config)
     if (firstTime) {
-        for (int key : { INPUT_FILENAME_KEY, OUTPUT_FILENAME_KEY }) {
-            std::string filenameStr;
-            istringstream(Configured::getConfiguration(keyMap.at(key), std::string()))
-                >> filenameStr;
-            if (filenameStr.length() > 0) {
-                filenameStr = ((std::filesystem::path)filenameStr).replace_extension();
-                createFile(filenameStr);
+        istringstream(Configured::getConfiguration(keyMap.at(INPUT_FILENAME_KEY), std::string()))
+            >> inputFilename;
+        istringstream(Configured::getConfiguration(keyMap.at(OUTPUT_FILENAME_KEY), std::string()))
+            >> outputFilename;
+
+        for (std::string filename : { inputFilename, outputFilename }) {
+            if (filename.length() > 0) {
+                filename = ((std::filesystem::path)filename).replace_extension();
+                createFile(filename);
 
                 // Set file name
-                xios::CFile* file = getFile(filenameStr);
-                cxios_set_file_name(file, filenameStr.c_str(), filenameStr.length());
+                xios::CFile* file = getFile(filename);
+                cxios_set_file_name(file, filename.c_str(), filename.length());
                 if (!cxios_is_defined_file_name(file)) {
                     throw std::runtime_error(
-                        "Xios: Failed to set name for file '" + filenameStr + "'");
+                        "Xios: Failed to set name for file '" + filename + "'");
                 }
             }
         }
@@ -618,6 +627,65 @@ xios::CDomain* Xios::getDomain()
  */
 void Xios::affixModelMetadata(ModelMetadata& metadata)
 {
+    // TODO: Avoid reading this information from the file, if possible
+    if (inputFilename.length() > 0) {
+        try {
+            netCDF::NcFilePar ncFile(inputFilename + ".nc", netCDF::NcFile::read, metadata.mpiComm);
+
+            // Dimensions and DG components
+            std::multimap<std::string, netCDF::NcDim> dimMap = ncFile.getDims();
+            for (auto entry : ModelArray::definedDimensions) {
+                auto dimType = entry.first;
+                // TODO: Account for DG
+                // if (dimCompMap.count(dimType) > 0)
+                //     // TODO Assertions that DG in the file equals the compile time DG in the
+                //     // model. See #205
+                //     continue;
+
+                ModelArray::DimensionSpec& dimensionSpec = entry.second;
+                // Find dimensions in the netCDF file by their name in the ModelArray details
+                netCDF::NcDim dim = ncFile.getDim(dimensionSpec.name);
+                // Also check the old name
+                if (dim.isNull()) {
+                    dim = ncFile.getDim(dimensionSpec.altName);
+                }
+                // If we didn't find a dimension with the dimensions name or altName, throw.
+                if (dim.isNull()) {
+                    throw std::out_of_range(
+                        std::string(
+                            "No netCDF dimension found corresponding to the dimension named ")
+                        + dimensionSpec.name + std::string(" or ") + dimensionSpec.altName);
+                    continue;
+                }
+                auto dimName = dim.getName();
+                size_t localLength = 0;
+                size_t start = 0;
+                if (dimType == ModelArray::Dimension::X) {
+                    localLength = metadata.localExtentX;
+                    start = metadata.localCornerX;
+                } else if (dimType == ModelArray::Dimension::Y) {
+                    localLength = metadata.localExtentY;
+                    start = metadata.localCornerY;
+                } else if (dimType == ModelArray::Dimension::XVERTEX) {
+                    localLength = metadata.localExtentX + 1;
+                    start = metadata.localCornerX;
+                } else if (dimType == ModelArray::Dimension::YVERTEX) {
+                    localLength = metadata.localExtentY + 1;
+                    start = metadata.localCornerY;
+                } else {
+                    localLength = dim.getSize();
+                    start = 0;
+                }
+                ModelArray::setDimension(dimType, dim.getSize(), localLength, start);
+            }
+            ncFile.close();
+        } catch (const netCDF::exceptions::NcException& nce) {
+            std::string ncWhat(nce.what());
+            ncWhat += ": " + inputFilename;
+            throw std::runtime_error(ncWhat);
+        }
+    }
+
     bool exists;
     cxios_domain_valid_id(&exists, domainId.c_str(), domainId.length());
     if (exists) {
@@ -1082,14 +1150,14 @@ void Xios::createFile(const std::string fileId)
     }
 
     // Determine whether the file is configured for reading or writing
-    std::string inputFilenameStr;
+    std::string inputFilename;
     istringstream(Configured::getConfiguration(keyMap.at(INPUT_FILENAME_KEY), std::string()))
-        >> inputFilenameStr;
-    bool readAccess = ((inputFilenameStr.length() > 0) && (inputFilenameStr == fileId));
-    std::string outputFilenameStr;
+        >> inputFilename;
+    bool readAccess = ((inputFilename.length() > 0) && (inputFilename == fileId));
+    std::string outputFilename;
     istringstream(Configured::getConfiguration(keyMap.at(OUTPUT_FILENAME_KEY), std::string()))
-        >> outputFilenameStr;
-    bool writeAccess = ((outputFilenameStr.length() > 0) && (outputFilenameStr == fileId));
+        >> outputFilename;
+    bool writeAccess = ((outputFilename.length() > 0) && (outputFilename == fileId));
 
     // Check that the filename is not in both the XiosOutput and XiosInput config sections
     if (readAccess && writeAccess) {

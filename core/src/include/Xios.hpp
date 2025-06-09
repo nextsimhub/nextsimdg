@@ -192,6 +192,8 @@ private:
     xios::CFileGroup* getFileGroup();
     xios::CFile* getFile(const std::string fileId);
     void setFileMode(const std::string fileId, const std::string mode);
+    std::string inputFilename;
+    std::string outputFilename;
 
     /* I/O */
     void write(const std::string fieldId, ModelArray& modelarray);
