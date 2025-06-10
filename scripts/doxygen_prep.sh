@@ -3,6 +3,8 @@
 #
 # In particular, it adds the @file and @date entries to the frontmatter of the file.
 
+set -eu
+
 # Check for valid input
 if [ -z "$1" ]; then
   echo "Error: The doxy_prep.sh script requires a filename as input."

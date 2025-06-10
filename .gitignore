@@ -1,5 +1,8 @@
 /build*
 */build
+docs/html/
+docs/latex/
+docs/xml/
 Results
 /.cproject
 /.project
