@@ -47,8 +47,8 @@ jobs:
     # for debugging actions. See
     # [here](https://github.com/mxschmitt/action-tmate) for more information.
     # Uncomment these lines to debug the Doxygen build
-    - name: Setup tmate session
-      uses: mxschmitt/action-tmate@v3
+    # - name: Setup tmate session
+    #   uses: mxschmitt/action-tmate@v3
 
     - name: Deploy to GitHub Pages
       if: success() && (github.ref == 'refs/heads/main')
