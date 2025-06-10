@@ -116,7 +116,6 @@ ModelState ParaGridIO::getModelState(const std::string& filePath, ModelMetadata&
             xiosHandler.read(fieldId, entry.second);
         }
     }
-
     return state;
 }
 
