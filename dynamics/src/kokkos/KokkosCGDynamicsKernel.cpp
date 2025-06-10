@@ -6,6 +6,7 @@
 
 #include "include/KokkosCGDynamicsKernel.hpp"
 #include "include/KokkosDGLimit.hpp"
+#include "include/KokkosTimer.hpp"
 
 namespace Nextsim {
 /*************************************************************/
@@ -56,8 +57,11 @@ void KokkosCGDynamicsKernel<DGadvection>::initialise(
     std::tie(e12Host, e12Device) = makeKokkosDualView("e12", this->e12);
     std::tie(e22Host, e22Device) = makeKokkosDualView("e22", this->e22);
 
-    tempData.resize_by_mesh(*this->smesh);
+    tempDataAdvect.resize_by_mesh(*this->smesh);
     std::tie(tempDataHost, tempDataDevice) = makeKokkosDualView("tempData", (this->tempData));
+    tempData.resize_by_mesh(*this->smesh);
+    std::tie(tempDataAdvectHost, tempDataAdvectDevice)
+        = makeKokkosDualView("tempDataAdvect", (this->tempDataAdvect));
 
     assert(this->pmap);
     divS1Device = makeKokkosDeviceViewMap("divS1", this->pmap->divS1, MakeViewOptions::DEVICE_COPY);
@@ -84,6 +88,8 @@ void KokkosCGDynamicsKernel<DGadvection>::initialise(
         "lumpedcgmass", this->pmap->lumpedcgmass, MakeViewOptions::DEVICE_COPY);
     iMJwPSIDevice
         = makeKokkosDeviceViewMap("iMJwPSI", this->pmap->iMJwPSI, MakeViewOptions::DEVICE_COPY);
+    iMJwPSIAdvectDevice = makeKokkosDeviceViewMap(
+        "iMJwPSIAdvect", this->pmap->iMJwPSI_dam, MakeViewOptions::DEVICE_COPY);
 
     const size_t n_cg = static_cast<size_t>(this->pmap->cglandmask.rows());
     std::vector<bool> cgLandMask(n_cg, false);
@@ -113,12 +119,10 @@ ModelArray KokkosCGDynamicsKernel<DGadvection>::getDG0Data(const std::string& na
 {
     HField data(ModelArray::Type::H);
     if (name == shearName) {
-        // todo: perform computation no GPU and copy only the result
-        Kokkos::deep_copy(this->e11Host, this->e11Device);
-        Kokkos::deep_copy(this->e12Host, this->e12Device);
-        Kokkos::deep_copy(this->e22Host, this->e22Device);
-        return DGModelArray::dg2ma(
-            Tools::Shear(*this->smesh, this->e11, this->e12, this->e22), data);
+        computeShearDevice(tempDataAdvectDevice, e11Device, e12Device, e22Device, PSIStressDevice,
+            meshData->landMaskDevice, iMJwPSIAdvectDevice);
+        Kokkos::deep_copy(this->tempDataAdvectHost, this->tempDataAdvectDevice);
+        return DGModelArray::dg2ma(tempDataAdvect, data);
     } else if (name == divergenceName) {
         computeTensorInvariantIDevice(tempDataDevice, e11Device, e12Device, e22Device);
         Kokkos::deep_copy(this->tempDataHost, this->tempDataDevice);
@@ -398,6 +402,39 @@ void KokkosCGDynamicsKernel<DGadvection>::updateIceOceanStressDevice(
 
 /*************************************************************/
 template <int DGadvection>
+void KokkosCGDynamicsKernel<DGadvection>::computeShearDevice(const DeviceViewAdvect& destDevice,
+    const ConstDeviceViewStress& e11Device, const ConstDeviceViewStress& e12Device,
+    const ConstDeviceViewStress& e22Device, const PSIStressView& PSIStressDevice,
+    const ConstDeviceBitset& landMaskDevice, const GaussMapAdvectDevice& iMJwPSIAdvectDevice)
+{
+    Kokkos::parallel_for(
+        "computeShearDevice", destDevice.extent(0), KOKKOS_LAMBDA(const DeviceIndex i) {
+            auto dest = makeEigenMap(destDevice);
+            if (!landMaskDevice.test(i)) {
+                dest.row(i).setZero();
+                return;
+            }
+
+            const auto e11 = makeEigenMap(e11Device);
+            const auto e12 = makeEigenMap(e12Device);
+            const auto e22 = makeEigenMap(e22Device);
+
+            const auto PSIStress = makeEigenMap(PSIStressDevice);
+
+            const EdgeVec e11Gauss = e11.row(i) * PSIStress;
+            const EdgeVec e12Gauss = e12.row(i) * PSIStress;
+            const EdgeVec e22Gauss = e22.row(i) * PSIStress;
+
+            dest.row(i) = iMJwPSIAdvectDevice[i]
+                * ((e11Gauss.array() - e22Gauss.array()).square() + 4.0 * e12Gauss.array().square()
+                    + 1.e-20)
+                      .sqrt()
+                      .matrix()
+                      .transpose();
+        });
+}
+
+template <int DGadvection>
 void KokkosCGDynamicsKernel<DGadvection>::computeTensorInvariantIDevice(
     const DeviceViewStress& destDevice, const ConstDeviceViewStress& e11Device,
     const ConstDeviceViewStress& e12Device, const ConstDeviceViewStress& e22Device)
@@ -431,7 +468,12 @@ void KokkosCGDynamicsKernel<DGadvection>::computeTensorInvariantIIDevice(
         });
 }
 
-template class KokkosCGDynamicsKernel<1>;
-template class KokkosCGDynamicsKernel<3>;
-template class KokkosCGDynamicsKernel<6>;
+/*************************************************************/
+// because ParametricMomentumMap<CGdegree>::iMJwPSIAdvect does not properly depend on DGadvection we
+// can only build this version since the switch is implemented in compile-time we dont really need
+// the other versions anyway
+template class KokkosCGDynamicsKernel<DGCOMP>;
+// template class KokkosCGDynamicsKernel<1>;
+// template class KokkosCGDynamicsKernel<3>;
+// template class KokkosCGDynamicsKernel<6>;
 }

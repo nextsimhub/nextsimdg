@@ -286,7 +286,5 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::updateMomentumDevice(const Devi
         });
 }
 
-template class KokkosBrittleCGDynamicsKernel<1>;
-template class KokkosBrittleCGDynamicsKernel<3>;
-template class KokkosBrittleCGDynamicsKernel<6>;
+template class KokkosBrittleCGDynamicsKernel<DGCOMP>;
 }

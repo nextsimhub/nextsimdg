@@ -25,8 +25,7 @@ public:
     using PSIStressView = typename KokkosCGDynamicsKernel<DGadvection>::PSIStressView;
 
     using GaussMapDevice = typename Base::GaussMapDevice;
-    using GaussMapAdvectDevice = KokkosDeviceMapView<
-        typename ParametricMomentumMap<CGdegree, DGadvection>::GaussMapAdvectMatrix>;
+    using GaussMapAdvectDevice = typename Base::GaussMapAdvectDevice;
 
     KokkosBBMDynamicsKernel(const BBMParameters& paramsIn);
 
@@ -52,7 +51,6 @@ protected:
         const FloatType deltaT) override;
 
 private:
-    GaussMapAdvectDevice iMJwPSIAdvectDevice;
     // ParametricMesh::h()
     KokkosDeviceMapView<FloatType> cellSizeDevice;
 };

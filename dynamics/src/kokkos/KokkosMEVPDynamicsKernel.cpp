@@ -284,8 +284,6 @@ void KokkosMEVPDynamicsKernel<DGadvection>::updateMomentumDevice(const DeviceVie
         });
 }
 
-template class KokkosMEVPDynamicsKernel<1>;
-template class KokkosMEVPDynamicsKernel<3>;
-template class KokkosMEVPDynamicsKernel<6>;
+template class KokkosMEVPDynamicsKernel<DGCOMP>;
 
 } // namespace Nextsim

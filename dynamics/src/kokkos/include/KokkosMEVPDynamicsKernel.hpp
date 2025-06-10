@@ -20,9 +20,7 @@ namespace Nextsim {
 template <int DGadvection>
 class KokkosMEVPDynamicsKernel : public KokkosCGDynamicsKernel<DGadvection> {
 private:
-    static constexpr int NGP = NGP_DG<DGstressComp>;
-
-    using EdgeVec = Eigen::Matrix<FloatType, 1, NGP * NGP>;
+    using EdgeVec = typename KokkosCGDynamicsKernel<DGadvection>::EdgeVec;
 
 public:
     using Base = KokkosCGDynamicsKernel<DGadvection>;

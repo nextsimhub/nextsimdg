@@ -20,8 +20,6 @@ void KokkosBBMDynamicsKernel<DGadvection>::initialise(
 {
     KokkosBrittleCGDynamicsKernel<DGadvection>::initialise(coords, isSpherical, mask);
 
-    iMJwPSIAdvectDevice = makeKokkosDeviceViewMap(
-        "iMJwPSIAdvect", this->pmap->iMJwPSI_dam, MakeViewOptions::DEVICE_COPY);
     std::vector<FloatType> cellSize(this->smesh->nelements);
     for (size_t i = 0; i < this->smesh->nelements; ++i) {
         cellSize[i] = this->smesh->h(i);
@@ -191,9 +189,6 @@ void KokkosBBMDynamicsKernel<DGadvection>::updateStressHighOrderDevice(
         });
 }
 
-// because ParametricMomentumMap<CGdegree>::iMJwPSIAdvect does not properly depend on DGadvection we
-// can only build this version since the switch is implemented in compile-time we dont really need
-// the other versions anyway
 template class KokkosBBMDynamicsKernel<DGCOMP>;
 
 }

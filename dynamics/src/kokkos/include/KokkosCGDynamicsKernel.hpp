@@ -43,6 +43,8 @@ public:
     using PSIAdvectView = ConstKokkosDeviceView<PSIAdvectType>;
     using PSIStressView = ConstKokkosDeviceView<PSIStressType>;
 
+    using EdgeVec = Eigen::Matrix<FloatType, 1, NGP * NGP>;
+
     // precomputed maps
     using DivMapDevice
         = KokkosDeviceMapView<typename ParametricMomentumMap<CGdegree, DGadvection>::DivMatrix>;
@@ -50,6 +52,8 @@ public:
         = KokkosDeviceMapView<typename ParametricMomentumMap<CGdegree, DGadvection>::GradMatrix>;
     using GaussMapDevice = KokkosDeviceMapView<
         typename ParametricMomentumMap<CGdegree, DGadvection>::GaussMapMatrix>;
+    using GaussMapAdvectDevice = KokkosDeviceMapView<
+        typename ParametricMomentumMap<CGdegree, DGadvection>::GaussMapAdvectMatrix>;
 
     KokkosCGDynamicsKernel(const DynamicsParameters& params);
 
@@ -98,7 +102,8 @@ public:
     // functionality from Tools.hpp
     static void computeShearDevice(const DeviceViewAdvect& destDevice,
         const ConstDeviceViewStress& e11Device, const ConstDeviceViewStress& e12Device,
-        const ConstDeviceViewStress& e22Device, const GaussMapDevice& iMJwPSIDevice);
+        const ConstDeviceViewStress& e22Device, const PSIStressView& PSIStressDevice,
+        const ConstDeviceBitset& landMaskDevice, const GaussMapAdvectDevice& iMJwPSIAdvectDevice);
 
     static void computeTensorInvariantIDevice(const DeviceViewStress& destDevice,
         const ConstDeviceViewStress& e11Device, const ConstDeviceViewStress& e12Device,
@@ -166,6 +171,9 @@ protected:
     DGVector<DGstressComp> tempData;
     DeviceViewStress tempDataDevice;
     HostViewStress tempDataHost;
+    DGVector<DGadvection> tempDataAdvect;
+    DeviceViewAdvect tempDataAdvectDevice;
+    HostViewAdvect tempDataAdvectHost;
 
     // precomputed parametric map
     DivMapDevice divS1Device;
@@ -190,6 +198,7 @@ protected:
     // todo: refactor into KokkosParametricMap with switch for precomputed / on-the-fly
     ConstDeviceViewCG lumpedCGMassDevice;
     GaussMapDevice iMJwPSIDevice;
+    GaussMapAdvectDevice iMJwPSIAdvectDevice;
     ConstDeviceBitset cgLandMaskDevice;
 
     // held as a pointer because these objects are initialized by their constructors
