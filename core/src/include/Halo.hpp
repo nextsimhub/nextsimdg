@@ -1,7 +1,7 @@
 /*!
  * @file Halo.hpp
  *
- * @date 04 Jun 2025
+ * @date 10 Jun 2025
  * @author Tom Meltzer <tdm39@cam.ac.uk>
  */
 
@@ -259,7 +259,7 @@ public:
      *
      * @params ma ModelArray which we intend to update across MPI ranks
      */
-    void populateInnerBlock(ModelArray::DataType& tempData)
+    void setInnerBlock(ModelArray::DataType& tempData)
     {
         ArraySlicer::Slice::VBounds innerBlock, allBlock;
         innerBlock = { { 1, -1 }, { 1, -1 } };
@@ -270,6 +270,23 @@ public:
 
         // copy temp data to the central block of the main modelarray
         m_ma[innerBlock].copyFromSlicedBuffer(tempData, wholeBlock);
+    }
+
+    /*!
+     * @brief Get inner block of ModelArray from tempData
+     *
+     * @params ma ModelArray which we intend to update across MPI ranks
+     */
+    void getInnerBlock(ModelArray::DataType& tempData)
+    {
+        tempData.resize(m_innerNx * m_innerNy, m_numComps);
+        ArraySlicer::Slice::VBounds innerBlock, allBlock;
+        innerBlock = { { 1, -1 }, { 1, -1 } };
+        allBlock = { {}, {} };
+        ArraySlicer::SliceIter wholeBlock(allBlock, m_ma.innerDimensions());
+
+        // copy temp data to the central block of the main modelarray
+        m_ma[innerBlock].copyToSlicedBuffer(tempData, wholeBlock);
     }
 
     /*!
