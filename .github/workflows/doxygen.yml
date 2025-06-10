@@ -2,13 +2,17 @@
 
 name: Doxygen Action
 
-# Controls when the action will run. Triggers the workflow on push or pull request
-# events but only for the master branch
+# Controls when the action will run.
 on:
+  # Trigger the workflow on pushes to the main or docs branches
   push:
     branches: [ main, docs ]
-
-
+  # Trigger the workflow if a push is made to an open PR that edits certain files
+  pull_request:
+    paths:
+      - '.github/workflows/doxygen.yml'
+      - 'docs/Doxyfile'
+      - 'docs/*.rst'
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -39,7 +43,7 @@ jobs:
         working-directory: "./docs" # default is .
 
     - name: Deploy to GitHub Pages
-      if: success()
+      if: success() && (github.ref == 'refs/heads/main')
       uses: crazy-max/ghaction-github-pages@v2
       with:
         target_branch: gh-pages
