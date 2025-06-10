@@ -25,6 +25,7 @@ on:
       - '**.sh'
       - '**.xml'
       - '**CMakeLists.txt'
+      - '!scripts/doxy_prep.sh'
   pull_request_review:
     branches: [ main, develop ]
 
