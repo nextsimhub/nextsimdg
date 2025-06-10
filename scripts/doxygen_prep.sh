@@ -3,7 +3,7 @@
 #
 # In particular, it adds the @file and @date entries to the frontmatter of the file.
 
-set -eux
+set -eu
 
 # Check for valid input
 if [ -z "$1" ]; then
