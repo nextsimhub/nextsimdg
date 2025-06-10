@@ -63,7 +63,7 @@ if(ENABLE_MPI)
         # Generate input and partition files needed for XIOS tests from respective cdl files
         add_custom_command(
             OUTPUT xios_test_input.nc
-            COMMAND ncgen -o xios_test_input.nc ${CMAKE_CURRENT_SOURCE_DIR}/xios_test_input.cdl
+            COMMAND ncgen -k netCDF-4 -o xios_test_input.nc ${CMAKE_CURRENT_SOURCE_DIR}/xios_test_input.cdl
             DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/xios_test_input.cdl
         )
         add_custom_target(generate_xios_input_file ALL DEPENDS xios_test_input.nc)
