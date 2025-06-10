@@ -1,7 +1,7 @@
 /*!
  * @file ModelMetadata_test.cpp
  *
- * @date 04 Jun 2025
+ * @date 10 Jun 2025
  * @author Tom Meltzer <tdm39@cam.ac.uk>
  */
 
@@ -66,7 +66,7 @@ MPI_TEST_CASE("test halo exchange on 3 proc grid with periodic boundary conditio
     initializeHField(innerData, localNx - 2, localNy - 2, offsetX, offsetY, test_rank);
 
     // populate inner block of modelarray
-    halo.populateInnerBlock(innerData);
+    halo.setInnerBlock(innerData);
     // exchange halos
     halo.exchangeHalos();
 
