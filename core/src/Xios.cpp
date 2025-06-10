@@ -92,20 +92,24 @@ Xios::Xios(const std::string contextid, const std::string calendartype)
     if (firstTime) {
         istringstream(Configured::getConfiguration(keyMap.at(INPUT_FILENAME_KEY), std::string()))
             >> inputFilename;
+        if (inputFilename.length() > 0) {
+            inputFileId = ((std::filesystem::path)inputFilename).replace_extension();
+        }
         istringstream(Configured::getConfiguration(keyMap.at(OUTPUT_FILENAME_KEY), std::string()))
             >> outputFilename;
+        if (outputFilename.length() > 0) {
+            outputFileId = ((std::filesystem::path)outputFilename).replace_extension();
+        }
 
-        for (std::string filename : { inputFilename, outputFilename }) {
-            if (filename.length() > 0) {
-                filename = ((std::filesystem::path)filename).replace_extension();
-                createFile(filename);
+        for (std::string fileId : { inputFileId, outputFileId }) {
+            if (fileId.length() > 0) {
+                createFile(fileId);
 
                 // Set file name
-                xios::CFile* file = getFile(filename);
-                cxios_set_file_name(file, filename.c_str(), filename.length());
+                xios::CFile* file = getFile(fileId);
+                cxios_set_file_name(file, fileId.c_str(), fileId.length());
                 if (!cxios_is_defined_file_name(file)) {
-                    throw std::runtime_error(
-                        "Xios: Failed to set name for file '" + filename + "'");
+                    throw std::runtime_error("Xios: Failed to set name for file '" + fileId + "'");
                 }
             }
         }
@@ -627,10 +631,10 @@ xios::CDomain* Xios::getDomain()
  */
 void Xios::affixModelMetadata(ModelMetadata& metadata)
 {
-    // TODO: Avoid reading this information from the file, if possible
+    // Initial read of the NetCDF file to deduce the dimensions
     if (inputFilename.length() > 0) {
         try {
-            netCDF::NcFilePar ncFile(inputFilename + ".nc", netCDF::NcFile::read, metadata.mpiComm);
+            netCDF::NcFilePar ncFile(inputFilename, netCDF::NcFile::read, metadata.mpiComm);
 
             // Dimensions and DG components
             std::multimap<std::string, netCDF::NcDim> dimMap = ncFile.getDims();
@@ -686,6 +690,7 @@ void Xios::affixModelMetadata(ModelMetadata& metadata)
         }
     }
 
+    // Create the XIOS domain 'xy_domain'
     bool exists;
     cxios_domain_valid_id(&exists, domainId.c_str(), domainId.length());
     if (exists) {
@@ -701,7 +706,7 @@ void Xios::affixModelMetadata(ModelMetadata& metadata)
         throw std::runtime_error("Xios: Failed to create domain '" + domainId + "'");
     }
 
-    // Create grid_2D associated with the domain
+    // Create XIOS grid 'grid_2D' associated with the domain
     const std::string gridId = "grid_2D";
     createGrid(gridId);
     xios::CGrid* grid = getGrid(gridId);
@@ -1150,14 +1155,8 @@ void Xios::createFile(const std::string fileId)
     }
 
     // Determine whether the file is configured for reading or writing
-    std::string inputFilename;
-    istringstream(Configured::getConfiguration(keyMap.at(INPUT_FILENAME_KEY), std::string()))
-        >> inputFilename;
-    bool readAccess = ((inputFilename.length() > 0) && (inputFilename == fileId));
-    std::string outputFilename;
-    istringstream(Configured::getConfiguration(keyMap.at(OUTPUT_FILENAME_KEY), std::string()))
-        >> outputFilename;
-    bool writeAccess = ((outputFilename.length() > 0) && (outputFilename == fileId));
+    bool readAccess = ((inputFileId.length() > 0) && (inputFileId == fileId));
+    bool writeAccess = ((outputFileId.length() > 0) && (outputFileId == fileId));
 
     // Check that the filename is not in both the XiosOutput and XiosInput config sections
     if (readAccess && writeAccess) {
