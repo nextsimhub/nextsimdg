@@ -87,9 +87,9 @@ MPI_TEST_CASE("TestXiosRead", 2)
     // Check the input file exists
     REQUIRE(std::filesystem::exists(filename));
 
-    // TODO: Determine these from the config above
-    const size_t nx = 2;
-    const size_t ny = 2;
+    // Deduce the local lengths of the two dimensions
+    const size_t nx = ModelArray::definedDimensions.at(ModelArray::Dimension::X).localLength;
+    const size_t ny = ModelArray::definedDimensions.at(ModelArray::Dimension::Y).localLength;
 
     // Simulate 4 iterations (timesteps)
     metadata.setTime(xiosHandler.getCalendarStart());
