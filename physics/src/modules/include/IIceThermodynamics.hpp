@@ -65,14 +65,14 @@ public:
      */
     virtual void update(const TimestepTime& tsTime)
     {
-        FieldAdvection::advectField(tsurf, tsTime);
+        FieldAdvection::advectField(tsurf, tsTime, minT, 0.);
     }
 
     inline static std::string getKappaSConfigKey() { return "nextsim_thermo.ks"; }
 
 protected:
     IIceThermodynamics()
-        : tsurf(ModelArray::Type::H)
+        : tsurf(ModelArray::AdvectionType)
         , deltaHi(ModelArray::Type::H)
         , snowToIce(ModelArray::Type::H)
         , hice(getStore())
@@ -110,12 +110,14 @@ protected:
     ModelArrayRef<Protected::SNOW> snowfall; // From ExternalData
     ModelArrayRef<Protected::SSS> sss; // From ExternalData (possibly PrognosticData)
     // Owned, shared arrays
-    HField tsurf;
+    AdvectedField tsurf;
     HField deltaHi;
     // Owned, Module-private arrays
     HField snowToIce;
 
     const ArraySlicer::Slice z0Slice {{{ }, { }, {0}}};
+
+    constexpr static double minT = -90.0;
 };
 
 } /* namespace Nextsim */
