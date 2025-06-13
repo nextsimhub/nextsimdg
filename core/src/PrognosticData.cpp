@@ -66,20 +66,6 @@ void copyMeanComponent(const ModelArray& source, ModelArray& sink)
     }
 }
 
-void copyAllComponents(const ModelArray& source, ModelArray& sink)
-{
-    if (source.nComponents() == sink.nComponents()) {
-        sink = source;
-    } else if (source.nComponents() == 1) {
-        sink.component(0) = source.data();
-    } else {
-        std::string err = std::string("PrognosticData::copyAllComponents: Expected 1 or ")
-            + std::to_string(sink.nComponents()) + " components, got "
-            + std::to_string(source.nComponents()) + " components.";
-        throw std::runtime_error(err);
-    }
-}
-
 void PrognosticData::setData(const ModelState::DataMap& ms)
 {
 
@@ -95,13 +81,13 @@ void PrognosticData::setData(const ModelState::DataMap& ms)
     hsnow = 0;
     damage = 0;
     hsnow = 0;
-    copyAllComponents(ms.at(hiceName), hiceAdvection);
-    copyAllComponents(ms.at(ciceName), ciceAdvection);
-    copyAllComponents(ms.at(hsnowName), hsnow);
+    hiceAdvection = ms.at(hiceName);
+    ciceAdvection = ms.at(ciceName);
+    hsnow = ms.at(hsnowName);
     // Damage is an optional field, and defaults to 1 in the mean field, 0 in higher components
     // if absent.
     if (ms.count(damageName) > 0) {
-        copyAllComponents(ms.at(damageName), damage);
+        damage = ms.at(damageName);
     } else {
         damage.component(0) = 1.;
     }
