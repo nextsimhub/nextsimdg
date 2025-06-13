@@ -76,12 +76,12 @@ ParaGridIO::ParaGridIO(ParametricGrid& grid)
 bool ParaGridIO::doOnce()
 {
     Xios& xiosHandler = Xios::getInstance();
-    // NOTE: getInstance will automatically create XIOS input and output files if the
-    // XiosInput.filename and XiosOutput.filename parameters are set in the config.
-
-    // TODO: Setup XIOS in this method.
-    // * We can read the field names from the XiosConfig, too.
-    // * We can determine the read access for the fields from the XiosConfig, too.
+    // NOTE: getInstance will call the constructor for the Xios handler class the first time it is
+    // called. This will automatically:
+    // * Create XIOS input and output files if the XiosInput.filename and XiosOutput.filename
+    //   entries are set in the config.
+    // * Create all fields found in the config based off the field names found in the
+    //   XiosInput.field_names and XiosOutput.field_names entries in the config.
 
     // TODO: Register XIOS finalization and drop the following in that case.
     // Register the finalization function here

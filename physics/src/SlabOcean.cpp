@@ -1,21 +1,20 @@
 /*!
  * @file SlabOcean.cpp
  *
- * @date 29 Apr 2025
+ * @date 03 Jun 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
 #include "include/SlabOcean.hpp"
 
 #include "include/constants.hpp"
+#include "include/gridNames.hpp"
 
 #include <map>
 #include <string>
 
 namespace Nextsim {
 
-const std::string SlabOcean::sstSlabName = "sst_slab";
-const std::string SlabOcean::sssSlabName = "sss_slab";
 const double SlabOcean::defaultRelaxationTime = 30 * 24 * 60 * 60; // 30 days in seconds
 
 // Configuration strings
@@ -49,8 +48,8 @@ ConfigMap SlabOcean::getConfiguration() const
 ModelState SlabOcean::getStatePrognostic() const
 {
     return { {
-                 { sstSlabName, sstSlab },
-                 { sssSlabName, sssSlab },
+                 { sstName, sstSlab },
+                 { sssName, sssSlab },
              },
         getConfiguration() };
 }
@@ -91,7 +90,7 @@ void SlabOcean::update(const TimestepTime& tst)
 {
     dt = tst.step.seconds();
     overElements(
-        std::bind(&SlabOcean::updateElement, this, std::placeholders::_1, std::placeholders::_2),
+        [this](const size_t i, const TimestepTime& tsTime) { this->updateElement(i, tsTime); },
         tst);
 }
 

@@ -3,6 +3,7 @@
  *
  * @date 13 Jun 2025
  * @author Tim Spain <timothy.spain@nersc.no>
+ * @author Tim Williams <timothy.williams@nersc.no>
  */
 
 #ifndef BBMSTRESSUPDATESTEP_HPP

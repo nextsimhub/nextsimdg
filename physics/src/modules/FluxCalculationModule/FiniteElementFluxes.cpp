@@ -205,24 +205,21 @@ void FiniteElementFluxes::update(const TimestepTime& tst)
 
 void FiniteElementFluxes::updateAtmosphere(const TimestepTime& tst)
 {
-    overElements(std::bind(&FiniteElementFluxes::calculateAtmos, this, std::placeholders::_1,
-                     std::placeholders::_2),
-        tst);
+    overElements(
+        [this](size_t i, const TimestepTime& tsTime) { this->calculateAtmos(i, tsTime); }, tst);
 }
 
 void FiniteElementFluxes::updateOW(const TimestepTime& tst)
 {
-    overElements(std::bind(&FiniteElementFluxes::calculateOW, this, std::placeholders::_1,
-                     std::placeholders::_2),
-        tst);
+    overElements(
+        [this](size_t i, const TimestepTime& tsTime) { this->calculateOW(i, tsTime); }, tst);
 }
 
 void FiniteElementFluxes::updateIce(const TimestepTime& tst)
 {
     iIceAlbedoImpl->setTime(tst.start);
-    overElements(std::bind(&FiniteElementFluxes::calculateIce, this, std::placeholders::_1,
-                     std::placeholders::_2),
-        tst);
+    overElements(
+        [this](size_t i, const TimestepTime& tsTime) { this->calculateIce(i, tsTime); }, tst);
 }
 
 void FiniteElementFluxes::calculateAtmos(size_t i, const TimestepTime& tst)

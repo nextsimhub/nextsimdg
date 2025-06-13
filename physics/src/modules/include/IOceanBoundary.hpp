@@ -1,7 +1,7 @@
 /*!
  * @file IOceanBoundary.hpp
  *
- * @date 23 May 2025
+ * @date 03 Jun 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -10,6 +10,7 @@
 
 #include "include/ModelComponent.hpp"
 #include "include/constants.hpp"
+#include "include/gridNames.hpp"
 
 namespace Nextsim {
 
@@ -96,11 +97,11 @@ public:
         tauX.resize();
         tauY.resize();
 
-        if (ms.count("sst")) {
-            sst = ms.at("sst");
+        if (ms.count(sstName)) {
+            sst = ms.at(sstName);
         }
-        if (ms.count("sss")) {
-            sss = ms.at("sss");
+        if (ms.count(sssName)) {
+            sss = ms.at(sssName);
         }
     }
 
@@ -125,8 +126,8 @@ public:
     void mergeFluxes(const TimestepTime& tst)
     {
         dt = tst.step.seconds();
-        overElements(std::bind(&IOceanBoundary::mergeFluxesElement, this, std::placeholders::_1,
-                         std::placeholders::_2),
+        overElements([this](const size_t i,
+                         const TimestepTime& tsTime) { this->mergeFluxesElement(i, tsTime); },
             tst);
     }
 

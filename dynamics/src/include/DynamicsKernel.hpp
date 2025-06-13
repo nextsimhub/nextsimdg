@@ -53,11 +53,6 @@ public:
         if (isSpherical)
             smesh->RotatePoleToGreenland();
         smesh->landmaskFromModelArray(mask);
-        smesh->dirichletFromMask();
-        // TODO: handle periodic and open edges
-        for (ParametricMesh::Edge edge : ParametricMesh::edges) {
-            smesh->dirichletFromEdge(edge);
-        }
 
         //! Initialize transport
         dgtransport = std::make_unique<Nextsim::DGTransport<DGadvection>>(*smesh);

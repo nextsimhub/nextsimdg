@@ -1,7 +1,7 @@
 /*!
  * @file   ModelArray.hpp
  *
- * @date   31 Oct 2024
+ * @date   13 Jun 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -353,10 +353,10 @@ public:
     {
         if (size() != trueSize()) {
             if (hasDoF(type)) {
-                m_data.resize(
+                m_data.setZero(
                     m_sz.at(type), definedDimensions.at(componentMap.at(type)).localLength);
             } else {
-                m_data.resize(m_sz.at(type), Eigen::NoChange);
+                m_data.setZero(m_sz.at(type), Eigen::NoChange);
             }
         }
     }
