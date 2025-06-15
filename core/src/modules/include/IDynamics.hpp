@@ -1,7 +1,7 @@
 /*!
  * @file IDynamics.hpp
  *
- * @date 26 May 2025
+ * @date 03 Jun 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -57,8 +57,8 @@ public:
     ModelState getStatePrognostic() const override
     {
         ModelState state = { {
-                                 { uName, mask(uice) },
-                                 { vName, mask(vice) },
+                                 { uName, uice },
+                                 { vName, vice },
                              },
             getConfiguration() };
 

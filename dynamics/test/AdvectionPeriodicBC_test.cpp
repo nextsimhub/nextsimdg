@@ -1,6 +1,6 @@
 /*!
  * @file AdvectionPeriodicBC_test.cpp
- * @date 19 August 2024
+ * @date 05 Jun 2025
  * @author Thomas Richter <thomas.richter@ovgu.de>
  */
 
@@ -45,7 +45,7 @@ const size_t NT0 = 50;
 size_t NT = NT0;
 }
 
-bool WRITE_VTK = true; //!< set to true for vtk output
+bool WRITE_VTK = false; //!< set to true for vtk output
 
 double TOL = 1.e-7; //!< tolerance for checking test results
 
@@ -237,25 +237,22 @@ void create_rectanglemesh(Nextsim::ParametricMesh& smesh)
     // landmask: set all to ice
     smesh.landmask.resize(smesh.nelements, 1);
 
-    //// Boundary. Dirichlet on bottom / top, periodic left/right
-    smesh.dirichlet[0].resize(smesh.nx); // bottom boundary
+    //// Boundary. Dirichlet on bottom (by landmask) / top, periodic left/right,
     for (size_t i = 0; i < smesh.nx; ++i)
-        smesh.dirichlet[0][i] = i;
-
-    smesh.dirichlet[2].resize(smesh.nx); // top boundary
+        smesh.landmask[i] = 0; // bot
     for (size_t i = 0; i < smesh.nx; ++i)
-        smesh.dirichlet[2][i] = smesh.nx * (smesh.ny - 1) + i;
+        smesh.landmask[i + smesh.nx * (smesh.ny - 1)] = 0;
 
     smesh.periodic.resize(1);
-    smesh.periodic[0].resize(smesh.ny);
-    for (size_t i = 0; i < smesh.ny; ++i) {
+    smesh.periodic[0].resize(smesh.ny - 2); // leave out top and bottom element
+    for (size_t i = 0; i < smesh.ny - 2; ++i) {
         smesh.periodic[0][i][0] = 1; // periodic on left/right boundary
-        smesh.periodic[0][i][1] = (i + 1) * smesh.nx
+        smesh.periodic[0][i][1] = (i + 1 + 1) * smesh.nx
             - 1; // element on the left of the edge (so the most right one in the row)
         smesh.periodic[0][i][2]
-            = i * smesh.nx; // element right of the edge (so the very left one) as...
+            = (i + 1) * smesh.nx; // element right of the edge (so the very left one) as...
         smesh.periodic[0][i][3]
-            = i * (smesh.nx + 1) + i; // the edge is the most right edge in the row
+            = (i + 2) * (smesh.nx + 1) - 1; // the edge is the most right edge in the row
     }
 }
 
@@ -283,16 +280,18 @@ template <int DG> void run(const std::array<std::array<double, 6>, 3>& exact)
 TEST_SUITE_BEGIN("Advection Periodic Boundary Conditions");
 TEST_CASE("Advection Periodic Boundary Conditions")
 {
+    // New values 07/04/25 due to new way of handling boundaries. We now include a land-layer
+    // at the top and bottom. The slightly changed domain leads to changed values
     std::array<std::array<double, 6>, 3> exact = // Exact values taken 26/06/2024
         { std::array<double, 6>(
               { 1.0338503986019776e+00, 1.1451366598186583e+00, 1.0681593193338459e+00,
-                  9.5252231195653603e-01, 8.1458581892610615e-01, 6.8950068528265651e-01 }),
+                  9.5252231195653614e-01, 8.1458581892610615e-01, 6.8950068528265651e-01 }),
             std::array<double, 6>(
-                { 1.0949680727313791e+00, 8.3851748134278226e-01, 5.8501741891364523e-01,
-                    4.0006092999256893e-01, 2.8493698219799068e-01, 2.0801424342840474e-01 }),
+                { 8.7678853597311990e-01, 8.2389349440313742e-01, 5.8562737114004948e-01,
+                    4.0006113872450388e-01, 2.8493698219799091e-01, 2.0801424342840488e-01 }),
             std::array<double, 6>(
-                { 7.1704413076190610e-01, 4.6135258391583606e-01, 3.2770311091970727e-01,
-                    2.3424633076579465e-01, 1.7038068017215552e-01, 1.2486932724366147e-01 }) };
+                { 6.0231338733029061e-01, 4.6967937778236674e-01, 3.2769774426726950e-01,
+                    2.3427321065537998e-01, 1.7038111756667601e-01, 1.2487338791917807e-01 }) };
 
     std::cout << "DG\tNT\tNX\tmass\t\terror\t\texact" << std::endl;
     std::cout << std::setprecision(4) << std::scientific;

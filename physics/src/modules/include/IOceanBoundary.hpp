@@ -1,7 +1,7 @@
 /*!
  * @file IOceanBoundary.hpp
  *
- * @date 23 May 2025
+ * @date 03 Jun 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -11,6 +11,7 @@
 #include "include/ModelComponent.hpp"
 #include "include/ModelMetadata.hpp"
 #include "include/constants.hpp"
+#include "include/gridNames.hpp"
 
 namespace Nextsim {
 
@@ -98,11 +99,11 @@ public:
         tauX.resize();
         tauY.resize();
 
-        if (ms.count("sst")) {
-            sst = ms.at("sst");
+        if (ms.count(sstName)) {
+            sst = ms.at(sstName);
         }
-        if (ms.count("sss")) {
-            sss = ms.at("sss");
+        if (ms.count(sssName)) {
+            sss = ms.at(sssName);
         }
     }
 

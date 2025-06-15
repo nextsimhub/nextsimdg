@@ -56,19 +56,6 @@ public:
     Eigen::Matrix<Nextsim::FloatType, Eigen::Dynamic, 2> vertices; // stores the
 
     /*!
-     * Stores the Dirichlet boundary information
-     *
-     * Dirichlet-Information is stored in 4 vectors
-     * dirichlet[0]: List of elements that have a Dirichlet-Boundary on the bottom
-     * dirichlet[1]: List of elements that have a Dirichlet-Boundary on the right
-     * dirichlet[2]: List of elements that have a Dirichlet-Boundary on the top
-     * dirichlet[3]: List of elements that have a Dirichlet-Boundary on the left
-     *
-     * Each of the vectors is processed in parallel
-     */
-    std::array<std::vector<size_t>, 4> dirichlet;
-
-    /*!
      * Periodic:
      *   [0]=0 for X-edge (bottom/top) and [0]=1 for Y-edge (left/right)
      *   [1] the element on the left / bottom
@@ -102,8 +89,6 @@ public:
         ny = -1;
         nnodes = -1;
         nelements = -1;
-        for (size_t i = 0; i < 4; ++i)
-            dirichlet[i].clear();
         periodic.clear();
         landmask.clear();
     }
@@ -392,30 +377,6 @@ public:
      * @param mask the ModelArray containing the mask to be used.
      */
     void landmaskFromModelArray(const ModelArray& mask);
-
-    /*!
-     * Add to the dirichlet arrays according to the stored landmask.
-     */
-    void dirichletFromMask();
-
-    /*!
-     * Add to the dirichlet arrays due to the domain edges according to an edge index.
-     *
-     * @param edge index of the edge to add closed boundary conditions to.
-     */
-    void dirichletFromEdge(Edge edge);
-
-    /*!
-     * Sort all the dirichlet arrays, so the element indices are ordered.
-     */
-    void sortDirichlet();
-
-    /*!
-     * Sort the dirichlet array of one particular edge.
-     *
-     * @param edge the edge to be sorted.
-     */
-    void sortDirichlet(Edge edge);
 
     // Global access functions
 
