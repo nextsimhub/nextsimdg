@@ -1,7 +1,8 @@
 /*!
  * @file   ModelArray.hpp
  *
- * @date   23 May 2025
+
+ * @date   13 Jun 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -365,10 +366,10 @@ public:
     {
         if (size() != trueSize()) {
             if (hasDoF(type)) {
-                m_data.resize(
+                m_data.setZero(
                     m_sz.at(type), definedDimensions.at(componentMap.at(type)).localLength);
             } else {
-                m_data.resize(m_sz.at(type), Eigen::NoChange);
+                m_data.setZero(m_sz.at(type), Eigen::NoChange);
             }
         }
         m_data.setConstant(std::numeric_limits<float>::signaling_NaN());
