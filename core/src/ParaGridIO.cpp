@@ -1,7 +1,7 @@
 /*!
  * @file ParaGridIO.cpp
  *
- * @date 10 Jun 2025
+ * @date 16 Jun 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -267,7 +267,7 @@ ModelState ParaGridIO::readForcingTimeStatic(
                 localLength = localLength - 2 * Halo::haloWidth;
             }
 #endif
-            indexArray.push_back(0);
+            indexArray.push_back(startIndex);
             extentArray.push_back(localLength);
         }
 
