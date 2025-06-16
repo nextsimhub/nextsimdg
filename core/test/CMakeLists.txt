@@ -10,22 +10,22 @@ set(PHYSICS_INCLUDE_DIRS "../../physics/src" "../../physics/src/modules")
 set(ModulesRoot "../src/modules")
 
 # Generate netCDF files for tests
-execute_process(
-    COMMAND "${Python_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/old_names.py"
-    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
-)
-
-include_directories(${COMMON_INCLUDE_DIRS})
-set(MODEL_INCLUDE_DIR "../../core/src/discontinuousgalerkin")
-
-# Generate NetCDF input files from CDL format
 add_custom_command(
     OUTPUT ParaGridIO_test_input.nc
     COMMAND ncgen -k netCDF-4 -o ParaGridIO_test_input.nc
             ${CMAKE_CURRENT_SOURCE_DIR}/ParaGridIO_test_input.cdl
     DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/ParaGridIO_test_input.cdl
 )
-add_custom_target(generate_paragridio_input_file ALL DEPENDS ParaGridIO_test_input.nc)
+add_custom_command(
+    OUTPUT old_names.nc
+    COMMAND ncgen -k netCDF-4 -o old_names.nc
+            ${CMAKE_CURRENT_SOURCE_DIR}/old_names.cdl
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/old_names.cdl
+)
+add_custom_target(generate_paragridio_input_files ALL DEPENDS ParaGridIO_test_input.nc old_names.nc)
+
+include_directories(${COMMON_INCLUDE_DIRS})
+set(MODEL_INCLUDE_DIR "../../core/src/discontinuousgalerkin")
 
 if(ENABLE_MPI)
 

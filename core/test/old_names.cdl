@@ -1,0 +1,74 @@
+netcdf old_names {
+
+  dimensions:
+  	y = 1 ;
+  	x = 2 ;
+  	yvertex = 2 ;
+  	xvertex = 3 ;
+  	y_cg = 2 ;
+  	x_cg = 3 ;
+  	dg_comp = 1 ;
+  	dgstress_comp = 1 ;
+  	ncoords = 2 ;
+
+  variables:
+  	double coords(yvertex, xvertex, ncoords) ;
+  	double x(y, x) ;
+  	double y(y, x) ;
+  	double grid_azimuth(y, x) ;
+  	double mask(y, x) ;
+  	double cice(y, x) ;
+  	double hice(y, x) ;
+  	double hsnow(y, x) ;
+  	double sss(y, x) ;
+  	double sst(y, x) ;
+  	double tice(y, x) ;
+  	double u(y, x) ;
+  	double v(y, x) ;
+
+  data:
+
+   coords =
+  0, 0,
+  25000, 0,
+  50000, 0,
+  0, 25000,
+  25000, 25000,
+  50000, 25000 ;
+
+   x =
+  12500, 37500 ;
+
+   y =
+  12500, 12500 ;
+
+   grid_azimuth =
+  0, 0 ;
+
+   mask =
+  1, 1 ;
+
+   cice =
+  0.96875, 0.96875 ;
+
+   hice =
+  1.5, 1.5 ;
+
+   hsnow =
+  0.125, 0.125 ;
+
+   sss =
+  32, 32 ;
+
+   sst =
+  -1.76, -1.76 ;
+
+   tice =
+  -0.275, -0.275 ;
+
+   u =
+  0, 0 ;
+
+   v =
+  0, 0 ;
+}

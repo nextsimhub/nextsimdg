@@ -516,7 +516,7 @@ MPI_TEST_CASE("Check if a file with the old dimension names can be read", 2)
 TEST_CASE("Check if a file with the old dimension names can be read")
 #endif
 {
-    std::string inputFilename = std::string(TEST_FILE_SOURCE) + "/old_names.nc";
+    std::string inputFilename = testFilesDir + "/old_names.nc";
 
     Module::setImplementation<IStructure>("Nextsim::ParametricGrid");
 
