@@ -18,6 +18,15 @@ execute_process(
 include_directories(${COMMON_INCLUDE_DIRS})
 set(MODEL_INCLUDE_DIR "../../core/src/discontinuousgalerkin")
 
+# Generate NetCDF input files from CDL format
+add_custom_command(
+    OUTPUT ParaGridIO_test_input.nc
+    COMMAND ncgen -k netCDF-4 -o ParaGridIO_test_input.nc
+            ${CMAKE_CURRENT_SOURCE_DIR}/ParaGridIO_test_input.cdl
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/ParaGridIO_test_input.cdl
+)
+add_custom_target(generate_paragridio_input_file ALL DEPENDS ParaGridIO_test_input.nc)
+
 if(ENABLE_MPI)
 
     # This function takes a list of test executables and adds them to the test suite

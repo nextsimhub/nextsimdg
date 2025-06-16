@@ -1,7 +1,7 @@
 /*!
  * @file ParaGrid_test.cpp
  *
- * @date 07 May 2025
+ * @date 16 Jun 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -452,7 +452,7 @@ MPI_TEST_CASE("Test array ordering", 2)
 TEST_CASE("Test array ordering")
 #endif
 {
-    std::string inputFilename = std::string(TEST_FILE_SOURCE) + "/ParaGridIO_input_test.nc";
+    std::string inputFilename = testFilesDir + "/ParaGridIO_test_input.nc";
 
     Module::setImplementation<IStructure>("Nextsim::ParametricGrid");
 
