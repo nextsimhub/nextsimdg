@@ -15,6 +15,7 @@
 
 namespace Nextsim {
 
+// TODO: Rewrite without groups
 netCDF::NcGroup& CommonRestartMetadata::writeStructureType(
     netCDF::NcFile& rootGroup, const ModelMetadata& metadata)
 {
