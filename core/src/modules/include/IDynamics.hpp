@@ -30,8 +30,6 @@ public:
         , divergence(ModelArray::Type::H)
         , sigmaI(ModelArray::Type::H)
         , sigmaII(ModelArray::Type::H)
-//        , hice(getStore())
-//        , cice(getStore())
         , hsnow(getStore())
         , damage(getStore())
         , uwind(getStore())

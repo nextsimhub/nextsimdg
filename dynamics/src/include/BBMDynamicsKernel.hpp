@@ -41,7 +41,6 @@ public:
     {
         BrittleCGDynamicsKernel<DGadvection>::initialise(coords, isSpherical, mask);
         bbmStressStep.setPMap(pmap.get());
-//        bbmStressStep.setDamage(damage);
     }
 
 private:

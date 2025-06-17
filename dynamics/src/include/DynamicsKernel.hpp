@@ -161,8 +161,6 @@ public:
 
     void advectionAndLimits(const TimestepTime& tst)
     {
-//        prepareAdvection();
-
         //! Perform transport step
         dgtransport->step(tst.step.seconds(), cice);
         dgtransport->step(tst.step.seconds(), hice);

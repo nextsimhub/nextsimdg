@@ -14,7 +14,6 @@ namespace Nextsim {
 
 static const std::vector<std::string> namedFields = { uName, vName };
 static const std::map<std::string, std::pair<ModelArray::Type, double>> defaultFields = {
-//    { damageName, { ModelArray::Type::H, 1.0 } },
 };
 
 // TODO: We should use getName() here, but it isn't static.

@@ -68,9 +68,6 @@ public:
         updateMomentum(tst);
         applyBoundaries();
 
-        // Let DynamicsKernel handle the advection step
-//        advectionAndLimits(tst);
-
         updateIceOceanStress(u, v);
     };
 

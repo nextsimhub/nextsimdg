@@ -18,7 +18,6 @@ namespace Nextsim {
 
 PrognosticData::PrognosticData()
     : m_dt(1)
-    //    , m_snow(ModelArray::Type::H)
     , hiceAdvection(ModelArray::AdvectionType)
     , ciceAdvection(ModelArray::AdvectionType)
     , damage(ModelArray::AdvectionType)
@@ -104,7 +103,6 @@ void PrognosticData::update(const TimestepTime& tst)
     pAtmBdy->update(tst);
     pDynamics->prepareAdvection();
 
-    // pDynamics->advectField(tst.step.seconds(), hsnow);
     FieldAdvection::advectField(hsnow, tst, 0.);
 
     // Take the updated values of the true ice and snow thicknesses, and reset hice0 and hsnow0
@@ -134,7 +132,6 @@ void PrognosticData::updatePrognosticFields()
     hiceAdvection.component(0) = hiceUpd.data();
     ciceAdvection.component(0) = ciceUpd.allComponents();
     hsnow.component(0) = hsnowUpd;
-    //    m_snow.setData(hsnowUpd);
 }
 
 void PrognosticData::updateDynamicsFields() { }
