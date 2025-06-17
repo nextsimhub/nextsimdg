@@ -23,9 +23,9 @@ public:
      *
      * @returns A reference to the updated ModelArray.
      */
-    static ModelArray& advectField(ModelArray& field, const TimestepTime& tst, double lowerLimit =
-            -std::numeric_limits<double>::infinity(), double upperLimit =
-            std::numeric_limits<double>::infinity());
+    static ModelArray& advectField(ModelArray& field, const TimestepTime& tst,
+        double lowerLimit = -std::numeric_limits<double>::infinity(),
+        double upperLimit = std::numeric_limits<double>::infinity());
 };
 
 } /* namespace Nextsim */

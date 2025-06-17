@@ -7,16 +7,17 @@
 
 #include "include/FieldAdvection.hpp"
 
-#include "include/NextsimModule.hpp"
 #include "include/IDynamics.hpp"
+#include "include/NextsimModule.hpp"
 
 namespace Nextsim {
 
-ModelArray& FieldAdvection::advectField(ModelArray& field, const TimestepTime& tst, double lowerLimit, double upperLimit)
+ModelArray& FieldAdvection::advectField(
+    ModelArray& field, const TimestepTime& tst, double lowerLimit, double upperLimit)
 {
-    Module::getImplementation<IDynamics>().advectField( tst.step.seconds(), field, lowerLimit, upperLimit);
+    Module::getImplementation<IDynamics>().advectField(
+        tst.step.seconds(), field, lowerLimit, upperLimit);
     return field;
 }
-
 
 } /* namespace Nextsim */
