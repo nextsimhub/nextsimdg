@@ -103,7 +103,6 @@ if(NOT ENABLE_MPI)
     )
     target_link_libraries(testAdvectionPeriodicBC LINK_PUBLIC doctest::doctest Eigen3::Eigen)
 
-    
     add_executable(
         testFieldAdvection
         "FieldAdvection_test.cpp"
