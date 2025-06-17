@@ -213,9 +213,10 @@ ks = 0.31
         mean = 0.2474
         max = 0.4000
         min = 0.0000
-        self.assertAlmostEqual(max, self.hsnow.max(), 4, "Max snow thickness not ~= " + str(max) + " m")
-        self.assertAlmostEqual(min, self.hsnow.min(), 4, "Min snow thickness not ~= " + str(min) + " m")
-        self.assertAlmostEqual(mean, self.hsnow.mean(), 4, "Mean snow thickness not ~= " + str(mean) + " m")
+        snowDG0 = self.hsnow[:, 0]
+        self.assertAlmostEqual(max, snowDG0.max(), 4, "Max snow thickness not ~= " + str(max) + " m")
+        self.assertAlmostEqual(min, snowDG0.min(), 4, "Min snow thickness not ~= " + str(min) + " m")
+        self.assertAlmostEqual(mean, snowDG0.mean(), 4, "Mean snow thickness not ~= " + str(mean) + " m")
 
     def test_temperatureTest(self):
         """
@@ -234,7 +235,7 @@ ks = 0.31
         max = [0.0000, -1.1336, -1.5975]
         min = [-33.1612, -14.8637, -6.1424]
         #for i in range(3):
-        for i, t_level in enumerate((self.tsurf, self.tintr, self.tbott)):
+        for i, t_level in enumerate((self.tsurf[:, 0, 0, 0], self.tintr[:, 0, 0, 0], self.tbott[:, 0, 0, 0])):
             self.assertAlmostEqual(max[i], t_level.max(), 4, "Max T" + str(i) + " not ~= " + str(max[i]) + " ˚C")
             self.assertAlmostEqual(min[i], t_level.min(), 3, "Min T" + str(i) + " not ~= " + str(min[i]) + " ˚C")
             self.assertAlmostEqual(mean[i], t_level.mean(), 3,
