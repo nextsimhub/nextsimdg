@@ -416,8 +416,8 @@ template <int DGadvection> void CGDynamicsKernel<DGadvection>::applyBoundaries()
 }
 
 template <int DGadvection>
-DGVector<DGadvection>& CGDynamicsKernel<DGadvection>::advectDGVField(double timestep,
-        DGVector<DGadvection>& field, double lowerLimit, double upperLimit)
+DGVector<DGadvection>& CGDynamicsKernel<DGadvection>::advectDGVField(
+    double timestep, DGVector<DGadvection>& field, double lowerLimit, double upperLimit)
 {
     dgtransport->step(timestep, field);
     if (lowerLimit > -std::numeric_limits<double>::infinity())

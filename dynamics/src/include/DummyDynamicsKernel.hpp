@@ -59,8 +59,7 @@ public:
      */
     ModelArray getDGData(const std::string& name) { return ModelArray(ModelArray::Type::DG); }
 
-    void update(const TimestepTime& tst) { };
-
+    void update(const TimestepTime& tst) {};
 };
 
 } /* namespace Nextsim */

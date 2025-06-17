@@ -188,14 +188,13 @@ public:
      * @return A reference to the advected array.
      */
     ModelArray& advectField(double timestep, ModelArray& field,
-            double lowerLimit = -std::numeric_limits<double>::infinity(), double upperLimit =
-                    std::numeric_limits<double>::infinity())
+        double lowerLimit = -std::numeric_limits<double>::infinity(),
+        double upperLimit = std::numeric_limits<double>::infinity())
     {
         DGVectorHolder<DGadvection> holder(field);
         advectDGVField(timestep, holder, lowerLimit, upperLimit);
         return field;
     }
-
 
     /*!
      * Advects a field one timestep.
@@ -208,8 +207,9 @@ public:
      * @return A reference to the advected array.
      */
     virtual DGVector<DGadvection>& advectDGVField(double timestep, DGVector<DGadvection>& field,
-            double lowerLimit = -std::numeric_limits<double>::infinity(), double upperLimit =
-                    std::numeric_limits<double>::infinity()) = 0;
+        double lowerLimit = -std::numeric_limits<double>::infinity(),
+        double upperLimit = std::numeric_limits<double>::infinity())
+        = 0;
 
     virtual void advectDynamicsFields(double timestep)
     {

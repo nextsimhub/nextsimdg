@@ -39,6 +39,7 @@ template <int DGadvection> class FreeDriftDynamicsKernel : public CGDynamicsKern
     using CGDynamicsKernel<DGadvection>::cosOceanAngle;
     using CGDynamicsKernel<DGadvection>::sinOceanAngle;
     using CGDynamicsKernel<DGadvection>::baseParams;
+
 public:
     using DynamicsKernel<DGadvection, DGstressComp>::advectDGVField;
     using CGDynamicsKernel<DGadvection>::advectField;

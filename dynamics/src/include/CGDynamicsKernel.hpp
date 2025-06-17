@@ -53,9 +53,9 @@ public:
     void applyBoundaries() override;
     void prepareAdvection() override;
 
-    DGVector<DGadvection>& advectDGVField(double timestep, DGVector<DGadvection>& field, double lowerLimit =
-            -std::numeric_limits<double>::infinity(), double upperLimit =
-            std::numeric_limits<double>::infinity()) override;
+    DGVector<DGadvection>& advectDGVField(double timestep, DGVector<DGadvection>& field,
+        double lowerLimit = -std::numeric_limits<double>::infinity(),
+        double upperLimit = std::numeric_limits<double>::infinity()) override;
 
 protected:
     void addStressTensorCell(const size_t eid, const size_t cx, const size_t cy);
