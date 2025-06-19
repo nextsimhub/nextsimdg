@@ -1,7 +1,7 @@
 /*!
  * @file ModelMetadata.hpp
  *
- * @date 04 Jun 2025
+ * @date 19 Jun 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Tom Meltzer <tdm39@cam.ac.uk>
  */
@@ -154,15 +154,16 @@ public:
     // An array to allow the edges to be accessed in the correct order.
     static constexpr std::array<Edge, N_EDGE> edges = { BOTTOM, RIGHT, TOP, LEFT };
     std::array<std::string, N_EDGE> edgeNames = { "bottom", "right", "top", "left" };
-    // mpi rank ID and extent for each edge direction
-    std::array<std::vector<int>, N_EDGE> neighbourRanks;
-    std::array<std::vector<int>, N_EDGE> neighbourExtents;
-    std::array<std::vector<int>, N_EDGE> neighbourHaloSend;
-    std::array<std::vector<int>, N_EDGE> neighbourHaloRecv;
-    std::array<std::vector<int>, N_EDGE> neighbourRanksPeriodic;
-    std::array<std::vector<int>, N_EDGE> neighbourExtentsPeriodic;
-    std::array<std::vector<int>, N_EDGE> neighbourHaloSendPeriodic;
-    std::array<std::vector<int>, N_EDGE> neighbourHaloRecvPeriodic;
+
+    typedef std::array<std::vector<int>, N_EDGE> neighbourArray;
+    neighbourArray neighbourRanks;
+    neighbourArray neighbourExtents;
+    neighbourArray neighbourHaloSend;
+    neighbourArray neighbourHaloRecv;
+    neighbourArray neighbourRanksPeriodic;
+    neighbourArray neighbourExtentsPeriodic;
+    neighbourArray neighbourHaloSendPeriodic;
+    neighbourArray neighbourHaloRecvPeriodic;
 #endif
 
 private:

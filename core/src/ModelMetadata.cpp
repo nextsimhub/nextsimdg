@@ -1,7 +1,7 @@
 /*!
  * @file ModelMetadata.cpp
  *
- * @date 04 Jun 2025
+ * @date 19 Jun 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Tom Meltzer <tdm39@cam.ac.uk>
  */
@@ -17,7 +17,9 @@
 #include "include/Xios.hpp"
 #endif
 #include "mpi.h"
+#include <array>
 #include <cstddef>
+#include <functional>
 #include <vector>
 
 #ifdef USE_MPI
@@ -50,77 +52,57 @@ void ModelMetadata::readNeighbourData(netCDF::NcFile& ncFile)
     auto& modelMPI = ModelMPI::getInstance();
     auto mpiSize = modelMPI.getSize();
     auto mpiMyRank = modelMPI.getRank();
-    for (auto edge : edges) {
-        size_t nStart = 0; // start point in metadata arrays
-        size_t count = 0; // number of elements to read from metadata arrays
-        std::vector<int> numNeighbours = std::vector<int>(mpiSize, 0);
-        std::vector<int> offsets = std::vector<int>(mpiSize, 0);
-
-        // non-periodic neighbours
-        varName = edgeNames[edge] + "_neighbours";
-        neighbourGroup.getVar(varName).getVar(
-            { 0 }, { static_cast<size_t>(mpiSize) }, &numNeighbours[0]);
-
-        // compute start index for each process
-        MPI_Exscan(&numNeighbours[mpiMyRank], &nStart, 1, MPI_INT, MPI_SUM, modelMPI.getComm());
-        // how many elements to read for each process
-        count = numNeighbours[mpiMyRank];
-
-        if (count) {
-            // initialize neighbour info to zero and correct size
-            neighbourRanks[edge].resize(count, 0);
-            neighbourExtents[edge].resize(count, 0);
-            neighbourHaloSend[edge].resize(count, 0);
-            neighbourHaloRecv[edge].resize(count, 0);
-
-            varName = edgeNames[edge] + "_neighbour_ids";
-            neighbourGroup.getVar(varName).getVar({ nStart }, { count }, &neighbourRanks[edge][0]);
-
-            varName = edgeNames[edge] + "_neighbour_halos";
-            neighbourGroup.getVar(varName).getVar(
-                { nStart }, { count }, &neighbourExtents[edge][0]);
-
-            varName = edgeNames[edge] + "_neighbour_halo_send";
-            neighbourGroup.getVar(varName).getVar(
-                { nStart }, { count }, &neighbourHaloSend[edge][0]);
-
-            varName = edgeNames[edge] + "_neighbour_halo_recv";
-            neighbourGroup.getVar(varName).getVar(
-                { nStart }, { count }, &neighbourHaloRecv[edge][0]);
+    enum BoundaryType { nonPeriodic, periodic };
+    for (BoundaryType btype : { nonPeriodic, periodic }) {
+        // Use btype as needed
+        std::array<std::string, 4> suffixes = { "_neighbour_ids", "_neighbour_halos",
+            "_neighbour_halo_send", "_neighbour_halo_recv" };
+        if (btype == periodic) {
+            for (auto& suffix : suffixes) {
+                suffix += "_periodic";
+            }
         }
+        for (auto edge : edges) {
+            size_t nStart = 0; // start point in metadata arrays
+            size_t count = 0; // number of elements to read from metadata arrays
+            std::vector<int> numNeighbours = std::vector<int>(mpiSize, 0);
+            std::vector<int> offsets = std::vector<int>(mpiSize, 0);
+            std::vector<std::reference_wrapper<std::vector<int>>> arrays;
 
-        // periodic neighbours
-        varName = edgeNames[edge] + "_neighbours_periodic";
-        neighbourGroup.getVar(varName).getVar(
-            { 0 }, { static_cast<size_t>(mpiSize) }, &numNeighbours[0]);
+            if (btype == nonPeriodic) {
+                arrays = { neighbourRanks[edge], neighbourExtents[edge], neighbourHaloSend[edge],
+                    neighbourHaloRecv[edge] };
+            } else if (btype == periodic) {
+                arrays = { neighbourRanksPeriodic[edge], neighbourExtentsPeriodic[edge],
+                    neighbourHaloSendPeriodic[edge], neighbourHaloRecvPeriodic[edge] };
+            }
 
-        // compute start index for each process
-        MPI_Exscan(&numNeighbours[mpiMyRank], &nStart, 1, MPI_INT, MPI_SUM, modelMPI.getComm());
-        // how many elements to read for each process
-        count = numNeighbours[mpiMyRank];
-
-        if (count) {
-            // initialize neighbour info to zero and correct size
-            neighbourRanksPeriodic[edge].resize(count, 0);
-            neighbourExtentsPeriodic[edge].resize(count, 0);
-            neighbourHaloSendPeriodic[edge].resize(count, 0);
-            neighbourHaloRecvPeriodic[edge].resize(count, 0);
-
-            varName = edgeNames[edge] + "_neighbour_ids_periodic";
+            varName = edgeNames[edge] + "_neighbours";
+            if (btype == periodic) {
+                varName += "_periodic";
+            }
             neighbourGroup.getVar(varName).getVar(
-                { nStart }, { count }, &neighbourRanksPeriodic[edge][0]);
+                { 0 }, { static_cast<size_t>(mpiSize) }, numNeighbours.data());
 
-            varName = edgeNames[edge] + "_neighbour_halos_periodic";
-            neighbourGroup.getVar(varName).getVar(
-                { nStart }, { count }, &neighbourExtentsPeriodic[edge][0]);
+            // compute start index for each process
+            MPI_Exscan(&numNeighbours[mpiMyRank], &nStart, 1, MPI_INT, MPI_SUM, modelMPI.getComm());
+            if (mpiMyRank == 0) {
+                // MPI_Exscan is undefined on the first rank. So to be safe we manually set nStart
+                // to 0. (see e.g., https://www.open-mpi.org/doc/v4.1/man3/MPI_Exscan.3.php)
+                nStart = 0;
+            }
+            // how many elements to read for each process
+            count = numNeighbours[mpiMyRank];
 
-            varName = edgeNames[edge] + "_neighbour_halo_send_periodic";
-            neighbourGroup.getVar(varName).getVar(
-                { nStart }, { count }, &neighbourHaloSendPeriodic[edge][0]);
-
-            varName = edgeNames[edge] + "_neighbour_halo_recv_periodic";
-            neighbourGroup.getVar(varName).getVar(
-                { nStart }, { count }, &neighbourHaloRecvPeriodic[edge][0]);
+            if (count) {
+                // initialize neighbour info to zero
+                for (size_t i = 0; i < arrays.size(); ++i) {
+                    arrays[i].get().resize(count, 0);
+                    varName = edgeNames[edge] + suffixes[i];
+                    neighbourGroup.getVar(varName).getVar(
+                        { nStart }, { count }, arrays[i].get().data());
+                }
+            }
         }
     }
 }
