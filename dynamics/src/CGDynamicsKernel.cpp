@@ -109,6 +109,19 @@ ModelArray CGDynamicsKernel<DGadvection>::getDG0Data(const std::string& name) co
     }
 }
 
+template <int DGadvection>
+ModelArray CGDynamicsKernel<DGadvection>::getCGData(const std::string& name) const
+{
+    CGField madata(ModelArray::Type::CG);
+    madata.resize();
+    if (name == uName) {
+        madata = u;
+    } else if (name == vName) {
+        madata = v;
+    }
+    return madata;
+}
+
 template <int DGadvection> void CGDynamicsKernel<DGadvection>::prepareAdvection()
 {
     dgtransport->prepareAdvection(u, v);
