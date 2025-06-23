@@ -170,6 +170,15 @@ void BBMDynamics::advectField(
     kernel.advectField(timestep, field, lowerLimit, upperLimit);
 }
 
+ModelState BBMDynamics::getStatePrognostic() const
+{
+    return { {
+        { uName, kernel.getCGData(uName) },
+        { vName, kernel.getCGData(vName) },
+        { damageName, damage },
+    }, { getConfiguration() } };
+}
+
 BBMDynamics::HelpMap& BBMDynamics::getHelpText(HelpMap& map, bool getAll)
 {
     map["BBMDynamics"] = {

@@ -33,6 +33,8 @@ public:
     void configure() override;
     ConfigMap getConfiguration() const override;
 
+    ModelState getStatePrognostic() const override;
+
     enum {
         C_KEY,
         NU_KEY,

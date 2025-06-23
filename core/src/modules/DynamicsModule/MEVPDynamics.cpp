@@ -131,6 +131,14 @@ void MEVPDynamics::advectField(
     kernel.advectField(timestep, field, lowerLimit, upperLimit);
 }
 
+ModelState MEVPDynamics::getStatePrognostic() const
+{
+    return { {
+        { uName, kernel.getCGData(uName) },
+        { vName, kernel.getCGData(vName) },
+    }, { getConfiguration() } };
+}
+
 MEVPDynamics::HelpMap& MEVPDynamics::getHelpText(HelpMap& map, bool getAll)
 {
     map["MEVPDynamics"] = {

@@ -83,6 +83,14 @@ public:
 
     void prepareAdvection() override { kernel.prepareAdvection(); }
 
+    ModelState getStatePrognostic() const override
+    {
+        return { {
+            { uName, kernel.getCGData(uName) },
+            { vName, kernel.getCGData(vName) },
+        }, { getConfiguration() } };
+    }
+
 private:
     FreeDriftDynamicsKernel<DGCOMP> kernel;
     DynamicsParameters params;
