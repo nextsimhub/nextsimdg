@@ -101,13 +101,16 @@ protected:
             dgtmp.zero();
             DGModelArray::ma2dg(maData, dgtmp);
             Nextsim::Interpolations::DG2CG(*smesh, cgData, dgtmp);
-        } else if (maData.getType() == ModelArray::Type::DG){
-            const DGVector<DGadvection>& asdgv = reinterpret_cast<const DGVector<DGadvection>&>(maData.data());
+        } else if (maData.getType() == ModelArray::Type::DG) {
+            const DGVector<DGadvection>& asdgv
+                = reinterpret_cast<const DGVector<DGadvection>&>(maData.data());
             Nextsim::Interpolations::DG2CG(*smesh, cgData, asdgv);
         } else if (maData.getType() == ModelArray::Type::CG) {
             cgData = maData.data().matrix();
         } else {
-            throw std::runtime_error(std::string("CGDynamicsKernel::ma2cg: unhandled ModelArray type ") + ModelArray::typeNames.at(maData.getType()));
+            throw std::runtime_error(
+                std::string("CGDynamicsKernel::ma2cg: unhandled ModelArray type ")
+                + ModelArray::typeNames.at(maData.getType()));
         }
         return cgData;
     }
