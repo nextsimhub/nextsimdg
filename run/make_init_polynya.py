@@ -15,7 +15,7 @@ nLayers = 3
 fname = f"init_polynya.nc"
 
 # The model expects everything in metres
-initializer = initMaker(fname, nfirst, nsecond, nLayers, res*1e3, checkZeros=False)
+initializer = initMaker(fname, nfirst, nsecond, res*1e3, isWinton=True, checkZeros=False)
 
 # Ice everywhere and all boundaries closed, except the x = 100 km end
 initializer.mask[:, :] = 1.
