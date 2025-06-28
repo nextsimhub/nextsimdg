@@ -46,10 +46,10 @@ protected:
         : deltaCIce(ModelArray::Type::H)
         , newice(ModelArray::Type::H)
         , snowMelt(ModelArray::Type::H)
-        , cice(getStore())
+        , ciceDG(getStore())
         , deltaHi(getStore())
-        , hice(getStore())
-        , hsnow(getStore())
+        , hiceDG(getStore())
+        , hsnowDG(getStore())
         , qow(getStore())
     {
         getStore().registerArray(Shared::DELTA_CICE, &deltaCIce, RW);
@@ -61,10 +61,10 @@ protected:
     HField newice; // New ice over open water this timestep, m
     HField snowMelt; // Ocean to snow transfer of freshwater kg m⁻²
 
-    ModelArrayRef<Shared::C_ICE, RW> cice; // From IceGrowth
+    ModelArrayRef<Shared::C_ICE_DG, RW> ciceDG; // From IceGrowth
     ModelArrayRef<Shared::DELTA_HICE, RO> deltaHi; // From Vertical Ice Growth
-    ModelArrayRef<Shared::H_ICE, RW> hice; // From IceGrowth
-    ModelArrayRef<Shared::H_SNOW, RW> hsnow; // From Ice Growth?
+    ModelArrayRef<Shared::H_ICE_DG, RW> hiceDG; // From IceGrowth
+    ModelArrayRef<Shared::H_SNOW_DG, RW> hsnowDG; // From Ice Growth?
     ModelArrayRef<Shared::Q_OW, RW> qow; // From FluxCalculation
 };
 

@@ -90,9 +90,9 @@ TEST_CASE("Test periodic output")
     tsurf.resize();
     topMelt.resize();
 
-    ModelComponent::getStore().registerArray(Protected::H_ICE, &hice);
-    ModelComponent::getStore().registerArray(Protected::C_ICE, &cice);
-    ModelComponent::getStore().registerArray(Protected::H_SNOW, &hsnow);
+    ModelComponent::getStore().registerArray(Shared::H_ICE_DG, &hice);
+    ModelComponent::getStore().registerArray(Shared::C_ICE_DG, &cice);
+    ModelComponent::getStore().registerArray(Shared::H_SNOW_DG, &hsnow);
     ModelComponent::getStore().registerArray(Protected::T_SURF, &tsurf);
 
     ModelMetadata meta;

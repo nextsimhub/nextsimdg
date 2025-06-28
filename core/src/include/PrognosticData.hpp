@@ -69,8 +69,6 @@ private:
 
     IDynamics* pDynamics;
     IceGrowth iceGrowth;
-
-    void updatePrognosticFields();
 };
 
 } /* namespace Nextsim */

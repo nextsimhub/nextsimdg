@@ -5,9 +5,6 @@
 
 // External ProtectedArray names must be unique wrt to the external SharedArray names as well
 { "damage", "DAMAGE0" }, // Ice thickness, cell average, m
-    { "hice", "H_ICE_cell" }, // Ice thickness, cell average, m
-    { "cice", "C_ICE0" }, // Ice concentration
-    { "hsnow", "H_SNOW_cell" }, // Snow depth, cell average, m
     { "tice", "T_ICE0" }, // Ice temperature, ˚C
     { "tsurf", "T_SURF0" }, // Ice surface temperature, ˚C
     { "tair", "T_AIR" }, // Air temperature, ˚C
@@ -28,8 +25,6 @@
     { "wind_speed", "WIND_SPEED" }, // Wind speed, m s⁻¹
     { "wind_u", "WIND_U" }, // wind velocity x component, m s⁻¹
     { "wind_v", "WIND_V" }, // wind velocity y component, m s⁻¹
-    { "hice_true_pro", "HTRUE_ICE" }, // Ice thickness, ice average, m
-    { "hsnow_true_pro", "HTRUE_SNOW" }, // Snow thickness, ice average, m
     { "ocean_u", "OCEAN_U" }, // x(east)-ward ocean current, m s⁻¹
     { "ocean_v", "OCEAN_V" }, // y(north)-ward ocean current, m s⁻¹
     { "u", "ICE_U" }, // x(east)-ward ice velocity, m s⁻¹

@@ -16,7 +16,7 @@ class HiblerSpread : public ILateralIceSpread, public Configured<HiblerSpread> {
 public:
     HiblerSpread()
         : ILateralIceSpread()
-        , hice0(getStore())
+        , hiceDG(getStore())
         , mixedLayerBulkHeatCapacity(getStore())
         , sst(getStore())
         , tf(getStore())
@@ -55,32 +55,21 @@ private:
      * Updates the freezing of open water for the timestep.
      *
      * @param tStep The object containing the timestep start and duration times.
-     * @param hice The ice-average ice thickness.
-     * @param hsnow The ice-average snow thickness.
-     * @param deltaHi The change in ice thickness this timestep.
      * @param newIce The positive change in ice thickness this timestep.
-     * @param cice The ice concentration.
-     * @param qow The open water heat flux.
      * @param deltaCFreeze The change in concentration due to freezing.
      */
-    void freeze(const TimestepTime& tstep, double hice, double hsnow, double deltaHi, double newIce,
-        double& cice, double& qow, double& deltaCfreeze);
+    double freeze(double newIce);
 
     /*!
      * Updates the lateral melting of ice for the timestep.
      *
      * @param tStep The object containing the timestep start and duration times.
-     * @param hice The ice-average ice thickness.
-     * @param hsnow The ice-average snow thickness.
      * @param deltaHi The change in ice thickness this timestep.
      * @param cice The ice concentration.
-     * @param qow The open water heat flux.
-     * @param deltaCmelt The change in concentration due to melting.
+     * @param hice The ice-average ice thickness.
      */
-    void melt(const TimestepTime& tstep, double hice, double hsnow, double deltaHi, double& cice,
-        double& qow, double& deltaCmelt);
+    double melt(double deltaHi, double cice, double hice);
     void newIceFormation(size_t i, const TimestepTime& tst);
-    double updateThickness(double& thick, double newConc, double deltaC, double deltaV);
     void lateralIceSpread(size_t i, const TimestepTime& tstep);
     void applyLimits(size_t i, const TimestepTime& tstep);
 
@@ -91,7 +80,7 @@ private:
         mixedLayerBulkHeatCapacity; // J K⁻¹ m⁻², from atmospheric state
     ModelArrayRef<Protected::SST> sst; // sea surface temperature, ˚C
     ModelArrayRef<Protected::TF> tf; // ocean freezing point, ˚C
-    ModelArrayRef<Protected::HTRUE_ICE> hice0; // Timestep initial true ice thickness, m
+    ModelArrayRef<Shared::H_ICE_DG, RW> hiceDG; // Timestep initial true ice thickness, m
 };
 
 }

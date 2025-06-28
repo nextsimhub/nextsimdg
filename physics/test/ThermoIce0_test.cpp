@@ -33,12 +33,9 @@ TEST_CASE("Threshold ice")
     public:
         IceTemperatureData()
         {
-            getStore().registerArray(Shared::H_ICE, &hice, RW);
-            getStore().registerArray(Shared::C_ICE, &cice, RW);
-            getStore().registerArray(Shared::H_SNOW, &hsnow, RW);
-            getStore().registerArray(Protected::HTRUE_ICE, &hice0, RO);
-            getStore().registerArray(Protected::C_ICE, &cice, RO);
-            getStore().registerArray(Protected::HTRUE_SNOW, &hsnow, RO);
+            getStore().registerArray(Shared::H_ICE_DG, &hice, RW);
+            getStore().registerArray(Shared::C_ICE_DG, &cice, RW);
+            getStore().registerArray(Shared::H_SNOW_DG, &hsnow, RW);
             getStore().registerArray(Protected::SST, &sst, RO);
             getStore().registerArray(Protected::SSS, &sss, RO);
             getStore().registerArray(Protected::TF, &tf, RO);
@@ -56,7 +53,7 @@ TEST_CASE("Threshold ice")
         void setData(const ModelState::DataMap&) override
         {
             cice[0] = 0.99;
-            hice[0] = 0.001 / cice[0]; // Here we are using the true thicknesses
+            hice[0] = 0.001;
             hice0[0] = hice[0];
             hsnow[0] = 0.;
             sss[0] = 32.;
@@ -144,10 +141,10 @@ TEST_CASE("Threshold ice")
     ti0t.setData({ { tsurfName, tSurf } });
     ti0t.update(tst);
 
-    ModelArrayRef<Shared::H_ICE> hice(ModelComponent::getStore());
+    ModelArrayRef<Shared::H_ICE_DG> hice(ModelComponent::getStore());
     // So little ice should be reduced to zero
     REQUIRE(hice[0] == 0.);
-    ModelArrayRef<Shared::C_ICE> cice(ModelComponent::getStore());
+    ModelArrayRef<Shared::C_ICE_DG> cice(ModelComponent::getStore());
     REQUIRE(cice[0] == 0.);
 }
 TEST_SUITE_END();
