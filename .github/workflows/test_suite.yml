@@ -179,5 +179,5 @@ jobs:
         mv ../test .
         cd test
         python ThermoIntegration_test.py
-        python3 PolynyaIntegration_test.py
+        python PolynyaIntegration_test.py
         ./run_test_jan2010_integration_test.sh python
