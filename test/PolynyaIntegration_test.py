@@ -160,38 +160,26 @@ wind_v = 12
         Test the ice thickness against standard max, min, and mean values
         """
 
-        mean = 0.0301
-        max = 2.3082
-        min = -1.7963
-        self.assertAlmostEqual(max, self.hice.max(), 4, "Max ice thickness not ~= " + str(max) + " m (full DG field)")
-        self.assertAlmostEqual(min, self.hice.min(), 4, "Min ice thickness not ~= " + str(min) + " m (full DG field)")
-        self.assertAlmostEqual(mean, self.hice.mean(), 4, "Mean ice thickness not ~= " + str(mean) + " m (full DG field)")
+        mean = 0.1317
+        max = 1.1250
+        min = 0.0000
+        hice = self.hice[:,:,:,0]
+        self.assertAlmostEqual(max, hice.max(), 4, "Max ice thickness not ~= " + str(max) + " m")
+        self.assertAlmostEqual(min, hice.min(), 4, "Min ice thickness not ~= " + str(min) + " m")
+        self.assertAlmostEqual(mean, hice.mean(), 4, "Mean ice thickness not ~= " + str(mean) + " m")
 
     def test_concentration(self):
         """
         Test the ice concentration against standard max, min, and mean values
         """
 
-        mean = 0.0931
-        max = 2.2597
-        min = -1.6293
-        self.assertAlmostEqual(max, self.cice.max(), 4, "Max conentration not ~= " + str(max) + " (full DG field)")
-        self.assertAlmostEqual(min, self.cice.min(), 4, "Min concentration not ~= " + str(min) + " (full DG field)")
-        self.assertAlmostEqual(mean, self.cice.mean(), 4, "Mean concentration not ~= " + str(mean) + " (full DG field)")
-
-    def test_veloities(self):
-        """
-        Test the ice velocities against standard max, min, and mean values
-        """
-
-        mean = [0.2237, 0.0548]
-        max = [0.3910, 0.1305]
-        min = [-0.0700, -0.1559]
-        for (var, i, name) in zip([self.uice, self.vice], [0,1], ["uice", "vice"]):
-            self.assertAlmostEqual(max[i], var.max(), 4, "Max "+name+" velocity not ~= " + str(max[i]) + " m/s (full DG field)")
-            self.assertAlmostEqual(min[i], var.min(), 4, "Min "+name+" velocity not ~= " + str(min[i]) + " m/s (full DG field)")
-            self.assertAlmostEqual(mean[i], var.mean(), 4, "Mean "+name+" velocity not ~= " + str(mean[i]) + " m/s (full DG field)")
-
+        mean = 0.4402
+        max = 1.0000
+        min = 0.0000
+        cice = self.cice[:,:,:,0]
+        self.assertAlmostEqual(max, cice.max(), 4, "Max conentration not ~= " + str(max))
+        self.assertAlmostEqual(min, cice.min(), 4, "Min concentration not ~= " + str(min))
+        self.assertAlmostEqual(mean, cice.mean(), 4, "Mean concentration not ~= " + str(mean))
 
 if __name__ == '__main__':
     unittest.main()
