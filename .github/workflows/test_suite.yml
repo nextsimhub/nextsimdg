@@ -70,6 +70,7 @@ jobs:
         mv ../test .
         cd test
         python3 ThermoIntegration_test.py
+        python3 PolynyaIntegration_test.py
         ./run_test_jan2010_integration_test.sh python3
 
   test-ubuntu-mpi-noxios:
@@ -178,4 +179,5 @@ jobs:
         mv ../test .
         cd test
         python ThermoIntegration_test.py
+        python3 PolynyaIntegration_test.py
         ./run_test_jan2010_integration_test.sh python
