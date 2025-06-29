@@ -89,6 +89,7 @@ wind_v = 12
     @classmethod
     def __make_init_column(cls):
         sys.path.append('../run')
+        sys.path.append('../../run')
         from make_init_base import initMaker
 
         # Creates initial conditions for the Bjornsson et al. (2001) polynya case
