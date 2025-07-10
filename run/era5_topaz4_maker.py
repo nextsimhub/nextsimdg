@@ -2,7 +2,8 @@ import netCDF4
 import numpy as np
 import time
 import calendar
-import math
+
+from interpolaters import topaz4_interpolate, era5_interpolate, heading_to_greenland, rotate_velocities
 
 sec_per_hr = 3600
 hr_per_day = 24
@@ -63,108 +64,6 @@ def topaz4_source_file_name(field, unix_time, path):
         return f"{path}/TP4DAILY_{unix_tm.tm_year}{unix_tm.tm_mon:02}_30m.nc"
     else:
         return f"{path}/TP4DAILY_{unix_tm.tm_year}{unix_tm.tm_mon:02}_3m.nc"
-
-# Returns bilinearly interpolated data given array of fractional indices
-# 2023-03-28 Add a wrap-around for the ERA longitude. This is formally
-# incorrect when this function is used for TOPAZ data, but since the target
-# point would have to be out of bounds of the source, it is not so important.
-def bilinear(eyes, jays, data):
-    i = np.floor(eyes).astype(int)
-    j = np.floor(jays).astype(int)
-    
-    fi = eyes - i
-    fj = jays - j
-
-    iwrap = (i + 1) % data.shape[1]
-
-    return ((1 - fj) * (1 - fi) * data[j, i] +
-        (1 - fj) * (fi) * data[j, iwrap] +
-        (fj) * (1 - fi) * data[j + 1, i] +
-        (fj) * (fi) * data[j + 1, iwrap])
-    
-# Returns bilinearly interpolated data given array of fractional indices, when some of the data missing
-# 2023-03-28 Add a wrap-around for the ERA longitude. This is formally
-# incorrect when this function is used for TOPAZ data, but since the target
-# point would have to be out of bounds of the source, it is not so important.
-def bilinear_missing(eyes, jays, data, missing):
-    i = np.floor(eyes).astype(int)
-    j = np.floor(jays).astype(int)
-    
-    fi = eyes - i
-    fj = jays - j
-
-    iwrap = (i + 1) % data.shape[1]
-
-    dataplier = data != missing # False is zero
-
-    weighted_sum = ((1 - fj) * (1 - fi) * data[j, i] * dataplier[j, i] +
-        (1 - fj) * (fi) * data[j, iwrap] * dataplier[j, iwrap] +
-        (fj) * (1 - fi) * data[j + 1, i] * dataplier[j + 1, i] +
-        (fj) * (fi) * data[j + 1, iwrap] * dataplier[j + 1, iwrap])
-
-    sum_of_weights = ((1 - fj) * (1 - fi) * dataplier[j, i] +
-        (1 - fj) * (fi) * dataplier[j, iwrap] +
-        (fj) * (1 - fi) * dataplier[j + 1, i] +
-        (fj) * (fi) * dataplier[j + 1, iwrap])
-    
-    weighted_sum += missing * (sum_of_weights == 0)
-    sum_of_weights += (sum_of_weights == 0)
-    
-    return weighted_sum / sum_of_weights
-
-# Returns ERA5 data interpolated from the data grid and coordinates to the target grid and coordinates
-def era5_interpolate(target_lons, target_lats, data, data_lons, data_lats):
-    target_i = (target_lons - data_lons[0]) / (data_lons[1] - data_lons[0])
-    # Make sure that the index is in the range of the size of the longitude array
-    target_i %= len(data_lons)
-
-    # Latitudes are on a Gaussian grid, so we need to search a bit.
-    target_j = (target_lats - data_lats[0]) / (data_lats[1] - data_lats[0])
-    
-    return bilinear(target_i, target_j, data)
-
-# Returns TOPAZ data interpolated from the data grid and coordinates to the target grid and coordinates
-def topaz4_interpolate(target_lon_deg, target_lat_deg, data, lat_array):
-    # The TOPAZ grid is assumed and hard coded
-    ic = 380
-    jc = 550
-    
-    # Scale of the map and zero longitude
-    two_r = 1 / math.radians(0.08982849)
-    lon0 = math.radians(315.)
-
-    target_lat = np.radians(target_lat_deg)
-    target_lon = np.radians(target_lon_deg)
-#    k = two_r * np.cos(target_lat) / np.sqrt(1 + np.sin(target_lat))
-    # Use linear interpolation to get the target indices on the topaz grid
-    # Negate both latitude arrays so that lat_array is increasing
-    topaz_i0 = np.interp(-target_lat_deg, -lat_array, np.arange(len(lat_array)))
-
-    x = topaz_i0 * np.sin(target_lon - lon0)
-    y = -topaz_i0 * np.cos(target_lon - lon0)
-    target_i = x + ic
-    target_j = y + jc
-    
-    return bilinear_missing(target_i, target_j, data, -32767)
-    
-# Returns the rotation angle at a given position to transform vectors from
-# geographic pole coordinates to the Greenland displaced pole coordinate system
-def heading_to_greenland(lat, lon):
-    # The pole lies at 75˚ N, 40˚ W = -40˚ E = 320˚ E
-    pole_lat = math.radians(75.0)
-    pole_lon = 320.0
-    
-    delta_lon = np.radians(pole_lon - lon)
-    
-    rlat = np.radians(lat)
-    
-    # The rotation of the basis vector can be computed as the azimuth of the
-    # great circle path from the location to the location of the new pole.
-    return np.arctan2(math.cos(pole_lat) * np.sin(delta_lon), np.cos(rlat) * math.sin(pole_lat) - np.sin(rlat) * math.cos(pole_lat) * np.cos(delta_lon))
-
-# Rotates the u and v velocity components by an angle given in radians
-def rotate_velocities(u, v, angle):
-    return (u * np.cos(angle) + v * np.sin(angle), -u * np.sin(angle) + v * np.cos(angle))
 
 # The main script. Calculates ERA5 and TOPAZ forcing files, given a grid to
 # interpolate on to and start and stop dates

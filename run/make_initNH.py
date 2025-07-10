@@ -2,9 +2,9 @@ import netCDF4
 import numpy as np
 import numpy.ma as ma
 import time
-import math
 from pathlib import Path
-from scipy import interpolate
+
+from interpolaters import topaz4_interpolate
 
 topaz_mdi = -32767
 
@@ -15,74 +15,6 @@ def topaz4_source_file_name(field, unix_time):
         return f"{topaz_path}/TP4DAILY_{unix_tm.tm_year}{unix_tm.tm_mon:02}_30m.nc"
     else:
         return f"{topaz_path}/TP4DAILY_{unix_tm.tm_year}{unix_tm.tm_mon:02}_3m.nc"
-
-# Returns bilinearly interpolated data given array of fractional indices, when some of the data missing
-def bilinear_missing(eyes, jays, data, missing):
-    i = np.floor(eyes).astype(int)
-    j = np.floor(jays).astype(int)
-    
-    fi = eyes - i
-    fj = jays - j
-
-    dataplier = data != missing # False is zero
-
-    weighted_sum = ((1 - fj) * (1 - fi) * data[j, i] * dataplier[j, i] +
-        (1 - fj) * (fi) * data[j, i + 1] * dataplier[j, i + 1] +
-        (fj) * (1 - fi) * data[j + 1, i] * dataplier[j + 1, i] +
-        (fj) * (fi) * data[j + 1, i + 1] * dataplier[j + 1, i + 1])
-
-    sum_of_weights = ((1 - fj) * (1 - fi) * dataplier[j, i] +
-        (1 - fj) * (fi) * dataplier[j, i + 1] +
-        (fj) * (1 - fi) * dataplier[j + 1, i] +
-        (fj) * (fi) * dataplier[j + 1, i + 1])
-    
-    weighted_sum += missing * (sum_of_weights == 0)
-    sum_of_weights += (sum_of_weights == 0)
-    
-    return weighted_sum / sum_of_weights
-
-
-# Returns TOPAZ data interpolated from the data grid and coordinates to the target grid and coordinates
-def topaz4_interpolate(target_lon_deg, target_lat_deg, data, lat_array):
-    # The TOPAZ grid is assumed and hard coded
-    ic = 380
-    jc = 550
-
-    nx = 761
-    ny = 1101
-
-    # Scale of the map and zero longitude
- #   two_r = 1 / math.radians(0.08982849)
-    lon0 = math.radians(315.)
-
-#    target_lat = np.radians(target_lat_deg)
-    target_lon = np.radians(target_lon_deg)
-#    k = two_r * np.cos(target_lat) / np.sqrt(1 + np.sin(target_lat))
-    # Use linear interpolation to get the target indices on the topaz grid
-    # Negate both latitude arrays so that lat_array is increasing
-    topaz_i0 = np.interp(-target_lat_deg, -lat_array, np.arange(len(lat_array)))
-
-    x = topaz_i0 * np.sin(target_lon - lon0)
-    y = -topaz_i0 * np.cos(target_lon - lon0)
-    target_i = x + ic
-    target_j = y + jc
-    
-    # Mask land values and interpolate using the default griddata method (linear, as far as I can tell)
-    nanmask = ma.getmask(data.ravel()) == 0
-
-    X, Y = np.meshgrid(np.array([i for i in range(nx)]), np.array([j for j in range(ny)]))
-    points = np.array([X.ravel()[nanmask], Y.ravel()[nanmask]]).T
-    xi = np.array([target_i.ravel(), target_j.ravel()]).T
-
-    field = interpolate.griddata(points, data.ravel()[nanmask], xi)
-
-    # Use griddata again to extrapolate outside the convex hull using the nearest neighbour
-    nanmask = ~np.isnan(field)
-
-    points = np.array([target_i.ravel()[nanmask], target_j.ravel()[nanmask]]).T
-    xi = np.array([target_i.ravel(), target_j.ravel()]).T
-
-    return (interpolate.griddata(points, field.ravel()[nanmask], xi, method='nearest').reshape(target_lon_deg.shape))
 
 # Creates a 128 x 128 ParaGrid restart file filled with data from TOPAZ on 2010-01-01
 if __name__ == "__main__":
