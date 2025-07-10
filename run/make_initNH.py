@@ -22,13 +22,13 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description = "Generate an initial state file from TOPAZ4 data")
     parser.add_argument("--grid-file", dest = "grid_file", default="25km_NH.nc", help = "Path of the NH grid file.")
     parser.add_argument("--topaz-path", dest = "topaz_path", default=".", help = "Path containing the TOPAZ4 files.")
-    parser.add_argument("--land-mask", dest = "land_mask", default='data', help='One of "grid", "data" or "data_closed_boundary"')
+    parser.add_argument("--boundary", dest = "boundary", default='open', help='One of "open" (default) or "closed"')
     parser.add_argument("--out-suffix", dest = "out_suffix", default='', help='Added to the name of the output file before the ending"')
 
     args = parser.parse_args()
     grid_file = args.grid_file
     topaz_path = args.topaz_path
-    land_mask = args.land_mask
+    boundary = args.boundary
     out_suffix = args.out_suffix
 
     grid = netCDF4.Dataset(f"{grid_file}", "r")
@@ -122,16 +122,11 @@ if __name__ == "__main__":
     # All fields are stored in one file, already opened as source_file
     # Sea-land mask
     mask = datagrp.createVariable("mask", "f8", field_dims)
-
-    if land_mask in ['data', 'data_closed_boundary']:
-        sst_data = topaz4_interpolate(element_lon, element_lat, source_file["temperature"][0, :, :].squeeze(), lat_array)
-        mask[:, :] = 1 - ma.getmask(sst_data)
-    else:
-        mask[:,:] = grid["mask"][:,:]
+    mask[:,:] = grid["mask"][:,:]
 
     land_ratio = np.count_nonzero(mask) / mask.size
     print(f"ratio of sea (active) cells to total: {land_ratio}")
-    if land_mask in ['data_closed_boundary']:
+    if boundary in ['closed']:
         mask[:,0] = 0.0
         mask[:,-1] = 0.0
         mask[0,:] = 0.0
