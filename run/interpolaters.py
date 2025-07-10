@@ -34,7 +34,6 @@ def topaz4_interpolate(target_lon_deg, target_lat_deg, data, lat_array):
     points = np.array([X.ravel()[nanmask], Y.ravel()[nanmask]]).T
     xi = np.array([target_i.ravel(), target_j.ravel()]).T
 
-    print(points.shape, data.ravel()[nanmask].shape, xi.shape)
     field = interpolate.griddata(points, data.ravel()[nanmask], xi)
 
     # Use griddata again to extrapolate outside the convex hull using the nearest neighbour
