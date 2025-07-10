@@ -4,6 +4,7 @@ import numpy.ma as ma
 import time
 import math
 from pathlib import Path
+from scipy import interpolate
 
 topaz_mdi = -32767
 
@@ -46,7 +47,10 @@ def topaz4_interpolate(target_lon_deg, target_lat_deg, data, lat_array):
     # The TOPAZ grid is assumed and hard coded
     ic = 380
     jc = 550
-    
+
+    nx = 761
+    ny = 1101
+
     # Scale of the map and zero longitude
  #   two_r = 1 / math.radians(0.08982849)
     lon0 = math.radians(315.)
@@ -63,7 +67,22 @@ def topaz4_interpolate(target_lon_deg, target_lat_deg, data, lat_array):
     target_i = x + ic
     target_j = y + jc
     
-    return bilinear_missing(target_i, target_j, data, topaz_mdi)
+    # Mask land values and interpolate using the default griddata method (linear, as far as I can tell)
+    nanmask = ma.getmask(data.ravel()) == 0
+
+    X, Y = np.meshgrid(np.array([i for i in range(nx)]), np.array([j for j in range(ny)]))
+    points = np.array([X.ravel()[nanmask], Y.ravel()[nanmask]]).T
+    xi = np.array([target_i.ravel(), target_j.ravel()]).T
+
+    field = interpolate.griddata(points, data.ravel()[nanmask], xi)
+
+    # Use griddata again to extrapolate outside the convex hull using the nearest neighbour
+    nanmask = ~np.isnan(field)
+
+    points = np.array([target_i.ravel()[nanmask], target_j.ravel()[nanmask]]).T
+    xi = np.array([target_i.ravel(), target_j.ravel()]).T
+
+    return (interpolate.griddata(points, field.ravel()[nanmask], xi, method='nearest').reshape(target_lon_deg.shape))
 
 # Creates a 128 x 128 ParaGrid restart file filled with data from TOPAZ on 2010-01-01
 if __name__ == "__main__":
@@ -71,9 +90,9 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description = "Generate an initial state file from TOPAZ4 data")
     parser.add_argument("--grid-file", dest = "grid_file", default="25km_NH.nc", help = "Path of the NH grid file.")
     parser.add_argument("--topaz-path", dest = "topaz_path", default=".", help = "Path containing the TOPAZ4 files.")
-    parser.add_argument("--land-mask", dest = "land_mask", default='data', help='One of "data" or "data_closed_boundary"')
+    parser.add_argument("--land-mask", dest = "land_mask", default='data', help='One of "grid", "data" or "data_closed_boundary"')
     parser.add_argument("--out-suffix", dest = "out_suffix", default='', help='Added to the name of the output file before the ending"')
-    
+
     args = parser.parse_args()
     grid_file = args.grid_file
     topaz_path = args.topaz_path
@@ -171,9 +190,13 @@ if __name__ == "__main__":
     # All fields are stored in one file, already opened as source_file
     # Sea-land mask
     mask = datagrp.createVariable("mask", "f8", field_dims)
-    sst_data = topaz4_interpolate(element_lon, element_lat, source_file["temperature"][0, :, :].squeeze(), lat_array)
-    mask[:, :] = 1 - ma.getmask(sst_data)
-    
+
+    if land_mask in ['data', 'data_closed_boundary']:
+        sst_data = topaz4_interpolate(element_lon, element_lat, source_file["temperature"][0, :, :].squeeze(), lat_array)
+        mask[:, :] = 1 - ma.getmask(sst_data)
+    else:
+        mask[:,:] = grid["mask"][:,:]
+
     land_ratio = np.count_nonzero(mask) / mask.size
     print(f"ratio of sea (active) cells to total: {land_ratio}")
     if land_mask in ['data_closed_boundary']:
@@ -183,6 +206,8 @@ if __name__ == "__main__":
         mask[-1,:] = 0.0
         land_ratio = np.count_nonzero(mask) / mask.size
         print(f"ratio after adjustment: {land_ratio}")
+
+    nanmask = np.where(mask[:,:] == 0, np.nan, 1)
     
     # Ice concentration and thickness
     cice_data = topaz4_interpolate(element_lon, element_lat, source_file["fice"][0, :, :].squeeze(), lat_array)
@@ -200,27 +225,27 @@ if __name__ == "__main__":
     
     cice = datagrp.createVariable("cice", "f8", field_dims)
     hice = datagrp.createVariable("hice", "f8", field_dims)
-    cice[:, :] = cice_data
-    hice[:, :] = hice_data
+    cice[:, :] = nanmask * cice_data
+    hice[:, :] = nanmask * hice_data
     
     # Snow thickness
     hsnow = datagrp.createVariable("hsnow", "f8", field_dims)
     hsnow_data = topaz4_interpolate(element_lon, element_lat, source_file["hsnow"][0, :, :].squeeze(), lat_array)
     hsnow_data *= noice
     hsnow_data *= cice_data
-    hsnow[:, :] = hsnow_data
+    hsnow[:, :] = nanmask * hsnow_data
 
     # SSS
     sss = datagrp.createVariable("sss", "f8", field_dims)
     sss_data = topaz4_interpolate(element_lon, element_lat, source_file["salinity"][0, :, :].squeeze(), lat_array)
-    sss[:, :] = sss_data
+    sss[:, :] = nanmask * sss_data
 
     mu = -0.055
 
     # SST
     sst = datagrp.createVariable("sst", "f8", field_dims)
     sst_data = topaz4_interpolate(element_lon, element_lat, source_file["temperature"][0, :, :].squeeze(), lat_array)
-    sst[:, :] = sst_data * noice + mu * sss_data * isice
+    sst[:, :] = nanmask * sst_data * noice + mu * sss_data * isice
 
     # Ice temperature
     tsurf = datagrp.createVariable("tsurf", "f8", field_dims)
