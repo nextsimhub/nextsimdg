@@ -1,48 +1,30 @@
 import math
 import numpy as np
 from scipy import interpolate
+import pyproj
 
 # Returns TOPAZ data interpolated from the data grid and coordinates to the target grid and coordinates
-def topaz4_interpolate(target_lon_deg, target_lat_deg, data, lat_array):
-    # The TOPAZ grid is assumed and hard coded
-    ic = 380
-    jc = 550
-
-    nx = 761
-    ny = 1101
-
-    # Scale of the map and zero longitude
-    #   two_r = 1 / math.radians(0.08982849)
-    lon0 = math.radians(315.)
-
-    #    target_lat = np.radians(target_lat_deg)
-    target_lon = np.radians(target_lon_deg)
-    #    k = two_r * np.cos(target_lat) / np.sqrt(1 + np.sin(target_lat))
-    # Use linear interpolation to get the target indices on the topaz grid
-    # Negate both latitude arrays so that lat_array is increasing
-    topaz_i0 = np.interp(-target_lat_deg, -lat_array, np.arange(len(lat_array)))
-
-    x = topaz_i0 * np.sin(target_lon - lon0)
-    y = -topaz_i0 * np.cos(target_lon - lon0)
-    target_i = x + ic
-    target_j = y + jc
+def topaz4_interpolate(target_lon, target_lat, data, data_x, data_y, proj_string):
+    # Use pyproj and the fact that the proj4 string is embedded in the TOPAZ files
+    P = pyproj.Proj(proj_string)
+    target_x, target_y = P(target_lon, target_lat)
 
     # Mask land values and interpolate using the default griddata method (linear, as far as I can tell)
-    nanmask = np.ma.getmask(data.ravel()) == 0
+    nanmask = ~np.isnan(data.ravel())
 
-    X, Y = np.meshgrid(np.array([i for i in range(nx)]), np.array([j for j in range(ny)]))
+    X, Y = np.meshgrid(data_x, data_y)
     points = np.array([X.ravel()[nanmask], Y.ravel()[nanmask]]).T
-    xi = np.array([target_i.ravel(), target_j.ravel()]).T
+    xi = np.array([target_x.ravel(), target_y.ravel()]).T
 
     field = interpolate.griddata(points, data.ravel()[nanmask], xi)
 
     # Use griddata again to extrapolate outside the convex hull using the nearest neighbour
     nanmask = ~np.isnan(field)
 
-    points = np.array([target_i.ravel()[nanmask], target_j.ravel()[nanmask]]).T
-    xi = np.array([target_i.ravel(), target_j.ravel()]).T
+    points = np.array([target_x.ravel()[nanmask], target_y.ravel()[nanmask]]).T
+    xi = np.array([target_x.ravel(), target_y.ravel()]).T
 
-    return (interpolate.griddata(points, field.ravel()[nanmask], xi, method='nearest').reshape(target_lon_deg.shape))
+    return (interpolate.griddata(points, field.ravel()[nanmask], xi, method='nearest').reshape(target_lon.shape))
 
 # Returns bilinearly interpolated data given array of fractional indices
 # 2023-03-28 Add a wrap-around for the ERA longitude. This is formally

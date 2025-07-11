@@ -57,13 +57,9 @@ def era5_source_file_name(field, unix_time, path):
     return f"{path}/ERA5_{field}_y{file_year}.nc"
 
 # Returns the file name that holds the TOPAZ data for a given field at a given time
-def topaz4_source_file_name(field, unix_time, path):
+def topaz4_source_file_name(unix_time, path):
     unix_tm = time.gmtime(unix_time)
-    if field in ("u", "v", "ssh"):
-        # Ocean currents come from the 30 m files
-        return f"{path}/TP4DAILY_{unix_tm.tm_year}{unix_tm.tm_mon:02}_30m.nc"
-    else:
-        return f"{path}/TP4DAILY_{unix_tm.tm_year}{unix_tm.tm_mon:02}_3m.nc"
+    return f"{path}/{unix_tm.tm_year}/topaz_rean_{unix_tm.tm_year}{unix_tm.tm_mon:02}.nc"
 
 # The main script. Calculates ERA5 and TOPAZ forcing files, given a grid to
 # interpolate on to and start and stop dates
@@ -75,7 +71,8 @@ if __name__ == "__main__":
     parser.add_argument("--start", dest = "start", required = True, help = "The ISO start date for the forcing file.")
     parser.add_argument("--stop", dest = "stop", required = True, help = "The ISO end date for the forcing file.")
     parser.add_argument("--prefix", dest = "prefix", required = False, help = "A string to prefix the created files with.")
-    parser.add_argument("--forcing_path", default="", help="Path for the forcing files")
+    parser.add_argument("--era5-path", dest="era5_path", default="", help="Path for the ERA5 forcing files")
+    parser.add_argument("--topaz4-path", dest="topaz4_path", default="", help="Path for the TOPAZ4 forcing files")
     args = parser.parse_args()
     # read the date range
     start_time = time.strptime(args.start, "%Y-%m-%d")
@@ -87,7 +84,8 @@ if __name__ == "__main__":
     else:
         filepfx = ""
 
-    forcing_path = args.forcing_path
+    era5_path = args.era5_path
+    topaz4_path = args.topaz4_path
 
     # read a grid spec (from a restart file)
     root = netCDF4.Dataset(args.file, "r", format = "NETCDF4")
@@ -181,7 +179,8 @@ if __name__ == "__main__":
             era5_field = era5_translation[field_name]
             for target_t_index in range(len(unix_times_e)):
                 # get the source data
-                source_file = netCDF4.Dataset(era5_source_file_name(era5_field, unix_times_e[target_t_index], forcing_path), "r")
+                source_file = netCDF4.Dataset(
+                    era5_source_file_name(era5_field, unix_times_e[target_t_index], era5_path), "r")
                 source_lons = source_file["longitude"]
                 source_lats = source_file["latitude"]
                 target_time = era5_times[target_t_index]
@@ -200,8 +199,8 @@ if __name__ == "__main__":
             v_var = datagrp.createVariable("v", "f8", timefield_dims)
             for target_t_index in range(len(unix_times_e)):
                 # get the source data
-                u_file = netCDF4.Dataset(era5_source_file_name("u10", unix_times_e[target_t_index], forcing_path), "r")
-                v_file = netCDF4.Dataset(era5_source_file_name("v10", unix_times_e[target_t_index], forcing_path), "r")
+                u_file = netCDF4.Dataset(era5_source_file_name("u10", unix_times_e[target_t_index], era5_path), "r")
+                v_file = netCDF4.Dataset(era5_source_file_name("v10", unix_times_e[target_t_index], era5_path), "r")
                 source_lons = u_file["longitude"]
                 source_lats = u_file["latitude"]
                 target_time = era5_times[target_t_index]
@@ -235,8 +234,7 @@ if __name__ == "__main__":
 
     ocean_fields = ("mld", "sss", "sst", "ssh")
     skip_ocean_fields = ()
-    topaz_fields = ("mlp", "salinity", "temperature", "u", "v")
-    topaz_translation = {"mld" : "mlp", "sss" : "salinity", "sst" : "temperature", "ssh" : "ssh"} # wind is special
+    topaz_translation = {"mld": "mlotst", "sss": "so", "sst": "thetao", "ssh": "zos"}
 
 
     ###################################################################
@@ -268,7 +266,7 @@ if __name__ == "__main__":
     
     (unix_times_t, topaz4_times) = create_topaz_times(start_time, stop_time)
 
-    source_file = netCDF4.Dataset(topaz4_source_file_name("mlp", unix_times_t[0], forcing_path), "r")
+    source_file = netCDF4.Dataset(topaz4_source_file_name(unix_times_t[0], topaz4_path), "r")
     source_lats = source_file["latitude"][:, :]
     lat_array = source_lats[550:, 380]
     source_file.close()
@@ -296,7 +294,7 @@ if __name__ == "__main__":
                 if field_name == ocean_fields[0]:
                     nc_times[target_t_index] = unix_times_t[target_t_index]
                 # get the source data
-                source_file = netCDF4.Dataset(topaz4_source_file_name(topaz_field, unix_times_t[target_t_index], forcing_path), "r")
+                source_file = netCDF4.Dataset(topaz4_source_file_name(unix_times_t[target_t_index], topaz4_path), "r")
                 target_time = topaz4_times[target_t_index]
                 source_times = source_file["time"]
                 time_index = (target_time - source_times[0]) // hr_per_day
@@ -304,7 +302,10 @@ if __name__ == "__main__":
                 source_data = source_file[topaz_field][time_index, :, :].squeeze()
                 # Now interpolate the source data to the target grid
                 time_data = np.zeros((nx, ny))
-                time_data = topaz4_interpolate(element_lon, element_lat, source_data, lat_array)
+                proj_string = getattr(source_file["stereographic"], 'proj4')
+                source_x = source_file["x"][:]
+                source_y = source_file["y"][:]
+                time_data = topaz4_interpolate(element_lon, element_lat, source_data, source_x, source_y, proj_string)
                 data[target_t_index, :, :] = time_data
         else:
             for target_t_index in range(len(unix_times_t)):
@@ -318,18 +319,23 @@ if __name__ == "__main__":
     udata = datagrp.createVariable("u", "f8", timefield_dims)
     vdata = datagrp.createVariable("v", "f8", timefield_dims)
     for target_t_index in range (len(unix_times_t)):
-        u_source_file = netCDF4.Dataset(topaz4_source_file_name("u", unix_times_t[target_t_index], forcing_path), "r")
-        v_source_file = netCDF4.Dataset(topaz4_source_file_name("v", unix_times_t[target_t_index], forcing_path), "r")
+        u_source_file = netCDF4.Dataset(topaz4_source_file_name(unix_times_t[target_t_index], topaz4_path), "r")
+        v_source_file = netCDF4.Dataset(topaz4_source_file_name(unix_times_t[target_t_index], topaz4_path), "r")
         target_time = topaz4_times[target_t_index]
         source_times = u_source_file["time"]
         time_index = (target_time - source_times[0]) // hr_per_day
-        u_source_data = u_source_file["u"][time_index, :, :].squeeze() # Need to squeeze. Why?
-        v_source_data = v_source_file["v"][time_index, :, :].squeeze()
+        u_source_data = u_source_file["vxo"][time_index, :, :].squeeze()  # Need to squeeze. Why?
+        v_source_data = v_source_file["vyo"][time_index, :, :].squeeze()
         u_source_data_tgrid = np.zeros((nx, ny))
         v_source_data_tgrid = np.zeros((nx, ny))
         # Interpolate the current components on the TOPAZ basis on to the new grid
-        u_source_data_tgrid = topaz4_interpolate(element_lon, element_lat, u_source_data, lat_array)
-        v_source_data_tgrid = topaz4_interpolate(element_lon, element_lat, v_source_data, lat_array)
+        proj_string = getattr(source_file["stereographic"], 'proj4')
+        source_x = source_file["x"][:]
+        source_y = source_file["y"][:]
+        u_source_data_tgrid = topaz4_interpolate(element_lon, element_lat, u_source_data, source_x, source_y,
+                                                 proj_string)
+        v_source_data_tgrid = topaz4_interpolate(element_lon, element_lat, v_source_data, source_x, source_y,
+                                                 proj_string)
 
         # Rotate from grid coordinates to geographic eastward/northward components
         rotation_rad = np.radians(element_lon + topaz_phi0 - element_azimuth)
