@@ -176,7 +176,6 @@ void BBMDynamics::advectField(double timestep, ModelArray& field, double lowerLi
     kernel.advectField(timestep, field, lowerLimit, upperLimit);
 }
 
-
 BBMDynamics::HelpMap& BBMDynamics::getHelpText(HelpMap& map, bool getAll)
 {
     map["BBMDynamics"] = {
