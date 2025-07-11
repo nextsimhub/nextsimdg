@@ -30,7 +30,6 @@ public:
         , divergence(ModelArray::Type::H)
         , sigmaI(ModelArray::Type::H)
         , sigmaII(ModelArray::Type::H)
-        , hsnow(getStore())
         , damage(getStore())
         , uwind(getStore())
         , vwind(getStore())
@@ -40,6 +39,7 @@ public:
         , m_usesDamage(usesDamageIn)
         , hiceDG(getStore())
         , ciceDG(getStore())
+        , hsnowDG(getStore())
     {
         getStore().registerArray(Protected::DIV, &divergence, RO);
         getStore().registerArray(Protected::ICE_U, &uice, RO);
@@ -122,9 +122,6 @@ protected:
     HField sigmaI;
     HField sigmaII;
     // References to the DG0 finite volume data arrays
-//    ModelArrayRef<Shared::H_ICE, RW> hice;
-//    ModelArrayRef<Shared::C_ICE, RW> cice;
-    ModelArrayRef<Shared::H_SNOW, RW> hsnow;
     ModelArrayRef<Shared::DAMAGE, RW> damage;
 
     // References to the forcing velocity arrays
@@ -140,6 +137,7 @@ protected:
     // Store the h_ice and c_ice DG fields here, rather than in the kernel.
     ModelArrayRef<Shared::H_ICE_DG, RW> hiceDG;
     ModelArrayRef<Shared::C_ICE_DG, RW> ciceDG;
+    ModelArrayRef<Shared::H_SNOW_DG, RW> hsnowDG;
 
     /*
      * Checks and returns if the provided data map is spherical

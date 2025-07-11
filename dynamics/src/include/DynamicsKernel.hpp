@@ -96,7 +96,7 @@ public:
     {
 
         // Special cases: hice, cice, (damage, stress) <- not yet implemented
-        if (name == hiceName || name == ciceName) {
+        if (name == hiceName || name == ciceName || name == hsnowName) {
             throw std::runtime_error(std::string("Use setDGArray() to set the data for ") + name);
         } else if (name == sshName) {
             DGModelArray::ma2dg(data, seaSurfaceHeight);
@@ -110,6 +110,8 @@ public:
             hice = DGVectorHolder<DGadvection>(dgData);
         } else if (name == ciceName) {
             cice = DGVectorHolder<DGadvection>(dgData);
+        } else if (name == hsnowName) {
+            hsnow = DGVectorHolder<DGadvection>(dgData);
         }
     }
 
@@ -123,7 +125,7 @@ public:
     virtual ModelArray getDG0Data(const std::string& name) const
     {
         HField data(ModelArray::Type::H);
-        if (name == hiceName || name == ciceName) {
+        if (name == hiceName || name == ciceName || name == hsnowName) {
             throw std::runtime_error(
                 std::string("DynamicsKernel::getDG0Data: Use array sharing for ") + name);
         } else if (name == shearName) {
@@ -149,7 +151,7 @@ public:
     virtual ModelArray getDGData(const std::string& name) const
     {
 
-        if (name == hiceName || name == ciceName) {
+        if (name == hiceName || name == ciceName || name == hsnowName) {
             throw std::runtime_error(
                 std::string("DynamicsKernel::getDG0Data: Use array sharing for ") + name);
         } else {
@@ -159,6 +161,7 @@ public:
 
     virtual void update(const TimestepTime& tst) { ++stepNumber; }
 
+    // TODO Replace with advectDynamicsFields
     void advectionAndLimits(const TimestepTime& tst)
     {
         //! Perform transport step
@@ -215,6 +218,7 @@ public:
     {
         advectDGVField(timestep, hice, 0.0);
         advectDGVField(timestep, cice, 0.0, 1.0);
+        advectDGVField(timestep, hsnow, 0.0);
     }
 
 protected:
@@ -222,6 +226,7 @@ protected:
 
     DGVectorHolder<DGadvection> hice;
     DGVectorHolder<DGadvection> cice;
+    DGVectorHolder<DGadvection> hsnow;
 
     //! Vector storing the sea surface height (only dG(0) averages)
     DGVector<1> seaSurfaceHeight;

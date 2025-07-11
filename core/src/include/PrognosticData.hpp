@@ -57,8 +57,8 @@ private:
     double m_dt;
 
     // Full DG component arrays of thickness and concentration
-    AdvectedField hiceAdvection;
-    AdvectedField ciceAdvection;
+    AdvectedField hice;
+    AdvectedField cice;
     AdvectedField damage;
     AdvectedField hsnow; // cell averaged snow thickness
 

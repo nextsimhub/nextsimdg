@@ -83,10 +83,10 @@ namespace Shared {
     // Values of the prognostic fields updated during the timestep
     inline constexpr TextTag H_ICE = "H_ICE"; // Updated ice thickness, ice average, m
     inline constexpr TextTag C_ICE = "C_ICE"; // Updated ice concentration
-    inline constexpr TextTag H_ICE_DG = "H_ICE_DG"; // Temporary DG hice tag
-    inline constexpr TextTag C_ICE_DG = "C_ICE_DG"; // Temporary DG cice tag
-    inline constexpr TextTag H_SNOW_CELL = "H_SNOW_CELL"; // Snow depth, cell average, m
+    inline constexpr TextTag H_ICE_DG = "H_ICE_DG"; // Ice thickness, all components, cell avg, m
+    inline constexpr TextTag C_ICE_DG = "C_ICE_DG"; // Ice concentration, all components
     inline constexpr TextTag H_SNOW = "H_SNOW"; // Updated snow depth, ice average, m
+    inline constexpr TextTag H_SNOW_DG = "H_SNOW_DG"; // Snow thickness, all components, cell avg, m
     inline constexpr TextTag T_ICE = "T_ICE"; // Updated ice temperatures, ˚C
     inline constexpr TextTag T_SURF = "T_SURF"; // Updated ice surface temperature, ˚C
     inline constexpr TextTag DAMAGE = "DAMAGE"; // Updated damage 0–1

@@ -132,6 +132,7 @@ void BBMDynamics::setData(const ModelState::DataMap& ms)
     // Set the DG field data
     kernel.setDGArray(hiceName, hiceDG.allComponents());
     kernel.setDGArray(ciceName, ciceDG.allComponents());
+    kernel.setDGArray(hsnowName, hsnowDG.allComponents());
     kernel.setDGArray(damageName, damage.allComponents());
 }
 
