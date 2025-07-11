@@ -161,19 +161,6 @@ public:
 
     virtual void update(const TimestepTime& tst) { ++stepNumber; }
 
-    // TODO Replace with advectDynamicsFields
-    void advectionAndLimits(const TimestepTime& tst)
-    {
-        //! Perform transport step
-        dgtransport->step(tst.step.seconds(), cice);
-        dgtransport->step(tst.step.seconds(), hice);
-
-        //! Gauss-point limiting
-        Nextsim::LimitMax(cice, 1.0);
-        Nextsim::LimitMin(cice, 0.0);
-        Nextsim::LimitMin(hice, 0.0);
-    }
-
     /*!
      * Prepares the transport objects to perform the advection step.
      */

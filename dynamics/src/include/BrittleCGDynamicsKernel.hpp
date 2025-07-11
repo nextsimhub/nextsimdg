@@ -35,7 +35,6 @@ protected:
     using DynamicsKernel<DGadvection, DGstressComp>::deltaT;
     using DynamicsKernel<DGadvection, DGstressComp>::stressDivergence;
     using DynamicsKernel<DGadvection, DGstressComp>::applyBoundaries;
-    using DynamicsKernel<DGadvection, DGstressComp>::advectionAndLimits;
     using DynamicsKernel<DGadvection, DGstressComp>::dgtransport;
     using DynamicsKernel<DGadvection, DGstressComp>::advectDGVField;
 
