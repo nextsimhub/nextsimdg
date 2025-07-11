@@ -51,14 +51,6 @@ public:
      */
     ModelArray getDG0Data(const std::string& name) { return ModelArray(ModelArray::Type::H); }
 
-    /*!
-     * @brief Returns a DG or DGSTRESS ModelArray containing the full DG data for
-     * the named dynamics field.
-     *
-     * @param name the name of the requested field.
-     */
-    ModelArray getDGData(const std::string& name) { return ModelArray(ModelArray::Type::DG); }
-
     void update(const TimestepTime& tst) {};
 };
 

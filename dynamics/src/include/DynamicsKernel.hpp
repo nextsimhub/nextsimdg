@@ -142,23 +142,6 @@ public:
         }
     }
 
-    /*!
-     * @brief Returns a DG or DGSTRESS ModelArray containing the full DG data for
-     * the named dynamics field.
-     *
-     * @param name the name of the requested field.
-     */
-    virtual ModelArray getDGData(const std::string& name) const
-    {
-
-        if (name == hiceName || name == ciceName || name == hsnowName) {
-            throw std::runtime_error(
-                std::string("DynamicsKernel::getDG0Data: Use array sharing for ") + name);
-        } else {
-            return ModelArray(ModelArray::AdvectionType);
-        }
-    }
-
     virtual void update(const TimestepTime& tst) { ++stepNumber; }
 
     /*!
