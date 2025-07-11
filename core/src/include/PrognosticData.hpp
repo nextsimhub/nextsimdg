@@ -74,7 +74,6 @@ private:
     IceGrowth iceGrowth;
 
     void updatePrognosticFields();
-    void updateDynamicsFields();
 };
 
 } /* namespace Nextsim */

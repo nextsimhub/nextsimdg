@@ -109,8 +109,6 @@ void PrognosticData::update(const TimestepTime& tst)
 
     pDynamics->update(tst);
 
-    updateDynamicsFields();
-
     pOcnBdy->updateAfter(tst);
 }
 
@@ -130,8 +128,6 @@ void PrognosticData::updatePrognosticFields()
     cice.component(0) = ciceUpd.allComponents();
     hsnow.component(0) = hsnowUpd.data();
 }
-
-void PrognosticData::updateDynamicsFields() { }
 
 // Gets the diagnostic data from all subcomponents
 ModelState PrognosticData::getStateDiagnostic() const
