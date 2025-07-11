@@ -130,6 +130,11 @@ void MEVPDynamics::update(const TimestepTime& tst)
     sigmaII = kernel.getDG0Data(sigmaIIName);
 }
 
+void MEVPDynamics::advectField(double timestep, ModelArray& field, double lowerLimit, double upperLimit)
+{
+    kernel.advectField(timestep, field, lowerLimit, upperLimit);
+}
+
 MEVPDynamics::HelpMap& MEVPDynamics::getHelpText(HelpMap& map, bool getAll)
 {
     map["MEVPDynamics"] = {
