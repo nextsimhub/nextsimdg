@@ -74,6 +74,11 @@ MEVPDynamics::MEVPDynamics()
 {
 }
 
+void MEVPDynamics::prepareAdvection()
+{
+    kernel.prepareAdvection();
+}
+
 void MEVPDynamics::setData(const ModelState::DataMap& ms)
 {
     IDynamics::setData(ms);

@@ -24,7 +24,7 @@ public:
     BBMDynamics();
 
     std::string getName() const override { return "BBMDynamics"; }
-    void prepareAdvection() override { kernel.prepareAdvection(); }
+    void prepareAdvection() override;
     void update(const TimestepTime& tst) override;
 
     void advectField(double timestep, ModelArray& field, double lowerLimit =
