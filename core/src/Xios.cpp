@@ -8,26 +8,11 @@
  * Implementation of XIOS interface
  *
  * This C++ interface is designed to implement core functionality of XIOS so
- * that it can be used in nextSIM-DG.
- *
- * To enable XIOS in nextSIM-DG add the following lines to the config file.
- *   [xios]
- *   enable = true
- *
- * The start time, timestep, and output period will also be read from the
- * following config file entries. (Values shown below are the defaults, while
- * ellipses imply that no default is set.)
- *   [model]
- *   start = 1970-01-01T00:00:00Z
- *   time_step = P0-0T01:00:00
- *   [XiosInput]
- *   period = ...
- *   filename = ...
- *   field_names = ...
- *   [XiosOutput]
- *   period = ...
- *   filename = ...
- *   field_names = ...
+ * that it can be used in nextSIM-DG. Run
+ * ```sh
+ * ./nextsimdg --help-config
+ * ```
+ * to see the configuration options available for XIOS.
  */
 #include <boost/date_time/posix_time/time_parsers.hpp>
 #if USE_XIOS
