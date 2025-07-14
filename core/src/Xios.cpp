@@ -124,6 +124,13 @@ bool Xios::doOnce()
     return true;
 }
 
+//! Get the configuration for the XIOS handler
+ConfigMap Xios::getConfig() const
+{
+    ConfigMap cMap = ModelConfig::getConfig();
+    return cMap;
+}
+
 //! Destructor
 Xios::~Xios() { finalize(); }
 

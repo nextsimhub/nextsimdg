@@ -14,10 +14,11 @@
 #include "date.hpp"
 #if USE_XIOS
 
-#include "Configured.hpp"
-#include "Logged.hpp"
-#include "ModelArray.hpp"
-#include "Time.hpp"
+#include "include/Configured.hpp"
+#include "include/Logged.hpp"
+#include "include/ModelArray.hpp"
+#include "include/ModelConfig.hpp"
+#include "include/Time.hpp"
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/format.hpp>
 #include <boost/format/group.hpp>
@@ -57,6 +58,9 @@ public:
         static Xios instance = Xios(contextId, calendarType);
         return instance;
     };
+
+    /* Help config */
+    ConfigMap getConfig() const;
 
     /* Initialization and finalization */
     void close_context_definition();
