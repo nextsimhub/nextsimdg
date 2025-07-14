@@ -123,7 +123,9 @@ Xios::HelpMap& Xios::getHelpText(HelpMap& map, bool getAll)
     map["Xios"] = {
         { keyMap.at(ENABLED_KEY), ConfigType::BOOLEAN, {}, "", "",
             "Boolean option to toggle whether XIOS is enabled in the build. This should not need "
-            "to be modifed by the user." },
+            "to be modifed by the user. Build nextSIM-DG with XIOS support with the CMake argument "
+            "-DENABLE_XIOS=ON, passing the path to your XIOS installation with "
+            "-Dxios_DIR=/path/to/xios." },
     };
     map["XiosInput"] = {
         { keyMap.at(INPUT_RESTARTPERIOD_KEY), ConfigType::STRING, {}, "0", "",
