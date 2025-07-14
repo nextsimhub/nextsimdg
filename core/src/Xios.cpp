@@ -164,6 +164,12 @@ Xios::HelpMap& Xios::getHelpText(HelpMap& map, bool getAll)
     return map;
 }
 
+Xios::HelpMap& Xios::getHelpRecursive(HelpMap& map, bool getAll)
+{
+    getHelpText(map, getAll);
+    return map;
+}
+
 //! Destructor
 Xios::~Xios() { finalize(); }
 
