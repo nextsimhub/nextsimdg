@@ -200,6 +200,7 @@ void Xios::configure()
         >> std::boolalpha >> isEnabled;
 
     // Extract the start time from the model configuration
+    // TODO: Deduce from Model.iterator rather than duplicating here?
     std::string startTimeStr;
     istringstream(Configured::getConfiguration(keyMap.at(STARTTIME_KEY), std::string()))
         >> startTimeStr;
@@ -210,6 +211,7 @@ void Xios::configure()
     startTime = TimePoint(startTimeStr);
 
     // Extract the timestep from the model configuration
+    // TODO: Deduce from Model.iterator rather than duplicating here?
     std::string timeStepStr;
     istringstream(Configured::getConfiguration(keyMap.at(TIME_STEP_KEY), std::string()))
         >> timeStepStr;
@@ -220,6 +222,7 @@ void Xios::configure()
     timestep = Duration(timeStepStr);
 
     // Extract the stop time from the model configuration
+    // TODO: Deduce from Model.iterator rather than duplicating here?
     std::string stopTimeStr;
     istringstream(Configured::getConfiguration(keyMap.at(STOPTIME_KEY), std::string()))
         >> stopTimeStr;
