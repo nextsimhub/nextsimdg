@@ -59,12 +59,12 @@ namespace Nextsim {
 static const std::string xOutputPfx = "XiosOutput";
 static const std::string xInputPfx = "XiosInput";
 static const std::map<int, std::string> keyMap = { { Xios::ENABLED_KEY, "xios.enable" },
-    { Xios::START_TIME_KEY, "model.start" }, { Xios::TIME_STEP_KEY, "model.time_step" },
-    { Xios::OUTPUT_PERIOD_KEY, xOutputPfx + ".period" },
-    { Xios::OUTPUT_FILENAME_KEY, xOutputPfx + ".filename" },
+    { Xios::STARTTIME_KEY, "model.start" }, { Xios::TIME_STEP_KEY, "model.time_step" },
+    { Xios::OUTPUT_RESTARTPERIOD_KEY, xOutputPfx + ".period" },
+    { Xios::OUTPUT_RESTARTFILE_KEY, xOutputPfx + ".filename" },
     { Xios::OUTPUT_FIELD_NAMES_KEY, xOutputPfx + ".field_names" },
-    { Xios::INPUT_PERIOD_KEY, xInputPfx + ".period" },
-    { Xios::INPUT_FILENAME_KEY, xInputPfx + ".filename" },
+    { Xios::INPUT_RESTARTPERIOD_KEY, xInputPfx + ".period" },
+    { Xios::INPUT_RESTARTFILE_KEY, xInputPfx + ".filename" },
     { Xios::INPUT_FIELD_NAMES_KEY, xInputPfx + ".field_names" } };
 
 //! Enable XIOS in the 'config'
@@ -90,12 +90,13 @@ Xios::Xios(const std::string contextid, const std::string calendartype)
 
     // Create the input and output files (if found in the config)
     if (firstTime) {
-        istringstream(Configured::getConfiguration(keyMap.at(INPUT_FILENAME_KEY), std::string()))
+        istringstream(Configured::getConfiguration(keyMap.at(INPUT_RESTARTFILE_KEY), std::string()))
             >> inputFilename;
         if (inputFilename.length() > 0) {
             inputFileId = ((std::filesystem::path)inputFilename).replace_extension();
         }
-        istringstream(Configured::getConfiguration(keyMap.at(OUTPUT_FILENAME_KEY), std::string()))
+        istringstream(
+            Configured::getConfiguration(keyMap.at(OUTPUT_RESTARTFILE_KEY), std::string()))
             >> outputFilename;
         if (outputFilename.length() > 0) {
             outputFileId = ((std::filesystem::path)outputFilename).replace_extension();
@@ -139,22 +140,22 @@ Xios::HelpMap& Xios::getHelpText(HelpMap& map, bool getAll)
             "to be modifed by the user." },
     };
     map["XiosInput"] = {
-        { keyMap.at(INPUT_PERIOD_KEY), ConfigType::STRING, {}, "0", "",
+        { keyMap.at(INPUT_RESTARTPERIOD_KEY), ConfigType::STRING, {}, "0", "",
             "The period between restart file outputs expected in a file to be read, formatted as "
             "an ISO8601 duration (P prefix) or number of seconds. A value of zero assumes no "
             "intermediate restart files." },
-        { keyMap.at(INPUT_FILENAME_KEY), ConfigType::STRING, {}, "", "",
+        { keyMap.at(INPUT_RESTARTFILE_KEY), ConfigType::STRING, {}, "", "",
             // TODO: Support format "restart%Y-%m-%dT%H:%M:%SZ.nc"
             "The file name to be used for input." },
         { keyMap.at(INPUT_FIELD_NAMES_KEY), ConfigType::STRING, {}, "", "",
             "Comma-separated list of field names to be read from the input file." },
     };
     map["XiosOutput"] = {
-        { keyMap.at(OUTPUT_PERIOD_KEY), ConfigType::STRING, {}, "0", "",
+        { keyMap.at(OUTPUT_RESTARTPERIOD_KEY), ConfigType::STRING, {}, "0", "",
             "The period between restart file outputs, formatted as an ISO8601 "
             "duration (P prefix) or number of seconds. A value of zero "
             "ensures no intermediate restart files are written." },
-        { keyMap.at(OUTPUT_FILENAME_KEY), ConfigType::STRING, {}, "", "",
+        { keyMap.at(OUTPUT_RESTARTFILE_KEY), ConfigType::STRING, {}, "", "",
             // TODO: Support format "restart%Y-%m-%dT%H:%M:%SZ.nc"
             "The file name to be used for output." },
         { keyMap.at(OUTPUT_FIELD_NAMES_KEY), ConfigType::STRING, {}, "", "",
@@ -212,7 +213,7 @@ void Xios::configure()
 
     // Extract the start time from the model configuration
     std::string startTimeStr;
-    istringstream(Configured::getConfiguration(keyMap.at(START_TIME_KEY), std::string()))
+    istringstream(Configured::getConfiguration(keyMap.at(STARTTIME_KEY), std::string()))
         >> startTimeStr;
     if (startTimeStr.length() == 0) {
         Logged::warning("Xios: Setting default start: 1970-01-01T00:00:00Z");
@@ -1235,10 +1236,12 @@ void Xios::createFile(const std::string fileId)
     // Set the input or output period based on the model configuration
     std::string periodStr;
     if (readAccess) {
-        istringstream(Configured::getConfiguration(keyMap.at(INPUT_PERIOD_KEY), std::string()))
+        istringstream(
+            Configured::getConfiguration(keyMap.at(INPUT_RESTARTPERIOD_KEY), std::string()))
             >> periodStr;
     } else {
-        istringstream(Configured::getConfiguration(keyMap.at(OUTPUT_PERIOD_KEY), std::string()))
+        istringstream(
+            Configured::getConfiguration(keyMap.at(OUTPUT_RESTARTPERIOD_KEY), std::string()))
             >> periodStr;
     }
     if (periodStr.length() > 0) {
