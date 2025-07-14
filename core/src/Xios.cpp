@@ -58,14 +58,15 @@ namespace Nextsim {
 
 static const std::string xOutputPfx = "XiosOutput";
 static const std::string xInputPfx = "XiosInput";
-static const std::map<int, std::string> keyMap = { { Xios::ENABLED_KEY, "xios.enable" },
-    { Xios::STARTTIME_KEY, "model.start" }, { Xios::TIME_STEP_KEY, "model.time_step" },
-    { Xios::OUTPUT_RESTARTPERIOD_KEY, xOutputPfx + ".period" },
-    { Xios::OUTPUT_RESTARTFILE_KEY, xOutputPfx + ".filename" },
-    { Xios::OUTPUT_FIELD_NAMES_KEY, xOutputPfx + ".field_names" },
-    { Xios::INPUT_RESTARTPERIOD_KEY, xInputPfx + ".period" },
-    { Xios::INPUT_RESTARTFILE_KEY, xInputPfx + ".filename" },
-    { Xios::INPUT_FIELD_NAMES_KEY, xInputPfx + ".field_names" } };
+static const std::map<int, std::string> keyMap
+    = { { Xios::ENABLED_KEY, "xios.enable" }, { Xios::STARTTIME_KEY, "model.start" },
+          { Xios::STOPTIME_KEY, "model.stop" }, { Xios::TIME_STEP_KEY, "model.time_step" },
+          { Xios::OUTPUT_RESTARTPERIOD_KEY, xOutputPfx + ".period" },
+          { Xios::OUTPUT_RESTARTFILE_KEY, xOutputPfx + ".filename" },
+          { Xios::OUTPUT_FIELD_NAMES_KEY, xOutputPfx + ".field_names" },
+          { Xios::INPUT_RESTARTPERIOD_KEY, xInputPfx + ".period" },
+          { Xios::INPUT_RESTARTFILE_KEY, xInputPfx + ".filename" },
+          { Xios::INPUT_FIELD_NAMES_KEY, xInputPfx + ".field_names" } };
 
 //! Enable XIOS in the 'config'
 void enableXios()
@@ -230,6 +231,17 @@ void Xios::configure()
         timeStepStr = "P0-0T01:00:00";
     }
     timestep = Duration(timeStepStr);
+
+    // Extract the stop time from the model configuration
+    std::string stopTimeStr;
+    istringstream(Configured::getConfiguration(keyMap.at(STOPTIME_KEY), std::string()))
+        >> stopTimeStr;
+    if (stopTimeStr.length() == 0) {
+        Logged::warning("Xios: Setting default stop: start time plus P0-0T01:00:00");
+        stopTime = startTime + timestep;
+    } else {
+        stopTime = TimePoint(stopTimeStr);
+    }
 
     if (isEnabled) {
         configureServer();
@@ -1244,7 +1256,9 @@ void Xios::createFile(const std::string fileId)
             Configured::getConfiguration(keyMap.at(OUTPUT_RESTARTPERIOD_KEY), std::string()))
             >> periodStr;
     }
-    if (periodStr.length() > 0) {
+    if (periodStr.length() == 0 || periodStr == "0") {
+        setFileOutputFreq(fileId, stopTime - startTime);
+    } else {
         setFileOutputFreq(fileId, Duration(periodStr));
     }
 

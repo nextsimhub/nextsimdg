@@ -137,6 +137,7 @@ public:
     enum {
         ENABLED_KEY,
         STARTTIME_KEY,
+        STOPTIME_KEY,
         TIME_STEP_KEY,
         READ_MODE_KEY,
         OUTPUT_RESTARTPERIOD_KEY,
@@ -167,6 +168,7 @@ private:
     std::string calendarType;
     Duration timestep;
     TimePoint startTime;
+    TimePoint stopTime;
     xios::CCalendarWrapper* clientCalendar;
     std::string convertXiosDatetimeToString(const cxios_date datetime, const bool isoFormat = true);
     cxios_date convertStringToXiosDatetime(const std::string datetime, const bool isoFormat = true);
