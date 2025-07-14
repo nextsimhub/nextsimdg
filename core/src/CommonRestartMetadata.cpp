@@ -15,25 +15,23 @@
 
 namespace Nextsim {
 
-// TODO: Rewrite without groups
-netCDF::NcGroup& CommonRestartMetadata::writeStructureType(
-    netCDF::NcFile& rootGroup, const ModelMetadata& metadata)
+// TODO: Don't pass ncfile in and out
+netCDF::NcFile& CommonRestartMetadata::writeStructureType(
+    netCDF::NcFile& ncfile, const ModelMetadata& metadata)
 {
-    netCDF::NcGroup structGroup = rootGroup.addGroup(IStructure::structureNodeName());
-    structGroup.putAtt(IStructure::typeNodeName(), metadata.structureName());
-    return rootGroup;
+    ncfile.putAtt(IStructure::typeNodeName(), metadata.structureName());
+    return ncfile;
 }
 
-netCDF::NcGroup& CommonRestartMetadata::writeRestartMetadata(
-    netCDF::NcGroup& metaGroup, const ModelMetadata& metadata)
+// TODO: Don't pass ncfile in and out
+netCDF::NcFile& CommonRestartMetadata::writeRestartMetadata(
+    netCDF::NcFile& ncfile, const ModelMetadata& metadata)
 {
     // Structure type
-    metaGroup.putAtt(IStructure::typeNodeName(), metadata.structureName());
+    ncfile.putAtt(IStructure::typeNodeName(), metadata.structureName());
 
-    // Current time
-    netCDF::NcGroup timeGroup = metaGroup.addGroup(timeNodeName());
     // As Unix time
-    netCDF::NcVar unixVar = timeGroup.addVar(unformattedName(), netCDF::ncInt64);
+    netCDF::NcVar unixVar = ncfile.addVar(unformattedName(), netCDF::ncInt64);
     Duration sinceEpoch = metadata.time() - TimePoint();
     std::uint64_t secondsSinceEpoch = sinceEpoch.seconds();
     unixVar.putVar(&secondsSinceEpoch);
@@ -44,32 +42,29 @@ netCDF::NcGroup& CommonRestartMetadata::writeRestartMetadata(
     unixVar.putAtt(std::string("format"), TimePoint::ymdhmsFormat);
     unixVar.putAtt(formattedName(), metadata.m_time.format());
 
-    // All other configuration data
-    netCDF::NcGroup configGroup = metaGroup.addGroup(configurationNode());
-
     for (auto entry : metadata.m_config) {
         switch (entry.second.index()) {
         case (ConfigMapType::DOUBLE): {
-            configGroup.putAtt(entry.first, netCDF::ncDouble, *std::get_if<double>(&entry.second));
+            ncfile.putAtt(entry.first, netCDF::ncDouble, *std::get_if<double>(&entry.second));
             break;
         }
         case (ConfigMapType::UNSIGNED): {
-            configGroup.putAtt(entry.first, netCDF::ncUint, *std::get_if<unsigned>(&entry.second));
+            ncfile.putAtt(entry.first, netCDF::ncUint, *std::get_if<unsigned>(&entry.second));
             break;
         }
         case (ConfigMapType::INT): {
-            configGroup.putAtt(entry.first, netCDF::ncInt, *std::get_if<int>(&entry.second));
+            ncfile.putAtt(entry.first, netCDF::ncInt, *std::get_if<int>(&entry.second));
             break;
         }
         case (ConfigMapType::STRING): {
             std::string extring = std::get<std::string>(entry.second);
-            configGroup.putAtt(entry.first, std::get<std::string>(entry.second));
+            ncfile.putAtt(entry.first, std::get<std::string>(entry.second));
             break;
         }
         }
     }
 
-    return metaGroup;
+    return ncfile;
 }
 
 } /* namespace Nextsim */

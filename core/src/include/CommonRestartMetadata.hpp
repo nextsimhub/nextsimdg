@@ -12,7 +12,6 @@
 #include "include/ModelMetadata.hpp"
 
 #include <ncFile.h>
-#include <ncGroup.h>
 
 namespace Nextsim {
 
@@ -20,11 +19,11 @@ class CommonRestartMetadata {
 public:
     //! Writes the structure type to the root of the restart file for future
     //! retrieval.
-    static netCDF::NcGroup& writeStructureType(
-        netCDF::NcFile& rootGroup, const ModelMetadata& metadata);
+    static netCDF::NcFile& writeStructureType(
+        netCDF::NcFile& ncfile, const ModelMetadata& metadata);
     //! Writes the standard restart file metadata to a metadata node.
-    static netCDF::NcGroup& writeRestartMetadata(
-        netCDF::NcGroup& metaGroup, const ModelMetadata& metadata);
+    static netCDF::NcFile& writeRestartMetadata(
+        netCDF::NcFile& ncfile, const ModelMetadata& metadata);
 
     static const std::string timeNodeName() { return "time"; }
 
