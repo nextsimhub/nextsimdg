@@ -1,0 +1,82 @@
+netcdf init_column {
+
+dimensions:
+  ydim = 1 ;
+  xdim = 1 ;
+  yvertex = 2 ;
+  xvertex = 2 ;
+  y_cg = 2 ;
+  x_cg = 2 ;
+  dg_comp = 1 ;
+  dgstress_comp = 3 ;
+  ncoords = 2 ;
+variables:
+  double coords(yvertex, xvertex, ncoords) ;
+  double x(ydim, xdim) ;
+  double y(ydim, xdim) ;
+  double grid_azimuth(ydim, xdim) ;
+  double mask(ydim, xdim) ;
+  double cice(ydim, xdim) ;
+  double hice(ydim, xdim) ;
+  double hsnow(ydim, xdim) ;
+  double damage(ydim, xdim) ;
+  double tsurf(ydim, xdim) ;
+  double tinterior(ydim, xdim) ;
+  double tbottom(ydim, xdim) ;
+  double u(ydim, xdim) ;
+  double v(ydim, xdim) ;
+  double sst(ydim, xdim) ;
+  double sss(ydim, xdim) ;
+data:
+
+  coords =
+0, 0,
+50, 0,
+0, 50,
+50, 50 ;
+
+  x =
+25 ;
+
+  y =
+25 ;
+
+  grid_azimuth =
+0 ;
+
+  mask =
+1 ;
+
+  cice =
+1 ;
+
+  hice =
+2 ;
+
+  hsnow =
+0.3 ;
+
+  damage =
+0 ;
+
+  tsurf =
+-0.275 ;
+
+  tinterior =
+-0.275 ;
+
+  tbottom =
+-0.275 ;
+
+  u =
+0 ;
+
+  v =
+0 ;
+
+  sst =
+-1.54 ;
+
+  sss =
+28 ;
+}
