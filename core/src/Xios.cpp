@@ -131,6 +131,39 @@ ConfigMap Xios::getConfig() const
     return cMap;
 }
 
+Xios::HelpMap& Xios::getHelpText(HelpMap& map, bool getAll)
+{
+    map["Xios"] = {
+        { keyMap.at(ENABLED_KEY), ConfigType::BOOLEAN, {}, "", "",
+            "Boolean option to toggle whether XIOS is enabled in the build. This should not need "
+            "to be modifed by the user." },
+    };
+    map["XiosInput"] = {
+        { keyMap.at(INPUT_PERIOD_KEY), ConfigType::STRING, {}, "0", "",
+            "The period between restart file outputs expected in a file to be read, formatted as "
+            "an ISO8601 duration (P prefix) or number of seconds. A value of zero assumes no "
+            "intermediate restart files." },
+        { keyMap.at(INPUT_FILENAME_KEY), ConfigType::STRING, {}, "", "",
+            // TODO: Support format "restart%Y-%m-%dT%H:%M:%SZ.nc"
+            "The file name to be used for input." },
+        { keyMap.at(INPUT_FIELD_NAMES_KEY), ConfigType::STRING, {}, "", "",
+            "Comma-separated list of field names to be read from the input file." },
+    };
+    map["XiosOutput"] = {
+        { keyMap.at(OUTPUT_PERIOD_KEY), ConfigType::STRING, {}, "0", "",
+            "The period between restart file outputs, formatted as an ISO8601 "
+            "duration (P prefix) or number of seconds. A value of zero "
+            "ensures no intermediate restart files are written." },
+        { keyMap.at(OUTPUT_FILENAME_KEY), ConfigType::STRING, {}, "", "",
+            // TODO: Support format "restart%Y-%m-%dT%H:%M:%SZ.nc"
+            "The file name to be used for output." },
+        { keyMap.at(OUTPUT_FIELD_NAMES_KEY), ConfigType::STRING, {}, "", "",
+            "Comma-separated list of field names to be written to the output file." },
+    };
+
+    return map;
+}
+
 //! Destructor
 Xios::~Xios() { finalize(); }
 

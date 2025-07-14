@@ -61,6 +61,7 @@ public:
 
     /* Help config */
     ConfigMap getConfig() const;
+    static HelpMap& getHelpText(HelpMap& map, bool getAll);
 
     /* Initialization and finalization */
     void close_context_definition();
