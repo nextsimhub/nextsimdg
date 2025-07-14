@@ -5,6 +5,9 @@ import time
 import math
 from pathlib import Path
 
+# TODO: Remove nc groups
+# TODO: Convert to CDL
+
 topaz_mdi = -32767
 
 # Returns the file name that holds the TOPAZ data for a given field at a given time

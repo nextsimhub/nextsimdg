@@ -4,6 +4,9 @@ import time
 import calendar
 import math
 
+# TODO: Remove nc groups
+# TODO: Convert to CDL
+
 sec_per_hr = 3600
 hr_per_day = 24
 

@@ -3,6 +3,9 @@ import netCDF4
 import sys
 import os.path
 
+# TODO: remove nc groups
+# TODO: Convert to CDL
+
 file_name = "out.integration_test.nc"
 # Check that the restart file was output
 if not os.path.isfile(file_name):

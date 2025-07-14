@@ -1,6 +1,9 @@
 import netCDF4
 import numpy as np
 
+# TODO: Remove nc groups
+# TODO: Convert to CDL
+
 # Creates a 128 x 128 ParaGrid-based ERA5 forcings file, but with fake data
 
 nx = 128

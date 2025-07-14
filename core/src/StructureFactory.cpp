@@ -29,6 +29,7 @@ std::string structureNameFromFile(const std::string& filePath)
     std::string structureName;
 
     try {
+        // TODO: Remove nc groups
         netCDF::NcFile ncf(filePath, netCDF::NcFile::read);
         netCDF::NcGroup metaGroup(ncf.getGroup(IStructure::structureNodeName()));
         netCDF::NcGroupAtt att = metaGroup.getAtt(IStructure::typeNodeName());

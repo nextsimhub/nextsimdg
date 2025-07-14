@@ -81,12 +81,16 @@ public:
 
     // Node names in the default structure
 
+    // TODO: Drop this?
     //! Returns the name of the metadata node.
     static const std::string metadataNodeName() { return "metadata"; }
+    // TODO: Drop this?
     //! Returns the name of the data node.
     static const std::string dataNodeName() { return "data"; }
+    // TODO: Drop this?
     //! The name of the group holding the definitive structure type
     static const std::string structureNodeName() { return "structure"; }
+    // TODO: Drop this?
     //! The name of the node holding the name of the structure type processed
     //! by this class.
     static const std::string typeNodeName() { return "type"; }

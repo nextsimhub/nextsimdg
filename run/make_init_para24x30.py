@@ -3,6 +3,9 @@ import time
 import netCDF4
 import numpy as np
 
+# TODO: Remove nc groups
+# TODO: Convert to CDL
+
 # Creates a 24x30 ParaGrid restart file filled with data from TOPAZ on 2010-01-01
 if __name__ == "__main__":
 

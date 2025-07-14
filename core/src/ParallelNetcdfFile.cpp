@@ -45,6 +45,7 @@ void NcFilePar::open_par(
     nullObject = false;
 }
 
+// TODO: Remove nc groups
 void netCDF::setVariableCollective(NcVar var, NcGroup group)
 {
     // This function will change the parallel access of a variable from independent to collective.

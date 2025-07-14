@@ -25,6 +25,7 @@ std::stringstream NetcdfMetadataConfiguration::read(const std::string& source)
     netCDF::NcFile ncFile(fileName, netCDF::NcFile::read);
     // Get the configuration group, allowing for it to not exist. In which
     // case, do nothing
+    // TODO: Remove nc groups
     netCDF::NcGroup metadataGroup(ncFile.getGroup("metadata"));
     if (metadataGroup.isNull()) {
         return std::stringstream();

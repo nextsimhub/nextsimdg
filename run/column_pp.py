@@ -2,6 +2,9 @@ import matplotlib.pyplot as plt
 import netCDF4
 import numpy as np
 
+# TODO: Remove nc groups
+# TODO: Convert to CDL
+
 file = 'diagnostic.nc'
 
 # Load the basic variables

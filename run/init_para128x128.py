@@ -1,6 +1,9 @@
 import netCDF4
 import numpy as np
 
+# TODO: Remove nc groups
+# TODO: Convert to CDL
+
 # Creates a 128 x 128 ParaGrid restart file with land-sea mask.
 
 nx = 128

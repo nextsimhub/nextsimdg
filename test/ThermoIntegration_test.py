@@ -5,6 +5,9 @@ import unittest
 import netCDF4
 import numpy as np
 
+# TODO: remove nc groups
+# TODO: Convert to CDL
+
 
 class SingleColumnThermo(unittest.TestCase):
     # A few useful global variables for the class

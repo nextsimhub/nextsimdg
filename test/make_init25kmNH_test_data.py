@@ -5,6 +5,9 @@ import time
 import math
 from math import nan as NaN
 
+# TODO: remove nc groups
+# TODO: Convert to CDL
+
 """
 Code at the end of the file.
 """
