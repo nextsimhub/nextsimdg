@@ -45,10 +45,9 @@ void NcFilePar::open_par(
     nullObject = false;
 }
 
-// TODO: Remove nc groups
-void netCDF::setVariableCollective(NcVar var, NcGroup group)
+void netCDF::setVariableCollective(NcVar var, NcFile& ncFile)
 {
     // This function will change the parallel access of a variable from independent to collective.
     // This is required to write to a variable in parallel when using MPI.
-    ncCheck(nc_var_par_access(group.getId(), var.getId(), NC_COLLECTIVE), __FILE__, __LINE__);
+    ncCheck(nc_var_par_access(ncFile.getId(), var.getId(), NC_COLLECTIVE), __FILE__, __LINE__);
 }
