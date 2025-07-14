@@ -16,9 +16,8 @@
 
 #include "include/ParaGridIO.hpp"
 
+#include <ncAtt.h>
 #include <ncFile.h>
-#include <ncGroup.h>
-#include <ncGroupAtt.h>
 #include <stdexcept>
 #include <string>
 
@@ -26,24 +25,20 @@ namespace Nextsim {
 
 std::string structureNameFromFile(const std::string& filePath)
 {
-    std::string structureName;
+    // std::string structureName;
+    std::string structureName = "parametric_rectangular";
 
-    try {
-        // TODO: Remove nc groups
-        netCDF::NcFile ncf(filePath, netCDF::NcFile::read);
-        netCDF::NcGroup metaGroup(ncf.getGroup(IStructure::structureNodeName()));
-        netCDF::NcGroupAtt att = metaGroup.getAtt(IStructure::typeNodeName());
-        int len = att.getAttLength();
-        // Initialize a std::string of len, filled with zeros
-        structureName = std::string(len, '\0');
-        // &str[0] gives access to the buffer, guaranteed by C++11
-        att.getValues(&structureName[0]);
-        ncf.close();
-    } catch (const netCDF::exceptions::NcException& nce) {
-        std::string ncWhat(nce.what());
-        ncWhat += ": " + filePath;
-        throw std::runtime_error(ncWhat);
-    }
+    // FIXME: Temporary hack
+    // try {
+    //     netCDF::NcFile ncf(filePath, netCDF::NcFile::read);
+    //     netCDF::NcVar var = ncf.getVar("structure_name");
+    //     var.getVar(&structureName[0]);
+    //     ncf.close();
+    // } catch (const netCDF::exceptions::NcException& nce) {
+    //     std::string ncWhat(nce.what());
+    //     ncWhat += ": " + filePath;
+    //     throw std::runtime_error(ncWhat);
+    // }
 
     return structureName;
 }
