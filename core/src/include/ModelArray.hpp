@@ -1,7 +1,7 @@
 /*!
  * @file   ModelArray.hpp
  *
- * @date   13 Jun 2025
+ * @date   15 Jul 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -26,6 +26,7 @@ class Slice;
 namespace Nextsim {
 
 class ModelArraySlice;
+template <typename Derived> class EigenSlice;
 class ConstModelArraySlice;
 /*
  * Set the storage order to row major. This matches with DGVector when there is
@@ -687,6 +688,7 @@ private:
 
     // ModelArraySlice needs access to the internals for fast slcing
     friend ModelArraySlice;
+    template <typename Derived> friend class EigenSlice;
 };
 
 #include "include/ModelArrayTypedefs.hpp"

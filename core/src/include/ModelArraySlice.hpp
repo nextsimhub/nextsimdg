@@ -1,7 +1,7 @@
 /*!
  * @file ModelArraySlice.hpp
  *
- * @date Nov 8, 2024
+ * @date 15 Jul 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -18,6 +18,7 @@ namespace Nextsim {
 class MASIter;
 class ModelArraySlice;
 class ConstModelArraySlice;
+template <typename Derived> class EigenSlice;
 std::ostream& operator<<(std::ostream& os, const MASIter& it);
 
 /*!
@@ -282,6 +283,7 @@ public:
 
     friend MASIter;
     friend ConstModelArraySlice;
+    template <typename Derived> friend class EigenSlice;
 
 private:
     static void copyBetweenMAandMASlice(
