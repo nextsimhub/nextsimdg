@@ -107,13 +107,13 @@ MPI_TEST_CASE("test EigenSlice on a 3 proc grid", 3)
         initializeData(source, test_rank);
 
         // check we can copy the middle block from one to the other
-        Slice sl { { { 1, -1 }, { 1, -1 }, { 0, -1 } } };
+        Slice sl { { { 1, -1 }, { 1, -1 }, {} } };
         EigenSlice<ModelArray::DataType> sourceSlice(source, sl);
         EigenSlice<ModelArray::DataType> targetSlice(target, sl);
 
         sourceSlice.print();
         targetSlice.print();
-        targetSlice.copyFromSlicedBuffer(sourceSlice);
+        sourceSlice.copyToSlicedBuffer(targetSlice);
         targetSlice.print();
 
         REQUIRE(target.components({ 2, 3 })[1] == source.components({ 2, 3 })[1]);
