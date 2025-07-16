@@ -1,7 +1,7 @@
 /*!
  * @file EigenSlice.hpp
  *
- * @date 15 Jul 2025
+ * @date 16 Jul 2025
  * @author Tom Meltzer <tdm39@cam.ac.uk>
  */
 
@@ -55,14 +55,14 @@ private:
 public:
     explicit EigenSlice(ModelArray& ma, const Slice& sl)
         : data(ma.m_data)
-        , dimensions({ ma.dimensions()[0], ma.dimensions()[1], ma.nComponents() })
+        , dimensions(ma.dimensions())
         , slice(sl)
     {
     }
 
     explicit EigenSlice(DGVector<DGCOMP>& dgv, const Slice& sl, const ParametricMesh& smesh)
         : data(dgv)
-        , dimensions({ smesh.nx, smesh.ny, DGCOMP })
+        , dimensions({ smesh.nx, smesh.ny })
         , slice(sl)
     {
     }
