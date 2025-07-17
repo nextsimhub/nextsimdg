@@ -9,20 +9,20 @@ set(PHYSICS_INCLUDE_DIRS "../../physics/src" "../../physics/src/modules")
 
 set(ModulesRoot "../src/modules")
 
-# Generate netCDF files for tests
-add_custom_command(
-    OUTPUT ParaGridIO_test_input.nc
-    COMMAND ncgen -k netCDF-4 -o ParaGridIO_test_input.nc
-            ${CMAKE_CURRENT_SOURCE_DIR}/ParaGridIO_test_input.cdl
-    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/ParaGridIO_test_input.cdl
-)
-add_custom_command(
-    OUTPUT old_names.nc
-    COMMAND ncgen -k netCDF-4 -o old_names.nc
-            ${CMAKE_CURRENT_SOURCE_DIR}/old_names.cdl
-    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/old_names.cdl
-)
-add_custom_target(generate_core_input_files ALL DEPENDS ParaGridIO_test_input.nc old_names.nc)
+# Generate the example feature and target data files for testing
+set(BASE_NAMES "ParaGridIO_test_input" "old_names")
+foreach(BASE_NAME IN LISTS BASE_NAMES)
+    set(OUTPUT_FILE ${BASE_NAME}.nc)
+    set(INPUT_FILE "${CMAKE_CURRENT_SOURCE_DIR}/${BASE_NAME}.cdl")
+    add_custom_command(
+        OUTPUT ${OUTPUT_FILE}
+        COMMAND ncgen -k netCDF-4 -o ${OUTPUT_FILE} ${INPUT_FILE}
+        DEPENDS ${INPUT_FILE}
+        WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
+    )
+    list(APPEND GENERATED_FILES ${OUTPUT_FILE})
+endforeach()
+add_custom_target(generate_core_input_files ALL DEPENDS ${GENERATED_FILES})
 
 include_directories(${COMMON_INCLUDE_DIRS})
 set(MODEL_INCLUDE_DIR "../../core/src/discontinuousgalerkin")
