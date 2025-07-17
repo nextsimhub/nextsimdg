@@ -95,10 +95,13 @@ void ThermoIce0::calculateElement(size_t i, const TimestepTime& tst)
     if (hiceDG[i] <= IceMinima::h() || ciceDG[i] <= IceMinima::c()) {
         deltaHi[i] = 0.;
         snowToIce[i] = 0.;
-        snowMelt[i] = 0;
+        snowMelt[i] = 0.;
+        qswBase[i] = 0.;
 
         tsurf[i] = freezingPointIce;
 
+        // Add to open water flux, since ciceDG will be set to zero
+        qow[i] += (hiceDG[i] * bulkLHFusionIce + hsnowDG[i] * bulkLHFusionSnow) / tst.step;
         ciceDG[i] = 0.;
         hiceDG[i] = 0.;
         hsnowDG[i] = 0.;
@@ -176,8 +179,8 @@ void ThermoIce0::calculateElement(size_t i, const TimestepTime& tst)
         // Change in thickness is all of the old thickness
         deltaHi[i] = -oldHi;
 
-        // The ice-ocean flux includes all the latent heat
-        qio[i] += hi * bulkLHFusionIce / tst.step + hs * bulkLHFusionSnow / tst.step;
+        // Add the melt flux to open water flux, since ciceDG will be set to zero
+        qow[i] += ciceDG[i] * (hi * bulkLHFusionIce + hs * bulkLHFusionSnow) / tst.step;
 
         // No ice, no snow and the surface temperature is the melting point of ice
         ciceDG[i] = 0.;

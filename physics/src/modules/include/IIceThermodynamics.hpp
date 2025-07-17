@@ -81,6 +81,7 @@ protected:
         , hsnowDG(getStore())
         , qic(getStore())
         , qio(getStore())
+        , qow(getStore())
         , qia(getStore())
         , dQia_dt(getStore())
         , penSw(getStore())
@@ -101,6 +102,7 @@ protected:
         qic; // From IceTemperature. Conductive heat flux to the ice surface.
     ModelArrayRef<Shared::Q_SW_BASE, RW> qswBase; // Short-wave flux through the base of the ice
     ModelArrayRef<Shared::Q_IO, RW> qio; // From FluxCalculation
+    ModelArrayRef<Shared::Q_OW, RW> qow; // From FluxCalculation
     ModelArrayRef<Shared::Q_IA, RO> qia; // From FluxCalculation
     ModelArrayRef<Shared::DQIA_DT, RO> dQia_dt; // From FluxCalculation
     ModelArrayRef<Shared::Q_PEN_SW, RO> penSw; // From FluxCalculation
