@@ -77,41 +77,41 @@ TEST_CASE("TOPAZOcean test")
     // Use this, rather than the literal 0.035045, as the two are not equal at double precision
     double targetFrac = 35 * 0.001 + 45 * 0.000001;
 
-    REQUIRE(sst(0, 0) == mdi);
-    REQUIRE(sst(32, 32) == -0.032032);
-    REQUIRE(sst(45, 35) == -(0 + targetFrac));
-    REQUIRE(mld(45, 35) == (10 + targetFrac));
-    REQUIRE(ssh(45, 35) == (20 + targetFrac));
+    REQUIRE(sst(0, 0) == doctest::Approx(mdi));
+    REQUIRE(sst(32, 32) == doctest::Approx(-0.032032));
+    REQUIRE(sst(45, 35) == doctest::Approx(-(0 + targetFrac)));
+    REQUIRE(mld(45, 35) == doctest::Approx((10 + targetFrac)));
+    REQUIRE(ssh(45, 35) == doctest::Approx((20 + targetFrac)));
 
     TimePoint t2("2000-02-01T00:00:00Z");
     topaz.updateBefore({ t2, Duration(600) });
 
-    REQUIRE(sst(0, 0) == mdi);
-    REQUIRE(sst(32, 32) == -0.032032 - 1);
-    REQUIRE(sst(45, 35) == -(0 + targetFrac) - 1);
-    REQUIRE(mld(45, 35) == (10 + targetFrac) + 1);
-    REQUIRE(ssh(45, 35) == (20 + targetFrac) + 1);
+    REQUIRE(sst(0, 0) == doctest::Approx(mdi));
+    REQUIRE(sst(32, 32) == doctest::Approx(-0.032032 - 1));
+    REQUIRE(sst(45, 35) == doctest::Approx(-(0 + targetFrac) - 1));
+    REQUIRE(mld(45, 35) == doctest::Approx((10 + targetFrac) + 1));
+    REQUIRE(ssh(45, 35) == doctest::Approx((20 + targetFrac) + 1));
 
     TimePoint t12("2000-12-01T00:00:00Z");
     topaz.updateBefore({ t12, Duration(600) });
 
-    REQUIRE(sst(0, 0) == mdi);
-    REQUIRE(sst(32, 32) == -0.032032 - 11);
-    REQUIRE(sst(45, 35) == -(0 + targetFrac) - 11);
-    REQUIRE(mld(45, 35) == (10 + targetFrac) + 11);
-    REQUIRE(ssh(45, 35) == (20 + targetFrac) + 11);
+    REQUIRE(sst(0, 0) == doctest::Approx(mdi));
+    REQUIRE(sst(32, 32) == doctest::Approx(-0.032032 - 11));
+    REQUIRE(sst(45, 35) == doctest::Approx(-(0 + targetFrac) - 11));
+    REQUIRE(mld(45, 35) == doctest::Approx((10 + targetFrac) + 11));
+    REQUIRE(ssh(45, 35) == doctest::Approx((20 + targetFrac) + 11));
 
     // All times after the last time sample should use the last sample's data
     TimePoint t120("2010-01-01T00:00:00Z");
     topaz.updateBefore({ t120, Duration(600) });
 
-    REQUIRE(sst(0, 0) == mdi);
-    REQUIRE(sst(32, 32) == -0.032032 - 11);
-    REQUIRE(sst(45, 35) == -(0 + targetFrac) - 11);
-    REQUIRE(mld(45, 35) == (10 + targetFrac) + 11);
-    REQUIRE(ssh(45, 35) == (20 + targetFrac) + 11);
+    REQUIRE(sst(0, 0) == doctest::Approx(mdi));
+    REQUIRE(sst(32, 32) == doctest::Approx(-0.032032 - 11));
+    REQUIRE(sst(45, 35) == doctest::Approx(-(0 + targetFrac) - 11));
+    REQUIRE(mld(45, 35) == doctest::Approx((10 + targetFrac) + 11));
+    REQUIRE(ssh(45, 35) == doctest::Approx((20 + targetFrac) + 11));
 
-    std::filesystem::remove(filePath);
+    std::filesystem::remove(filename);
 }
 TEST_SUITE_END();
 }
