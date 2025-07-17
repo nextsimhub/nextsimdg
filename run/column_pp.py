@@ -2,16 +2,13 @@ import matplotlib.pyplot as plt
 import netCDF4
 import numpy as np
 
-# TODO: Remove nc groups
-# TODO: Convert to CDL
-
 file = 'diagnostic.nc'
 
 # Load the basic variables
 root = netCDF4.Dataset(file, "r", format="NETCDF4")
-hice = np.squeeze(np.array(root.groups["data"].variables["hice"][:].data))
-hsnow = np.squeeze(np.array(root.groups["data"].variables["hsnow"][:].data))
-tice = np.array(root.groups["data"].variables["tice"][:].data)
+hice = np.squeeze(np.array(root.variables["hice"][:].data))
+hsnow = np.squeeze(np.array(root.variables["hsnow"][:].data))
+tice = np.array(root.variables["tice"][:].data)
 
 # Calculate ice draught for a nicer visualisation
 rho = 917
