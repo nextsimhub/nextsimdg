@@ -22,7 +22,7 @@ add_custom_command(
             ${CMAKE_CURRENT_SOURCE_DIR}/old_names.cdl
     DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/old_names.cdl
 )
-add_custom_target(generate_paragridio_input_files ALL DEPENDS ParaGridIO_test_input.nc old_names.nc)
+add_custom_target(generate_core_input_files ALL DEPENDS ParaGridIO_test_input.nc old_names.nc)
 
 include_directories(${COMMON_INCLUDE_DIRS})
 set(MODEL_INCLUDE_DIR "../../core/src/discontinuousgalerkin")

@@ -23,4 +23,4 @@ execute_process(
     COMMAND "${Python_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/make_init_benchmark.py"
     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
 )
-add_custom_target(generate_input_files ALL DEPENDS init_rect20x30.nc init_column.nc)
+add_custom_target(generate_run_input_files ALL DEPENDS init_rect20x30.nc init_column.nc)
