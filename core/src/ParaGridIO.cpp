@@ -348,7 +348,6 @@ void ParaGridIO::writeDiagnosticTime(
     if (isNew) {
         // Write the common structure and time metadata
         CommonRestartMetadata::writeStructureType(ncFile, meta);
-        CommonRestartMetadata::writeRestartMetadata(ncFile, meta);
     }
     // Get the unlimited time dimension, creating it if necessary
     netCDF::NcDim timeDim = (isNew) ? ncFile.addDim(timeName) : ncFile.getDim(timeName);
