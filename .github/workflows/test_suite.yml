@@ -64,13 +64,15 @@ jobs:
         . $HOME/nextsim/bin/activate
         apt update
         apt install -y wget
+        # Unit tests
         cd build
         (cd core/test && wget "ftp://ftp.nersc.no/nextsim/netCDF/partition_metadata_1.nc")
         ctest -V
-        mv ../test .
+        # Integration tests
+        cp ../test/* test/
         cd test
-        python3 ThermoIntegration_test.py
-        ./run_test_jan2010_integration_test.sh python3
+        python ThermoIntegration_test.py
+        ./run_test_jan2010_integration_test.sh python
 
   test-ubuntu-mpi-noxios:
 
