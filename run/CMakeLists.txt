@@ -26,3 +26,11 @@ foreach(BASE_NAME IN LISTS BASE_NAMES)
     list(APPEND GENERATED_FILES ${OUTPUT_FILE})
 endforeach()
 add_custom_target(generate_run_input_files ALL DEPENDS ${GENERATED_FILES})
+
+# Copy init_column.nc to test directory
+add_custom_command(
+    TARGET generate_run_input_files POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${CMAKE_CURRENT_SOURCE_DIR}/init_column.nc"
+            "${CMAKE_CURRENT_SOURCE_DIR}/../test/init_column.nc"
+)

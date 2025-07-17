@@ -20,3 +20,4 @@ __pycache__/
 *.sif
 .*sw?
 /run/*.cdl
+test/ThermoIntegration.cfg
