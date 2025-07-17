@@ -22,9 +22,8 @@
 #include <filesystem>
 #include <memory>
 
-#ifndef TEST_FILES_DIR
-#define TEST_FILES_DIR "."
-#endif
+const std::string testFilesDir = TEST_FILES_DIR;
+const std::string filename = testFilesDir + "/era5_test128x128.nc";
 
 extern template class Module::Module<Nextsim::IFluxCalculation>;
 
@@ -34,17 +33,14 @@ namespace Nextsim {
 class NullFlux : public IFluxCalculation {
 public:
     NullFlux()
-    : IFluxCalculation()
+        : IFluxCalculation()
     {
     }
     void update(const TimestepTime&) override { }
 
 } nullFlux;
 
-std::unique_ptr<IFluxCalculation> setNullFlux()
-{
-    return std::make_unique<NullFlux>();
-}
+std::unique_ptr<IFluxCalculation> setNullFlux() { return std::make_unique<NullFlux>(); }
 
 TEST_SUITE_BEGIN("ERA5Atmosphere");
 #ifdef USE_MPI
@@ -53,10 +49,6 @@ MPI_TEST_CASE("ERA5Atmosphere construction test", 1)
 TEST_CASE("ERA5Atmosphere construction test")
 #endif
 {
-    const std::string filePath = "era5_test128x128.nc";
-    const std::string orig_file = std::string(TEST_FILES_DIR) + "/" + filePath;
-    std::filesystem::copy(orig_file, filePath, std::filesystem::copy_options::overwrite_existing);
-
     // In the real model, the array sizes will have been set by the restart file by this point
     size_t nx = 128;
     size_t ny = 128;
@@ -80,7 +72,7 @@ TEST_CASE("ERA5Atmosphere construction test")
     Module::Module<IFluxCalculation>::setExternalImplementation(setNullFlux);
 
     e5.configure();
-    e5.setFilePath(filePath);
+    e5.setFilePath(filename);
 
     ModelArrayRef<Protected::T_AIR> tair(ModelComponent::getStore());
     ModelArrayRef<Protected::DEW_2M> tdew(ModelComponent::getStore());
@@ -127,7 +119,7 @@ TEST_CASE("ERA5Atmosphere construction test")
     REQUIRE(pair(30, 20) == (1.01e5 + 20.030) + 1000 * 11);
     REQUIRE(u(30, 20) == (10 + 20.030) + 10 * 11);
 
-    std::filesystem::remove(filePath);
+    std::filesystem::remove(filename);
 }
 TEST_SUITE_END();
 }

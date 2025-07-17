@@ -20,9 +20,8 @@
 
 #include <filesystem>
 
-#ifndef TEST_FILES_DIR
-#define TEST_FILES_DIR "."
-#endif
+const std::string testFilesDir = TEST_FILES_DIR;
+const std::string filename = testFilesDir + "/topaz_test128x128.nc";
 
 namespace Nextsim {
 
@@ -33,10 +32,6 @@ MPI_TEST_CASE("TOPAZOcean test", 1)
 TEST_CASE("TOPAZOcean test")
 #endif
 {
-    const std::string filePath = "topaz_test128x128.nc";
-    const std::string orig_file = std::string(TEST_FILES_DIR) + "/" + filePath;
-    std::filesystem::copy(orig_file, filePath, std::filesystem::copy_options::overwrite_existing);
-
     // In the real model, the array sizes will have been set by the restart file by this point
     size_t nx = 128;
     size_t ny = 128;
@@ -57,7 +52,7 @@ TEST_CASE("TOPAZOcean test")
 
     TOPAZOcean topaz;
     topaz.configure();
-    topaz.setFilePath(filePath);
+    topaz.setFilePath(filename);
 
     ModelArrayRef<Protected::EXT_SST> sst(ModelComponent::getStore());
     ModelArrayRef<Protected::EXT_SSS> sss(ModelComponent::getStore());
