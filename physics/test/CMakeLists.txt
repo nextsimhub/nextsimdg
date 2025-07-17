@@ -11,15 +11,18 @@ set(CoreModulesRoot "../../core/src/modules")
 
 # Generate the boundary test data files
 add_custom_command(
-    OUTPUT era5_test-data.nc
-    COMMAND ncgen -k netCDF-4 -o era5_test-data.nc
-            ${CMAKE_CURRENT_SOURCE_DIR}/era5_test-data.cdl
-    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/era5_test-data.cdl
+    OUTPUT era5_test128x128.nc
+    COMMAND ncgen -k netCDF-4 -o era5_test128x128.nc
+            ${CMAKE_CURRENT_SOURCE_DIR}/era5_test128x128.cdl
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/era5_test128x128.cdl
 )
-execute_process(
-    COMMAND "${Python_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/topaz_test_data.py"
-    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+add_custom_command(
+    OUTPUT topaz_test128x128.nc
+    COMMAND ncgen -k netCDF-4 -o topaz_test128x128.nc
+            ${CMAKE_CURRENT_SOURCE_DIR}/topaz_test128x128.cdl
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/topaz_test128x128.cdl
 )
+add_custom_target(generate_physics_input_files ALL DEPENDS era5_test128x128.nc topaz_test128x128.nc)
 
 include_directories(${COMMON_INCLUDE_DIRS})
 
@@ -27,7 +30,7 @@ if(ENABLE_MPI)
     add_executable(testERA5Atm_MPI1 "ERA5Atm_test.cpp" "../../core/test/MainMPI.cpp")
     target_compile_definitions(
         testERA5Atm_MPI1
-        PRIVATE USE_MPI TEST_FILES_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}\"
+        PRIVATE USE_MPI TEST_FILES_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\"
     )
     target_include_directories(testERA5Atm_MPI1 PRIVATE "${ModulesRoot}/AtmosphereBoundaryModule")
     target_link_libraries(testERA5Atm_MPI1 PRIVATE nextsimlib doctest::doctest)
@@ -36,7 +39,7 @@ if(ENABLE_MPI)
     target_include_directories(testTOPAZOcn_MPI1 PRIVATE "${ModulesRoot}/OceanBoundaryModule")
     target_compile_definitions(
         testTOPAZOcn_MPI1
-        PRIVATE USE_MPI TEST_FILES_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}\"
+        PRIVATE USE_MPI TEST_FILES_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\"
     )
     target_link_libraries(testTOPAZOcn_MPI1 PRIVATE nextsimlib doctest::doctest)
 
