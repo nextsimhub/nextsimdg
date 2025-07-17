@@ -25,6 +25,7 @@ std::stringstream NetcdfMetadataConfiguration::read(const std::string& source)
 
     std::stringstream config;
 
+    // FIXME: It's reading coords but that has more than one entry!
     std::multimap<std::string, netCDF::NcVar> configs = ncFile.getVars();
     for (auto entry : configs) {
         config << entry.first << " = ";
