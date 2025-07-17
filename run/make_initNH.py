@@ -4,7 +4,7 @@ import numpy.ma as ma
 import time
 from pathlib import Path
 
-from interpolaters import topaz4_interpolate
+from interpolators import topaz4_interpolate
 
 topaz_mdi = -32767
 

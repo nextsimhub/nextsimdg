@@ -3,7 +3,7 @@ import numpy as np
 import time
 import calendar
 
-from interpolaters import topaz4_interpolate, era5_interpolate, heading_to_greenland, rotate_velocities
+from interpolators import topaz4_interpolate, era5_interpolate, heading_to_greenland, rotate_velocities
 
 sec_per_hr = 3600
 hr_per_day = 24
