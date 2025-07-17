@@ -173,9 +173,11 @@ jobs:
         make -j 4
     - name: run serial tests
       run: |
+        # Unit tests
         cd build
         ctest -V
-        mv ../test .
+        # Integration tests
+        cp ../test/* test/
         cd test
         python ThermoIntegration_test.py
         ./run_test_jan2010_integration_test.sh python
