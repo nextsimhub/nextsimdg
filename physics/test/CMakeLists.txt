@@ -10,9 +10,11 @@ set(ModulesRoot "../src/modules")
 set(CoreModulesRoot "../../core/src/modules")
 
 # Generate the boundary test data files
-execute_process(
-    COMMAND "${Python_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/era5_test_data.py"
-    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+add_custom_command(
+    OUTPUT era5_test-data.nc
+    COMMAND ncgen -k netCDF-4 -o era5_test-data.nc
+            ${CMAKE_CURRENT_SOURCE_DIR}/era5_test-data.cdl
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/era5_test-data.cdl
 )
 execute_process(
     COMMAND "${Python_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/topaz_test_data.py"
