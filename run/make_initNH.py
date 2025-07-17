@@ -5,8 +5,6 @@ import time
 import math
 from pathlib import Path
 
-# TODO: Remove nc groups
-# TODO: Convert to CDL
 
 topaz_mdi = -32767
 
@@ -22,7 +20,7 @@ def topaz4_source_file_name(field, unix_time):
 def bilinear_missing(eyes, jays, data, missing):
     i = np.floor(eyes).astype(int)
     j = np.floor(jays).astype(int)
-    
+
     fi = eyes - i
     fj = jays - j
 
@@ -37,10 +35,10 @@ def bilinear_missing(eyes, jays, data, missing):
         (1 - fj) * (fi) * dataplier[j, i + 1] +
         (fj) * (1 - fi) * dataplier[j + 1, i] +
         (fj) * (fi) * dataplier[j + 1, i + 1])
-    
+
     weighted_sum += missing * (sum_of_weights == 0)
     sum_of_weights += (sum_of_weights == 0)
-    
+
     return weighted_sum / sum_of_weights
 
 
@@ -49,7 +47,7 @@ def topaz4_interpolate(target_lon_deg, target_lat_deg, data, lat_array):
     # The TOPAZ grid is assumed and hard coded
     ic = 380
     jc = 550
-    
+
     # Scale of the map and zero longitude
  #   two_r = 1 / math.radians(0.08982849)
     lon0 = math.radians(315.)
@@ -65,7 +63,7 @@ def topaz4_interpolate(target_lon_deg, target_lat_deg, data, lat_array):
     y = -topaz_i0 * np.cos(target_lon - lon0)
     target_i = x + ic
     target_j = y + jc
-    
+
     return bilinear_missing(target_i, target_j, data, topaz_mdi)
 
 # Creates a 128 x 128 ParaGrid restart file filled with data from TOPAZ on 2010-01-01
@@ -76,7 +74,7 @@ if __name__ == "__main__":
     parser.add_argument("--topaz-path", dest = "topaz_path", default=".", help = "Path containing the TOPAZ4 files.")
     parser.add_argument("--land-mask", dest = "land_mask", default='data', help='One of "data" or "data_closed_boundary"')
     parser.add_argument("--out-suffix", dest = "out_suffix", default='', help='Added to the name of the output file before the ending"')
-    
+
     args = parser.parse_args()
     grid_file = args.grid_file
     topaz_path = args.topaz_path
@@ -84,7 +82,7 @@ if __name__ == "__main__":
     out_suffix = args.out_suffix
 
     grid = netCDF4.Dataset(f"{grid_file}", "r")
-    
+
     # Grid dimensions. Since x and y are switched between the source grid file
     # and the target restart file, the grid dimensions are nfirst and nsecond.
     # nsecond is the size of the dimension that varies fastest.
@@ -95,88 +93,79 @@ if __name__ == "__main__":
     n_dg = 1
     n_dgstress = 3
     n_coords = 2
-    
+
     grid_name = Path(grid_file).stem
     out_name = f"init_{grid_name}{out_suffix}.nc"
     root = netCDF4.Dataset(out_name, "w", format="NETCDF4")
-    
-    structure_name = "parametric_rectangular"
-    structgrp = root.createGroup("structure")
-    structgrp.type = structure_name
-    
-    metagrp = root.createGroup("metadata")
-    metagrp.type = structure_name
-    confgrp = metagrp.createGroup("configuration") # But add nothing to it
-    timegrp = metagrp.createGroup("time")
-    time_var = timegrp.createVariable("time", "i8")
+
+    time_var = root.createVariable("time", "i8")
     data_time = 1263204000
     time_var[:] = data_time
     time.units = "seconds since 1970-01-01T00:00:00Z"
-    formatted = timegrp.createVariable("formatted", str)
+    formatted = root.createVariable("formatted", str)
     formatted.format = "%Y-%m-%dT%H:%M:%SZ"
     formatted[0] = "2010-01-01T00:00:00Z"
-    datagrp = root.createGroup("data")
 
-    yDim = datagrp.createDimension("ydim", nfirst)
-    xDim = datagrp.createDimension("xdim", nsecond)
-    yVertexDim = datagrp.createDimension("yvertex", nfirst + 1)
-    xVertexDim = datagrp.createDimension("xvertex", nsecond+ 1)
-    ycg_dim = datagrp.createDimension("y_cg", nfirst * ncg + 1)
-    xcg_dim = datagrp.createDimension("x_cg", nsecond * ncg + 1)
-    dg_comp = datagrp.createDimension("dg_comp", n_dg)
-    dgs_comp = datagrp.createDimension("dgstress_comp", n_dgstress)
-    n_coords_comp = datagrp.createDimension("ncoords", n_coords)
-    
+    yDim = root.createDimension("ydim", nfirst)
+    xDim = root.createDimension("xdim", nsecond)
+    yVertexDim = root.createDimension("yvertex", nfirst + 1)
+    xVertexDim = root.createDimension("xvertex", nsecond+ 1)
+    ycg_dim = root.createDimension("y_cg", nfirst * ncg + 1)
+    xcg_dim = root.createDimension("x_cg", nsecond * ncg + 1)
+    dg_comp = root.createDimension("dg_comp", n_dg)
+    dgs_comp = root.createDimension("dgstress_comp", n_dgstress)
+    n_coords_comp = root.createDimension("ncoords", n_coords)
+
     field_dims = ("ydim", "xdim")
     coord_dims = ("yvertex", "xvertex", "ncoords")
 
     # Array coordinates
     node_lon = np.zeros((nfirst + 1, nsecond + 1))
     node_lat = np.zeros((nfirst + 1, nsecond + 1))
-    
+
     node_lon[0:-1, 0:-1] = grid["lon_corners"][:, :, 0]
     node_lon[0:-1, -1] = grid["lon_corners"][:, -1, 1]
     node_lon[-1, -1] = grid["lon_corners"][-1, -1, 2]
     node_lon[-1, 0:-1] = grid["lon_corners"][-1, :, 3]
-    
+
     node_lat[0:-1, 0:-1] = grid["lat_corners"][:, :, 0]
     node_lat[0:-1, -1] = grid["lat_corners"][:, -1, 1]
     node_lat[-1, -1] = grid["lat_corners"][-1, -1, 2]
     node_lat[-1, 0:-1] = grid["lat_corners"][-1, :, 3]
-    
-    coords = datagrp.createVariable("coords", "f8", coord_dims)
+
+    coords = root.createVariable("coords", "f8", coord_dims)
     coords[:,:,0] = node_lon
     coords[:,:,1] = node_lat
-    
-    elem_lon = datagrp.createVariable("longitude", "f8", field_dims)
+
+    elem_lon = root.createVariable("longitude", "f8", field_dims)
     elem_lon[:, :] = grid["plon"][:, :]
-    elem_lat = datagrp.createVariable("latitude", "f8", field_dims)
+    elem_lat = root.createVariable("latitude", "f8", field_dims)
     elem_lat[:, :] = grid["plat"][:, :]
-    
-    grid_azimuth = datagrp.createVariable("grid_azimuth", "f8", field_dims)
+
+    grid_azimuth = root.createVariable("grid_azimuth", "f8", field_dims)
     # Return the grid azimuth to the range -180˚ to 180˚
     grid_azimuth_data = grid["plon"][:, :] + np.degrees(grid["ptheta"][:, :])
     grid_azimuth_data += 180
     grid_azimuth_data %= 360.
     grid_azimuth_data -= 180
     grid_azimuth[:, :] = grid_azimuth_data
-    
+
     # Access the TOPAZ data, initially to get latitudes
     source_file_name = topaz4_source_file_name("hice", data_time)
     source_file = netCDF4.Dataset(source_file_name, "r")
     source_lats = source_file["latitude"][:, :]
     lat_array = source_lats[550:, 380]
-    
+
     # Coordinate values in the file
     element_lon = elem_lon[:, :]
     element_lat = elem_lat[:, :]
 
     # All fields are stored in one file, already opened as source_file
     # Sea-land mask
-    mask = datagrp.createVariable("mask", "f8", field_dims)
+    mask = root.createVariable("mask", "f8", field_dims)
     sst_data = topaz4_interpolate(element_lon, element_lat, source_file["temperature"][0, :, :].squeeze(), lat_array)
     mask[:, :] = 1 - ma.getmask(sst_data)
-    
+
     land_ratio = np.count_nonzero(mask) / mask.size
     print(f"ratio of sea (active) cells to total: {land_ratio}")
     if land_mask in ['data_closed_boundary']:
@@ -186,7 +175,7 @@ if __name__ == "__main__":
         mask[-1,:] = 0.0
         land_ratio = np.count_nonzero(mask) / mask.size
         print(f"ratio after adjustment: {land_ratio}")
-    
+
     # Ice concentration and thickness
     cice_data = topaz4_interpolate(element_lon, element_lat, source_file["fice"][0, :, :].squeeze(), lat_array)
     hice_data = topaz4_interpolate(element_lon, element_lat, source_file["hice"][0, :, :].squeeze(), lat_array)
@@ -197,38 +186,38 @@ if __name__ == "__main__":
     noice = np.logical_or(cice_data < cice_min, hice_data < hice_min)
     isice = 1 - noice
     cice_data *= isice
-    
+
     hice_data *= isice
     hice_data *= cice_data # Convert from ice averaged to grid averaged
-    
-    cice = datagrp.createVariable("cice", "f8", field_dims)
-    hice = datagrp.createVariable("hice", "f8", field_dims)
+
+    cice = root.createVariable("cice", "f8", field_dims)
+    hice = root.createVariable("hice", "f8", field_dims)
     cice[:, :] = cice_data
     hice[:, :] = hice_data
-    
+
     # Snow thickness
-    hsnow = datagrp.createVariable("hsnow", "f8", field_dims)
+    hsnow = root.createVariable("hsnow", "f8", field_dims)
     hsnow_data = topaz4_interpolate(element_lon, element_lat, source_file["hsnow"][0, :, :].squeeze(), lat_array)
     hsnow_data *= noice
     hsnow_data *= cice_data
     hsnow[:, :] = hsnow_data
 
     # SSS
-    sss = datagrp.createVariable("sss", "f8", field_dims)
+    sss = root.createVariable("sss", "f8", field_dims)
     sss_data = topaz4_interpolate(element_lon, element_lat, source_file["salinity"][0, :, :].squeeze(), lat_array)
     sss[:, :] = sss_data
 
     mu = -0.055
 
     # SST
-    sst = datagrp.createVariable("sst", "f8", field_dims)
+    sst = root.createVariable("sst", "f8", field_dims)
     sst_data = topaz4_interpolate(element_lon, element_lat, source_file["temperature"][0, :, :].squeeze(), lat_array)
     sst[:, :] = sst_data * noice + mu * sss_data * isice
 
     # Ice temperature
-    tsurf = datagrp.createVariable("tsurf", "f8", field_dims)
-    tintr = datagrp.createVariable("tinterior", "f8", field_dims)
-    tbott = datagrp.createVariable("tbottom", "f8", field_dims)
+    tsurf = root.createVariable("tsurf", "f8", field_dims)
+    tintr = root.createVariable("tinterior", "f8", field_dims)
+    tbott = root.createVariable("tbottom", "f8", field_dims)
     #ice_melt = mu * 5 # Melting point of sea ice (salinity = 5) in ˚C
     ice_melt = mu
     # Tice outside the ice pack is the melting point of pure water ice, which is conveniently 0˚C
@@ -236,15 +225,15 @@ if __name__ == "__main__":
     tsurf[:, :] = ice_temp2d
     tintr[:, :] = ice_temp2d
     tbott[:, :] = ice_temp2d
-    
+
     uv_source_file = netCDF4.Dataset(topaz4_source_file_name("u", data_time), "r")
 
     # Ice starts at rest
-    u = datagrp.createVariable("u", "f8", field_dims)
+    u = root.createVariable("u", "f8", field_dims)
     u[:, :] = 0
 
-    v = datagrp.createVariable("v", "f8", field_dims)
+    v = root.createVariable("v", "f8", field_dims)
     v[:, :] = 0
-    
+
     root.close()
     print(f'Created init file "{out_name}"')

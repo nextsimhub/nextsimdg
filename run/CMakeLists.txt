@@ -1,5 +1,4 @@
-# Generate the example restart files that don't depend on external data
-# TODO: Convert these to the CDL approach
+# Generate NetCDF files from Python scripts
 execute_process(
   COMMAND "${Python_EXECUTABLE}"
           "${CMAKE_CURRENT_SOURCE_DIR}/make_init_benchmark.py"

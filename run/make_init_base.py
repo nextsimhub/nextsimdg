@@ -106,24 +106,15 @@ class initMaker:
 
         root = netCDF4.Dataset(self.__fname, "w", format="NETCDF4")
 
-        structure_name = "parametric_rectangular"
-        structgrp = root.createGroup("structure")
-        structgrp.type = structure_name
-
-        metagrp = root.createGroup("metadata")
-        metagrp.type = structure_name
-        metagrp.createGroup("configuration")  # But add nothing to it
-        datagrp = root.createGroup("data")
-
-        datagrp.createDimension("ydim", self.__nFirst)
-        datagrp.createDimension("xdim", self.__nSecond)
-        datagrp.createDimension("yvertex", self.__nFirst + 1)
-        datagrp.createDimension("xvertex", self.__nSecond + 1)
-        datagrp.createDimension("y_cg", self.__nFirst * self.__nCg + 1)
-        datagrp.createDimension("x_cg", self.__nSecond * self.__nCg + 1)
-        datagrp.createDimension("dg_comp", self.__nDg)
-        datagrp.createDimension("dgstress_comp", self.__nDgStress)
-        datagrp.createDimension("ncoords", self.__nCoords)
+        root.createDimension("ydim", self.__nFirst)
+        root.createDimension("xdim", self.__nSecond)
+        root.createDimension("yvertex", self.__nFirst + 1)
+        root.createDimension("xvertex", self.__nSecond + 1)
+        root.createDimension("y_cg", self.__nFirst * self.__nCg + 1)
+        root.createDimension("x_cg", self.__nSecond * self.__nCg + 1)
+        root.createDimension("dg_comp", self.__nDg)
+        root.createDimension("dgstress_comp", self.__nDgStress)
+        root.createDimension("ncoords", self.__nCoords)
 
         field_dims = ("ydim", "xdim")
         coord_dims = ("yvertex", "xvertex", "ncoords")
@@ -136,7 +127,7 @@ class initMaker:
                 x[j, i] = i * self.__res
                 y[j, i] = j * self.__res
 
-        coords = datagrp.createVariable("coords", "f8", coord_dims)
+        coords = root.createVariable("coords", "f8", coord_dims)
         coords[:, :, 0] = x
         coords[:, :, 1] = y
 
@@ -147,56 +138,56 @@ class initMaker:
                 px[j, i] = (j + 0.5) * self.__res
                 py[j, i] = (i + 0.5) * self.__res
 
-        elem_x = datagrp.createVariable("x", "f8", field_dims)
+        elem_x = root.createVariable("x", "f8", field_dims)
         elem_x[:, :] = px
-        elem_y = datagrp.createVariable("y", "f8", field_dims)
+        elem_y = root.createVariable("y", "f8", field_dims)
         elem_y[:, :] = py
 
-        grid_azimuth = datagrp.createVariable("grid_azimuth", "f8", field_dims)
+        grid_azimuth = root.createVariable("grid_azimuth", "f8", field_dims)
         grid_azimuth[:, :] = self.azimuth
 
         # Set the mask
-        mask = datagrp.createVariable("mask", "f8", field_dims)
+        mask = root.createVariable("mask", "f8", field_dims)
         mask[:, :] = self.mask
         antimask = 1 - mask[:, :]
 
         # Set the concentration
-        cice = datagrp.createVariable("cice", "f8", field_dims)
+        cice = root.createVariable("cice", "f8", field_dims)
         cice[:, :] = self.cice
 
         # Set the thickness
-        hice = datagrp.createVariable("hice", "f8", field_dims)
+        hice = root.createVariable("hice", "f8", field_dims)
         hice[:, :] = self.hice
 
         # Set snow thickness
-        hsnow = datagrp.createVariable("hsnow", "f8", field_dims)
+        hsnow = root.createVariable("hsnow", "f8", field_dims)
         hsnow[:, :] = self.hsnow
 
         # Set snow thickness
-        damage = datagrp.createVariable("damage", "f8", field_dims)
+        damage = root.createVariable("damage", "f8", field_dims)
         damage[:, :] = self.damage
 
         # Set ice temperatures
-        tsurf = datagrp.createVariable("tsurf", "f8", ("ydim", "xdim"))
+        tsurf = root.createVariable("tsurf", "f8", ("ydim", "xdim"))
         tsurf[:, :] = self.tsurf
         if hasattr(self, "tintr"):
-            tintr = datagrp.createVariable("tinterior", "f8", ("ydim", "xdim"))
+            tintr = root.createVariable("tinterior", "f8", ("ydim", "xdim"))
             tintr[:, :] = self.tintr
         if hasattr(self, "tbott"):
-            tbott = datagrp.createVariable("tbottom", "f8", ("ydim", "xdim"))
+            tbott = root.createVariable("tbottom", "f8", ("ydim", "xdim"))
             tbott[:, :] = self.tintr
 
 
         # Set ice velocity
-        u = datagrp.createVariable("u", "f8", field_dims)
+        u = root.createVariable("u", "f8", field_dims)
         u[:, :] = self.uice
-        v = datagrp.createVariable("v", "f8", field_dims)
+        v = root.createVariable("v", "f8", field_dims)
         v[:, :] = self.vice
 
         # Set ocean state
-        sst = datagrp.createVariable("sst", "f8", field_dims)
+        sst = root.createVariable("sst", "f8", field_dims)
         sst[:, :] = self.sst
-        sss = datagrp.createVariable("sss", "f8", field_dims)
+        sss = root.createVariable("sss", "f8", field_dims)
         sss[:, :] = self.sss
 
         # mask data
