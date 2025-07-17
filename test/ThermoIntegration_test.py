@@ -147,7 +147,6 @@ ks = 0.31
         grid_azimuth = datagrp.createVariable("grid_azimuth", "f8", field_dims)
         grid_azimuth[:, :] = 0
 
-        ice_salinity = 5  # should match Ice::s in constants.hpp
         mu: float = -0.055  # should match Water::mu in constants.hpp
         ocean_temperature = -1.54
         ocean_salinity = ocean_temperature / mu
@@ -164,12 +163,6 @@ ks = 0.31
         sss[:, :] = ocean_salinity
         sst = datagrp.createVariable("sst", "f8", field_dims)
         sst[:, :] = ocean_temperature
-        tsurf = datagrp.createVariable("tsurf", "f8", field_dims)
-        tsurf[:, :] = ice_salinity * mu
-        tintr = datagrp.createVariable("tinterior", "f8", field_dims)
-        tintr[:, :] = ice_salinity * mu
-        tbott = datagrp.createVariable("tbottom", "f8", field_dims)
-        tbott[:, :] = ice_salinity * mu
         # Ice is at rest
         u = datagrp.createVariable("u", "f8", field_dims)
         u[:, :] = 0
