@@ -2,15 +2,11 @@
 # TODO: Convert these to the CDL approach
 execute_process(
   COMMAND "${Python_EXECUTABLE}"
-          "${CMAKE_CURRENT_SOURCE_DIR}/make_init_para24x30.py"
-  WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}")
-execute_process(
-  COMMAND "${Python_EXECUTABLE}"
           "${CMAKE_CURRENT_SOURCE_DIR}/make_init_benchmark.py"
   WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}")
 
 # Generate NetCDF files from CDL files
-set(BASE_NAMES "init_column" "init_rect20x30" "init_rect30x30")
+set(BASE_NAMES "init_column" "init_rect20x30" "init_rect30x30" "init_para24x30")
 foreach(BASE_NAME IN LISTS BASE_NAMES)
     set(OUTPUT_FILE ${BASE_NAME}.nc)
     set(INPUT_FILE ${BASE_NAME}.cdl)
