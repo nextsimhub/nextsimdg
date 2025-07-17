@@ -116,8 +116,7 @@ void HiblerSpread::lateralIceSpread(size_t i, const TimestepTime& tstep)
 void HiblerSpread::applyLimits(size_t i, const TimestepTime& tstep)
 {
     if (ciceDG[i] < IceMinima::c() || hiceDG[i] < IceMinima::h()) {
-        qow[i] += ciceDG[i] * Water::Lf * (hiceDG[i] * Ice::rho + hsnowDG[i] * Ice::rhoSnow)
-            / tstep.step;
+        qow[i] += Water::Lf * (hiceDG[i] * Ice::rho + hsnowDG[i] * Ice::rhoSnow) / tstep.step;
         hiceDG[i] = 0;
         ciceDG[i] = 0;
         hsnowDG[i] = 0;
