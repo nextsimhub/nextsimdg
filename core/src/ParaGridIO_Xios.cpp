@@ -169,10 +169,9 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
             for (netCDF::NcDim& dim : varDims) {
                 dimKey += dim.getName();
             }
+            // Skip invalid dimension keys
             if (!dimensionKeys.count(dimKey)) {
-                throw std::out_of_range(
-                    std::string("No ModelArray::Type corresponds to the dimensional key ")
-                    + dimKey);
+                continue;
             }
             ModelArray::Type type = dimensionKeys.at(dimKey);
             state.data[varName] = ModelArray(type);
