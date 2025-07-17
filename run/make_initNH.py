@@ -222,18 +222,6 @@ if __name__ == "__main__":
     sst_data = topaz4_interpolate(element_lon, element_lat, source_file["temperature"][0, :, :].squeeze(), lat_array)
     sst[:, :] = sst_data * noice + mu * sss_data * isice
 
-    # Ice temperature
-    tsurf = datagrp.createVariable("tsurf", "f8", field_dims)
-    tintr = datagrp.createVariable("tinterior", "f8", field_dims)
-    tbott = datagrp.createVariable("tbottom", "f8", field_dims)
-    #ice_melt = mu * 5 # Melting point of sea ice (salinity = 5) in ˚C
-    ice_melt = mu
-    # Tice outside the ice pack is the melting point of pure water ice, which is conveniently 0˚C
-    ice_temp2d = np.fmin(sst_data, ice_melt)
-    tsurf[:, :] = ice_temp2d
-    tintr[:, :] = ice_temp2d
-    tbott[:, :] = ice_temp2d
-    
     uv_source_file = netCDF4.Dataset(topaz4_source_file_name("u", data_time), "r")
 
     # Ice starts at rest
