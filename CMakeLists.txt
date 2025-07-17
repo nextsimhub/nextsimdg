@@ -50,6 +50,7 @@ if(BUILD_TESTS)
         PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${DOCTEST_INCLUDE_DIR}"
     )
     enable_testing() # Enable ctest
+    add_subdirectory("test")
 endif()
 
 # Eigen
