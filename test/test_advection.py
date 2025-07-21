@@ -22,7 +22,7 @@ data_group = root[data_group_name]
 # Check that an hsnow variable exists
 hsnow_name = "hsnow"
 if not hsnow_name in data_group.variables:
-    print(f"Error: no varaible {hsnow_name} found in netCDF path {file_name}/{data_group_name}.")
+    print(f"Error: no variable {hsnow_name} found in netCDF path {file_name}/{data_group_name}.")
     sys.exit(3)
 
 hsnow = data_group[hsnow_name]
