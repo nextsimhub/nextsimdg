@@ -102,7 +102,7 @@ wind_v = 12
         nfirst = y // res
         nsecond = x // res
 
-        fname = f"init_polynya.nc"
+        fname = cls.init_file
 
         # The model expects everything in metres
         initializer = initMaker(fname, nfirst, nsecond, res*1e3, isWinton=True, checkZeros=False)
