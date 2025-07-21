@@ -8,6 +8,13 @@ import numpy as np
 
 
 class Polynya(unittest.TestCase):
+    """
+    A test class based on the Bjornsson et al. (2001) polynya case. We run the model for 5 days and check the output
+    against known values. The main purpose of this test is to check that the model is running and that the output is
+    reasonable.
+    See Bjornsson et al. (2001) doi:10.3402/tellusa.v53i2.12184 for details.
+    """
+
     # A few useful global variables for the class
     executable = "../nextsim"
 
