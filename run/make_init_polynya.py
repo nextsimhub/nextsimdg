@@ -7,9 +7,8 @@ x = 100
 y = 50
 res = 2
 
-
-nfirst = int(y / res)
-nsecond = int(x / res)
+nfirst = y // res
+nsecond = x // res
 nLayers = 3
 
 fname = "init_polynya.nc"

@@ -99,9 +99,8 @@ wind_v = 12
         y = 50
         res = 4
 
-
-        nfirst = int(y / res)
-        nsecond = int(x / res)
+        nfirst = y // res
+        nsecond = x // res
 
         fname = f"init_polynya.nc"
 
