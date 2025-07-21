@@ -12,7 +12,7 @@ nfirst = int(y / res)
 nsecond = int(x / res)
 nLayers = 3
 
-fname = f"init_polynya.nc"
+fname = "init_polynya.nc"
 
 # The model expects everything in metres
 initializer = initMaker(fname, nfirst, nsecond, res*1e3, isWinton=True, checkZeros=False)
