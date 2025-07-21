@@ -166,8 +166,8 @@ void ThermoWinton::update(const TimestepTime& tst)
 {
     // Advect ice temperatures
     IIceThermodynamics::update(tst);
-    FieldAdvection::advectField(tInternal, tst, IIceThermodynamics::minT, 0.);
-    FieldAdvection::advectField(tBottom, tst, IIceThermodynamics::minT, 0.);
+    FieldAdvection::advectField(tInternal, tst, IIceThermodynamics::minT, seaIceTf);
+    FieldAdvection::advectField(tBottom, tst, IIceThermodynamics::minT, seaIceTf);
     // Perform the rest of the thermodynamics using the advected temperatures
     overElements(
         [this](const size_t i, const TimestepTime& tsTime) { calculateElement(i, tsTime); }, tst);
