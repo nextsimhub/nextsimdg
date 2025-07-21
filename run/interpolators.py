@@ -112,3 +112,32 @@ def rotate_velocities(u, v, angle):
     """
 
     return (u * np.cos(angle) + v * np.sin(angle), -u * np.sin(angle) + v * np.cos(angle))
+
+def rotate_pole_to_greenland(lat, lon):
+    """
+    Rotates the mesh such that the singularities are in Greenland / Antarctica at 75N / 40W and 75S / 140E
+    This is a copy of ParametricMesh::RotatePoleToGreenland in ParametricMesh.cpp. It's here for testing purposes only.
+
+    :param lat: Latitudes of the mesh
+    :param lon: Longitudes of the mesh
+    :return: A tuple of the rotated latitudes and longitudes.
+    """
+
+    latr = np.deg2rad(lat)
+    lonr = np.deg2rad(lon)
+
+    x = np.cos(latr) * np.cos(lonr)
+    y = np.cos(latr) * np.sin(lonr)
+    z = np.sin(latr)
+
+    aw = 40.0 * np.pi / 180.0
+    x1 = np.cos(aw) * x - np.sin(aw) * y
+    y1 = np.sin(aw) * x + np.cos(aw) * y
+    z1 = z
+
+    bw = 15.0 * np.pi / 180.0
+    x2 = np.cos(bw) * x1 - np.sin(bw) * z1
+    y2 = y1
+    z2 = np.sin(bw) * x1 + np.cos(bw) * z1
+
+    return (np.rad2deg(np.arcsin(z2)), np.rad2deg(np.arctan2(y2, x2)))
