@@ -18,7 +18,7 @@ diag_file=advection_test.diagnostic.nc
 $PYTHON make_advection_test_data.py
 echo run_advection_test.sh
 ./run_advection_test.sh
-$PYTHON test_advection_test.py
+$PYTHON test_advection.py
 test_return_value=$?
 rm $restart_file $out_file $diag_file
 rm nextsim.*.log
