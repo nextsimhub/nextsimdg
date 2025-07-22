@@ -69,12 +69,14 @@ void ERA5Atmosphere::configure()
 
     boolCheckFields = Configured::getConfiguration(keyMap.at(CHECKFIELDS_KEY), checkFieldsDefault);
 
-    fieldsToCheck.emplace_back("tair", &tair);
-    fieldsToCheck.emplace_back("tdew", &tdew);
-    fieldsToCheck.emplace_back("pair", &pair);
-    fieldsToCheck.emplace_back("sw_in", &sw_in);
-    fieldsToCheck.emplace_back("lw_in", &lw_in);
-    fieldsToCheck.emplace_back("wind", &wind);
+    addChecks({
+        { "tair", &tair },
+        { "tdew", &tdew },
+        { "pair", &pair },
+        { "sw_in", &sw_in },
+        { "lw_in", &lw_in },
+        { "wind", &wind },
+    });
 }
 
 ConfigMap ERA5Atmosphere::getConfiguration() const

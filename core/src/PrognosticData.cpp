@@ -64,13 +64,15 @@ void PrognosticData::configure()
         = Configured::getConfiguration(keyMap.at(CHECKFIELDS_KEY), checkFieldsFastDefault);
     if (boolCheckAll()) {
         for (const auto& field : getStore().getAllData()) {
-            fieldsToCheck.emplace_back(field.first, field.second);
+            addChecks(field);
         }
     } else if (boolCheckFields) {
-        fieldsToCheck.emplace_back("thickness", &hiceAdvection);
-        fieldsToCheck.emplace_back("concentration", &ciceAdvection);
-        fieldsToCheck.emplace_back("u_velocity", getStore().getArrayRef(Protected::ICE_U));
-        fieldsToCheck.emplace_back("v_velocity", getStore().getArrayRef(Protected::ICE_V));
+        addChecks({
+            { "thickness", &hiceAdvection },
+            { "concentration", &ciceAdvection },
+            { "u_velocity", getStore().getArrayRef(Protected::ICE_U) },
+            { "v_velocity", getStore().getArrayRef(Protected::ICE_V) },
+        });
     }
 }
 

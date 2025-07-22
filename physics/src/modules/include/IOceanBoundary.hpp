@@ -97,23 +97,25 @@ public:
         tauX.resize();
         tauY.resize();
 
-        fieldsToCheck.emplace_back("qio", &qio);
-        fieldsToCheck.emplace_back("sst", &sst);
-        fieldsToCheck.emplace_back("sss", &sss);
-        fieldsToCheck.emplace_back("mld", &mld);
-        fieldsToCheck.emplace_back("cpml", &cpml);
-        fieldsToCheck.emplace_back("tf", &tf);
-        fieldsToCheck.emplace_back("u", &u);
-        fieldsToCheck.emplace_back("v", &v);
-        fieldsToCheck.emplace_back("ssh", &ssh);
-        fieldsToCheck.emplace_back("qNoSun", &qNoSun);
-        fieldsToCheck.emplace_back("qswNet", &qswNet);
-        fieldsToCheck.emplace_back("fwFlux", &fwFlux);
-        fieldsToCheck.emplace_back("sFlux", &sFlux);
-        fieldsToCheck.emplace_back("qswow", &qswow);
-        fieldsToCheck.emplace_back("qswBase", &qswBase);
-        fieldsToCheck.emplace_back("tauX", &tauX);
-        fieldsToCheck.emplace_back("tauY", &tauY);
+        addChecks({
+            { "qio", &qio },
+            { "sst", &sst },
+            { "sss", &sss },
+            { "mld", &mld },
+            { "cpml", &cpml },
+            { "tf", &tf },
+            { "u", &u },
+            { "v", &v },
+            { "ssh", &ssh },
+            { "qNoSun", &qNoSun },
+            { "qswNet", &qswNet },
+            { "fwFlux", &fwFlux },
+            { "sFlux", &sFlux },
+            { "qswow", &qswow },
+            { "qswBase", &qswBase },
+            { "tauX", &tauX },
+            { "tauY", &tauY },
+        });
 
         if (ms.count(sstName)) {
             sst = ms.at(sstName);

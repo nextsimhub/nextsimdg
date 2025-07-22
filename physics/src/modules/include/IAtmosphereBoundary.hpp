@@ -69,15 +69,17 @@ public:
         tauXOW.resize();
         tauYOW.resize();
 
-        fieldsToCheck.emplace_back("qia", &qia);
-        fieldsToCheck.emplace_back("qow", &qow);
-        fieldsToCheck.emplace_back("snow", &snow);
-        fieldsToCheck.emplace_back("rain", &rain);
-        fieldsToCheck.emplace_back("evap", &evap);
-        fieldsToCheck.emplace_back("uwind", &uwind);
-        fieldsToCheck.emplace_back("vwind", &vwind);
-        fieldsToCheck.emplace_back("tauXOW", &tauXOW);
-        fieldsToCheck.emplace_back("tauYOW", &tauYOW);
+        addChecks({
+            { "qia", &qia },
+            { "qow", &qow },
+            { "snow", &snow },
+            { "rain", &rain },
+            { "evap", &evap },
+            { "uwind", &uwind },
+            { "vwind", &vwind },
+            { "tauXOW", &tauXOW },
+            { "tauYOW", &tauYOW },
+        });
     }
     virtual void update(const TimestepTime& tst) { }
 
