@@ -372,7 +372,6 @@ public:
                 m_data.setZero(m_sz.at(type), Eigen::NoChange);
             }
         }
-        m_data.setConstant(std::numeric_limits<float>::signaling_NaN());
     }
 
     /*!
