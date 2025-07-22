@@ -7,10 +7,6 @@
 
 #include "include/ModelComponent.hpp"
 
-#include "include/MissingData.hpp"
-
-#include <cmath>
-
 namespace Nextsim {
 
 size_t ModelComponent::nOcean = 0;
