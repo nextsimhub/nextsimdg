@@ -634,8 +634,8 @@ public:
     static bool hasDoF(const Type type);
 
 private:
-    double lowerPhysicalLimit = -std::numeric_limits<double>::infinity();
-    double upperPhysicalLimit = std::numeric_limits<double>::infinity();
+    double lowerPhysicalLimit = -std::numeric_limits<double>::max();
+    double upperPhysicalLimit = std::numeric_limits<double>::max();
     double fillValue = 0.;
 
 public:
