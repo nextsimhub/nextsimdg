@@ -20,11 +20,12 @@ ModelArray::SizeMap ModelArray::m_sz;
 ModelArray::DimensionMap ModelArray::m_dims;
 bool ModelArray::areMapsInvalid = true;
 
-ModelArray::ModelArray(const Type type)
+ModelArray::ModelArray(const Type type, const std::pair<double, double>& bounds)
     : type(type)
 {
     m_data.resize(std::max(std::size_t { 0 }, m_sz.at(type)), nComponents());
     validateMaps();
+    setLimits(bounds.first, bounds.second);
 }
 
 ModelArray::ModelArray(const ModelArray& orig)
@@ -272,6 +273,13 @@ ModelArray::MultiDim ModelArray::locationFromIndex(Type type, size_t index)
         index /= theDim;
     }
     return loc;
+}
+
+void ModelArray::setLimits(const double lower, const double upper)
+{
+    lowerPhysicalLimit = lower;
+    upperPhysicalLimit = upper;
+    fillValue = (lowerPhysicalLimit + upperPhysicalLimit) * 0.5;
 }
 
 void ModelArray::checkLimits(const ModelArray& mask) const
