@@ -1,12 +1,15 @@
 /*!
  * @file Iterator.hpp
- * @date 26 Feb 2025
+ * @date 11 Aug 2021
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
 #ifndef SRC_INCLUDE_ITERATOR_HPP
 #define SRC_INCLUDE_ITERATOR_HPP
 
+#include <memory>
+
+#include "Logged.hpp"
 #include "Time.hpp"
 
 namespace Nextsim {
