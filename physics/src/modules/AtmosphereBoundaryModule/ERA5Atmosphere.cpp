@@ -15,11 +15,11 @@ namespace Nextsim {
 
 std::string ERA5Atmosphere::filePath;
 
-std::string ERA5Atmosphere::pfx = "ERA5Atmosphere";
-std::string ERA5Atmosphere::fileKey = pfx + ".file";
+static const std::string pfx = "ERA5Atmosphere";
+static const std::string fileKey = pfx + ".file";
 
 static const std::map<int, std::string> keyMap = {
-    { ERA5Atmosphere::FILEPATH_KEY, ERA5Atmosphere::fileKey },
+    { ERA5Atmosphere::FILEPATH_KEY, fileKey },
 };
 
 ERA5Atmosphere::ERA5Atmosphere()
