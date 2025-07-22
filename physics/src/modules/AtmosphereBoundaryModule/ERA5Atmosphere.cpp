@@ -41,9 +41,10 @@ ERA5Atmosphere::ERA5Atmosphere()
 
 ConfigurationHelp::HelpMap& ERA5Atmosphere::getHelpRecursive(HelpMap& map, bool getAll)
 {
-    map[pfx] = { { fileKey, ConfigType::STRING, {}, "", "",
-        "Path to the processed NetCDF file providing the ERA5 forcings." } };
-
+    map[pfx] = {
+        { fileKey, ConfigType::STRING, {}, "", "",
+            "Path to the processed NetCDF file providing the ERA5 forcings." },
+    };
     Module::getHelpRecursive<IFluxCalculation>(map, getAll);
 
     return map;
