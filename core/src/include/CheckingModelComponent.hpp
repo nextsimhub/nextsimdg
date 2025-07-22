@@ -38,17 +38,6 @@ protected:
         }
     }
     /*!
-     * @brief Add a single field to the vector fieldsToCheck so they will be checked by
-     * checkFields()
-     *
-     * @param fieldToAdd An std::pair of string and ModelArrayReference with field name and
-     * reference to check.
-     */
-    void addChecks(const std::pair<const std::string, const ModelArray*>& fieldToAdd)
-    {
-        fieldsToCheck.emplace_back(fieldToAdd.first, fieldToAdd.second);
-    }
-    /*!
      * @brief Add all the fields listed to the vector fieldsToCheck so they will be checked by
      * checkFields()
      *
@@ -58,7 +47,7 @@ protected:
     void addChecks(const std::map<const std::string, const ModelArray*>& fieldsToAdd)
     {
         for (const auto& field : fieldsToAdd)
-            addChecks(field);
+            fieldsToCheck.emplace_back(field.first, field.second);
     }
 
     bool boolCheckFields = false;

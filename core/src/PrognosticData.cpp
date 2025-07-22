@@ -64,7 +64,7 @@ void PrognosticData::configure()
         = Configured::getConfiguration(keyMap.at(CHECKFIELDS_KEY), checkFieldsFastDefault);
     if (boolCheckAll()) {
         for (const auto& field : getStore().getAllData()) {
-            addChecks(field);
+            addChecks({ { field.first, field.second } });
         }
     } else if (boolCheckFields) {
         addChecks({
