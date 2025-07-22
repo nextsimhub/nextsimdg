@@ -17,11 +17,11 @@ namespace Nextsim {
 
 std::string TOPAZOcean::filePath;
 
-std::string TOPAZOcean::pfx = "TOPAZOcean";
-std::string TOPAZOcean::fileKey = pfx + ".file";
+static const std::string pfx = "TOPAZOcean";
+static const std::string fileKey = pfx + ".file";
 
 static const std::map<int, std::string> keyMap = {
-    { TOPAZOcean::FILEPATH_KEY, TOPAZOcean::fileKey },
+    { TOPAZOcean::FILEPATH_KEY, fileKey },
 };
 
 TOPAZOcean::TOPAZOcean()
@@ -33,8 +33,10 @@ TOPAZOcean::TOPAZOcean()
 
 ConfigurationHelp::HelpMap& TOPAZOcean::getHelpRecursive(HelpMap& map, bool getAll)
 {
-    map[pfx] = { { fileKey, ConfigType::STRING, {}, "", "",
-        "Path to the processed NetCDF file providing the TOPAZ forcings." } };
+    map[pfx] = {
+        { fileKey, ConfigType::STRING, {}, "", "",
+            "Path to the processed NetCDF file providing the TOPAZ forcings." },
+    };
 
     return map;
 }
@@ -79,7 +81,7 @@ void TOPAZOcean::updateBefore(const TimestepTime& tst)
     cpml = Water::rhoOcean * Water::cp * mld;
     overElements([this](size_t i, const TimestepTime& tsTime) { this->updateTf(i, tsTime); }, tst);
 
-    pIOHeatFlux->update(tst);
+    Module::getImplementation<IIceOceanHeatFlux>().update(tst);
 }
 
 void TOPAZOcean::updateAfter(const TimestepTime& tst)
