@@ -17,15 +17,11 @@ namespace Nextsim {
 
 std::string TOPAZOcean::filePath;
 
-bool TOPAZOcean::checkFieldsDefault = false;
-
 std::string TOPAZOcean::pfx = "TOPAZOcean";
 std::string TOPAZOcean::fileKey = pfx + ".file";
-std::string TOPAZOcean::checkFieldsKey = pfx + ".check_fields";
 
 static const std::map<int, std::string> keyMap = {
     { TOPAZOcean::FILEPATH_KEY, TOPAZOcean::fileKey },
-    { TOPAZOcean::CHECKFIELDS_KEY, TOPAZOcean::checkFieldsKey },
 };
 
 TOPAZOcean::TOPAZOcean()
@@ -38,11 +34,7 @@ TOPAZOcean::TOPAZOcean()
 ConfigurationHelp::HelpMap& TOPAZOcean::getHelpRecursive(HelpMap& map, bool getAll)
 {
     map[pfx] = { { fileKey, ConfigType::STRING, {}, "", "",
-                     "Path to the processed NetCDF file providing the TOPAZ forcings." },
-        { checkFieldsKey, ConfigType::BOOLEAN, { "true", "false" },
-            ConfigurationHelp::toString(checkFieldsDefault), "",
-            "Set to true to check if the main module variables fall within a reasonable physical "
-            "range." } };
+        "Path to the processed NetCDF file providing the TOPAZ forcings." } };
 
     return map;
 }
@@ -64,8 +56,6 @@ void TOPAZOcean::configure()
 
     getStore().registerArray(Protected::EXT_SST, &sstExt, RO);
     getStore().registerArray(Protected::EXT_SSS, &sssExt, RO);
-
-    boolCheckFields = Configured::getConfiguration(keyMap.at(CHECKFIELDS_KEY), checkFieldsDefault);
 }
 
 ConfigMap TOPAZOcean::getConfiguration() const { return { { keyMap.at(FILEPATH_KEY), filePath } }; }

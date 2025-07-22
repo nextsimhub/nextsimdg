@@ -15,16 +15,11 @@ namespace Nextsim {
 
 std::string ERA5Atmosphere::filePath;
 
-bool ERA5Atmosphere::checkFieldsDefault = false;
-
 std::string ERA5Atmosphere::pfx = "ERA5Atmosphere";
 std::string ERA5Atmosphere::fileKey = pfx + ".file";
-std::string ERA5Atmosphere::checkFieldsKey = pfx + ".check_fields";
-std::string ERA5Atmosphere::fieldNamesKey = pfx + ".fields_names";
 
 static const std::map<int, std::string> keyMap = {
     { ERA5Atmosphere::FILEPATH_KEY, ERA5Atmosphere::fileKey },
-    { ERA5Atmosphere::CHECKFIELDS_KEY, ERA5Atmosphere::checkFieldsKey },
 };
 
 ERA5Atmosphere::ERA5Atmosphere()
@@ -47,11 +42,7 @@ ERA5Atmosphere::ERA5Atmosphere()
 ConfigurationHelp::HelpMap& ERA5Atmosphere::getHelpRecursive(HelpMap& map, bool getAll)
 {
     map[pfx] = { { fileKey, ConfigType::STRING, {}, "", "",
-                     "Path to the processed NetCDF file providing the ERA5 forcings." },
-        { checkFieldsKey, ConfigType::BOOLEAN, { "true", "false" },
-            ConfigurationHelp::toString(checkFieldsDefault), "",
-            "Set to true to check if the main module variables fall within a reasonable physical "
-            "range." } };
+        "Path to the processed NetCDF file providing the ERA5 forcings." } };
 
     Module::getHelpRecursive<IFluxCalculation>(map, getAll);
 
@@ -66,8 +57,6 @@ void ERA5Atmosphere::configure()
 
     fluxImpl = &Module::getImplementation<IFluxCalculation>();
     tryConfigure(fluxImpl);
-
-    boolCheckFields = Configured::getConfiguration(keyMap.at(CHECKFIELDS_KEY), checkFieldsDefault);
 
     addChecks({
         { "tair", &tair },

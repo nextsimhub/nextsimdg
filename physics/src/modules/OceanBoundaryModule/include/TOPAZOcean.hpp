@@ -25,7 +25,7 @@ public:
     TOPAZOcean();
     ~TOPAZOcean() = default;
 
-    enum { FILEPATH_KEY, CHECKFIELDS_KEY };
+    enum { FILEPATH_KEY };
 
     void setData(const ModelState::DataMap&) override;
     std::string getName() const override { return "TOPAZOcean"; }
@@ -51,7 +51,6 @@ private:
     // Since the configuration is global, it makes sense for the file path to
     // be static.
     static std::string filePath, pfx;
-    static bool checkFieldsDefault;
 
     HField sstExt;
     HField sssExt;

@@ -25,7 +25,7 @@ protected:
     void checkFields() const
     {
         // Do nothing if checks are not enabled
-        if (!boolCheckFields && !boolCheckAll())
+        if (!checkFast && !checkAll())
             return;
 
         for (const auto& field : fieldsToCheck) {
@@ -50,9 +50,13 @@ protected:
             fieldsToCheck.emplace_back(field.first, field.second);
     }
 
-    bool boolCheckFields = false;
+    //! @param checkFast Set to true to do a quick check of the main prognostics in PrognosticData
+    bool checkFast = false;
 
-    static bool& boolCheckAll()
+    /*!
+     * @param checkAll Set to true to do an exhaustive check of all the variable registered in the
+     * central registry and any additional variable registered by the modules. */
+    static bool& checkAll()
     {
         static bool checkAll = false;
         return checkAll;

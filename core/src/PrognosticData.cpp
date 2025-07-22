@@ -59,14 +59,14 @@ void PrognosticData::configure()
 
     tryConfigure(iceGrowth);
 
-    boolCheckAll() = Configured::getConfiguration(keyMap.at(CHECKFIELDS_KEY), checkFieldsDefault);
-    boolCheckFields
-        = Configured::getConfiguration(keyMap.at(CHECKFIELDS_KEY), checkFieldsFastDefault);
-    if (boolCheckAll()) {
+    checkAll() = Configured::getConfiguration(keyMap.at(CHECKFIELDS_KEY), checkFieldsDefault);
+    checkFast
+        = Configured::getConfiguration(keyMap.at(CHECKFIELDSFAST_KEY), checkFieldsFastDefault);
+    if (checkAll()) {
         for (const auto& field : getStore().getAllData()) {
             addChecks({ { field.first, field.second } });
         }
-    } else if (boolCheckFields) {
+    } else if (checkFast) {
         addChecks({
             { "thickness", &hiceAdvection },
             { "concentration", &ciceAdvection },
