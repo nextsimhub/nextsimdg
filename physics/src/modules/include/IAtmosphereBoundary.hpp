@@ -24,7 +24,7 @@ public:
         , subl(ModelArray::Type::H)
         , snow(ModelArray::Type::H, { 0, 1e-3 })
         , rain(ModelArray::Type::H, { 0, 1e-3 })
-        , evap(ModelArray::Type::H, { 0, 1e-3 })
+        , evap(ModelArray::Type::H, { -1e-3, 1e-3 })
         , uwind(ModelArray::Type::U, { -100, 100 })
         , vwind(ModelArray::Type::V, { -100, 100 })
         , penSW(ModelArray::Type::H)
