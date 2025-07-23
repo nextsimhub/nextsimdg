@@ -1,7 +1,7 @@
 /*!
  * @file BBMStressUpdateStep.hpp
  *
- * @date 27 May 2025
+ * @date 15 Jul 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Tim Williams <timothy.williams@nersc.no>
  */
@@ -52,6 +52,9 @@ public:
 //! Stress and Damage Update
 #pragma omp parallel for
         for (size_t i = 0; i < smesh.nelements; ++i) {
+
+            if (!smesh.landmask[i])
+                continue;
 
             //! Evaluate values in Gauss points (3 point Gauss rule in 2d => 9 points)
             const Eigen::Matrix<double, 1, nGauss * nGauss> hGauss

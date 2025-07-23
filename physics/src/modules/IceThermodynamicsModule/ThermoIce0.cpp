@@ -45,21 +45,17 @@ void ThermoIce0::configure()
     kappa_s = Configured::getConfiguration(keyMap.at(KS_KEY), k_sDefault);
 }
 
-ConfigMap ThermoIce0::getConfiguration() const
-{
-    return { { keyMap.at(KS_KEY), kappa_s } };
-}
+ConfigMap ThermoIce0::getConfiguration() const { return { { keyMap.at(KS_KEY), kappa_s } }; }
 
 ModelState ThermoIce0::getStateDiagnostic() const
 {
     ModelState state = { {
-        { "snow_melt", snowMelt },
-        { "top_melt", topMelt },
-        { "bottom_melt", botMelt },
-        { "Q_ic", qic },
-    },
-            getConfiguration()
-    };
+                             { "snow_melt", snowMelt },
+                             { "top_melt", topMelt },
+                             { "bottom_melt", botMelt },
+                             { "Q_ic", qic },
+                         },
+        getConfiguration() };
 
     return state.merge(IIceThermodynamics::getStateDiagnostic());
 }
@@ -95,17 +91,22 @@ void ThermoIce0::setData(const ModelState::DataMap& ms)
 
 void ThermoIce0::calculateElement(size_t i, const TimestepTime& tst)
 {
+    static const double bulkLHFusionSnow = Water::Lf * Ice::rhoSnow;
+    static const double bulkLHFusionIce = Water::Lf * Ice::rho;
+
     // If there is too little ice, do nothing and zero out the computed arrays
-    if (hice[i] == 0. || cice[i] == 0.) {
+    if (hice[i] <= IceMinima::h() || cice[i] <= IceMinima::c()) {
         deltaHi[i] = 0.;
         snowToIce[i] = 0.;
         tsurf[i] = freezingPointIce;
 
+        qio[i] += hice[i] * bulkLHFusionIce / tst.step + hsnow[i] * bulkLHFusionSnow / tst.step;
+        cice[i] = 0.;
+        hice[i] = 0.;
+        hsnow[i] = 0.;
+
         return;
     }
-
-    static const double bulkLHFusionSnow = Water::Lf * Ice::rhoSnow;
-    static const double bulkLHFusionIce = Water::Lf * Ice::rho;
 
     // Semtner's fudge factors for the zero-layer model
     constexpr double beta = 0.4;
