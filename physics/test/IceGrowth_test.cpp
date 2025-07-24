@@ -459,8 +459,8 @@ TEST_CASE("Zero thickness")
         void setData(const ModelState::DataMap&) override { }
         void update(const TimestepTime& tsTime) override
         {
-            deltaHi[0] = -hiceDG[0];
-            hiceDG[0] = 0;
+            deltaHi[0] = -hice[0];
+            hice[0] = 0;
             tsurf[0] = 0;
             snowToIce[0] = 0;
         }

@@ -16,7 +16,7 @@ class HiblerSpread : public ILateralIceSpread, public Configured<HiblerSpread> {
 public:
     HiblerSpread()
         : ILateralIceSpread()
-        , hiceDG(getStore())
+        , hice(getStore())
         , mixedLayerBulkHeatCapacity(getStore())
         , sst(getStore())
         , tf(getStore())
@@ -80,7 +80,7 @@ private:
         mixedLayerBulkHeatCapacity; // J K⁻¹ m⁻², from atmospheric state
     ModelArrayRef<Protected::SST> sst; // sea surface temperature, ˚C
     ModelArrayRef<Protected::TF> tf; // ocean freezing point, ˚C
-    ModelArrayRef<Shared::H_ICE_DG, RW> hiceDG; // Timestep initial true ice thickness, m
+    ModelArrayRef<Shared::H_ICE_DG, RW> hice; // Timestep initial true ice thickness, m
 };
 
 }

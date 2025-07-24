@@ -69,9 +69,9 @@ public:
         }
 
         // Set the DG field data
-        kernel.setDGArray(hiceName, hiceDG.allComponents());
-        kernel.setDGArray(ciceName, ciceDG.allComponents());
-        kernel.setDGArray(hsnowName, hsnowDG.allComponents());
+        kernel.setDGArray(hiceName, hice.allComponents());
+        kernel.setDGArray(ciceName, cice.allComponents());
+        kernel.setDGArray(hsnowName, hsnow.allComponents());
     }
 
     void advectField(double timestep, ModelArray& field,

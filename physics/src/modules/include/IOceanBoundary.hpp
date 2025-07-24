@@ -33,7 +33,7 @@ public:
         , qswBase(ModelArray::Type::H)
         , tauX(ModelArray::Type::H)
         , tauY(ModelArray::Type::H)
-        , ciceDG(getStore())
+        , cice(getStore())
         , evap(getStore())
         , rain(getStore())
         , newIce(getStore())
@@ -135,14 +135,14 @@ private:
     void mergeFluxesElement(size_t i, const TimestepTime& tst)
     {
         // Heat fluxes - partitioned in solar and non-solar
-        qswNet[i] = ciceDG[i] * qswBase[i] + (1 - ciceDG[i]) * qswow[i];
-        qNoSun[i] = ciceDG[i] * qio[i] + (1 - ciceDG[i]) * qow[i] - qswNet[i];
+        qswNet[i] = cice[i] * qswBase[i] + (1 - cice[i]) * qswow[i];
+        qNoSun[i] = cice[i] * qio[i] + (1 - cice[i]) * qow[i] - qswNet[i];
 
         // Mass fluxes - fresh water and salt
         // ice volume change, both laterally and vertically
-        const double deltaIceVol = newIce[i] + deltaHice[i] * ciceDG[i];
+        const double deltaIceVol = newIce[i] + deltaHice[i] * cice[i];
         // change in snow volume due to melting (should be < 0)
-        const double meltSnowVol = deltaSmelt[i] * ciceDG[i];
+        const double meltSnowVol = deltaSmelt[i] * cice[i];
         // Effective ice salinity is always less than or equal to the SSS, and here we use the right
         // units too
         const double effectiveIceSal = 1e-3 * std::min(Ice::s, sss[i]);
@@ -150,12 +150,12 @@ private:
         // Positive flux is up!
         fwFlux[i]
             = ((1 - effectiveIceSal) * Ice::rho * deltaIceVol + Ice::rhoSnow * meltSnowVol) / dt
-            + (evap[i] - rain[i]) * (1 - ciceDG[i]);
+            + (evap[i] - rain[i]) * (1 - cice[i]);
         sFlux[i] = effectiveIceSal * Ice::rho * deltaIceVol / dt;
 
         // Momentum fluxes
-        tauX[i] = ciceDG[i] * tauXIO[i] + (1 - ciceDG[i]) * tauXOW[i];
-        tauY[i] = ciceDG[i] * tauYIO[i] + (1 - ciceDG[i]) * tauYOW[i];
+        tauX[i] = cice[i] * tauXIO[i] + (1 - cice[i]) * tauXOW[i];
+        tauY[i] = cice[i] * tauYIO[i] + (1 - cice[i]) * tauYOW[i];
     }
 
 protected:
@@ -179,7 +179,7 @@ protected:
 
     ModelArrayReferenceStore m_couplingArrays;
 
-    ModelArrayRef<Shared::C_ICE_DG, RO> ciceDG;
+    ModelArrayRef<Shared::C_ICE_DG, RO> cice;
     ModelArrayRef<Protected::IO_STRESS_X> tauXIO;
     ModelArrayRef<Protected::IO_STRESS_X> tauYIO;
     ModelArrayRef<Shared::EVAP, RW> evap;

@@ -52,8 +52,8 @@ MU71Atmosphere::HelpMap& MU71Atmosphere::getHelpRecursive(HelpMap& map, bool get
 MU71Atmosphere::MU71Atmosphere()
     : iIceAlbedoImpl(nullptr)
     , tsurf(getStore())
-    , hsnowDG(getStore())
-    , ciceDG(getStore())
+    , hsnow(getStore())
+    , cice(getStore())
     , q_sw(monthlyCubicBSpline(swTable))
     , q_lw(monthlyCubicBSpline(lwTable))
     , q_sh(monthlyCubicBSpline(shTable))
@@ -78,7 +78,7 @@ void MU71Atmosphere::calculateElement(size_t i, const TimestepTime& tst)
 
     double albedoValue, i0;
     double sw_in = convFactor * q_sw(dayOfYear, isLeap);
-    const double hs = ciceDG[i] > 0 ? hsnowDG[i] / ciceDG[i] : 0.;
+    const double hs = cice[i] > 0 ? hsnow[i] / cice[i] : 0.;
     std::tie(albedoValue, i0) = iIceAlbedoImpl->surfaceShortWaveBalance(tsurf[i], hs, m_I0);
     double qsw = -sw_in * (1. - albedoValue) * (1. - i0);
     penSW[i] = sw_in * (1. - albedoValue) * i0;

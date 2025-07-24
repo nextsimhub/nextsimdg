@@ -53,9 +53,9 @@ private:
     std::unique_ptr<IDamageHealing> iHealing;
 
     // Data fields
-    ModelArrayRef<Shared::H_ICE_DG> hiceDG; // Timestep initial cell averaged ice thickness, m
-    ModelArrayRef<Shared::H_SNOW_DG> hsnowDG; // Timestep initial cell averaged snow thickness, m
-    ModelArrayRef<Shared::C_ICE_DG> ciceDG; // Timestep initial ice concentration
+    ModelArrayRef<Shared::H_ICE_DG> hice; // Timestep initial cell averaged ice thickness, m
+    ModelArrayRef<Shared::H_SNOW_DG> hsnow; // Timestep initial cell averaged snow thickness, m
+    ModelArrayRef<Shared::C_ICE_DG> cice; // Timestep initial ice concentration
     ModelArrayRef<Shared::Q_OW, RW> qow; // open water heat flux, from FluxCalculation
     ModelArrayRef<Shared::DELTA_HICE> deltaHi; // New ice thickness this timestep, m
 

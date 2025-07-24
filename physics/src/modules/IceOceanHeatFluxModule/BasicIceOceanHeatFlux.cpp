@@ -21,7 +21,7 @@ void BasicIceOceanHeatFlux::update(const TimestepTime& tst)
 void BasicIceOceanHeatFlux::updateElement(size_t i, const TimestepTime& tst)
 {
     // Use the timestep length as the relaxation time scale
-    if (ciceDG[i] > 0.) {
+    if (cice[i] > 0.) {
         qio[i] = doOne(tf[i], sst[i], mlBulkCp[i], tst.step.seconds());
     } else {
         qio[i] = 0.;

@@ -76,9 +76,9 @@ protected:
         : tsurf(ModelArray::AdvectionType)
         , deltaHi(ModelArray::Type::H)
         , snowToIce(ModelArray::Type::H)
-        , hiceDG(getStore())
-        , ciceDG(getStore())
-        , hsnowDG(getStore())
+        , hice(getStore())
+        , cice(getStore())
+        , hsnow(getStore())
         , qic(getStore())
         , qio(getStore())
         , qow(getStore())
@@ -95,9 +95,9 @@ protected:
         getStore().registerArray(Protected::T_SURF, &tsurf, RO);
     }
 
-    ModelArrayRef<Shared::H_ICE_DG, RW> hiceDG; // From PrognosticData
-    ModelArrayRef<Shared::C_ICE_DG, RW> ciceDG; // From PrognosticData
-    ModelArrayRef<Shared::H_SNOW_DG, RW> hsnowDG; // From PrognosticData
+    ModelArrayRef<Shared::H_ICE_DG, RW> hice; // From PrognosticData
+    ModelArrayRef<Shared::C_ICE_DG, RW> cice; // From PrognosticData
+    ModelArrayRef<Shared::H_SNOW_DG, RW> hsnow; // From PrognosticData
     ModelArrayRef<Shared::Q_IC, RW>
         qic; // From IceTemperature. Conductive heat flux to the ice surface.
     ModelArrayRef<Shared::Q_SW_BASE, RW> qswBase; // Short-wave flux through the base of the ice

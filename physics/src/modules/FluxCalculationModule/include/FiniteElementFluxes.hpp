@@ -41,8 +41,8 @@ public:
         , windSpeed(getStore())
         , u_air(getStore())
         , v_air(getStore())
-        , hsnowDG(getStore())
-        , ciceDG(getStore())
+        , hsnow(getStore())
+        , cice(getStore())
         , tsurf(getStore())
         , sw_in(getStore())
         , lw_in(getStore())
@@ -106,8 +106,8 @@ private:
     ModelArrayRef<Protected::WIND_SPEED> windSpeed;
     ModelArrayRef<Protected::WIND_U> u_air;
     ModelArrayRef<Protected::WIND_V> v_air;
-    ModelArrayRef<Shared::H_SNOW_DG> hsnowDG; // cell-averaged value
-    ModelArrayRef<Shared::C_ICE_DG> ciceDG;
+    ModelArrayRef<Shared::H_SNOW_DG> hsnow; // cell-averaged value
+    ModelArrayRef<Shared::C_ICE_DG> cice;
     ModelArrayRef<Protected::T_SURF> tsurf;
     ModelArrayRef<Protected::SW_IN> sw_in;
     ModelArrayRef<Protected::LW_IN> lw_in;

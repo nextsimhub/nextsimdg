@@ -92,7 +92,7 @@ void ThermoIce0::calculateElement(size_t i, const TimestepTime& tst)
     static const double bulkLHFusionIce = Water::Lf * Ice::rho;
 
     // If there is too little ice, do nothing and zero out the computed arrays
-    if (hiceDG[i] <= IceMinima::h() || ciceDG[i] <= IceMinima::c()) {
+    if (hice[i] <= IceMinima::h() || cice[i] <= IceMinima::c()) {
         deltaHi[i] = 0.;
         snowToIce[i] = 0.;
         snowMelt[i] = 0.;
@@ -100,11 +100,11 @@ void ThermoIce0::calculateElement(size_t i, const TimestepTime& tst)
 
         tsurf[i] = freezingPointIce;
 
-        // Add to open water flux, since ciceDG will be set to zero
-        qow[i] += (hiceDG[i] * bulkLHFusionIce + hsnowDG[i] * bulkLHFusionSnow) / tst.step;
-        ciceDG[i] = 0.;
-        hiceDG[i] = 0.;
-        hsnowDG[i] = 0.;
+        // Add to open water flux, since cice will be set to zero
+        qow[i] += (hice[i] * bulkLHFusionIce + hsnow[i] * bulkLHFusionSnow) / tst.step;
+        cice[i] = 0.;
+        hice[i] = 0.;
+        hsnow[i] = 0.;
 
         return;
     }
@@ -113,9 +113,9 @@ void ThermoIce0::calculateElement(size_t i, const TimestepTime& tst)
     constexpr double beta = 0.4;
     constexpr double gamma = 1.065;
 
-    double hi = hiceDG[i] / ciceDG[i];
+    double hi = hice[i] / cice[i];
     const double oldHi = hi;
-    double hs = hsnowDG[i] / ciceDG[i];
+    double hs = hsnow[i] / cice[i];
     // Create a reference to the local updated Tice value here to avoid having
     // to write the array access expression out in full every time
     double& tice_i = tsurf[i];
@@ -179,19 +179,19 @@ void ThermoIce0::calculateElement(size_t i, const TimestepTime& tst)
         // Change in thickness is all of the old thickness
         deltaHi[i] = -oldHi;
 
-        // Add the melt flux to open water flux, since ciceDG will be set to zero
-        qow[i] += ciceDG[i] * (hi * bulkLHFusionIce + hs * bulkLHFusionSnow) / tst.step;
+        // Add the melt flux to open water flux, since cice will be set to zero
+        qow[i] += cice[i] * (hi * bulkLHFusionIce + hs * bulkLHFusionSnow) / tst.step;
 
         // No ice, no snow and the surface temperature is the melting point of ice
-        ciceDG[i] = 0.;
-        hiceDG[i] = 0.;
-        hsnowDG[i] = 0.;
+        cice[i] = 0.;
+        hice[i] = 0.;
+        hsnow[i] = 0.;
         tsurf[i] = celsius(Ice::Tm);
     } else {
         // If there is still ice, we need to update the DG ice and snow thicknesses with the new
         // values
-        hiceDG[i] = hi * ciceDG[i];
-        hsnowDG[i] = hs * ciceDG[i];
+        hice[i] = hi * cice[i];
+        hsnow[i] = hs * cice[i];
     }
 }
 

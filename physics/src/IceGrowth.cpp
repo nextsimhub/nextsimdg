@@ -20,9 +20,9 @@ static const std::map<int, std::string> keyMap = {
 };
 
 IceGrowth::IceGrowth()
-    : hiceDG(getStore())
-    , ciceDG(getStore())
-    , hsnowDG(getStore())
+    : hice(getStore())
+    , cice(getStore())
+    , hsnow(getStore())
     , qow(getStore())
     , deltaHi(getStore())
 {

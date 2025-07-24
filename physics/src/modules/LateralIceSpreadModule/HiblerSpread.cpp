@@ -87,7 +87,7 @@ void HiblerSpread::newIceFormation(size_t i, const TimestepTime& tst)
         double latentFlux = coolingFlux - sensibleFlux;
 
         qow[i] = sensibleFlux;
-        newice[i] = latentFlux * tst.step * (1 - ciceDG[i]) / (Ice::Lf * Ice::rho);
+        newice[i] = latentFlux * tst.step * (1 - cice[i]) / (Ice::Lf * Ice::rho);
     } else {
         newice[i] = 0;
     }
@@ -95,31 +95,31 @@ void HiblerSpread::newIceFormation(size_t i, const TimestepTime& tst)
 
 void HiblerSpread::lateralIceSpread(size_t i, const TimestepTime& tstep)
 {
-    const double deltaCMelt = melt(deltaHi[i], ciceDG[i], hiceDG[i]);
+    const double deltaCMelt = melt(deltaHi[i], cice[i], hice[i]);
     const double deltaCFreeze = freeze(newice[i]);
 
     deltaCIce[i] = deltaCFreeze + deltaCMelt;
-    ciceDG[i] = (hiceDG[i] > 0 || newice[i] > 0) ? ciceDG[i] + deltaCIce[i] : 0;
-    if (ciceDG[i] >= IceMinima::c()) {
+    cice[i] = (hice[i] > 0 || newice[i] > 0) ? cice[i] + deltaCIce[i] : 0;
+    if (cice[i] >= IceMinima::c()) {
         // The updated ice thickness must conserve volume
-        hiceDG[i] += newice[i];
+        hice[i] += newice[i];
         if (deltaCIce[i] < 0) {
             /* Snow is lost if the concentration decreases, and energy is returned to the ocean.
              * We reduce the snow volume by a "slice" of snow with the dimensions hs * deltaCIce. */
-            const double hs = hsnowDG[i] / (ciceDG[i] - deltaCIce[i]);
+            const double hs = hsnow[i] / (cice[i] - deltaCIce[i]);
             qow[i] -= deltaCIce[i] * hs * Water::Lf * Ice::rhoSnow / tstep.step;
-            hsnowDG[i] += hs * deltaCIce[i];
-        } // else: Snow volume is conserved, so no change to hsnowDG[i]
+            hsnow[i] += hs * deltaCIce[i];
+        } // else: Snow volume is conserved, so no change to hsnow[i]
     }
 }
 
 void HiblerSpread::applyLimits(size_t i, const TimestepTime& tstep)
 {
-    if (ciceDG[i] < IceMinima::c() || hiceDG[i] < IceMinima::h()) {
-        qow[i] += Water::Lf * (hiceDG[i] * Ice::rho + hsnowDG[i] * Ice::rhoSnow) / tstep.step;
-        hiceDG[i] = 0;
-        ciceDG[i] = 0;
-        hsnowDG[i] = 0;
+    if (cice[i] < IceMinima::c() || hice[i] < IceMinima::h()) {
+        qow[i] += Water::Lf * (hice[i] * Ice::rho + hsnow[i] * Ice::rhoSnow) / tstep.step;
+        hice[i] = 0;
+        cice[i] = 0;
+        hsnow[i] = 0;
     }
 }
 }

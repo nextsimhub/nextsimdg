@@ -95,9 +95,9 @@ void MEVPDynamics::setData(const ModelState::DataMap& ms)
     }
 
     // Set the DG field data
-    kernel.setDGArray(hiceName, hiceDG.allComponents());
-    kernel.setDGArray(ciceName, ciceDG.allComponents());
-    kernel.setDGArray(hsnowName, hsnowDG.allComponents());
+    kernel.setDGArray(hiceName, hice.allComponents());
+    kernel.setDGArray(ciceName, cice.allComponents());
+    kernel.setDGArray(hsnowName, hsnow.allComponents());
 }
 
 void MEVPDynamics::update(const TimestepTime& tst)
