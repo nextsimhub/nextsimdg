@@ -125,7 +125,7 @@ ModelArray CGDynamicsKernel<DGadvection>::getCGData(const std::string& name) con
 template <int DGadvection>
 const ModelArray::MultiDim CGDynamicsKernel<DGadvection>::getCGDimensions() const
 {
-    return {CGdegree * smesh->nx +1, CGdegree * smesh->ny + 1};
+    return { CGdegree * smesh->nx + 1, CGdegree * smesh->ny + 1 };
 }
 
 template <int DGadvection> void CGDynamicsKernel<DGadvection>::prepareAdvection()
