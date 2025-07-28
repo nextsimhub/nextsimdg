@@ -23,8 +23,8 @@ public:
         , snow(ModelArray::Type::H)
         , rain(ModelArray::Type::H)
         , evap(ModelArray::Type::H)
-        , uwind(ModelArray::Type::U)
-        , vwind(ModelArray::Type::V)
+        , uwind(ModelArray::Type::H)
+        , vwind(ModelArray::Type::H)
         , penSW(ModelArray::Type::H)
         , tauXOW(ModelArray::Type::H)
         , tauYOW(ModelArray::Type::H)
@@ -79,8 +79,8 @@ protected:
     HField snow;
     HField rain;
     HField evap;
-    UField uwind;
-    VField vwind;
+    HField uwind;
+    HField vwind;
     HField penSW;
     HField tauXOW; // x(east)-ward open ocean stress, Pa
     HField tauYOW; // y(north)-ward open ocean stress, Pa

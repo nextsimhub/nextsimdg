@@ -165,8 +165,8 @@ protected:
     HField mld; // Mixed layer or slab ocean depth m
     HField tf; // Freezing point of the mixed layer, ˚C
     HField cpml; // Heat capacity of the mixed layer, J K⁻¹ m²
-    UField u; // x(east)-ward ocean current, m s⁻¹
-    VField v; // y(north)-ward ocean current, m s⁻¹
+    HField u; // x(east)-ward ocean current, m s⁻¹
+    HField v; // y(north)-ward ocean current, m s⁻¹
     HField ssh; // sea surface height, m
     HField qNoSun; // Net surface ocean heat flux, except short wave, W m⁻²
     HField qswNet; // Net surface ocean shortwave flux, W m⁻²

@@ -85,22 +85,22 @@ template <int DGadvection>
 ModelArray CGDynamicsKernel<DGadvection>::getDG0Data(const std::string& name) const
 {
     if (name == uName) {
-        ModelArray data(ModelArray::Type::U);
+        ModelArray data(ModelArray::Type::H);
         DGVector<DGadvection> utmp(*smesh);
         Nextsim::Interpolations::CG2DG(*smesh, utmp, u);
         return DGModelArray::dg2ma(utmp, data);
     } else if (name == vName) {
-        ModelArray data(ModelArray::Type::V);
+        ModelArray data(ModelArray::Type::H);
         DGVector<DGadvection> vtmp(*smesh);
         Nextsim::Interpolations::CG2DG(*smesh, vtmp, v);
         return DGModelArray::dg2ma(vtmp, data);
     } else if (name == uIOStressName) {
-        ModelArray data(ModelArray::Type::U);
+        ModelArray data(ModelArray::Type::H);
         DGVector<DGadvection> utmp(*smesh);
         Nextsim::Interpolations::CG2DG(*smesh, utmp, uIceOceanStress);
         return DGModelArray::dg2ma(utmp, data);
     } else if (name == vIOStressName) {
-        ModelArray data(ModelArray::Type::V);
+        ModelArray data(ModelArray::Type::H);
         DGVector<DGadvection> vtmp(*smesh);
         Nextsim::Interpolations::CG2DG(*smesh, vtmp, vIceOceanStress);
         return DGModelArray::dg2ma(vtmp, data);

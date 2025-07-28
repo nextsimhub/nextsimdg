@@ -76,21 +76,11 @@ ModelState RectGridIO::getModelState(const std::string& filePath)
 #endif
 
 #ifdef USE_MPI
-    // Get the sizes of the four types of field
-    // HField from hice
+    // Get the sizes of the HField from hice
     dimensionSetter(ncFile, hiceName, ModelArray::Type::H, metadata);
-    // UField from hice
-    dimensionSetter(ncFile, hiceName, ModelArray::Type::U, metadata);
-    // VField from hice
-    dimensionSetter(ncFile, hiceName, ModelArray::Type::V, metadata);
 #else
-    // Get the sizes of the four types of field
-    // HField from hice
+    // Get the sizes of the HField from hice
     dimensionSetter(ncFile, hiceName, ModelArray::Type::H);
-    // UField from hice
-    dimensionSetter(ncFile, hiceName, ModelArray::Type::U);
-    // VField from hice
-    dimensionSetter(ncFile, hiceName, ModelArray::Type::V);
 #endif
 
 #ifdef USE_MPI

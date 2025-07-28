@@ -64,11 +64,8 @@ ModelArray ModelComponent::mask(const ModelArray& data)
         break;
     }
     case (ModelArray::Type::H):
-    case (ModelArray::Type::U):
-    case (ModelArray::Type::V): {
         return data * oceanMask() + MissingData::value() * (1 - oceanMask());
         break;
-    }
     }
 }
 

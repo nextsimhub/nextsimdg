@@ -16,8 +16,6 @@ enum class Dimension { X, Y, XVERTEX, YVERTEX, XCG, YCG, DG, DGSTRESS, NCOORDS, 
 enum class Type {
     H,
     VERTEX,
-    U,
-    V,
     DG,
     DGSTRESS,
     CG,
@@ -27,8 +25,6 @@ static const Type AdvectionType = Type::DG;
 
 static ModelArray HField() { return ModelArray(Type::H); }
 static ModelArray VertexField() { return ModelArray(Type::VERTEX); }
-static ModelArray UField() { return ModelArray(Type::U); }
-static ModelArray VField() { return ModelArray(Type::V); }
 static ModelArray DGField() { return ModelArray(Type::DG); }
 static ModelArray DGSField() { return ModelArray(Type::DGSTRESS); }
 static ModelArray CGField() { return ModelArray(Type::CG); }
