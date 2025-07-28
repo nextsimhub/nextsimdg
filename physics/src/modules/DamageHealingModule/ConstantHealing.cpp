@@ -7,6 +7,8 @@
 
 #include "include/ConstantHealing.hpp"
 
+#include "include/IceMinima.hpp"
+
 namespace Nextsim {
 
 double ConstantHealing::tD = 0.;
@@ -52,8 +54,8 @@ void ConstantHealing::update(const TimestepTime& tstep)
 void ConstantHealing::updateElement(size_t i, const TimestepTime& tstep)
 {
     // No ice, no healing
-    if (cice[i] == 0.) {
-        damage[i] = oldDamage[i];
+    if (cice[i] <= IceMinima::c()) {
+        damage[i] = 1.;
         return;
     }
 
