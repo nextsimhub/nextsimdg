@@ -24,10 +24,7 @@ void ConstantHealing::configure()
     tD *= 86400.;
 }
 
-ConfigMap ConstantHealing::getConfiguration() const
-{
-    return { { keyMap.at(TD_KEY), tD } };
-}
+ConfigMap ConstantHealing::getConfiguration() const { return { { keyMap.at(TD_KEY), tD } }; }
 
 ConstantHealing::HelpMap& ConstantHealing::getHelpText(HelpMap& map, bool getAll)
 {
