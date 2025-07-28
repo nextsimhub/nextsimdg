@@ -11,7 +11,6 @@ namespace Nextsim {
 
 static const std::vector<std::string> namedFields = { uName, vName };
 static const std::map<std::string, std::pair<ModelArray::Type, double>> defaultFields = {
-    { damageName, { ModelArray::Type::H, 1.0 } },
 };
 
 // TODO: We should use getName() here, but it isn't static.
@@ -130,17 +129,13 @@ void BBMDynamics::setData(const ModelState::DataMap& ms)
     // Set the DG field data
     kernel.setDGArray(hiceName, hiceDG.allComponents());
     kernel.setDGArray(ciceName, ciceDG.allComponents());
+    kernel.setDGArray(hsnowName, hsnowDG.allComponents());
+    kernel.setDGArray(damageName, damage.allComponents());
 }
 
 void BBMDynamics::update(const TimestepTime& tst)
 {
     std::cout << tst.start << std::endl;
-
-    // Fill the updated damage array with the initial value
-    damage = damage0;
-
-    // set the updated ice thickness, concentration and damage
-    kernel.setData(damageName, damage);
 
     // set the forcing velocities
     kernel.setData(uWindName, uwind);
@@ -156,8 +151,6 @@ void BBMDynamics::update(const TimestepTime& tst)
 
     kernel.update(tst);
 
-    damage = kernel.getDG0Data(damageName);
-
     uice = kernel.getDG0Data(uName);
     vice = kernel.getDG0Data(vName);
 
@@ -168,6 +161,16 @@ void BBMDynamics::update(const TimestepTime& tst)
     divergence = kernel.getDG0Data(divergenceName);
     sigmaI = kernel.getDG0Data(sigmaIName);
     sigmaII = kernel.getDG0Data(sigmaIIName);
+}
+
+void BBMDynamics::prepareAdvection()
+{
+    kernel.prepareAdvection();
+}
+
+void BBMDynamics::advectField(double timestep, ModelArray& field, double lowerLimit, double upperLimit)
+{
+    kernel.advectField(timestep, field, lowerLimit, upperLimit);
 }
 
 BBMDynamics::HelpMap& BBMDynamics::getHelpText(HelpMap& map, bool getAll)

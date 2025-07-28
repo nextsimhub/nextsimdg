@@ -1,5 +1,4 @@
 /*!
- *
  * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -7,6 +6,7 @@
 #define IICETHERMODYNAMICS_HPP
 
 #include "include/ConfigurationHelp.hpp"
+#include "include/FieldAdvection.hpp"
 #include "include/ModelArray.hpp"
 #include "include/ModelArrayRef.hpp"
 #include "include/ModelArraySlice.hpp"
@@ -61,13 +61,16 @@ public:
      *
      * @param tStep The object containing the timestep start and duration times.
      */
-    virtual void update(const TimestepTime& tsTime) = 0;
+    virtual void update(const TimestepTime& tsTime)
+    {
+        FieldAdvection::advectField(tsurf, tsTime, minT, 0.);
+    }
 
     inline static std::string getKappaSConfigKey() { return "nextsim_thermo.ks"; }
 
 protected:
     IIceThermodynamics()
-        : tsurf(ModelArray::Type::H)
+        : tsurf(ModelArray::AdvectionType)
         , deltaHi(ModelArray::Type::H)
         , snowToIce(ModelArray::Type::H)
         , hice(getStore())
@@ -105,7 +108,7 @@ protected:
     ModelArrayRef<Protected::SNOW> snowfall; // From ExternalData
     ModelArrayRef<Protected::SSS> sss; // From ExternalData (possibly PrognosticData)
     // Owned, shared arrays
-    HField tsurf;
+    AdvectedField tsurf;
     HField deltaHi;
     // Owned, Module-private arrays
     HField snowToIce;

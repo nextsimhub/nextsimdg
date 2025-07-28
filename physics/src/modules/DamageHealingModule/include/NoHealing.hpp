@@ -22,7 +22,7 @@ public:
     virtual ~NoHealing() = default;
 
     // Do nothing when update is called.
-    void update(const TimestepTime& tstep) override { damage = oldDamage; }
+    void update(const TimestepTime& tstep) override {}
 };
 
 }

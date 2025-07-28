@@ -43,8 +43,8 @@ public:
 private:
     void calculateElement(size_t i, const TimestepTime& tst);
 
-    HField tInternal;
-    HField tBottom;
+    AdvectedField tInternal;
+    AdvectedField tBottom;
     HField snowMelt;
     HField topMelt;
     HField botMelt;

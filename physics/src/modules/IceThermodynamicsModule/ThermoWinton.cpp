@@ -26,6 +26,8 @@ const std::string ThermoWinton::tBottomName = "tbottom";
 
 ThermoWinton::ThermoWinton()
     : IIceThermodynamics()
+    , tInternal(ModelArray::AdvectionType)
+    , tBottom(ModelArray::AdvectionType)
     , snowMelt(ModelArray::Type::H)
     , topMelt(ModelArray::Type::H)
     , botMelt(ModelArray::Type::H)
@@ -158,6 +160,11 @@ void ThermoWinton::setData(const ModelState::DataMap& state)
 
 void ThermoWinton::update(const TimestepTime& tst)
 {
+    // Advect ice temperatures
+    IIceThermodynamics::update(tst);
+    FieldAdvection::advectField(tInternal, tst, IIceThermodynamics::minT, seaIceTf);
+    FieldAdvection::advectField(tBottom, tst, IIceThermodynamics::minT, seaIceTf);
+    // Perform the rest of the thermodynamics using the advected temperatures
     overElements(
         [this](const size_t i, const TimestepTime& tsTime) { calculateElement(i, tsTime); }, tst);
 }
@@ -166,9 +173,11 @@ void ThermoWinton::calculateElement(size_t i, const TimestepTime& tst)
 {
 
     // Don't do anything if there is no ice
-    if (cice[i] <= 0 || hice[i] <= 0) {
+    if (cice[i] <= IceMinima::c() || hice[i] <= IceMinima::h()) {
 
         snowToIce[i] = 0;
+
+        qio[i] += Water::Lf * (hice[i] * Ice::rho + hsnow[i] * Ice::rhoSnow) / tst.step;
 
         deltaHi[i] = 0;
         hice[i] = 0;
@@ -337,7 +346,7 @@ void ThermoWinton::calculateElement(size_t i, const TimestepTime& tst)
     // Remove very small ice thickness
     if (hi < IceMinima::h()) {
         // (30) - with multiplication of rhoi and rhos and division with dt
-        qio[i] -= (-bulkLHFusionSnow * hs + (e1 + e2) * hi / 2) / dt;
+        qio[i] += (-bulkLHFusionSnow * hs + (e1 + e2) * hi / 2) / dt;
 
         if (deltaHi[i] < 0) {
             topMelt[i] *= oldHi[i] / deltaHi[i];

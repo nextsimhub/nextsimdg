@@ -71,6 +71,11 @@ MEVPDynamics::MEVPDynamics()
 {
 }
 
+void MEVPDynamics::prepareAdvection()
+{
+    kernel.prepareAdvection();
+}
+
 void MEVPDynamics::setData(const ModelState::DataMap& ms)
 {
     IDynamics::setData(ms);
@@ -120,6 +125,11 @@ void MEVPDynamics::update(const TimestepTime& tst)
     divergence = kernel.getDG0Data(divergenceName);
     sigmaI = kernel.getDG0Data(sigmaIName);
     sigmaII = kernel.getDG0Data(sigmaIIName);
+}
+
+void MEVPDynamics::advectField(double timestep, ModelArray& field, double lowerLimit, double upperLimit)
+{
+    kernel.advectField(timestep, field, lowerLimit, upperLimit);
 }
 
 MEVPDynamics::HelpMap& MEVPDynamics::getHelpText(HelpMap& map, bool getAll)

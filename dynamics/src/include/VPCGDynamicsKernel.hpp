@@ -31,6 +31,7 @@ protected:
     using DynamicsKernel<DGadvection, DGstressComp>::deltaT;
     using DynamicsKernel<DGadvection, DGstressComp>::stressDivergence;
     using DynamicsKernel<DGadvection, DGstressComp>::applyBoundaries;
+    using DynamicsKernel<DGadvection, DGstressComp>::advectDynamicsFields;
 
     using CGDynamicsKernel<DGadvection>::u;
     using CGDynamicsKernel<DGadvection>::v;
@@ -62,8 +63,7 @@ public:
 
     void update(const TimestepTime& tst) override
     {
-        // Let DynamicsKernel handle the advection step
-        DynamicsKernel<DGadvection, DGstressComp>::advectionAndLimits(tst);
+        advectDynamicsFields(tst.step.seconds());
 
         prepareIteration({ { hiceName, hice }, { ciceName, cice } });
 

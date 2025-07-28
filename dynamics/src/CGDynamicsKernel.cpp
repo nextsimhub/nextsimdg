@@ -16,6 +16,8 @@
 #include "include/VectorManipulations.hpp"
 #include "include/cgVector.hpp"
 
+#include <limits>
+
 namespace Nextsim {
 
 template <int DGadvection>
@@ -408,6 +410,19 @@ template <int DGadvection> void CGDynamicsKernel<DGadvection>::applyBoundaries()
     dirichletZero(u);
     dirichletZero(v);
     // TODO Periodic boundary conditions.
+}
+
+template <int DGadvection>
+DGVector<DGadvection>& CGDynamicsKernel<DGadvection>::advectDGVField(
+    double timestep, DGVector<DGadvection>& field, double lowerLimit, double upperLimit)
+{
+    dgtransport->step(timestep, field);
+    if (lowerLimit > -std::numeric_limits<double>::infinity())
+        LimitMin(field, lowerLimit);
+    if (upperLimit < std::numeric_limits<double>::infinity())
+        LimitMax(field, upperLimit);
+
+    return field;
 }
 
 template <int DGadvection>

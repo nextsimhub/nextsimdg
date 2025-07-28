@@ -1,5 +1,4 @@
 /*!
- *
  * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -26,7 +25,8 @@ public:
         LW_KEY,
         SNOW_KEY,
         RAIN_KEY,
-        WIND_KEY,
+        UWIND_KEY,
+        VWIND_KEY,
     };
 
     void setData(const ModelState::DataMap&) override;
@@ -48,7 +48,8 @@ private:
     static double lw0;
     static double snowfall0;
     static double rain0;
-    static double windspeed0;
+    static double uWind0;
+    static double vWind0;
 
     HField tair;
     HField tdew;

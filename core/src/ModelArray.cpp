@@ -34,8 +34,12 @@ ModelArray::ModelArray(const ModelArray& orig)
 
 ModelArray& ModelArray::operator=(const ModelArray& orig)
 {
-    type = orig.type;
-    setData(orig.m_data);
+    if (orig.nComponents() == 1 && nComponents() != 1) {
+        component(0) = orig.data();
+    } else {
+        type = orig.type;
+        setData(orig.m_data);
+    }
 
     return *this;
 }

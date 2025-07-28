@@ -1,25 +1,32 @@
-/build*
+# .gitignore
+
+# Directories
 */build
-docs/html/
-docs/latex/
-docs/xml/
-Results
+/build*
 /.cproject
+/docs/html/
+/docs/latex/
+/docs/xml/
 /.project
+__pycache__/
 /.pydevproject
-/.settings/*
-/*/src/modules/include/*Module.hpp
-/*/src/modules/*/module.cpp
-/run/*.nc
-/run/nextsim
+/run/applications/*
 /run/.DS_Store
 /run/*.log
-/run/applications/*
-*.vtk
-*.smesh
+/run/*.nc
+/run/nextsim
+/.settings/*
+
+# File types
 *.DS_Store
+*.log
 *.nc
-__pycache__/
 *.sif
+*.smesh
 .*sw?
-/run/*.cdl
+*.vtk
+
+# Specific files
+Results
+/*/src/modules/include/*Module.hpp
+/*/src/modules/*/module.cpp

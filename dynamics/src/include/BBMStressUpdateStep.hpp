@@ -50,6 +50,9 @@ public:
 #pragma omp parallel for
         for (size_t i = 0; i < smesh.nelements; ++i) {
 
+            if (!smesh.landmask[i])
+                continue;
+
             //! Evaluate values in Gauss points (3 point Gauss rule in 2d => 9 points)
             const Eigen::Matrix<double, 1, nGauss * nGauss> hGauss
                 = (h.row(i) * PSI<DGadvection, nGauss>).array().max(0.0).matrix();
