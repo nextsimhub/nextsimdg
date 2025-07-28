@@ -79,13 +79,17 @@ public:
     // Node names in the default structure
 
     //! Returns the name of the metadata node.
+    // TODO: Is this still required after removing NetCDF groups?
     static const std::string metadataNodeName() { return "metadata"; }
     //! Returns the name of the data node.
+    // TODO: Is this still required after removing NetCDF groups?
     static const std::string dataNodeName() { return "data"; }
     //! The name of the group holding the definitive structure type
+    // TODO: Is this still required after removing NetCDF groups?
     static const std::string structureNodeName() { return "structure"; }
     //! The name of the node holding the name of the structure type processed
     //! by this class.
+    // TODO: Is this still required after removing NetCDF groups?
     static const std::string typeNodeName() { return "type"; }
 
 private:

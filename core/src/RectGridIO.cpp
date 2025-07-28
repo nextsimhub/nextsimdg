@@ -30,14 +30,14 @@
 namespace Nextsim {
 
 #ifdef USE_MPI
-void dimensionSetter(const netCDF::NcGroup& dataGroup, const std::string& fieldName,
+void dimensionSetter(const netCDF::NcFile& ncFile, const std::string& fieldName,
     ModelArray::Type type, ModelMetadata& metadata)
 {
-    size_t nDims = dataGroup.getVar(fieldName).getDimCount();
+    size_t nDims = ncFile.getVar(fieldName).getDimCount();
     ModelArray::MultiDim dims;
     dims.resize(nDims);
     for (size_t d = 0; d < nDims; ++d) {
-        dims[d] = dataGroup.getVar(fieldName).getDim(d).getSize();
+        dims[d] = ncFile.getVar(fieldName).getDim(d).getSize();
     }
     // The dimensions in the netCDF are in the reverse order compared to ModelArray
     std::reverse(dims.begin(), dims.end());
@@ -48,13 +48,11 @@ void dimensionSetter(const netCDF::NcGroup& dataGroup, const std::string& fieldN
 }
 #else
 void dimensionSetter(
-    const netCDF::NcGroup& dataGroup, const std::string& fieldName, ModelArray::Type type)
-{
-    size_t nDims = dataGroup.getVar(fieldName).getDimCount();
+    size_t nDims = ncFile.getVar(fieldName).getDimCount();
     ModelArray::MultiDim dims;
     dims.resize(nDims);
     for (size_t d = 0; d < nDims; ++d) {
-        dims[d] = dataGroup.getVar(fieldName).getDim(d).getSize();
+    dims[d] = ncFile.getVar(fieldName).getDim(d).getSize();
     }
     // The dimensions in the netCDF are in the reverse order compared to ModelArray
     std::reverse(dims.begin(), dims.end());
@@ -74,24 +72,23 @@ ModelState RectGridIO::getModelState(const std::string& filePath)
 #else
     netCDF::NcFile ncFile(filePath, netCDF::NcFile::read);
 #endif
-    netCDF::NcGroup dataGroup(ncFile.getGroup(IStructure::dataNodeName()));
 
 #ifdef USE_MPI
     // Get the sizes of the four types of field
     // HField from hice
-    dimensionSetter(dataGroup, hiceName, ModelArray::Type::H, metadata);
+    dimensionSetter(ncFile, hiceName, ModelArray::Type::H, metadata);
     // UField from hice
-    dimensionSetter(dataGroup, hiceName, ModelArray::Type::U, metadata);
+    dimensionSetter(ncFile, hiceName, ModelArray::Type::U, metadata);
     // VField from hice
-    dimensionSetter(dataGroup, hiceName, ModelArray::Type::V, metadata);
+    dimensionSetter(ncFile, hiceName, ModelArray::Type::V, metadata);
 #else
     // Get the sizes of the four types of field
     // HField from hice
-    dimensionSetter(dataGroup, hiceName, ModelArray::Type::H);
+    dimensionSetter(ncFile, hiceName, ModelArray::Type::H);
     // UField from hice
-    dimensionSetter(dataGroup, hiceName, ModelArray::Type::U);
+    dimensionSetter(ncFile, hiceName, ModelArray::Type::U);
     // VField from hice
-    dimensionSetter(dataGroup, hiceName, ModelArray::Type::V);
+    dimensionSetter(ncFile, hiceName, ModelArray::Type::V);
 #endif
 
 #ifdef USE_MPI
@@ -109,26 +106,26 @@ ModelState RectGridIO::getModelState(const std::string& filePath)
     std::reverse(size.begin(), size.end());
 #endif
     state.data[maskName] = ModelArray::HField();
-    dataGroup.getVar(maskName).getVar(start, size, &state.data[maskName][0]);
+    ncFile.getVar(maskName).getVar(start, size, &state.data[maskName][0]);
     state.data[hiceName] = ModelArray::HField();
-    dataGroup.getVar(hiceName).getVar(start, size, &state.data[hiceName][0]);
+    ncFile.getVar(hiceName).getVar(start, size, &state.data[hiceName][0]);
     state.data[ciceName] = ModelArray::HField();
-    dataGroup.getVar(ciceName).getVar(start, size, &state.data[ciceName][0]);
+    ncFile.getVar(ciceName).getVar(start, size, &state.data[ciceName][0]);
     state.data[hsnowName] = ModelArray::HField();
-    dataGroup.getVar(hsnowName).getVar(start, size, &state.data[hsnowName][0]);
+    ncFile.getVar(hsnowName).getVar(start, size, &state.data[hsnowName][0]);
     state.data[tsurfName] = ModelArray::HField();
-    dataGroup.getVar(tsurfName).getVar(start, size, &state.data[tsurfName][0]);
+    ncFile.getVar(tsurfName).getVar(start, size, &state.data[tsurfName][0]);
     // coordinates on the H grid
-    if (dataGroup.getVars().count(xName) > 0) {
+    if (ncFile.getVars().count(xName) > 0) {
         state.data[xName] = ModelArray::HField();
-        dataGroup.getVar(xName).getVar(start, size, &state.data[xName][0]);
+        ncFile.getVar(xName).getVar(start, size, &state.data[xName][0]);
         state.data[yName] = ModelArray::HField();
-        dataGroup.getVar(yName).getVar(start, size, &state.data[yName][0]);
+        ncFile.getVar(yName).getVar(start, size, &state.data[yName][0]);
     } else {
         state.data[longitudeName] = ModelArray::HField();
-        dataGroup.getVar(longitudeName).getVar(start, size, &state.data[longitudeName][0]);
+        ncFile.getVar(longitudeName).getVar(start, size, &state.data[longitudeName][0]);
         state.data[latitudeName] = ModelArray::HField();
-        dataGroup.getVar(latitudeName).getVar(start, size, &state.data[latitudeName][0]);
+        ncFile.getVar(latitudeName).getVar(start, size, &state.data[latitudeName][0]);
     }
 
     ncFile.close();
@@ -145,10 +142,7 @@ void RectGridIO::dumpModelState(const ModelState& state, const ModelMetadata& me
 #endif
 
     CommonRestartMetadata::writeStructureType(ncFile, metadata);
-    netCDF::NcGroup metaGroup = ncFile.addGroup(IStructure::metadataNodeName());
-    netCDF::NcGroup dataGroup = ncFile.addGroup(IStructure::dataNodeName());
-
-    CommonRestartMetadata::writeRestartMetadata(metaGroup, metadata);
+    CommonRestartMetadata::writeRestartMetadata(ncFile, metadata);
     typedef ModelArray::Type Type;
 
     int nx = ModelArray::dimensions(Type::H)[0];
@@ -156,14 +150,13 @@ void RectGridIO::dumpModelState(const ModelState& state, const ModelMetadata& me
 
     std::vector<std::string> dimensionNames = { "xdim", "ydim", "t", "component", "u", "v", "w" };
 
-    // Create the dimension data, since it has to be in the same group as the
-    // data or the parent group
+    // Create the dimension data
 #ifdef USE_MPI
-    netCDF::NcDim xDim = dataGroup.addDim(dimensionNames[0], metadata.globalExtentX);
-    netCDF::NcDim yDim = dataGroup.addDim(dimensionNames[1], metadata.globalExtentY);
+    netCDF::NcDim xDim = ncFile.addDim(dimensionNames[0], metadata.globalExtentX);
+    netCDF::NcDim yDim = ncFile.addDim(dimensionNames[1], metadata.globalExtentY);
 #else
-    netCDF::NcDim xDim = dataGroup.addDim(dimensionNames[0], nx);
-    netCDF::NcDim yDim = dataGroup.addDim(dimensionNames[1], ny);
+    netCDF::NcDim xDim = ncFile.addDim(dimensionNames[0], nx);
+    netCDF::NcDim yDim = ncFile.addDim(dimensionNames[1], ny);
 #endif
     std::vector<netCDF::NcDim> dims2 = { yDim, xDim };
 #ifdef USE_MPI
@@ -178,7 +171,7 @@ void RectGridIO::dumpModelState(const ModelState& state, const ModelMetadata& me
     for (const auto entry : state.data) {
         const std::string& name = entry.first;
         if (entry.second.trueSize() > 0) {
-            netCDF::NcVar var(dataGroup.addVar(name, netCDF::ncDouble, dims2));
+            netCDF::NcVar var(ncFile.addVar(name, netCDF::ncDouble, dims2));
             var.putAtt(mdiName, netCDF::ncDouble, MissingData::value());
 #ifdef USE_MPI
             var.putVar(start2, size2, entry.second.getData());
