@@ -48,11 +48,13 @@ void dimensionSetter(const netCDF::NcFile& ncFile, const std::string& fieldName,
 }
 #else
 void dimensionSetter(
+    const netCDF::NcFile& ncFile, const std::string& fieldName, ModelArray::Type type)
+{
     size_t nDims = ncFile.getVar(fieldName).getDimCount();
     ModelArray::MultiDim dims;
     dims.resize(nDims);
     for (size_t d = 0; d < nDims; ++d) {
-    dims[d] = ncFile.getVar(fieldName).getDim(d).getSize();
+        dims[d] = ncFile.getVar(fieldName).getDim(d).getSize();
     }
     // The dimensions in the netCDF are in the reverse order compared to ModelArray
     std::reverse(dims.begin(), dims.end());
