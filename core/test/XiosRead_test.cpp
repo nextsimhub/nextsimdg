@@ -22,6 +22,8 @@
 const std::string testFilesDir = TEST_FILES_DIR;
 const std::string filename = testFilesDir + "/xios_test_input.nc";
 
+static const int DG = 3;
+
 namespace Nextsim {
 
 /*!
@@ -41,7 +43,11 @@ MPI_TEST_CASE("TestXiosRead", 2)
     config << "[XiosInput]" << std::endl;
     config << "period = P0-0T01:30:00" << std::endl;
     config << "filename = xios_test_input.nc" << std::endl;
-    config << "field_names = hice" << std::endl;
+    // TODO: Add a VertexField and DGField to the config
+    config << "field_names = " << maskName << std::endl;
+    // config << "field_names = " << maskName << "," << coordsName << std::endl;
+    // config << "field_names = " << maskName << "," << hiceName << std::endl;
+    // config << "field_names = " << maskName << "," << coordsName << "," << hiceName << std::endl;
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
 
@@ -61,23 +67,35 @@ MPI_TEST_CASE("TestXiosRead", 2)
     ModelMetadata metadata("xios_test_partition_metadata_2.nc", test_comm);
     xiosHandler.affixModelMetadata(metadata);
 
-    // Create fields on the two grids
+    // Create fields on the grid
     // NOTE: Fields are created when the XIOS handler is constructed
     // NOTE: The 2D grid is created along with the 2D domain
-    xiosHandler.setFieldOperation(hiceName, "instant");
-    xiosHandler.setFieldGridRef(hiceName, "grid_2D");
     Duration timestep = xiosHandler.getCalendarTimestep();
-    xiosHandler.setFieldFreqOffset(hiceName, timestep);
+    // TODO: Setup the VertexField and DGField
+    // for (std::string fieldName : { maskName, coordsName }) {
+    // for (std::string fieldName : { maskName, hiceName }) {
+    // for (std::string fieldName : { maskName, coordsName, hiceName }) {
+    for (std::string fieldName : { maskName }) {
+        xiosHandler.setFieldOperation(fieldName, "instant");
+        xiosHandler.setFieldGridRef(fieldName, "grid_2D");
+        xiosHandler.setFieldFreqOffset(fieldName, timestep);
+    }
 
     xiosHandler.close_context_definition();
 
     // Create HField and ZField instances to read the data into
-    HField hice(ModelArray::Type::H);
+    HField mask(ModelArray::Type::H);
+    mask.resize();
+    VertexField coordinates(ModelArray::Type::VERTEX);
+    coordinates.resize();
+    DGField hice(ModelArray::Type::DG);
     hice.resize();
 
     // Setup ModelState with field above
     ModelState state = { {
-                             { hiceName, hice },
+                             { maskName, mask },
+                             // { coordsName, coordinates },  // FIXME: VertexField
+                             // { hiceName, hice }, // FIXME: DGField
                          },
         {} };
 
@@ -97,11 +115,30 @@ MPI_TEST_CASE("TestXiosRead", 2)
         // Update the current timestep and verify it's updated in XIOS
         metadata.incrementTime(timestep);
         REQUIRE(xiosHandler.getCalendarStep() == ts);
+        // Check that the fields contain the expected data
         ModelState state = grid.getModelState(filename, metadata);
         for (auto& entry : state.data) {
-            for (size_t j = 0; j < ny; ++j) {
-                for (size_t i = 0; i < nx; ++i) {
-                    REQUIRE(entry.second(i, j) == doctest::Approx(i + nx * j));
+            if (entry.first == maskName) {
+                for (size_t j = 0; j < ny; ++j) {
+                    for (size_t i = 0; i < nx; ++i) {
+                        REQUIRE(entry.second(i, j) == doctest::Approx(j >= 1 ? 1.0 : 0.0));
+                    }
+                }
+            } else if (entry.first == coordsName) {
+                for (size_t j = 0; j < ny + 1; ++j) {
+                    for (size_t i = 0; i < nx + 1; ++i) {
+                        REQUIRE(coordinates.components({ i, j })[0] == doctest::Approx(i));
+                        REQUIRE(coordinates.components({ i, j })[1] == doctest::Approx(j));
+                    }
+                }
+            } else if (entry.first == hiceName) {
+                for (size_t j = 0; j < ny; ++j) {
+                    for (size_t i = 0; i < nx; ++i) {
+                        for (size_t d = 0; d < DG; ++d) {
+                            float expected = 1.0 * (d + DG * (i + nx * j));
+                            REQUIRE(hice.components({ i, j })[d] == doctest::Approx(expected));
+                        }
+                    }
                 }
             }
         }

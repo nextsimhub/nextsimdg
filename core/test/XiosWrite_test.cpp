@@ -4,7 +4,6 @@
  * @details
  * This test is designed to test the file writing functionality of the C++
  * interface for XIOS.
- *
  */
 #include <doctest/extensions/doctest_mpi.h>
 #undef INFO
@@ -18,6 +17,8 @@
 #include "include/gridNames.hpp"
 
 #include <filesystem>
+
+static const int DG = 3;
 
 namespace Nextsim {
 
@@ -38,7 +39,9 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     config << "[XiosOutput]" << std::endl;
     config << "period = P0-0T01:30:00" << std::endl;
     config << "filename = xios_test_output.nc" << std::endl;
-    config << "field_names = hice" << std::endl;
+    config << "field_names = " << maskName << "," << hiceName << std::endl;
+    // TODO: Add a VertexField to the config
+    // config << "field_names = " << maskName << "," << coordsName << "," << hiceName << std::endl;
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
 
@@ -66,13 +69,17 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     ModelArray::setDimension(ModelArray::Dimension::X, nx_glo, nx, 0);
     ModelArray::setDimension(ModelArray::Dimension::Y, ny_glo, ny, 0);
 
-    // Create a field on the grid
+    // Create fields on the grid
     // NOTE: Fields are created when the XIOS handler is constructed
     // NOTE: The 2D grid is created along with the 2D domain
-    xiosHandler.setFieldOperation(hiceName, "instant");
-    xiosHandler.setFieldGridRef(hiceName, "grid_2D");
     Duration timestep = xiosHandler.getCalendarTimestep();
-    xiosHandler.setFieldFreqOffset(hiceName, timestep);
+    // TODO: setup the VertexField
+    // for (std::string fieldName : { maskName, coordsName, hiceName }) {
+    for (std::string fieldName : { maskName, hiceName }) {
+        xiosHandler.setFieldOperation(fieldName, "instant");
+        xiosHandler.setFieldGridRef(fieldName, "grid_2D");
+        xiosHandler.setFieldFreqOffset(fieldName, timestep);
+    }
 
     // Set file split frequency
     // NOTE: Files are created when the XIOS handler is constructed
@@ -82,17 +89,37 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     xiosHandler.close_context_definition();
 
     // Create some fake data to test writing methods
-    HField hice(ModelArray::Type::H);
+    HField mask(ModelArray::Type::H);
+    mask.resize();
+    for (size_t j = 0; j < ny; ++j) {
+        for (size_t i = 0; i < nx; ++i) {
+            mask(i, j) = j >= 1 ? 1.0 : 0.0;
+        }
+    }
+    VertexField coordinates(ModelArray::Type::VERTEX);
+    coordinates.resize();
+    // FIXME: The following hangs
+    // for (size_t j = 0; j < ny + 1; ++j) {
+    //     for (size_t i = 0; i < nx + 1; ++i) {
+    //         coordinates.components({ i, j })[0] = (double)i;
+    //         coordinates.components({ i, j })[1] = (double)j;
+    //     }
+    // }
+    DGField hice(ModelArray::Type::DG);
     hice.resize();
     for (size_t j = 0; j < ny; ++j) {
         for (size_t i = 0; i < nx; ++i) {
-            hice(i, j) = 1.0 * (i + nx * j);
+            for (size_t d = 0; d < DG; ++d) {
+                hice.components({ i, j })[d] = 1.0 * (d + DG * (i + nx * j));
+            }
         }
     }
 
     // Setup ModelState with field above
     ModelState state = { {
-                             { hiceName, hice },
+                             { maskName, mask },
+                             // { coordsName, coordinates }, // FIXME: segfault on finalize
+                             { hiceName, hice }, // FIXME: Outputs are wrong shape
                          },
         {} };
 
@@ -115,8 +142,9 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     REQUIRE(std::filesystem::exists("xios_test_output_20230317171100-20230317201059.nc"));
     REQUIRE(std::filesystem::exists("xios_test_output_20230317201100-20230317231059.nc"));
     if (xiosHandler.getClientMPIRank() == 0) {
-        std::filesystem::remove("xios_test_output_20230317171100-20230317201059.nc");
-        std::filesystem::remove("xios_test_output_20230317201100-20230317231059.nc");
+        // TODO: Uncomment the following lines once things are working
+        // std::filesystem::remove("xios_test_output_20230317171100-20230317201059.nc");
+        // std::filesystem::remove("xios_test_output_20230317201100-20230317231059.nc");
     }
 
     xiosHandler.context_finalize();

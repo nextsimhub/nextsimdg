@@ -71,12 +71,12 @@ variables:
 		field_1D:cell_methods = "time: point" ;
 		field_1D:coordinates = "time_instant" ;
 
-	float hice(time_counter, y, x) ;
-		hice:online_operation = "instant" ;
-		hice:interval_operation = "5400 s" ;
-		hice:interval_write = "5400 s" ;
-		hice:cell_methods = "time: point" ;
-		hice:coordinates = "time_instant" ;
+	float mask(time_counter, y, x) ;
+		mask:online_operation = "instant" ;
+		mask:interval_operation = "5400 s" ;
+		mask:interval_write = "5400 s" ;
+		mask:cell_methods = "time: point" ;
+		mask:coordinates = "time_instant" ;
 
 // global attributes:
 		:structure_name = "parametric_rectangular" ;
@@ -109,16 +109,13 @@ data:
   99351165, 99351165,
   99356565, 99356565 ;
 
- field_1D =
-  0, 1, 0, 1 ;
-
- hice =
-  0, 1, 0, 1,
-  2, 3, 2, 3,
-  0, 1, 0, 1,
-  2, 3, 2, 3,
-  0, 1, 0, 1,
-  2, 3, 2, 3,
-  0, 1, 0, 1,
-  2, 3, 2, 3 ;
+ mask =
+  0, 0, 0, 0,
+  1, 1, 1, 1,
+  0, 0, 0, 0,
+  1, 1, 1, 1,
+  0, 0, 0, 0,
+  1, 1, 1, 1,
+  0, 0, 0, 0,
+  1, 1, 1, 1 ;
 }
