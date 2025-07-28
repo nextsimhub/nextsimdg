@@ -13,8 +13,8 @@
 
 #include "include/ParaGridIO.hpp"
 
-#include <ncAtt.h>
 #include <ncFile.h>
+#include <ncGroupAtt.h>
 #include <stdexcept>
 #include <string>
 
@@ -25,16 +25,14 @@ std::string structureNameFromFile(const std::string& filePath)
     std::string structureName;
 
     try {
-        // FIXME: Avoid hard-code hack
-        structureName = "parametric_rectangular";
-        // netCDF::NcFile ncFile(filePath, netCDF::NcFile::read);
-        // netCDF::NcAtt att = ncFile.getAtt(IStructure::structureNodeName());
-        // int len = att.getAttLength();
-        // // Initialize a std::string of len, filled with zeros
-        // structureName = std::string(len, '\0');
-        // // &str[0] gives access to the buffer, guaranteed by C++11
-        // att.getValues(&structureName[0]);
-        // ncFile.close();
+        netCDF::NcFile ncFile(filePath, netCDF::NcFile::read);
+        netCDF::NcGroupAtt att = ncFile.getAtt(IStructure::structureNodeName());
+        int len = att.getAttLength();
+        // Initialize a std::string of len, filled with zeros
+        structureName = std::string(len, '\0');
+        // &str[0] gives access to the buffer, guaranteed by C++11
+        att.getValues(&structureName[0]);
+        ncFile.close();
     } catch (const netCDF::exceptions::NcException& nce) {
         std::string ncWhat(nce.what());
         ncWhat += ": " + filePath;
