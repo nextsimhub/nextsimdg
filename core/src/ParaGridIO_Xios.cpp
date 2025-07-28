@@ -271,19 +271,14 @@ void ParaGridIO::dumpModelState(
 {
     Xios& xiosHandler = Xios::getInstance();
 
-    // TODO: coordsName, xName, yName, gridAzimuthName and others
-    std::set<std::string> restartFields = { hiceName, ciceName, hsnowName, ticeName, sstName,
-        sssName, maskName, longitudeName, latitudeName, uName, vName, damageName };
-    // If the above fields are found in the supplied ModelState, output them
+    // Assume that all fields in the supplied ModelState are necessary, and so write them to file.
     for (auto entry : state.data) {
         const std::string fieldId = entry.first;
-        if (restartFields.count(fieldId)) {
-            if (xiosHandler.getFieldReadAccess(fieldId)) {
-                throw std::runtime_error("ParaGridIO::dumpModelState: field " + fieldId
-                    + " is not configured for writing, but is being written to file.");
-            };
-            xiosHandler.write(fieldId, entry.second);
-        }
+        if (xiosHandler.getFieldReadAccess(fieldId)) {
+            throw std::runtime_error("ParaGridIO::dumpModelState: field " + fieldId
+                + " is not configured for writing, but is being written to file.");
+        };
+        xiosHandler.write(fieldId, entry.second);
     }
 }
 
