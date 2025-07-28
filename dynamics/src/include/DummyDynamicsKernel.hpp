@@ -40,22 +40,7 @@ public:
      * @param data The ModelArray containing the data to be set.
      *
      */
-    void setData(const std::string& name, const ModelArray& data)
-    {
-        // Special cases: hice, cice, (damage, stress) <- not yet implemented
-        if (name == hiceName) {
-            DGModelArray::ma2dg(data, hice);
-        } else if (name == ciceName) {
-            DGModelArray::ma2dg(data, cice);
-        } else if (name == "u") {
-            CGModelArray::ma2cg(data, u);
-        } else if (name == "v") {
-            CGModelArray::ma2cg(data, v);
-        } else {
-            // All other fields get shoved in a (labelled) bucket
-            DGModelArray::ma2dg(data, advectedFields[name]);
-        }
-    }
+    void setData(const std::string& name, const ModelArray& data) { }
 
     /*!
      * @brief Returns an HField ModelArray containing the DG0 finite volume
@@ -64,58 +49,9 @@ public:
      * @param name the name of the requested field.
      *
      */
-    ModelArray getDG0Data(const std::string& name)
-    {
-        HField data(ModelArray::Type::H);
-        if (name == hiceName) {
-            return DGModelArray::dg2ma(hice, data);
-        } else if (name == ciceName) {
-            return DGModelArray::dg2ma(cice, data);
-        } else {
-            // Any other named field must exist
-            return DGModelArray::dg2ma(advectedFields.at(name), data);
-        }
-    }
+    ModelArray getDG0Data(const std::string& name) { return ModelArray(ModelArray::Type::H); }
 
-    /*!
-     * @brief Returns a DG or DGSTRESS ModelArray containing the full DG data for
-     * the named dynamics field.
-     *
-     * @param name the name of the requested field.
-     */
-    ModelArray getDGData(const std::string& name)
-    {
-
-        if (name == hiceName) {
-            DGField data(ModelArray::Type::DG);
-            data.resize();
-            return DGModelArray::dg2ma(hice, data);
-        } else if (name == ciceName) {
-            DGField data(ModelArray::Type::DG);
-            data.resize();
-            return DGModelArray::dg2ma(cice, data);
-        } else {
-            ModelArray::Type type = fieldType.at(name);
-            ModelArray data(type);
-            data.resize();
-            return DGModelArray::dg2ma(advectedFields.at(name), data);
-        }
-    }
-
-    void update(const TimestepTime& tst) {
-
-    };
-
-private:
-    DGVector<DGadvection> hice;
-    DGVector<DGadvection> cice;
-    CGVector<CGdegree> u;
-    CGVector<CGdegree> v;
-
-    std::unordered_map<std::string, DGVector<DGadvection>> advectedFields;
-
-    // A map from field name to the type of
-    const static std::unordered_map<std::string, ModelArray::Type> fieldType;
+    void update(const TimestepTime& tst) {};
 };
 
 } /* namespace Nextsim */

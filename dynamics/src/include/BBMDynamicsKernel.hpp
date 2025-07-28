@@ -28,11 +28,19 @@ public:
     {
     }
 
+    void setDGArray(const std::string& name, ModelArray::DataType& dgData) override
+    {
+        BrittleCGDynamicsKernel<DGadvection>::setDGArray(name, dgData);
+        // Set the damage array from BrittleCGDynamicsKernel::damage, if it was just set above.
+        if (name == damageName) {
+            bbmStressStep.setDamage(damage);
+        }
+    }
+
     void initialise(const ModelArray& coords, bool isSpherical, const ModelArray& mask) override
     {
         BrittleCGDynamicsKernel<DGadvection>::initialise(coords, isSpherical, mask);
         bbmStressStep.setPMap(pmap.get());
-        bbmStressStep.setDamage(damage);
     }
 
 private:

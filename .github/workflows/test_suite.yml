@@ -70,7 +70,8 @@ jobs:
         mv ../test .
         cd test
         python3 ThermoIntegration_test.py
-        ./run_test_jan2010_integration_test.sh python3
+        ./run_test_jan2010_integration.sh python3
+        ./run_test_advection.sh python3
 
   test-ubuntu-mpi-noxios:
 
@@ -178,4 +179,5 @@ jobs:
         mv ../test .
         cd test
         python ThermoIntegration_test.py
-        ./run_test_jan2010_integration_test.sh python
+        ./run_test_jan2010_integration.sh python
+        ./run_test_advection.sh python

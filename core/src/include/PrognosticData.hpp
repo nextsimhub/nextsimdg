@@ -54,13 +54,13 @@ public:
     void writeRestartFile(const std::string& filePath, const ModelMetadata& metadata) const;
 
 private:
-    HField m_snow;
-    HField m_damage;
     double m_dt;
 
     // Full DG component arrays of thickness and concentration
-    AdvectedField hiceAdvection;
-    AdvectedField ciceAdvection;
+    AdvectedField hice;
+    AdvectedField cice;
+    AdvectedField damage;
+    AdvectedField hsnow; // cell averaged snow thickness
 
     IAtmosphereBoundary* pAtmBdy;
     IOceanBoundary* pOcnBdy;
@@ -74,7 +74,6 @@ private:
     IceGrowth iceGrowth;
 
     void updatePrognosticFields();
-    void updateDynamicsFields();
 };
 
 } /* namespace Nextsim */

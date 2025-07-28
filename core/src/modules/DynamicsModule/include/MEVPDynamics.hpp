@@ -31,7 +31,12 @@ public:
     MEVPDynamics();
 
     std::string getName() const override { return "MEVPDynamics"; }
+    void prepareAdvection() override;
     void update(const TimestepTime& tst) override;
+
+    void advectField(double timestep, ModelArray& field, double lowerLimit =
+            -std::numeric_limits<double>::infinity(), double upperLimit =
+            std::numeric_limits<double>::infinity()) override;
 
     void setData(const ModelState::DataMap&) override;
     void configure() override;

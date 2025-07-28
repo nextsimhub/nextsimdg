@@ -12,6 +12,8 @@
 #include "include/Time.hpp"
 #include "include/gridNames.hpp"
 
+#include <limits>
+
 namespace Nextsim {
 class IDynamics : public ModelComponent {
 public:
@@ -22,17 +24,13 @@ public:
     IDynamics(bool usesDamageIn)
         : uice(ModelArray::Type::H)
         , vice(ModelArray::Type::H)
-        , damage(ModelArray::Type::H)
         , taux(ModelArray::Type::H)
         , tauy(ModelArray::Type::H)
         , shear(ModelArray::Type::H)
         , divergence(ModelArray::Type::H)
         , sigmaI(ModelArray::Type::H)
         , sigmaII(ModelArray::Type::H)
-        , hice(getStore())
-        , cice(getStore())
-        , hsnow(getStore())
-        , damage0(getStore())
+        , damage(getStore())
         , uwind(getStore())
         , vwind(getStore())
         , uocean(getStore())
@@ -41,6 +39,7 @@ public:
         , m_usesDamage(usesDamageIn)
         , hiceDG(getStore())
         , ciceDG(getStore())
+        , hsnowDG(getStore())
     {
         getStore().registerArray(Protected::DIV, &divergence, RO);
         getStore().registerArray(Protected::ICE_U, &uice, RO);
@@ -50,7 +49,6 @@ public:
         getStore().registerArray(Protected::SHEAR, &shear, RO);
         getStore().registerArray(Protected::SIGMAI, &sigmaI, RO);
         getStore().registerArray(Protected::SIGMAII, &sigmaII, RO);
-        getStore().registerArray(Shared::DAMAGE, &damage, RW);
     }
     virtual ~IDynamics() = default;
 
@@ -91,11 +89,6 @@ public:
     {
         uice.resize();
         vice.resize();
-        damage.resize();
-        if (!m_usesDamage) {
-            damage = 0.;
-        }
-
         shear.resize();
         divergence.resize();
         sigmaI.resize();
@@ -109,12 +102,17 @@ public:
      */
     virtual bool usesDamage() const { return m_usesDamage; }
 
+    virtual void advectField(double timestep, ModelArray& field, double lowerLimit =
+            -std::numeric_limits<double>::infinity(), double upperLimit =
+            std::numeric_limits<double>::infinity())
+    {
+    }
+
+    virtual void prepareAdvection() = 0;
 protected:
     // Shared ice velocity arrays
     HField uice;
     HField vice;
-    // Updated damage array
-    HField damage;
     // Ice-ocean stress (for the coupler, mostly)
     HField taux;
     HField tauy;
@@ -124,10 +122,7 @@ protected:
     HField sigmaI;
     HField sigmaII;
     // References to the DG0 finite volume data arrays
-    ModelArrayRef<Shared::H_ICE, RW> hice;
-    ModelArrayRef<Shared::C_ICE, RW> cice;
-    ModelArrayRef<Shared::H_SNOW, RW> hsnow;
-    ModelArrayRef<Protected::DAMAGE, RO> damage0;
+    ModelArrayRef<Shared::DAMAGE, RW> damage;
 
     // References to the forcing velocity arrays
     ModelArrayRef<Protected::WIND_U> uwind;
@@ -142,6 +137,7 @@ protected:
     // Store the h_ice and c_ice DG fields here, rather than in the kernel.
     ModelArrayRef<Shared::H_ICE_DG, RW> hiceDG;
     ModelArrayRef<Shared::C_ICE_DG, RW> ciceDG;
+    ModelArrayRef<Shared::H_SNOW_DG, RW> hsnowDG;
 
     /*
      * Checks and returns if the provided data map is spherical

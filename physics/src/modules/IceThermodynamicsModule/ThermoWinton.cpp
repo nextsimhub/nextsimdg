@@ -29,6 +29,8 @@ const std::string ThermoWinton::tBottomName = "tbottom";
 
 ThermoWinton::ThermoWinton()
     : IIceThermodynamics()
+    , tInternal(ModelArray::AdvectionType)
+    , tBottom(ModelArray::AdvectionType)
     , snowMelt(ModelArray::Type::H)
     , topMelt(ModelArray::Type::H)
     , botMelt(ModelArray::Type::H)
@@ -161,6 +163,11 @@ void ThermoWinton::setData(const ModelState::DataMap& state)
 
 void ThermoWinton::update(const TimestepTime& tst)
 {
+    // Advect ice temperatures
+    IIceThermodynamics::update(tst);
+    FieldAdvection::advectField(tInternal, tst, IIceThermodynamics::minT, seaIceTf);
+    FieldAdvection::advectField(tBottom, tst, IIceThermodynamics::minT, seaIceTf);
+    // Perform the rest of the thermodynamics using the advected temperatures
     overElements(
         [this](const size_t i, const TimestepTime& tsTime) { calculateElement(i, tsTime); }, tst);
 }
