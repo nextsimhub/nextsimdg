@@ -1,3 +1,6 @@
+/*!
+ * @author  Thomas Richter <thomas.richter@ovgu.de>
+ */
 #include "VectorManipulations.hpp"
 
 template void Nextsim::VectorManipulations::CGAveragePeriodic(const ParametricMesh&, CGVector<1>&);

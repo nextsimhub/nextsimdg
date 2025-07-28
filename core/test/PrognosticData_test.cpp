@@ -1,8 +1,5 @@
 /*!
- * @file PrognosticData_test.cpp
- *
- * @date 30 Apr 2025
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
@@ -16,6 +13,7 @@
 #include "include/UnescoFreezing.hpp"
 #include "include/constants.hpp"
 
+#include <iostream>
 #include <sstream>
 
 extern template class Module::Module<Nextsim::IOceanBoundary>;

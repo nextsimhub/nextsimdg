@@ -1,8 +1,6 @@
 /*!
- * @file Model.hpp
- * @date 12 Aug 2021
- * @author Tim Spain <timothy.spain@nersc.no>
- * @author Kacper Kornet <kk562@cam.ac.uk>
+ * @author  Tim Spain <timothy.spain@nersc.no>
+ * @author  Kacper Kornet <kk562@cam.ac.uk>
  */
 
 #ifndef MODEL_HPP

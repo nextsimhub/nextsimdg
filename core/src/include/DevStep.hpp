@@ -1,8 +1,5 @@
 /*!
- * @file DevStep.hpp
- *
- * @date Jan 12, 2022
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #ifndef DEVSTEP_HPP

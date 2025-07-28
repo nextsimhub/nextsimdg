@@ -1,8 +1,5 @@
 /*!
- * @file ThermoIce0.cpp
- *
- * @date 02 May 2025
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #include "include/ThermoIce0.hpp"
@@ -32,6 +29,7 @@ ThermoIce0::ThermoIce0()
 
 void ThermoIce0::update(const TimestepTime& tsTime)
 {
+    IIceThermodynamics::update(tsTime);
     overElements(
         [this](size_t i, const TimestepTime& tst) { this->calculateElement(i, tst); }, tsTime);
 }

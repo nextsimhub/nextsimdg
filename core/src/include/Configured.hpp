@@ -1,8 +1,5 @@
 /*!
- * @file Configured.hpp
- *
- * @date Oct 8, 2021
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #ifndef CONFIGURED_HPP

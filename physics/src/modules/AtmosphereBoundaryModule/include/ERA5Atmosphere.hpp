@@ -1,8 +1,6 @@
 /*!
- * @file ERA5Atmosphere.hpp
  *
- * @date Nov 25, 2022
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #ifndef ERA5ATMOSPHERE_HPP

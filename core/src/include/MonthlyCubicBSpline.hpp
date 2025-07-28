@@ -1,8 +1,5 @@
 /*!
- * @file MonthlyCubicBSpline.hpp
- *
- * @date Oct 14, 2022
- * @author Einar Örn Ólason <einar.olason@nersc.no>
+ * @author  Einar Örn Ólason <einar.olason@nersc.no>
  */
 
 #ifndef MONTHLYCUBICBSPLINE_HPP
