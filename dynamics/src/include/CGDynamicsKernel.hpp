@@ -44,6 +44,8 @@ public:
     void setData(const std::string& name, const ModelArray& data) override;
     ModelArray getDG0Data(const std::string& name) const override;
     ModelArray getCGData(const std::string& name) const;
+
+    const ModelArray::MultiDim getCGDimensions() const;
     void computeGradientOfSeaSurfaceHeight(const DGVector<1>& seaSurfaceHeight);
     void prepareIteration(const DataMap& data) override;
     void projectVelocityToStrain() override;
