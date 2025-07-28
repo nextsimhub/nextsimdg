@@ -49,12 +49,7 @@ variables:
 		field_3D:coordinates = "time_instant" ;
 
 // global attributes:
-		:name = "xios_test_output" ;
-		:description = "Created by xios" ;
-		:title = "Created by xios" ;
-		:Conventions = "CF-1.6" ;
-		:timeStamp = "2024-Aug-27 08:47:07 GMT" ;
-		:uuid = "28e10e5f-e296-4219-903d-bc75bd2e4a9a" ;
+		:structure_name = "parametric_rectangular" ;
 data:
 
  lat = -1, 1 ;
