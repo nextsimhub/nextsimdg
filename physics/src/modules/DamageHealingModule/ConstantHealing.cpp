@@ -51,6 +51,10 @@ void ConstantHealing::update(const TimestepTime& tstep)
 
 void ConstantHealing::updateElement(size_t i, const TimestepTime& tstep)
 {
+    // No ice, no healing
+    if (cice[i] == 0.)
+        return;
+
     // Only lateral growth contributes to healing, not melt(!)
     double const lateralGrowth = std::max(0., deltaCi[i]);
 
