@@ -2,13 +2,18 @@
 
 name: Doxygen Action
 
-# Controls when the action will run. Triggers the workflow on push or pull request
-# events but only for the master branch
+# Controls when the action will run.
 on:
+  # Trigger the workflow on pushes to the main or docs branches
   push:
     branches: [ main, docs ]
-
-
+  # Trigger the workflow if a push is made to an open PR that edits certain files
+  pull_request:
+    paths:
+      - '.github/workflows/doxygen.yml'
+      - 'docs/Doxyfile'
+      - 'docs/*.rst'
+      - 'scripts/doxygen_prep.sh'
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -24,6 +29,12 @@ jobs:
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
     - uses: actions/checkout@v2
 
+    - name: Preprocessing
+      run: |
+          for EXTENSION in cpp hpp ipp; do
+            find . -name "*.${EXTENSION}" -exec scripts/doxygen_prep.sh {} \;
+          done
+
     - name: Doxygen Action
       uses: mattnotmitt/doxygen-action@v1.1.0
       with:
@@ -32,8 +43,15 @@ jobs:
         # Working directory
         working-directory: "./docs" # default is .
 
+    # tmate can be used to get an interactive ssh session to the GitHub runner
+    # for debugging actions. See
+    # [here](https://github.com/mxschmitt/action-tmate) for more information.
+    # Uncomment these lines to debug the Doxygen build
+    # - name: Setup tmate session
+    #   uses: mxschmitt/action-tmate@v3
+
     - name: Deploy to GitHub Pages
-      if: success()
+      if: success() && (github.ref == 'refs/heads/main')
       uses: crazy-max/ghaction-github-pages@v2
       with:
         target_branch: gh-pages

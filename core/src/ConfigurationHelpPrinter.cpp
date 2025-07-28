@@ -1,8 +1,5 @@
 /*!
- * @file ConfigurationHelpPrinter.cpp
- *
- * @date Aug 18, 2022
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #include "include/ConfigurationHelpPrinter.hpp"

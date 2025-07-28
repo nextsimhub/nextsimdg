@@ -1,8 +1,6 @@
 /*!
- * @file FreeDriftDynamics.hpp
  *
- * @date 26 May 2025
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #ifndef FREEDRIFTDYNAMICS_HPP
@@ -76,17 +74,15 @@ public:
         kernel.setDGArray(hsnowName, hsnowDG.allComponents());
     }
 
-    void advectField(double timestep, ModelArray& field, double lowerLimit =
-                -std::numeric_limits<double>::infinity(), double upperLimit =
-                std::numeric_limits<double>::infinity()) override
+    void advectField(double timestep, ModelArray& field,
+        double lowerLimit = -std::numeric_limits<double>::infinity(),
+        double upperLimit = std::numeric_limits<double>::infinity()) override
     {
         kernel.advectField(timestep, field, lowerLimit, upperLimit);
     }
 
-    void prepareAdvection() override
-    {
-        kernel.prepareAdvection();
-    }
+    void prepareAdvection() override { kernel.prepareAdvection(); }
+
 private:
     FreeDriftDynamicsKernel<DGCOMP> kernel;
     DynamicsParameters params;

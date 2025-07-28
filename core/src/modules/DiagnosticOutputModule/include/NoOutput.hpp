@@ -1,8 +1,6 @@
 /*!
- * @file NoOutput.hpp
  *
- * @date 23 Oct 2024
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #ifndef NOOUTPUT_HPP

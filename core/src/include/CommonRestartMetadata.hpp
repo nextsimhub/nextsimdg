@@ -1,8 +1,5 @@
 /*!
- * @file CommonRestartMetadata.hpp
- *
- * @date Jun 30, 2022
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #ifndef COMMONRESTARTMETADATA_HPP

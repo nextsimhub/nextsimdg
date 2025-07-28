@@ -1,8 +1,5 @@
 /*!
- * @file ThermoWintonTemperature_test.cpp
- *
- * @date 24 Sep 2024
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
@@ -13,7 +10,6 @@
 #include "include/ThermoWinton.hpp"
 
 #include "include/Configurator.hpp"
-#include "include/constants.hpp"
 #include "include/IAtmosphereBoundary.hpp"
 #include "include/IFreezingPoint.hpp"
 #include "include/IIceAlbedo.hpp"
@@ -108,9 +104,9 @@ TEST_CASE("Melting conditions")
 
     // Data for the Winton ice temperatures
     ModelState::DataMap iceTempState = {
-            { tsurfName, ModelArray(ModelArray::Type::H) },
-            { ThermoWinton::tInteriorName, ModelArray(ModelArray::Type::H) },
-            { ThermoWinton::tBottomName, ModelArray(ModelArray::Type::H) },
+        { tsurfName, ModelArray(ModelArray::Type::H) },
+        { ThermoWinton::tInteriorName, ModelArray(ModelArray::Type::H) },
+        { ThermoWinton::tBottomName, ModelArray(ModelArray::Type::H) },
     };
     iceTempState.at(tsurfName) = TICE;
     iceTempState.at(ThermoWinton::tInteriorName) = TICE;
@@ -211,9 +207,9 @@ TEST_CASE("Freezing conditions")
     TimestepTime tst = { TimePoint("2000-001"), Duration("P0-0T0:10:0") };
     // Data for the Winton ice temperatures
     ModelState::DataMap iceTempState = {
-            { tsurfName, ModelArray(ModelArray::Type::H) },
-            { ThermoWinton::tInteriorName, ModelArray(ModelArray::Type::H) },
-            { ThermoWinton::tBottomName, ModelArray(ModelArray::Type::H) },
+        { tsurfName, ModelArray(ModelArray::Type::H) },
+        { ThermoWinton::tInteriorName, ModelArray(ModelArray::Type::H) },
+        { ThermoWinton::tBottomName, ModelArray(ModelArray::Type::H) },
     };
     iceTempState.at(tsurfName) = TICE;
     iceTempState.at(ThermoWinton::tInteriorName) = TICE;
@@ -327,9 +323,9 @@ TEST_CASE("No ice do nothing")
     TimestepTime tst = { TimePoint("2000-001"), Duration("P0-0T0:10:0") };
     // Data for the Winton ice temperatures
     ModelState::DataMap iceTempState = {
-            { tsurfName, ModelArray(ModelArray::Type::H) },
-            { ThermoWinton::tInteriorName, ModelArray(ModelArray::Type::H) },
-            { ThermoWinton::tBottomName, ModelArray(ModelArray::Type::H) },
+        { tsurfName, ModelArray(ModelArray::Type::H) },
+        { ThermoWinton::tInteriorName, ModelArray(ModelArray::Type::H) },
+        { ThermoWinton::tBottomName, ModelArray(ModelArray::Type::H) },
     };
     iceTempState.at(tsurfName) = TICE;
     iceTempState.at(ThermoWinton::tInteriorName) = TICE;

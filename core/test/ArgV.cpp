@@ -1,8 +1,5 @@
 /*!
- * @file ArgV.cpp
- *
- * @date Oct 11, 2021
- * @author Tim Spain
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #include "ArgV.hpp"

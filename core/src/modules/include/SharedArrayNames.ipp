@@ -1,9 +1,6 @@
 /*!
- * @file SharedArrayNames.ipp
- *
- * @date 1 Jul 2024
- * @author Tim Spain <timothy.spain@nersc.no>
- * @author Einar Ólason <einar.olason@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
+ * @author  Einar Ólason <einar.olason@nersc.no>
  */
 
 // External SharedArray names must be unique wrt to the external ProtectedArray names as well

@@ -1,9 +1,6 @@
 /*!
- * @file CommandLineParser.cpp
- *
- * @date Jan 29, 2025
- * @author Tim Spain <timothy.spain@nersc.no>
- * @author Tim Williams <timothy.williams@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Williams <timothy.williams@nersc.no>
  */
 
 #include "include/CommandLineParser.hpp"

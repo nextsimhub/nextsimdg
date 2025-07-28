@@ -1,10 +1,7 @@
 /*!
- * @file MEVPDynamics.cpp
- *
- * @date 26 May 2025
- * @author Tim Spain <timothy.spain@nersc.no>
- * @author Piotr Minakowski <piotr.minakowski@ovgu.de>
- * @author Einar Ólason <einar.olason@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
+ * @author  Piotr Minakowski <piotr.minakowski@ovgu.de>
+ * @author  Einar Ólason <einar.olason@nersc.no>
  */
 
 #include "include/MEVPDynamics.hpp"
@@ -74,10 +71,7 @@ MEVPDynamics::MEVPDynamics()
 {
 }
 
-void MEVPDynamics::prepareAdvection()
-{
-    kernel.prepareAdvection();
-}
+void MEVPDynamics::prepareAdvection() { kernel.prepareAdvection(); }
 
 void MEVPDynamics::setData(const ModelState::DataMap& ms)
 {
@@ -130,7 +124,8 @@ void MEVPDynamics::update(const TimestepTime& tst)
     sigmaII = kernel.getDG0Data(sigmaIIName);
 }
 
-void MEVPDynamics::advectField(double timestep, ModelArray& field, double lowerLimit, double upperLimit)
+void MEVPDynamics::advectField(
+    double timestep, ModelArray& field, double lowerLimit, double upperLimit)
 {
     kernel.advectField(timestep, field, lowerLimit, upperLimit);
 }

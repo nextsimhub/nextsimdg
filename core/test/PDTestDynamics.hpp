@@ -1,8 +1,5 @@
 /*!
- * @file PDTestDynamics.hpp
- *
- * @date Jan 21, 2025
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #ifndef PDTESTDYNAMICS_HPP
@@ -15,19 +12,11 @@ class PDTestDynamics : public DummyDynamics {
 public:
     std::string getName() const override { return "PDTestDynamics"; }
 
-    void setData (const ModelState::DataMap& ms) override
-    {
-        dataMap = ms;
-    }
-    ModelState getStateDiagnostic() const override
-    {
-        return { dataMap, {} };
-    }
+    void setData(const ModelState::DataMap& ms) override { dataMap = ms; }
+    ModelState getStateDiagnostic() const override { return { dataMap, {} }; }
 
-    ModelState getStatePrognostic() const override
-    {
-        return { dataMap, {} };
-    }
+    ModelState getStatePrognostic() const override { return { dataMap, {} }; }
+
 private:
     ModelState::DataMap dataMap;
 };

@@ -1,8 +1,5 @@
 /*!
- * @file SlabOcean_test.cpp
- *
- * @date 10 Feb 2025
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN

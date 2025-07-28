@@ -8,7 +8,7 @@ with Nx x Ny elements
 
 The mesh is slightly distorted
 
-@author: richter
+@author  Thomas Richter <thomas.richter@ovgu.de>
 """
 
 # Size of the domain

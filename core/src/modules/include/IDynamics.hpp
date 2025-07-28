@@ -1,8 +1,5 @@
 /*!
- * @file IDynamics.hpp
- *
- * @date 03 Jun 2025
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #ifndef IDYNAMICS_HPP
@@ -102,13 +99,14 @@ public:
      */
     virtual bool usesDamage() const { return m_usesDamage; }
 
-    virtual void advectField(double timestep, ModelArray& field, double lowerLimit =
-            -std::numeric_limits<double>::infinity(), double upperLimit =
-            std::numeric_limits<double>::infinity())
+    virtual void advectField(double timestep, ModelArray& field,
+        double lowerLimit = -std::numeric_limits<double>::infinity(),
+        double upperLimit = std::numeric_limits<double>::infinity())
     {
     }
 
     virtual void prepareAdvection() = 0;
+
 protected:
     // Shared ice velocity arrays
     HField uice;

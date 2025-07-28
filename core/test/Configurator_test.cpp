@@ -1,8 +1,5 @@
 /*!
- * @file Configurator_test.cpp
- *
- * @date 24 Sep 2024
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #include "ArgV.hpp"
@@ -62,8 +59,8 @@ private:
 };
 
 const std::map<int, std::string> keyMap2 = {
-        {Config2::VALUE_KEY, "config.value"},
-        {Config2::NAME_KEY, "config.name"},
+    { Config2::VALUE_KEY, "config.value" },
+    { Config2::NAME_KEY, "config.name" },
 };
 
 Config2::Config2()
@@ -101,8 +98,8 @@ private:
 };
 
 const std::map<int, std::string> keyMap3 = {
-    {Config3::VALUE_KEY, "config.value"},
-    {Config3::WEIGHT_KEY, "data.weight"},
+    { Config3::VALUE_KEY, "config.value" },
+    { Config3::WEIGHT_KEY, "data.weight" },
 };
 
 void Config3::configure()

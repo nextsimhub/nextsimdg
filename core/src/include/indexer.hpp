@@ -1,8 +1,5 @@
 /*!
- * @file indexer.hpp
- *
- * @date Nov 5, 2024
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #ifndef INDEXER_HPP

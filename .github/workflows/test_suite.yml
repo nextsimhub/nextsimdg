@@ -17,12 +17,15 @@ on:
   pull_request:
     paths:
       - '.github/workflows/test_suite.yml'
+      - 'core/*.sh'
+      - 'dynamics/*.sh'
+      - 'run/*.sh'
+      - 'test/*.sh'
       - '**.cdl'
       - '**.cfg'
       - '**.cpp'
       - '**.hpp'
       - '**.py'
-      - '**.sh'
       - '**.xml'
       - '**CMakeLists.txt'
   pull_request_review:

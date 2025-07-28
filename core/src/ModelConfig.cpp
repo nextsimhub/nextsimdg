@@ -1,8 +1,5 @@
 /*!
- * @file ModelConfig.cpp
- *
- * @date 14 Apr 2023
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #include "include/ModelConfig.hpp"

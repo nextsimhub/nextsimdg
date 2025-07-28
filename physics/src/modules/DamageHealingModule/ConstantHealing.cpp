@@ -1,8 +1,5 @@
 /*!
- * @file ConstantHealing.hpp
- *
- * @date 02 May 2025
- * @author Einar Ólason <einar.olason@nersc.no>
+ * @author  Einar Ólason <einar.olason@nersc.no>
  */
 
 #include "include/ConstantHealing.hpp"
@@ -22,10 +19,7 @@ void ConstantHealing::configure()
     tD *= 86400.;
 }
 
-ConfigMap ConstantHealing::getConfiguration() const
-{
-    return { { keyMap.at(TD_KEY), tD } };
-}
+ConfigMap ConstantHealing::getConfiguration() const { return { { keyMap.at(TD_KEY), tD } }; }
 
 ConstantHealing::HelpMap& ConstantHealing::getHelpText(HelpMap& map, bool getAll)
 {

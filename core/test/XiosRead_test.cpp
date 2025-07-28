@@ -1,7 +1,5 @@
 /*!
- * @file    XiosRead_test.cpp
  * @author  Joe Wallwork <jw2423@cam.ac.uk>
- * @date    19 May 2025
  * @brief   Tests for XIOS read functionality
  * @details
  * This test is designed to test the file reading functionality of the C++
