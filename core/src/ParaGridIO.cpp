@@ -35,7 +35,7 @@ ParaGridIO::ParaGridIO(ParametricGrid& grid)
         { "ydimxdimdg_comp", ModelArray::Type::DG },
         { "yxdgstress_comp", ModelArray::Type::DGSTRESS },
         { "ydimxdimdgstress_comp", ModelArray::Type::DGSTRESS },
-        { "ycgxcg", ModelArray::Type::CG },
+        { "y_cgx_cg", ModelArray::Type::CG },
         { "yvertexxvertexncoords", ModelArray::Type::VERTEX },
           // clang-format on
       })
