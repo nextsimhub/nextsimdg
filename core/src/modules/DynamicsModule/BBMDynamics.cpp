@@ -10,8 +10,7 @@
 namespace Nextsim {
 
 static const std::vector<std::string> namedFields = { uName, vName };
-static const std::map<std::string, std::pair<ModelArray::Type, double>> defaultFields = {
-};
+static const std::map<std::string, std::pair<ModelArray::Type, double>> defaultFields = {};
 
 // TODO: We should use getName() here, but it isn't static.
 static const std::string prefix = "BBMDynamics"; // MEVPDynamics::getName();
@@ -163,12 +162,10 @@ void BBMDynamics::update(const TimestepTime& tst)
     sigmaII = kernel.getDG0Data(sigmaIIName);
 }
 
-void BBMDynamics::prepareAdvection()
-{
-    kernel.prepareAdvection();
-}
+void BBMDynamics::prepareAdvection() { kernel.prepareAdvection(); }
 
-void BBMDynamics::advectField(double timestep, ModelArray& field, double lowerLimit, double upperLimit)
+void BBMDynamics::advectField(
+    double timestep, ModelArray& field, double lowerLimit, double upperLimit)
 {
     kernel.advectField(timestep, field, lowerLimit, upperLimit);
 }

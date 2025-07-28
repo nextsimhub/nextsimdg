@@ -114,6 +114,8 @@ protected:
     HField snowToIce;
 
     const ArraySlicer::Slice z0Slice { { {}, {}, { 0 } } };
+
+    constexpr static double minT = -90.0;
 };
 
 } /* namespace Nextsim */
