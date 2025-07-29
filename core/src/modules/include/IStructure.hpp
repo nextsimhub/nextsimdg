@@ -76,14 +76,6 @@ public:
         const std::string& filePath, bool isRestart) const
         = 0;
 
-    // Node names in the default structure
-
-    //! Returns the name of the metadata node.
-    // TODO: Is this still required after removing NetCDF groups?
-    static const std::string metadataNodeName() { return "metadata"; }
-    //! Returns the name of the data node.
-    // TODO: Is this still required after removing NetCDF groups?
-    static const std::string dataNodeName() { return "data"; }
     //! The name of the group holding the definitive structure type
     static const std::string structureNodeName() { return "structure_name"; }
 
