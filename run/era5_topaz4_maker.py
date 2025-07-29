@@ -10,8 +10,15 @@ hr_per_day = 24
 
 zero_C_in_kelvin = 273.15
 
-# Returns arrays of times for the ERA5 file, in Unix and ERA5 format
 def create_era5_times(start_tm, stop_tm):
+    """
+    Calculate times for the ERA5 file
+
+    :param start_tm: Start time for the time series
+    :param stop_tm: End time for the time series
+    :return: Arrays of times for the ERA5 file, in Unix and ERA5 format
+    """
+
     from collections import namedtuple
     # Define the tm named tuple structure locally
     Tm = namedtuple("Tm", "tm_year tm_mon tm_mday tm_hour tm_min tm_sec tm_wday tm_yday tm_isdst")
@@ -30,8 +37,15 @@ def create_era5_times(start_tm, stop_tm):
 
     return (unix_times, hour_times - era5_hours)
 
-# Returns arrays of times for the TOPAZ file, in Unix and TOPAZ format
 def create_topaz_times(start_tm, stop_tm):
+    """
+    Calculate times for the TOPAZ file
+
+    :param start_tm: Start time for the time series
+    :param stop_tm: End time for the time series
+    :return: Arrays of times for the TOPAZ file, in Unix and TOPAZ format
+    """
+
     from collections import namedtuple
     # Define the tm named tuple structure locally
     Tm = namedtuple("Tm", "tm_year tm_mon tm_mday tm_hour tm_min tm_sec tm_wday tm_yday tm_isdst")
@@ -51,19 +65,38 @@ def create_topaz_times(start_tm, stop_tm):
 
     return (unix_times, hour_times - topaz4_hours)
 
-# Returns the file name that holds the ERA5 data for a given field at a given time
 def era5_source_file_name(field, unix_time, path):
+    """
+    Construct the file name that holds the ERA5 data for a given field at a given time
+
+    :param field: Name of the variable to be read in from the ERA5 file
+    :param unix_time: Time in Unix format
+    :param path: Path for the ERA5 file
+    :return: File name
+    """
+
     file_year = time.gmtime(unix_time).tm_year
     return f"{path}/ERA5_{field}_y{file_year}.nc"
 
 # Returns the file name that holds the TOPAZ data for a given field at a given time
 def topaz4_source_file_name(unix_time, path):
+    """
+    Construct the file name that holds the TOPAZ4 data for a given field at a given time
+
+    :param field: Name of the variable to be read in from the TOPAZ4 file
+    :param unix_time: Time in Unix format
+    :param path: Path for the TOPAZ4 file
+    :return: File name
+    """
+
     unix_tm = time.gmtime(unix_time)
     return f"{path}/{unix_tm.tm_year}/topaz_rean_{unix_tm.tm_year}{unix_tm.tm_mon:02}.nc"
 
-# The main script. Calculates ERA5 and TOPAZ forcing files, given a grid to
-# interpolate on to and start and stop dates
 if __name__ == "__main__":
+    """
+    The main script. Calculates ERA5 and TOPAZ forcing files, given a grid to interpolate on to and start and stop dates.
+    """
+
     # Set up the argument parsing
     import argparse
     parser = argparse.ArgumentParser(description = "Create grid matched forcing files for a ERA5 and TOPAZ4")
