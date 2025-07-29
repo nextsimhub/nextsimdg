@@ -121,14 +121,15 @@ if __name__ == "__main__":
     topaz4_path = args.topaz4_path
 
     # read a grid spec (from a restart file)
-    root = netCDF4.Dataset(args.file, "r", format = "NETCDF4")
-    structgrp = root.groups["structure"]
+    ncFile = netCDF4.Dataset(args.file, "r", format = "NETCDF4")
+
     target_structure = "parametric_rectangular"
-    if structgrp.type != target_structure:
-        print(f"Incorrect structure found: {structgrp.type}, wanted {target_structure}.")
-        raise SystemExit
-    datagrp = root.groups["data"]
-    node_coords = datagrp["coords"]
+    if ncFile.structure_name != target_structure:
+        raise SystemExit(
+            f"Incorrect structure found: {ncFile.structure_name}, wanted "
+            f"{target_structure}."
+        )
+    node_coords = ncFile["coords"]
     # assume lon and lat are 0 and 1 coords
     node_lon = node_coords[:, :, 0]
     node_lat = node_coords[:, :, 1]
@@ -147,8 +148,8 @@ if __name__ == "__main__":
     element_z = 0.25 * (node_z[0:-1, 0:-1] + node_z[1:, 0:-1] + node_z[0:-1, 1:] + node_z[1:, 1:])
     
     # take grid coordinates out of the init file
-    element_lon[:, :] = datagrp["longitude"][:,:]
-    element_lat[:, :] = datagrp["latitude"][:,:]
+    element_lon[:, :] = ncFile["longitude"][:,:]
+    element_lat[:, :] = ncFile["latitude"][:,:]
     # manual computation is slightly off and can create inconsistent forcings
 #    element_lon = np.degrees(np.arctan2(element_y, element_x))
 #    element_lat = np.degrees(np.arctan2(element_z, np.hypot(element_x, element_y)))
@@ -170,44 +171,38 @@ if __name__ == "__main__":
     
     era5_out_file = f"{filepfx}ERA5_{args.start}_{args.stop}.nc"
     print(f"Writing ERA5 data to {era5_out_file}")
-    era_root = netCDF4.Dataset(era5_out_file, "w", format="NETCDF4")
-    structgrp = era_root.createGroup("structure")
-    structgrp.type = target_structure
+    era_ncFile = netCDF4.Dataset(era5_out_file, "w", format="NETCDF4")
+    era5_ncFile.structure_name = target_structure
     
-    metagrp = era_root.createGroup("metadata")
-    metagrp.type = target_structure
-    confgrp = metagrp.createGroup("configuration") # But add nothing to it
-    timegrp = metagrp.createGroup("time")
     # Use the start time as the timestamp for the file
-    formatted = timegrp.createVariable("formatted", str)
+    formatted = era5_ncFile.createVariable("formatted", str)
     formatted.format = "%Y-%m-%dT%H:%M:%SZ"
     formatted[0] = args.start + "T00:00:00Z"
-    time_attr = timegrp.createVariable("time", "i8")
+    time_attr = era5_ncFile.createVariable("time", "i8")
     time_attr[:] = calendar.timegm(start_time)
     time_attr.units = "seconds since 1970-01-01T00:00:00Z"
     
-    datagrp = era_root.createGroup("data")
-    xDim = datagrp.createDimension("xdim", nx)
-    yDim = datagrp.createDimension("ydim", ny)
-    tDim = datagrp.createDimension("time", None)
+    xDim = era5_ncFile.createDimension("xdim", nx)
+    yDim = era5_ncFile.createDimension("ydim", ny)
+    tDim = era5_ncFile.createDimension("time", None)
     
     hfield_dims = ("ydim", "xdim")
     timefield_dims = ("time", "ydim", "xdim")
     
     # Position and time variables
-    nc_lons = datagrp.createVariable("longitude", "f8", hfield_dims)
+    nc_lons = era5_ncFile.createVariable("longitude", "f8", hfield_dims)
     nc_lons[:, :] = element_lon
-    nc_lats = datagrp.createVariable("latitude", "f8", hfield_dims)
+    nc_lats = era5_ncFile.createVariable("latitude", "f8", hfield_dims)
     nc_lats[:, :] = element_lat
     
     greenland_headings = heading_to_greenland(element_lat, element_lon)
     
-    nc_times = datagrp.createVariable("time", "f8", ("time"))
+    nc_times = era5_ncFile.createVariable("time", "f8", ("time"))
     
     (unix_times_e, era5_times) = create_era5_times(start_time, stop_time)
     # For each field and time, get the corresponding file name for each dataset
     for field_name in atmos_fields:
-        data = datagrp.createVariable(field_name, "f8", timefield_dims)
+        data = era5_ncFile.createVariable(field_name, "f8", timefield_dims)
         if (field_name != wind_speed):
             era5_field = era5_translation[field_name]
             for target_t_index in range(len(unix_times_e)):
@@ -228,8 +223,8 @@ if __name__ == "__main__":
                 data[target_t_index, :, :] = time_data
         else:
             # Also handle the wind components along with the wind speed
-            u_var = datagrp.createVariable("u", "f8", timefield_dims)
-            v_var = datagrp.createVariable("v", "f8", timefield_dims)
+            u_var = era5_ncFile.createVariable("u", "f8", timefield_dims)
+            v_var = era5_ncFile.createVariable("v", "f8", timefield_dims)
             for target_t_index in range(len(unix_times_e)):
                 # get the source data
                 u_file = netCDF4.Dataset(era5_source_file_name("u10", unix_times_e[target_t_index], era5_path), "r")
@@ -263,7 +258,7 @@ if __name__ == "__main__":
                 v_var[target_t_index, :, :] = -v_data
                 # Also use the windspeed loop to fill the time axis
                 nc_times[time_index] = unix_times_e[target_t_index]
-    era_root.close()
+    era_ncFile.close()
 
     ocean_fields = ("mld", "sss", "sst", "ssh")
     skip_ocean_fields = ()
@@ -275,27 +270,21 @@ if __name__ == "__main__":
     # TOPAZ data
     
     topaz_out_file = f"{filepfx}TOPAZ4_{args.start}_{args.stop}.nc"
-    topaz_root = netCDF4.Dataset(topaz_out_file, "w", format="NETCDF4")
+    topaz_ncFile = netCDF4.Dataset(topaz_out_file, "w", format="NETCDF4")
     print(f"Writing TOPAZ4 data to {topaz_out_file}")
-    structgrp = topaz_root.createGroup("structure")
-    structgrp.type = target_structure
+    topaz_ncFile.structure_name = target_structure
     
-    metagrp = topaz_root.createGroup("metadata")
-    metagrp.type = target_structure
-    confgrp = metagrp.createGroup("configuration") # But add nothing to it
-    timegrp = metagrp.createGroup("time")
     # Use the start time as the timestamp for the file
-    formatted = timegrp.createVariable("formatted", str)
+    formatted = topaz_ncFile.createVariable("formatted", str)
     formatted.format = "%Y-%m-%dT%H:%M:%SZ"
     formatted[0] = args.start + "T00:00:00Z"
-    time_attr = timegrp.createVariable("time", "i8")
-    time_attr[:] = calendar.timegm(start_time)
+    time_meta = topaz_ncFile.createVariable("time_meta", "i8")
+    time_meta[:] = calendar.timegm(start_time)
     time_attr.units = "seconds since 1970-01-01T00:00:00Z"
     
-    datagrp = topaz_root.createGroup("data")
-    xDim = datagrp.createDimension("xdim", nx)
-    yDim = datagrp.createDimension("ydim", ny)
-    tDim = datagrp.createDimension("time", None)
+    xDim = topaz_ncFile.createDimension("xdim", nx)
+    yDim = topaz_ncFile.createDimension("ydim", ny)
+    tDim = topaz_ncFile.createDimension("time", None)
     
     (unix_times_t, topaz4_times) = create_topaz_times(start_time, stop_time)
 
@@ -305,12 +294,12 @@ if __name__ == "__main__":
     source_file.close()
 
     # Position and time variables
-    nc_lons = datagrp.createVariable("longitude", "f8", hfield_dims)
+    nc_lons = topaz_ncFile.createVariable("longitude", "f8", hfield_dims)
     nc_lons[:, :] = element_lon
-    nc_lats = datagrp.createVariable("latitude", "f8", hfield_dims)
+    nc_lats = topaz_ncFile.createVariable("latitude", "f8", hfield_dims)
     nc_lats[:, :] = element_lat
     
-    nc_times = datagrp.createVariable("time", "f8", ("time"))
+    nc_times = topaz_ncFile.createVariable("time", "f8", ("time"))
 
     # TOPAZ data is daily, not hourly
     topaz_time_ratio = hr_per_day
@@ -320,7 +309,7 @@ if __name__ == "__main__":
 
     # For each field and time, get the corresponding file name for each dataset
     for field_name in ocean_fields:
-        data = datagrp.createVariable(field_name, "f8", timefield_dims)
+        data = topaz_ncFile.createVariable(field_name, "f8", timefield_dims)
         if field_name not in skip_ocean_fields:
             topaz_field = topaz_translation[field_name]
             for target_t_index in range(len(unix_times_t)):
@@ -349,8 +338,8 @@ if __name__ == "__main__":
                 data[target_t_index, :, :] = time_data
         
     # Ocean currents
-    udata = datagrp.createVariable("u", "f8", timefield_dims)
-    vdata = datagrp.createVariable("v", "f8", timefield_dims)
+    udata = topaz_ncFile.createVariable("u", "f8", timefield_dims)
+    vdata = topaz_ncFile.createVariable("v", "f8", timefield_dims)
     for target_t_index in range (len(unix_times_t)):
         u_source_file = netCDF4.Dataset(topaz4_source_file_name(unix_times_t[target_t_index], topaz4_path), "r")
         v_source_file = netCDF4.Dataset(topaz4_source_file_name(unix_times_t[target_t_index], topaz4_path), "r")
@@ -379,4 +368,4 @@ if __name__ == "__main__":
         udata[target_t_index, :, :] = u_target_data
         vdata[target_t_index, :, :] = v_target_data
 
-    topaz_root.close()
+    topaz_ncFile.close()
