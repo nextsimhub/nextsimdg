@@ -26,7 +26,7 @@ public:
 
     static const std::string formattedName() { return "formatted"; }
 
-    static const std::string unformattedName() { return "time"; }
+    static const std::string unformattedName() { return "time_meta"; }
 
     static const std::string configurationNode() { return "configuration"; }
 };
