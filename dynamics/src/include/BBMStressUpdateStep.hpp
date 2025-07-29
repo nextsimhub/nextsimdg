@@ -1,9 +1,6 @@
 /*!
- * @file BBMStressUpdateStep.hpp
- *
- * @date 15 Jul 2025
- * @author Tim Spain <timothy.spain@nersc.no>
- * @author Tim Williams <timothy.williams@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Williams <timothy.williams@nersc.no>
  */
 
 #ifndef BBMSTRESSUPDATESTEP_HPP
@@ -53,7 +50,7 @@ public:
 #pragma omp parallel for
         for (size_t i = 0; i < smesh.nelements; ++i) {
 
-            if (smesh.landmask[i])
+            if (!smesh.landmask[i])
                 continue;
 
             //! Evaluate values in Gauss points (3 point Gauss rule in 2d => 9 points)

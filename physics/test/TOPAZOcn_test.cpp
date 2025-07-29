@@ -1,8 +1,5 @@
 /*!
- * @file ERA5Atm_test.cpp
- *
- * @date 23 Aug 2024
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #ifdef USE_MPI

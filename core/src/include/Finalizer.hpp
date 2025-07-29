@@ -1,8 +1,5 @@
 /*!
- * @file ModelFinalizer.hpp
- *
- * @date Sep 3, 2024
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #ifndef FINALIZER_HPP

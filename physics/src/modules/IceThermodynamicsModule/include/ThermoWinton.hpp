@@ -1,8 +1,6 @@
 /*!
- * @file ThermoWinton.hpp
  *
- * @date 02 May 2025
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #ifndef THERMOWINTON_HPP
@@ -45,8 +43,8 @@ public:
 private:
     void calculateElement(size_t i, const TimestepTime& tst);
 
-    HField tInternal;
-    HField tBottom;
+    AdvectedField tInternal;
+    AdvectedField tBottom;
     HField snowMelt;
     HField topMelt;
     HField botMelt;

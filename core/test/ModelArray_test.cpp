@@ -1,8 +1,5 @@
 /*!
- * @file ModelData_test.cpp
- *
- * @date 24 Sep 2024
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
@@ -310,7 +307,6 @@ TEST_CASE("Components")
     REQUIRE(ModelArray::component0Type(ModelArray::Type::TWOD) == ModelArray::Type::TWOD);
     // Type::TWOCOMP maps to Type::TWOD
     REQUIRE(ModelArray::component0Type(ModelArray::Type::TWOCOMP) == ModelArray::Type::TWOD);
-
 }
 
 TEST_CASE("Direct DataType access")

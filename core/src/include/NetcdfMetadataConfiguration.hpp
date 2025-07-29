@@ -1,8 +1,5 @@
 /*!
- * @file NetcdfMetadataConfiguration.hpp
- *
- * @date Aug 29, 2022
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #ifndef NETCDFMETADATACONFIGURATION_HPP

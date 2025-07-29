@@ -1,8 +1,5 @@
 /*!
- * @file ConstantHealing.hpp
- *
- * @date 02 May 2025
- * @author Einar Ólason <einar.olason@nersc.no>
+ * @author  Einar Ólason <einar.olason@nersc.no>
  */
 
 #include "include/ConstantHealing.hpp"
@@ -22,10 +19,7 @@ void ConstantHealing::configure()
     tD *= 86400.;
 }
 
-ConfigMap ConstantHealing::getConfiguration() const
-{
-    return { { keyMap.at(TD_KEY), tD } };
-}
+ConfigMap ConstantHealing::getConfiguration() const { return { { keyMap.at(TD_KEY), tD } }; }
 
 ConstantHealing::HelpMap& ConstantHealing::getHelpText(HelpMap& map, bool getAll)
 {
@@ -57,7 +51,7 @@ void ConstantHealing::updateElement(size_t i, const TimestepTime& tstep)
     /* 1. Lateral ice formation
      * A weighted average of the original damage, weighted by the old concentration, and the
      * undamaged new ice damage (1), weighted by the concentration of new ice. */
-    damage[i] = (oldDamage[i] * (cice[i] - lateralGrowth) + lateralGrowth) / cice[i];
+    damage[i] = (damage[i] * (cice[i] - lateralGrowth) + lateralGrowth) / cice[i];
 
     /* 2. Constant healing
      * Damage healing using a constant timescale. Originally conceived as an exponential decay, but

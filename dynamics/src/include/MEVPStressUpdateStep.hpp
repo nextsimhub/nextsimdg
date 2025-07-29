@@ -1,8 +1,5 @@
 /*!
- * @file MEVPStressUpdateStep.hpp
- *
- * @date 15 Jul 2025
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #ifndef MEVPSTRESSUPDATESTEP_HPP
@@ -49,7 +46,7 @@ public:
 #pragma omp parallel for
         for (size_t i = 0; i < smesh.nelements; ++i) {
 
-            if (smesh.landmask[i])
+            if (!smesh.landmask[i])
                 continue;
 
             // Here, one should check if it is enough to use a 2-point Gauss rule.
