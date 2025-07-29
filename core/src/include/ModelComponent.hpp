@@ -30,7 +30,6 @@ namespace Protected {
     inline constexpr TextTag H_ICE = "H_ICE_cell"; // Ice thickness, cell average, m
     inline constexpr TextTag C_ICE = "C_ICE0"; // Ice concentration
     inline constexpr TextTag H_SNOW = "H_SNOW_cell"; // Snow depth, cell average, m
-    inline constexpr TextTag T_ICE = "T_ICE0"; // Ice temperature, ˚C
     inline constexpr TextTag T_SURF = "T_SURF0"; // Ice surface temperature, ˚C
     inline constexpr TextTag DAMAGE = "DAMAGE0"; // Ice damage 0–1
     // External data fields
