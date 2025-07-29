@@ -86,12 +86,6 @@ MPI_TEST_CASE("TestXiosRead", 2)
                          },
         {} };
 
-    // Setup ModelState with field above
-    ModelState state = { {
-                             { "field_2D", field_2D },
-                         },
-        {} };
-
     // Check calendar step is zero initially
     REQUIRE(xiosHandler.getCalendarStep() == 0);
 
