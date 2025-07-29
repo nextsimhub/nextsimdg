@@ -62,8 +62,7 @@ void Configurator::setAdditionalConfiguration(AdditionalConfiguration* pAC) { ad
 void Configurator::getAdditionalConfiguration(const std::string& source)
 {
     if (addConf()) {
-        // FIXME: There's no longer any additional configuration to read?
-        // addSStream(addConf()->read(source));
+        addSStream(addConf()->read(source));
     }
 }
 
