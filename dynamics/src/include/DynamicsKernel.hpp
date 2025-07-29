@@ -1,8 +1,5 @@
 /*!
- * @file DynamicsKernel.hpp
- *
- * @date 19 May 2025
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #ifndef DYNAMICSKERNEL_HPP
@@ -96,24 +93,22 @@ public:
     {
 
         // Special cases: hice, cice, (damage, stress) <- not yet implemented
-        if (name == hiceName || name == ciceName) {
+        if (name == hiceName || name == ciceName || name == hsnowName) {
             throw std::runtime_error(std::string("Use setDGArray() to set the data for ") + name);
         } else if (name == sshName) {
             DGModelArray::ma2dg(data, seaSurfaceHeight);
         } else {
-            // All other fields get shoved in a (labelled) bucket
-            DGModelArray::ma2dg(data, advectedFields[name]);
-            // …and have their type annotated
-            fieldType[name] = data.getType();
         }
     }
 
-    void setDGArray(const std::string& name, ModelArray::DataType& dgData)
+    virtual void setDGArray(const std::string& name, ModelArray::DataType& dgData)
     {
         if (name == hiceName) {
             hice = DGVectorHolder<DGadvection>(dgData);
         } else if (name == ciceName) {
             cice = DGVectorHolder<DGadvection>(dgData);
+        } else if (name == hsnowName) {
+            hsnow = DGVectorHolder<DGadvection>(dgData);
         }
     }
 
@@ -127,7 +122,7 @@ public:
     virtual ModelArray getDG0Data(const std::string& name) const
     {
         HField data(ModelArray::Type::H);
-        if (name == hiceName || name == ciceName) {
+        if (name == hiceName || name == ciceName || name == hsnowName) {
             throw std::runtime_error(
                 std::string("DynamicsKernel::getDG0Data: Use array sharing for ") + name);
         } else if (name == shearName) {
@@ -140,45 +135,57 @@ public:
             return DGModelArray::dg2ma(Tools::TensorInvII(*smesh, s11, s12, s22), data);
         } else {
             // Any other named field must exist
-            return DGModelArray::dg2ma(advectedFields.at(name), data);
-        }
-    }
-
-    /*!
-     * @brief Returns a DG or DGSTRESS ModelArray containing the full DG data for
-     * the named dynamics field.
-     *
-     * @param name the name of the requested field.
-     */
-    virtual ModelArray getDGData(const std::string& name) const
-    {
-
-        if (name == hiceName || name == ciceName) {
-            throw std::runtime_error(
-                std::string("DynamicsKernel::getDG0Data: Use array sharing for ") + name);
-        } else {
-            // Use the stored array type to ensure the returned data has the correct type
-            ModelArray::Type type = fieldType.at(name);
-            ModelArray data(type);
-            data.resize();
-            return DGModelArray::dg2ma(advectedFields.at(name), data);
+            return ModelArray(ModelArray::component0Type(ModelArray::AdvectionType));
         }
     }
 
     virtual void update(const TimestepTime& tst) { ++stepNumber; }
 
-    void advectionAndLimits(const TimestepTime& tst)
+    /*!
+     * Prepares the transport objects to perform the advection step.
+     */
+    virtual void prepareAdvection() = 0;
+
+    /*!
+     * A wrapper to advect a ModelArray field one timestep.
+     *
+     *
+     * @param timestep The advection timestep in seconds.
+     * @param field A reference to the field to be advected.
+     * @param lowerLimit The minimum value the field is allowed to take. Defaults to -∞.
+     * @param upperLimit The maximum value the field is allowed to take. Defaults to +∞.
+     *
+     * @return A reference to the advected array.
+     */
+    ModelArray& advectField(double timestep, ModelArray& field,
+        double lowerLimit = -std::numeric_limits<double>::infinity(),
+        double upperLimit = std::numeric_limits<double>::infinity())
     {
-        prepareAdvection();
+        DGVectorHolder<DGadvection> holder(field);
+        advectDGVField(timestep, holder, lowerLimit, upperLimit);
+        return field;
+    }
 
-        //! Perform transport step
-        dgtransport->step(tst.step.seconds(), cice);
-        dgtransport->step(tst.step.seconds(), hice);
+    /*!
+     * Advects a field one timestep.
+     *
+     * @param timestep The advection timestep in seconds.
+     * @param field A reference to the field to be advected.
+     * @param lowerLimit The minimum value the field is allowed to take. Defaults to -∞.
+     * @param upperLimit The maximum value the field is allowed to take. Defaults to +∞.
+     *
+     * @return A reference to the advected array.
+     */
+    virtual DGVector<DGadvection>& advectDGVField(double timestep, DGVector<DGadvection>& field,
+        double lowerLimit = -std::numeric_limits<double>::infinity(),
+        double upperLimit = std::numeric_limits<double>::infinity())
+        = 0;
 
-        //! Gauss-point limiting
-        Nextsim::LimitMax(cice, 1.0);
-        Nextsim::LimitMin(cice, 0.0);
-        Nextsim::LimitMin(hice, 0.0);
+    virtual void advectDynamicsFields(double timestep)
+    {
+        advectDGVField(timestep, hice, 0.0);
+        advectDGVField(timestep, cice, 0.0, 1.0);
+        advectDGVField(timestep, hsnow, 0.0);
     }
 
 protected:
@@ -186,6 +193,7 @@ protected:
 
     DGVectorHolder<DGadvection> hice;
     DGVectorHolder<DGadvection> cice;
+    DGVectorHolder<DGadvection> hsnow;
 
     //! Vector storing the sea surface height (only dG(0) averages)
     DGVector<1> seaSurfaceHeight;
@@ -223,17 +231,6 @@ protected:
      * Apply Dirichlet and periodic boundary conditions.
      */
     virtual void applyBoundaries() = 0;
-
-    /*!
-     * Prepares the transport objects to perform the advection step.
-     */
-    virtual void prepareAdvection() = 0;
-
-private:
-    std::unordered_map<std::string, DGVector<DGadvection>> advectedFields;
-
-    // A map from field name to the type of
-    std::unordered_map<std::string, ModelArray::Type> fieldType;
 };
 
 }

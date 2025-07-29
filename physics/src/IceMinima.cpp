@@ -1,8 +1,5 @@
 /*!
- * @file IceMinima.cpp
- *
- * @date 8 Feb 2023
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #include "include/IceMinima.hpp"

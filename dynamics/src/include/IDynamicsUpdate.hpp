@@ -1,8 +1,5 @@
 /*!
- * @file IDynamicsUpdate.hpp
- *
- * @date Jan 19, 2024
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #ifndef IDYNAMICSUPDATE_HPP

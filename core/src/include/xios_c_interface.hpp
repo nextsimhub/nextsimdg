@@ -1,8 +1,6 @@
 /*!
- * @file    xios_c_interface.hpp
  * @author  Tom Meltzer <tdm39@cam.ac.uk>
  * @author  Joe Wallwork <jw2423@cam.ac.uk>
- * @date    19 May 2025
  * @brief   C interface for XIOS library
  * @details
  * This interface is based on an earlier version provided by Laurent as part of

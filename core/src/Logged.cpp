@@ -1,7 +1,5 @@
 /*!
- * @file Logged.cpp
- * @date 12 Aug 2021
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #include "include/Logged.hpp"

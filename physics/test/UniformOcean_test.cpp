@@ -1,8 +1,5 @@
 /*!
- * @file UniformOcean_test.cpp
- *
- * @date 30 Mar 2023
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN

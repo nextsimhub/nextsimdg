@@ -1,8 +1,6 @@
 /*!
- * @file UnescoFreezing.hpp
  *
- * @date Nov 10, 2021
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #ifndef UNESCOFREEZING_HPP

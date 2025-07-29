@@ -1,8 +1,5 @@
 /*!
- * @file ModelMetadata.hpp
- *
- * @date 02 Jan 2025
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #ifndef MODELMETADATA_HPP
