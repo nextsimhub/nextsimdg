@@ -1,8 +1,5 @@
 /*!
- * @file MARStore.hpp
- *
- * @date 08 Feb 2025
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #ifndef MARSTORE_HPP

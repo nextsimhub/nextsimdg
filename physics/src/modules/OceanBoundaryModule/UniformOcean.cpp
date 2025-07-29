@@ -1,8 +1,5 @@
 /*!
- * @file UniformOcean.cpp
- *
- * @date 06 Dec 2024
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #include "include/UniformOcean.hpp"

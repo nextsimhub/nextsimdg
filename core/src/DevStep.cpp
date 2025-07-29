@@ -1,8 +1,5 @@
 /*!
- * @file DevStep.cpp
- *
- * @date 2 Jul 2024
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #include "include/DevStep.hpp"

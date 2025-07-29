@@ -21,7 +21,7 @@ $PYTHON make_init25kmNH_test_data.py
 $PYTHON era5_topaz4_test_data.py
 echo run_integration_test.sh
 ./run_integration_test.sh
-$PYTHON test_integration_test.py
+$PYTHON test_integration.py
 test_return_value=$?
 rm $restart_file $era5_file $topaz_file $out_file
 rm nextsim.*.log

@@ -15,8 +15,8 @@ We assume that in the
 
 with Nx x Ny elements
 
-@author: Piotr Minakowski
-@author: Tim Spain
+@author  Piotr Minakowski <piotr.minakowski@ovgu.de>
+@author  Tim Spain <timothy.spain@nersc.no>
 """
 
 import numpy as np

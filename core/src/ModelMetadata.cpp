@@ -1,8 +1,5 @@
 /*!
- * @file ModelMetadata.cpp
- *
- * @date 19 May 2025
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #include "include/ModelMetadata.hpp"

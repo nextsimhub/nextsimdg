@@ -1,7 +1,5 @@
 /*!
- * @file dgVector.hpp
- * @date 24 Sep 2024
- * @author Thomas Richter <thomas.richter@ovgu.de>
+ * @author  Thomas Richter <thomas.richter@ovgu.de>
  */
 
 #ifndef __DGVECTOR_HPP

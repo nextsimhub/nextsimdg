@@ -1,8 +1,5 @@
 /*!
- * @file DGVectorHolder_test.cpp
- *
- * @date Feb 4, 2025
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
@@ -52,7 +49,5 @@ TEST_CASE("Cast to and from")
     REQUIRE(ma.components(0)[1] == ma0);
     REQUIRE(ema(0, 1) == ma0);
     REQUIRE(mHolder(0, 1) == ma0);
-
 }
 }
-

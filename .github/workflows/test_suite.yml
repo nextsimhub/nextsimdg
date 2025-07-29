@@ -17,12 +17,15 @@ on:
   pull_request:
     paths:
       - '.github/workflows/test_suite.yml'
+      - 'core/*.sh'
+      - 'dynamics/*.sh'
+      - 'run/*.sh'
+      - 'test/*.sh'
       - '**.cdl'
       - '**.cfg'
       - '**.cpp'
       - '**.hpp'
       - '**.py'
-      - '**.sh'
       - '**.xml'
       - '**CMakeLists.txt'
   pull_request_review:
@@ -70,7 +73,8 @@ jobs:
         mv ../test .
         cd test
         python3 ThermoIntegration_test.py
-        ./run_test_jan2010_integration_test.sh python3
+        ./run_test_jan2010_integration.sh python3
+        ./run_test_advection.sh python3
         ./run_test_error_handling_test.sh python3
         cd -
 
@@ -180,6 +184,7 @@ jobs:
         mv ../test .
         cd test
         python ThermoIntegration_test.py
-        ./run_test_jan2010_integration_test.sh python
+        ./run_test_jan2010_integration.sh python
+        ./run_test_advection.sh python
         ./run_test_error_handling_test.sh python
         cd -

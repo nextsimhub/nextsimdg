@@ -1,9 +1,6 @@
 /*!
- * @file ParaGridIO_Xios.cpp
- *
- * @date 12 May 2025
- * @author Tim Spain <timothy.spain@nersc.no>
- * @author Joe Wallwork <jw2423@cam.ac.uk>
+ * @author  Tim Spain <timothy.spain@nersc.no>
+ * @author  Joe Wallwork <jw2423@cam.ac.uk>
  */
 
 #include "include/ParaGridIO.hpp"

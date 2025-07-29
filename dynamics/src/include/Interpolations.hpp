@@ -1,7 +1,5 @@
 /*!
- * @file Interpolations.hpp
- * @date Aug 9 2022
- * @author Thomas Richter <thomas.richter@ovgu.de>
+ * @author  Thomas Richter <thomas.richter@ovgu.de>
  */
 
 #ifndef __INTERPOLATIONS_HPP

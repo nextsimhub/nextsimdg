@@ -1,7 +1,5 @@
 /*!
- * @file ParametricMesh.hpp
- * @date 14 Jan 2025
- * @author Thomas Richter <thomas.richter@ovgu.de>
+ * @author  Thomas Richter <thomas.richter@ovgu.de>
  */
 
 #include "ParametricMesh.hpp"

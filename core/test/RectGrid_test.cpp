@@ -1,8 +1,5 @@
 /*!
- * @file RectGrid_test.cpp
- *
- * @date 09 Dec 2024
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #ifdef USE_MPI

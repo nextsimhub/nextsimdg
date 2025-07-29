@@ -1,8 +1,5 @@
 /*!
- * @file ConfigOutput.cpp
- *
- * @date 02 May 2025
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #include "include/ConfigOutput.hpp"
@@ -153,7 +150,7 @@ void ConfigOutput::outputState(const ModelState& diagState, const ModelMetadata&
         lastFileChange = time;
     }
 
-    ModelState state { { }, diagState.config };
+    ModelState state { {}, diagState.config };
     auto storeData = ModelComponent::getStore().getAllData();
     if (outputAllTheFields) {
         // If the internal to external name lookup table is still empty, fill it
@@ -186,7 +183,8 @@ void ConfigOutput::outputState(const ModelState& diagState, const ModelMetadata&
             }
         }
 
-        // Get data from the data store for any named fields that have an external name that matches.
+        // Get data from the data store for any named fields that have an external name that
+        // matches.
         for (const auto& fieldExtName : fieldsForOutput) {
             if (externalNames.count(fieldExtName) && storeData.count(externalNames.at(fieldExtName))
                 && storeData.at(externalNames.at(fieldExtName))) {

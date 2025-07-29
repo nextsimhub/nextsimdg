@@ -1,8 +1,5 @@
 /*!
- * @file ModelArraySlice.hpp
- *
- * @date Nov 8, 2024
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #ifndef MODELARRAYSLICE_HPP

@@ -1,8 +1,5 @@
 /*!
- * @file BasicIceOceanFlux_test.cpp
- *
- * @date Sep 29, 2022
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 // Does this class need testing? Not really, but it got removed from

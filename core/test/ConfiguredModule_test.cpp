@@ -1,8 +1,5 @@
 /*
- * @file ConfiguredModule_test.cpp
- *
- * @date 24 Sep 2024
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #include "ConfiguredModule.hpp"
@@ -22,14 +19,14 @@ using Config = Nextsim::ConfiguredModule;
 #include <memory>
 
 namespace Test {
-class ITest {};
-class DefaultImpl : public ITest {};
-class Impl1 : public ITest {};
-class Impl2 : public ITest {};
+class ITest { };
+class DefaultImpl : public ITest { };
+class Impl1 : public ITest { };
+class Impl2 : public ITest { };
 
-class ITest2 {};
-class AnotherImpl : public ITest2 {};
-class DefaultImpl_2 : public ITest2 {};
+class ITest2 { };
+class AnotherImpl : public ITest2 { };
+class DefaultImpl_2 : public ITest2 { };
 
 }
 
@@ -40,8 +37,7 @@ const std::string IMPL1 = "Impl1";
 const std::string IMPL2 = "Impl2";
 const std::string ANOTHERIMPL = "AnotherImpl";
 
-template <>
-const Module<Test::ITest>::Map& Module<Test::ITest>::functionMap()
+template <> const Module<Test::ITest>::Map& Module<Test::ITest>::functionMap()
 {
     static const Map theMap = {
         { DEFAULTIMPL, newImpl<Test::ITest, Test::DefaultImpl> },
@@ -51,8 +47,7 @@ const Module<Test::ITest>::Map& Module<Test::ITest>::functionMap()
     return theMap;
 }
 
-template <>
-Module<Test::ITest>::Fn& Module<Test::ITest>::getGenerationFunction()
+template <> Module<Test::ITest>::Fn& Module<Test::ITest>::getGenerationFunction()
 {
     static Fn ptr = functionMap().at(DEFAULTIMPL);
     return ptr;
@@ -65,8 +60,7 @@ template <> HelpMap& Module<Test::ITest>::getHelpRecursive(HelpMap& map, bool ge
     return map;
 }
 
-template <>
-const Module<Test::ITest2>::Map& Module<Test::ITest2>::functionMap()
+template <> const Module<Test::ITest2>::Map& Module<Test::ITest2>::functionMap()
 {
     static const Map theMap = {
         { DEFAULTIMPL, newImpl<Test::ITest2, Test::DefaultImpl_2> },
@@ -75,8 +69,7 @@ const Module<Test::ITest2>::Map& Module<Test::ITest2>::functionMap()
     return theMap;
 }
 
-template <>
-Module<Test::ITest2>::Fn& Module<Test::ITest2>::getGenerationFunction()
+template <> Module<Test::ITest2>::Fn& Module<Test::ITest2>::getGenerationFunction()
 {
     static Fn ptr = functionMap().at(DEFAULTIMPL);
     return ptr;
@@ -111,8 +104,8 @@ TEST_CASE("Configure a module from a stream")
     Configurator::clear();
     std::stringstream config;
     config << "[Modules]" << std::endl
-            << "ITest = Impl2" << std::endl
-            << "ITest2 = AnotherImpl" << std::endl;
+           << "ITest = Impl2" << std::endl
+           << "ITest2 = AnotherImpl" << std::endl;
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
 

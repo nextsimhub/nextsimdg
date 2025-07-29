@@ -1,9 +1,5 @@
 /*!
- * @file   ModelArray.hpp
- *
-
- * @date   13 Jun 2025
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #ifndef MODELARRAY_HPP

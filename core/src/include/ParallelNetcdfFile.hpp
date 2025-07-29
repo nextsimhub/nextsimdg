@@ -1,3 +1,6 @@
+/*!
+ * @author  Tim Spain <timothy.spain@nersc.no>
+ */
 #include <mpi.h>
 #include <ncFile.h>
 #include <ncVar.h>

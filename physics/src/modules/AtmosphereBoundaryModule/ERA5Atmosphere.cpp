@@ -1,8 +1,5 @@
 /*!
- * @file ERA5Atmosphere.cpp
- *
- * @date 30 May 2025
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #include "include/ERA5Atmosphere.hpp"

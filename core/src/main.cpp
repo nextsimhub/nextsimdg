@@ -1,8 +1,6 @@
 /*!
- * @file main.cpp
- * @date 26 Feb 2025
- * @author Tim Spain <timothy.spain@nersc.no>
- * @author Kacper Kornet <kk562@cam.ac.uk>
+ * @author  Tim Spain <timothy.spain@nersc.no>
+ * @author  Kacper Kornet <kk562@cam.ac.uk>
  */
 
 #include <iostream>

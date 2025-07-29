@@ -1,8 +1,5 @@
 /*!
- * @file BenchmarkCoordinates.hpp
- *
- * @date 26 Sept 2023
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #ifndef BENCHMARKCOORDINATES_HPP

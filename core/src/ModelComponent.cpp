@@ -1,8 +1,5 @@
 /*!
- * @file ModelComponent.cpp
- *
- * @date 02 Jun 2025
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #include "include/ModelComponent.hpp"

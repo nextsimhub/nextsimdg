@@ -1,8 +1,6 @@
 /*!
- * @file VPParameters.hpp
- * @date 19 Nov 2024
- * @author Tim Spain <timothy.spain@nersc.no>
- * @author Thomas Richter <thomas.richter@ovgu.de>
+ * @author  Tim Spain <timothy.spain@nersc.no>
+ * @author  Thomas Richter <thomas.richter@ovgu.de>
  */
 
 #ifndef __VPPARAMETERS_HPP

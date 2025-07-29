@@ -1,8 +1,6 @@
 /*!
- * @file IAtmosphereBoundary.hpp
  *
- * @date 27 May 2025
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #include "include/CheckingModelComponent.hpp"

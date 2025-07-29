@@ -1,8 +1,5 @@
 /*!
- * @file   ModelArray.cpp
- *
- * @date   02 Jun 2025
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #include "include/ModelArray.hpp"
@@ -36,8 +33,12 @@ ModelArray::ModelArray(const ModelArray& orig)
 
 ModelArray& ModelArray::operator=(const ModelArray& orig)
 {
-    type = orig.type;
-    setData(orig.m_data);
+    if (orig.nComponents() == 1 && nComponents() != 1) {
+        component(0) = orig.data();
+    } else {
+        type = orig.type;
+        setData(orig.m_data);
+    }
 
     return *this;
 }
