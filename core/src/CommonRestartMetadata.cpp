@@ -15,7 +15,7 @@ namespace Nextsim {
 netCDF::NcFile& CommonRestartMetadata::writeStructureType(
     netCDF::NcFile& ncFile, const ModelMetadata& metadata)
 {
-    ncFile.putAtt(IStructure::typeNodeName(), metadata.structureName());
+    ncFile.putAtt(IStructure::structureNodeName(), metadata.structureName());
     return ncFile;
 }
 
@@ -23,7 +23,7 @@ netCDF::NcFile& CommonRestartMetadata::writeRestartMetadata(
     netCDF::NcFile& ncFile, const ModelMetadata& metadata)
 {
     // Structure type
-    ncFile.putAtt(IStructure::typeNodeName(), metadata.structureName());
+    ncFile.putAtt(IStructure::structureNodeName(), metadata.structureName());
 
     // As Unix time
     netCDF::NcVar unixVar = ncFile.addVar(unformattedName(), netCDF::ncInt64);

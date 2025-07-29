@@ -405,7 +405,7 @@ TEST_CASE("Write a diagnostic ParaGrid file")
     netCDF::NcFile ncFile(diagFile, netCDF::NcFile::read);
 
     std::string structureType;
-    ncFile.getAtt(grid.typeNodeName()).getValues(structureType);
+    ncFile.getAtt(grid.structureNodeName()).getValues(structureType);
     REQUIRE(structureType == grid.structureType());
 
     // TODO test metadata
