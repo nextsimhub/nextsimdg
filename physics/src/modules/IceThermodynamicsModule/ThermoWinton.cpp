@@ -4,7 +4,6 @@
 
 #include "include/ThermoWinton.hpp"
 #include "include/IceMinima.hpp"
-#include "include/Slice.hpp"
 
 #include "include/constants.hpp"
 #include "include/gridNames.hpp"
@@ -110,51 +109,22 @@ void ThermoWinton::setData(const ModelState::DataMap& state)
     botMelt.resize();
     snowToIce.resize();
 
-    // Handle the various possibility for how the ice temperature is supplied
-    bool setSurface = true; // Currently set in IIceThermodynamics::setData
-    bool setInterior = false;
-    bool setBottom = false;
-
-    if (state.count(tBottomName) > 0) {
-        tBottom = state.at(tBottomName);
-        setBottom = true;
-    }
-
-    if (state.count(tInteriorName) > 0) {
+    /* If the internal temperature is not in the restart file, then we simply set it to the freezing
+     * point of seawater. It's a safe approximation, and it seems the user doesn't really care! */
+    try {
         tInternal = state.at(tInteriorName);
-        setInterior = true;
+    } catch (const std::out_of_range& e) {
+        Logged::info("No " + tInteriorName
+            + " field in restart file. Setting it to the melting point of ice.\n");
+        tInternal = seaIceTf;
     }
 
-    if (state.count(ticeName) > 0) {
-        const ModelArray& ticeIn = state.at(ticeName);
-        if (!setSurface) {
-            const ArraySlicer::Slice surfSlice { { {}, {}, { 0 } } };
-            tsurf = ticeIn[surfSlice];
-            setSurface = true;
-        }
-        if (!setInterior) {
-            // A Slice such that k=0 if nz=1 and k=1 if nz=3
-            const ArraySlicer::Slice interiorSlice { { {}, {}, { ticeIn.dimensions()[2] / 2 } } };
-            tInternal = ticeIn[interiorSlice];
-            setInterior = true;
-        }
-        if (!setBottom) {
-            const ArraySlicer::Slice bottomSlice { { {}, {}, { -1 } } };
-            tBottom = ticeIn[bottomSlice];
-            setBottom = true;
-        }
-    }
-    /*
-     * Final fallback. If tinterior and tbottom and not available, and the temperatures are not
-     * provided by tice, then copy the tsurf temperature to the other two temperature fields.
-     */
-    if (!setInterior) {
-        tInternal = tsurf;
-        std::cerr << tInteriorName << " not available, copying from " << tsurfName << std::endl;
-    }
-    if (!setInterior) {
-        tBottom = tsurf;
-        std::cerr << tBottomName << " not available, copying from " << tsurfName << std::endl;
+    try {
+        tBottom = state.at(tBottomName);
+    } catch (const std::out_of_range& e) {
+        Logged::info("No " + tBottomName
+            + " field in restart file. Setting it to the melting point of ice.\n");
+        tBottom = seaIceTf;
     }
 }
 

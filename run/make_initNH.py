@@ -133,7 +133,7 @@ if __name__ == "__main__":
         print(f"ratio after adjustment: {land_ratio}")
 
     nanmask = np.where(mask[:,:] == 0, np.nan, 1)
-    
+
     # Ice concentration and thickness
     cice_data = topaz4_interpolate(element_lon, element_lat, source_file["siconc"][0, :, :].squeeze(), source_x,
                                    source_y, proj_string)
@@ -176,18 +176,6 @@ if __name__ == "__main__":
     sst_data = topaz4_interpolate(element_lon, element_lat, source_file["thetao"][0, :, :].squeeze(), source_x,
                                   source_y, proj_string)
     sst[:, :] = nanmask * sst_data * noice + mu * sss_data * isice
-
-    # Ice temperature
-    tsurf = datagrp.createVariable("tsurf", "f8", field_dims)
-    tintr = datagrp.createVariable("tinterior", "f8", field_dims)
-    tbott = datagrp.createVariable("tbottom", "f8", field_dims)
-    #ice_melt = mu * 5 # Melting point of sea ice (salinity = 5) in ˚C
-    ice_melt = mu
-    # Tice outside the ice pack is the melting point of pure water ice, which is conveniently 0˚C
-    ice_temp2d = np.fmin(sst_data, ice_melt)
-    tsurf[:, :] = ice_temp2d
-    tintr[:, :] = ice_temp2d
-    tbott[:, :] = ice_temp2d
 
     # Ice starts at rest
     u = datagrp.createVariable("u", "f8", field_dims)
