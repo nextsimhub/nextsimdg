@@ -116,7 +116,7 @@ void ThermoWinton::setData(const ModelState::DataMap& state)
         tInternal = state.at(tInteriorName);
     } catch (const std::out_of_range& e) {
         Logged::info("No " + tInteriorName
-            + " field in restart file. Setting it to the freezing point of ice.\n");
+            + " field in restart file. Setting it to the melting point of ice.\n");
         tInternal = seaIceTf;
     }
 
@@ -124,7 +124,7 @@ void ThermoWinton::setData(const ModelState::DataMap& state)
         tBottom = state.at(tBottomName);
     } catch (const std::out_of_range& e) {
         Logged::info("No " + tBottomName
-            + " field in restart file. Setting it to the freezing point of sea water.\n");
+            + " field in restart file. Setting it to the melting point of ice.\n");
         tBottom = seaIceTf;
     }
 }
