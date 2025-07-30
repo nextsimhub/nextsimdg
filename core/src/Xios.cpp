@@ -471,9 +471,6 @@ xios::CAxis* Xios::getAxis(const std::string axisId)
 /*!
  * Create an axis with some ID.
  *
- * If the axis ID is 'z_axis' and a domain called 'xy_domain' exists then a grid called 'grid_3D'
- * will automatically be created with this axis and that domain.
- *
  * @param the axis ID
  */
 void Xios::createAxis(const std::string axisId)
@@ -491,16 +488,6 @@ void Xios::createAxis(const std::string axisId)
     cxios_axis_valid_id(&exists, axisId.c_str(), axisId.length());
     if (!exists) {
         throw std::runtime_error("Xios: Failed to create axis '" + axisId + "'");
-    }
-    if (axisId == "z_axis") {
-        // Create grid_3D associated with a domain called xy_domain and an axis called z_axis
-        const std::string domainId = "xy_domain";
-        cxios_domain_valid_id(&exists, domainId.c_str(), domainId.length());
-        if (exists) {
-            createGrid("grid_3D");
-            gridAddDomain("grid_3D", "xy_domain");
-            gridAddAxis("grid_3D", "z_axis");
-        }
     }
 }
 
@@ -625,8 +612,7 @@ xios::CDomain* Xios::getDomain(const std::string domainId)
  * Create a domain with some ID.
  *
  * If the domain ID is 'xy_domain' then a grid called 'grid_2D' will automatically be created with
- * this domain. If an axis called 'z_axis' also exists then a grid called 'grid_3D' will
- * automatically be created with this domain and that axis.
+ * this domain.
  *
  * @param the domain ID
  */
@@ -651,15 +637,6 @@ void Xios::createDomain(const std::string domainId)
         const std::string gridId = "grid_2D";
         createGrid(gridId);
         gridAddDomain(gridId, "xy_domain");
-
-        // Create grid_3D if there is also an axis called z_axis
-        const std::string axisId = "z_axis";
-        cxios_axis_valid_id(&exists, axisId.c_str(), axisId.length());
-        if (exists) {
-            createGrid("grid_3D");
-            gridAddDomain("grid_3D", "xy_domain");
-            gridAddAxis("grid_3D", "z_axis");
-        }
     }
 }
 
@@ -1146,7 +1123,7 @@ xios::CField* Xios::getField(const std::string fieldId)
 }
 
 // Extract the field_names entry from the XiosInput or XiosOutput section of the config
-std::vector<std::string> Xios::configGetFieldNames(const bool reading)
+std::set<std::string> Xios::configGetFieldNames(const bool reading)
 {
     std::string fieldsStr;
     if (reading) {
@@ -1157,13 +1134,13 @@ std::vector<std::string> Xios::configGetFieldNames(const bool reading)
             Configured::getConfiguration(keyMap.at(OUTPUT_FIELD_NAMES_KEY), std::string()))
             >> fieldsStr;
     }
-    std::vector<std::string> fieldNames;
+    std::set<std::string> fieldNames;
     if (fieldsStr.length() > 0) {
         const char delim = ',';
         std::istringstream iss(fieldsStr);
         std::string item;
         while (std::getline(iss, item, delim)) {
-            fieldNames.push_back(item);
+            fieldNames.insert(item);
         }
     }
     return fieldNames;
@@ -1173,15 +1150,8 @@ std::vector<std::string> Xios::configGetFieldNames(const bool reading)
 // the map key
 bool Xios::configCheckField(const std::string fieldId, const bool reading)
 {
-    std::vector<std::string> fieldNames = configGetFieldNames(reading);
-    bool found = false;
-    for (std::string fieldName : fieldNames) {
-        if (fieldName == fieldId) {
-            found = true;
-            break;
-        }
-    }
-    return found;
+    std::set<std::string> fieldNames = configGetFieldNames(reading);
+    return fieldNames.find(fieldId) != fieldNames.end();
 }
 
 /*!
@@ -1710,19 +1680,19 @@ void Xios::fileAddField(const std::string fileId, const std::string fieldId)
  */
 void Xios::write(const std::string fieldId, ModelArray& modelarray)
 {
+    const bool readAccess = false;
+    std::set<std::string> fieldNames = configGetFieldNames(readAccess);
+    if (fieldNames.find(fieldId) == fieldNames.end()) {
+        throw std::runtime_error(
+            "Xios::write: field " + fieldId + " has not been configured for writing with XIOS.");
+    }
     auto ndim = modelarray.nDimensions();
     auto dims = modelarray.dimensions();
     if (ndim == 2) {
         cxios_write_data_k82(
             fieldId.c_str(), fieldId.length(), modelarray.getData(), dims[0], dims[1], -1);
-    } else if (ndim == 3) {
-        cxios_write_data_k83(
-            fieldId.c_str(), fieldId.length(), modelarray.getData(), dims[0], dims[1], dims[2], -1);
-    } else if (ndim == 4) {
-        cxios_write_data_k84(fieldId.c_str(), fieldId.length(), modelarray.getData(), dims[0],
-            dims[1], dims[2], dims[3], -1);
     } else {
-        throw std::invalid_argument("Only ModelArrays of dimension 2, 3, or 4 are supported");
+        throw std::invalid_argument("Only ModelArrays of dimension 2 are supported");
     }
 }
 
@@ -1734,19 +1704,19 @@ void Xios::write(const std::string fieldId, ModelArray& modelarray)
  */
 void Xios::read(const std::string fieldId, ModelArray& modelarray)
 {
+    const bool readAccess = true;
+    std::set<std::string> fieldNames = configGetFieldNames(readAccess);
+    if (fieldNames.find(fieldId) == fieldNames.end()) {
+        throw std::runtime_error(
+            "Xios::read: field " + fieldId + " has not been configured for reading with XIOS.");
+    }
     auto ndim = modelarray.nDimensions();
     auto dims = modelarray.dimensions();
     if (ndim == 2) {
         cxios_read_data_k82(
             fieldId.c_str(), fieldId.length(), modelarray.getData(), dims[0], dims[1]);
-    } else if (ndim == 3) {
-        cxios_read_data_k83(
-            fieldId.c_str(), fieldId.length(), modelarray.getData(), dims[0], dims[1], dims[2]);
-    } else if (ndim == 4) {
-        cxios_read_data_k84(fieldId.c_str(), fieldId.length(), modelarray.getData(), dims[0],
-            dims[1], dims[2], dims[3]);
     } else {
-        throw std::invalid_argument("Only ModelArrays of dimension 2, 3, or 4 are supported");
+        throw std::invalid_argument("Only ModelArrays of dimension 2 are supported");
     }
 }
 }
