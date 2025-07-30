@@ -130,12 +130,12 @@ def rotate_pole_to_greenland(lat, lon):
     y = np.cos(latr) * np.sin(lonr)
     z = np.sin(latr)
 
-    aw = 40.0 * np.pi / 180.0
+    aw = np.deg2rad(40.0)
     x1 = np.cos(aw) * x - np.sin(aw) * y
     y1 = np.sin(aw) * x + np.cos(aw) * y
     z1 = z
 
-    bw = 15.0 * np.pi / 180.0
+    bw = np.deg2rad(15.0)
     x2 = np.cos(bw) * x1 - np.sin(bw) * z1
     y2 = y1
     z2 = np.sin(bw) * x1 + np.cos(bw) * z1
