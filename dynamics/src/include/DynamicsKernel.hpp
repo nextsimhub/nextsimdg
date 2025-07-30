@@ -18,6 +18,7 @@
 #include "dgLimit.hpp"
 #include "dgVector.hpp"
 #include "dgVisu.hpp"
+#include "SlopeLimiter.hpp"
 
 #include "DGModelArray.hpp"
 #include "dgVectorHolder.hpp"
@@ -175,10 +176,26 @@ public:
         dgtransport->step(tst.step.seconds(), cice);
         dgtransport->step(tst.step.seconds(), hice);
 
-        //! Gauss-point limiting
-        Nextsim::LimitMax(cice, 1.0);
-        Nextsim::LimitMin(cice, 0.0);
-        Nextsim::LimitMin(hice, 0.0);
+	// Simply limiting minimum and maximum in the Guass points.
+	//
+	// //! Gauss-point limiting
+	// Nextsim::LimitMax(cice, 1.0);
+	// Nextsim::LimitMin(cice, 0.0);
+	// Nextsim::LimitMin(hice, 0.0);
+
+
+	
+        //! Slope Limiting
+	// First, limit minimum and maximum of average component
+	// Then prevent new local minima and maxima
+        SlopeLimiter<DGadvection> SL(*smesh);
+        SL.LimitMax(cice,1.);
+        SL.LimitMin(cice,0.);
+        SL.LimitMin(hice,0.);
+
+        SL.Limit(cice);
+        SL.Limit(hice);
+        
     }
 
 protected:
