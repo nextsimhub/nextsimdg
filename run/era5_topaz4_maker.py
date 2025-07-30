@@ -210,11 +210,11 @@ if __name__ == "__main__":
                 v_data_source = v_file["v10"][time_index, :, :]
                 # Fix the polar row winds by copying the pole-adjacent row
                 # Pole in the first row
-                if abs(source_lats[0]) > 89.8:
+                if np.isclose(abs(source_lats[0]), 90., atol = 0.125):
                     u_data_source[0, :] = u_data_source[1, :]
                     v_data_source[0, :] = u_data_source[1, :]
                 # Pole in the last row
-                if abs(source_lats[-1]) > 89.8:
+                if np.isclose(abs(source_lats[-1]), 90., atol = 0.125):
                     u_data_source[-1, :] = u_data_source[-2, :]
                     v_data_source[-1, :] = u_data_source[-2, :]
                 # Now interpolate the source data to the target grid
