@@ -109,6 +109,10 @@ TEST_CASE("Threshold ice")
     subl.resize();
     ModelComponent::getStore().registerArray(Shared::SUBLIM, &subl, RW);
 
+    HField qswbase;
+    qswbase.resize();
+    ModelComponent::getStore().registerArray(Shared::Q_SW_BASE, &qswbase, RW);
+
     // An implementation of IFluxCalculation that returns zero fluxes
     class FluxData : public IFluxCalculation {
     public:
