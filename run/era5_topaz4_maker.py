@@ -243,13 +243,13 @@ if __name__ == "__main__":
                 v_data_source = v_file["v10"][time_index, :, :]
                 # Fix the polar row winds by copying the pole-adjacent row
                 # Pole in the first row
-                if abs(source_lats[0]) == 90.:
-                    u_data_source[:, 0] = u_data_source[:, 1]
-                    v_data_source[:, 0] = u_data_source[:, 1]
+                if np.isclose(abs(source_lats[0]), 90., atol = 0.125):
+                    u_data_source[0, :] = u_data_source[1, :]
+                    v_data_source[0, :] = u_data_source[1, :]
                 # Pole in the last row
-                if abs(source_lats[-1]) == 90.:
-                    u_data_source[:, -1] = u_data_source[:, -2]
-                    v_data_source[:, -1] = u_data_source[:, -2]
+                if np.isclose(abs(source_lats[-1]), 90., atol = 0.125):
+                    u_data_source[-1, :] = u_data_source[-2, :]
+                    v_data_source[-1, :] = u_data_source[-2, :]
                 # Now interpolate the source data to the target grid
                 u_data_target = np.zeros((ny, nx))
                 u_data_target = era5_interpolate(element_lon, element_lat, u_data_source, source_lons, source_lats)
