@@ -116,7 +116,7 @@ def rotate_velocities(u, v, angle):
 def rotate_pole_to_greenland(lat, lon):
     """
     Rotates the mesh such that the singularities are in Greenland / Antarctica at 75N / 40W and 75S / 140E
-    This is a copy of ParametricMesh::RotatePoleToGreenland in ParametricMesh.cpp. It's here for testing purposes only.
+    This is a copy of ParametricMesh::RotatePoleToGreenland in dynamics/src/include/ParametricMesh.hpp. It's here for testing purposes only.
 
     :param lat: Latitudes of the mesh
     :param lon: Longitudes of the mesh
