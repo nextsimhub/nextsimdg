@@ -1,8 +1,6 @@
 /*!
- * @file    XiosFile_test.cpp
  * @author  Joe Wallwork <jw2423@cam.ac.uk>
  * @author  Adeleke Bankole <ab3191@cam.ac.uk>
- * @date    19 May 2025
  * @brief   Tests for XIOS file
  * @details
  * This test is designed to test file functionality of the C++ interface
@@ -15,6 +13,7 @@
 #include "StructureModule/include/ParametricGrid.hpp"
 #include "include/Configurator.hpp"
 #include "include/Finalizer.hpp"
+#include "include/ModelMetadata.hpp"
 #include "include/Xios.hpp"
 
 using namespace doctest;
@@ -41,39 +40,38 @@ MPI_TEST_CASE("TestXiosFile", 2)
     config << "[XiosInput]" << std::endl;
     config << "period = P0-0T03:00:00" << std::endl;
     config << "filename = xios_test_input" << std::endl;
-    config << "field_names = field_2D" << std::endl;
+    config << "field_names = field_1D" << std::endl;
     config << "[XiosOutput]" << std::endl;
     config << "period = P0-0T03:00:00" << std::endl;
     config << "filename = xios_test_output" << std::endl;
-    config << "field_names = field_3D" << std::endl;
+    config << "field_names = field_2D" << std::endl;
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
 
+    // Create ModelMetadata instance based off a partition metadata file
+    ModelMetadata metadata("xios_test_partition_metadata_2.nc", test_comm);
+
     // Get the Xios singleton instance and check it's initialized
     Xios& xiosHandler = Xios::getInstance();
+    xiosHandler.affixModelMetadata(metadata);
     REQUIRE(xiosHandler.isInitialized());
-    const size_t size = xiosHandler.getClientMPISize();
-    REQUIRE(size == 2);
-    const size_t rank = xiosHandler.getClientMPIRank();
+    REQUIRE(xiosHandler.getClientMPISize() == 2);
 
-    // Set dimensions consistently with input file
-    xiosHandler.createDomain("xy_domain");
-    xiosHandler.setDomainType("xy_domain", "rectilinear");
-    xiosHandler.setDomainGlobalXSize("xy_domain", 4);
-    xiosHandler.setDomainGlobalYSize("xy_domain", 2);
-    xiosHandler.setDomainLocalXStart("xy_domain", 2 * rank);
-    xiosHandler.setDomainLocalYStart("xy_domain", 0);
-    xiosHandler.setDomainLocalXValues("xy_domain", { -1.0 + rank, -0.5 + rank });
-    xiosHandler.setDomainLocalYValues("xy_domain", { -1.0, 1.0 });
+    // Create a vertical axis, too
     xiosHandler.createAxis("z_axis");
     xiosHandler.setAxisValues("z_axis", { 0.0, 1.0 });
 
+    // Create a 1D grid
+    // NOTE: The 2D grid is created automatically along with the xy_domain
+    xiosHandler.createGrid("grid_1D");
+    xiosHandler.gridAddAxis("grid_1D", "z_axis");
+
     // Associate fields with grids
     // NOTE: fields are automatically created along with files
+    xiosHandler.setFieldOperation("field_1D", "instant");
+    xiosHandler.setFieldGridRef("field_1D", "grid_1D");
     xiosHandler.setFieldOperation("field_2D", "instant");
     xiosHandler.setFieldGridRef("field_2D", "grid_2D");
-    xiosHandler.setFieldOperation("field_3D", "instant");
-    xiosHandler.setFieldGridRef("field_3D", "grid_3D");
 
     // --- Tests for file API
     const std::string inFileId = "xios_test_input";
@@ -108,12 +106,12 @@ MPI_TEST_CASE("TestXiosFile", 2)
     // File add field
     // NOTE: fileAddField is triggered by a call to createFile, which parses the config to create
     // all the corresponding fields and then associated them with the file
-    std::vector<std::string> inFieldIds = xiosHandler.fileGetFieldIds(inFileId);
-    REQUIRE(inFieldIds.size() == 1);
-    REQUIRE(inFieldIds[0] == "field_2D");
-    std::vector<std::string> outFieldIds = xiosHandler.fileGetFieldIds(outFileId);
-    REQUIRE(outFieldIds.size() == 1);
-    REQUIRE(outFieldIds[0] == "field_3D");
+    std::vector<std::string> field_1DIds = xiosHandler.fileGetFieldIds(inFileId);
+    REQUIRE(field_1DIds.size() == 1);
+    REQUIRE(field_1DIds[0] == "field_1D");
+    std::vector<std::string> field_2DIds = xiosHandler.fileGetFieldIds(outFileId);
+    REQUIRE(field_2DIds.size() == 1);
+    REQUIRE(field_2DIds[0] == "field_2D");
 
     // Create a new file for each time unit to check more thoroughly that XIOS interprets output
     // frequency and split frequency correctly.

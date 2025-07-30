@@ -1,8 +1,6 @@
 /*!
- * @file ThermoIce0.hpp
  *
- * @date 24 Sep 2024
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #ifndef THERMOICE0HPP

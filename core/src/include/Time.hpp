@@ -1,8 +1,5 @@
 /*!
- * @file Time.hpp
- *
- * @date Mar 15, 2022
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #ifndef TIME_HPP

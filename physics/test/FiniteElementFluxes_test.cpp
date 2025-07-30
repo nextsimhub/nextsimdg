@@ -1,8 +1,5 @@
 /*!
- * @file FiniteElementFluxes_test.cpp
- *
- * @date 23 May 2025
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
@@ -101,7 +98,6 @@ TEST_CASE("Melting conditions")
             getStore().registerArray(Protected::H_ICE, &hice, RO);
             getStore().registerArray(Protected::C_ICE, &cice, RO);
             getStore().registerArray(Protected::H_SNOW, &hsnow, RO);
-            getStore().registerArray(Protected::T_ICE, &tice0, RO);
             getStore().registerArray(Protected::T_SURF, &tsurf, RO);
             getStore().registerArray(Protected::HTRUE_ICE, &hice0, RO);
             getStore().registerArray(Protected::HTRUE_SNOW, &hsnow0, RO);
@@ -114,7 +110,6 @@ TEST_CASE("Melting conditions")
             cice[0] = 0.5;
             hice[0] = 0.1; // Here we are using the cell-averaged thicknesses
             hsnow[0] = 0.01;
-            tice0[0] = -1.;
             tsurf[0] = -1.;
 
             hice0[0] = hice[0] / cice[0];
@@ -124,7 +119,6 @@ TEST_CASE("Melting conditions")
         HField hice;
         HField cice;
         HField hsnow;
-        HField tice0;
         HField tsurf;
         HField hice0; // ice averaged ice thickness
         HField hsnow0; // ice averaged snow thickness
@@ -260,7 +254,6 @@ TEST_CASE("Freezing conditions")
             getStore().registerArray(Protected::H_ICE, &hice, RO);
             getStore().registerArray(Protected::C_ICE, &cice, RO);
             getStore().registerArray(Protected::H_SNOW, &hsnow, RO);
-            getStore().registerArray(Protected::T_ICE, &tice0, RO);
             getStore().registerArray(Protected::T_SURF, &tsurf, RO);
             getStore().registerArray(Protected::HTRUE_ICE, &hice0, RO);
             getStore().registerArray(Protected::HTRUE_SNOW, &hsnow0, RO);
@@ -273,7 +266,6 @@ TEST_CASE("Freezing conditions")
             cice[0] = 0.5;
             hice[0] = 0.1; // Here we are using the cell-averaged thicknesses
             hsnow[0] = 0.01;
-            tice0[0] = -9.;
             tsurf[0] = -9.;
 
             hice0[0] = hice[0] / cice[0];
@@ -283,7 +275,6 @@ TEST_CASE("Freezing conditions")
         HField hice;
         HField cice;
         HField hsnow;
-        HField tice0;
         HField tsurf;
         HField hice0; // ice averaged ice thickness
         HField hsnow0; // ice averaged snow thickness

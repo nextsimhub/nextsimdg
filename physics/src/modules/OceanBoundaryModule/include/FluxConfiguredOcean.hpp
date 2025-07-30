@@ -1,8 +1,6 @@
 /*!
- * @file FluxConfiguredOcean.hpp
  *
- * @date Sep 29, 2022
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #ifndef FLUXCONFIGUREDOCEAN_HPP

@@ -1,9 +1,6 @@
 /*!
- * @file CGDynamicsKernel.cpp
- *
- * @date 27 Mar 2025
- * @author Tim Spain <timothy.spain@nersc.no>
- * @author Robert Jendersie <robert.jendersie@ovgu.de>
+ * @author  Tim Spain <timothy.spain@nersc.no>
+ * @author  Robert Jendersie <robert.jendersie@ovgu.de>
  */
 
 /*
@@ -14,10 +11,13 @@
 #include "include/ModelArray.hpp"
 #include "include/constants.hpp"
 
+#include "SlopeLimiter.hpp"
 #include "include/Interpolations.hpp"
 #include "include/ParametricMap.hpp"
 #include "include/VectorManipulations.hpp"
 #include "include/cgVector.hpp"
+
+#include <limits>
 
 namespace Nextsim {
 
@@ -411,6 +411,33 @@ template <int DGadvection> void CGDynamicsKernel<DGadvection>::applyBoundaries()
     dirichletZero(u);
     dirichletZero(v);
     // TODO Periodic boundary conditions.
+}
+
+template <int DGadvection>
+DGVector<DGadvection>& CGDynamicsKernel<DGadvection>::advectDGVField(
+    double timestep, DGVector<DGadvection>& field, double lowerLimit, double upperLimit)
+{
+    dgtransport->step(timestep, field);
+
+    //! Slope Limiting
+    SlopeLimiter<DGadvection> SL(*smesh);
+    bool limitSlope = false;
+
+    // First, limit minimum and/or maximum of the average component
+    if (lowerLimit > -std::numeric_limits<double>::infinity()) {
+        SL.LimitMin(field, lowerLimit);
+        limitSlope = true;
+    }
+    if (upperLimit < std::numeric_limits<double>::infinity()) {
+        SL.LimitMax(field, upperLimit);
+        limitSlope = true;
+    }
+
+    // Then prevent new local minima and maxima
+    if (limitSlope)
+        SL.Limit(field);
+
+    return field;
 }
 
 template <int DGadvection>

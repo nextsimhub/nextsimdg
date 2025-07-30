@@ -1,7 +1,5 @@
 /*!
- * @file    XiosRead_test.cpp
  * @author  Joe Wallwork <jw2423@cam.ac.uk>
- * @date    19 May 2025
  * @brief   Tests for XIOS read functionality
  * @details
  * This test is designed to test the file reading functionality of the C++
@@ -17,6 +15,7 @@
 #include "include/NextsimModule.hpp"
 #include "include/ParaGridIO.hpp"
 #include "include/Xios.hpp"
+#include "include/gridNames.hpp"
 
 #include <filesystem>
 
@@ -39,7 +38,7 @@ MPI_TEST_CASE("TestXiosRead", 2)
     config << "[XiosInput]" << std::endl;
     config << "period = P0-0T01:30:00" << std::endl;
     config << "filename = xios_test_input" << std::endl;
-    config << "field_names = field_2D" << std::endl;
+    config << "field_names = hice" << std::endl;
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
 
@@ -49,12 +48,14 @@ MPI_TEST_CASE("TestXiosRead", 2)
     ParaGridIO* pio = new ParaGridIO(grid);
     grid.setIO(pio);
 
-    // Create Xios singleton instance and check it's initialized
+    // Create ModelMetadata instance based off a partition metadata file
+    ModelMetadata metadata("xios_test_partition_metadata_2.nc", test_comm);
+
+    // Get the Xios singleton instance and check it's initialized
     Xios& xiosHandler = Xios::getInstance();
+    xiosHandler.affixModelMetadata(metadata);
     REQUIRE(xiosHandler.isInitialized());
-    const size_t size = xiosHandler.getClientMPISize();
-    REQUIRE(size == 2);
-    const size_t rank = xiosHandler.getClientMPIRank();
+    REQUIRE(xiosHandler.getClientMPISize() == 2);
 
     // Set ModelArray dimensions
     const size_t nx_glo = 4;
@@ -65,22 +66,25 @@ MPI_TEST_CASE("TestXiosRead", 2)
     ModelArray::setDimension(ModelArray::Dimension::X, nx_glo, nx, 0);
     ModelArray::setDimension(ModelArray::Dimension::Y, ny_glo, ny, 0);
 
-    // Create ModelMetadata instance, which will create the domain
-    ModelMetadata metadata("xios_test_partition_metadata_2.nc", test_comm);
-
     // Create fields on the two grids
     // NOTE: Fields are created when the XIOS handler is constructed
     // NOTE: The 2D grid is created along with the 2D domain
-    xiosHandler.setFieldOperation("field_2D", "instant");
-    xiosHandler.setFieldGridRef("field_2D", "grid_2D");
+    xiosHandler.setFieldOperation(hiceName, "instant");
+    xiosHandler.setFieldGridRef(hiceName, "grid_2D");
     Duration timestep = xiosHandler.getCalendarTimestep();
-    xiosHandler.setFieldFreqOffset("field_2D", timestep);
+    xiosHandler.setFieldFreqOffset(hiceName, timestep);
 
     xiosHandler.close_context_definition();
 
     // Create HField and ZField instances to read the data into
-    HField field_2D(ModelArray::Type::H);
-    field_2D.resize();
+    HField hice(ModelArray::Type::H);
+    hice.resize();
+
+    // Setup ModelState with field above
+    ModelState state = { {
+                             { hiceName, hice },
+                         },
+        {} };
 
     // Check calendar step is zero initially
     REQUIRE(xiosHandler.getCalendarStep() == 0);
@@ -95,12 +99,16 @@ MPI_TEST_CASE("TestXiosRead", 2)
         metadata.incrementTime(timestep);
         REQUIRE(xiosHandler.getCalendarStep() == ts);
         // Receive data from XIOS that is read from disk
-        xiosHandler.read("field_2D", field_2D);
+        for (auto& entry : state.data) {
+            xiosHandler.read(entry.first, entry.second);
+        }
     }
 
-    for (size_t j = 0; j < ny; ++j) {
-        for (size_t i = 0; i < nx; ++i) {
-            REQUIRE(field_2D(i, j) == doctest::Approx(i + nx * j));
+    for (auto& entry : state.data) {
+        for (size_t j = 0; j < ny; ++j) {
+            for (size_t i = 0; i < nx; ++i) {
+                REQUIRE(entry.second(i, j) == doctest::Approx(i + nx * j));
+            }
         }
     }
     xiosHandler.context_finalize();

@@ -1,7 +1,5 @@
 /*!
- * @file Tools.hpp
- * @date 19 May 2025
- * @author Piotr Minakowski <piotr.minakowski@ovgu.de>
+ * @author  Piotr Minakowski <piotr.minakowski@ovgu.de>
  */
 
 #ifndef __TOOLS_HPP

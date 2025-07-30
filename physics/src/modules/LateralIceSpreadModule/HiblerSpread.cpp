@@ -1,8 +1,5 @@
 /*!
- * @file HiblerSpread.cpp
- *
- * @date 04 Jun 2025
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #include "include/HiblerSpread.hpp"

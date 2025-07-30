@@ -1,8 +1,5 @@
 /*!
- * @file CGModelArray.hpp
- *
- * @date Oct 13, 2022
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #ifndef CGMODELARRAY_HPP

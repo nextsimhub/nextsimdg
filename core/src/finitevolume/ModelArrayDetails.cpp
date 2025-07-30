@@ -1,8 +1,6 @@
 /*!
- * @file ModelArrayDetails.cpp
  *
- * @date 24 Sep 2024
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #include "include/ModelArray.hpp"
@@ -84,8 +82,6 @@ const std::map<ModelArray::Type, ModelArray::Dimension> ModelArray::componentMap
     { Type::VERTEX, Dimension::NCOORDS },
 };
 
-const ModelArray::TypeMap ModelArray::definedComp0Map(){
-    return { };
-};
+const ModelArray::TypeMap ModelArray::definedComp0Map() { return {}; };
 
 }

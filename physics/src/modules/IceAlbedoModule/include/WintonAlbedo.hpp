@@ -1,9 +1,7 @@
 /*!
- * @file WintonAlbedo.hpp
  *
- * @date Sep 11, 2024
- * @author Tim Spain <timothy.spain@nersc.no>
- * @author Einar Ólason <einar.olason@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
+ * @author  Einar Ólason <einar.olason@nersc.no>
  */
 
 #ifndef WINTONALBEDO_HPP

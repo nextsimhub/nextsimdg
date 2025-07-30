@@ -1,8 +1,6 @@
 /*!
- * @file FakeSmeshData.hpp
  *
- * @date Dec 14, 2023
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #ifndef FAKESMESHDATA_HPP

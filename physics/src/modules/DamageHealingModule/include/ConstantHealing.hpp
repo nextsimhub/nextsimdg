@@ -1,8 +1,6 @@
 /*!
- * @file ConstantHealing.hpp
  *
- * @date Jun 3, 2024
- * @author Einar Ólason <einar.olason@nersc.no>
+ * @author  Einar Ólason <einar.olason@nersc.no>
  */
 
 #ifndef CONSTANTHEALING_HPP
