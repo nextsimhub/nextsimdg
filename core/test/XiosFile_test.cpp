@@ -13,6 +13,7 @@
 #include "StructureModule/include/ParametricGrid.hpp"
 #include "include/Configurator.hpp"
 #include "include/Finalizer.hpp"
+#include "include/ModelMetadata.hpp"
 #include "include/Xios.hpp"
 
 using namespace doctest;
@@ -47,22 +48,16 @@ MPI_TEST_CASE("TestXiosFile", 2)
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
 
+    // Create ModelMetadata instance based off a partition metadata file
+    ModelMetadata metadata("xios_test_partition_metadata_2.nc", test_comm);
+
     // Get the Xios singleton instance and check it's initialized
     Xios& xiosHandler = Xios::getInstance();
+    xiosHandler.affixModelMetadata(metadata);
     REQUIRE(xiosHandler.isInitialized());
-    const size_t size = xiosHandler.getClientMPISize();
-    REQUIRE(size == 2);
-    const size_t rank = xiosHandler.getClientMPIRank();
+    REQUIRE(xiosHandler.getClientMPISize() == 2);
 
-    // Set dimensions consistently with input file
-    xiosHandler.createDomain("xy_domain");
-    xiosHandler.setDomainType("xy_domain", "rectilinear");
-    xiosHandler.setDomainGlobalXSize("xy_domain", 4);
-    xiosHandler.setDomainGlobalYSize("xy_domain", 2);
-    xiosHandler.setDomainLocalXStart("xy_domain", 2 * rank);
-    xiosHandler.setDomainLocalYStart("xy_domain", 0);
-    xiosHandler.setDomainLocalXValues("xy_domain", { -1.0 + rank, -0.5 + rank });
-    xiosHandler.setDomainLocalYValues("xy_domain", { -1.0, 1.0 });
+    // Create a vertical axis, too
     xiosHandler.createAxis("z_axis");
     xiosHandler.setAxisValues("z_axis", { 0.0, 1.0 });
 
