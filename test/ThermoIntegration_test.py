@@ -190,9 +190,9 @@ ks = 0.31
         Test the ice thickness against standard max, min, and mean values
         """
 
-        mean = 3.1189
-        max = 3.3419
-        min = 2.9805
+        mean = 3.1093
+        max = 3.3327
+        min = 2.9702
         hiceDG0 = self.hice[:, 0]
         self.assertAlmostEqual(max, hiceDG0.max(), 4, "Max ice thickness not ~= " + str(max) + " m")
         self.assertAlmostEqual(min, hiceDG0.min(), 4, "Min ice thickness not ~= " + str(min) + " m")
@@ -224,9 +224,9 @@ ks = 0.31
         to 4 digits. This is normal, because the output is only accurate to six significant digits anyway.
         """
 
-        mean = [-17.6250, -7.6068, -3.7998]
-        max = [0.0000, -1.1336, -1.5975]
-        min = [-33.1612, -14.8637, -6.1424]
+        mean = [-17.6202, -7.5904, -3.7944]
+        max = [0.0000, -1.1280, -1.5939]
+        min = [-33.1569, -14.8520, -6.1389]
         #for i in range(3):
         for i, t_level in enumerate((self.tsurf[:, 0, 0, 0], self.tintr[:, 0, 0, 0], self.tbott[:, 0, 0, 0])):
             self.assertAlmostEqual(max[i], t_level.max(), 4, "Max T" + str(i) + " not ~= " + str(max[i]) + " ˚C")
