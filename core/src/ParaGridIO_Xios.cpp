@@ -103,18 +103,14 @@ ModelState ParaGridIO::getModelState(const std::string& filePath, ModelMetadata&
         field.resize();
         state.merge(ModelState { { { fieldId, field } }, {} });
     }
-    // TODO: coordsName, xName, yName, gridAzimuthName and others
-    std::set<std::string> restartFields = { hiceName, ciceName, hsnowName, ticeName, sstName,
-        sssName, maskName, longitudeName, latitudeName, uName, vName, damageName };
+    // Assume that all fields in the supplied ModelState are necessary, and so read them from file.
     for (auto& entry : state.data) {
         const std::string fieldId = entry.first;
-        if (restartFields.count(fieldId)) {
-            if (!xiosHandler.getFieldReadAccess(fieldId)) {
-                throw std::runtime_error("ParaGridIO::getModelState: field " + fieldId
-                    + " is not configured for reading, but is being read from file.");
-            };
-            xiosHandler.read(fieldId, entry.second);
-        }
+        if (!xiosHandler.getFieldReadAccess(fieldId)) {
+            throw std::runtime_error("ParaGridIO::getModelState: field " + fieldId
+                + " is not configured for reading, but is being read from file.");
+        };
+        xiosHandler.read(fieldId, entry.second);
     }
     return state;
 }
