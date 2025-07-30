@@ -39,7 +39,7 @@ public:
 protected:
     ModelArrayRef<Protected::SST> sst;
     ModelArrayRef<Protected::TF> tf;
-    ModelArrayRef<Protected::C_ICE> cice;
+    ModelArrayRef<Shared::C_ICE_DG> cice;
 
     ModelArrayRef<Shared::Q_IO, RW> qio;
 };

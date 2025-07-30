@@ -181,7 +181,7 @@ protected:
 
     ModelArrayReferenceStore m_couplingArrays;
 
-    ModelArrayRef<Protected::C_ICE, RO> cice;
+    ModelArrayRef<Shared::C_ICE_DG, RO> cice;
     ModelArrayRef<Protected::IO_STRESS_X> tauXIO;
     ModelArrayRef<Protected::IO_STRESS_Y> tauYIO;
     ModelArrayRef<Shared::EVAP, RW> evap;
