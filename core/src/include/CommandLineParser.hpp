@@ -1,8 +1,5 @@
 /*!
- * @file CommandLineParser.hpp
- *
- * @date Oct 8, 2021
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #ifndef COMMANDLINEPARSER_HPP

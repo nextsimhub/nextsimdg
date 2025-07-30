@@ -1,8 +1,5 @@
 /*!
- * @file ModelArrayRef_test.cpp
- *
- * @date 24 Sep 2024
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
@@ -288,7 +285,6 @@ TEST_CASE("Full component access")
     const ModelArray::DataType& eArray = dgRef.allComponents();
     REQUIRE(eArray.rows() == nx * ny);
     REQUIRE(eArray.cols() == nDG);
-
 }
 TEST_SUITE_END();
 

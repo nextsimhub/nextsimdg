@@ -23,6 +23,7 @@ set(BaseSources
     "CommandLineParser.cpp"
     "CommonRestartMetadata.cpp"
     "RectGridIO.cpp"
+    "FieldAdvection.cpp"
     "FileCallbackCloser.cpp"
     "Finalizer.cpp"
     "DevStep.cpp"

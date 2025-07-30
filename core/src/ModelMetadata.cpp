@@ -1,18 +1,15 @@
 /*!
- * @file ModelMetadata.cpp
- *
- * @date 06 Jun 2025
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #include "include/ModelMetadata.hpp"
 
 #include "include/IStructure.hpp"
 #include "include/NextsimModule.hpp"
-#include "include/gridNames.hpp"
 #ifdef USE_XIOS
 #include "include/Xios.hpp"
 #endif
+#include "include/gridNames.hpp"
 
 #ifdef USE_MPI
 #include <ncDim.h>
@@ -65,20 +62,6 @@ void ModelMetadata::getPartitionMetadata(std::string partitionFile)
     bboxGroup.getVar("domain_extent_x").getVar(index, &localExtentX);
     bboxGroup.getVar("domain_extent_y").getVar(index, &localExtentY);
     ncFile.close();
-
-#ifdef USE_XIOS
-    // Set up the XIOS Domain
-    Xios& xiosHandler = Xios::getInstance();
-    const std::string domainId = "xy_domain";
-    xiosHandler.createDomain(domainId);
-    xiosHandler.setDomainType(domainId, "rectilinear");
-    xiosHandler.setDomainGlobalXSize(domainId, globalExtentX);
-    xiosHandler.setDomainGlobalYSize(domainId, globalExtentY);
-    xiosHandler.setDomainLocalXStart(domainId, localCornerX);
-    xiosHandler.setDomainLocalYStart(domainId, localCornerY);
-    xiosHandler.setDomainLocalXSize(domainId, localExtentX);
-    xiosHandler.setDomainLocalYSize(domainId, localExtentY);
-#endif
 }
 
 #endif

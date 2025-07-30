@@ -1,6 +1,6 @@
-//
-// Created by Einar Ólason on 01/09/2022.
-//
+/*!
+ * @author  Einar Ólason <einar.olason@nersc.no>
+ */
 
 #include "include/MU71Atmosphere.hpp"
 

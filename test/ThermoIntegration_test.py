@@ -147,7 +147,6 @@ ks = 0.31
         grid_azimuth = datagrp.createVariable("grid_azimuth", "f8", field_dims)
         grid_azimuth[:, :] = 0
 
-        ice_salinity = 5  # should match Ice::s in constants.hpp
         mu: float = -0.055  # should match Water::mu in constants.hpp
         ocean_temperature = -1.54
         ocean_salinity = ocean_temperature / mu
@@ -164,12 +163,6 @@ ks = 0.31
         sss[:, :] = ocean_salinity
         sst = datagrp.createVariable("sst", "f8", field_dims)
         sst[:, :] = ocean_temperature
-        tsurf = datagrp.createVariable("tsurf", "f8", field_dims)
-        tsurf[:, :] = ice_salinity * mu
-        tintr = datagrp.createVariable("tinterior", "f8", field_dims)
-        tintr[:, :] = ice_salinity * mu
-        tbott = datagrp.createVariable("tbottom", "f8", field_dims)
-        tbott[:, :] = ice_salinity * mu
         # Ice is at rest
         u = datagrp.createVariable("u", "f8", field_dims)
         u[:, :] = 0
@@ -213,9 +206,10 @@ ks = 0.31
         mean = 0.2474
         max = 0.4000
         min = 0.0000
-        self.assertAlmostEqual(max, self.hsnow.max(), 4, "Max snow thickness not ~= " + str(max) + " m")
-        self.assertAlmostEqual(min, self.hsnow.min(), 4, "Min snow thickness not ~= " + str(min) + " m")
-        self.assertAlmostEqual(mean, self.hsnow.mean(), 4, "Mean snow thickness not ~= " + str(mean) + " m")
+        snowDG0 = self.hsnow[:, 0]
+        self.assertAlmostEqual(max, snowDG0.max(), 4, "Max snow thickness not ~= " + str(max) + " m")
+        self.assertAlmostEqual(min, snowDG0.min(), 4, "Min snow thickness not ~= " + str(min) + " m")
+        self.assertAlmostEqual(mean, snowDG0.mean(), 4, "Mean snow thickness not ~= " + str(mean) + " m")
 
     def test_temperatureTest(self):
         """
@@ -234,11 +228,11 @@ ks = 0.31
         max = [0.0000, -1.1336, -1.5975]
         min = [-33.1612, -14.8637, -6.1424]
         #for i in range(3):
-        for i, t_level in enumerate((self.tsurf, self.tintr, self.tbott)):
-            self.assertAlmostEqual(max[i], t_level.max(), 4, "Max T" + str(i) + " not ~= " + str(max[i]) + " m")
-            self.assertAlmostEqual(min[i], t_level.min(), 3, "Min T" + str(i) + " not ~= " + str(min[i]) + " m")
+        for i, t_level in enumerate((self.tsurf[:, 0, 0, 0], self.tintr[:, 0, 0, 0], self.tbott[:, 0, 0, 0])):
+            self.assertAlmostEqual(max[i], t_level.max(), 4, "Max T" + str(i) + " not ~= " + str(max[i]) + " ˚C")
+            self.assertAlmostEqual(min[i], t_level.min(), 3, "Min T" + str(i) + " not ~= " + str(min[i]) + " ˚C")
             self.assertAlmostEqual(mean[i], t_level.mean(), 3,
-                                   "Mean T" + str(i) + " not ~= " + str(mean[i]) + " m")
+                                   "Mean T" + str(i) + " not ~= " + str(mean[i]) + " ˚C")
 
 
 if __name__ == '__main__':

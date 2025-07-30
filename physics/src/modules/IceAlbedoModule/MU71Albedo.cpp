@@ -1,8 +1,5 @@
 /*!
- * @file MU71Albedo.cpp
- *
- * @date Wed 24 Aug 2022 08:05:49 CEST
- * @author Einar Örn Ólason <einar.olason@nersc.no>
+ * @author  Einar Örn Ólason <einar.olason@nersc.no>
  */
 
 #include "include/MU71Albedo.hpp"

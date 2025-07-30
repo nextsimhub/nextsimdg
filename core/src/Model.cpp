@@ -1,8 +1,6 @@
 /*!
- * @file Model.cpp
- * @date 09 Sep 2024
- * @author Tim Spain <timothy.spain@nersc.no>
- * @author Kacper Kornet <kk562@cam.ac.uk>
+ * @author  Tim Spain <timothy.spain@nersc.no>
+ * @author  Kacper Kornet <kk562@cam.ac.uk>
  */
 
 #include "include/Model.hpp"

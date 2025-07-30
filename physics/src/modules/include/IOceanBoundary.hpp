@@ -1,8 +1,6 @@
 /*!
- * @file IOceanBoundary.hpp
  *
- * @date 03 Jun 2025
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #ifndef IOCEANBOUNDARY_HPP
