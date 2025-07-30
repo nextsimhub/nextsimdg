@@ -34,9 +34,9 @@ public:
         , vocean(getStore())
         , ssh(getStore())
         , m_usesDamage(usesDamageIn)
-        , hice(getStore())
-        , cice(getStore())
-        , hsnow(getStore())
+        , hiceDG(getStore())
+        , ciceDG(getStore())
+        , hsnowDG(getStore())
     {
         getStore().registerArray(Protected::DIV, &divergence, RO);
         getStore().registerArray(Protected::ICE_U, &uice, RO);
@@ -133,9 +133,9 @@ protected:
     bool m_usesDamage;
 
     // Store the h_ice and c_ice DG fields here, rather than in the kernel.
-    ModelArrayRef<Shared::H_ICE_DG, RW> hice;
-    ModelArrayRef<Shared::C_ICE_DG, RW> cice;
-    ModelArrayRef<Shared::H_SNOW_DG, RW> hsnow;
+    ModelArrayRef<Shared::H_ICE_DG, RW> hiceDG;
+    ModelArrayRef<Shared::C_ICE_DG, RW> ciceDG;
+    ModelArrayRef<Shared::H_SNOW_DG, RW> hsnowDG;
 
     /*
      * Checks and returns if the provided data map is spherical
