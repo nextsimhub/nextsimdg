@@ -157,8 +157,8 @@ if(ENABLE_XIOS)
 endif()
 
 # Do we want to include the OASIS interface? It'll only work if we have MPI
-if (ENABLE_OASIS)
-    if (ENABLE_MPI)
+if(ENABLE_OASIS)
+    if(ENABLE_MPI)
         message(STATUS "Building with OASIS support")
         find_package(OASIS REQUIRED)
         pkg_search_module(NETCDF REQUIRED netcdf-fortran)
@@ -169,10 +169,10 @@ if (ENABLE_OASIS)
         target_link_libraries(nextsimlib
             PUBLIC oasis.cbind mct mpeu psmile.MPI1 scrip netcdff netcdf)
         target_include_directories(nextsimlib PUBLIC ${OASIS_INCLUDES})
-    else ()
+    else()
         message(FATAL_ERROR "Cannot build with OASIS support, because MPI is not enabled" .)
-    endif ()
-endif ()
+    endif()
+endif()
 
 # OpenMP
 if(WITH_THREADS)
