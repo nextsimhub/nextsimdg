@@ -1,18 +1,15 @@
 /*!
- * @file ModelMetadata.cpp
- *
- * @date 09 Apr 2025
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #include "include/ModelMetadata.hpp"
 
 #include "include/IStructure.hpp"
 #include "include/NextsimModule.hpp"
-#include "include/gridNames.hpp"
 #ifdef USE_XIOS
 #include "include/Xios.hpp"
 #endif
+#include "include/gridNames.hpp"
 
 #ifdef USE_MPI
 #include <ncDim.h>

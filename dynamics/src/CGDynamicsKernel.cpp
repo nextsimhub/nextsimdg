@@ -1,9 +1,6 @@
 /*!
- * @file CGDynamicsKernel.cpp
- *
- * @date 27 Mar 2025
- * @author Tim Spain <timothy.spain@nersc.no>
- * @author Robert Jendersie <robert.jendersie@ovgu.de>
+ * @author  Tim Spain <timothy.spain@nersc.no>
+ * @author  Robert Jendersie <robert.jendersie@ovgu.de>
  */
 
 /*
@@ -18,6 +15,8 @@
 #include "include/ParametricMap.hpp"
 #include "include/VectorManipulations.hpp"
 #include "include/cgVector.hpp"
+
+#include <limits>
 
 namespace Nextsim {
 
@@ -397,40 +396,13 @@ template <int DGadvection> void CGDynamicsKernel<DGadvection>::stressDivergence(
 template <int DGadvection>
 void CGDynamicsKernel<DGadvection>::dirichletZero(CGVector<CGdegree>& v) const
 {
-    // the four segments bottom, right, top, left, are each processed in parallel
-    for (size_t seg = 0; seg < 4; ++seg) {
+    // TR 07.04.2025: Dirichlet Zero (u=v=0) holds on land and on the boundary betreen
+    // land and ice. Hence on all elements with landmask = 0, or, on cg nodes with
+    // cglandmask = 0
 #pragma omp parallel for
-        for (size_t i = 0; i < smesh->dirichlet[seg].size(); ++i) {
-
-            const size_t eid = smesh->dirichlet[seg][i];
-            const size_t ix = eid % smesh->nx; // compute coordinates of element
-            const size_t iy = eid / smesh->nx;
-
-            if (seg == 0) // bottom
-                for (size_t j = 0; j < CGdegree + 1; ++j)
-                    v(iy * CGdegree * (CGdegree * smesh->nx + 1) + CGdegree * ix + j, 0) = 0.0;
-            else if (seg == 1) // right
-                for (size_t j = 0; j < CGdegree + 1; ++j)
-                    v(iy * CGdegree * (CGdegree * smesh->nx + 1) + CGdegree * ix + CGdegree
-                            + (CGdegree * smesh->nx + 1) * j,
-                        0)
-                        = 0.0;
-            else if (seg == 2) // top
-                for (size_t j = 0; j < CGdegree + 1; ++j)
-                    v((iy + 1) * CGdegree * (CGdegree * smesh->nx + 1) + CGdegree * ix + j, 0)
-                        = 0.0;
-            else if (seg == 3) // left
-                for (size_t j = 0; j < CGdegree + 1; ++j)
-                    v(iy * CGdegree * (CGdegree * smesh->nx + 1) + CGdegree * ix
-                            + (CGdegree * smesh->nx + 1) * j,
-                        0)
-                        = 0.0;
-            else {
-                std::cerr << "That should not have happened!" << std::endl;
-                abort();
-            }
-        }
-    }
+    for (size_t i = 0; i < pmap->cglandmask.rows(); ++i)
+        if (pmap->cglandmask(i) == 0) // land
+            v(i) = 0;
 }
 
 template <int DGadvection> void CGDynamicsKernel<DGadvection>::applyBoundaries()
@@ -438,6 +410,19 @@ template <int DGadvection> void CGDynamicsKernel<DGadvection>::applyBoundaries()
     dirichletZero(u);
     dirichletZero(v);
     // TODO Periodic boundary conditions.
+}
+
+template <int DGadvection>
+DGVector<DGadvection>& CGDynamicsKernel<DGadvection>::advectDGVField(
+    double timestep, DGVector<DGadvection>& field, double lowerLimit, double upperLimit)
+{
+    dgtransport->step(timestep, field);
+    if (lowerLimit > -std::numeric_limits<double>::infinity())
+        LimitMin(field, lowerLimit);
+    if (upperLimit < std::numeric_limits<double>::infinity())
+        LimitMax(field, upperLimit);
+
+    return field;
 }
 
 template <int DGadvection>

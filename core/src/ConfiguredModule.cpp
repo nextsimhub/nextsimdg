@@ -1,8 +1,5 @@
 /*!
- * @file ConfiguredModule.cpp
- *
- * @date Oct 29, 2021
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #include "include/ConfiguredModule.hpp"

@@ -1,9 +1,6 @@
 /*!
- * @file ProtectedArrayNames.ipp
- *
- * @date 23 Aug 2024
- * @author Tim Spain <timothy.spain@nersc.no>
- * @author Einar Ólason <einar.olason@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
+ * @author  Einar Ólason <einar.olason@nersc.no>
  */
 
 // External ProtectedArray names must be unique wrt to the external SharedArray names as well
@@ -44,3 +41,7 @@
     { "ssh", "SSH" }, // Slab ocean salinity nudging water flux, kg s⁻¹ m⁻²
     { "taux", "IO_STRESS_X" }, // Ice-ocean stress x(east) direction, Pa
     { "tauy", "IO_STRESS_Y" }, // Ice-ocean stress y(north) direction, Pa
+    { "shear", "SHEAR" }, // The instantaneous share rate, s⁻¹
+    { "divergence", "DIV" }, // The instantaneous divergence, s⁻¹
+    { "sigma_I", "SIGMAI" }, // The first stress invariant, Pa
+    { "sigma_II", "SIGMAII" }, // The first stress invariant, Pa

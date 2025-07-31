@@ -1,8 +1,5 @@
 /*!
- * @file IDiagnosticOutput.hpp
- *
- * @date 05 May 2025
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #ifndef IDIAGNOSTICOUTPUT_HPP

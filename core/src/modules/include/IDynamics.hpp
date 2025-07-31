@@ -1,8 +1,5 @@
 /*!
- * @file IDynamics.hpp
- *
- * @date 06 Dec 2024
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #ifndef IDYNAMICS_HPP
@@ -11,6 +8,8 @@
 #include "include/ModelComponent.hpp"
 #include "include/Time.hpp"
 #include "include/gridNames.hpp"
+
+#include <limits>
 
 namespace Nextsim {
 class IDynamics : public ModelComponent {
@@ -22,13 +21,13 @@ public:
     IDynamics(bool usesDamageIn)
         : uice(ModelArray::Type::H)
         , vice(ModelArray::Type::H)
-        , damage(ModelArray::Type::H)
         , taux(ModelArray::Type::H)
         , tauy(ModelArray::Type::H)
-        , hice(getStore())
-        , cice(getStore())
-        , hsnow(getStore())
-        , damage0(getStore())
+        , shear(ModelArray::Type::H)
+        , divergence(ModelArray::Type::H)
+        , sigmaI(ModelArray::Type::H)
+        , sigmaII(ModelArray::Type::H)
+        , damage(getStore())
         , uwind(getStore())
         , vwind(getStore())
         , uocean(getStore())
@@ -37,26 +36,31 @@ public:
         , m_usesDamage(usesDamageIn)
         , hiceDG(getStore())
         , ciceDG(getStore())
+        , hsnowDG(getStore())
     {
-        getStore().registerArray(Shared::DAMAGE, &damage, RW);
+        getStore().registerArray(Protected::DIV, &divergence, RO);
+        getStore().registerArray(Protected::ICE_U, &uice, RO);
+        getStore().registerArray(Protected::ICE_V, &vice, RO);
         getStore().registerArray(Protected::IO_STRESS_X, &taux, RO);
         getStore().registerArray(Protected::IO_STRESS_Y, &tauy, RO);
+        getStore().registerArray(Protected::SHEAR, &shear, RO);
+        getStore().registerArray(Protected::SIGMAI, &sigmaI, RO);
+        getStore().registerArray(Protected::SIGMAII, &sigmaII, RO);
     }
     virtual ~IDynamics() = default;
 
     ModelState getStatePrognostic() const override
     {
         ModelState state = { {
-                { uName, mask(uice) },
-                { vName, mask(vice) },
-                 },
-            getConfiguration()
-        };
+                                 { uName, uice },
+                                 { vName, vice },
+                             },
+            getConfiguration() };
 
         if (m_usesDamage) {
-               ModelState::DataMap damageState = { { damageName, damage } };
-               state.merge(damageState);
-           }
+            ModelState::DataMap damageState = { { damageName, damage } };
+            state.merge(damageState);
+        }
 
         return state;
     }
@@ -64,10 +68,16 @@ public:
     ModelState getStateDiagnostic() const override
     {
         ModelState state = { {
-                { "tau_x", taux },
-                { "tau_y", tauy },
-        }, { }
-        };
+                                 { uIOStressName, taux },
+                                 { vIOStressName, tauy },
+                                 { uName, uice },
+                                 { vName, vice },
+                                 { shearName, shear },
+                                 { divergenceName, divergence },
+                                 { sigmaIName, sigmaI },
+                                 { sigmaIIName, sigmaII },
+                             },
+            {} };
         return state.merge(getStatePrognostic());
     }
 
@@ -76,10 +86,10 @@ public:
     {
         uice.resize();
         vice.resize();
-        damage.resize();
-        if (!m_usesDamage) {
-            damage = 0.;
-        }
+        shear.resize();
+        divergence.resize();
+        sigmaI.resize();
+        sigmaII.resize();
     }
 
     virtual void update(const TimestepTime& tst) = 0;
@@ -89,20 +99,28 @@ public:
      */
     virtual bool usesDamage() const { return m_usesDamage; }
 
+    virtual void advectField(double timestep, ModelArray& field,
+        double lowerLimit = -std::numeric_limits<double>::infinity(),
+        double upperLimit = std::numeric_limits<double>::infinity())
+    {
+    }
+
+    virtual void prepareAdvection() = 0;
+
 protected:
     // Shared ice velocity arrays
     HField uice;
     HField vice;
-    // Updated damage array
-    HField damage;
     // Ice-ocean stress (for the coupler, mostly)
     HField taux;
     HField tauy;
+    // Diagnostic outputs of shear, divergence and the stress invariants
+    HField shear;
+    HField divergence;
+    HField sigmaI;
+    HField sigmaII;
     // References to the DG0 finite volume data arrays
-    ModelArrayRef<Shared::H_ICE, RW> hice;
-    ModelArrayRef<Shared::C_ICE, RW> cice;
-    ModelArrayRef<Shared::H_SNOW, RW> hsnow;
-    ModelArrayRef<Protected::DAMAGE, RO> damage0;
+    ModelArrayRef<Shared::DAMAGE, RW> damage;
 
     // References to the forcing velocity arrays
     ModelArrayRef<Protected::WIND_U> uwind;
@@ -117,6 +135,7 @@ protected:
     // Store the h_ice and c_ice DG fields here, rather than in the kernel.
     ModelArrayRef<Shared::H_ICE_DG, RW> hiceDG;
     ModelArrayRef<Shared::C_ICE_DG, RW> ciceDG;
+    ModelArrayRef<Shared::H_SNOW_DG, RW> hsnowDG;
 
     /*
      * Checks and returns if the provided data map is spherical

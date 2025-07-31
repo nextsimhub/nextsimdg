@@ -1,8 +1,5 @@
 /*!
- * @file ConfigOutput.cpp
- *
- * @date 19 May 2025
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #include "include/ConfigOutput.hpp"
@@ -163,7 +160,6 @@ void ConfigOutput::outputState(
     double averagingFactor = step.seconds() / outputPeriod.seconds();
     if (resetState)
         state = { {}, diagState.config };
-
     auto storeData = ModelComponent::getStore().getAllData();
     if (outputAllTheFields) {
         // If the internal to external name lookup table is still empty, fill it

@@ -12,7 +12,7 @@ class initMaker:
       >>> from make_init_base import initMaker
      1. Create an initialiser object with given filename, dimensions, and
         resolution, e.g.
-      >>> init = initMaker("test", 128, 128, 1, 3e3)
+      >>> init = initMaker("test", 128, 128, 3e3)
      2. Modify any variables needed, e.g.
       >>> init.cice = 1
       >>> init.hice = 3
@@ -21,7 +21,7 @@ class initMaker:
         (e.g. when the program ends or at the end of a loop).
     """
 
-    def __init__(self, fname, nFirst, nSecond, res, isWinton=False, nCg=1, nDg=1, nDgStress=3, nCoords=2, checkZeros=True):
+    def __init__(self, fname, nFirst, nSecond, res, nCg=1, nDg=1, nDgStress=3, nCoords=2, checkZeros=True):
         """
         Initialise all internal variables, except __nfirst, __nsecond, __nLayers,
         and __res to zero. All arrays are set to the right size as well.
@@ -51,10 +51,6 @@ class initMaker:
         self.azimuth = np.zeros((self.__nFirst, self.__nSecond))
         self.sss = np.zeros((self.__nFirst, self.__nSecond))
         self.sst = np.zeros((self.__nFirst, self.__nSecond))
-        self.tsurf = np.zeros((self.__nFirst, self.__nSecond))
-        if isWinton:
-            self.tintr = np.zeros((self.__nFirst, self.__nSecond))
-            self.tbott = np.zeros((self.__nFirst, self.__nSecond))
 
         # Set basic coordinate sizes
         self.__nCg = nCg
@@ -78,7 +74,6 @@ class initMaker:
                       ["hice", (self.hice==0).all(), self.hice.shape==(self.__nFirst,self.__nSecond)],
                       ["hsnow", (self.hsnow==0).all(), self.hsnow.shape==(self.__nFirst,self.__nSecond)],
                       ["damage", (self.damage==0).all(), self.damage.shape==(self.__nFirst,self.__nSecond)],
-                      ["tsurf", (self.tsurf==0).all(), self.tsurf.shape==(self.__nFirst,self.__nSecond)],
                       ["uice", (self.uice==0).all(), self.uice.shape==(self.__nFirst,self.__nSecond)],
                       ["vice", (self.vice==0).all(), self.vice.shape==(self.__nFirst,self.__nSecond)],
                       ["sss", (self.sss==0).all(), self.sss.shape==(self.__nFirst,self.__nSecond)],
@@ -176,17 +171,6 @@ class initMaker:
         damage = datagrp.createVariable("damage", "f8", field_dims)
         damage[:, :] = self.damage
 
-        # Set ice temperatures
-        tsurf = datagrp.createVariable("tsurf", "f8", ("ydim", "xdim"))
-        tsurf[:, :] = self.tsurf
-        if hasattr(self, "tintr"):
-            tintr = datagrp.createVariable("tinterior", "f8", ("ydim", "xdim"))
-            tintr[:, :] = self.tintr
-        if hasattr(self, "tbott"):
-            tbott = datagrp.createVariable("tbottom", "f8", ("ydim", "xdim"))
-            tbott[:, :] = self.tintr
-
-
         # Set ice velocity
         u = datagrp.createVariable("u", "f8", field_dims)
         u[:, :] = self.uice
@@ -213,11 +197,6 @@ class initMaker:
         damage[:, :] = damage[:, :] * mask[:, :]
         u[:, :] = u[:, :] * mask[:, :]
         v[:, :] = v[:, :] * mask[:, :]
-        tsurf[:, :] *= mask[:, :]
-        if hasattr(self, "tintr"):
-            tintr[:, :] *= mask[:, :]
-        if hasattr(self, "tbott"):
-            tbott[:, :] *= mask[:, :]
         grid_azimuth[:, :] = grid_azimuth[:, :] * mask[:, :]
         sss[:, :] = sss[:, :] * mask[:, :]
         sst[:, :] = sst[:, :] * mask[:, :]

@@ -1,8 +1,5 @@
 /*!
- * @file Slice.hpp
- *
- * @date 4 Nov 2023
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #ifndef SLICE_HPP

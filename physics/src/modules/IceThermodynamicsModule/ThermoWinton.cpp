@@ -1,11 +1,7 @@
 /*!
- * @file ThermoWinton.cpp
- *
- * @date 20 Nov 2024
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
-#include "include/Slice.hpp"
 #include "include/ThermoWinton.hpp"
 #include "include/IceMinima.hpp"
 
@@ -29,6 +25,8 @@ const std::string ThermoWinton::tBottomName = "tbottom";
 
 ThermoWinton::ThermoWinton()
     : IIceThermodynamics()
+    , tInternal(ModelArray::AdvectionType)
+    , tBottom(ModelArray::AdvectionType)
     , snowMelt(ModelArray::Type::H)
     , topMelt(ModelArray::Type::H)
     , botMelt(ModelArray::Type::H)
@@ -65,13 +63,12 @@ ConfigMap ThermoWinton::getConfiguration() const
 
 ModelState ThermoWinton::getStateDiagnostic() const
 {
-    ModelState state =  { {
-            { "snow_melt", snowMelt },
-            { "top_melt", topMelt },
-            { "bottom_melt", botMelt },
-    },
-            getConfiguration()
-    };
+    ModelState state = { {
+                             { "snow_melt", snowMelt },
+                             { "top_melt", topMelt },
+                             { "bottom_melt", botMelt },
+                         },
+        getConfiguration() };
 
     state.merge(getStatePrognostic());
     return state.merge(IIceThermodynamics::getStateDiagnostic());
@@ -79,11 +76,11 @@ ModelState ThermoWinton::getStateDiagnostic() const
 
 ModelState ThermoWinton::getStatePrognostic() const
 {
-    ModelState state = {
-        {
-            { tInteriorName, tInternal },
-            { tBottomName, tBottom },
-        }, getConfiguration() };
+    ModelState state = { {
+                             { tInteriorName, tInternal },
+                             { tBottomName, tBottom },
+                         },
+        getConfiguration() };
 
     return state.merge(IIceThermodynamics::getStatePrognostic());
 }
@@ -112,68 +109,45 @@ void ThermoWinton::setData(const ModelState::DataMap& state)
     botMelt.resize();
     snowToIce.resize();
 
-    // Handle the various possibility for how the ice temperature is supplied
-    bool setSurface = true; // Currently set in IIceThermodynamics::setData
-    bool setInterior = false;
-    bool setBottom = false;
-
-    if (state.count(tBottomName) > 0) {
-        tBottom = state.at(tBottomName);
-        setBottom = true;
-    }
-
-    if (state.count(tInteriorName) > 0) {
+    /* If the internal temperature is not in the restart file, then we simply set it to the freezing
+     * point of seawater. It's a safe approximation, and it seems the user doesn't really care! */
+    try {
         tInternal = state.at(tInteriorName);
-        setInterior = true;
+    } catch (const std::out_of_range& e) {
+        Logged::info("No " + tInteriorName
+            + " field in restart file. Setting it to the melting point of ice.\n");
+        tInternal = seaIceTf;
     }
 
-    if (state.count(ticeName) > 0) {
-        const ModelArray& ticeIn = state.at(ticeName);
-        if (!setSurface) {
-            const ArraySlicer::Slice surfSlice {{{ }, { }, {0}}};
-            tsurf = ticeIn[surfSlice];
-            setSurface = true;
-        }
-        if (!setInterior) {
-            // A Slice such that k=0 if nz=1 and k=1 if nz=3
-            const ArraySlicer::Slice interiorSlice {{{ }, { }, {ticeIn.dimensions()[2]/2}}};
-            tInternal = ticeIn[interiorSlice];
-            setInterior = true;
-        }
-        if (!setBottom) {
-            const ArraySlicer::Slice bottomSlice {{{ }, { }, {-1}}};
-            tBottom = ticeIn[bottomSlice];
-            setBottom = true;
-        }
-    }
-    /*
-     * Final fallback. If tinterior and tbottom and not available, and the temperatures are not
-     * provided by tice, then copy the tsurf temperature to the other two temperature fields.
-     */
-    if (!setInterior) {
-        tInternal = tsurf;
-        std::cerr << tInteriorName << " not available, copying from " << tsurfName << std::endl;
-    }
-    if (!setInterior) {
-        tBottom = tsurf;
-        std::cerr << tBottomName << " not available, copying from " << tsurfName << std::endl;
+    try {
+        tBottom = state.at(tBottomName);
+    } catch (const std::out_of_range& e) {
+        Logged::info("No " + tBottomName
+            + " field in restart file. Setting it to the melting point of ice.\n");
+        tBottom = seaIceTf;
     }
 }
 
 void ThermoWinton::update(const TimestepTime& tst)
 {
-    overElements(std::bind(&ThermoWinton::calculateElement, this, std::placeholders::_1,
-                     std::placeholders::_2),
-        tst);
+    // Advect ice temperatures
+    IIceThermodynamics::update(tst);
+    FieldAdvection::advectField(tInternal, tst, IIceThermodynamics::minT, seaIceTf);
+    FieldAdvection::advectField(tBottom, tst, IIceThermodynamics::minT, seaIceTf);
+    // Perform the rest of the thermodynamics using the advected temperatures
+    overElements(
+        [this](const size_t i, const TimestepTime& tsTime) { calculateElement(i, tsTime); }, tst);
 }
 
 void ThermoWinton::calculateElement(size_t i, const TimestepTime& tst)
 {
 
     // Don't do anything if there is no ice
-    if (cice[i] <= 0 || hice[i] <= 0) {
+    if (cice[i] <= IceMinima::c() || hice[i] <= IceMinima::h()) {
 
         snowToIce[i] = 0;
+
+        qio[i] += Water::Lf * (hice[i] * Ice::rho + hsnow[i] * Ice::rhoSnow) / tst.step;
 
         deltaHi[i] = 0;
         hice[i] = 0;
@@ -342,7 +316,7 @@ void ThermoWinton::calculateElement(size_t i, const TimestepTime& tst)
     // Remove very small ice thickness
     if (hi < IceMinima::h()) {
         // (30) - with multiplication of rhoi and rhos and division with dt
-        qio[i] -= (-bulkLHFusionSnow * hs + (e1 + e2) * hi / 2) / dt;
+        qio[i] += (-bulkLHFusionSnow * hs + (e1 + e2) * hi / 2) / dt;
 
         if (deltaHi[i] < 0) {
             topMelt[i] *= oldHi[i] / deltaHi[i];

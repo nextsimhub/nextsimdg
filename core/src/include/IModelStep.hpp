@@ -1,8 +1,5 @@
 /*!
- * @file IModelStep.hpp
- *
- * @date Jan 18, 2022
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #ifndef IMODELSTEP_HPP

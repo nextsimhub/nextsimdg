@@ -1,8 +1,5 @@
 /*!
- * @file ConfigOutput_test.cpp
- *
- * @date 16 May 2025
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #ifdef USE_MPI
@@ -75,7 +72,8 @@ std::vector<std::string> writeTestFiles(const bool snapshots, const std::string&
     config << "[ConfigOutput]" << std::endl;
     config << "period = P0-0T03:00:00" << std::endl; // Output every three hours
     config << "start = 2020-01-11T00:00:00Z" << std::endl; // start after 10 days
-    config << "field_names = " << hiceName << "," << ciceName << "," << tsurfName << "," << "top_melt" << std::endl;
+    config << "field_names = " << hiceName << "," << ciceName << "," << tsurfName << ","
+           << "top_melt" << std::endl;
     config << "filename = " << pfx << "%m%d.nc" << std::endl;
     config << "file_period = 86400" << std::endl; // Files every day
     if (snapshots)
@@ -142,7 +140,6 @@ std::vector<std::string> writeTestFiles(const bool snapshots, const std::string&
             hsnow(i, j) = 0.2 + 0.01 * (j * nx + (i + startX));
             tsurf(i, j) = 0.4 + 0.01 * (j * nx + (i + startX));
             topMelt(i, j) = 0.6 + 0.01 * (j * nx + (i + startX));
-
         }
     }
     std::vector<std::string> diagFiles;
@@ -161,7 +158,7 @@ std::vector<std::string> writeTestFiles(const bool snapshots, const std::string&
             hice += hourIncr;
             cice += hourIncr;
             hsnow += hourIncr;
-            ModelState state = { { { "top_melt", topMelt } }, { } };
+            ModelState state = { { { "top_melt", topMelt } }, {} };
 
             ido.outputState(state, meta, timeStep);
             meta.incrementTime(timeStep);

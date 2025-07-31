@@ -1,8 +1,5 @@
 /*!
- * @file SimpleOutput.cpp
- *
- * @date 05 May 2025
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #include "include/SimpleOutput.hpp"

@@ -1,9 +1,6 @@
 /*!
- * @file ModelComponent.hpp
- *
- * @date 11 Feb 2025
- * @author Tim Spain <timothy.spain@nersc.no>
- * @author Einar Ólason <einar.olason@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
+ * @author  Einar Ólason <einar.olason@nersc.no>
  */
 
 #ifndef MODELCOMPONENT_HPP
@@ -33,7 +30,6 @@ namespace Protected {
     inline constexpr TextTag H_ICE = "H_ICE_cell"; // Ice thickness, cell average, m
     inline constexpr TextTag C_ICE = "C_ICE0"; // Ice concentration
     inline constexpr TextTag H_SNOW = "H_SNOW_cell"; // Snow depth, cell average, m
-    inline constexpr TextTag T_ICE = "T_ICE0"; // Ice temperature, ˚C
     inline constexpr TextTag T_SURF = "T_SURF0"; // Ice surface temperature, ˚C
     inline constexpr TextTag DAMAGE = "DAMAGE0"; // Ice damage 0–1
     // External data fields
@@ -52,8 +48,6 @@ namespace Protected {
     inline constexpr TextTag EXT_SST
         = "EXT_SST"; // sea surface temperature from coupling or forcing, ˚C
     inline constexpr TextTag SSH = "SSH"; // sea surface height, m
-    inline constexpr TextTag EVAP_MINUS_PRECIP
-        = "E-P"; // E-P atmospheric freshwater flux, kg s⁻¹ m⁻²
     // Derived fields, calculated once per timestep
     inline constexpr TextTag ML_BULK_CP = "CPML"; // Mixed layer bulk heat capacity J K⁻¹ m⁻²
     inline constexpr TextTag TF = "TF"; // Ocean freezing temperature, ˚C
@@ -75,15 +69,20 @@ namespace Protected {
         = "SLAB_QDW"; // Slab ocean temperature nudging heat flux, W m⁻²
     inline constexpr TextTag SLAB_FDW
         = "SLAB_FDW"; // Slab ocean salinity nudging water flux, kg s⁻¹ m⁻²
+    inline constexpr TextTag SHEAR = "SHEAR"; // Instantaneous share rate, s⁻¹
+    inline constexpr TextTag DIV = "DIV"; // Instantaneous divergence , s⁻¹
+    inline constexpr TextTag SIGMAI = "SIGMAI"; // First invariant of the stress tensor Pa
+    inline constexpr TextTag SIGMAII = "SIGMAII"; // First invariant of the stress tensor Pa
 }
 
 namespace Shared {
     // Values of the prognostic fields updated during the timestep
     inline constexpr TextTag H_ICE = "H_ICE"; // Updated ice thickness, ice average, m
     inline constexpr TextTag C_ICE = "C_ICE"; // Updated ice concentration
-    inline constexpr TextTag H_ICE_DG = "H_ICE_DG"; // Temporary DG hice tag
-    inline constexpr TextTag C_ICE_DG = "C_ICE_DG"; // Temporary DG cice tag
+    inline constexpr TextTag H_ICE_DG = "H_ICE_DG"; // Ice thickness, all components, cell avg, m
+    inline constexpr TextTag C_ICE_DG = "C_ICE_DG"; // Ice concentration, all components
     inline constexpr TextTag H_SNOW = "H_SNOW"; // Updated snow depth, ice average, m
+    inline constexpr TextTag H_SNOW_DG = "H_SNOW_DG"; // Snow thickness, all components, cell avg, m
     inline constexpr TextTag T_ICE = "T_ICE"; // Updated ice temperatures, ˚C
     inline constexpr TextTag T_SURF = "T_SURF"; // Updated ice surface temperature, ˚C
     inline constexpr TextTag DAMAGE = "DAMAGE"; // Updated damage 0–1
@@ -98,6 +97,8 @@ namespace Shared {
     inline constexpr TextTag Q_SW_OW = "Q_SW_OW"; // Shortwave flux in open water W m⁻²
     inline constexpr TextTag Q_SW_BASE = "Q_SW_BASE"; // Shortwave flux at the base of the ice W m⁻²
     // Mass fluxes
+    inline constexpr TextTag EVAP = "EVAP"; // evaporation mass flux kg s⁻¹ m⁻²
+    inline constexpr TextTag RAIN = "RAIN"; // liquid mass flux kg s⁻¹ m⁻²
     inline constexpr TextTag HSNOW_MELT = "HSNOW_MELT"; // Thickness of snow that melted, m
     // Momentum fluxes
     inline constexpr TextTag OW_STRESS_X = "OW_STRESS_X"; // x(east)-ward open ocean stress, Pa

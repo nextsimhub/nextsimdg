@@ -1,8 +1,6 @@
 /*!
- * @file FiniteElementFluxes.hpp
  *
- * @date 25 Feb 2025
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #ifndef FINITEELEMENTFLUXES_HPP
@@ -22,7 +20,6 @@ class FiniteElementFluxes : public IFluxCalculation, public Configured<FiniteEle
 public:
     FiniteElementFluxes()
         : iIceAlbedoImpl(nullptr)
-        , evap(ModelArray::Type::H)
         , Q_lh_ow(ModelArray::Type::H)
         , Q_sh_ow(ModelArray::Type::H)
         , Q_lw_ow(ModelArray::Type::H)
@@ -86,7 +83,6 @@ public:
 
 private:
     // Owned diagnostic fields
-    HField evap; // Open water evaporative mass flux [kg  m⁻²]
     HField Q_lh_ow; // Open water latent heat flux [W m⁻²]
     HField Q_sh_ow; // Open water sensible heat flux [W m⁻²]
     HField Q_lw_ow; // Open water net longwave radiative flux [W m⁻²]

@@ -1,9 +1,6 @@
 /*!
- * @file ParaGridIO_Xios.cpp
- *
- * @date 12 May 2025
- * @author Tim Spain <timothy.spain@nersc.no>
- * @author Joe Wallwork <jw2423@cam.ac.uk>
+ * @author  Tim Spain <timothy.spain@nersc.no>
+ * @author  Joe Wallwork <jw2423@cam.ac.uk>
  */
 
 #include "include/ParaGridIO.hpp"
@@ -76,12 +73,12 @@ ParaGridIO::ParaGridIO(ParametricGrid& grid)
 bool ParaGridIO::doOnce()
 {
     Xios& xiosHandler = Xios::getInstance();
-    // NOTE: getInstance will automatically create XIOS input and output files if the
-    // XiosInput.filename and XiosOutput.filename parameters are set in the config.
-
-    // TODO: Setup XIOS in this method.
-    // * We can read the field names from the XiosConfig, too.
-    // * We can determine the read access for the fields from the XiosConfig, too.
+    // NOTE: getInstance will call the constructor for the Xios handler class the first time it is
+    // called. This will automatically:
+    // * Create XIOS input and output files if the XiosInput.filename and XiosOutput.filename
+    //   entries are set in the config.
+    // * Create all fields found in the config based off the field names found in the
+    //   XiosInput.field_names and XiosOutput.field_names entries in the config.
 
     // TODO: Register XIOS finalization and drop the following in that case.
     // Register the finalization function here
@@ -272,80 +269,17 @@ ModelState ParaGridIO::readForcingTimeStatic(
 void ParaGridIO::dumpModelState(
     const ModelState& state, const ModelMetadata& metadata, const std::string& filePath)
 {
-    // TODO: XIOS implementation
+    Xios& xiosHandler = Xios::getInstance();
 
-#ifdef USE_MPI
-    netCDF::NcFilePar ncFile(filePath, netCDF::NcFile::replace, metadata.mpiComm);
-#else
-    netCDF::NcFile ncFile(filePath, netCDF::NcFile::replace);
-#endif
-
-    CommonRestartMetadata::writeStructureType(ncFile, metadata);
-    netCDF::NcGroup metaGroup = ncFile.addGroup(IStructure::metadataNodeName());
-    netCDF::NcGroup dataGroup = ncFile.addGroup(IStructure::dataNodeName());
-    CommonRestartMetadata::writeRestartMetadata(metaGroup, metadata);
-
-    // Dump the dimensions and number of components
-    std::map<ModelArray::Dimension, netCDF::NcDim> ncFromMAMap;
-    for (auto entry : ModelArray::definedDimensions) {
-        ModelArray::Dimension dim = entry.first;
-        size_t dimSz = (dimCompMap.count(dim)) ? ModelArray::nComponents(dimCompMap.at(dim))
-                                               : dimSz = entry.second.globalLength;
-        ncFromMAMap[dim] = dataGroup.addDim(entry.second.name, dimSz);
-        // TODO Do I need to add data, even if it is just integers 0...n-1?
-    }
-
-    // Also create the sets of dimensions to be connected to the data fields
-    std::map<ModelArray::Type, std::vector<netCDF::NcDim>> dimMap;
-    for (auto entry : ModelArray::typeDimensions) {
-        ModelArray::Type type = entry.first;
-        std::vector<netCDF::NcDim> ncDims;
-        for (auto iter = entry.second.rbegin(); iter != entry.second.rend(); ++iter) {
-            ModelArray::Dimension& maDim = *iter;
-            ncDims.push_back(ncFromMAMap.at(maDim));
-        }
-        dimMap[type] = ncDims;
-    }
-
-    // Everything that has components needs that dimension, too. This always varies fastest, and so
-    // is last in the vector of dimensions.
-    for (auto entry : dimCompMap) {
-        dimMap.at(entry.second).push_back(ncFromMAMap.at(entry.first));
-    }
-
-    std::set<std::string> restartFields = { hiceName, ciceName, hsnowName, ticeName, sstName,
-        sssName, maskName, coordsName, xName, yName, longitudeName, latitudeName, gridAzimuthName,
-        uName, vName, damageName }; // TODO and others
-    // If the above fields are found in the supplied ModelState, output them
+    // Assume that all fields in the supplied ModelState are necessary, and so write them to file.
     for (auto entry : state.data) {
-        if (restartFields.count(entry.first)) {
-            // Get the type, then relevant vector of NetCDF dimensions
-            ModelArray::Type type = entry.second.getType();
-            std::vector<size_t> start;
-            std::vector<size_t> count;
-            if (ModelArray::hasDoF(type)) {
-                auto ncomps = entry.second.nComponents();
-                start.push_back(0);
-                count.push_back(ncomps);
-            }
-            for (ModelArray::Dimension dt : entry.second.typeDimensions.at(type)) {
-                auto dim = entry.second.definedDimensions.at(dt);
-                start.push_back(dim.start);
-                count.push_back(dim.localLength);
-            }
-            // dims are looped in [dg], x, y, [z] order so start and count
-            // order must be reveresed to match order netcdf expects
-            std::reverse(start.begin(), start.end());
-            std::reverse(count.begin(), count.end());
-
-            std::vector<netCDF::NcDim>& ncDims = dimMap.at(type);
-            netCDF::NcVar var(dataGroup.addVar(entry.first, netCDF::ncDouble, ncDims));
-            var.putAtt(mdiName, netCDF::ncDouble, MissingData::value());
-            var.putVar(start, count, entry.second.getData());
-        }
+        const std::string fieldId = entry.first;
+        if (xiosHandler.getFieldReadAccess(fieldId)) {
+            throw std::runtime_error("ParaGridIO::dumpModelState: field " + fieldId
+                + " is not configured for writing, but is being written to file.");
+        };
+        xiosHandler.write(fieldId, entry.second);
     }
-
-    ncFile.close();
 }
 
 void ParaGridIO::writeDiagnosticTime(

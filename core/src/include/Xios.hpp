@@ -1,9 +1,7 @@
 /*!
- * @file    Xios.hpp
  * @author  Tom Meltzer <tdm39@cam.ac.uk>
  * @author  Joe Wallwork <jw2423@cam.ac.uk>
  * @author  Adeleke Bankole <ab3191@cam.ac.uk>
- * @date    12 May 2025
  * @brief   XIOS interface header
  * @details
  *
@@ -27,6 +25,10 @@
 #include <mpi.h>
 
 namespace Nextsim {
+
+// Forward declarations to avoid circular dependencies
+class ModelMetadata;
+class ParaGridIO;
 
 void enableXios();
 
@@ -92,42 +94,18 @@ public:
     std::vector<double> getAxisValues(const std::string axisId);
 
     /* Domain */
-    void createDomain(const std::string domainId);
-    void setDomainType(const std::string domainId, const std::string domainType);
-    void setDomainGlobalXSize(const std::string domainId, const size_t size);
-    void setDomainGlobalYSize(const std::string domainId, const size_t size);
-    void setDomainLocalXSize(const std::string domainId, const size_t size);
-    void setDomainLocalYSize(const std::string domainId, const size_t size);
-    void setDomainLocalXStart(const std::string domainId, const size_t start);
-    void setDomainLocalYStart(const std::string domainId, const size_t start);
-    void setDomainLocalXValues(const std::string domainId, std::vector<double> values);
-    void setDomainLocalYValues(const std::string domainId, std::vector<double> values);
-    std::string getDomainType(const std::string domainId);
-    size_t getDomainGlobalXSize(const std::string domainId);
-    size_t getDomainGlobalYSize(const std::string domainId);
-    size_t getDomainLocalXSize(const std::string domainId);
-    size_t getDomainLocalYSize(const std::string domainId);
-    size_t getDomainLocalXStart(const std::string domainId);
-    size_t getDomainLocalYStart(const std::string domainId);
-    std::vector<double> getDomainLocalXValues(const std::string domainId);
-    std::vector<double> getDomainLocalYValues(const std::string domainId);
+    void affixModelMetadata(ModelMetadata& metadata);
 
     /* Grid */
     void createGrid(const std::string gridId);
-    void setGridName(const std::string gridId, const std::string name);
-    std::string getGridName(const std::string gridId);
-    void gridAddAxis(std::string axisId, const std::string domainId);
-    void gridAddDomain(const std::string gridId, const std::string domainId);
-    std::vector<std::string> gridGetAxisIds(const std::string gridId);
-    std::vector<std::string> gridGetDomainIds(const std::string gridId);
+    void gridAddAxis(std::string axisId, const std::string gridId);
+    std::vector<std::string> getGridAxisIds(const std::string gridId);
 
     /* Field */
     void createField(const std::string fieldId);
-    void setFieldName(const std::string fieldId, const std::string name);
     void setFieldOperation(const std::string fieldId, const std::string operation);
     void setFieldGridRef(const std::string fieldId, const std::string gridRef);
     void setFieldFreqOffset(const std::string fieldId, const Duration freqOffset);
-    std::string getFieldName(const std::string fieldId);
     std::string getFieldOperation(const std::string fieldId);
     std::string getFieldGridRef(const std::string fieldId);
     bool getFieldReadAccess(const std::string fieldId);
@@ -139,7 +117,6 @@ public:
     void setFileOutputFreq(const std::string fileId, const Duration outputFreq);
     void setFileSplitFreq(const std::string fileId, const Duration splitFreq);
     void setFileParAccess(const std::string fileId, const std::string parAccess);
-    std::string getFileName(const std::string fileId);
     std::string getFileType(const std::string fileId);
     Duration getFileOutputFreq(const std::string fileId);
     Duration getFileSplitFreq(const std::string fileId);
@@ -149,7 +126,6 @@ public:
     std::vector<std::string> fileGetFieldIds(const std::string fileId);
 
     /* I/O */
-    void write(const std::string fieldId, ModelArray& modelarray);
     void read(const std::string fieldId, ModelArray& modelarray);
 
     enum {
@@ -197,14 +173,15 @@ private:
     xios::CAxis* getAxis(const std::string axisId);
 
     /* Domain */
+    const std::string domainId = "xy_domain";
     xios::CDomainGroup* getDomainGroup();
-    xios::CDomain* getDomain(const std::string domainId);
+    xios::CDomain* getDomain();
 
     /* Field */
     xios::CFieldGroup* getFieldGroup();
     xios::CField* getField(const std::string fieldId);
     void setFieldReadAccess(const std::string fieldId, const bool readAccess);
-    std::vector<std::string> configGetFieldNames(const bool reading);
+    std::set<std::string> configGetFieldNames(const bool reading);
     bool configCheckField(const std::string fieldId, const bool reading);
 
     /* Grid */
@@ -214,8 +191,13 @@ private:
     /* File */
     xios::CFileGroup* getFileGroup();
     xios::CFile* getFile(const std::string fileId);
-    void setFileName(const std::string fileId, const std::string fileName);
     void setFileMode(const std::string fileId, const std::string mode);
+
+    /* I/O */
+    void write(const std::string fieldId, ModelArray& modelarray);
+
+    /* Declare any classes that need to access private members */
+    friend ParaGridIO;
 };
 
 }

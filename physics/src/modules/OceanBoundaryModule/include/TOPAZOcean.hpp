@@ -1,8 +1,6 @@
 /*!
- * @file TOPAZOcean.hpp
  *
- * @date Nov 25, 2022
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #ifndef TOPAZOCEAN_HPP
@@ -38,6 +36,8 @@ public:
 
     void updateBefore(const TimestepTime&) override;
     void updateAfter(const TimestepTime&) override;
+    ModelState getStatePrognostic() const override;
+    ModelState getStateDiagnostic() const override;
 
     void setFilePath(const std::string& filePathIn);
 

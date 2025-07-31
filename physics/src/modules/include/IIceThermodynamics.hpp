@@ -1,21 +1,19 @@
 /*!
- * @file IIceThermodynamics.hpp
- *
- * @date 24 Sep 2024
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #ifndef IICETHERMODYNAMICS_HPP
 #define IICETHERMODYNAMICS_HPP
 
 #include "include/ConfigurationHelp.hpp"
-#include "include/gridNames.hpp"
+#include "include/FieldAdvection.hpp"
 #include "include/ModelArray.hpp"
 #include "include/ModelArrayRef.hpp"
 #include "include/ModelArraySlice.hpp"
 #include "include/ModelComponent.hpp"
 #include "include/Slice.hpp"
 #include "include/Time.hpp"
+#include "include/gridNames.hpp"
 
 namespace Nextsim {
 //! An interface class to update the ice thermodynamics.
@@ -27,31 +25,35 @@ public:
     void setData(const ModelState::DataMap& ms) override
     {
         tsurf.resize();
-        if (ms.count(tsurfName) > 0) {
-            tsurf = ms.at(tsurfName);
-        } else if (static_cast<ModelArray>(tice0).nDimensions() == 2) {
-            tsurf = tice0;
-        } else {
-            tsurf = static_cast<ModelArray>(tice0)[z0Slice];
-        }
         deltaHi.resize();
         snowToIce.resize();
+
+        /* If the surface temperature is not in the restart file, then we simply set it to the
+         * zero. It's a safe approximation, and it seems the user doesn't
+         * really care! */
+        try {
+            tsurf = ms.at(tsurfName);
+        } catch (const std::out_of_range& e) {
+            Logged::info("No " + tsurfName + " field in restart file. Setting it to 0°C.\n");
+            tsurf = 0.;
+        }
     }
 
-    ModelState getStatePrognostic() const override {
+    ModelState getStatePrognostic() const override
+    {
         return { {
-            { tsurfName, tsurf },
-        }, getConfiguration() };
+                     { tsurfName, tsurf },
+                 },
+            getConfiguration() };
     }
 
     ModelState getStateDiagnostic() const override
     {
         ModelState state = { {
-            { "delta_H_ice", deltaHi },
-            { "snow_to_ice", snowToIce },
-        },
-                getConfiguration()
-        };
+                                 { "delta_H_ice", deltaHi },
+                                 { "snow_to_ice", snowToIce },
+                             },
+            getConfiguration() };
         state.merge(getStatePrognostic());
 
         return state;
@@ -62,13 +64,16 @@ public:
      *
      * @param tStep The object containing the timestep start and duration times.
      */
-    virtual void update(const TimestepTime& tsTime) = 0;
+    virtual void update(const TimestepTime& tsTime)
+    {
+        FieldAdvection::advectField(tsurf, tsTime, minT, 0.);
+    }
 
     inline static std::string getKappaSConfigKey() { return "nextsim_thermo.ks"; }
 
 protected:
     IIceThermodynamics()
-        : tsurf(ModelArray::Type::H)
+        : tsurf(ModelArray::AdvectionType)
         , deltaHi(ModelArray::Type::H)
         , snowToIce(ModelArray::Type::H)
         , hice(getStore())
@@ -80,7 +85,6 @@ protected:
         , dQia_dt(getStore())
         , penSw(getStore())
         , sublim(getStore())
-        , tice0(getStore())
         , tf(getStore())
         , snowfall(getStore())
         , sss(getStore())
@@ -101,17 +105,16 @@ protected:
     ModelArrayRef<Shared::DQIA_DT, RO> dQia_dt; // From FluxCalculation
     ModelArrayRef<Shared::Q_PEN_SW, RO> penSw; // From FluxCalculation
     ModelArrayRef<Shared::SUBLIM, RO> sublim; // From AtmosphereState
-    ModelArrayRef<Protected::T_ICE> tice0; // Timestep initial ice temperature
     ModelArrayRef<Protected::TF> tf; // Sea water freezing temperature
     ModelArrayRef<Protected::SNOW> snowfall; // From ExternalData
     ModelArrayRef<Protected::SSS> sss; // From ExternalData (possibly PrognosticData)
     // Owned, shared arrays
-    HField tsurf;
+    AdvectedField tsurf;
     HField deltaHi;
     // Owned, Module-private arrays
     HField snowToIce;
 
-    const ArraySlicer::Slice z0Slice {{{ }, { }, {0}}};
+    constexpr static double minT = -90.0;
 };
 
 } /* namespace Nextsim */

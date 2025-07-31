@@ -1,7 +1,5 @@
 /*!
- * @file dgInitial.hpp
- * @date July 10 2022
- * @author Thomas Richter <thomas.richter@ovgu.de>
+ * @author  Thomas Richter <thomas.richter@ovgu.de>
  */
 
 #ifndef __DGINITIAL_HPP

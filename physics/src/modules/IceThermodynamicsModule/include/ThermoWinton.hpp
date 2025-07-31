@@ -1,8 +1,6 @@
 /*!
- * @file ThermoWinton.hpp
  *
- * @date 24 Sep 2024
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #ifndef THERMOWINTON_HPP
@@ -37,7 +35,7 @@ public:
     static HelpMap& getHelpRecursive(HelpMap& map, bool getAll);
 
     void setData(const ModelState::DataMap&) override;
-    void update(const TimestepTime& tsTime) override;
+    void update(const TimestepTime& tst) override;
 
     static const std::string tInteriorName;
     static const std::string tBottomName;
@@ -45,8 +43,8 @@ public:
 private:
     void calculateElement(size_t i, const TimestepTime& tst);
 
-    HField tInternal;
-    HField tBottom;
+    AdvectedField tInternal;
+    AdvectedField tBottom;
     HField snowMelt;
     HField topMelt;
     HField botMelt;
