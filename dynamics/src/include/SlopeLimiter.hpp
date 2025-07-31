@@ -117,7 +117,6 @@ public:
                       phi(c, 0) - 0.5 * phi(c, 1) + 0.5 * phi(c, 2),
                       phi(c, 0) + 0.5 * phi(c, 1) + 0.5 * phi(c, 2) };
 
-            //	    phi.row(c) * PSILagrange<DG,2>;
             // value of phi in the midpoint
             const double midvalue = phi(c, 0);
 
@@ -129,9 +128,6 @@ public:
                     al = std::min(al, std::min(1.0, (_max(cgi + cgindices[i]) - midvalue) / dv));
                 }
                 if (dv < -1.e-8) {
-                    // std::cout << std::setprecision(12);
-                    // std::cout << minV(cgi + cgindices[i]) << "\t" << midvalue << "\t"
-                    //           << vertexvalues[i] << std::endl;
                     assert(_min(cgi + cgindices[i]) <= midvalue);
                     al = std::min(al, std::min(1.0, (_min(cgi + cgindices[i]) - midvalue) / dv));
                 }
@@ -169,9 +165,6 @@ public:
                     al = std::min(al, std::min(1.0, (_max(cgi + cgindices[i]) - midvalue) / dv));
                 }
                 if (dv < -1.e-8) {
-                    // std::cout << std::setprecision(12);
-                    // std::cout << minV(cgi + cgindices[i]) << "\t" << midvalue << "\t"
-                    //           << vertexvalues[i] << std::endl;
                     assert(_min(cgi + cgindices[i]) <= midvalue);
                     al = std::min(al, std::min(1.0, (_min(cgi + cgindices[i]) - midvalue) / dv));
                 }
@@ -208,9 +201,6 @@ public:
                     al = std::min(al, std::min(1.0, (_max(cgi + cgindices[i]) - midvalue) / dv));
                 }
                 if (dv < -1.e-8) {
-                    // std::cout << std::setprecision(12);
-                    // std::cout << minV(cgi + cgindices[i]) << "\t" << midvalue << "\t"
-                    //           << vertexvalues[i] << std::endl;
                     assert(_min(cgi + cgindices[i]) <= midvalue);
                     al = std::min(al, std::min(1.0, (_min(cgi + cgindices[i]) - midvalue) / dv));
                 }
@@ -251,78 +241,6 @@ public:
                 phi(c, d) *= alphaX(c, 0);
         }
     }
-
-    /*
-    // performs the vertex-based limiting
-    void Limit(DGVector<DG>& phi)
-    {
-        if (DG == 1) // no limiting for dG0
-            return;
-
-        DGVector<3> Dphi(mesh);
-
-        if (DG == 6) // first, higher order limiting
-        {
-            // limit X-derivative
-            Dphi.col(0) = phi.col(1);
-            Dphi.col(1) = 2.0 * phi.col(3);
-            Dphi.col(2) = phi.col(5);
-            InitMinMax(Dphi); // get max/min values in vertices
-            ComputeAlphas(alpha, Dphi);
-
-            // limit Y-derivative
-            Dphi.col(0) = phi.col(2);
-            Dphi.col(1) = phi.col(5);
-            Dphi.col(2) = 2.0 * phi.col(4);
-            InitMinMax(Dphi); // get max/min values in vertices
-            ComputeAlphas(alphaX, Dphi);
-
-            // take minimum alpha for derivative
-#pragma omp parallel for
-            for (size_t c = 0; c < mesh.nelements; ++c)
-                alphaX(c) = std::min(alphaX(c), alpha(c));
-
-            // limit 2nd order terms
-#pragma omp parallel for
-            for (int c = 0; c < mesh.nelements; ++c) {
-                assert(alphaX(c, 0) >= 0.0);
-                assert(alphaX(c, 0) <= 1.0);
-                if (alphaX(c, 0) < 1) {
-                    phi(c, 3) *= alphaX(c, 0) * 0;
-                    phi(c, 4) *= alphaX(c, 0) * 0;
-                    phi(c, 5) *= alphaX(c, 0) * 0;
-                }
-            }
-        }
-
-        if (DG == 3) // limit first order limiting
-        {
-            Dphi.col(0) = phi.col(0);
-            Dphi.col(1) = phi.col(1);
-            Dphi.col(2) = phi.col(2);
-            InitMinMax(Dphi); // get max/min values in vertices
-            ComputeAlphas(alpha, Dphi);
-
-//             if (DG == 6) // relax?
-// #pragma omp parallel for
-//                 for (size_t c = 0; c < mesh.nelements; ++c) {
-//                     alpha(c) = std::max(alphaX(c), alpha(c));
-//                 }
-//
-//             for (size_t c= 0; c < mesh.nelements; ++c)
-//                 if (alpha(c) < 0.99)
-//                     std::cout << alpha(c) << std::endl;
-
-            // limit 1st order terms
-#pragma omp parallel for
-            for (int c = 0; c < mesh.nelements; ++c)
-                if (alpha(c, 0) < 1) {
-                    phi(c, 1) *= alpha(c, 0);
-                    phi(c, 2) *= alpha(c, 0);
-                }
-        }
-    }
-    */
 };
 
 }
