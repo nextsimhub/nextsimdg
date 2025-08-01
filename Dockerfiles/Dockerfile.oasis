@@ -1,0 +1,21 @@
+FROM nextsimdg-dev-env:latest
+
+# A temproary Dockerfile with commands that should find their way into Dockerfile.devenv in the end
+
+# Clone the repository
+RUN git clone https://gitlab.com/cerfacs/oasis3-mct.git
+WORKDIR /oasis3-mct/util/make_dir
+
+# Set some ENV's and copy the make file include
+ENV OASIS_COUPLE=/oasis3-mct
+ENV OASIS_ENV=oasis_docker_spack_gcc
+COPY make.oasis_docker make.$OASIS_ENV
+
+# make!
+RUN make -f TopMakefileOasis3 static-libs shared-libs
+
+# make install ... of sorts
+RUN cp -a $OASIS_COUPLE/build.$OASIS_ENV/lib/* /usr/local/lib
+RUN cp -a $OASIS_COUPLE/build.$OASIS_ENV/include/* /usr/local/include
+
+WORKDIR /

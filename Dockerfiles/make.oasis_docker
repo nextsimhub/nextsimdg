@@ -1,0 +1,82 @@
+#
+# Include file for OASIS3 Makefile for a Linux docker image using spack and gcc
+#
+###############################################################################
+#
+# CHAN	: communication technique used in OASIS3 (MPI1/MPI2)
+CHAN            = MPI1
+#
+# Paths for libraries, object files and binaries
+#
+# COUPLE        : path for oasis3-mct main directory
+COUPLE          := $(OASIS_COUPLE)
+#
+# ARCHDIR       : directory created when compiling
+ARCHDIR         := $(COUPLE)/build.$(OASIS_ENV)
+#
+# MPI library
+MPIDIR      = /opt/view/
+MPIBIN      = $(MPIDIR)/bin
+MPI_INCLUDE = $(MPIDIR)/include
+MPILIB      = -L$(MPIDIR)/lib -lmpi
+MPIRUN      = $(MPIBIN)/mpirun
+#
+# NETCDF library of the system
+NETCDF_INCLUDE = /opt/view/include
+NETCDF_LIBRARY = -L/opt/view/lib -Wl,-rpath,/opt/view/lib -lnetcdff -lnetcdf -lm
+#
+# Compiling and other commands
+MAKE        = gmake
+F90         = $(MPIBIN)/mpif90 -I$(MPI_INCLUDE)
+F           = $(F90)
+f90         = $(F90)
+f           = $(F90)
+CC          = $(MPIBIN)/mpicc -I$(MPI_INCLUDE)
+LD          = $(MPIBIN)/mpif90 $(MPILIB)
+DYNOPT      = -fPIC
+LDDYNOPT    = -shared
+AR          = ar
+ARFLAGS     = -ruv
+# Fortran libraries for C linking
+F2C_LIBS    = -lmpi_mpifh -lgfortran -lm
+#
+# CPP keys and compiler options
+#  
+CPPDEF    = -Duse_comm_$(CHAN) -D__VERBOSE -DTREAT_OVERLAY
+#
+FCBASEFLAGS := -fallow-argument-mismatch -ffree-line-length-0 
+ifeq ($(OASIS_DEBUG), )
+	ifeq ($(OASIS_OPENMP), )
+		FCBASEFLAGS += -O2
+	else
+		FCBASEFLAGS += -O2 -fopenmp
+	endif
+else
+	ifeq ($(OASIS_OPENMP), )
+                FCBASEFLAGS += -g -fbounds-check
+        else
+                FCBASEFLAGS += -g -fbounds-check -fopenmp
+        endif
+endif
+CCBASEFLAGS  := 
+ifeq ($(OASIS_OPENMP), )
+	CCBASEFLAGS  +=
+else
+	CCBASEFLAGS  += -fopenmp
+endif
+#
+# INC_DIR : includes all *mod for each library
+ INC_DIR = -I$(ARCHDIR)/include
+# FLIBS : for toys when linking in local Makefile
+ FLIBS=${NETCDF_LIBRARY}
+###################
+#
+F90FLAGS    = $(FCBASEFLAGS) $(INC_DIR) $(CPPDEF) -I$(NETCDF_INCLUDE)
+f90FLAGS    = $(FCBASEFLAGS) $(INC_DIR) $(CPPDEF) -I$(NETCDF_INCLUDE)
+FFLAGS      = $(FCBASEFLAGS) $(INC_DIR) $(CPPDEF) -I$(NETCDF_INCLUDE)
+fFLAGS      = $(FCBASEFLAGS) $(INC_DIR) $(CPPDEF) -I$(NETCDF_INCLUDE)
+CCFLAGS     = $(CCBASEFLAGS) $(INC_DIR) $(CPPDEF) -I$(NETCDF_INCLUDE)
+LDFLAGS     = $(FCBASEFLAGS)
+F2C_LDFLAGS = $(F2C_LIBS)
+#
+#############################################################################
