@@ -173,15 +173,7 @@ if __name__ == "__main__":
     print(f"Writing ERA5 data to {era5_out_file}")
     era5_ncFile = netCDF4.Dataset(era5_out_file, "w", format="NETCDF4")
     era5_ncFile.structure_name = target_structure
-    
-    # Use the start time as the timestamp for the file
-    formatted = era5_ncFile.createVariable("formatted", str)
-    formatted.format = "%Y-%m-%dT%H:%M:%SZ"
-    formatted[0] = args.start + "T00:00:00Z"
-    time_attr = era5_ncFile.createVariable("time", "i8")
-    time_attr[:] = calendar.timegm(start_time)
-    time_attr.units = "seconds since 1970-01-01T00:00:00Z"
-    
+
     xDim = era5_ncFile.createDimension("xdim", nx)
     yDim = era5_ncFile.createDimension("ydim", ny)
     tDim = era5_ncFile.createDimension("time", None)
@@ -198,7 +190,8 @@ if __name__ == "__main__":
     greenland_headings = heading_to_greenland(element_lat, element_lon)
     
     nc_times = era5_ncFile.createVariable("time", "f8", ("time"))
-    
+    nc_times.units = "seconds since 1970-01-01T00:00:00Z"
+
     (unix_times_e, era5_times) = create_era5_times(start_time, stop_time)
     # For each field and time, get the corresponding file name for each dataset
     for field_name in atmos_fields:
@@ -274,14 +267,6 @@ if __name__ == "__main__":
     print(f"Writing TOPAZ4 data to {topaz_out_file}")
     topaz_ncFile.structure_name = target_structure
     
-    # Use the start time as the timestamp for the file
-    formatted = topaz_ncFile.createVariable("formatted", str)
-    formatted.format = "%Y-%m-%dT%H:%M:%SZ"
-    formatted[0] = args.start + "T00:00:00Z"
-    time_meta = topaz_ncFile.createVariable("time_meta", "i8")
-    time_meta[:] = calendar.timegm(start_time)
-    time_attr.units = "seconds since 1970-01-01T00:00:00Z"
-    
     xDim = topaz_ncFile.createDimension("xdim", nx)
     yDim = topaz_ncFile.createDimension("ydim", ny)
     tDim = topaz_ncFile.createDimension("time", None)
@@ -300,6 +285,7 @@ if __name__ == "__main__":
     nc_lats[:, :] = element_lat
     
     nc_times = topaz_ncFile.createVariable("time", "f8", ("time"))
+    nc_times.units = "seconds since 1970-01-01T00:00:00Z"
 
     # TOPAZ data is daily, not hourly
     topaz_time_ratio = hr_per_day
