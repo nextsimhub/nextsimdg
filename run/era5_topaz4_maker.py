@@ -171,7 +171,7 @@ if __name__ == "__main__":
     
     era5_out_file = f"{filepfx}ERA5_{args.start}_{args.stop}.nc"
     print(f"Writing ERA5 data to {era5_out_file}")
-    era_ncFile = netCDF4.Dataset(era5_out_file, "w", format="NETCDF4")
+    era5_ncFile = netCDF4.Dataset(era5_out_file, "w", format="NETCDF4")
     era5_ncFile.structure_name = target_structure
     
     # Use the start time as the timestamp for the file
@@ -258,7 +258,7 @@ if __name__ == "__main__":
                 v_var[target_t_index, :, :] = -v_data
                 # Also use the windspeed loop to fill the time axis
                 nc_times[time_index] = unix_times_e[target_t_index]
-    era_ncFile.close()
+    era5_ncFile.close()
 
     ocean_fields = ("mld", "sss", "sst", "ssh")
     skip_ocean_fields = ()
