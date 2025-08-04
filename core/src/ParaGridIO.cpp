@@ -1,7 +1,7 @@
 /*!
  * @file ParaGridIO.cpp
  *
- * @date 16 Jun 2025
+ * @date 04 Aug 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -182,9 +182,10 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
                 size_t startIndex = dim.start;
                 size_t localLength = dim.localLength;
 #ifdef USE_MPI
-                if (dt == Dim::X or dt == Dim::XVERTEX) {
+                if (dt == Dim::X or dt == Dim::Y) {
                     localLength = localLength - 2 * Halo::haloWidth;
-                } else if (dt == Dim::Y or dt == Dim::YVERTEX) {
+                }
+                if (dt == Dim::XVERTEX or dt == Dim::YVERTEX) {
                     localLength = localLength - 2 * Halo::haloWidth;
                 }
 #endif
@@ -264,6 +265,9 @@ ModelState ParaGridIO::readForcingTimeStatic(
             auto localLength = dim.localLength;
 #ifdef USE_MPI
             if (dt == Dim::X or dt == Dim::Y) {
+                localLength = localLength - 2 * Halo::haloWidth;
+            }
+            if (dt == Dim::XVERTEX or dt == Dim::YVERTEX) {
                 localLength = localLength - 2 * Halo::haloWidth;
             }
 #endif
@@ -370,9 +374,10 @@ void ParaGridIO::dumpModelState(const ModelState& state, const std::string& file
             auto dim = entry.second.definedDimensions.at(dt);
             size_t localLength = dim.localLength;
 #ifdef USE_MPI
-            if (dt == Dim::X or dt == Dim::XVERTEX) {
+            if (dt == Dim::X or dt == Dim::Y) {
                 localLength = localLength - 2 * Halo::haloWidth;
-            } else if (dt == Dim::Y or dt == Dim::YVERTEX) {
+            }
+            if (dt == Dim::XVERTEX or dt == Dim::YVERTEX) {
                 localLength = localLength - 2 * Halo::haloWidth;
             }
 #endif
@@ -477,6 +482,9 @@ void ParaGridIO::writeDiagnosticTime(const ModelState& state, const std::string&
             auto localLength = dim.localLength;
 #ifdef USE_MPI
             if (dt == Dim::X or dt == Dim::Y) {
+                localLength = localLength - 2 * Halo::haloWidth;
+            }
+            if (dt == Dim::XVERTEX or dt == Dim::YVERTEX) {
                 localLength = localLength - 2 * Halo::haloWidth;
             }
 #endif
