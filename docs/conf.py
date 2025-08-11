@@ -7,12 +7,12 @@ Configuration file for the Sphinx documentation builder.
 import os
 import subprocess
 
+import sphinx_rtd_theme
+
 on_rtd = os.environ.get("READTHEDOCS", None) == "True"
 
 if on_rtd:
     subprocess.call("doxygen", shell=True)
-
-import sphinx_rtd_theme
 
 html_theme = "sphinx_rtd_theme"
 
