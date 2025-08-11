@@ -11,6 +11,8 @@ The mesh is slightly distorted
 @author  Thomas Richter <thomas.richter@ovgu.de>
 """
 
+import numpy as np
+
 # Size of the domain
 Lx =  512000
 Ly =  512000
@@ -18,8 +20,6 @@ Ly =  512000
 # Number of elements
 
 nx = ny = 256
-
-import numpy as np
 
 
 def distx(x,y):
