@@ -28,8 +28,7 @@ if __name__ == "__main__":
             title = title[0].upper() + title[1:]
             tags_title_annotation[matched]["title"] = title
         elif matched is not None:
-            line = line.strip()
-            annotation = line.replace(matched, "")
+            annotation = line.strip().replace(matched, "")
             tags_title_annotation[matched]["annotation"].append(annotation)
 
     with open("CHANGELOG.md", "r") as fil:
