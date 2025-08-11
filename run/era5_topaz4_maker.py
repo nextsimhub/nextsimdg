@@ -17,7 +17,7 @@ zero_C_in_kelvin = 273.15
 
 def create_era5_times(start_tm, stop_tm):
     """
-    Calculate times for the ERA5 file
+    Calculate times for the ERA5 file.
 
     :param start_tm: Start time for the time series
     :param stop_tm: End time for the time series
@@ -43,7 +43,7 @@ def create_era5_times(start_tm, stop_tm):
 
 def create_topaz_times(start_tm, stop_tm):
     """
-    Calculate times for the TOPAZ file
+    Calculate times for the TOPAZ file.
 
     :param start_tm: Start time for the time series
     :param stop_tm: End time for the time series
@@ -70,7 +70,7 @@ def create_topaz_times(start_tm, stop_tm):
 
 def era5_source_file_name(field, unix_time, path):
     """
-    Construct the file name that holds the ERA5 data for a given field at a given time
+    Construct the file name that holds the ERA5 data for a given field at a given time.
 
     :param field: Name of the variable to be read in from the ERA5 file
     :param unix_time: Time in Unix format
@@ -83,7 +83,7 @@ def era5_source_file_name(field, unix_time, path):
 # Returns the file name that holds the TOPAZ data for a given field at a given time
 def topaz4_source_file_name(unix_time, path):
     """
-    Construct the file name that holds the TOPAZ4 data for a given field at a given time
+    Construct the file name that holds the TOPAZ4 data for a given field at a given time.
 
     :param field: Name of the variable to be read in from the TOPAZ4 file
     :param unix_time: Time in Unix format
