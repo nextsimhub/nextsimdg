@@ -44,10 +44,7 @@ If your package manager is `Homebrew`_ :
         brew install eigen
 
 
-**Installing dependencies on Ubuntu**
-
-Compilation on a Debian-based Linux distribution (Debian, Ubuntu, etc)
-----------------------------------------------------------------------
+**Installing dependencies on a Debian-based Linux distribution (Debian, Ubuntu, etc)**
 
 You must have root privilege :
 
