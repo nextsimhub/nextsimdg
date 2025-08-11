@@ -659,7 +659,6 @@ void Xios::affixModelMetadata(ModelMetadata& metadata)
                         std::string(
                             "No netCDF dimension found corresponding to the dimension named ")
                         + dimensionSpec.name + std::string(" or ") + dimensionSpec.altName);
-                    continue;
                 }
                 auto dimName = dim.getName();
                 size_t localLength = 0;
