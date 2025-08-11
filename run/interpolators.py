@@ -7,7 +7,7 @@ from scipy import interpolate
 
 def topaz4_interpolate(target_lon, target_lat, data, data_x, data_y, proj_string):
     """
-    Returns TOPAZ data interpolated from the data grid and coordinates to the target grid and coordinates.
+    Interpolate TOPAZ data onto the target grid and coordinates.
 
     :param target_lon: Longitudes of the target grid
     :param target_lat: Latitudes of the target grid
@@ -40,7 +40,9 @@ def topaz4_interpolate(target_lon, target_lat, data, data_x, data_y, proj_string
 
 def bilinear(eyes, jays, data):
     """"
-    Returns bilinearly interpolated data given an array of fractional indices. Supports periodic boundary conditions.
+    Bilinearly interpolate data given an array of fractional indices.
+
+    Supports periodic boundary conditions.
 
     :param eyes: Fractional indices along the x-axis
     :param jays: Fractional indices along the y-axis
@@ -61,7 +63,7 @@ def bilinear(eyes, jays, data):
 
 def era5_interpolate(target_lons, target_lats, data, data_lons, data_lats):
     """
-    Returns ERA5 data interpolated from the data grid and coordinates to the target grid and coordinates.
+    Interpolate ERA5 data onto the target grid and coordinates.
 
     :param target_lons: Longitudes of the target grid
     :param target_lats:  Latitudes of the target grid
@@ -81,7 +83,10 @@ def era5_interpolate(target_lons, target_lats, data, data_lons, data_lats):
 
 def heading_to_greenland(lat, lon):
     """
-    Returns the rotation angle at a given position to transform vectors from geographic pole coordinates to the Greenland displaced pole coordinate system.
+    Calculate the heading to Greenland from a given point.
+
+    That is, the rotation angle at a given position to transform vectors from geographic
+    pole coordinates to the Greenland displaced pole coordinate system.
 
     :param lat: Latitude of the location
     :param lon: Longitude of the location
@@ -101,7 +106,7 @@ def heading_to_greenland(lat, lon):
 
 def rotate_velocities(u, v, angle):
     """
-    Rotates the u and v velocity components by an angle given in radians.
+    Rotate the u and v velocity components by an angle given in radians.
 
     :param u: U-component of the velocity vector
     :param v: V-component of the velocity vector
@@ -112,8 +117,12 @@ def rotate_velocities(u, v, angle):
 
 def rotate_pole_to_greenland(lat, lon):
     """
-    Rotates the mesh such that the singularities are in Greenland / Antarctica at 75N / 40W and 75S / 140E
-    This is a copy of ParametricMesh::RotatePoleToGreenland in dynamics/src/include/ParametricMesh.hpp. It's here for testing purposes only.
+    Rotate the mesh such that the singularities are in Greenland / Antarctica.
+
+    That is, so that the singularities are at 75N / 40W and 75S / 140E.
+
+    This is a copy of ParametricMesh::RotatePoleToGreenland in
+    dynamics/src/include/ParametricMesh.hpp. It's here for testing purposes only.
 
     :param lat: Latitudes of the mesh
     :param lon: Longitudes of the mesh

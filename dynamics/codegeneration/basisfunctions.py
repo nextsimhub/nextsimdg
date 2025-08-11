@@ -36,7 +36,7 @@ def cgdofs(d):
 
 def dgbasis(j,x,y):
     """
-    Evaluates the dG-basis functions on [0,1]^2 in (x,y)
+    Evaluate the dG-basis functions on [0,1]^2 in (x,y)
     dG 0:  1
     dG 1:  x, y
     dG 2:  x^2, y^2, xy
@@ -105,7 +105,7 @@ def dy_dgbasis(j,x,y):
 
 
 def dgbasis_edge(j,x):
-    """Evaluates 1d dG-basis on the edge [0,1]."""
+    """Evaluate 1d dG-basis on the edge [0,1]."""
     if j==0:
         return 1.
     elif j==1:
@@ -121,7 +121,7 @@ inversemass = np.array([1., 12., 12., 180., 180., 144., 2160., 2160.])
 
 
 def CGbasis1d(cg,j,x):
-    """Evaluates the CG(2)-basis functions on [0,1]^2 in (x,y)."""
+    """Evaluate the CG(2)-basis functions on [0,1]^2 in (x,y)."""
     if cg==1:
         if j==0:
             return 1.0-x
