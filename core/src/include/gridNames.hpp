@@ -25,6 +25,9 @@ static const std::string shearName = "shear";
 static const std::string divergenceName = "divergence";
 static const std::string sigmaIName = "sigmaI";
 static const std::string sigmaIIName = "sigmaII";
+static const std::string stress11Name = "stress11";
+static const std::string stress12Name = "stress12";
+static const std::string stress22Name = "stress22";
 
 static const std::string uWindName = "uwind";
 static const std::string vWindName = "vwind";

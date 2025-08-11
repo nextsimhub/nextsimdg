@@ -21,6 +21,8 @@ class BBMDynamics : public IDynamics, public Configured<BBMDynamics> {
 public:
     BBMDynamics();
 
+    ModelState getStatePrognostic() const override;
+
     std::string getName() const override { return "BBMDynamics"; }
     void prepareAdvection() override;
     void update(const TimestepTime& tst) override;

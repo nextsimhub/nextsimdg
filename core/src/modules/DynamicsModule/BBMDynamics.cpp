@@ -10,7 +10,11 @@
 namespace Nextsim {
 
 static const std::vector<std::string> namedFields = { uName, vName };
-static const std::map<std::string, std::pair<ModelArray::Type, double>> defaultFields = {};
+static const std::map<std::string, std::pair<ModelArray::Type, double>> defaultFields = {
+        { stress11Name, { ModelArray::Type::DG, 0. } },
+        { stress12Name, { ModelArray::Type::DG, 0. } },
+        { stress22Name, { ModelArray::Type::DG, 0. } },
+};
 
 // TODO: We should use getName() here, but it isn't static.
 static const std::string prefix = "BBMDynamics"; // MEVPDynamics::getName();
@@ -160,6 +164,19 @@ void BBMDynamics::update(const TimestepTime& tst)
     divergence = kernel.getDG0Data(divergenceName);
     sigmaI = kernel.getDG0Data(sigmaIName);
     sigmaII = kernel.getDG0Data(sigmaIIName);
+}
+
+ModelState BBMDynamics::getStatePrognostic() const
+{
+    ModelState state = { {
+            { stress11Name, stress11 },
+            { stress12Name, stress12 },
+            { stress22Name, stress22 },
+    },
+            getConfiguration()
+    };
+    state.merge(IDynamics::getStatePrognostic());
+    return state;
 }
 
 void BBMDynamics::prepareAdvection() { kernel.prepareAdvection(); }

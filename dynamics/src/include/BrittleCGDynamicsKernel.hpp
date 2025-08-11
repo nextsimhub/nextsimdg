@@ -153,6 +153,12 @@ public:
     {
         if (name == damageName) {
             throw std::runtime_error(std::string("Use setDGArray() to set the data for ") + name);
+        } else if (name == stress11Name) {
+            DGModelArray::ma2dg(data, s11);
+        } else if (name == stress12Name) {
+            DGModelArray::ma2dg(data, s12);
+        } else if (name == stress22Name) {
+            DGModelArray::ma2dg(data, s22);
         } else {
             CGDynamicsKernel<DGadvection>::setData(name, data);
         }
