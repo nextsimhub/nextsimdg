@@ -1,3 +1,6 @@
+"""
+Generate the old_names.nc file used by core/test/ParaGrid_test.cpp.
+"""
 import time
 
 import netCDF4

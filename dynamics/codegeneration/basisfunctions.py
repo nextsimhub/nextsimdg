@@ -1,12 +1,16 @@
-# defines the dg and cg basis functions on the unit square [0,1]^2
-# used in the different code generation functions
-#
+"""
+Defines the DG and CG basis functions on the unit square [0,1]^2 used in the different
+code generation functions.
+"""
 
 import numpy as np
 
 
-# returns the number of local unknowns in the dg spaces
-def dgdofs(d):    # Number of unknowns per element depending on gauss degree
+def dgdofs(d):
+    """
+    :param d: Number of unknowns per element depending on gauss degree
+    :return: the number of local unknowns in the dg spaces
+    """
     if d==0:
         return 1
     elif d==1:
@@ -16,8 +20,11 @@ def dgdofs(d):    # Number of unknowns per element depending on gauss degree
     else:
         assert False,"dG3 and higher is not implemented"
 
-# returns the number of local unknowns in the cg spaces
-def cgdofs(d):    # Number of unknowns per element depending on gauss degree
+def cgdofs(d):
+    """
+    :param d: Number of unknowns per element depending on gauss degree
+    :return: the number of local unknowns in the cg spaces
+    """
     if d==1:
         return 4
     elif d==2:
@@ -25,12 +32,14 @@ def cgdofs(d):    # Number of unknowns per element depending on gauss degree
     else:
         assert False,"only cg1 and cg2 are supported"
 
-# Evaluates the dG-basis functions on [0,1]^2 in (x,y)
-# dG 0:  1
-# dG 1:  x, y
-# dG 2:  x^2, y^2, xy
-# dG X:  x^2y, xy^2
 def dgbasis(j,x,y):
+    """
+    Evaluates the dG-basis functions on [0,1]^2 in (x,y)
+    dG 0:  1
+    dG 1:  x, y
+    dG 2:  x^2, y^2, xy
+    dG X:  x^2y, xy^2
+    """
     if j==0:
         return 1.
     elif j==1:
@@ -93,8 +102,8 @@ def dy_dgbasis(j,x,y):
 
 
 
-# Evaluates 1d dG-basis on the edge [0,1]
 def dgbasis_edge(j,x):
+    """Evaluates 1d dG-basis on the edge [0,1]."""
     if j==0:
         return 1.
     elif j==1:
@@ -105,12 +114,12 @@ def dgbasis_edge(j,x):
         print("dG3 and higher not implemented (yet)")
         assert False
 
-### Inverse element mass matrix for the dg methods
+# Inverse element mass matrix for the dg methods
 inversemass = np.array([1., 12., 12., 180., 180., 144., 2160., 2160.])
 
 
-# Evaluates the CG(2)-basis functions on [0,1]^2 in (x,y)
 def CGbasis1d(cg,j,x):
+    """Evaluates the CG(2)-basis functions on [0,1]^2 in (x,y)."""
     if cg==1:
         if j==0:
             return 1.0-x
@@ -134,8 +143,8 @@ def CGbasis1d(cg,j,x):
         print("only CG1 CG2")
         assert False
 
-# ... and its derivative
 def CGbasis1d_dX(cg,j,x):
+    """... and its derivative."""
     if cg==1:
         if j==0:
             return -1
@@ -155,10 +164,12 @@ def CGbasisfunction(cg,j,x,y):
     jx = j%(cg+1)
     jy = j//(cg+1)
     return CGbasis1d(cg,jx,x)*CGbasis1d(cg,jy,y)
+
 def CGbasisfunction_dX(cg,j,x,y):
     jx = j%(cg+1)
     jy = j//(cg+1)
     return CGbasis1d_dX(cg,jx,x)*CGbasis1d(cg,jy,y)
+
 def CGbasisfunction_dY(cg,j,x,y):
     jx = j%(cg+1)
     jy = j//(cg+1)
