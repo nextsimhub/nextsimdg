@@ -1436,13 +1436,20 @@ void Xios::write(const std::string fieldId, ModelArray& modelarray)
         throw std::runtime_error(
             "Xios::write: field " + fieldId + " has not been configured for writing with XIOS.");
     }
-    auto ndim = modelarray.nDimensions();
     auto dims = modelarray.dimensions();
-    if (ndim == 2) {
+    auto ncomponents = modelarray.nComponents();
+    if (modelarray.nDimensions() != 2) {
+        throw std::invalid_argument("Only ModelArrays of dimension 2 are supported");
+    }
+    // TODO: Proper switching between HField, DGField, and VertexField cases
+    if (ncomponents == 1) {
         cxios_write_data_k82(
             fieldId.c_str(), fieldId.length(), modelarray.getData(), dims[0], dims[1], -1);
     } else {
-        throw std::invalid_argument("Only ModelArrays of dimension 2 are supported");
+        // TODO: Separate grid for DG case
+        int DG = ncomponents;
+        cxios_write_data_k83(
+            fieldId.c_str(), fieldId.length(), modelarray.getData(), dims[0], dims[1], DG, -1);
     }
 }
 

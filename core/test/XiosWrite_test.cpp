@@ -119,7 +119,7 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     ModelState state = { {
                              { maskName, mask },
                              // { coordsName, coordinates }, // FIXME: segfault on finalize
-                             { hiceName, hice }, // FIXME: Outputs are wrong shape
+                             { hiceName, hice },
                          },
         {} };
 
