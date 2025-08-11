@@ -24,13 +24,7 @@ class SingleColumnThermo(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        """
-        Set up the test case before running a test.
-
-        - Creates the initialisation file, using make_init_column.py
-        - Runs the model
-        - Loads the neccesary variables from the output file.
-        """
+        """Set up the test case before running a test."""
         # Make the init column
         cls.__make_init_column()
 
