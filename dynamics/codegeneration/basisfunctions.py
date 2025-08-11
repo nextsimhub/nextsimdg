@@ -1,6 +1,7 @@
 """
-Defines the DG and CG basis functions on the unit square [0,1]^2 used in the different
-code generation functions.
+Defines the DG and CG basis functions used in the different code generation functions.
+
+The functions are specific to the unit square [0,1]^2.
 """
 
 import numpy as np
@@ -8,6 +9,8 @@ import numpy as np
 
 def dgdofs(d):
     """
+    Compute the number of local unknowns in the DG space.
+
     :param d: Number of unknowns per element depending on gauss degree
     :return: the number of local unknowns in the dg spaces
     """
@@ -23,6 +26,8 @@ def dgdofs(d):
 
 def cgdofs(d):
     """
+    Compute the number of local unknowns in the CG space.
+
     :param d: Number of unknowns per element depending on gauss degree
     :return: the number of local unknowns in the cg spaces
     """
@@ -36,7 +41,8 @@ def cgdofs(d):
 
 def dgbasis(j,x,y):
     """
-    Evaluate the dG-basis functions on [0,1]^2 in (x,y)
+    Evaluate the dG-basis functions on [0,1]^2 in (x,y).
+
     dG 0:  1
     dG 1:  x, y
     dG 2:  x^2, y^2, xy
