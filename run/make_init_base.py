@@ -25,7 +25,7 @@ class initMaker:
         """
         Initialise all internal variables, except __nfirst, __nsecond, __nLayers,
         and __res to zero. All arrays are set to the right size as well.
-        
+
         :param fname: Name of the file to write the output into
         :param nFirst: Number of rows (first dimension)
         :param nSecond: Number of columns (seond dimension)
