@@ -25,7 +25,7 @@ def q1basis(i,x,y):
         return (1.-x)*y
     elif i==3:
         return x*y
-    assert False, "q1 basis only for i=0,1,2,3"
+    raise AssertionError("q1 basis only for i=0,1,2,3")
 
 def dx_q1basis(i,x,y):
     if i==0:
@@ -36,7 +36,7 @@ def dx_q1basis(i,x,y):
         return -y
     elif i==3:
         return y
-    assert False, "q1 basis only for i=0,1,2,3"
+    raise AssertionError("q1 basis only for i=0,1,2,3")
 def dy_q1basis(i,x,y):
     if i==0:
         return -(1.-x)
@@ -46,7 +46,7 @@ def dy_q1basis(i,x,y):
         return (1.-x)
     elif i==3:
         return x
-    assert False, "q1 basis only for i=0,1,2,3"
+    raise AssertionError("q1 basis only for i=0,1,2,3")
 
 
 ## q1 basis functions in the Gauss-Points

@@ -18,7 +18,7 @@ def dgdofs(d):
     elif d==2:
         return 6
     else:
-        assert False,"dG3 and higher is not implemented"
+        raise AssertionError("dG3 and higher is not implemented")
 
 def cgdofs(d):
     """
@@ -30,7 +30,7 @@ def cgdofs(d):
     elif d==2:
         return 9
     else:
-        assert False,"only cg1 and cg2 are supported"
+        raise AssertionError("only cg1 and cg2 are supported")
 
 def dgbasis(j,x,y):
     """
@@ -58,7 +58,7 @@ def dgbasis(j,x,y):
         return (x-0.5)*((y-0.5)*(y-0.5)-1.0/12.0)
     else:
         print("dG3 and higher not implemented (yet)")
-        assert False
+        raise AssertionError
 
 def dx_dgbasis(j,x,y):
     if j==0:
@@ -79,7 +79,7 @@ def dx_dgbasis(j,x,y):
         return ((y-0.5)*(y-0.5)-1.0/12.0)
     else:
         print("dG3 and higher not implemented (yet)")
-        assert False
+        raise AssertionError
 
 def dy_dgbasis(j,x,y):
     if j in (0, 1):
@@ -98,7 +98,7 @@ def dy_dgbasis(j,x,y):
         return (x-0.5)*(2.*(y-0.5))
     else:
         print("dG3 and higher not implemented (yet)")
-        assert False
+        raise AssertionError
 
 
 
@@ -112,7 +112,7 @@ def dgbasis_edge(j,x):
         return (x-0.5)*(x-0.5)-1.0/12.0
     else:
         print("dG3 and higher not implemented (yet)")
-        assert False
+        raise AssertionError
 
 # Inverse element mass matrix for the dg methods
 inversemass = np.array([1., 12., 12., 180., 180., 144., 2160., 2160.])
@@ -127,7 +127,7 @@ def CGbasis1d(cg,j,x):
             return x
         else:
             print("CG1basis1d only for j=0,1")
-            assert False
+            raise AssertionError
 
     elif cg==2:
         if j==0:
@@ -138,10 +138,10 @@ def CGbasis1d(cg,j,x):
             return 2.0*x*(x-0.5)
         else:
             print("CGbasis1d only for j=0,1,2")
-            assert False
+            raise AssertionError
     else:
         print("only CG1 CG2")
-        assert False
+        raise AssertionError
 
 def CGbasis1d_dX(cg,j,x):
     """... and its derivative."""
@@ -158,7 +158,7 @@ def CGbasis1d_dX(cg,j,x):
         return 4.0*x-1.0
     else:
         print("CGbasis1d only for j=0,1,2")
-        assert False
+        raise AssertionError
 
 def CGbasisfunction(cg,j,x,y):
     jx = j%(cg+1)

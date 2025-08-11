@@ -65,7 +65,7 @@ def cg2dg_dxy_matrix(dg,cg,dXY):
                         xxx=xxx+gq.gaussweights[2][gx]*gq.gaussweights[2][gy]*bf.CGbasisfunction_dY(cg,cgi,X,Y) * bf.dgbasis(dgi,X,Y)
                     else:
                         print("Direction",dXY,"not known")
-                        assert False
+                        raise AssertionError
 
             print(xxx*bf.inversemass[dgi],end="")
             if (cgi<bf.cgdofs(cg)-1) or dgi<dg-1:
@@ -102,7 +102,7 @@ def dg_cg_dxy_matrix(dg,cg,dXY):
                         xxx=xxx+gq.gaussweights[2][gx]*gq.gaussweights[2][gy]*bf.CGbasisfunction_dY(cg,cgi,X,Y) * bf.dgbasis(dgi,X,Y)
                     else:
                         print("Direction",dXY,"not known")
-                        assert False
+                        raise AssertionError
 
             print(xxx*bf.inversecg[cg-1][cgi],end="")
             if (cgi<bf.cgdofs(cg)-1) or dgi<dg-1:
