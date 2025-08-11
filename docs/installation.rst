@@ -107,6 +107,17 @@ To unload an environment you can use the handy (and very fun) alias of ``despack
 information on using ``spack`` environments please see `using environments
 <https://spack.readthedocs.io/en/latest/environments.html#using-environments>`_.
 
+Python dependencies
+-------------------
+
+To install the Python dependencies, first ensure that you have a Python
+environment set up. You can use `conda` or `virtualenv` for this purpose. Once
+you have created and activated your Python environment, you can install the
+required Python packages with
+.. code::
+
+        pip install -r requirements.txt
+
 Building the code
 -----------------
 After all dependencies have been installed, we can build the code:
