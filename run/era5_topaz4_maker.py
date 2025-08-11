@@ -126,10 +126,11 @@ if __name__ == "__main__":
 
     target_structure = "parametric_rectangular"
     if ncFile.structure_name != target_structure:
-        raise SystemExit(
+        sys_err = (
             f"Incorrect structure found: {ncFile.structure_name}, wanted "
             f"{target_structure}."
         )
+        raise SystemExit(sys_err)
     node_coords = ncFile["coords"]
     # assume lon and lat are 0 and 1 coords
     node_lon = node_coords[:, :, 0]
