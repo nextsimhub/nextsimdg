@@ -1,17 +1,16 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Convert mesh from netcdf (neXtSIM exchange grid files) file 
-into nexstim dynamics format
+Convert mesh from netcdf (neXtSIM exchange grid files) file into nexstim dynamics format
 
 Meshfiles can be found under the link
 https://ige-meom-opendap.univ-grenoble-alpes.fr/thredds/catalog/meomopendap/extract/SASIP/grids/NH_PS/catalog.html
 
 
-Given file has following numbering of the corners: 
-0 bottom-left, 1 top-left, 2 top-right, 3 bottom-right 
+Given file has following numbering of the corners:
+0 bottom-left, 1 top-left, 2 top-right, 3 bottom-right
 
-We assume that in the 
+We assume that in the
 
 with Nx x Ny elements
 
