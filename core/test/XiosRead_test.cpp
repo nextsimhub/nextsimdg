@@ -77,9 +77,12 @@ MPI_TEST_CASE("TestXiosRead", 2)
     // for (std::string fieldName : { maskName, coordsName, hiceName }) {
     for (std::string fieldName : { maskName }) {
         xiosHandler.setFieldOperation(fieldName, "instant");
-        xiosHandler.setFieldGridRef(fieldName, "grid_2D");
         xiosHandler.setFieldFreqOffset(fieldName, timestep);
     }
+    // TODO: Automate the following
+    xiosHandler.setFieldGridRef(maskName, "HGrid");
+    // xiosHandler.setFieldGridRef(hiceName, "DGGrid");
+    // xiosHandler.setFieldGridRef(coordsName, "VertexGrid");
 
     xiosHandler.close_context_definition();
 

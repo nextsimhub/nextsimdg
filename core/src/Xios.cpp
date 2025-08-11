@@ -606,7 +606,7 @@ xios::CDomainGroup* Xios::getDomainGroup()
  *
  * @return a pointer to the XIOS CDomain object
  */
-xios::CDomain* Xios::getDomain()
+xios::CDomain* Xios::getDomain(const std::string domainId)
 {
     bool exists;
     cxios_domain_valid_id(&exists, domainId.c_str(), domainId.length());
@@ -622,10 +622,7 @@ xios::CDomain* Xios::getDomain()
 }
 
 /*!
- * Create a domain with some ID based off the provided metadata.
- *
- * If the domain ID is 'xy_domain' then a grid called 'grid_2D' will automatically be created with
- * this domain.
+ * Create axes, domains, and grids based off the provided metadata.
  *
  * @param metadata ModelMetadata object containing the partition metadata
  */
@@ -689,68 +686,102 @@ void Xios::affixModelMetadata(ModelMetadata& metadata)
         }
     }
 
-    // Create the XIOS domain 'xy_domain'
-    bool exists;
-    cxios_domain_valid_id(&exists, domainId.c_str(), domainId.length());
-    if (exists) {
-        throw std::runtime_error("Xios: Domain '" + domainId + "' already exists");
-    }
+    // Create XIOS domains
     xios::CDomain* domain = NULL;
-    cxios_xml_tree_add_domain(getDomainGroup(), &domain, domainId.c_str(), domainId.length());
-    if (!domain) {
-        throw std::runtime_error("Xios: Null pointer for domain '" + domainId + "'");
-    }
-    cxios_domain_valid_id(&exists, domainId.c_str(), domainId.length());
-    if (!exists) {
-        throw std::runtime_error("Xios: Failed to create domain '" + domainId + "'");
+    for (std::string domainId : { hDomainId, vertexDomainId }) {
+        bool exists;
+        cxios_domain_valid_id(&exists, domainId.c_str(), domainId.length());
+        if (exists) {
+            throw std::runtime_error("Xios: Domain '" + domainId + "' already exists");
+        }
+        cxios_xml_tree_add_domain(getDomainGroup(), &domain, domainId.c_str(), domainId.length());
+        if (!domain) {
+            throw std::runtime_error("Xios: Null pointer for domain '" + domainId + "'");
+        }
+        cxios_domain_valid_id(&exists, domainId.c_str(), domainId.length());
+        if (!exists) {
+            throw std::runtime_error("Xios: Failed to create domain '" + domainId + "'");
+        }
+
+        // Set domain type
+        const std::string domainType = "rectilinear";
+        if (cxios_is_defined_domain_type(domain)) {
+            Logged::warning("Xios: Overwriting type for domain '" + domainId + "'");
+        }
+        cxios_set_domain_type(domain, domainType.c_str(), domainType.length());
+        if (!cxios_is_defined_domain_type(domain)) {
+            throw std::runtime_error("Xios: Failed to set type for domain '" + domainId + "'");
+        }
     }
 
-    // Create XIOS grid 'grid_2D' associated with the domain
-    const std::string gridId = "grid_2D";
-    createGrid(gridId);
-    xios::CGrid* grid = getGrid(gridId);
-    cxios_xml_tree_add_domaintogrid(grid, &domain, domainId.c_str(), domainId.length());
-
-    // Set domain type
-    const std::string domainType = "rectilinear";
-    if (cxios_is_defined_domain_type(domain)) {
-        Logged::warning("Xios: Overwriting type for domain '" + domainId + "'");
-    }
-    cxios_set_domain_type(domain, domainType.c_str(), domainType.length());
-    if (!cxios_is_defined_domain_type(domain)) {
-        throw std::runtime_error("Xios: Failed to set type for domain '" + domainId + "'");
-    }
-
-    // Set global sizes
+    // Set metadata for 'HDomain'
+    domain = getDomain(hDomainId);
     cxios_set_domain_ni_glo(domain, (int)metadata.globalExtentX);
-    if (!cxios_is_defined_domain_ni_glo(domain)) {
-        throw std::runtime_error("Xios: Failed to set global x-size for domain '" + domainId + "'");
-    }
     cxios_set_domain_nj_glo(domain, (int)metadata.globalExtentY);
-    if (!cxios_is_defined_domain_nj_glo(domain)) {
-        throw std::runtime_error("Xios: Failed to set global y-size for domain '" + domainId + "'");
-    }
-
-    // Set local starts
     cxios_set_domain_ibegin(domain, (int)metadata.localCornerX);
-    if (!cxios_is_defined_domain_ibegin(domain)) {
-        throw std::runtime_error(
-            "Xios: Failed to set local starting x-index for domain '" + domainId + "'");
-    }
     cxios_set_domain_jbegin(domain, (int)metadata.localCornerY);
-    if (!cxios_is_defined_domain_jbegin(domain)) {
-        throw std::runtime_error(
-            "Xios: Failed to set local starting y-index for domain '" + domainId + "'");
-    }
-
-    // Set local sizes
     cxios_set_domain_ni(domain, (int)metadata.localExtentX);
-    if (!cxios_is_defined_domain_ni(domain)) {
-        throw std::runtime_error("Xios: Failed to set local x-size for domain '" + domainId + "'");
-    }
     cxios_set_domain_nj(domain, (int)metadata.localExtentY);
-    if (!cxios_is_defined_domain_nj(domain)) {
-        throw std::runtime_error("Xios: Failed to set local y-size for domain '" + domainId + "'");
+
+    // Create XIOS grid 'HGrid2D' associated with HDomain
+    createGrid(hGridId);
+    xios::CGrid* grid = getGrid(hGridId);
+    cxios_xml_tree_add_domaintogrid(grid, &domain, hDomainId.c_str(), hDomainId.length());
+
+    // Create XIOS axis 'DGAxis'
+    int DG = ModelArray::nComponents(ModelArray::Type::DG);
+    createAxis(dgAxisId);
+    // setAxisSize(dgAxisId, 2 * DG);
+    setAxisSize(dgAxisId, DG); // TODO: Check if this is correct
+
+    // Create XIOS grid 'DGGrid2D' associated with HDomain and DGAxis
+    createGrid(dgGridId);
+    grid = getGrid(dgGridId);
+    xios::CAxis* axis = getAxis(dgAxisId);
+    cxios_xml_tree_add_domaintogrid(grid, &domain, hDomainId.c_str(), hDomainId.length());
+    cxios_xml_tree_add_axistogrid(grid, &axis, dgAxisId.c_str(), dgAxisId.length());
+
+    // Set metadata for 'VertexDomain'  // TODO: Check if this is correct
+    domain = getDomain(vertexDomainId);
+    cxios_set_domain_ni_glo(domain, (int)metadata.globalExtentX + mpi_size);
+    cxios_set_domain_nj_glo(domain, (int)metadata.globalExtentY + mpi_size);
+    cxios_set_domain_ibegin(domain, (int)metadata.localCornerX);
+    cxios_set_domain_jbegin(domain, (int)metadata.localCornerY);
+    cxios_set_domain_ni(domain, (int)metadata.localExtentX + 1);
+    cxios_set_domain_nj(domain, (int)metadata.localExtentY + 1);
+
+    // Create XIOS grid 'VertexGrid2D' associated with VertexDomain
+    createGrid(vertexGridId);
+    grid = getGrid(vertexGridId);
+    cxios_xml_tree_add_domaintogrid(grid, &domain, vertexDomainId.c_str(), vertexDomainId.length());
+
+    // Check everything was set correctly
+    for (std::string domainId : { hDomainId, vertexDomainId }) {
+        domain = getDomain(domainId);
+        if (!cxios_is_defined_domain_ni_glo(domain)) {
+            throw std::runtime_error(
+                "Xios: Failed to set global x-size for domain '" + domainId + "'");
+        }
+        if (!cxios_is_defined_domain_nj_glo(domain)) {
+            throw std::runtime_error(
+                "Xios: Failed to set global y-size for domain '" + domainId + "'");
+        }
+        if (!cxios_is_defined_domain_ibegin(domain)) {
+            throw std::runtime_error(
+                "Xios: Failed to set local starting x-index for domain '" + domainId + "'");
+        }
+        if (!cxios_is_defined_domain_jbegin(domain)) {
+            throw std::runtime_error(
+                "Xios: Failed to set local starting y-index for domain '" + domainId + "'");
+        }
+        if (!cxios_is_defined_domain_ni(domain)) {
+            throw std::runtime_error(
+                "Xios: Failed to set local x-size for domain '" + domainId + "'");
+        }
+        if (!cxios_is_defined_domain_nj(domain)) {
+            throw std::runtime_error(
+                "Xios: Failed to set local y-size for domain '" + domainId + "'");
+        }
     }
 }
 

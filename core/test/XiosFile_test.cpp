@@ -62,7 +62,7 @@ MPI_TEST_CASE("TestXiosFile", 2)
     xiosHandler.setAxisValues("z_axis", { 0.0, 1.0 });
 
     // Create a 1D grid
-    // NOTE: The 2D grid is created automatically along with the xy_domain
+    // NOTE: The 2D grid is created automatically along with the HFieldDomain
     xiosHandler.createGrid("grid_1D");
     xiosHandler.gridAddAxis("grid_1D", "z_axis");
 
@@ -71,7 +71,7 @@ MPI_TEST_CASE("TestXiosFile", 2)
     xiosHandler.setFieldOperation("field_1D", "instant");
     xiosHandler.setFieldGridRef("field_1D", "grid_1D");
     xiosHandler.setFieldOperation("field_2D", "instant");
-    xiosHandler.setFieldGridRef("field_2D", "grid_2D");
+    xiosHandler.setFieldGridRef("field_2D", "HGrid");
 
     // --- Tests for file API
     const std::string inFileId = "xios_test_input";

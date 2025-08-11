@@ -169,13 +169,15 @@ private:
     cxios_duration convertDurationToXios(const Duration duration);
 
     /* Axis */
+    const std::string dgAxisId = "DGAxis";
     xios::CAxisGroup* getAxisGroup();
     xios::CAxis* getAxis(const std::string axisId);
 
     /* Domain */
-    const std::string domainId = "xy_domain";
+    const std::string hDomainId = "HDomain";
+    const std::string vertexDomainId = "VertexDomain";
     xios::CDomainGroup* getDomainGroup();
-    xios::CDomain* getDomain();
+    xios::CDomain* getDomain(std::string domainId);
 
     /* Field */
     xios::CFieldGroup* getFieldGroup();
@@ -185,6 +187,9 @@ private:
     bool configCheckField(const std::string fieldId, const bool reading);
 
     /* Grid */
+    const std::string hGridId = "HGrid";
+    const std::string dgGridId = "DGGrid";
+    const std::string vertexGridId = "VertexGrid";
     xios::CGridGroup* getGridGroup();
     xios::CGrid* getGrid(const std::string gridId);
 
