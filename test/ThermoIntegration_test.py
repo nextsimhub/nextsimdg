@@ -180,23 +180,23 @@ ks = 0.31
 
     def test_iceThickness(self):
         """Test the ice thickness against standard max, min, and mean values."""
-        mean = 3.1093
-        max = 3.3327
-        min = 2.9702
+        meanval = 3.1093
+        maxval = 3.3327
+        minval = 2.9702
         hiceDG0 = self.hice[:, 0]
-        self.assertAlmostEqual(max, hiceDG0.max(), 4, "Max ice thickness not ~= " + str(max) + " m")
-        self.assertAlmostEqual(min, hiceDG0.min(), 4, "Min ice thickness not ~= " + str(min) + " m")
-        self.assertAlmostEqual(mean, hiceDG0.mean(), 4, "Mean ice thickness not ~= " + str(mean) + " m")
+        self.assertAlmostEqual(maxval, hiceDG0.max(), 4, "Max ice thickness not ~= " + str(max) + " m")
+        self.assertAlmostEqual(minval, hiceDG0.min(), 4, "Min ice thickness not ~= " + str(min) + " m")
+        self.assertAlmostEqual(meanval, hiceDG0.mean(), 4, "Mean ice thickness not ~= " + str(mean) + " m")
 
     def test_snowThickness(self):
         """Test the snow thickness against standard max, min, and mean values."""
-        mean = 0.2474
-        max = 0.4000
-        min = 0.0000
+        meanval = 0.2474
+        maxval = 0.4000
+        minval = 0.0000
         snowDG0 = self.hsnow[:, 0]
-        self.assertAlmostEqual(max, snowDG0.max(), 4, "Max snow thickness not ~= " + str(max) + " m")
-        self.assertAlmostEqual(min, snowDG0.min(), 4, "Min snow thickness not ~= " + str(min) + " m")
-        self.assertAlmostEqual(mean, snowDG0.mean(), 4, "Mean snow thickness not ~= " + str(mean) + " m")
+        self.assertAlmostEqual(maxval, snowDG0.max(), 4, "Max snow thickness not ~= " + str(max) + " m")
+        self.assertAlmostEqual(minval, snowDG0.min(), 4, "Min snow thickness not ~= " + str(min) + " m")
+        self.assertAlmostEqual(meanval, snowDG0.mean(), 4, "Mean snow thickness not ~= " + str(mean) + " m")
 
     def test_temperatureTest(self):
         """
@@ -210,14 +210,13 @@ ks = 0.31
         significant digit changes between 4 and 5 for the T1 mean, so the result is either -17.6250 or -17.6249 - up
         to 4 digits. This is normal, because the output is only accurate to six significant digits anyway.
         """
-        mean = [-17.6202, -7.5904, -3.7944]
-        max = [0.0000, -1.1280, -1.5939]
-        min = [-33.1569, -14.8520, -6.1389]
-        #for i in range(3):
+        meanvals = [-17.6202, -7.5904, -3.7944]
+        maxvals = [0.0000, -1.1280, -1.5939]
+        minvals = [-33.1569, -14.8520, -6.1389]
         for i, t_level in enumerate((self.tsurf[:, 0, 0, 0], self.tintr[:, 0, 0, 0], self.tbott[:, 0, 0, 0])):
-            self.assertAlmostEqual(max[i], t_level.max(), 4, "Max T" + str(i) + " not ~= " + str(max[i]) + " ˚C")
-            self.assertAlmostEqual(min[i], t_level.min(), 3, "Min T" + str(i) + " not ~= " + str(min[i]) + " ˚C")
-            self.assertAlmostEqual(mean[i], t_level.mean(), 3,
+            self.assertAlmostEqual(maxvals[i], t_level.max(), 4, "Max T" + str(i) + " not ~= " + str(max[i]) + " ˚C")
+            self.assertAlmostEqual(minvals[i], t_level.min(), 3, "Min T" + str(i) + " not ~= " + str(min[i]) + " ˚C")
+            self.assertAlmostEqual(meanvals[i], t_level.mean(), 3,
                                    "Mean T" + str(i) + " not ~= " + str(mean[i]) + " ˚C")
 
 
