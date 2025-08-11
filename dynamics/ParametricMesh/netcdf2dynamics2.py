@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Convert mesh from netcdf (neXtSIM exchange grid files) file
-into nexstim dynamics format.
+Convert mesh from NetCDF (neXtSIM exchange grid files) into nexstim dynamics format.
 
 Meshfiles can be found under the link
 https://ige-meom-opendap.univ-grenoble-alpes.fr/thredds/catalog/meomopendap/extract/SASIP/grids/NH_PS/catalog.html

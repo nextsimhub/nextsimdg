@@ -39,7 +39,7 @@ def topaz4_interpolate(target_lon, target_lat, data, data_x, data_y, proj_string
     return (interpolate.griddata(points, field.ravel()[nanmask], xi, method="nearest").reshape(target_lon.shape))
 
 def bilinear(eyes, jays, data):
-    """"
+    """
     Bilinearly interpolate data given an array of fractional indices.
 
     Supports periodic boundary conditions.
