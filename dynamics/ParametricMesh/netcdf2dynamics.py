@@ -55,69 +55,65 @@ if __name__ == "__main__":
   #load file
   nc = netCDF4.Dataset(input_file)
 
+  with open(f"{output_file}", "w") as f:
 
-  #prepare file for save
-  f = open(f"{output_file}", "w")
+    #centers of elements
+    lat_center = np.array(nc["plat"])
+    lon_center = np.array(nc["plon"])
 
+    #get number of elements in nx and ny
+    assert(lat_center.shape == lon_center.shape)
+    nx, ny = lat_center.shape
 
-  #centers of elemenents
-  lat_center = np.array(nc["plat"])
-  lon_center = np.array(nc["plon"])
-
-  #get number of elements in nx and ny
-  assert(lat_center.shape == lon_center.shape)
-  nx, ny = lat_center.shape
-
-  #four corners of the grid
-  lat_corners = np.array(nc["lat_corners"])
-  lon_corners = np.array(nc["lon_corners"])
+    #four corners of the grid
+    lat_corners = np.array(nc["lat_corners"])
+    lon_corners = np.array(nc["lon_corners"])
 
 
-  assert( check_corner_points(lon_corners,lat_corners, nx, ny) )
+    assert( check_corner_points(lon_corners,lat_corners, nx, ny) )
 
-  #Start of the mesh file
-  f.write("ParametricMesh 1.0\n")
-  #number of elements in x and y directions
-  f.write("{0}\t{1}\n".format(nx,ny))
-  #Saving points
-  for iy in range(ny):
+    #Start of the mesh file
+    f.write("ParametricMesh 1.0\n")
+    #number of elements in x and y directions
+    f.write("{0}\t{1}\n".format(nx,ny))
+    #Saving points
+    for iy in range(ny):
+      for ix in range(nx):
+        f.write("{0}\t{1}\n".format(lon_corners[ix,iy,0],lat_corners[ix,iy,0]))
+      #add last point on the right
+      f.write("{0}\t{1}\n".format(lon_corners[ix,iy,3],lat_corners[ix,iy,3]))
+    #add last row on top
     for ix in range(nx):
-      f.write("{0}\t{1}\n".format(lon_corners[ix,iy,0],lat_corners[ix,iy,0]))
-    #add last point on the right
+      f.write("{0}\t{1}\n".format(lon_corners[ix,iy,1],lat_corners[ix,iy,1]))
+    #add last point on the right in the top row
+    assert(ix==nx-1)
+    assert(iy==ny-1)
     f.write("{0}\t{1}\n".format(lon_corners[ix,iy,3],lat_corners[ix,iy,3]))
-  #add last row on top
-  for ix in range(nx):
-    f.write("{0}\t{1}\n".format(lon_corners[ix,iy,1],lat_corners[ix,iy,1]))
-  #add last point on the right in the top row
-  assert(ix==nx-1)
-  assert(iy==ny-1)
-  f.write("{0}\t{1}\n".format(lon_corners[ix,iy,3],lat_corners[ix,iy,3]))
-  f.flush()
+    f.flush()
 
-  #Dirichlet boundaries for land mask
-  dirichlet_list = [] #first collecting all dirichlet boundaries
-  mask = np.array(nc["mask"])
-  for iy in range(ny):
-    for ix in range(nx):
-      if mask[ix,iy] == 0: # check if we are on Ice
-        #get number of element
-        no_element = ix + (nx+1)*iy
-        #save corresponding edge
-        for shift in [[1,0,1],[-1,0,3],[0,1,2],[0,-1,0]]:
-          #try to save boundary based on neighbour
-          try:
-            assert(ix+shift[0]>=0)
-            assert(iy+shift[1]>=0)
-            if mask[ix+shift[0],iy+shift[1]] != 0:
+    #Dirichlet boundaries for land mask
+    dirichlet_list = [] #first collecting all dirichlet boundaries
+    mask = np.array(nc["mask"])
+    for iy in range(ny):
+      for ix in range(nx):
+        if mask[ix,iy] == 0: # check if we are on Ice
+          #get number of element
+          no_element = ix + (nx+1)*iy
+          #save corresponding edge
+          for shift in [[1,0,1],[-1,0,3],[0,1,2],[0,-1,0]]:
+            #try to save boundary based on neighbour
+            try:
+              assert(ix+shift[0]>=0)
+              assert(iy+shift[1]>=0)
+              if mask[ix+shift[0],iy+shift[1]] != 0:
+                dirichlet_list.append([no_element, shift[2]])
+            #except: we are on the boundary of the domain
+            except:
               dirichlet_list.append([no_element, shift[2]])
-          #except: we are on the boundary of the domain
-          except:
-            dirichlet_list.append([no_element, shift[2]])
 
-  #write dirichlet boundaries into file
-  f.write("dirichlet\t{}\n".format(len(dirichlet_list)))
-  for dirichlet in dirichlet_list:
-    f.write("{}\t{}\n".format(dirichlet[0], dirichlet[1]))
+    #write dirichlet boundaries into file
+    f.write("dirichlet\t{}\n".format(len(dirichlet_list)))
+    for dirichlet in dirichlet_list:
+      f.write("{}\t{}\n".format(dirichlet[0], dirichlet[1]))
 
-  f.write("periodic 0")
-  f.close()
+    f.write("periodic 0")

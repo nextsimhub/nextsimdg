@@ -152,11 +152,9 @@ def main():
     # Create a dictionary of common strings
     strings = common_strings(config)
 
-    source = open(module_file_prefix + "." + source_suffix, "w", encoding=file_encoding)
-
-    write_file_header(source, strings[module_class_name])
-    write_source_file(source, config, strings)
-    source.close()
+    with open(module_file_prefix + "." + source_suffix, "w", encoding=file_encoding) as source:
+        write_file_header(source, strings[module_class_name])
+        write_source_file(source, config, strings)
 
 if __name__ == "__main__":
     main()
