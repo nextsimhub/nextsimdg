@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Sat Jul  9 14:53:04 2022
+Created on Sat Jul  9 14:53:04 2022.
 
 Creates a simple mesh of size [0,Lx] x [0,Ly]
 with Nx x Ny elements

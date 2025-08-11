@@ -38,7 +38,7 @@ def dgbasis(j,x,y):
     dG 0:  1
     dG 1:  x, y
     dG 2:  x^2, y^2, xy
-    dG X:  x^2y, xy^2
+    dG X:  x^2y, xy^2.
     """
     if j==0:
         return 1.

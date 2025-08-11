@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 Convert mesh from netcdf (neXtSIM exchange grid files) file
-into nexstim dynamics format
+into nexstim dynamics format.
 
 Meshfiles can be found under the link
 https://ige-meom-opendap.univ-grenoble-alpes.fr/thredds/catalog/meomopendap/extract/SASIP/grids/NH_PS/catalog.html

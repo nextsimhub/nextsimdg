@@ -7,7 +7,7 @@ from scipy import interpolate
 
 def topaz4_interpolate(target_lon, target_lat, data, data_x, data_y, proj_string):
     """
-    Returns TOPAZ data interpolated from the data grid and coordinates to the target grid and coordinates
+    Returns TOPAZ data interpolated from the data grid and coordinates to the target grid and coordinates.
 
     :param target_lon: Longitudes of the target grid
     :param target_lat: Latitudes of the target grid
@@ -61,7 +61,7 @@ def bilinear(eyes, jays, data):
 
 def era5_interpolate(target_lons, target_lats, data, data_lons, data_lats):
     """
-    Returns ERA5 data interpolated from the data grid and coordinates to the target grid and coordinates
+    Returns ERA5 data interpolated from the data grid and coordinates to the target grid and coordinates.
 
     :param target_lons: Longitudes of the target grid
     :param target_lats:  Latitudes of the target grid
