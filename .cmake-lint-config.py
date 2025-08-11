@@ -1,6 +1,4 @@
-"""
-Configuration file for cmake-lint and cmake-format.
-"""
+"""Configuration file for cmake-lint and cmake-format."""
 
 # ----------------------------------
 # Options affecting listfile parsing

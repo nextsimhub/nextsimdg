@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Configuration file for the Sphinx documentation builder.
-"""
+"""Configuration file for the Sphinx documentation builder."""
 
 import os
 import subprocess

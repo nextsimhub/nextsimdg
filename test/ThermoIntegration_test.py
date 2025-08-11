@@ -28,9 +28,7 @@ class SingleColumnThermo(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        """
-        Set up the test case before running a test.
-        """
+        """Set up the test case before running a test."""
         # Make the init column
         cls.__make_init_column()
 
@@ -169,9 +167,7 @@ ks = 0.31
 
     @classmethod
     def tearDownClass(cls):
-        """
-        A tear-down class that deletes the netCDF output and temporary files
-        """
+        """A tear-down class that deletes the netCDF output and temporary files"""
         if os.path.isfile(cls.diagnostics_file):
             os.remove(cls.diagnostics_file)
 
@@ -182,9 +178,7 @@ ks = 0.31
             os.remove(cls.config_file)
 
     def test_iceThickness(self):
-        """
-        Test the ice thickness against standard max, min, and mean values
-        """
+        """Test the ice thickness against standard max, min, and mean values"""
         mean = 3.1189
         max = 3.3419
         min = 2.9805
@@ -194,9 +188,7 @@ ks = 0.31
         self.assertAlmostEqual(mean, hiceDG0.mean(), 4, "Mean ice thickness not ~= " + str(mean) + " m")
 
     def test_snowThickness(self):
-        """
-        Test the snow thickness against standard max, min, and mean values
-        """
+        """Test the snow thickness against standard max, min, and mean values"""
         mean = 0.2474
         max = 0.4000
         min = 0.0000

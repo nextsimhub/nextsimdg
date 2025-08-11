@@ -1,6 +1,4 @@
-"""
-Test the advection of snow as recorded in advection_test.diagnostic.nc.
-"""
+"""Test the advection of snow as recorded in advection_test.diagnostic.nc."""
 import os.path
 import sys
 
