@@ -50,8 +50,8 @@ class SingleColumnThermo(unittest.TestCase):
 
     @classmethod
     def __make_cfg_file(cls):
-        cfg = open(cls.config_file, "w")
-        cfg.write("""
+        with open(cls.config_file, "w") as cfg:
+            cfg.write("""
 [model]
 init_file = init_column.nc
 start = 1900-01-01T00:00:00Z
@@ -78,7 +78,6 @@ sst = -1.89
 I_0 = 0.3
 ks = 0.31
         """)
-        cfg.close()
 
     @classmethod
     def __make_init_column(cls):

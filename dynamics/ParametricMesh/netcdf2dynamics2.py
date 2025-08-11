@@ -34,60 +34,58 @@ if __name__ == "__main__":
   nc = netCDF4.Dataset(input_file)
   restart = netCDF4.Dataset(restart_file)
 
-  #prepare file for save
-  f = open(f"{output_file}", "w")
+  with open(f"{output_file}", "w") as f:
 
-  #Dirichlet boundaries for land mask
-  dirichlet_list = [] #first collecting all dirichlet boundaries
+    #Dirichlet boundaries for land mask
+    dirichlet_list = [] #first collecting all dirichlet boundaries
 
-  #We only care about mask
-  #mask = np.array(nc['mask']).T
-  mask = np.array(restart["data/mask"]).T
+    #We only care about mask
+    #mask = np.array(nc['mask']).T
+    mask = np.array(restart["data/mask"]).T
 
-  #print(mask.shape)
-  nx, ny = mask.shape
+    #print(mask.shape)
+    nx, ny = mask.shape
 
-  #Start of the mesh file
-  f.write("ParametricMesh 2.0\n")
-  #number of elements in x and y directions
-  f.write("{0}\t{1}\n".format(nx,ny))
+    #Start of the mesh file
+    f.write("ParametricMesh 2.0\n")
+    #number of elements in x and y directions
+    f.write("{0}\t{1}\n".format(nx,ny))
 
-  x_scale = 25000
-  y_scale = 25000
+    x_scale = 25000
+    y_scale = 25000
 
-  #simple write mesh elements 1x1
-  for iy in range(ny+1):
-   for ix in range(nx+1):
-      f.write("{0}\t{1}\n".format(ix * x_scale, iy * y_scale))
+    #simple write mesh elements 1x1
+    for iy in range(ny+1):
+     for ix in range(nx+1):
+        f.write("{0}\t{1}\n".format(ix * x_scale, iy * y_scale))
 
-  for iy in range(ny):
-    for ix in range(nx):
-      if mask[ix,iy] == 1: # check if we are on Ice
-        #get number of element
-        no_element = ix + nx*iy
-        #save corresponding edge
-        for shift in [[1,0,1],[-1,0,3],[0,1,2],[0,-1,0]]:
-          #try to save boundary based on neighbour
-          try:
-            assert(ix+shift[0]>=0)
-            assert(iy+shift[1]>=0)
-            if mask[ix+shift[0],iy+shift[1]] != 1:
+    for iy in range(ny):
+      for ix in range(nx):
+        if mask[ix,iy] == 1: # check if we are on Ice
+          #get number of element
+          no_element = ix + nx*iy
+          #save corresponding edge
+          for shift in [[1,0,1],[-1,0,3],[0,1,2],[0,-1,0]]:
+            #try to save boundary based on neighbour
+            try:
+              assert(ix+shift[0]>=0)
+              assert(iy+shift[1]>=0)
+              if mask[ix+shift[0],iy+shift[1]] != 1:
+                dirichlet_list.append([no_element, shift[2]])
+            #except: we are on the boundary of the domain
+            except:
               dirichlet_list.append([no_element, shift[2]])
-          #except: we are on the boundary of the domain
-          except:
-            dirichlet_list.append([no_element, shift[2]])
-  ## write landmask
-  f.write("landmask\t{}\n".format(nx*ny))
-  for iy in range(ny):
-    for ix in range(nx):
-      f.write("{}\n".format(int(mask[ix,iy])))
+    ## write landmask
+    f.write("landmask\t{}\n".format(nx*ny))
+    for iy in range(ny):
+      for ix in range(nx):
+        f.write("{}\n".format(int(mask[ix,iy])))
 
-  #plt.imshow(mask);plt.show() #quick check
+    #plt.imshow(mask);plt.show() #quick check
 
-  #write dirichlet boundaries into file
-  f.write("dirichlet\t{}\n".format(len(dirichlet_list)))
-  for dirichlet in dirichlet_list:
-    f.write("{}\t{}\n".format(dirichlet[0], dirichlet[1]))
+    #write dirichlet boundaries into file
+    f.write("dirichlet\t{}\n".format(len(dirichlet_list)))
+    for dirichlet in dirichlet_list:
+      f.write("{}\t{}\n".format(dirichlet[0], dirichlet[1]))
 
-  f.write("periodic 0")
-  f.close()
+    f.write("periodic 0")
