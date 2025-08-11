@@ -2,7 +2,7 @@ import netCDF4
 
 # Currently creates the 30 x 30 rect grid files with land-sea mask. For the
 # earlier, more rudimentary version of this script, please see the git file
-# history. 
+# history.
 
 nx = 30
 ny = 30
@@ -116,18 +116,18 @@ y_var = ncFile.createVariable("y", "f8", hfield_dims)
 
 d_distance = 150000 # 150 km element spacing
 
-for j in range(0, ny):
+for j in range(ny):
     y = (j + 0.5) * d_distance
-    for i in range(0, nx):
+    for i in range(nx):
         x = (i + 0.5) * d_distance
         x_var[j, i] = x
         y_var[j, i] = y
 
 coords = ncFile.createVariable("coords", "f8", ("yvertex", "xvertex", "ncoords"))
 
-for j in range(0, ny + 1):
+for j in range(ny + 1):
     y = j * d_distance
-    for i in range(0, nx + 1):
+    for i in range(nx + 1):
         x = i * d_distance
         coords[j, i, 0] = x
         coords[j, i, 1] = y

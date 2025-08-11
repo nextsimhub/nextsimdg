@@ -14,7 +14,7 @@ def dgdofs(d):    # Number of unknowns per element depending on gauss degree
     elif d==2:
         return 6
     else:
-        assert False,'dG3 and higher is not implemented'
+        assert False,"dG3 and higher is not implemented"
 
 # returns the number of local unknowns in the cg spaces
 def cgdofs(d):    # Number of unknowns per element depending on gauss degree
@@ -23,7 +23,7 @@ def cgdofs(d):    # Number of unknowns per element depending on gauss degree
     elif d==2:
         return 9
     else:
-        assert False,'only cg1 and cg2 are supported'
+        assert False,"only cg1 and cg2 are supported"
 
 # Evaluates the dG-basis functions on [0,1]^2 in (x,y)
 # dG 0:  1
@@ -73,9 +73,7 @@ def dx_dgbasis(j,x,y):
         assert False
 
 def dy_dgbasis(j,x,y):
-    if j==0:
-        return 0.
-    elif j==1:
+    if j==0 or j==1:
         return 0.
     elif j==2:
         return 1.
@@ -94,7 +92,7 @@ def dy_dgbasis(j,x,y):
         assert False
 
 
-        
+
 # Evaluates 1d dG-basis on the edge [0,1]
 def dgbasis_edge(j,x):
     if j==0:
@@ -109,7 +107,7 @@ def dgbasis_edge(j,x):
 
 ### Inverse element mass matrix for the dg methods
 inversemass = np.array([1., 12., 12., 180., 180., 144., 2160., 2160.])
-        
+
 
 # Evaluates the CG(2)-basis functions on [0,1]^2 in (x,y)
 def CGbasis1d(cg,j,x):
@@ -143,16 +141,15 @@ def CGbasis1d_dX(cg,j,x):
             return -1
         else:
             return 1
+    elif j==0:
+        return 4.0*x-3.0
+    elif j==1:
+        return 4.0-8.0*x
+    elif j==2:
+        return 4.0*x-1.0
     else:
-        if j==0:
-            return 4.0*x-3.0
-        elif j==1:
-            return 4.0-8.0*x
-        elif j==2:
-            return 4.0*x-1.0
-        else:
-            print("CGbasis1d only for j=0,1,2")
-            assert False
+        print("CGbasis1d only for j=0,1,2")
+        assert False
 
 def CGbasisfunction(cg,j,x,y):
     jx = j%(cg+1)

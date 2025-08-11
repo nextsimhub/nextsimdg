@@ -1,7 +1,8 @@
-import numpy as np
-import netCDF4
-import sys
 import os.path
+import sys
+
+import netCDF4
+import numpy as np
 
 file_name = "out.integration_test.nc"
 # Check that the restart file was output
@@ -13,7 +14,7 @@ ncFile = netCDF4.Dataset(file_name, "r")
 
 # Check that an hice variable exists
 hice_name = "hice"
-if not hice_name in ncFile.variables:
+if hice_name not in ncFile.variables:
     print(f"Error: no varaible {hice_name} found in netCDF path {file_name}.")
     sys.exit(2)
 
@@ -36,7 +37,7 @@ if hice.shape[1] != nx:
 if hice.shape[2] != ndg:
     print(f"Error: incorrect number of DG components for variable {hice_name}, expected {ndg}, got {hice.shape[2]}")
     sys.exit(6)
-    
+
 # Test the contents of hice
 x_lo = 51
 x_hi = x_lo*2 + 1
@@ -61,7 +62,7 @@ abs_dg_max = 1
 if np.all(np.abs(hice_dg1) <= abs_dg_min) or np.any(np.abs(hice_dg1) > abs_dg_max):
     print(f"Error: ice thickness DG component {dg1} out of acceptable bounds.")
     sys.exit(8)
-    
+
 cice_name = "cice"
 cice = ncFile[cice_name]
 cice_dg0 = cice[y_lo:y_hi:y_lo, x_lo:x_hi:x_lo, dg0]

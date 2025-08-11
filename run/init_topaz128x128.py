@@ -1,8 +1,9 @@
+import math
+import time
+
 import netCDF4
 import numpy as np
-import numpy.ma as ma
-import time
-import math
+from numpy import ma
 
 topaz_mdi = -32767
 
@@ -15,7 +16,7 @@ def topaz4_source_file_name(field, unix_time):
 def bilinear_missing(eyes, jays, data, missing):
     i = np.floor(eyes).astype(int)
     j = np.floor(jays).astype(int)
-    
+
     fi = eyes - i
     fj = jays - j
 
@@ -30,10 +31,10 @@ def bilinear_missing(eyes, jays, data, missing):
         (1 - fj) * (fi) * dataplier[j, i] +
         (fj) * (1 - fi) * dataplier[j, i] +
         (fj) * (fi) * dataplier[j, i])
-    
+
     weighted_sum += missing * (sum_of_weights == 0)
     sum_of_weights += (sum_of_weights == 0)
-    
+
     return weighted_sum / sum_of_weights
 
 # Returns TOPAZ data interpolated from the data grid and coordinates to the target grid and coordinates
@@ -41,7 +42,7 @@ def topaz4_interpolate(target_lon_deg, target_lat_deg, data, lat_array):
     # The TOPAZ grid is assumed and hard coded
     ic = 380
     jc = 550
-    
+
     # Scale of the map and zero longitude
     two_r = 1 / math.radians(0.08982849)
     lon0 = math.radians(315.)
@@ -57,12 +58,12 @@ def topaz4_interpolate(target_lon_deg, target_lat_deg, data, lat_array):
     y = -topaz_i0 * np.cos(target_lon - lon0)
     target_i = x + ic
     target_j = y + jc
-    
+
     return bilinear_missing(target_i, target_j, data, topaz_mdi)
 
 # Creates a 128 x 128 ParaGrid restart file filled with data from TOPAZ on 2010-01-01
 if __name__ == "__main__":
-    
+
     nx = 128
     ny = 128
     nLayers = 3
@@ -70,13 +71,13 @@ if __name__ == "__main__":
     n_dg = 1
     n_dgstress = 3
     n_coords = 2
-    
-    
+
+
     ncFile = netCDF4.Dataset(f"init_topaz{nx}x{ny}.nc", "w", format="NETCDF4")
-    
+
     structure_name = "parametric_rectangular"
     ncFile.structure_name = structure_name
-    
+
     time_var = ncFile.createVariable("time_meta", "i8")
     data_time = 1263204000
     time_var[:] = data_time
@@ -84,7 +85,7 @@ if __name__ == "__main__":
     formatted = ncFile.createVariable("formatted", str)
     formatted.format = "%Y-%m-%dT%H:%M:%SZ"
     formatted[0] = "2010-01-01T00:00:00Z"
-    
+
     xDim = ncFile.createDimension("x", nx)
     yDim = ncFile.createDimension("y", ny)
     nLay = ncFile.createDimension("z", nLayers)
@@ -95,7 +96,7 @@ if __name__ == "__main__":
     dg_comp = ncFile.createDimension("dg_comp", n_dg)
     dgs_comp = ncFile.createDimension("dgstress_comp", n_dgstress)
     n_coords_comp = ncFile.createDimension("ncoords", n_coords)
-    
+
     hfield_dims = ("y", "x")
 
     # Array coordinates
@@ -103,18 +104,18 @@ if __name__ == "__main__":
     spacing1d = 2 * array_size1d / nx
     limit1d = array_size1d # even number of points + 1
     coord1d = np.linspace(-limit1d, limit1d, num=129)
-    
+
     x_coords = np.zeros((nx + 1, ny + 1))
     y_coords = np.zeros((nx + 1, ny + 1))
     for i in range(nx + 1):
         x_coords[i, :] = coord1d
         y_coords[:, i] = coord1d
-        
+
     # Polar azimuthal equidistant projection
     # node coordinates
     lat = 90 - (x_coords**2 + y_coords**2)**0.5
     lon = np.rad2deg(np.arctan2(y_coords, x_coords))
-    
+
     # element coordinates
     element_shape = (nx, ny)
     element_lon = np.zeros(element_shape)
@@ -123,20 +124,20 @@ if __name__ == "__main__":
     node_x = np.cos(np.radians(lon)) * np.cos(np.radians(lat))
     node_y = np.sin(np.radians(lon)) * np.cos(np.radians(lat))
     node_z = np.sin(np.radians(lat))
-    
+
     element_x = 0.25 * (node_x[0:-1, 0:-1] + node_x[1:, 0:-1] + node_x[0:-1, 1:] + node_x[1:, 1:])
     element_y = 0.25 * (node_y[0:-1, 0:-1] + node_y[1:, 0:-1] + node_y[0:-1, 1:] + node_y[1:, 1:])
     element_z = 0.25 * (node_z[0:-1, 0:-1] + node_z[1:, 0:-1] + node_z[0:-1, 1:] + node_z[1:, 1:])
-    
+
     element_lon = np.degrees(np.arctan2(element_y, element_x))
     element_lat = np.degrees(np.arctan2(element_z, np.hypot(element_x, element_y)))
-    
+
     # Access the TOPAZ data, initally to get latitudes
     source_file_name = topaz4_source_file_name("hice", data_time)
     source_file = netCDF4.Dataset(topaz4_source_file_name("hice", data_time), "r")
     source_lats = source_file["latitude"][:, :]
     lat_array = source_lats[550:, 380]
-    
+
     # Coordinate values in the file
     nc_lons = ncFile.createVariable("longitude", "f8", hfield_dims)
     nc_lons[:, :] = element_lon
@@ -163,24 +164,24 @@ if __name__ == "__main__":
     noice = np.logical_or(cice_data < cice_min, hice_data < hice_min)
     isice = 1 - noice
     cice_data *= isice
-    
+
     hice_data *= isice
     hice_data *= cice_data # Convert from ice averaged to grid averaged
-    
+
     cice = ncFile.createVariable("cice", "f8", hfield_dims)
     hice = ncFile.createVariable("hice", "f8", hfield_dims)
     cice[:, :] = cice_data
     hice[:, :] = hice_data
-    
+
     # Snow thickness
     hsnow = ncFile.createVariable("hsnow", "f8", hfield_dims)
     hsnow_data = topaz4_interpolate(element_lon, element_lat, source_file["hsnow"][0, :, :].squeeze(), lat_array)
     hsnow_data *= noice
     hsnow_data *= cice_data
     hsnow[:, :] = hsnow_data
-    
+
     mu = -0.055
-    
+
     # Ice temperature
     tice = ncFile.createVariable("tice", "f8", ("z", "y", "x"))
     ice_melt = mu * 5 # Melting point of sea ice (salinity = 5) in ˚C
@@ -189,7 +190,7 @@ if __name__ == "__main__":
     tice[0, :, :] = ice_temp2d
     tice[1, :, :] = ice_temp2d
     tice[2, :, :] = ice_temp2d
-    
+
     # SSS
     sss = ncFile.createVariable("sss", "f8", hfield_dims)
     sss_data = topaz4_interpolate(element_lon, element_lat, source_file["salinity"][0, :, :].squeeze(), lat_array)
@@ -206,5 +207,5 @@ if __name__ == "__main__":
 
     v = ncFile.createVariable("v", "f8", hfield_dims)
     v[:, :] = 0
-    
+
     ncFile.close()
