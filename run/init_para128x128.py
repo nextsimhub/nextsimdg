@@ -11,34 +11,28 @@ n_dg = 1
 n_dgstress = 3
 n_coords = 2
 
-root = netCDF4.Dataset(f"init_para{nx}x{ny}.nc", "w", format="NETCDF4")
+ncFile = netCDF4.Dataset(f"init_para{nx}x{ny}.nc", "w", format="NETCDF4")
 
 structure_name = "parametric_rectangular"
-structgrp = root.createGroup("structure")
-structgrp.type = structure_name
+ncFile.structure_name = structure_name
 
-metagrp = root.createGroup("metadata")
-metagrp.type = structure_name
-confgrp = metagrp.createGroup("configuration") # But add nothing to it
-timegrp = metagrp.createGroup("time")
-time = timegrp.createVariable("time", "i8")
+time = ncFile.createVariable("time_meta", "i8")
 time[:] = 946684800
 time.units = "seconds since 1970-01-01T00:00:00Z"
-formatted = timegrp.createVariable("formatted", str)
+formatted = ncFile.createVariable("formatted", str)
 formatted.format = "%Y-%m-%dT%H:%M:%SZ"
 formatted[0] = "2000-01-01T00:00:00Z"
-datagrp = root.createGroup("data")
 
-xDim = datagrp.createDimension("x", nx)
-yDim = datagrp.createDimension("y", ny)
-nLay = datagrp.createDimension("nLayers", nLayers)
-xVertexDim = datagrp.createDimension("xvertex", nx + 1)
-yVertexDim = datagrp.createDimension("yvertex", ny + 1)
-xcg_dim = datagrp.createDimension("x_cg", nx * ncg + 1)
-ycg_dim = datagrp.createDimension("y_cg", ny * ncg + 1)
-dg_comp = datagrp.createDimension("dg_comp", n_dg)
-dgs_comp = datagrp.createDimension("dgstress_comp", n_dgstress)
-n_coords_comp = datagrp.createDimension("ncoords", n_coords)
+xDim = ncFile.createDimension("x", nx)
+yDim = ncFile.createDimension("y", ny)
+nLay = ncFile.createDimension("nLayers", nLayers)
+xVertexDim = ncFile.createDimension("xvertex", nx + 1)
+yVertexDim = ncFile.createDimension("yvertex", ny + 1)
+xcg_dim = ncFile.createDimension("x_cg", nx * ncg + 1)
+ycg_dim = ncFile.createDimension("y_cg", ny * ncg + 1)
+dg_comp = ncFile.createDimension("dg_comp", n_dg)
+dgs_comp = ncFile.createDimension("dgstress_comp", n_dgstress)
+n_coords_comp = ncFile.createDimension("ncoords", n_coords)
 
 hfield_dims = ("y", "x")
 
@@ -85,7 +79,7 @@ mask129 = np.zeros((nx+1, ny+1))
 for i in range(nx+1):
     mask129[i, :] = np.interp(np.arange(129) / 4, np.arange(33), mask129x33[i, :])
 
-mask = datagrp.createVariable("mask", "f8", hfield_dims)
+mask = ncFile.createVariable("mask", "f8", hfield_dims)
 mask[:,:] = np.rint(mask129[:-1, -2::-1])
 
 antimask = 1 - mask[:,:]
@@ -111,7 +105,7 @@ lon += 180.
 lon %= 360.
 lon -= 180.
 
-coords = datagrp.createVariable("coords", "f8", ("yvertex", "xvertex", "ncoords"))
+coords = ncFile.createVariable("coords", "f8", ("yvertex", "xvertex", "ncoords"))
 coords[:,:,0] = lon
 coords[:,:,1] = lat
 
@@ -159,14 +153,14 @@ cice129 = np.zeros((nx+1, ny+1))
 for i in range(nx+1):
     cice129[i, :] = np.interp(np.arange(129) / 4, np.arange(33), cice129x33[i, :])
 
-cice = datagrp.createVariable("cice", "f8", hfield_dims)
+cice = ncFile.createVariable("cice", "f8", hfield_dims)
 cice[:,:] = cice129[:-1, -2::-1]
 
-hice = datagrp.createVariable("hice", "f8", hfield_dims)
+hice = ncFile.createVariable("hice", "f8", hfield_dims)
 hice[:,:] = cice[:,:] * 2
-hsnow = datagrp.createVariable("hsnow", "f8", hfield_dims)
+hsnow = ncFile.createVariable("hsnow", "f8", hfield_dims)
 hsnow[:,:] = cice[:,:] / 2
-tice = datagrp.createVariable("tice", "f8", ("nLayers", "y", "x"))
+tice = ncFile.createVariable("tice", "f8", ("nLayers", "y", "x"))
 tice[0,:,:] = -0.5 - cice[:,:]
 tice[1,:,:] = -1.5 - cice[:,:]
 tice[2,:,:] = -2.5 - cice[:,:]
@@ -183,4 +177,4 @@ for k in range(3):
     tice[k,:,:] = tice[k,:,:] * mask[:,:] + antimask * mdi
 tice.missing_value = mdi
 
-root.close()
+ncFile.close()

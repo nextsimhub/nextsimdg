@@ -49,6 +49,7 @@ variables:
 		hice:coordinates = "time_instant" ;
 
 // global attributes:
+		:structure_name = "parametric_rectangular" ;
 		:name = "xios_test_input" ;
 		:description = "Test input file for XIOS" ;
     :title = "XIOS test input" ;
