@@ -1,3 +1,6 @@
+"""
+Script for generating a changelog file.
+"""
 import os
 import re
 import string

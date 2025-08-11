@@ -1,3 +1,6 @@
+"""
+Test that out.integration_test.nc is a valid restart file.
+"""
 import os.path
 import sys
 

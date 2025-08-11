@@ -1,3 +1,7 @@
+"""
+Generate the code for a Nextsim module class source file.
+"""
+
 def denamespace(nname):
     """Returns the last element of the name, without any of the qualifying
     namespaces.
