@@ -180,9 +180,9 @@ ks = 0.31
         maxval = 3.3327
         minval = 2.9702
         hiceDG0 = self.hice[:, 0]
-        self.assertAlmostEqual(maxval, hiceDG0.max(), 4, "Max ice thickness not ~= " + str(max) + " m")
-        self.assertAlmostEqual(minval, hiceDG0.min(), 4, "Min ice thickness not ~= " + str(min) + " m")
-        self.assertAlmostEqual(meanval, hiceDG0.mean(), 4, "Mean ice thickness not ~= " + str(mean) + " m")
+        self.assertAlmostEqual(maxval, hiceDG0.max(), 4, f"Max ice thickness not ~= {maxval} m")
+        self.assertAlmostEqual(minval, hiceDG0.min(), 4, f"Min ice thickness not ~= {minval} m")
+        self.assertAlmostEqual(meanval, hiceDG0.mean(), 4, f"Mean ice thickness not ~= {meanval} m")
 
     def test_snowThickness(self):
         """Test the snow thickness against standard max, min, and mean values."""
@@ -190,9 +190,9 @@ ks = 0.31
         maxval = 0.4000
         minval = 0.0000
         snowDG0 = self.hsnow[:, 0]
-        self.assertAlmostEqual(maxval, snowDG0.max(), 4, "Max snow thickness not ~= " + str(max) + " m")
-        self.assertAlmostEqual(minval, snowDG0.min(), 4, "Min snow thickness not ~= " + str(min) + " m")
-        self.assertAlmostEqual(meanval, snowDG0.mean(), 4, "Mean snow thickness not ~= " + str(mean) + " m")
+        self.assertAlmostEqual(maxval, snowDG0.max(), 4, f"Max snow thickness not ~= {maxval} m")
+        self.assertAlmostEqual(minval, snowDG0.min(), 4, f"Min snow thickness not ~= {minval} m")
+        self.assertAlmostEqual(meanval, snowDG0.mean(), 4, f"Mean snow thickness not ~= {meanval} m")
 
     def test_temperatureTest(self):
         """
@@ -210,10 +210,9 @@ ks = 0.31
         maxvals = [0.0000, -1.1280, -1.5939]
         minvals = [-33.1569, -14.8520, -6.1389]
         for i, t_level in enumerate((self.tsurf[:, 0, 0, 0], self.tintr[:, 0, 0, 0], self.tbott[:, 0, 0, 0])):
-            self.assertAlmostEqual(maxvals[i], t_level.max(), 4, "Max T" + str(i) + " not ~= " + str(max[i]) + " ˚C")
-            self.assertAlmostEqual(minvals[i], t_level.min(), 3, "Min T" + str(i) + " not ~= " + str(min[i]) + " ˚C")
-            self.assertAlmostEqual(meanvals[i], t_level.mean(), 3,
-                                   "Mean T" + str(i) + " not ~= " + str(mean[i]) + " ˚C")
+            self.assertAlmostEqual(maxvals[i], t_level.max(), 4, f"Max T {i} not ~= {maxvals[i]} ˚C")
+            self.assertAlmostEqual(minvals[i], t_level.min(), 3, f"Min T {i} not ~= {minvals[i]} ˚C")
+            self.assertAlmostEqual(meanvals[i], t_level.mean(), 3, f"Mean T {i} not ~= {meanvals[i]} ˚C")
 
 
 if __name__ == "__main__":
