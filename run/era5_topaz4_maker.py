@@ -1,5 +1,7 @@
+import argparse
 import calendar
 import time
+from collections import namedtuple
 
 import netCDF4
 import numpy as np
@@ -23,7 +25,6 @@ def create_era5_times(start_tm, stop_tm):
     :param stop_tm: End time for the time series
     :return: Arrays of times for the ERA5 file, in Unix and ERA5 format
     """
-    from collections import namedtuple
     # Define the tm named tuple structure locally
     Tm = namedtuple("Tm", "tm_year tm_mon tm_mday tm_hour tm_min tm_sec tm_wday tm_yday tm_isdst")
     # From tm structures to seconds since Unix epoch
@@ -49,7 +50,6 @@ def create_topaz_times(start_tm, stop_tm):
     :param stop_tm: End time for the time series
     :return: Arrays of times for the TOPAZ file, in Unix and TOPAZ format
     """
-    from collections import namedtuple
     # Define the tm named tuple structure locally
     Tm = namedtuple("Tm", "tm_year tm_mon tm_mday tm_hour tm_min tm_sec tm_wday tm_yday tm_isdst")
     # From tm structures to seconds since Unix epoch
@@ -99,7 +99,6 @@ if __name__ == "__main__":
     """
 
     # Set up the argument parsing
-    import argparse
     parser = argparse.ArgumentParser(description = "Create grid matched forcing files for a ERA5 and TOPAZ4")
     parser.add_argument("--file", dest="file", required = True, help = "A restart file containing the target grid information.")
     parser.add_argument("--start", dest = "start", required = True, help = "The ISO start date for the forcing file.")
