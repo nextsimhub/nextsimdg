@@ -87,15 +87,11 @@ class initMaker:
                 raise RuntimeError("Incorrect array shape")
 
     def __del__(self):
-        """
-        Destructor that writes the file when the object goes out of scope.
-        """
+        """Destructor that writes the file when the object goes out of scope."""
         self.__writeFile__()
 
     def __writeFile__(self):
-        """
-        Write everything to file. This is called by the destructor.
-        """
+        """Write everything to file. This is called by the destructor."""
         print("Producing file", self.__fname)
 
         self.__testFields__()
