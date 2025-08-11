@@ -7,6 +7,13 @@ import numpy as np
 
 
 class SingleColumnThermo(unittest.TestCase):
+    """
+    A class which,
+        - Creates the initialisation file, using make_init_column.py
+        - Runs the model
+        - Loads the neccesary variables from the output file
+    """
+
     # A few useful global variables for the class
     executable = "../nextsim"
 
@@ -22,10 +29,7 @@ class SingleColumnThermo(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         """
-        A set-up class which,
-          - Creates the initialisation file, using make_init_column.py
-          - Runs the model
-          - Loads the neccesary variables from the output file
+        Set up the test case before running a test.
         """
         # Make the init column
         cls.__make_init_column()
