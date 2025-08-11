@@ -1,11 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Sun Jul 10 12:40:25 2022
-
-nextsimDG 
-
-code generation for paramtric mesh using Q1 mapping
+Code generation for paramtric mesh using Q1 mapping.
 
 @author  Thomas Richter <thomas.richter@ovgu.de>
 """
