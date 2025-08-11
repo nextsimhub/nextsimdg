@@ -14,7 +14,8 @@ def dgdofs(d):    # Number of unknowns per element depending on gauss degree
     elif d==2:
         return 6
     else:
-        raise AssertionError("dG3 and higher is not implemented")
+        msg = "dG3 and higher is not implemented"
+        raise AssertionError(msg)
 
 ### Inverse element mass matrix for the dg methods
 inversemass = np.array([1., 12., 12., 180., 180., 144.])
