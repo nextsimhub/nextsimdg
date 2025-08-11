@@ -67,7 +67,8 @@ class initMaker:
         """
         if (self.mask==0).all():
             print("Error: 'mask' is not set (all values are zero, meaning land everywhere)")
-            raise RuntimeError("'mask' is not set")
+            runtime_err = "'mask' is not set"
+            raise RuntimeError(runtime_err)
 
         for check in [["cice", (self.cice==0).all(), self.cice.shape==(self.__nFirst,self.__nSecond)],
                       ["hice", (self.hice==0).all(), self.hice.shape==(self.__nFirst,self.__nSecond)],
@@ -84,7 +85,8 @@ class initMaker:
 
             if not check[2]:
                 print("Error: '"+check[0]+"' is the wrong shape")
-                raise RuntimeError("Incorrect array shape")
+                runtime_err = "Incorrect array shape"
+                raise RuntimeError(runtime_err)
 
     def __del__(self):
         """Destructor that writes the file when the object goes out of scope."""

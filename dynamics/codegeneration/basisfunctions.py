@@ -18,7 +18,8 @@ def dgdofs(d):
     elif d==2:
         return 6
     else:
-        raise AssertionError("dG3 and higher is not implemented")
+        msg = "dG3 and higher is not implemented"
+        raise AssertionError(msg)
 
 def cgdofs(d):
     """
@@ -30,7 +31,8 @@ def cgdofs(d):
     elif d==2:
         return 9
     else:
-        raise AssertionError("only cg1 and cg2 are supported")
+        msg = "only cg1 and cg2 are supported"
+        raise AssertionError(msg)
 
 def dgbasis(j,x,y):
     """
