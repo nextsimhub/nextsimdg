@@ -1,13 +1,11 @@
 """Generate the code for a Nextsim module class source file."""
 
 def denamespace(nname):
-    """Returns the last element of the name, without any of the qualifying
-    namespaces.
-    """
+    """Return the last element of the name, without any of the qualifying namespaces."""
     return nname.split(":")[-1]
 
 def generator(module_class_name, fq_interface_name, fq_impl_names, help_names):
-    """Generates the text for a module support file."""
+    """Generate the text for a module support file."""
     interface_name = denamespace(fq_interface_name)
 
     # Add the include file for the module class
