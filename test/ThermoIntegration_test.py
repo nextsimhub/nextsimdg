@@ -1,5 +1,6 @@
 import os
 import subprocess
+import time
 import unittest
 
 import netCDF4
@@ -81,10 +82,6 @@ ks = 0.31
 
     @classmethod
     def __make_init_column(cls):
-        import time
-
-        import netCDF4
-        import numpy as np
 
         ncFile = netCDF4.Dataset(cls.init_file, "w", format="NETCDF4")
         structure_name = "parametric_rectangular"
