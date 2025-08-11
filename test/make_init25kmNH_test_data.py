@@ -51990,7 +51990,7 @@ def get_data(name):
       NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN,
       NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN
             ]).reshape((ny, nx))
-    elif name == "tsurf" or name == "tinterior" or name == "tbottom":
+    elif name in ("tsurf", "tinterior", "tbottom"):
         return np.asarray([
   NaN, NaN, NaN, NaN, NaN, -1.64505209830731, -1.64567742687956, -1.64534436042695,
       NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN,

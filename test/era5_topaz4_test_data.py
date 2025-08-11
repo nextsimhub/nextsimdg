@@ -10136,7 +10136,7 @@ def get_data(name):
       66.8792542942542, 66.7539613167684
             ]).reshape(ny, nx)
 def get_era_data(name):
-    if name == "longitude" or name == "latitude":
+    if name in ("longitude", "latitude"):
         return get_data(name)
     elif name == "dew2m":
         return np.asarray([
@@ -54387,7 +54387,7 @@ def get_era_data(name):
             ]).reshape(ny, nx)
 
 def get_topaz_data(name):
-    if name == "longitude" or name == "latitude":
+    if name in ("longitude", "latitude"):
         return get_data(name)
     elif name == "mld":
         return  np.asarray([
