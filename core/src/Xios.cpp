@@ -722,6 +722,9 @@ void Xios::affixModelMetadata(ModelMetadata& metadata)
     cxios_set_domain_jbegin(domain, (int)metadata.localCornerY);
     cxios_set_domain_ni(domain, (int)metadata.localExtentX);
     cxios_set_domain_nj(domain, (int)metadata.localExtentY);
+    const std::vector<std::string> hDomainNames = { "x", "y" };
+    cxios_set_domain_dim_i_name(domain, hDomainNames[0].c_str(), hDomainNames[0].length());
+    cxios_set_domain_dim_j_name(domain, hDomainNames[1].c_str(), hDomainNames[1].length());
 
     // Create XIOS grid 'HGrid2D' associated with HDomain
     createGrid(hGridId);
@@ -748,6 +751,11 @@ void Xios::affixModelMetadata(ModelMetadata& metadata)
     cxios_set_domain_jbegin(domain, (int)metadata.localCornerY);
     cxios_set_domain_ni(domain, (int)metadata.localExtentX + 1);
     cxios_set_domain_nj(domain, (int)metadata.localExtentY + 1);
+    const std::vector<std::string> vertexDomainNames = { "xvertex", "yvertex" };
+    cxios_set_domain_dim_i_name(
+        domain, vertexDomainNames[0].c_str(), vertexDomainNames[0].length());
+    cxios_set_domain_dim_j_name(
+        domain, vertexDomainNames[1].c_str(), vertexDomainNames[1].length());
 
     // Create XIOS axis 'VertexAxis' to account for the 2D vector field
     createAxis(vertexAxisId);
@@ -785,6 +793,14 @@ void Xios::affixModelMetadata(ModelMetadata& metadata)
         if (!cxios_is_defined_domain_nj(domain)) {
             throw std::runtime_error(
                 "Xios: Failed to set local y-size for domain '" + domainId + "'");
+        }
+        if (!cxios_is_defined_domain_dim_i_name(domain)) {
+            throw std::runtime_error(
+                "Xios: Failed to set x-coordinate name for domain '" + domainId + "'");
+        }
+        if (!cxios_is_defined_domain_dim_j_name(domain)) {
+            throw std::runtime_error(
+                "Xios: Failed to set y-coordinate name for domain '" + domainId + "'");
         }
     }
 }

@@ -93,6 +93,8 @@ void cxios_xml_tree_add_domain(
 void cxios_domain_handle_create(xios::CDomain** _ret, const char* _id, int _id_len);
 void cxios_domain_valid_id(bool* _ret, const char* _id, int _id_len);
 void cxios_set_domain_type(xios::CDomain* domain_hdl, const char* type, int type_size);
+void cxios_set_domain_dim_i_name(xios::CDomain* domain_hdl, const char* iname, int iname_size);
+void cxios_set_domain_dim_j_name(xios::CDomain* domain_hdl, const char* jname, int jname_size);
 void cxios_set_domain_ni_glo(xios::CDomain* domain_hdl, int ni_glo);
 void cxios_set_domain_nj_glo(xios::CDomain* domain_hdl, int nj_glo);
 void cxios_set_domain_ni(xios::CDomain* domain_hdl, int ni);
@@ -100,6 +102,8 @@ void cxios_set_domain_nj(xios::CDomain* domain_hdl, int nj);
 void cxios_set_domain_ibegin(xios::CDomain* domain_hdl, int ibegin);
 void cxios_set_domain_jbegin(xios::CDomain* domain_hdl, int jbegin);
 bool cxios_is_defined_domain_type(xios::CDomain* axis_hdl);
+bool cxios_is_defined_domain_dim_i_name(xios::CDomain* axis_hdl);
+bool cxios_is_defined_domain_dim_j_name(xios::CDomain* axis_hdl);
 bool cxios_is_defined_domain_ni_glo(xios::CDomain* axis_hdl);
 bool cxios_is_defined_domain_nj_glo(xios::CDomain* axis_hdl);
 bool cxios_is_defined_domain_ni(xios::CDomain* axis_hdl);
