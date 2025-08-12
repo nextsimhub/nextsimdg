@@ -725,6 +725,8 @@ void Xios::affixModelMetadata(ModelMetadata& metadata)
     const std::vector<std::string> hDomainNames = { "x", "y" };
     cxios_set_domain_dim_i_name(domain, hDomainNames[0].c_str(), hDomainNames[0].length());
     cxios_set_domain_dim_j_name(domain, hDomainNames[1].c_str(), hDomainNames[1].length());
+    cxios_set_domain_lon_name(domain, hDomainNames[0].c_str(), hDomainNames[0].length());
+    cxios_set_domain_lat_name(domain, hDomainNames[1].c_str(), hDomainNames[1].length());
 
     // Set metadata for 'VertexDomain'
     domain = getDomain(vertexDomainId);
@@ -739,6 +741,8 @@ void Xios::affixModelMetadata(ModelMetadata& metadata)
         domain, vertexDomainNames[0].c_str(), vertexDomainNames[0].length());
     cxios_set_domain_dim_j_name(
         domain, vertexDomainNames[1].c_str(), vertexDomainNames[1].length());
+    cxios_set_domain_lon_name(domain, vertexDomainNames[0].c_str(), vertexDomainNames[0].length());
+    cxios_set_domain_lat_name(domain, vertexDomainNames[1].c_str(), vertexDomainNames[1].length());
 
     // Check the domains were set up correctly
     for (std::string domainId : { hDomainId, vertexDomainId }) {
@@ -774,6 +778,14 @@ void Xios::affixModelMetadata(ModelMetadata& metadata)
         if (!cxios_is_defined_domain_dim_j_name(domain)) {
             throw std::runtime_error(
                 "Xios: Failed to set y-coordinate name for domain '" + domainId + "'");
+        }
+        if (!cxios_is_defined_domain_lat_name(domain)) {
+            throw std::runtime_error(
+                "Xios: Failed to set latitude name for domain '" + domainId + "'");
+        }
+        if (!cxios_is_defined_domain_lon_name(domain)) {
+            throw std::runtime_error(
+                "Xios: Failed to set longitude name for domain '" + domainId + "'");
         }
     }
 
