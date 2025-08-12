@@ -790,7 +790,7 @@ void Xios::affixModelMetadata(ModelMetadata& metadata)
     }
 
     // Create XIOS axis 'DGAxis'
-    int DG = ModelArray::nComponents(ModelArray::Type::DG) / 2; // TODO: Check
+    int DG = ModelArray::size(ModelArray::Dimension::DG);
     createAxis(dgAxisId);
     setAxisSize(dgAxisId, DG);
     xios::CAxis* axis = getAxis(dgAxisId);
@@ -829,8 +829,6 @@ void Xios::affixModelMetadata(ModelMetadata& metadata)
     grid = getGrid(vertexGridId);
     cxios_xml_tree_add_axistogrid(grid, &axis, vertexAxisId.c_str(), vertexAxisId.length());
     cxios_xml_tree_add_domaintogrid(grid, &domain, vertexDomainId.c_str(), vertexDomainId.length());
-
-    // TODO: Check the axes were set up correctly
 }
 
 /*!
@@ -1515,20 +1513,22 @@ void Xios::write(const std::string fieldId, ModelArray& modelarray)
         throw std::runtime_error(
             "Xios::write: field " + fieldId + " has not been configured for writing with XIOS.");
     }
-    auto dims = modelarray.dimensions();
-    auto ncomponents = modelarray.nComponents();
     if (modelarray.nDimensions() != 2) {
         throw std::invalid_argument("Only ModelArrays of dimension 2 are supported");
     }
-    // TODO: Proper switching between HField, DGField, and VertexField cases
-    if (ncomponents == 1) {
+    auto dims = modelarray.dimensions();
+    auto type = modelarray.getType();
+    if (type == ModelArray::Type::H) {
         cxios_write_data_k82(
             fieldId.c_str(), fieldId.length(), modelarray.getData(), dims[0], dims[1], -1);
+    } else if (type == ModelArray::Type::VERTEX) {
+        cxios_write_data_k83(fieldId.c_str(), fieldId.length(), modelarray.getData(), dims[0],
+            dims[1], ModelArray::size(ModelArray::Dimension::NCOORDS), -1);
+    } else if (type == ModelArray::Type::DG) {
+        cxios_write_data_k83(fieldId.c_str(), fieldId.length(), modelarray.getData(), dims[0],
+            dims[1], ModelArray::size(ModelArray::Dimension::DG), -1);
     } else {
-        // TODO: Separate grid for DG case
-        int DG = ncomponents;
-        cxios_write_data_k83(
-            fieldId.c_str(), fieldId.length(), modelarray.getData(), DG, dims[0], dims[1], -1);
+        throw std::invalid_argument("Only HFields, VertexFields, and DGFields are supported");
     }
 }
 
@@ -1546,13 +1546,22 @@ void Xios::read(const std::string fieldId, ModelArray& modelarray)
         throw std::runtime_error(
             "Xios::read: field " + fieldId + " has not been configured for reading with XIOS.");
     }
-    auto ndim = modelarray.nDimensions();
+    if (modelarray.nDimensions() != 2) {
+        throw std::invalid_argument("Only ModelArrays of dimension 2 are supported");
+    }
     auto dims = modelarray.dimensions();
-    if (ndim == 2) {
+    auto type = modelarray.getType();
+    if (type == ModelArray::Type::H) {
         cxios_read_data_k82(
             fieldId.c_str(), fieldId.length(), modelarray.getData(), dims[0], dims[1]);
+    } else if (type == ModelArray::Type::VERTEX) {
+        cxios_read_data_k83(fieldId.c_str(), fieldId.length(), modelarray.getData(), dims[0],
+            dims[1], ModelArray::size(ModelArray::Dimension::NCOORDS));
+    } else if (type == ModelArray::Type::DG) {
+        cxios_read_data_k83(fieldId.c_str(), fieldId.length(), modelarray.getData(), dims[0],
+            dims[1], ModelArray::size(ModelArray::Dimension::DG));
     } else {
-        throw std::invalid_argument("Only ModelArrays of dimension 2 are supported");
+        throw std::invalid_argument("Only HFields, VertexFields, and DGFields are supported");
     }
 }
 }

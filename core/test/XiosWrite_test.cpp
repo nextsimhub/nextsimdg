@@ -117,9 +117,8 @@ MPI_TEST_CASE("TestXiosWrite", 2)
 
     // Setup ModelState with field above
     ModelState state = { {
-                             { maskName, mask },
-                             { coordsName, coordinates },
-                             { hiceName, hice },
+                             { maskName, mask }, { coordsName, coordinates },
+                             { hiceName, hice }, // FIXME: Shape mismatch (expected 24, got 12)
                          },
         {} };
 

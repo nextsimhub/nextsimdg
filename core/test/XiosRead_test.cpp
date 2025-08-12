@@ -63,6 +63,10 @@ MPI_TEST_CASE("TestXiosRead", 2)
     ModelMetadata metadata("xios_test_partition_metadata_2.nc", test_comm);
     xiosHandler.affixModelMetadata(metadata);
 
+    // Set DG degree
+    // TODO: Can we not deduce this from the NetCDF file?
+    ModelArray::setDimension(ModelArray::Dimension::DG, DG, DG, 0);
+
     // Create fields on the grid
     // NOTE: Fields are created when the XIOS handler is constructed
     // NOTE: The 2D grid is created along with the 2D domain
@@ -87,13 +91,13 @@ MPI_TEST_CASE("TestXiosRead", 2)
     hice.resize();
 
     // Setup ModelState with field above
-    // FIXME: VertexField and DGField not read correctly
-    ModelState state = { {
-                             { maskName, mask },
-                             { coordsName, coordinates },
-                             { hiceName, hice },
-                         },
-        {} };
+    ModelState state
+        = { {
+                { maskName, mask },
+                { coordsName, coordinates }, // FIXME: Shape mismatch (expected 18, got 4)
+                { hiceName, hice }, // FIXME: Shape mismatch (expected 12, got 4)
+            },
+              {} };
 
     // Check calendar step is zero initially
     REQUIRE(xiosHandler.getCalendarStep() == 0);
@@ -102,8 +106,8 @@ MPI_TEST_CASE("TestXiosRead", 2)
     REQUIRE(std::filesystem::exists(filename));
 
     // Deduce the local lengths of the two dimensions
-    const size_t nx = ModelArray::definedDimensions.at(ModelArray::Dimension::X).localLength;
-    const size_t ny = ModelArray::definedDimensions.at(ModelArray::Dimension::Y).localLength;
+    const size_t nx = ModelArray::size(ModelArray::Dimension::X);
+    const size_t ny = ModelArray::size(ModelArray::Dimension::Y);
 
     // Simulate 4 iterations (timesteps)
     metadata.setTime(xiosHandler.getCalendarStart());
