@@ -39,10 +39,7 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     config << "[XiosOutput]" << std::endl;
     config << "period = P0-0T01:30:00" << std::endl;
     config << "filename = xios_test_output.nc" << std::endl;
-    // config << "field_names = " << maskName << "," << hiceName << std::endl;
-    config << "field_names = " << maskName << "," << coordsName << std::endl;
-    // TODO: Add a VertexField to the config
-    // config << "field_names = " << maskName << "," << coordsName << "," << hiceName << std::endl;
+    config << "field_names = " << maskName << "," << coordsName << "," << hiceName << std::endl;
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
 
@@ -70,23 +67,19 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     ModelArray::setDimension(ModelArray::Dimension::Y, ny_glo, ny, 0);
     ModelArray::setDimension(ModelArray::Dimension::XVERTEX, nx_glo + 1, nx + 1, 0); // TODO: check
     ModelArray::setDimension(ModelArray::Dimension::YVERTEX, ny_glo + 1, ny + 1, 0); // TODO: check
-    // ModelArray::setDimension(ModelArray::Dimension::DG, DG, DG, 0);
-    ModelArray::setDimension(ModelArray::Dimension::DG, 2 * DG, 2 * DG, 0); // TODO: Is this right?
+    ModelArray::setDimension(ModelArray::Dimension::DG, DG, DG, 0); // TODO: Check
 
     // Create fields on the grid
     // NOTE: Fields are created when the XIOS handler is constructed
     // NOTE: The 2D grid is created along with the 2D domain
     Duration timestep = xiosHandler.getCalendarTimestep();
-    // TODO: setup the VertexField
-    // for (std::string fieldName : { maskName, coordsName, hiceName }) {
-    // for (std::string fieldName : { maskName, hiceName }) {
-    for (std::string fieldName : { maskName, coordsName }) {
+    for (std::string fieldName : { maskName, coordsName, hiceName }) {
         xiosHandler.setFieldOperation(fieldName, "instant");
         xiosHandler.setFieldFreqOffset(fieldName, timestep);
     }
     // TODO: Automate the following
     xiosHandler.setFieldGridRef(maskName, "HGrid");
-    // xiosHandler.setFieldGridRef(hiceName, "DGGrid");
+    xiosHandler.setFieldGridRef(hiceName, "DGGrid");
     xiosHandler.setFieldGridRef(coordsName, "VertexGrid");
 
     // Set file split frequency
@@ -124,8 +117,9 @@ MPI_TEST_CASE("TestXiosWrite", 2)
 
     // Setup ModelState with field above
     ModelState state = { {
-                             { maskName, mask }, { coordsName, coordinates },
-                             // { hiceName, hice }, // FIXME: See xios_client_0.err
+                             { maskName, mask },
+                             { coordsName, coordinates },
+                             { hiceName, hice },
                          },
         {} };
 

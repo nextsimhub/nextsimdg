@@ -729,10 +729,9 @@ void Xios::affixModelMetadata(ModelMetadata& metadata)
     cxios_xml_tree_add_domaintogrid(grid, &domain, hDomainId.c_str(), hDomainId.length());
 
     // Create XIOS axis 'DGAxis'
-    int DG = ModelArray::nComponents(ModelArray::Type::DG);
+    int DG = ModelArray::nComponents(ModelArray::Type::DG) / 2; // TODO: Check
     createAxis(dgAxisId);
-    // setAxisSize(dgAxisId, 2 * DG);
-    setAxisSize(dgAxisId, DG); // TODO: Check if this is correct
+    setAxisSize(dgAxisId, DG);
 
     // Create XIOS grid 'DGGrid2D' associated with HDomain and DGAxis
     createGrid(dgGridId);
