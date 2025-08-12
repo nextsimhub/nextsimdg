@@ -1,7 +1,5 @@
 netcdf xios_test_input {
-
 dimensions:
-
 	axis_nbounds = 2 ;
 	x = 4 ;
 	y = 2 ;
@@ -13,21 +11,27 @@ dimensions:
   dgstress_comp = 8 ;
   ncoords = 2 ;
 	time_counter = UNLIMITED ; // (4 currently)
-
 variables:
-
 	float y(y) ;
 		y:axis = "Y" ;
 		y:standard_name = "latitude" ;
 		y:long_name = "Latitude" ;
 		y:units = "degrees_north" ;
-
 	float x(x) ;
 		x:axis = "X" ;
 		x:standard_name = "longitude" ;
 		x:long_name = "Longitude" ;
 		x:units = "degrees_east" ;
-
+	float yvertex(yvertex) ;
+		yvertex:axis = "YVERTEX" ;
+		yvertex:standard_name = "vertex latitude" ;
+		yvertex:long_name = "Vertex latitude" ;
+		yvertex:units = "degrees_north" ;
+	float xvertex(xvertex) ;
+		xvertex:axis = "XVERTEX" ;
+		xvertex:standard_name = "vertex longitude" ;
+		xvertex:long_name = "Vertex longitude" ;
+		xvertex:units = "degrees_east" ;
 	double time_instant(time_counter) ;
 		time_instant:standard_name = "time" ;
 		time_instant:long_name = "Time axis" ;
@@ -35,9 +39,7 @@ variables:
 		time_instant:units = "seconds since 2020-01-23 00:08:15" ;
 		time_instant:time_origin = "2020-01-23 00:08:15" ;
 		time_instant:bounds = "time_instant_bounds" ;
-
 	double time_instant_bounds(time_counter, axis_nbounds) ;
-
 	double time_counter(time_counter) ;
 		time_counter:axis = "T" ;
 		time_counter:standard_name = "time" ;
@@ -46,36 +48,31 @@ variables:
 		time_counter:units = "seconds since 2020-01-23 00:08:15" ;
 		time_counter:time_origin = "2020-01-23 00:08:15" ;
 		time_counter:bounds = "time_counter_bounds" ;
-
 	double time_counter_bounds(time_counter, axis_nbounds) ;
-
   float field_1D(time_counter, ncoords) ;
     field_1D:online_operation = "instant" ;
     field_1D:interval_operation = "5400 s" ;
     field_1D:interval_write = "5400 s" ;
     field_1D:cell_methods = "time: point" ;
-    field_1D:coordinates = "time_instant" ;
-
+    field_1D:coordinates = "time_instant VertexAxis" ;
 	float coords(time_counter, yvertex, xvertex, ncoords) ;
 		coords:online_operation = "instant" ;
 		coords:interval_operation = "5400 s" ;
 		coords:interval_write = "5400 s" ;
 		coords:cell_methods = "time: point" ;
-		coords:coordinates = "time_instant" ;
-
+		coords:coordinates = "time_instant lat lon VertexAxis" ;
   float hice(time_counter, y, x, dg_comp) ;
 		hice:online_operation = "instant" ;
 		hice:interval_operation = "5400 s" ;
 		hice:interval_write = "5400 s" ;
 		hice:cell_methods = "time: point" ;
-		hice:coordinates = "time_instant" ;
-
+		hice:coordinates = "time_instant lat lon DGAxis" ;
 	float mask(time_counter, y, x) ;
 		mask:online_operation = "instant" ;
 		mask:interval_operation = "5400 s" ;
 		mask:interval_write = "5400 s" ;
 		mask:cell_methods = "time: point" ;
-		mask:coordinates = "time_instant" ;
+		mask:coordinates = "time_instant lat lon" ;
 
 // global attributes:
 		:structure_name = "parametric_rectangular" ;
@@ -86,9 +83,13 @@ variables:
 
 data:
 
- y = -1, 1 ;
+ y = -1, 0 ;
 
  x = -1, -0.5, 0, 0.5 ;
+
+ yvertex = -1, 0, 1 ;
+
+ xvertex = -1, -0.5, 0, 0.5, 1 ;
 
  time_instant = 99340365, 99345765, 99351165, 99356565 ;
 
