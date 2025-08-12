@@ -791,15 +791,16 @@ void Xios::affixModelMetadata(ModelMetadata& metadata)
 
     // Create XIOS axis 'DGAxis'
     int DG = ModelArray::size(ModelArray::Dimension::DG);
+    // FIXME: Why does DG come out as 6 rather than 3 in the write test?
     createAxis(dgAxisId);
-    setAxisSize(dgAxisId, DG);
+    setAxisSize(dgAxisId, ModelArray::size(ModelArray::Dimension::DG));
     xios::CAxis* axis = getAxis(dgAxisId);
     const std::string dgAxisName = "dg_comp";
     cxios_set_axis_dim_name(axis, dgAxisName.c_str(), dgAxisName.length());
 
-    // Create XIOS axis 'VertexAxis' to account for the 2D vector field
+    // Create XIOS axis 'VertexAxis' to account for the vector field
     createAxis(vertexAxisId);
-    setAxisSize(vertexAxisId, 2);
+    setAxisSize(vertexAxisId, ModelArray::size(ModelArray::Dimension::NCOORDS));
     axis = getAxis(vertexAxisId);
     const std::string vertexAxisName = "ncoords";
     cxios_set_axis_dim_name(axis, vertexAxisName.c_str(), vertexAxisName.length());
@@ -1525,6 +1526,8 @@ void Xios::write(const std::string fieldId, ModelArray& modelarray)
         cxios_write_data_k83(fieldId.c_str(), fieldId.length(), modelarray.getData(), dims[0],
             dims[1], ModelArray::size(ModelArray::Dimension::NCOORDS), -1);
     } else if (type == ModelArray::Type::DG) {
+        int DG = ModelArray::size(ModelArray::Dimension::DG);
+        // FIXME: ... but here DG is 3 (as expected) in the write test.
         cxios_write_data_k83(fieldId.c_str(), fieldId.length(), modelarray.getData(), dims[0],
             dims[1], ModelArray::size(ModelArray::Dimension::DG), -1);
     } else {

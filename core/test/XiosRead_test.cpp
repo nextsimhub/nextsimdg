@@ -64,7 +64,7 @@ MPI_TEST_CASE("TestXiosRead", 2)
     xiosHandler.affixModelMetadata(metadata);
 
     // Set DG degree
-    // TODO: Can we not deduce this from the NetCDF file?
+    // TODO: We could deduce this from the NetCDF file
     ModelArray::setDimension(ModelArray::Dimension::DG, DG, DG, 0);
 
     // Create fields on the grid
