@@ -67,6 +67,13 @@ variables:
 		coords:cell_methods = "time: point" ;
 		coords:coordinates = "time_instant" ;
 
+  float hice(time_counter, y, x, dg_comp) ;
+		hice:online_operation = "instant" ;
+		hice:interval_operation = "5400 s" ;
+		hice:interval_write = "5400 s" ;
+		hice:cell_methods = "time: point" ;
+		hice:coordinates = "time_instant" ;
+
 	float mask(time_counter, y, x) ;
 		mask:online_operation = "instant" ;
 		mask:interval_operation = "5400 s" ;
@@ -166,6 +173,40 @@ data:
   0, 2,
   1, 2,
   2, 2 ;
+
+ hice =
+  0, 1, 2,
+  3, 4, 5,
+  0, 1, 2,
+  3, 4, 5,
+  6, 7, 8,
+  9, 10, 11,
+  6, 7, 8,
+  9, 10, 11,
+  0, 1, 2,
+  3, 4, 5,
+  0, 1, 2,
+  3, 4, 5,
+  6, 7, 8,
+  9, 10, 11,
+  6, 7, 8,
+  9, 10, 11,
+  0, 1, 2,
+  3, 4, 5,
+  0, 1, 2,
+  3, 4, 5,
+  6, 7, 8,
+  9, 10, 11,
+  6, 7, 8,
+  9, 10, 11,
+  0, 1, 2,
+  3, 4, 5,
+  0, 1, 2,
+  3, 4, 5,
+  6, 7, 8,
+  9, 10, 11,
+  6, 7, 8,
+  9, 10, 11 ;
 
  mask =
   0, 0, 0, 0,

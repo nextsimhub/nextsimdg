@@ -43,11 +43,7 @@ MPI_TEST_CASE("TestXiosRead", 2)
     config << "[XiosInput]" << std::endl;
     config << "period = P0-0T01:30:00" << std::endl;
     config << "filename = xios_test_input.nc" << std::endl;
-    // TODO: Add a VertexField and DGField to the config
-    // config << "field_names = " << maskName << std::endl;
-    config << "field_names = " << maskName << "," << coordsName << std::endl;
-    // config << "field_names = " << maskName << "," << hiceName << std::endl;
-    // config << "field_names = " << maskName << "," << coordsName << "," << hiceName << std::endl;
+    config << "field_names = " << maskName << "," << coordsName << "," << hiceName << std::endl;
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
 
@@ -71,17 +67,13 @@ MPI_TEST_CASE("TestXiosRead", 2)
     // NOTE: Fields are created when the XIOS handler is constructed
     // NOTE: The 2D grid is created along with the 2D domain
     Duration timestep = xiosHandler.getCalendarTimestep();
-    // TODO: Setup the VertexField and DGField
-    for (std::string fieldName : { maskName, coordsName }) {
-        // for (std::string fieldName : { maskName, hiceName }) {
-        // for (std::string fieldName : { maskName, coordsName, hiceName }) {
-        // for (std::string fieldName : { maskName }) {
+    for (std::string fieldName : { maskName, coordsName, hiceName }) {
         xiosHandler.setFieldOperation(fieldName, "instant");
         xiosHandler.setFieldFreqOffset(fieldName, timestep);
     }
     // TODO: Automate the following
     xiosHandler.setFieldGridRef(maskName, "HGrid");
-    // xiosHandler.setFieldGridRef(hiceName, "DGGrid");
+    xiosHandler.setFieldGridRef(hiceName, "DGGrid");
     xiosHandler.setFieldGridRef(coordsName, "VertexGrid");
 
     xiosHandler.close_context_definition();
@@ -95,9 +87,11 @@ MPI_TEST_CASE("TestXiosRead", 2)
     hice.resize();
 
     // Setup ModelState with field above
+    // FIXME: VertexField and DGField not read correctly
     ModelState state = { {
-                             { maskName, mask }, { coordsName, coordinates },
-                             // { hiceName, hice }, // FIXME: DGField
+                             { maskName, mask },
+                             { coordsName, coordinates },
+                             { hiceName, hice },
                          },
         {} };
 
