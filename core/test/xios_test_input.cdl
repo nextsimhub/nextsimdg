@@ -5,7 +5,6 @@ dimensions:
 	axis_nbounds = 2 ;
 	x = 4 ;
 	y = 2 ;
-	z = 2 ;
   xvertex = 5 ;
   yvertex = 3 ;
   x_cg = 2 ;
@@ -29,9 +28,6 @@ variables:
 		x:long_name = "Longitude" ;
 		x:units = "degrees_east" ;
 
-	float z(z) ;
-		z:name = "z" ;
-
 	double time_instant(time_counter) ;
 		time_instant:standard_name = "time" ;
 		time_instant:long_name = "Time axis" ;
@@ -53,12 +49,12 @@ variables:
 
 	double time_counter_bounds(time_counter, axis_nbounds) ;
 
-	float field_1D(time_counter, z) ;
-		field_1D:online_operation = "instant" ;
-		field_1D:interval_operation = "5400 s" ;
-		field_1D:interval_write = "5400 s" ;
-		field_1D:cell_methods = "time: point" ;
-		field_1D:coordinates = "time_instant" ;
+  float field_1D(time_counter, ncoords) ;
+    field_1D:online_operation = "instant" ;
+    field_1D:interval_operation = "5400 s" ;
+    field_1D:interval_write = "5400 s" ;
+    field_1D:cell_methods = "time: point" ;
+    field_1D:coordinates = "time_instant" ;
 
 	float coords(time_counter, yvertex, xvertex, ncoords) ;
 		coords:online_operation = "instant" ;
@@ -94,8 +90,6 @@ data:
 
  x = -1, -0.5, 0, 0.5 ;
 
- z = 0, 1 ;
-
  time_instant = 99340365, 99345765, 99351165, 99356565 ;
 
  time_instant_bounds =
@@ -111,6 +105,9 @@ data:
   99345765, 99345765,
   99351165, 99351165,
   99356565, 99356565 ;
+
+ field_1D =
+  0, 1, 0, 1 ;
 
  coords =
   0, 0,

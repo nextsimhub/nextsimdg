@@ -57,14 +57,10 @@ MPI_TEST_CASE("TestXiosFile", 2)
     REQUIRE(xiosHandler.isInitialized());
     REQUIRE(xiosHandler.getClientMPISize() == 2);
 
-    // Create a vertical axis, too
-    xiosHandler.createAxis("z_axis");
-    xiosHandler.setAxisValues("z_axis", { 0.0, 1.0 });
-
-    // Create a 1D grid
-    // NOTE: The 2D grid is created automatically along with the HFieldDomain
+    // Create a 1D grid based off VertexAxis, which has two components
+    // NOTE: The 2D HGrid is created automatically along with the HFieldDomain
     xiosHandler.createGrid("grid_1D");
-    xiosHandler.gridAddAxis("grid_1D", "z_axis");
+    xiosHandler.gridAddAxis("grid_1D", "VertexAxis");
 
     // Associate fields with grids
     // NOTE: fields are automatically created along with files

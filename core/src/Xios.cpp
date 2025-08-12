@@ -726,23 +726,6 @@ void Xios::affixModelMetadata(ModelMetadata& metadata)
     cxios_set_domain_dim_i_name(domain, hDomainNames[0].c_str(), hDomainNames[0].length());
     cxios_set_domain_dim_j_name(domain, hDomainNames[1].c_str(), hDomainNames[1].length());
 
-    // Create XIOS grid 'HGrid2D' associated with HDomain
-    createGrid(hGridId);
-    xios::CGrid* grid = getGrid(hGridId);
-    cxios_xml_tree_add_domaintogrid(grid, &domain, hDomainId.c_str(), hDomainId.length());
-
-    // Create XIOS axis 'DGAxis'
-    int DG = ModelArray::nComponents(ModelArray::Type::DG) / 2; // TODO: Check
-    createAxis(dgAxisId);
-    setAxisSize(dgAxisId, DG);
-
-    // Create XIOS grid 'DGGrid2D' associated with HDomain and DGAxis
-    createGrid(dgGridId);
-    grid = getGrid(dgGridId);
-    xios::CAxis* axis = getAxis(dgAxisId);
-    cxios_xml_tree_add_axistogrid(grid, &axis, dgAxisId.c_str(), dgAxisId.length());
-    cxios_xml_tree_add_domaintogrid(grid, &domain, hDomainId.c_str(), hDomainId.length());
-
     // Set metadata for 'VertexDomain'
     domain = getDomain(vertexDomainId);
     cxios_set_domain_ni_glo(domain, (int)metadata.globalExtentX + 1); // TODO: Check
@@ -757,17 +740,7 @@ void Xios::affixModelMetadata(ModelMetadata& metadata)
     cxios_set_domain_dim_j_name(
         domain, vertexDomainNames[1].c_str(), vertexDomainNames[1].length());
 
-    // Create XIOS axis 'VertexAxis' to account for the 2D vector field
-    createAxis(vertexAxisId);
-    setAxisSize(vertexAxisId, 2);
-
-    // Create XIOS grid 'VertexGrid2D' associated with VertexDomain
-    createGrid(vertexGridId);
-    grid = getGrid(vertexGridId);
-    cxios_xml_tree_add_axistogrid(grid, &axis, vertexAxisId.c_str(), vertexAxisId.length());
-    cxios_xml_tree_add_domaintogrid(grid, &domain, vertexDomainId.c_str(), vertexDomainId.length());
-
-    // Check everything was set correctly
+    // Check the domains were set up correctly
     for (std::string domainId : { hDomainId, vertexDomainId }) {
         domain = getDomain(domainId);
         if (!cxios_is_defined_domain_ni_glo(domain)) {
@@ -803,6 +776,49 @@ void Xios::affixModelMetadata(ModelMetadata& metadata)
                 "Xios: Failed to set y-coordinate name for domain '" + domainId + "'");
         }
     }
+
+    // Create XIOS axis 'DGAxis'
+    int DG = ModelArray::nComponents(ModelArray::Type::DG) / 2; // TODO: Check
+    createAxis(dgAxisId);
+    setAxisSize(dgAxisId, DG);
+    xios::CAxis* axis = getAxis(dgAxisId);
+    const std::string dgAxisName = "dg_comp";
+    cxios_set_axis_dim_name(axis, dgAxisName.c_str(), dgAxisName.length());
+
+    // Create XIOS axis 'VertexAxis' to account for the 2D vector field
+    createAxis(vertexAxisId);
+    setAxisSize(vertexAxisId, 2);
+    axis = getAxis(vertexAxisId);
+    const std::string vertexAxisName = "ncoords";
+    cxios_set_axis_dim_name(axis, vertexAxisName.c_str(), vertexAxisName.length());
+
+    // Check the axes were set up correctly
+    for (std::string axisId : { dgAxisId, vertexAxisId }) {
+        axis = getAxis(axisId);
+        if (!cxios_is_defined_axis_dim_name(axis)) {
+            throw std::runtime_error("Xios: Failed to set name for axis '" + axisId + "'");
+        }
+    }
+
+    // Create XIOS grid 'HGrid2D' associated with HDomain
+    createGrid(hGridId);
+    xios::CGrid* grid = getGrid(hGridId);
+    cxios_xml_tree_add_domaintogrid(grid, &domain, hDomainId.c_str(), hDomainId.length());
+
+    // Create XIOS grid 'DGGrid2D' associated with HDomain and DGAxis
+    createGrid(dgGridId);
+    grid = getGrid(dgGridId);
+    axis = getAxis(dgAxisId);
+    cxios_xml_tree_add_axistogrid(grid, &axis, dgAxisId.c_str(), dgAxisId.length());
+    cxios_xml_tree_add_domaintogrid(grid, &domain, hDomainId.c_str(), hDomainId.length());
+
+    // Create XIOS grid 'VertexGrid2D' associated with VertexDomain
+    createGrid(vertexGridId);
+    grid = getGrid(vertexGridId);
+    cxios_xml_tree_add_axistogrid(grid, &axis, vertexAxisId.c_str(), vertexAxisId.length());
+    cxios_xml_tree_add_domaintogrid(grid, &domain, vertexDomainId.c_str(), vertexDomainId.length());
+
+    // TODO: Check the axes were set up correctly
 }
 
 /*!
