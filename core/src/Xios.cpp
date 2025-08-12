@@ -738,21 +738,26 @@ void Xios::affixModelMetadata(ModelMetadata& metadata)
     createGrid(dgGridId);
     grid = getGrid(dgGridId);
     xios::CAxis* axis = getAxis(dgAxisId);
-    cxios_xml_tree_add_domaintogrid(grid, &domain, hDomainId.c_str(), hDomainId.length());
     cxios_xml_tree_add_axistogrid(grid, &axis, dgAxisId.c_str(), dgAxisId.length());
+    cxios_xml_tree_add_domaintogrid(grid, &domain, hDomainId.c_str(), hDomainId.length());
 
-    // Set metadata for 'VertexDomain'  // TODO: Check if this is correct
+    // Set metadata for 'VertexDomain'
     domain = getDomain(vertexDomainId);
-    cxios_set_domain_ni_glo(domain, (int)metadata.globalExtentX + mpi_size);
-    cxios_set_domain_nj_glo(domain, (int)metadata.globalExtentY + mpi_size);
+    cxios_set_domain_ni_glo(domain, (int)metadata.globalExtentX + 1); // TODO: Check
+    cxios_set_domain_nj_glo(domain, (int)metadata.globalExtentY + 1); // TODO: Check
     cxios_set_domain_ibegin(domain, (int)metadata.localCornerX);
     cxios_set_domain_jbegin(domain, (int)metadata.localCornerY);
     cxios_set_domain_ni(domain, (int)metadata.localExtentX + 1);
     cxios_set_domain_nj(domain, (int)metadata.localExtentY + 1);
 
+    // Create XIOS axis 'VertexAxis' to account for the 2D vector field
+    createAxis(vertexAxisId);
+    setAxisSize(vertexAxisId, 2);
+
     // Create XIOS grid 'VertexGrid2D' associated with VertexDomain
     createGrid(vertexGridId);
     grid = getGrid(vertexGridId);
+    cxios_xml_tree_add_axistogrid(grid, &axis, vertexAxisId.c_str(), vertexAxisId.length());
     cxios_xml_tree_add_domaintogrid(grid, &domain, vertexDomainId.c_str(), vertexDomainId.length());
 
     // Check everything was set correctly
@@ -1480,7 +1485,7 @@ void Xios::write(const std::string fieldId, ModelArray& modelarray)
         // TODO: Separate grid for DG case
         int DG = ncomponents;
         cxios_write_data_k83(
-            fieldId.c_str(), fieldId.length(), modelarray.getData(), dims[0], dims[1], DG, -1);
+            fieldId.c_str(), fieldId.length(), modelarray.getData(), DG, dims[0], dims[1], -1);
     }
 }
 

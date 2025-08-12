@@ -170,6 +170,7 @@ private:
 
     /* Axis */
     const std::string dgAxisId = "DGAxis";
+    const std::string vertexAxisId = "VertexAxis";
     xios::CAxisGroup* getAxisGroup();
     xios::CAxis* getAxis(const std::string axisId);
 
