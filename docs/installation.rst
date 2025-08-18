@@ -118,8 +118,30 @@ required Python packages with
 
         pip install -r requirements.txt
 
-Building the code
------------------
+Building domain_decomp
+----------------------
+NextSIM-DG uses the ``domain_decomp`` library for generating domain
+decompositions for MPI parallel simulations. This library is included in the
+``nextsimdg`` repository as a submodule, so you need to initialize and update
+the submodule before building it. You can do this with the following commands:
+
+.. code::
+
+        cd nextsimdg
+        git submodule init
+        git submodule update
+        cd domain_decomp
+        cmake -Bbuild -S.
+        cmake --build build --config Release
+
+The ``domain_decomp`` library is not required to build the nextSIM-DG model but
+it is required for running the tests and for generating domain decompositions
+for application case studies. See the `domain_decomp repo
+<https://github.com/nextsimhub/domain_decomp>`__ for further details on how to
+build and use the library.
+
+Building nextSIM-DG
+-------------------
 After all dependencies have been installed, we can build the code:
 
 .. code::
