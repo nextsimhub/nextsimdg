@@ -107,12 +107,12 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file")
 
 #ifdef USE_MPI
     if (test_rank == 0) {
-        ModelArray::setDimension(ModelArray::Dimension::X, nx, 4, 0);
-        ModelArray::setDimension(ModelArray::Dimension::XVERTEX, nx + 1, 4 + 1, 0);
+        ModelArray::setDimension(ModelArray::Dimension::X, nx, 5, 0);
+        ModelArray::setDimension(ModelArray::Dimension::XVERTEX, nx + 1, 5 + 1, 0);
     }
     if (test_rank == 1) {
-        ModelArray::setDimension(ModelArray::Dimension::X, nx, 6, 4);
-        ModelArray::setDimension(ModelArray::Dimension::XVERTEX, nx + 1, 6 + 1, 4);
+        ModelArray::setDimension(ModelArray::Dimension::X, nx, 5, 5);
+        ModelArray::setDimension(ModelArray::Dimension::XVERTEX, nx + 1, 5 + 1, 5);
     }
     ModelArray::setDimension(ModelArray::Dimension::Y, ny, ny, 0);
     ModelArray::setDimension(ModelArray::Dimension::YVERTEX, ny + 1, ny + 1, 0);
@@ -288,12 +288,12 @@ TEST_CASE("Write a diagnostic ParaGrid file")
 
 #ifdef USE_MPI
     if (test_rank == 0) {
-        ModelArray::setDimension(ModelArray::Dimension::X, nx, 4, 0);
-        ModelArray::setDimension(ModelArray::Dimension::XVERTEX, nx + 1, 4 + 1, 0);
+        ModelArray::setDimension(ModelArray::Dimension::X, nx, 5, 0);
+        ModelArray::setDimension(ModelArray::Dimension::XVERTEX, nx + 1, 5 + 1, 0);
     }
     if (test_rank == 1) {
-        ModelArray::setDimension(ModelArray::Dimension::X, nx, 6, 4);
-        ModelArray::setDimension(ModelArray::Dimension::XVERTEX, nx + 1, 6 + 1, 4);
+        ModelArray::setDimension(ModelArray::Dimension::X, nx, 5, 5);
+        ModelArray::setDimension(ModelArray::Dimension::XVERTEX, nx + 1, 5 + 1, 5);
     }
     ModelArray::setDimension(ModelArray::Dimension::Y, ny, ny, 0);
     ModelArray::setDimension(ModelArray::Dimension::YVERTEX, ny + 1, ny + 1, 0);
