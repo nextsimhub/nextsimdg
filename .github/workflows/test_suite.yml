@@ -91,6 +91,9 @@ jobs:
     - name: build domain_decomp
       run: |
         . /opt/spack-environment/activate.sh
+        git config --global --add safe.directory /__w/nextsimdg/nextsimdg
+        git submodule init
+        git submodule update
         cd domain_decomp
         cmake -G "Unix Makefiles" -Bbuild -S.
         cmake --build build --config Release
@@ -136,6 +139,9 @@ jobs:
     - name: build domain_decomp
       run: |
         . /opt/spack-environment/activate.sh
+        git config --global --add safe.directory /__w/nextsimdg/nextsimdg
+        git submodule init
+        git submodule update
         cd domain_decomp
         cmake -G "Unix Makefiles" -Bbuild -S.
         cmake --build build --config Release
