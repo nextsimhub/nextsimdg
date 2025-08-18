@@ -88,9 +88,18 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
+    - name: build domain_decomp
+      run: |
+        . /opt/spack-environment/activate.sh
+        git clone https://github.com/nextsimhub/domain_decomp.git
+        cd domain_decomp
+        cmake -G "Unix Makefiles" -Bbuild -S.
+        cmake --build build --config Release
+
     - name: build and compile with MPI but not XIOS
       run: |
         . /opt/spack-environment/activate.sh
+        export PATH="${PATH}:${PWD}/domain_decomp/build"
         mkdir -p build && cd build
         cmake -DENABLE_MPI=ON -DENABLE_XIOS=OFF -DCMAKE_CXX_COMPILER="$(which mpic++)" ..
         make -j 4
@@ -120,9 +129,18 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
+    - name: build domain_decomp
+      run: |
+        . /opt/spack-environment/activate.sh
+        git clone https://github.com/nextsimhub/domain_decomp.git
+        cd domain_decomp
+        cmake -G "Unix Makefiles" -Bbuild -S.
+        cmake --build build --config Release
+
     - name: build and compile with XIOS and MPI
       run: |
         . /opt/spack-environment/activate.sh
+        export PATH="${PATH}:${PWD}/domain_decomp/build"
         mkdir -p build && cd build
         cmake -DENABLE_MPI=ON -Dxios_DIR="/xios" -DENABLE_XIOS=ON -DCMAKE_CXX_COMPILER="$(which mpic++)" ..
         make -j 4
