@@ -103,6 +103,11 @@ void FluxConfiguredAtmosphere::setData(const ModelState::DataMap& dm)
     evap = evap0;
     uwind = u0;
     vwind = v0;
+
+    // Not configured here:
+    penSW = 0; // Penetrating shortwave radiation
+    tauXOW = 0; // x(east)-ward open ocean stress, Pa
+    tauYOW = 0; // y(north)-ward open ocean stress, Pa
 }
 
 void FluxConfiguredAtmosphere::update(const TimestepTime& tst)
