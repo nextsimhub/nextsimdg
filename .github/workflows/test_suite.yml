@@ -91,7 +91,6 @@ jobs:
     - name: build domain_decomp
       run: |
         . /opt/spack-environment/activate.sh
-        git clone https://github.com/nextsimhub/domain_decomp.git
         cd domain_decomp
         cmake -G "Unix Makefiles" -Bbuild -S.
         cmake --build build --config Release
@@ -137,7 +136,6 @@ jobs:
     - name: build domain_decomp
       run: |
         . /opt/spack-environment/activate.sh
-        git clone https://github.com/nextsimhub/domain_decomp.git
         cd domain_decomp
         cmake -G "Unix Makefiles" -Bbuild -S.
         cmake --build build --config Release
