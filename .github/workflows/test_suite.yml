@@ -144,13 +144,13 @@ jobs:
 
     - name: build and compile with XIOS and MPI
       run: |
-        . /opt/spack-environment/activate.sh
         # set environment variables for MPI tests to run in docker container
         export OMPI_ALLOW_RUN_AS_ROOT=1
         export OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1
         export OMPI_MCA_rmaps_base_oversubscribe=1
         # provide path to domain_decomp binary
         export PATH="${PATH}:${PWD}/domain_decomp/build"
+        . /opt/spack-environment/activate.sh
         mkdir -p build && cd build
         cmake -DENABLE_MPI=ON -Dxios_DIR="/xios" -DENABLE_XIOS=ON -DCMAKE_CXX_COMPILER="$(which mpic++)" ..
         make -j 4
