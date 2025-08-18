@@ -175,10 +175,13 @@ ks = 0.31
             os.remove(cls.config_file)
 
     def test_iceThickness(self):
-        """Test the ice thickness against standard max, min, and mean values."""
-        meanval = 3.1189
-        maxval = 3.3419
-        minval = 2.9805
+        """
+        Test the ice thickness against standard max, min, and mean values
+        """
+
+        meanval = 3.1093
+        maxval = 3.3327
+        minval = 2.9702
         hiceDG0 = self.hice[:, 0]
         self.assertAlmostEqual(maxval, hiceDG0.max(), 4, f"Max ice thickness not ~= {maxval} m")
         self.assertAlmostEqual(minval, hiceDG0.min(), 4, f"Min ice thickness not ~= {minval} m")
@@ -206,9 +209,9 @@ ks = 0.31
         significant digit changes between 4 and 5 for the T1 mean, so the result is either -17.6250 or -17.6249 - up
         to 4 digits. This is normal, because the output is only accurate to six significant digits anyway.
         """
-        meanvals = [-17.6250, -7.6068, -3.7998]
-        maxvals = [0.0000, -1.1336, -1.5975]
-        minvals = [-33.1612, -14.8637, -6.1424]
+        meanvals = [-17.6202, -7.5904, -3.7944]
+        maxvals = [0.0000, -1.1280, -1.5939]
+        minvals = [-33.1569, -14.8520, -6.1389]
         #for i in range(3):
         for i, t_level in enumerate((self.tsurf[:, 0, 0, 0], self.tintr[:, 0, 0, 0], self.tbott[:, 0, 0, 0])):
             self.assertAlmostEqual(maxvals[i], t_level.max(), 4, f"Max T {i} not ~= {maxvals[i]} ˚C")

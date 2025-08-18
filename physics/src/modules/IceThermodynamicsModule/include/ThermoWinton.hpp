@@ -48,7 +48,6 @@ private:
     HField snowMelt;
     HField topMelt;
     HField botMelt;
-    ModelArrayRef<Protected::HTRUE_ICE> oldHi;
     ModelArrayRef<Protected::SW_IN> sw_in;
     ModelArrayRef<Shared::SUBLIM, RO> subl;
 

@@ -19,7 +19,7 @@ TEST_CASE("ConstantOcean Qio calculation")
 
     HField cice(ModelArray::Type::H);
     cice = 1.0; // Need some ice if Qio is to be calculated
-    ModelComponent::getStore().registerArray(Protected::C_ICE, &cice, RO);
+    ModelComponent::getStore().registerArray(Shared::C_ICE_DG, &cice, RO);
     ConstantOceanBoundary cob;
 
     cob.setData(ModelState::DataMap());
