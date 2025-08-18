@@ -155,6 +155,50 @@ if(ENABLE_MPI)
 
         add_mpi_test("${XIOS_TESTS}")
     else()
+        # Generate mask files needed for MPI test from respective cdl files
+        add_custom_command(
+            OUTPUT rectgrid_test_mask.nc
+            COMMAND
+                ncgen -b -o rectgrid_test_mask.nc ${CMAKE_CURRENT_SOURCE_DIR}/rectgrid_test_mask.cdl
+            DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/rectgrid_test_mask.cdl
+        )
+        add_custom_command(
+            OUTPUT paragrid_test_mask.nc
+            COMMAND
+                ncgen -b -o paragrid_test_mask.nc ${CMAKE_CURRENT_SOURCE_DIR}/paragrid_test_mask.cdl
+            DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/paragrid_test_mask.cdl
+        )
+        add_custom_target(
+            generate_masks
+            ALL
+            DEPENDS rectgrid_test_mask.nc paragrid_test_mask.nc
+        )
+
+        # Generate partition files using domain_decomp
+        # TODO: Provide output file name prefix to domain_decomp rather than renaming below
+        #       Needs https://github.com/nextsimhub/domain_decomp/issues/73
+        add_custom_command(
+            OUTPUT rectgrid_test_partition_metadata_3.nc
+            COMMAND
+                mpiexec -np 3 decomp -m mask -o xy -g rectgrid_test_mask.nc
+                && mv partition_mask_3.nc rectgrid_test_partition_mask_3.nc
+                && mv partition_metadata_3.nc rectgrid_test_partition_metadata_3.nc
+            DEPENDS rectgrid_test_mask.nc
+        )
+        add_custom_command(
+            OUTPUT paragrid_test_partition_metadata_2.nc
+            COMMAND
+                mpiexec -np 2 decomp -m mask -o xy -g paragrid_test_mask.nc
+                && mv partition_mask_2.nc paragrid_test_partition_mask_2.nc
+                && mv partition_metadata_2.nc paragrid_test_partition_metadata_2.nc
+            DEPENDS paragrid_test_mask.nc
+        )
+        add_custom_target(
+            generate_partition_files
+            ALL
+            DEPENDS rectgrid_test_partition_metadata_3.nc paragrid_test_partition_metadata_2.nc
+        )
+
         add_executable(testRectGrid_MPI3 "RectGrid_test.cpp" "MainMPI.cpp")
         target_compile_definitions(
             testRectGrid_MPI3
@@ -173,31 +217,6 @@ if(ENABLE_MPI)
         )
         target_include_directories(testConfigOutput_MPI2 PRIVATE ${MODEL_INCLUDE_DIR})
         target_link_libraries(testConfigOutput_MPI2 PRIVATE nextsimlib doctest::doctest)
-
-        # Generate partition files needed for MPI test from respective cdl files
-        add_custom_command(
-            OUTPUT test_mask.nc
-            COMMAND
-                ncgen -b -o test_mask.nc ${CMAKE_CURRENT_SOURCE_DIR}/test_mask.cdl
-            DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/test_mask.cdl
-        )
-        add_custom_target(generate_partition_masks ALL DEPENDS test_mask.nc)
-        add_custom_command(
-            OUTPUT partition_metadata_3.nc
-            COMMAND mpiexec -np 3 decomp -m mask -o xy -g test_mask.nc
-            DEPENDS test_mask.nc
-        )
-        add_custom_command(
-            OUTPUT partition_metadata_2.nc
-            COMMAND mpiexec -np 2 decomp -m mask -o xy -g test_mask.nc
-            DEPENDS test_mask.nc
-        )
-        add_custom_target(
-            generate_partition_files
-            ALL
-            DEPENDS partition_metadata_3.nc partition_metadata_2.nc
-        )
-
         add_executable(testParaGrid_MPI2 "ParaGrid_test.cpp" "MainMPI.cpp")
         target_compile_definitions(
             testParaGrid_MPI2

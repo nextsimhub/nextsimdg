@@ -35,7 +35,7 @@ const std::string filename = testFilesDir + "/paraGrid_test.nc";
 const std::string diagFile = "paraGrid_diag.nc";
 const std::string dateString = "2000-01-01T00:00:00Z";
 #ifdef USE_MPI
-const std::string partitionFilename = testFilesDir + "/partition_metadata_2.nc";
+const std::string partitionFilename = testFilesDir + "/paragrid_test_partition_metadata_2.nc";
 #endif
 
 static const int DG = 3;
