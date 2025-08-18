@@ -44,10 +44,7 @@ If your package manager is `Homebrew`_ :
         brew install eigen
 
 
-**Installing dependencies on Ubuntu**
-
-Compilation on a Debian-based Linux distribution (Debian, Ubuntu, etc)
-----------------------------------------------------------------------
+**Installing dependencies on a Debian-based Linux distribution (Debian, Ubuntu, etc)**
 
 You must have root privilege :
 
@@ -109,6 +106,17 @@ to activate the environment.
 To unload an environment you can use the handy (and very fun) alias of ``despacktivate``. For more
 information on using ``spack`` environments please see `using environments
 <https://spack.readthedocs.io/en/latest/environments.html#using-environments>`_.
+
+Python dependencies
+-------------------
+
+To install the Python dependencies, first ensure that you have a Python
+environment set up. You can use ``conda`` or ``virtualenv`` for this purpose. Once
+you have created and activated your Python environment, you can install the
+required Python packages with
+.. code::
+
+        pip install -r requirements.txt
 
 Building the code
 -----------------
