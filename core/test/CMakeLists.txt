@@ -68,13 +68,22 @@ if(ENABLE_MPI)
         )
         add_custom_target(generate_xios_input_file ALL DEPENDS xios_test_input.nc)
         add_custom_command(
+            OUTPUT xios_test_mask.nc
+            COMMAND ncgen -b -o xios_test_mask.nc ${CMAKE_CURRENT_SOURCE_DIR}/xios_test_mask.cdl
+            DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/xios_test_mask.cdl
+        )
+        add_custom_target(generate_xios_masks ALL DEPENDS xios_test_mask.nc)
+        # TODO: Provide output file name prefix to domain_decomp rather than renaming below
+        #       Needs https://github.com/nextsimhub/domain_decomp/issues/73
+        add_custom_command(
             OUTPUT xios_test_partition_metadata_2.nc
             COMMAND
-                ncgen -b -o xios_test_partition_metadata_2.nc
-                ${CMAKE_CURRENT_SOURCE_DIR}/xios_test_partition_metadata_2.cdl
-            DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/xios_test_partition_metadata_2.cdl
+                mpiexec -np 2 decomp -m mask -o xy -g xios_test_mask.nc
+                && mv partition_mask_2.nc xios_test_partition_mask_2.nc
+                && mv partition_metadata_2.nc xios_test_partition_metadata_2.nc
+            DEPENDS xios_test_mask.nc
         )
-        add_custom_target(generate_xios_partition_metadata_2 ALL
+        add_custom_target(generate_xios_partition_metadata ALL
             DEPENDS xios_test_partition_metadata_2.nc
         )
 
