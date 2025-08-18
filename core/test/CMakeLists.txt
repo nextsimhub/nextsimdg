@@ -78,7 +78,8 @@ if(ENABLE_MPI)
         add_custom_command(
             OUTPUT xios_test_partition_metadata_2.nc
             COMMAND
-                mpiexec -np 2 decomp -m mask -o xy -g xios_test_mask.nc
+                ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} 2 decomp -m mask -o xy
+                    -g xios_test_mask.nc
                 && mv partition_mask_2.nc xios_test_partition_mask_2.nc
                 && mv partition_metadata_2.nc xios_test_partition_metadata_2.nc
             DEPENDS xios_test_mask.nc
@@ -180,7 +181,8 @@ if(ENABLE_MPI)
         add_custom_command(
             OUTPUT rectgrid_test_partition_metadata_3.nc
             COMMAND
-                mpiexec -np 3 decomp -m mask -o xy -g rectgrid_test_mask.nc
+                ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} 3 decomp -m mask -o xy
+                    -g rectgrid_test_mask.nc
                 && mv partition_mask_3.nc rectgrid_test_partition_mask_3.nc
                 && mv partition_metadata_3.nc rectgrid_test_partition_metadata_3.nc
             DEPENDS rectgrid_test_mask.nc
@@ -188,7 +190,8 @@ if(ENABLE_MPI)
         add_custom_command(
             OUTPUT paragrid_test_partition_metadata_2.nc
             COMMAND
-                mpiexec -np 2 decomp -m mask -o xy -g paragrid_test_mask.nc
+                ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} 2 decomp -m mask -o xy
+                    -g paragrid_test_mask.nc
                 && mv partition_mask_2.nc paragrid_test_partition_mask_2.nc
                 && mv partition_metadata_2.nc paragrid_test_partition_metadata_2.nc
             DEPENDS paragrid_test_mask.nc
