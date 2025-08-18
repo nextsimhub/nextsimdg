@@ -111,7 +111,7 @@ Python dependencies
 -------------------
 
 To install the Python dependencies, first ensure that you have a Python
-environment set up. You can use `conda` or `virtualenv` for this purpose. Once
+environment set up. You can use ``conda`` or ``virtualenv`` for this purpose. Once
 you have created and activated your Python environment, you can install the
 required Python packages with
 .. code::
