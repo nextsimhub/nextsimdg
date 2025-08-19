@@ -59,9 +59,9 @@ TEST_CASE("New ice formation")
     public:
         PrognosticData()
         {
-            getStore().registerArray(Protected::H_ICE, &hice, RO);
-            getStore().registerArray(Protected::C_ICE, &cice, RO);
-            getStore().registerArray(Protected::H_SNOW, &hsnow, RO);
+            getStore().registerArray(Shared::H_ICE_DG, &hice, RW);
+            getStore().registerArray(Shared::C_ICE_DG, &cice, RW);
+            getStore().registerArray(Shared::H_SNOW_DG, &hsnow, RW);
         }
         std::string getName() const override { return "PrognosticData"; }
 
@@ -141,9 +141,9 @@ TEST_CASE("Melting conditions")
     public:
         PrognosticData()
         {
-            getStore().registerArray(Protected::H_ICE, &hice, RO);
-            getStore().registerArray(Protected::C_ICE, &cice, RO);
-            getStore().registerArray(Protected::H_SNOW, &hsnow, RO);
+            getStore().registerArray(Shared::H_ICE_DG, &hice, RW);
+            getStore().registerArray(Shared::C_ICE_DG, &cice, RW);
+            getStore().registerArray(Shared::H_SNOW_DG, &hsnow, RW);
         }
         std::string getName() const override { return "PrognosticData"; }
 
@@ -185,16 +185,16 @@ TEST_CASE("Melting conditions")
     ig.update(tst);
 
     ModelArrayRef<Shared::NEW_ICE, RO> newice(ModelComponent::getStore());
-    ModelArrayRef<Shared::H_ICE, RO> hice(ModelComponent::getStore());
-    ModelArrayRef<Shared::C_ICE, RO> cice(ModelComponent::getStore());
-    ModelArrayRef<Shared::H_SNOW, RO> hsnow(ModelComponent::getStore());
+    ModelArrayRef<Shared::H_ICE_DG, RO> hice(ModelComponent::getStore());
+    ModelArrayRef<Shared::C_ICE_DG, RO> cice(ModelComponent::getStore());
+    ModelArrayRef<Shared::H_SNOW_DG, RO> hsnow(ModelComponent::getStore());
 
     double prec = 1e-5;
     // The thickness values from old NextSIM are cell-averaged. Perform that
     // conversion here.
     REQUIRE(cice[0] == doctest::Approx(0.368269).epsilon(prec));
-    REQUIRE((hice[0] * cice[0]) == doctest::Approx(0.0473078).epsilon(prec));
-    REQUIRE((hsnow[0] * cice[0]) == doctest::Approx(0.00720977).epsilon(prec));
+    REQUIRE((hice[0]) == doctest::Approx(0.0473078).epsilon(prec));
+    REQUIRE((hsnow[0]) == doctest::Approx(0.00720977).epsilon(prec));
 
     REQUIRE(newice[0] == 0.0);
 }
@@ -233,9 +233,9 @@ TEST_CASE("Freezing conditions")
     public:
         PrognosticData()
         {
-            getStore().registerArray(Protected::H_ICE, &hice, RO);
-            getStore().registerArray(Protected::C_ICE, &cice, RO);
-            getStore().registerArray(Protected::H_SNOW, &hsnow, RO);
+            getStore().registerArray(Shared::H_ICE_DG, &hice, RW);
+            getStore().registerArray(Shared::C_ICE_DG, &cice, RW);
+            getStore().registerArray(Shared::H_SNOW_DG, &hsnow, RW);
         }
         std::string getName() const override { return "PrognosticData"; }
 
@@ -277,17 +277,17 @@ TEST_CASE("Freezing conditions")
     ig.update(tst);
 
     ModelArrayRef<Shared::NEW_ICE, RO> newice(ModelComponent::getStore());
-    ModelArrayRef<Shared::H_ICE, RO> hice(ModelComponent::getStore());
-    ModelArrayRef<Shared::C_ICE, RO> cice(ModelComponent::getStore());
-    ModelArrayRef<Shared::H_SNOW, RO> hsnow(ModelComponent::getStore());
+    ModelArrayRef<Shared::H_ICE_DG, RO> hice(ModelComponent::getStore());
+    ModelArrayRef<Shared::C_ICE_DG, RO> cice(ModelComponent::getStore());
+    ModelArrayRef<Shared::H_SNOW_DG, RO> hsnow(ModelComponent::getStore());
 
     double prec = 1e-5;
 
     // The thickness values from old NextSIM are cell-averaged. Perform that
     // conversion here.
     REQUIRE(cice[0] == doctest::Approx(0.5002).epsilon(prec));
-    REQUIRE((hice[0] * cice[0]) == doctest::Approx(0.100039).epsilon(prec));
-    REQUIRE((hsnow[0] * cice[0]) == doctest::Approx(0.0109012).epsilon(prec));
+    REQUIRE((hice[0]) == doctest::Approx(0.100039).epsilon(prec));
+    REQUIRE((hsnow[0]) == doctest::Approx(0.0109012).epsilon(prec));
 
     REQUIRE(newice[0] == doctest::Approx(6.79906e-5).epsilon(prec));
 }
@@ -332,9 +332,9 @@ TEST_CASE("Dummy ice")
     public:
         PrognosticData()
         {
-            getStore().registerArray(Protected::H_ICE, &hice, RO);
-            getStore().registerArray(Protected::C_ICE, &cice, RO);
-            getStore().registerArray(Protected::H_SNOW, &hsnow, RO);
+            getStore().registerArray(Shared::H_ICE_DG, &hice, RW);
+            getStore().registerArray(Shared::C_ICE_DG, &cice, RW);
+            getStore().registerArray(Shared::H_SNOW_DG, &hsnow, RW);
         }
         std::string getName() const override { return "PrognosticData"; }
 
@@ -378,15 +378,15 @@ TEST_CASE("Dummy ice")
     double prec = 1e-5;
 
     ModelArrayRef<Shared::NEW_ICE, RO> newice(ModelComponent::getStore());
-    ModelArrayRef<Shared::H_ICE, RO> hice(ModelComponent::getStore());
-    ModelArrayRef<Shared::C_ICE, RO> cice(ModelComponent::getStore());
-    ModelArrayRef<Shared::H_SNOW, RO> hsnow(ModelComponent::getStore());
+    ModelArrayRef<Shared::H_ICE_DG, RO> hice(ModelComponent::getStore());
+    ModelArrayRef<Shared::C_ICE_DG, RO> cice(ModelComponent::getStore());
+    ModelArrayRef<Shared::H_SNOW_DG, RO> hsnow(ModelComponent::getStore());
 
     // The thickness values from old NextSIM are cell-averaged. Perform that
     // conversion here.
     REQUIRE(cice[0] == cice0);
-    REQUIRE((hice[0] * cice[0]) == hice0);
-    REQUIRE((hsnow[0] * cice[0]) == hsnow0);
+    REQUIRE((hice[0]) == hice0);
+    REQUIRE((hsnow[0]) == hsnow0);
 
     REQUIRE(newice[0] == 0.);
 }
@@ -430,9 +430,9 @@ TEST_CASE("Zero thickness")
     public:
         PrognosticData()
         {
-            getStore().registerArray(Protected::H_ICE, &hice, RO);
-            getStore().registerArray(Protected::C_ICE, &cice, RO);
-            getStore().registerArray(Protected::H_SNOW, &hsnow, RO);
+            getStore().registerArray(Shared::H_ICE_DG, &hice, RW);
+            getStore().registerArray(Shared::C_ICE_DG, &cice, RW);
+            getStore().registerArray(Shared::H_SNOW_DG, &hsnow, RW);
         }
         std::string getName() const override { return "PrognosticData"; }
 
@@ -485,8 +485,8 @@ TEST_CASE("Zero thickness")
     ig.update(tst);
 
     ModelArrayRef<Shared::NEW_ICE, RO> newice(ModelComponent::getStore());
-    ModelArrayRef<Shared::H_ICE, RO> hice(ModelComponent::getStore());
-    ModelArrayRef<Shared::C_ICE, RO> cice(ModelComponent::getStore());
+    ModelArrayRef<Shared::H_ICE_DG, RO> hice(ModelComponent::getStore());
+    ModelArrayRef<Shared::C_ICE_DG, RO> cice(ModelComponent::getStore());
 
     double prec = 1e-6;
 
@@ -535,9 +535,9 @@ TEST_CASE("Turn off thermo")
     public:
         PrognosticData()
         {
-            getStore().registerArray(Protected::H_ICE, &hice, RO);
-            getStore().registerArray(Protected::C_ICE, &cice, RO);
-            getStore().registerArray(Protected::H_SNOW, &hsnow, RO);
+            getStore().registerArray(Shared::H_ICE_DG, &hice, RW);
+            getStore().registerArray(Shared::C_ICE_DG, &cice, RW);
+            getStore().registerArray(Shared::H_SNOW_DG, &hsnow, RW);
         }
         std::string getName() const override { return "PrognosticData"; }
 
@@ -598,16 +598,16 @@ TEST_CASE("Turn off thermo")
     ig.update(tst);
 
     ModelArrayRef<Shared::NEW_ICE, RO> newice(ModelComponent::getStore());
-    ModelArrayRef<Shared::H_ICE, RO> hice(ModelComponent::getStore());
-    ModelArrayRef<Shared::C_ICE, RO> cice(ModelComponent::getStore());
-    ModelArrayRef<Shared::H_SNOW, RO> hsnow(ModelComponent::getStore());
+    ModelArrayRef<Shared::H_ICE_DG, RO> hice(ModelComponent::getStore());
+    ModelArrayRef<Shared::C_ICE_DG, RO> cice(ModelComponent::getStore());
+    ModelArrayRef<Shared::H_SNOW_DG, RO> hsnow(ModelComponent::getStore());
 
     double prec = 1e-5;
 
     // Rather than the values from old NextSIM, they should be unchanged from the definition above.
     REQUIRE(cice[0] == 0.5);
-    REQUIRE((hice[0] * cice[0]) == 0.1);
-    REQUIRE((hsnow[0] * cice[0]) == 0.01);
+    REQUIRE((hice[0]) == 0.1);
+    REQUIRE((hsnow[0]) == 0.01);
 
     REQUIRE(newice[0] == 0.0);
 }

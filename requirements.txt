@@ -1,6 +1,9 @@
-sphinx>=4.4.0
-myst_parser>=0.15.2
-sphinx_rtd_theme
 breathe
-Jinja2<3.1
 exhale
+Jinja2<3.1
+myst_parser>=0.15.2
+netCDF4
+pyproj
+scipy
+sphinx>=4.4.0
+sphinx_rtd_theme

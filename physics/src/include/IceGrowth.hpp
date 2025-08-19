@@ -44,11 +44,6 @@ public:
 
     void update(const TimestepTime&);
 
-    /*!
-     * Updates the true ice and snow thickness arrays from the cell averages.
-     */
-    void initializeThicknesses();
-
 private:
     // Vertical Growth ModelComponent & Module
     std::unique_ptr<IIceThermodynamics> iVertical;
@@ -58,22 +53,13 @@ private:
     std::unique_ptr<IDamageHealing> iHealing;
 
     // Data fields
-    // Owned, shared data fields
-    HField hice; // Updated true ice thickness, m
-    HField cice; // Updated ice concentration
-    HField hsnow; // Updated true snow thickness, m
-    HField hice0; // Timestep initial true ice thickness, m
-    HField hsnow0; // Timestep initial true snow thickness, m
-
-    ModelArrayRef<Protected::H_ICE> hIceCell; // Timestep initial cell averaged ice thickness, m
-    ModelArrayRef<Protected::H_SNOW> hSnowCell; // Timestep initial cell averaged snow thickness, m
-    ModelArrayRef<Protected::C_ICE> cice0; // Timestep initial ice concentration
+    ModelArrayRef<Shared::H_ICE_DG> hice; // Timestep initial cell averaged ice thickness, m
+    ModelArrayRef<Shared::H_SNOW_DG> hsnow; // Timestep initial cell averaged snow thickness, m
+    ModelArrayRef<Shared::C_ICE_DG> cice; // Timestep initial ice concentration
     ModelArrayRef<Shared::Q_OW, RW> qow; // open water heat flux, from FluxCalculation
     ModelArrayRef<Shared::DELTA_HICE> deltaHi; // New ice thickness this timestep, m
 
     bool doThermo = true; // Perform any thermodynamics calculations at all
-
-    void initializeThicknessesElement(size_t i, const TimestepTime&);
 };
 
 } /* namespace Nextsim */

@@ -31,9 +31,6 @@ PrognosticData::PrognosticData()
     , pOcnBdy(nullptr)
     , pDynamics(nullptr)
 {
-    getStore().registerArray(Protected::H_ICE, &hice, RO);
-    getStore().registerArray(Protected::C_ICE, &cice, RO);
-    getStore().registerArray(Protected::H_SNOW, &hsnow, RO);
     getStore().registerArray(Shared::DAMAGE, &damage, RW);
     getStore().registerArray(Shared::H_ICE_DG, &hice, RW);
     getStore().registerArray(Shared::C_ICE_DG, &cice, RW);
@@ -118,6 +115,7 @@ void PrognosticData::setData(const ModelState::DataMap& ms)
 
 void PrognosticData::update(const TimestepTime& tst)
 {
+    // Prepare everything
     pOcnBdy->updateBefore(tst);
     pAtmBdy->update(tst);
     pDynamics->prepareAdvection();
@@ -125,10 +123,11 @@ void PrognosticData::update(const TimestepTime& tst)
     // Take the updated values of the true ice and snow thicknesses, and reset hice0 and hsnow0
     // IceGrowth updates its own fields during update
     iceGrowth.update(tst);
-    updatePrognosticFields();
 
+    // Dynamics
     pDynamics->update(tst);
 
+    // Update the ocean after ice growth (or send fields to the coupler)
     pOcnBdy->updateAfter(tst);
 
     try {
@@ -136,23 +135,6 @@ void PrognosticData::update(const TimestepTime& tst)
     } catch (const std::exception& e) {
         throw std::runtime_error("PrognosticData::update: " + std::string(e.what()));
     }
-}
-
-void PrognosticData::updatePrognosticFields()
-{
-    ModelArrayRef<Shared::H_ICE, RO> hiceTrueUpd(getStore());
-    ModelArrayRef<Shared::C_ICE, RO> ciceUpd(getStore());
-    ModelArrayRef<Shared::H_SNOW, RO> hsnowTrueUpd(getStore());
-    ModelArrayRef<Shared::T_ICE, RO> ticeUpd(getStore());
-
-    // Calculate the cell average thicknesses
-    HField hiceUpd = hiceTrueUpd * ciceUpd;
-    HField hsnowUpd = hsnowTrueUpd * ciceUpd;
-
-    // Update the DG0 component of the DG fields
-    hice.component(0) = hiceUpd.data();
-    cice.component(0) = ciceUpd.allComponents();
-    hsnow.component(0) = hsnowUpd.data();
 }
 
 // Gets the diagnostic data from all subcomponents

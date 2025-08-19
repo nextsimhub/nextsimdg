@@ -5,10 +5,10 @@ import numpy as np
 file = 'diagnostic.nc'
 
 # Load the basic variables
-root = netCDF4.Dataset(file, "r", format="NETCDF4")
-hice = np.squeeze(np.array(root.groups["data"].variables["hice"][:].data))
-hsnow = np.squeeze(np.array(root.groups["data"].variables["hsnow"][:].data))
-tice = np.array(root.groups["data"].variables["tice"][:].data)
+ncFile = netCDF4.Dataset(file, "r", format="NETCDF4")
+hice = np.squeeze(np.array(ncFile.variables["hice"][:].data))
+hsnow = np.squeeze(np.array(ncFile.variables["hsnow"][:].data))
+tice = np.array(ncFile.variables["tice"][:].data)
 
 # Calculate ice draught for a nicer visualisation
 rho = 917

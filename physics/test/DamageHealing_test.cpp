@@ -38,7 +38,7 @@ TEST_CASE("Thermodynamic healing")
         PrognosticData()
         {
             getStore().registerArray(Shared::DELTA_CICE, &deltaCi, RO);
-            getStore().registerArray(Shared::C_ICE, &cice, RO);
+            getStore().registerArray(Shared::C_ICE_DG, &cice, RO);
             getStore().registerArray(Shared::DAMAGE, &damage, RW);
         }
         std::string getName() const override { return "PrognosticData"; }
@@ -98,7 +98,7 @@ TEST_CASE("New ice formation")
         PrognosticData()
         {
             getStore().registerArray(Shared::DELTA_CICE, &deltaCi, RO);
-            getStore().registerArray(Shared::C_ICE, &cice, RO);
+            getStore().registerArray(Shared::C_ICE_DG, &cice, RO);
             getStore().registerArray(Shared::DAMAGE, &damage, RW);
         }
         std::string getName() const override { return "PrognosticData"; }
