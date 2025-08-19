@@ -51,7 +51,7 @@ public:
     }
 
     // gets minimum and maximum values at all mesh vertices
-    void InitMinMax(
+    void initMinMax(
         CGVector<1>& _minv, CGVector<1>& _maxv, const DGVector<DG>& phi, size_t comp = 0)
     {
         // relative indices of the four vertices in minV/maxV
@@ -83,21 +83,21 @@ public:
     }
 
     // truncates the averages by min or max value
-    void LimitMax(DGVector<DG>& phi, double max) const
+    void limitMax(DGVector<DG>& phi, double max) const
     {
 #pragma omp parallel for
         for (size_t c = 0; c < mesh.nelements; ++c)
             phi(c, 0) = std::min(max, phi(c, 0));
     }
     // truncates the averages by min or max value
-    void LimitMin(DGVector<DG>& phi, double min) const
+    void limitMin(DGVector<DG>& phi, double min) const
     {
 #pragma omp parallel for
         for (size_t c = 0; c < mesh.nelements; ++c)
             phi(c, 0) = std::max(min, phi(c, 0));
     }
 
-    void ComputeAlphas(DGVector<1>& alpha, const DGVector<DG>& phi, const CGVector<1>& _min,
+    void computeAlphas(DGVector<1>& alpha, const DGVector<DG>& phi, const CGVector<1>& _min,
         const CGVector<1>& _max)
     {
         // relative indices of the four vertices in minV/maxV
@@ -137,7 +137,7 @@ public:
         }
     }
 
-    void ComputeAlphasX(DGVector<1>& alphax, const DGVector<DG>& phi, const CGVector<1>& _min,
+    void computeAlphasX(DGVector<1>& alphax, const DGVector<DG>& phi, const CGVector<1>& _min,
         const CGVector<1>& _max)
     {
         // relative indices of the four vertices in minV/maxV
@@ -173,7 +173,7 @@ public:
             alphax(c) = al;
         }
     }
-    void ComputeAlphasY(DGVector<1>& alphay, const DGVector<DG>& phi, const CGVector<1>& _min,
+    void computeAlphasY(DGVector<1>& alphay, const DGVector<DG>& phi, const CGVector<1>& _min,
         const CGVector<1>& _max)
     {
         // relative indices of the four vertices in minV/maxV
@@ -211,21 +211,21 @@ public:
     }
 
     // performs the vertex-based limiting
-    void Limit(DGVector<DG>& phi)
+    void limit(DGVector<DG>& phi)
     {
         if (DG == 1) // no limiting for dG0
             return;
 
         // zero order terms & first derivative
-        InitMinMax(minV, maxV, phi); // get max/min values in vertices
-        ComputeAlphas(alpha, phi, minV, maxV);
+        initMinMax(minV, maxV, phi); // get max/min values in vertices
+        computeAlphas(alpha, phi, minV, maxV);
 
         // derivative & second
         if (DG == 6) {
-            InitMinMax(dxminV, dxmaxV, phi, 1); // get max/min values in vertices
-            InitMinMax(dyminV, dymaxV, phi, 2); // get max/min values in vertices
-            ComputeAlphasX(alphaX, phi, dxminV, dxmaxV);
-            ComputeAlphasY(alphaY, phi, dyminV, dymaxV);
+            initMinMax(dxminV, dxmaxV, phi, 1); // get max/min values in vertices
+            initMinMax(dyminV, dymaxV, phi, 2); // get max/min values in vertices
+            computeAlphasX(alphaX, phi, dxminV, dxmaxV);
+            computeAlphasY(alphaY, phi, dyminV, dymaxV);
             for (int i = 0; i < alphaX.rows(); ++i) {
                 alphaX(i) = std::min(alphaX(i), alphaY(i));
                 alpha(i) = std::max(alpha(i), alphaX(i));

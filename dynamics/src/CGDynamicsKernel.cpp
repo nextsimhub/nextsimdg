@@ -425,17 +425,17 @@ DGVector<DGadvection>& CGDynamicsKernel<DGadvection>::advectDGVField(
 
     // First, limit minimum and/or maximum of the average component
     if (lowerLimit > -std::numeric_limits<double>::infinity()) {
-        SL.LimitMin(field, lowerLimit);
+        SL.limitMin(field, lowerLimit);
         limitSlope = true;
     }
     if (upperLimit < std::numeric_limits<double>::infinity()) {
-        SL.LimitMax(field, upperLimit);
+        SL.limitMax(field, upperLimit);
         limitSlope = true;
     }
 
     // Then prevent new local minima and maxima
     if (limitSlope)
-        SL.Limit(field);
+        SL.limit(field);
 
     return field;
 }
