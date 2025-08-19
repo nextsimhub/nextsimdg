@@ -69,20 +69,6 @@ public:
         return dataMap;
     }
 
-    // For a given field name return the ModelArray pointer pointing to the data
-    const ModelArray* getArrayRef(const std::string& field)
-    {
-        try {
-            return storeRW.at(field);
-        } catch (std::out_of_range&) {
-            try {
-                return storeRO.at(field);
-            } catch (std::out_of_range&) {
-                throw;
-            }
-        }
-    }
-
 private:
     ModelArray* getFieldAddr(const std::string& field, ModelArrayReference& ptr)
     {

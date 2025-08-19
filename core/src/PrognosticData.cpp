@@ -66,8 +66,6 @@ void PrognosticData::configure()
         addChecks({
             { "thickness", &hice },
             { "concentration", &cice },
-            { "u_velocity", getStore().getArrayRef(Protected::ICE_U) },
-            { "v_velocity", getStore().getArrayRef(Protected::ICE_V) },
         });
     }
 }
