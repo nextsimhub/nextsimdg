@@ -1,6 +1,6 @@
 /*!
  * @file dgVector.hpp
- * @date 15 Jul 2025
+ * @date 19 Aug 2025
  * @author Thomas Richter <thomas.richter@ovgu.de>
  */
 
@@ -13,8 +13,6 @@
 
 namespace Nextsim {
 // #define CELLDOFS(DGdegree) (DGdegree == 0 ? 1 : (DGdegree == 1 ? 3 : (DGdegree == 2 ? 6 : -1)))
-
-template <typename Derived> class EigenSlice;
 
 template <int DG> class LocalDGVector : public Eigen::Matrix<double, 1, DG> {
 public:
@@ -129,8 +127,6 @@ public:
             (DG == 1) ? Eigen::ColMajor : Eigen::RowMajor>::operator+=(other);
         return *this;
     }
-
-    template <typename Derived> friend class EigenSlice;
 };
 
 //! data set to store the type of the edges

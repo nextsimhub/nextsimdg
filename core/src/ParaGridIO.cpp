@@ -1,7 +1,7 @@
 /*!
  * @file ParaGridIO.cpp
  *
- * @date 04 Aug 2025
+ * @date 19 Aug 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -140,8 +140,8 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
                 localLength = dim.getSize();
                 start = 0;
             }
-            ModelArray::setDimension(dimType, dim.getSize() + 2 * Halo::haloWidth,
-                localLength + 2 * Halo::haloWidth, start);
+            ModelArray::setDimension(
+                dimType, dim.getSize() + 2 * HALOWIDTH, localLength + 2 * HALOWIDTH, start);
 #else
             ModelArray::setDimension(dimType, dim.getSize());
 #endif
@@ -183,10 +183,10 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
                 size_t localLength = dim.localLength;
 #ifdef USE_MPI
                 if (dt == Dim::X or dt == Dim::Y) {
-                    localLength = localLength - 2 * Halo::haloWidth;
+                    localLength = localLength - 2 * HALOWIDTH;
                 }
                 if (dt == Dim::XVERTEX or dt == Dim::YVERTEX) {
-                    localLength = localLength - 2 * Halo::haloWidth;
+                    localLength = localLength - 2 * HALOWIDTH;
                 }
 #endif
                 start.push_back(startIndex);
@@ -203,15 +203,15 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
             // need to check what happens for non-H-field modelarrays
             // need to figure out what happens w.r.t to coords in non-periodic and periodic case
 
-            Halo halo(data);
+            Halo halo(data.nComponents(), type == ModelArray::Type::VERTEX);
             // create and allocate temporary Eigen array
             ModelArray::DataType tempData;
             tempData.resize(halo.getInnerSize(), data.nComponents());
             // populate temp Eigen array with data from netCDF file
             var.getVar(start, count, tempData.data());
             // populate inner block of modelarray with data from tempData
-            halo.setInnerBlock(tempData);
-            halo.exchangeHalos();
+            halo.setInnerBlock(tempData, data.getDataRef());
+            halo.exchangeHalos(data.getDataRef());
 #else
             var.getVar(start, count, &data[0]);
 #endif
@@ -265,10 +265,10 @@ ModelState ParaGridIO::readForcingTimeStatic(
             auto localLength = dim.localLength;
 #ifdef USE_MPI
             if (dt == Dim::X or dt == Dim::Y) {
-                localLength = localLength - 2 * Halo::haloWidth;
+                localLength = localLength - 2 * HALOWIDTH;
             }
             if (dt == Dim::XVERTEX or dt == Dim::YVERTEX) {
-                localLength = localLength - 2 * Halo::haloWidth;
+                localLength = localLength - 2 * HALOWIDTH;
             }
 #endif
             indexArray.push_back(startIndex);
@@ -292,15 +292,15 @@ ModelState ParaGridIO::readForcingTimeStatic(
             data.resize();
 
 #ifdef USE_MPI
-            Halo halo(data);
+            Halo halo(data.nComponents(), false);
             // create and allocate temporary Eigen array
             ModelArray::DataType tempData;
             tempData.resize(halo.getInnerSize(), data.nComponents());
             // populate temp Eigen array with data from netCDF file
             var.getVar(indexArray, extentArray, tempData.data());
             // populate inner block of modelarray with data from tempData
-            halo.setInnerBlock(tempData);
-            halo.exchangeHalos();
+            halo.setInnerBlock(tempData, data.getDataRef());
+            halo.exchangeHalos(data.getDataRef());
 #else
             var.getVar(indexArray, extentArray, &data[0]);
 #endif
@@ -375,10 +375,10 @@ void ParaGridIO::dumpModelState(const ModelState& state, const std::string& file
             size_t localLength = dim.localLength;
 #ifdef USE_MPI
             if (dt == Dim::X or dt == Dim::Y) {
-                localLength = localLength - 2 * Halo::haloWidth;
+                localLength = localLength - 2 * HALOWIDTH;
             }
             if (dt == Dim::XVERTEX or dt == Dim::YVERTEX) {
-                localLength = localLength - 2 * Halo::haloWidth;
+                localLength = localLength - 2 * HALOWIDTH;
             }
 #endif
             start.push_back(dim.start);
@@ -394,9 +394,11 @@ void ParaGridIO::dumpModelState(const ModelState& state, const std::string& file
         var.putAtt(mdiName, netCDF::ncDouble, MissingData::value());
 
 #ifdef USE_MPI
-        Halo halo(entry.second);
+        auto& data = entry.second;
+        Halo halo(data.nComponents(), type == ModelArray::Type::VERTEX);
         ModelArray::DataType tempData;
-        halo.getInnerBlock(tempData);
+        tempData.resize(halo.getInnerSize(), data.nComponents());
+        halo.getInnerBlock(data.getDataRef(), tempData);
         var.putVar(start, count, tempData.data());
 #else
         var.putVar(start, count, entry.second.getData());
@@ -482,10 +484,10 @@ void ParaGridIO::writeDiagnosticTime(const ModelState& state, const std::string&
             auto localLength = dim.localLength;
 #ifdef USE_MPI
             if (dt == Dim::X or dt == Dim::Y) {
-                localLength = localLength - 2 * Halo::haloWidth;
+                localLength = localLength - 2 * HALOWIDTH;
             }
             if (dt == Dim::XVERTEX or dt == Dim::YVERTEX) {
-                localLength = localLength - 2 * Halo::haloWidth;
+                localLength = localLength - 2 * HALOWIDTH;
             }
 #endif
             ncDims.push_back(ncFromMAMap.at(dt));
@@ -526,7 +528,7 @@ void ParaGridIO::writeDiagnosticTime(const ModelState& state, const std::string&
             auto dim = ModelArray::definedDimensions.at(dt);
             auto localLength = dim.localLength;
 #ifdef USE_MPI
-            localLength = localLength - 2 * Halo::haloWidth;
+            localLength = localLength - 2 * HALOWIDTH;
 #endif
             maskIndexes.push_back(0);
             maskExtents.push_back(localLength);
@@ -556,9 +558,11 @@ void ParaGridIO::writeDiagnosticTime(const ModelState& state, const std::string&
             // No missing data
 #ifdef USE_MPI
             netCDF::setVariableCollective(var, dataGroup);
-            Halo halo(entry.second);
+            auto& data = entry.second;
+            Halo halo(data.nComponents(), type == ModelArray::Type::VERTEX);
             ModelArray::DataType tempData;
-            halo.getInnerBlock(tempData);
+            tempData.resize(halo.getInnerSize(), data.nComponents());
+            halo.getInnerBlock(data.getDataRef(), tempData);
             var.putVar(maskIndexes, maskExtents, tempData.data());
 #else
             var.putVar(maskIndexes, maskExtents, entry.second.getData());
@@ -573,9 +577,11 @@ void ParaGridIO::writeDiagnosticTime(const ModelState& state, const std::string&
                 var.putAtt(mdiName, netCDF::ncDouble, MissingData::value());
 #ifdef USE_MPI
             netCDF::setVariableCollective(var, dataGroup);
-            Halo halo(entry.second);
+            auto& data = entry.second;
+            Halo halo(data.nComponents(), type == ModelArray::Type::VERTEX);
             ModelArray::DataType tempData;
-            halo.getInnerBlock(tempData);
+            tempData.resize(halo.getInnerSize(), data.nComponents());
+            halo.getInnerBlock(data.getDataRef(), tempData);
             var.putVar(startMap.at(type), countMap.at(type), tempData.data());
 #else
             var.putVar(startMap.at(type), countMap.at(type), entry.second.getData());

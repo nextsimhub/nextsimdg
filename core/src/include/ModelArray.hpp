@@ -1,7 +1,7 @@
 /*!
  * @file   ModelArray.hpp
  *
- * @date   15 Jul 2025
+ * @date   19 Aug 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -19,14 +19,19 @@
 
 #include "indexer.hpp"
 
+#ifndef HALOWIDTH
+#define HALOWIDTH 1
+#endif
+
 namespace ArraySlicer {
 class Slice;
+// class SliceIter;
 }
 
 namespace Nextsim {
 
 class ModelArraySlice;
-template <typename Derived> class EigenSlice;
+class Halo;
 class ConstModelArraySlice;
 /*
  * Set the storage order to row major. This matches with DGVector when there is
@@ -60,6 +65,7 @@ using Indexer::indexer;
 class ModelArray {
 public:
     using Slice = ArraySlicer::Slice;
+    // using SliceIter = ArraySlicer::SliceIter;
     // Forward defines make Eclipse less red and squiggly
     enum class Type;
     enum class Dimension;
@@ -298,23 +304,17 @@ public:
     //! Returns a vector<size_t> of the size of each dimension of the specified type of ModelArray.
     static const MultiDim& dimensions(Type type) { return m_dims.at(type); }
 #ifdef USE_MPI
-    //! Returns the total number of elements of this type of ModelArray.
-    const MultiDim innerDimensions() { return innerDimensions(type); }
-
-    //! Returns a vector<size_t> of the size of each dimension of the specified type of ModelArray.
-    MultiDim innerDimensions(Type type)
-    {
-        using Dim = ModelArray::Dimension;
-        std::array<Dimension, 4> haloTypes = { Dim::X, Dim::Y, Dim::XVERTEX, Dim::YVERTEX };
-        auto dimTypes = typeDimensions.at(type);
-        auto dims = m_dims.at(type);
-        for (size_t i = 0; i < dims.size(); i++) {
-            if (std::count(haloTypes.begin(), haloTypes.end(), dimTypes[i])) {
-                dims[i] = dims[i] - 2;
-            }
-        }
-        return dims;
-    }
+    /**
+     * @brief Sets the inner block of the ModelArray data from a given source.
+     *
+     * @details
+     * Copies the inner block from the provided source data into the ModelArray's internal data
+     * buffer. The inner block is defined by slicing off HALOWIDTH elements from each boundary. The
+     * method initializes the entire data buffer to zero before copying the inner block.
+     *
+     * @param source The source DataType (Eigen array) from which to copy the inner block.
+     */
+    void setInnerBlock(DataType& source);
 #endif
 
     //! Returns the total number of elements of this type of ModelArray.
@@ -328,6 +328,9 @@ public:
 
     //! Returns a read-only pointer to the underlying data buffer.
     const double* getData() const { return m_data.data(); }
+
+    //! Returns a reference to the underlying ModelArray::DataType object.
+    ModelArray::DataType& getDataRef() { return m_data; }
 
     //! Returns a const reference to the Eigen data
     const DataType& data() const { return m_data; }
@@ -688,7 +691,7 @@ private:
 
     // ModelArraySlice needs access to the internals for fast slcing
     friend ModelArraySlice;
-    template <typename Derived> friend class EigenSlice;
+    friend Halo;
 };
 
 #include "include/ModelArrayTypedefs.hpp"
