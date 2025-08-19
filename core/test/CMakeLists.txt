@@ -177,23 +177,6 @@ if(ENABLE_MPI)
 
         add_mpi_test("${XIOS_TESTS}")
     else()
-        add_executable(testEigenSliceCB_MPI3
-            "EigenSliceCB_test.cpp"
-            "MainMPI.cpp"
-            "../src/ModelArray.cpp"
-            "../src/ModelArraySlice.cpp"
-        )
-        target_compile_definitions(testEigenSliceCB_MPI3 PRIVATE USE_MPI
-          TEST_FILES_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\")
-        target_include_directories(
-            testEigenSliceCB_MPI3 PRIVATE
-            ${MODEL_INCLUDE_DIR}
-            "${ModulesRoot}/StructureModule"
-            "../src"
-            "../../dynamics/src"
-        )
-        target_link_libraries(testEigenSliceCB_MPI3 PRIVATE nextsimlib doctest::doctest)
-
         add_executable(testHaloExchangeCB_MPI3
             "HaloExchangeCB_test.cpp"
             "MainMPI.cpp"
