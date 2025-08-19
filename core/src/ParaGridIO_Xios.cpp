@@ -407,6 +407,9 @@ void ParaGridIO::writeDiagnosticTime(
 #endif
     timeVar.putVar({ nt }, { 1 }, &secondsSinceEpoch);
 
+    if (isNew)
+        timeVar.putAtt("units", "seconds since 1970-01-01 00:00:00");
+
     // Write the data
     for (auto entry : state.data) {
         ModelArray::Type type = entry.second.getType();
