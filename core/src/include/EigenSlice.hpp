@@ -1,7 +1,7 @@
 /*!
  * @file EigenSlice.hpp
  *
- * @date 16 Jul 2025
+ * @date 19 Aug 2025
  * @author Tom Meltzer <tdm39@cam.ac.uk>
  */
 
@@ -49,13 +49,16 @@ private:
     Slice slice;
     using MultiDim = std::vector<size_t>;
 
-    // spatial dimensions and DoF
+    // spatial dimensions
     const MultiDim dimensions;
+    // non-spatial components e.g., DG.
+    const size_t nComponents;
 
 public:
     explicit EigenSlice(ModelArray& ma, const Slice& sl)
         : data(ma.m_data)
         , dimensions(ma.dimensions())
+        , nComponents(ma.nComponents())
         , slice(sl)
     {
     }
@@ -63,9 +66,33 @@ public:
     explicit EigenSlice(DGVector<DGCOMP>& dgv, const Slice& sl, const ParametricMesh& smesh)
         : data(dgv)
         , dimensions({ smesh.nx, smesh.ny })
+        , nComponents(DGCOMP)
         , slice(sl)
     {
     }
+
+    explicit EigenSlice(
+        ModelArray::DataType& array, const Slice& sl, const MultiDim& dims, const size_t& nComps)
+        : data(array)
+        , dimensions(dims)
+        , nComponents(nComps)
+        , slice(sl)
+    {
+    }
+
+    /**
+     * @brief Returns the spatial dimensions of the data.
+     *
+     * @return A const reference to the vector of spatial dimensions.
+     */
+    const MultiDim& getDimensions() const { return dimensions; }
+
+    /**
+     * @brief Returns the number of non-spatial components (e.g., DG components).
+     *
+     * @return The number of components as a size_t.
+     */
+    size_t getNComponents() const { return nComponents; }
 
     /*!
      * @brief Copies data from EigenSlice to target buffer
