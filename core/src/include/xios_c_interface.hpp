@@ -99,17 +99,6 @@ void cxios_set_domain_ni(xios::CDomain* domain_hdl, int ni);
 void cxios_set_domain_nj(xios::CDomain* domain_hdl, int nj);
 void cxios_set_domain_ibegin(xios::CDomain* domain_hdl, int ibegin);
 void cxios_set_domain_jbegin(xios::CDomain* domain_hdl, int jbegin);
-void cxios_set_domain_lonvalue_1d(xios::CDomain* domain_hdl, double* lonvalue_1d, int* extent);
-void cxios_set_domain_latvalue_1d(xios::CDomain* domain_hdl, double* latvalue_1d, int* extent);
-void cxios_get_domain_type(xios::CDomain* domain_hdl, char* type, int type_size);
-void cxios_get_domain_ni_glo(xios::CDomain* domain_hdl, int* ni_glo);
-void cxios_get_domain_nj_glo(xios::CDomain* domain_hdl, int* nj_glo);
-void cxios_get_domain_ni(xios::CDomain* domain_hdl, int* ni);
-void cxios_get_domain_nj(xios::CDomain* domain_hdl, int* nj);
-void cxios_get_domain_ibegin(xios::CDomain* domain_hdl, int* ibegin);
-void cxios_get_domain_jbegin(xios::CDomain* domain_hdl, int* jbegin);
-void cxios_get_domain_lonvalue_1d(xios::CDomain* domain_hdl, double* lonvalue_1d, int* extent);
-void cxios_get_domain_latvalue_1d(xios::CDomain* domain_hdl, double* latvalue_1d, int* extent);
 bool cxios_is_defined_domain_type(xios::CDomain* axis_hdl);
 bool cxios_is_defined_domain_ni_glo(xios::CDomain* axis_hdl);
 bool cxios_is_defined_domain_nj_glo(xios::CDomain* axis_hdl);
@@ -117,8 +106,6 @@ bool cxios_is_defined_domain_ni(xios::CDomain* axis_hdl);
 bool cxios_is_defined_domain_nj(xios::CDomain* axis_hdl);
 bool cxios_is_defined_domain_ibegin(xios::CDomain* axis_hdl);
 bool cxios_is_defined_domain_jbegin(xios::CDomain* axis_hdl);
-bool cxios_is_defined_domain_lonvalue_1d(xios::CDomain* axis_hdl);
-bool cxios_is_defined_domain_latvalue_1d(xios::CDomain* axis_hdl);
 
 // grid group methods
 void cxios_gridgroup_handle_create(xios::CGridGroup** _ret, const char* _id, int _id_len);
@@ -186,21 +173,11 @@ bool cxios_is_defined_file_par_access(xios::CFile* file_hdl);
 void cxios_xml_tree_add_fieldtofile(
     xios::CFile* file, xios::CField** field, const char* _id, int _id_len);
 
-// writing methods
+// I/O methods
 void cxios_write_data_k82(const char* fieldid, int fieldid_size, const double* data_k8,
     int data_size1, int data_size2, int tileid);
-void cxios_write_data_k83(const char* fieldid, int fieldid_size, const double* data_k8,
-    int data_size1, int data_size2, int data_size3, int tileid);
-void cxios_write_data_k84(const char* fieldid, int fieldid_size, const double* data_k8,
-    int data_size1, int data_size2, int data_size3, int date_size4, int tileid);
-
-// reading methods
 void cxios_read_data_k82(
     const char* fieldid, int fieldid_size, const double* data_k8, int data_size1, int data_size2);
-void cxios_read_data_k83(const char* fieldid, int fieldid_size, const double* data_k8,
-    int data_size1, int data_size2, int data_size3);
-void cxios_read_data_k84(const char* fieldid, int fieldid_size, const double* data_k8,
-    int data_size1, int data_size2, int data_size3, int data_size4);
 };
 
 #endif

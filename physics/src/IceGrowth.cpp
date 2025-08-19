@@ -20,23 +20,12 @@ static const std::map<int, std::string> keyMap = {
 };
 
 IceGrowth::IceGrowth()
-    : hice(ModelArray::Type::H)
-    , cice(ModelArray::Type::H)
-    , hsnow(ModelArray::Type::H)
-    , hice0(ModelArray::Type::H)
-    , hsnow0(ModelArray::Type::H)
-    , hIceCell(getStore())
-    , hSnowCell(getStore())
-    , cice0(getStore())
+    : hice(getStore())
+    , cice(getStore())
+    , hsnow(getStore())
     , qow(getStore())
     , deltaHi(getStore())
 {
-    getStore().registerArray(Shared::H_ICE, &hice, RW);
-    getStore().registerArray(Shared::C_ICE, &cice, RW);
-    getStore().registerArray(Shared::H_SNOW, &hsnow, RW);
-
-    getStore().registerArray(Protected::HTRUE_ICE, &hice0, RO);
-    getStore().registerArray(Protected::HTRUE_SNOW, &hsnow0, RO);
 }
 
 void IceGrowth::setData(const ModelState::DataMap& ms)
@@ -44,26 +33,11 @@ void IceGrowth::setData(const ModelState::DataMap& ms)
     iVertical->setData(ms);
     iLateral->setData(ms);
     iHealing->setData(ms);
-
-    hice.resize();
-    cice.resize();
-    hsnow.resize();
-    hice0.resize();
-    hsnow0.resize();
 }
 
 ModelState IceGrowth::getStateDiagnostic() const
 {
-    ModelState state = { {
-                             { "hice_updated", hice },
-                             { "cice_updated", cice },
-                             { "hsnow_updated", hsnow },
-                             { "hice_initial", hice0 },
-                             { "cice_initial", cice0 },
-                             { "hsnow_initial", hsnow0 },
-                         },
-        getConfiguration() };
-    state.merge(iLateral->getStateDiagnostic());
+    ModelState state = iLateral->getStateDiagnostic();
     state.merge(iVertical->getStateDiagnostic());
     state.merge(iHealing->getStateDiagnostic());
 
@@ -135,9 +109,6 @@ ConfigMap IceGrowth::getConfiguration() const
 
 void IceGrowth::update(const TimestepTime& tsTime)
 {
-    // Copy the ice data from the prognostic fields to the modifiable fields.
-    initializeThicknesses();
-
     // The snowMelt array is not currently filled with data, but it used elsewhere
     // FIXME calculate a true value for snowMelt
 
@@ -149,27 +120,5 @@ void IceGrowth::update(const TimestepTime& tsTime)
     // Damage always heals, even if there's no active thermo
     // TODO: This should only be called for brittle rheologies
     iHealing->update(tsTime);
-}
-
-void IceGrowth::initializeThicknesses()
-{
-    cice = cice0;
-    overElements(
-        [this](size_t i, const TimestepTime& tst) { this->initializeThicknessesElement(i, tst); },
-        TimestepTime());
-}
-
-// Divide by ice concentration to go from cell-averaged to ice-averaged values,
-// but only if ice concentration is non-zero.
-void IceGrowth::initializeThicknessesElement(size_t i, const TimestepTime&)
-{
-    if (cice0[i] > 0 && hIceCell[i] > 0) {
-        hice[i] = hice0[i] = hIceCell[i] / cice0[i];
-        hsnow[i] = hsnow0[i] = hSnowCell[i] / cice0[i];
-    } else {
-        hice[i] = hice0[i] = 0.;
-        hsnow[i] = hsnow0[i] = 0.;
-        cice[i] = 0.;
-    }
 }
 } /* namespace Nextsim */

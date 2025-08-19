@@ -25,7 +25,6 @@
 
 #include <ncDim.h>
 #include <ncFile.h>
-#include <ncGroup.h>
 #include <ncVar.h>
 
 #include <filesystem>
@@ -90,9 +89,9 @@ TEST_CASE("Test periodic output")
     tsurf.resize();
     topMelt.resize();
 
-    ModelComponent::getStore().registerArray(Protected::H_ICE, &hice);
-    ModelComponent::getStore().registerArray(Protected::C_ICE, &cice);
-    ModelComponent::getStore().registerArray(Protected::H_SNOW, &hsnow);
+    ModelComponent::getStore().registerArray(Shared::H_ICE_DG, &hice);
+    ModelComponent::getStore().registerArray(Shared::C_ICE_DG, &cice);
+    ModelComponent::getStore().registerArray(Shared::H_SNOW_DG, &hsnow);
     ModelComponent::getStore().registerArray(Protected::T_SURF, &tsurf);
 
     ModelMetadata meta;
@@ -174,16 +173,14 @@ TEST_CASE("Test periodic output")
 
     // Read the netCDF file directly
     netCDF::NcFile ncFile(specFile, netCDF::NcFile::read);
-    netCDF::NcGroup metaGroup(ncFile.getGroup(IStructure::metadataNodeName()));
-    netCDF::NcGroup dataGroup(ncFile.getGroup(IStructure::dataNodeName()));
 
     // Read the time axis
-    netCDF::NcDim timeDim = dataGroup.getDim(timeName);
+    netCDF::NcDim timeDim = ncFile.getDim(timeName);
     // Read the time variable
-    netCDF::NcVar timeVar = dataGroup.getVar(timeName);
+    netCDF::NcVar timeVar = ncFile.getVar(timeName);
     REQUIRE(timeDim.getSize() == hr_day);
 
-    std::multimap<std::string, netCDF::NcVar> vars(dataGroup.getVars());
+    std::multimap<std::string, netCDF::NcVar> vars(ncFile.getVars());
     REQUIRE(vars.size() == fields.size() + 1 + 4); // +1 for the time variable + 4 for the coords
     for (auto field : fields) {
         REQUIRE(vars.count(field) == 1);
