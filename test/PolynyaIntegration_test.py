@@ -53,10 +53,10 @@ class Polynya(unittest.TestCase):
 
         # Load the basic variables
         root = netCDF4.Dataset(cls.diagnostics_file, "r", format="NETCDF4")
-        cls.cice = np.squeeze(np.array(root.groups["data"].variables["cice"][:].data))
-        cls.hice = np.squeeze(np.array(root.groups["data"].variables["hice"][:].data))
-        cls.uice = np.array(root.groups["data"].variables["u"][:].data)
-        cls.vice = np.array(root.groups["data"].variables["v"][:].data)
+        cls.cice = np.squeeze(np.array(root.variables["cice"][:].data))
+        cls.hice = np.squeeze(np.array(root.variables["hice"][:].data))
+        cls.uice = np.array(root.variables["u"][:].data)
+        cls.vice = np.array(root.variables["v"][:].data)
 
     @classmethod
     def __make_cfg_file(cls):
@@ -117,7 +117,7 @@ wind_v = 12
         fname = cls.init_file
 
         # The model expects everything in metres
-        initializer = initMaker(fname, nfirst, nsecond, res*1e3, isWinton=True, checkZeros=False)
+        initializer = initMaker(fname, nfirst, nsecond, res*1e3, checkZeros=False)
 
         # Ice everywhere and all boundaries closed, except the x = 100 km end
         initializer.mask[:, :] = 1.
@@ -143,9 +143,6 @@ wind_v = 12
 
         initializer.sss[:, :] = ocean_salinity
         initializer.sst[:, :] = ocean_temperature
-        initializer.tsurf[:, :] = ice_salinity * mu
-        initializer.tbott = initializer.tsurf
-        initializer.tintr = initializer.tsurf
 
         # All other variables are zero or not needed
 
