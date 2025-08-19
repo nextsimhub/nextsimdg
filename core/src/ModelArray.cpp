@@ -293,7 +293,12 @@ void ModelArray::checkLimits(const ModelArray& mask) const
     if (masked.isNaN().any())
         throw std::runtime_error("Field contains NaN.");
 
-    // Now we check the bounds and set the array index (i) and value if we're out of bounds
+    /* Now we check the bounds and set the array index (i) and value if we're out of bounds.
+     * Here, we need to check if the values are _outside_ the bounds, and if they are, then we ask
+     * Eigen to find the offending value and its location. We then proceed to throw an error.
+     * This also means that using '<' and '>' in the checks here is consistent with checking if the
+     * value is in min <= value <= max.
+     */
     size_t i;
     double value;
     if (masked.minCoeff() < lowerPhysicalLimit) {
@@ -304,7 +309,9 @@ void ModelArray::checkLimits(const ModelArray& mask) const
         return;
     }
 
-    // If we haven't return'ed (or thrown an exception) by now, we have an error in the field
+    /* If we haven't returned (or thrown an exception) by now, we have an error in the field, and
+     * Eigen has found that this is at index i.
+     */
     const std::vector<size_t> loc = locationFromIndex(type, i);
     std::string locStr = "[";
     for (const size_t& l : loc)
