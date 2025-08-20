@@ -2,7 +2,7 @@
 #
 # Please pass the -DOASIS_DIR variable to cmake (location of the OASIS libraries).
 
-find_library (OASIS_LIBRARIES NAMES mct mpeu oasis psmile scrip HINTS ${OASIS_DIR}/lib ENV LD_LIBRARY_PATH)
+find_library (OASIS_LIBRARIES NAMES mct mpeu oasis.cbind psmile.MPI1 scrip HINTS ${OASIS_DIR}/lib ENV LD_LIBRARY_PATH)
 
 get_filename_component (OASIS_LIBRARIES "${OASIS_LIBRARIES}" PATH)
 
