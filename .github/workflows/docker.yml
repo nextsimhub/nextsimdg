@@ -42,9 +42,18 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
           logout: true
 
+      - name: Build container
+        uses: docker/build-push-action@v5
+        if: github.event_name == 'pull_request'
+        with:
+          push: false
+          file: Dockerfiles/Dockerfile.devenv
+          tags: ghcr.io/nextsimhub/nextsimdg-dev-env:latest
+
       - name: Build container and push to ghcr
         uses: docker/build-push-action@v5
+        if: github.event_name == 'push' || github.event_name == 'schedule'
         with:
-          push: github.event_name == 'push' || github.event_name == 'schedule'
+          push: true
           file: Dockerfiles/Dockerfile.devenv
           tags: ghcr.io/nextsimhub/nextsimdg-dev-env:latest
