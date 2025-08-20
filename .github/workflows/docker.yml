@@ -1,6 +1,10 @@
 name: Periodic Docker build
 
 on:
+  # Build the Docker container upon merging into main or develop
+  push:
+    branches: [ main, develop ]
+
   # Build the Docker container whenever commits are pushed to an open PR that changes one of the files listed
   pull_request:
     paths:
@@ -41,6 +45,6 @@ jobs:
       - name: Build container and push to ghcr
         uses: docker/build-push-action@v5
         with:
-          push: true
+          push: github.event_name == 'push' || github.event_name == 'schedule'
           file: Dockerfiles/Dockerfile.devenv
           tags: ghcr.io/nextsimhub/nextsimdg-dev-env:latest
