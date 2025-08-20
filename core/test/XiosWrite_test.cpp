@@ -120,8 +120,9 @@ MPI_TEST_CASE("TestXiosWrite", 2)
 
     // Setup ModelState with field above
     ModelState state = { {
-                             { maskName, mask }, { coordsName, coordinates },
-                             { hiceName, hice }, // FIXME: Shape mismatch (expected 24, got 12)
+                             { maskName, mask },
+                             { coordsName, coordinates },
+                             { hiceName, hice },
                          },
         {} };
 
@@ -144,9 +145,8 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     REQUIRE(std::filesystem::exists("xios_test_output_20230317171100-20230317201059.nc"));
     REQUIRE(std::filesystem::exists("xios_test_output_20230317201100-20230317231059.nc"));
     if (xiosHandler.getClientMPIRank() == 0) {
-        // TODO: Uncomment the following lines once things are working
-        // std::filesystem::remove("xios_test_output_20230317171100-20230317201059.nc");
-        // std::filesystem::remove("xios_test_output_20230317201100-20230317231059.nc");
+        std::filesystem::remove("xios_test_output_20230317171100-20230317201059.nc");
+        std::filesystem::remove("xios_test_output_20230317201100-20230317231059.nc");
     }
 
     xiosHandler.context_finalize();
