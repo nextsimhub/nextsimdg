@@ -61,8 +61,8 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     const size_t ny = 2;
     ModelArray::setDimension(ModelArray::Dimension::X, nx_glo, nx, 0);
     ModelArray::setDimension(ModelArray::Dimension::Y, ny_glo, ny, 0);
-    ModelArray::setDimension(ModelArray::Dimension::XVERTEX, nx_glo + 1, nx + 1, 0); // TODO: check
-    ModelArray::setDimension(ModelArray::Dimension::YVERTEX, ny_glo + 1, ny + 1, 0); // TODO: check
+    ModelArray::setDimension(ModelArray::Dimension::XVERTEX, nx_glo + 1, nx + 1, 0);
+    ModelArray::setDimension(ModelArray::Dimension::YVERTEX, ny_glo + 1, ny + 1, 0);
     ModelArray::setNComponents(ModelArray::Type::DG, DG);
     ModelArray::setNComponents(ModelArray::Type::VERTEX, ModelArray::nCoords);
     REQUIRE(ModelArray::nComponents(ModelArray::Type::DG) == DG);

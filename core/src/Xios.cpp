@@ -730,8 +730,8 @@ void Xios::affixModelMetadata(ModelMetadata& metadata)
 
     // Set metadata for 'VertexDomain'
     domain = getDomain(vertexDomainId);
-    cxios_set_domain_ni_glo(domain, (int)metadata.globalExtentX + 1); // TODO: Check
-    cxios_set_domain_nj_glo(domain, (int)metadata.globalExtentY + 1); // TODO: Check
+    cxios_set_domain_ni_glo(domain, (int)metadata.globalExtentX + 1);
+    cxios_set_domain_nj_glo(domain, (int)metadata.globalExtentY + 1);
     cxios_set_domain_ibegin(domain, (int)metadata.localCornerX);
     cxios_set_domain_jbegin(domain, (int)metadata.localCornerY);
     cxios_set_domain_ni(domain, (int)metadata.localExtentX + 1);
