@@ -19,6 +19,7 @@
 #include <filesystem>
 
 static const int DG = 3;
+static const int DGSTRESS = 6;
 
 namespace Nextsim {
 
@@ -67,7 +68,12 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     ModelArray::setDimension(ModelArray::Dimension::Y, ny_glo, ny, 0);
     ModelArray::setDimension(ModelArray::Dimension::XVERTEX, nx_glo + 1, nx + 1, 0); // TODO: check
     ModelArray::setDimension(ModelArray::Dimension::YVERTEX, ny_glo + 1, ny + 1, 0); // TODO: check
-    ModelArray::setDimension(ModelArray::Dimension::DG, DG, DG, 0); // TODO: Check
+    ModelArray::setNComponents(ModelArray::Type::DG, DG);
+    ModelArray::setNComponents(ModelArray::Type::DGSTRESS, DGSTRESS);
+    ModelArray::setNComponents(ModelArray::Type::VERTEX, ModelArray::nCoords);
+
+    REQUIRE(ModelArray::nComponents(ModelArray::Type::DG) == DG);
+    REQUIRE(ModelArray::nComponents(ModelArray::Type::VERTEX) == ModelArray::nCoords);
 
     // Create fields on the grid
     // NOTE: Fields are created when the XIOS handler is constructed
