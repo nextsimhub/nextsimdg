@@ -99,9 +99,21 @@ ModelState ParaGridIO::getModelState(const std::string& filePath, ModelMetadata&
     // Get all vars in the data group, and load them into a new ModelState
     const bool readAccess = true;
     for (std::string fieldId : xiosHandler.configGetFieldNames(readAccess)) {
-        HField field(ModelArray::Type::H); // TODO: Support other dimTypes
-        field.resize();
-        state.merge(ModelState { { { fieldId, field } }, {} });
+        // TODO: Proper implementation!
+        // Probably need to stash some info when we do the initial read of the NetCDF file.
+        if (fieldId == "mask") {
+            HField field(ModelArray::Type::H);
+            field.resize();
+            state.merge(ModelState { { { fieldId, field } }, {} });
+        } else if (fieldId == "coords") {
+            VertexField field(ModelArray::Type::VERTEX);
+            field.resize();
+            state.merge(ModelState { { { fieldId, field } }, {} });
+        } else {
+            DGField field(ModelArray::Type::DG);
+            field.resize();
+            state.merge(ModelState { { { fieldId, field } }, {} });
+        }
     }
     // Assume that all fields in the supplied ModelState are necessary, and so read them from file.
     for (auto& entry : state.data) {
