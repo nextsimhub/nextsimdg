@@ -91,114 +91,26 @@ bool ParaGridIO::doOnce()
 
 ParaGridIO::~ParaGridIO() = default;
 
-#ifdef USE_MPI
 ModelState ParaGridIO::getModelState(const std::string& filePath, ModelMetadata& metadata)
-#else
-ModelState ParaGridIO::getModelState(const std::string& filePath)
-#endif
 {
-    // TODO: XIOS implementation
     ModelState state;
+    Xios& xiosHandler = Xios::getInstance();
 
-    try {
-#ifdef USE_MPI
-        netCDF::NcFilePar ncFile(filePath, netCDF::NcFile::read, metadata.mpiComm);
-#else
-        netCDF::NcFile ncFile(filePath, netCDF::NcFile::read);
-#endif
-
-        // Dimensions and DG components
-        std::multimap<std::string, netCDF::NcDim> dimMap = ncFile.getDims();
-        for (auto entry : ModelArray::definedDimensions) {
-            auto dimType = entry.first;
-            if (dimCompMap.count(dimType) > 0)
-                // TODO Assertions that DG in the file equals the compile time DG in the model. See
-                // #205
-                continue;
-
-            ModelArray::DimensionSpec& dimensionSpec = entry.second;
-            // Find dimensions in the netCDF file by their name in the ModelArray details
-            netCDF::NcDim dim = ncFile.getDim(dimensionSpec.name);
-            // Also check the old name
-            if (dim.isNull()) {
-                dim = ncFile.getDim(dimensionSpec.altName);
-            }
-            // If we didn't find a dimension with the dimensions name or altName, throw.
-            if (dim.isNull()) {
-                throw std::out_of_range(
-                    std::string("No netCDF dimension found corresponding to the dimension named ")
-                    + dimensionSpec.name + std::string(" or ") + dimensionSpec.altName);
-            }
-#ifdef USE_MPI
-            auto dimName = dim.getName();
-            size_t localLength = 0;
-            size_t start = 0;
-            if (dimType == ModelArray::Dimension::X) {
-                localLength = metadata.localExtentX;
-                start = metadata.localCornerX;
-            } else if (dimType == ModelArray::Dimension::Y) {
-                localLength = metadata.localExtentY;
-                start = metadata.localCornerY;
-            } else if (dimType == ModelArray::Dimension::XVERTEX) {
-                localLength = metadata.localExtentX + 1;
-                start = metadata.localCornerX;
-            } else if (dimType == ModelArray::Dimension::YVERTEX) {
-                localLength = metadata.localExtentY + 1;
-                start = metadata.localCornerY;
-            } else {
-                localLength = dim.getSize();
-                start = 0;
-            }
-            ModelArray::setDimension(dimType, dim.getSize(), localLength, start);
-#else
-            ModelArray::setDimension(dimType, dim.getSize());
-#endif
-        }
-
-        // Get all valid variables and load them into a new ModelState
-
-        for (auto entry : ncFile.getVars()) {
-            const std::string& varName = entry.first;
-            netCDF::NcVar& var = entry.second;
-            // Determine the type from the dimensions
-            std::vector<netCDF::NcDim> varDims = var.getDims();
-            std::string dimKey = "";
-            for (netCDF::NcDim& dim : varDims) {
-                dimKey += dim.getName();
-            }
-            // Skip invalid dimension keys
-            if (!dimensionKeys.count(dimKey)) {
-                continue;
-            }
-            ModelArray::Type type = dimensionKeys.at(dimKey);
-            state.data[varName] = ModelArray(type);
-            ModelArray& data = state.data.at(varName);
-            data.resize();
-
-            std::vector<size_t> start;
-            std::vector<size_t> count;
-            if (ModelArray::hasDoF(type)) {
-                auto ncomps = data.nComponents();
-                start.push_back(0);
-                count.push_back(ncomps);
-            }
-            for (ModelArray::Dimension dt : ModelArray::typeDimensions.at(type)) {
-                auto dim = ModelArray::definedDimensions.at(dt);
-                start.push_back(dim.start);
-                count.push_back(dim.localLength);
-            }
-            // dims are looped in [dg], x, y, [z] order so start and count
-            // order must be reveresed to match order netcdf expects
-            std::reverse(start.begin(), start.end());
-            std::reverse(count.begin(), count.end());
-
-            var.getVar(start, count, &data[0]);
-        }
-        ncFile.close();
-    } catch (const netCDF::exceptions::NcException& nce) {
-        std::string ncWhat(nce.what());
-        ncWhat += ": " + filePath;
-        throw std::runtime_error(ncWhat);
+    // Get all vars in the data group, and load them into a new ModelState
+    const bool readAccess = true;
+    for (std::string fieldId : xiosHandler.configGetFieldNames(readAccess)) {
+        HField field(ModelArray::Type::H); // TODO: Support other dimTypes
+        field.resize();
+        state.merge(ModelState { { { fieldId, field } }, {} });
+    }
+    // Assume that all fields in the supplied ModelState are necessary, and so read them from file.
+    for (auto& entry : state.data) {
+        const std::string fieldId = entry.first;
+        if (!xiosHandler.getFieldReadAccess(fieldId)) {
+            throw std::runtime_error("ParaGridIO::getModelState: field " + fieldId
+                + " is not configured for reading, but is being read from file.");
+        };
+        xiosHandler.read(fieldId, entry.second);
     }
     return state;
 }
@@ -265,7 +177,8 @@ void ParaGridIO::dumpModelState(
 {
     Xios& xiosHandler = Xios::getInstance();
 
-    // Assume that all fields in the supplied ModelState are necessary, and so write them to file.
+    // Assume that all fields in the supplied ModelState are necessary, and so write them to
+    // file.
     for (auto entry : state.data) {
         const std::string fieldId = entry.first;
         if (xiosHandler.getFieldReadAccess(fieldId)) {
@@ -288,17 +201,10 @@ void ParaGridIO::writeDiagnosticTime(
         // Set the initial time to be zero (assigned above)
         // Piecewise construction is necessary to correctly construct the file handle/time index
         // pair
-#ifdef USE_MPI
         openFilesAndIndices.emplace(std::piecewise_construct, std::make_tuple(filePath),
             std::forward_as_tuple(std::piecewise_construct,
                 std::forward_as_tuple(filePath, netCDF::NcFile::replace, meta.mpiComm),
                 std::forward_as_tuple(nt)));
-#else
-        openFilesAndIndices.emplace(std::piecewise_construct, std::make_tuple(filePath),
-            std::forward_as_tuple(std::piecewise_construct,
-                std::forward_as_tuple(filePath, netCDF::NcFile::replace),
-                std::forward_as_tuple(nt)));
-#endif
     }
     // Get the file handle
     NetCDFFileType& ncFile = openFilesAndIndices.at(filePath).first;
@@ -389,9 +295,7 @@ void ParaGridIO::writeDiagnosticTime(
     netCDF::NcVar timeVar(
         (isNew) ? ncFile.addVar(timeName, netCDF::ncDouble, timeDimVec) : ncFile.getVar(timeName));
     double secondsSinceEpoch = (meta.time() - TimePoint()).seconds();
-#ifdef USE_MPI
     netCDF::setVariableCollective(timeVar, ncFile);
-#endif
     timeVar.putVar({ nt }, { 1 }, &secondsSinceEpoch);
 
     // Write the data
@@ -404,9 +308,7 @@ void ParaGridIO::writeDiagnosticTime(
             // Land mask in a new file (since it was skipped above in existing files)
             netCDF::NcVar var(ncFile.addVar(maskName, netCDF::ncDouble, maskDims));
             // No missing data
-#ifdef USE_MPI
             netCDF::setVariableCollective(var, ncFile);
-#endif
             var.putVar(maskIndexes, maskExtents, entry.second.getData());
 
         } else {
@@ -416,9 +318,7 @@ void ParaGridIO::writeDiagnosticTime(
                                       : ncFile.getVar(entry.first));
             if (isNew)
                 var.putAtt(mdiName, netCDF::ncDouble, MissingData::value());
-#ifdef USE_MPI
             netCDF::setVariableCollective(var, ncFile);
-#endif
             var.putVar(startMap.at(type), countMap.at(type), entry.second.getData());
         }
     }
