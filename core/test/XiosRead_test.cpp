@@ -103,22 +103,14 @@ MPI_TEST_CASE("TestXiosRead", 2)
         // Check that the fields contain the expected data
         ModelState state = grid.getModelState(filename, metadata);
         for (auto& entry : state.data) {
-            if (entry.first == maskName) {
-                for (size_t j = 0; j < ny; ++j) {
-                    for (size_t i = 0; i < nx; ++i) {
+            for (size_t j = 0; j < ny; ++j) {
+                for (size_t i = 0; i < nx; ++i) {
+                    if (entry.first == maskName) {
                         REQUIRE(entry.second(i, j) == doctest::Approx(j >= 1 ? 1.0 : 0.0));
-                    }
-                }
-            } else if (entry.first == coordsName) {
-                for (size_t j = 0; j < ny + 1; ++j) {
-                    for (size_t i = 0; i < nx + 1; ++i) {
+                    } else if (entry.first == coordsName) {
                         REQUIRE(entry.second.components({ i, j })[0] == doctest::Approx(i));
                         REQUIRE(entry.second.components({ i, j })[1] == doctest::Approx(j));
-                    }
-                }
-            } else if (entry.first == hiceName) {
-                for (size_t j = 0; j < ny; ++j) {
-                    for (size_t i = 0; i < nx; ++i) {
+                    } else if (entry.first == hiceName) {
                         for (size_t d = 0; d < DG; ++d) {
                             float expected = 1.0 * (d + DG * (i + nx * j));
                             REQUIRE(
