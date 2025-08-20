@@ -58,14 +58,16 @@ MPI_TEST_CASE("TestXiosRead", 2)
     REQUIRE(xiosHandler.isInitialized());
     REQUIRE(xiosHandler.getClientMPISize() == 2);
 
+    // TODO: We could deduce this from the NetCDF file
+    ModelArray::setNComponents(ModelArray::Type::DG, DG);
+    ModelArray::setNComponents(ModelArray::Type::VERTEX, ModelArray::nCoords);
+    REQUIRE(ModelArray::nComponents(ModelArray::Type::DG) == DG);
+    REQUIRE(ModelArray::nComponents(ModelArray::Type::VERTEX) == ModelArray::nCoords);
+
     // Create ModelMetadata instance based off a partition metadata file
     // NOTE: ModelArray dimensions are determined from the input file, if present
     ModelMetadata metadata("xios_test_partition_metadata_2.nc", test_comm);
     xiosHandler.affixModelMetadata(metadata);
-
-    // Set DG degree
-    // TODO: We could deduce this from the NetCDF file
-    ModelArray::setDimension(ModelArray::Dimension::DG, DG, DG, 0);
 
     // Create fields on the grid
     // NOTE: Fields are created when the XIOS handler is constructed

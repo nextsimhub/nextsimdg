@@ -19,7 +19,6 @@
 #include <filesystem>
 
 static const int DG = 3;
-static const int DGSTRESS = 6;
 
 namespace Nextsim {
 
@@ -55,10 +54,6 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     REQUIRE(xiosHandler.isInitialized());
     REQUIRE(xiosHandler.getClientMPISize() == 2);
 
-    // Create ModelMetadata instance based off a partition metadata file
-    ModelMetadata metadata("xios_test_partition_metadata_2.nc", test_comm);
-    xiosHandler.affixModelMetadata(metadata);
-
     // Set ModelArray dimensions
     const size_t nx_glo = 4;
     const size_t ny_glo = 2;
@@ -69,11 +64,13 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     ModelArray::setDimension(ModelArray::Dimension::XVERTEX, nx_glo + 1, nx + 1, 0); // TODO: check
     ModelArray::setDimension(ModelArray::Dimension::YVERTEX, ny_glo + 1, ny + 1, 0); // TODO: check
     ModelArray::setNComponents(ModelArray::Type::DG, DG);
-    ModelArray::setNComponents(ModelArray::Type::DGSTRESS, DGSTRESS);
     ModelArray::setNComponents(ModelArray::Type::VERTEX, ModelArray::nCoords);
-
     REQUIRE(ModelArray::nComponents(ModelArray::Type::DG) == DG);
     REQUIRE(ModelArray::nComponents(ModelArray::Type::VERTEX) == ModelArray::nCoords);
+
+    // Create ModelMetadata instance based off a partition metadata file
+    ModelMetadata metadata("xios_test_partition_metadata_2.nc", test_comm);
+    xiosHandler.affixModelMetadata(metadata);
 
     // Create fields on the grid
     // NOTE: Fields are created when the XIOS handler is constructed
