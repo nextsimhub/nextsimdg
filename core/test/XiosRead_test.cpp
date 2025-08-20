@@ -84,23 +84,6 @@ MPI_TEST_CASE("TestXiosRead", 2)
 
     xiosHandler.close_context_definition();
 
-    // Create HField and ZField instances to read the data into
-    HField mask(ModelArray::Type::H);
-    mask.resize();
-    VertexField coordinates(ModelArray::Type::VERTEX);
-    coordinates.resize();
-    DGField hice(ModelArray::Type::DG);
-    hice.resize();
-
-    // Setup ModelState with field above
-    ModelState state
-        = { {
-                { maskName, mask },
-                { coordsName, coordinates }, // FIXME: Shape mismatch (expected 18, got 4)
-                { hiceName, hice }, // FIXME: Shape mismatch (expected 12, got 4)
-            },
-              {} };
-
     // Check calendar step is zero initially
     REQUIRE(xiosHandler.getCalendarStep() == 0);
 
@@ -129,8 +112,8 @@ MPI_TEST_CASE("TestXiosRead", 2)
             } else if (entry.first == coordsName) {
                 for (size_t j = 0; j < ny + 1; ++j) {
                     for (size_t i = 0; i < nx + 1; ++i) {
-                        REQUIRE(coordinates.components({ i, j })[0] == doctest::Approx(i));
-                        REQUIRE(coordinates.components({ i, j })[1] == doctest::Approx(j));
+                        REQUIRE(entry.second.components({ i, j })[0] == doctest::Approx(i));
+                        REQUIRE(entry.second.components({ i, j })[1] == doctest::Approx(j));
                     }
                 }
             } else if (entry.first == hiceName) {
@@ -138,7 +121,8 @@ MPI_TEST_CASE("TestXiosRead", 2)
                     for (size_t i = 0; i < nx; ++i) {
                         for (size_t d = 0; d < DG; ++d) {
                             float expected = 1.0 * (d + DG * (i + nx * j));
-                            REQUIRE(hice.components({ i, j })[d] == doctest::Approx(expected));
+                            REQUIRE(
+                                entry.second.components({ i, j })[d] == doctest::Approx(expected));
                         }
                     }
                 }
