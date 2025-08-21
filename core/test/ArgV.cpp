@@ -1,5 +1,5 @@
 /*!
- * @author Tim Spain
+ * @author  Tim Spain
  */
 
 #include "ArgV.hpp"

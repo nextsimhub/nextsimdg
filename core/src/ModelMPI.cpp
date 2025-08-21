@@ -1,5 +1,5 @@
 /*!
- * @author Tom Meltzer <tdm39@cam.ac.uk>
+ * @author  Tom Meltzer <tdm39@cam.ac.uk>
  */
 
 #ifdef USE_MPI

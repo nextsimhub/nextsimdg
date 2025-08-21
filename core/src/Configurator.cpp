@@ -1,5 +1,5 @@
 /*!
- * @author Tim Spain
+ * @author  Tim Spain
  */
 
 #include "include/Configurator.hpp"

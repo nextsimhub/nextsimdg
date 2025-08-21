@@ -1,5 +1,5 @@
 /*!
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 // Does this class need testing? Not really, but it got removed from

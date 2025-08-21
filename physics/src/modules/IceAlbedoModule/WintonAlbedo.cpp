@@ -1,6 +1,6 @@
 /*!
- * @author Tim Spain
- * @author Einar Ólason <einar.olason@nersc.no>
+ * @author  Tim Spain
+ * @author  Einar Ólason <einar.olason@nersc.no>
  */
 
 #include "include/WintonAlbedo.hpp"

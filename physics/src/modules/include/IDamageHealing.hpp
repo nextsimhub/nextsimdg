@@ -1,5 +1,5 @@
 /*!
- * @author Einar Ólason <einar.olason@nersc.no>
+ * @author  Einar Ólason <einar.olason@nersc.no>
  */
 
 #ifndef IDAMAGEHEALING_HPP

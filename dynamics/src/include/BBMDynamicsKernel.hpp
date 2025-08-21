@@ -1,6 +1,6 @@
 /*!
- * @author Tim Spain <timothy.spain@nersc.no>
- * @author Piotr Minakowski <piotr.minakowski@ovgu.de>
+ * @author  Tim Spain <timothy.spain@nersc.no>
+ * @author  Piotr Minakowski <piotr.minakowski@ovgu.de>
  */
 
 #ifndef BBMDYNAMICSKERNEL_HPP

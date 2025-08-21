@@ -1,6 +1,6 @@
 /*!
  * This class has no corresponding implementation, just this header file
- * @author Einar Ólason <einar.olason@nersc.no>
+ * @author  Einar Ólason <einar.olason@nersc.no>
  */
 
 #ifndef NOHEALING_HPP

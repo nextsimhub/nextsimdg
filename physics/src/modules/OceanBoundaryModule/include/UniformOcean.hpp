@@ -1,5 +1,5 @@
 /*!
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #ifndef UNIFORMOCEAN_HPP

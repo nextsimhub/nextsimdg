@@ -1,5 +1,5 @@
 /*!
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #ifndef DUMMYDYNAMICS_HPP

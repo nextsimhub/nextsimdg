@@ -1,6 +1,6 @@
 /*!
- * @author Tim Spain <timothy.spain@nersc.no>
- * @author Tom Meltzer <tdm39@cam.ac.uk>
+ * @author  Tim Spain <timothy.spain@nersc.no>
+ * @author  Tom Meltzer <tdm39@cam.ac.uk>
  */
 
 #ifndef MODELMETADATA_HPP

@@ -1,5 +1,5 @@
 /*!
- * @author Tom Meltzer <tdm39@cam.ac.uk>
+ * @author  Tom Meltzer <tdm39@cam.ac.uk>
  */
 
 #include <doctest/extensions/doctest_mpi.h>

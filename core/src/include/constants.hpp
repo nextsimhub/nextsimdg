@@ -1,5 +1,5 @@
 /*!
- * @author Tim Spain
+ * @author  Tim Spain
  */
 
 #ifndef SRC_INCLUDE_CONSTANTS_HPP

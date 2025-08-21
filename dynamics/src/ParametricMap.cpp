@@ -1,5 +1,5 @@
 /*!
- * @author Thomas Richter <thomas.richter@ovgu.de>
+ * @author  Thomas Richter <thomas.richter@ovgu.de>
  */
 
 #include "ParametricMap.hpp"

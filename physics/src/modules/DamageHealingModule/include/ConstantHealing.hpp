@@ -1,5 +1,5 @@
 /*!
- * @author Einar Ólason <einar.olason@nersc.no>
+ * @author  Einar Ólason <einar.olason@nersc.no>
  */
 
 #ifndef CONSTANTHEALING_HPP
