@@ -1,16 +1,12 @@
 /*!
  * @file ERA5Atm_test.cpp
  *
- * @date 23 Aug 2024
+ * @date 21 Aug 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#ifdef USE_MPI
-#include <doctest/extensions/doctest_mpi.h>
-#else
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include <doctest/doctest.h>
-#endif
 
 #include "include/TOPAZOcean.hpp"
 
@@ -27,11 +23,7 @@
 namespace Nextsim {
 
 TEST_SUITE_BEGIN("TOPAZOcean");
-#ifdef USE_MPI
-MPI_TEST_CASE("TOPAZOcean test", 1)
-#else
 TEST_CASE("TOPAZOcean test")
-#endif
 {
     const std::string filePath = "topaz_test128x128.nc";
     const std::string orig_file = std::string(TEST_FILES_DIR) + "/" + filePath;
@@ -43,17 +35,10 @@ TEST_CASE("TOPAZOcean test")
     size_t nxvertex = nx + 1;
     size_t nyvertex = ny + 1;
 
-#ifdef USE_MPI
-    ModelArray::setDimension(ModelArray::Dimension::X, nx, nx, 0);
-    ModelArray::setDimension(ModelArray::Dimension::XVERTEX, nxvertex, nxvertex, 0);
-    ModelArray::setDimension(ModelArray::Dimension::Y, ny, ny, 0);
-    ModelArray::setDimension(ModelArray::Dimension::YVERTEX, nyvertex, nyvertex, 0);
-#else
     ModelArray::setDimension(ModelArray::Dimension::X, nx);
     ModelArray::setDimension(ModelArray::Dimension::Y, ny);
     ModelArray::setDimension(ModelArray::Dimension::XVERTEX, nxvertex);
     ModelArray::setDimension(ModelArray::Dimension::YVERTEX, nyvertex);
-#endif
 
     TOPAZOcean topaz;
     topaz.configure();

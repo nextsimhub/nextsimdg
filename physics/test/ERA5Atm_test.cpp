@@ -1,16 +1,12 @@
 /*!
  * @file ERA5Atm_test.cpp
  *
- * @date 7 Sep 2023
+ * @date 21 Aug 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
-#ifdef USE_MPI
-#include <doctest/extensions/doctest_mpi.h>
-#else
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include <doctest/doctest.h>
-#endif
 
 #include "include/ERA5Atmosphere.hpp"
 
@@ -34,24 +30,17 @@ namespace Nextsim {
 class NullFlux : public IFluxCalculation {
 public:
     NullFlux()
-    : IFluxCalculation()
+        : IFluxCalculation()
     {
     }
     void update(const TimestepTime&) override { }
 
 } nullFlux;
 
-std::unique_ptr<IFluxCalculation> setNullFlux()
-{
-    return std::make_unique<NullFlux>();
-}
+std::unique_ptr<IFluxCalculation> setNullFlux() { return std::make_unique<NullFlux>(); }
 
 TEST_SUITE_BEGIN("ERA5Atmosphere");
-#ifdef USE_MPI
-MPI_TEST_CASE("ERA5Atmosphere construction test", 1)
-#else
 TEST_CASE("ERA5Atmosphere construction test")
-#endif
 {
     const std::string filePath = "era5_test128x128.nc";
     const std::string orig_file = std::string(TEST_FILES_DIR) + "/" + filePath;
@@ -63,17 +52,10 @@ TEST_CASE("ERA5Atmosphere construction test")
     size_t nxvertex = nx + 1;
     size_t nyvertex = ny + 1;
 
-#ifdef USE_MPI
-    ModelArray::setDimension(ModelArray::Dimension::X, nx, nx, 0);
-    ModelArray::setDimension(ModelArray::Dimension::XVERTEX, nxvertex, nxvertex, 0);
-    ModelArray::setDimension(ModelArray::Dimension::Y, ny, ny, 0);
-    ModelArray::setDimension(ModelArray::Dimension::YVERTEX, nyvertex, nyvertex, 0);
-#else
     ModelArray::setDimension(ModelArray::Dimension::X, nx);
     ModelArray::setDimension(ModelArray::Dimension::Y, ny);
     ModelArray::setDimension(ModelArray::Dimension::XVERTEX, nxvertex);
     ModelArray::setDimension(ModelArray::Dimension::YVERTEX, nyvertex);
-#endif
 
     ERA5Atmosphere e5;
 
