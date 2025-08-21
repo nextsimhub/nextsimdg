@@ -12,7 +12,7 @@ ENV OASIS_ENV=oasis_docker_spack_gcc
 COPY make.oasis_docker make.$OASIS_ENV
 
 # make!
-RUN make -f TopMakefileOasis3 static-libs shared-libs
+RUN make -f TopMakefileOasis3 static-libs shared-libs pyoasis
 
 # make install ... of sorts
 RUN cp -a $OASIS_COUPLE/build.$OASIS_ENV/lib/* /usr/local/lib
