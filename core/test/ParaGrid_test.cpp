@@ -1,7 +1,7 @@
 /*!
  * @file ParaGrid_test.cpp
  *
- * @date 04 Aug 2025
+ * @date 21 Aug 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Tom Meltzer <tdm39@cam.ac.uk>
  */
@@ -67,21 +67,26 @@ void initializeTestData(
     auto localNX = ModelArray::definedDimensions.at(dimX).localLength;
     auto dimY = ModelArray::Dimension::Y;
     auto localNY = ModelArray::definedDimensions.at(dimY).localLength;
+#ifdef USE_MPI
+    auto haloWidth = Halo::haloWidth;
+#else
+    auto haloWidth = 0;
+#endif
 
     // In the following loops we only set the "inner" data
 
     // Hfield's, DGField and mask
-    for (size_t j = 0; j < localNY - 2 * Halo::haloWidth; ++j) {
+    for (size_t j = 0; j < localNY - 2 * haloWidth; ++j) {
         double yy = scale * (j - float(ny) / 2);
-        for (size_t i = 0; i < localNX - 2 * Halo::haloWidth; ++i) {
+        for (size_t i = 0; i < localNX - 2 * haloWidth; ++i) {
             double xx = scale * ((i + startX) - float(nx) / 2);
-            x(i + Halo::haloWidth, j + Halo::haloWidth) = xx;
-            y(i + Halo::haloWidth, j + Halo::haloWidth) = yy;
-            frac(i + Halo::haloWidth, j + Halo::haloWidth) = j * yFactor + (i + startX) * xFactor;
-            mask(i + Halo::haloWidth, j + Halo::haloWidth) = i + startX > j ? 0 : 1;
+            x(i + haloWidth, j + haloWidth) = xx;
+            y(i + haloWidth, j + haloWidth) = yy;
+            frac(i + haloWidth, j + haloWidth) = j * yFactor + (i + startX) * xFactor;
+            mask(i + haloWidth, j + haloWidth) = i + startX > j ? 0 : 1;
             for (size_t d = 0; d < DG; ++d) {
-                fracDG.components({ i + Halo::haloWidth, j + Halo::haloWidth })[d]
-                    = frac(i + Halo::haloWidth, j + Halo::haloWidth) + d;
+                fracDG.components({ i + haloWidth, j + haloWidth })[d]
+                    = frac(i + haloWidth, j + haloWidth) + d;
             }
         }
     }
@@ -93,12 +98,12 @@ void initializeTestData(
     localNY = ModelArray::definedDimensions.at(dimY).localLength;
 
     // Vetex coordinates
-    for (size_t i = 0; i < localNX - 2 * Halo::haloWidth; ++i) {
-        for (size_t j = 0; j < localNY - 2 * Halo::haloWidth; ++j) {
+    for (size_t i = 0; i < localNX - 2 * haloWidth; ++i) {
+        for (size_t j = 0; j < localNY - 2 * haloWidth; ++j) {
             double x = (i + startX) - 0.5 - float(nx) / 2;
             double y = j - 0.5 - float(ny) / 2;
-            coordinates.components({ i + Halo::haloWidth, j + Halo::haloWidth })[0] = x * scale;
-            coordinates.components({ i + Halo::haloWidth, j + Halo::haloWidth })[1] = y * scale;
+            coordinates.components({ i + haloWidth, j + haloWidth })[0] = x * scale;
+            coordinates.components({ i + haloWidth, j + haloWidth })[1] = y * scale;
         }
     }
 };
@@ -462,7 +467,11 @@ TEST_CASE("Test array ordering")
     ModelState state = ParaGridIO::readForcingTimeStatic(fields, time, inputFilename);
     REQUIRE(state.data.count(fieldName) > 0);
     index2d = state.data.at(fieldName);
+#ifdef USE_MPI
     REQUIRE(index2d(3 + Halo::haloWidth, 5 + Halo::haloWidth) == (offsetX + 3) * xFactor + 5.);
+#else
+    REQUIRE(index2d(3, 5) == (offsetX + 3) * xFactor + 5.);
+#endif
 
     Finalizer::finalize();
 }
