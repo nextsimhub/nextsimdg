@@ -1,7 +1,6 @@
 /*!
- *
  * @author Tim Spain <timothy.spain@nersc.no>
-*/
+ */
 
 #ifndef STRESSUPDATESTEP_HPP
 #define STRESSUPDATESTEP_HPP

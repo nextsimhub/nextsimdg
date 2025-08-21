@@ -1,7 +1,6 @@
 /*!
- *
  * @author Tim Spain <timothy.spain@nersc.no>
-*/
+ */
 
 #ifndef PARAGRIDIO_HPP
 #define PARAGRIDIO_HPP

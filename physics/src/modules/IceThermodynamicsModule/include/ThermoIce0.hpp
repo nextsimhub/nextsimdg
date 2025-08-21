@@ -1,7 +1,6 @@
 /*!
- *
  * @author Tim Spain <timothy.spain@nersc.no>
-*/
+ */
 
 #ifndef THERMOICE0HPP
 #define THERMOICE0HPP

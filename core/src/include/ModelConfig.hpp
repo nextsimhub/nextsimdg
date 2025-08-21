@@ -1,7 +1,6 @@
 /*!
- *
  * @author Tim Spain <timothy.spain@nersc.no>
-*/
+ */
 
 #ifndef MODELCONFIG_HPP
 #define MODELCONFIG_HPP

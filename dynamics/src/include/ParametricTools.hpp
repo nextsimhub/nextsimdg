@@ -1,6 +1,6 @@
 /*!
  * @author  Thomas Richter <thomas.richter@ovgu.de>
-*/
+ */
 
 #ifndef __PARAMETRICTOOLS_HPP
 #define __PARAMETRICTOOLS_HPP

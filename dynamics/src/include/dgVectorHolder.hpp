@@ -1,7 +1,6 @@
 /*!
- *
  * @author Tim Spain <timothy.spain@nersc.no>
-*/
+ */
 
 #ifndef DGVECTORHOLDER_HPP
 #define DGVECTORHOLDER_HPP

@@ -1,7 +1,6 @@
 /*!
- *
  * @author Einar Örn Ólason <einar.olason@nersc.no>
-*/
+ */
 
 #include "include/MonthlyCubicBSpline.hpp"
 

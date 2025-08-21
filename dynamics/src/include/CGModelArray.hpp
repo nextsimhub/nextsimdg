@@ -1,7 +1,6 @@
 /*!
- *
  * @author Tim Spain <timothy.spain@nersc.no>
-*/
+ */
 
 #ifndef CGMODELARRAY_HPP
 #define CGMODELARRAY_HPP

@@ -1,7 +1,6 @@
 /*!
- *
  * @author Tim Spain <timothy.spain@nersc.no>
-*/
+ */
 
 #ifndef FREEDRIFTDYNAMICS_HPP
 #define FREEDRIFTDYNAMICS_HPP

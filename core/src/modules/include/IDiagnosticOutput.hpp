@@ -1,7 +1,6 @@
 /*!
- *
  * @author Tim Spain <timothy.spain@nersc.no>
-*/
+ */
 
 #ifndef IDIAGNOSTICOUTPUT_HPP
 #define IDIAGNOSTICOUTPUT_HPP

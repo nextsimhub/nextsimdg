@@ -1,7 +1,6 @@
 /*!
- *
  * @author Tim Spain <timothy.spain@nersc.no>
-*/
+ */
 
 #ifndef TOPAZOCEAN_HPP
 #define TOPAZOCEAN_HPP

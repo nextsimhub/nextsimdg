@@ -1,7 +1,6 @@
 /*!
- *
  * @author Tim Spain <timothy.spain@nersc.no>
-*/
+ */
 
 #ifndef GRIDNAMES_HPP
 #define GRIDNAMES_HPP

@@ -1,7 +1,6 @@
 /*!
- *
  * @author Einar Ólason <einar.olason@nersc.no>
-*/
+ */
 
 #ifndef IDAMAGEHEALING_HPP
 #define IDAMAGEHEALING_HPP

@@ -1,7 +1,6 @@
 /*!
- *
  * @author Tim Spain <timothy.spain@nersc.no>
-*/
+ */
 
 #ifndef IFLUXCALCULATION_HPP
 #define IFLUXCALCULATION_HPP

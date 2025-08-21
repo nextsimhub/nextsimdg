@@ -1,7 +1,6 @@
 /*!
- *
  * @author Tim Spain <timothy.spain@nersc.no>
-*/
+ */
 
 #ifndef IOCEANBOUNDARY_HPP
 #define IOCEANBOUNDARY_HPP

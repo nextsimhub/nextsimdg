@@ -1,7 +1,6 @@
 /*!
- *
  * @author Tim Spain <timothy.spain@nersc.no>
-*/
+ */
 
 // Does this class need testing? Not really, but it got removed from
 // FiniteElementFluxes_test and I thought the tests should continue to exist

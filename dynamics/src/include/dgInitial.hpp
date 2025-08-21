@@ -1,6 +1,6 @@
 /*!
  * @author Thomas Richter <thomas.richter@ovgu.de>
-*/
+ */
 
 #ifndef __DGINITIAL_HPP
 #define __DGINITIAL_HPP

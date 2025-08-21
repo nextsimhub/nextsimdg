@@ -1,7 +1,6 @@
 /*!
- *
  * @author Tim Spain <timothy.spain@nersc.no>
-*/
+ */
 
 #ifndef UNESCOFREEZING_HPP
 #define UNESCOFREEZING_HPP

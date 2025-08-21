@@ -1,7 +1,6 @@
 /*!
- *
  * @author Tim Spain <timothy.spain@nersc.no>
-*/
+ */
 
 #ifndef PROGNOSTICDATA_HPP
 #define PROGNOSTICDATA_HPP

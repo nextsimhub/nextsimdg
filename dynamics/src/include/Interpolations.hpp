@@ -1,6 +1,6 @@
 /*!
  * @author Thomas Richter <thomas.richter@ovgu.de>
-*/
+ */
 
 #ifndef __INTERPOLATIONS_HPP
 #define __INTERPOLATIONS_HPP

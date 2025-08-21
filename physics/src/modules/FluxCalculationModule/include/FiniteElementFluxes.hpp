@@ -1,7 +1,6 @@
 /*!
- *
  * @author Tim Spain <timothy.spain@nersc.no>
-*/
+ */
 
 #ifndef FINITEELEMENTFLUXES_HPP
 #define FINITEELEMENTFLUXES_HPP

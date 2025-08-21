@@ -1,6 +1,6 @@
 /*!
  * @author Piotr Minakowski <piotr.minakowski@ovgu.de>
-*/
+ */
 
 #ifndef __TOOLS_HPP
 #define __TOOLS_HPP

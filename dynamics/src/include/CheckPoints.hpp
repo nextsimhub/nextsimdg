@@ -1,6 +1,6 @@
 /*!
  * @author Piotr Minakowski <piotr.minakowski@ovgu.de>
-*/
+ */
 
 #ifndef __CHECKPOINTS_HPP
 #define __CHECKPOINTS_HPP

@@ -1,7 +1,6 @@
 /*!
- *
  * @author Tim Spain <timothy.spain@nersc.no>
-*/
+ */
 
 #ifndef THERMOWINTON_HPP
 #define THERMOWINTON_HPP

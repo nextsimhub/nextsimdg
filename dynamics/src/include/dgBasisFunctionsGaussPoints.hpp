@@ -1,6 +1,6 @@
 /*!
  * @author Thomas Richter <thomas.richter@ovgu.de>
-*/
+ */
 
 #ifndef __BASISFUNCTIONSGUASSPOINTS_HPP
 #define __BASISFUNCTIONSGUASSPOINTS_HPP

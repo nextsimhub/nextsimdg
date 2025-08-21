@@ -1,7 +1,6 @@
 /*!
- *
  * @author Tim Spain <timothy.spain@nersc.no>
-*/
+ */
 
 // An inclusion file of ModelArray typedefs for finite volume models.
 

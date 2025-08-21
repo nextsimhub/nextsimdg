@@ -1,6 +1,6 @@
 /*!
  * @author Thomas Richter <thomas.richter@ovgu.de>
-*/
+ */
 
 #ifndef __PARAMETRICMESH_HPP
 #define __PARAMETRICMESH_HPP

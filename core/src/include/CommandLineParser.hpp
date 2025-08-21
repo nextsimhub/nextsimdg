@@ -1,7 +1,6 @@
 /*!
- *
  * @author Tim Spain <timothy.spain@nersc.no>
-*/
+ */
 
 #ifndef COMMANDLINEPARSER_HPP
 #define COMMANDLINEPARSER_HPP

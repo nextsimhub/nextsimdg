@@ -1,7 +1,6 @@
 /*!
- *
  * @author Tim Spain <timothy.spain@nersc.no>
-*/
+ */
 
 #ifndef BBMDYNAMICS_HPP
 #define BBMDYNAMICS_HPP

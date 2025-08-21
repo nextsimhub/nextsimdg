@@ -1,8 +1,7 @@
 /*!
- *
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Einar Ólason <einar.olason@nersc.no>
-*/
+ */
 
 #ifndef ICEGROWTH_HPP
 #define ICEGROWTH_HPP

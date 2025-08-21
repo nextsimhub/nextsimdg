@@ -1,7 +1,7 @@
 /*!
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Piotr Minakowski <piotr.minakowski@ovgu.de>
-*/
+ */
 
 #ifndef __MEBPARAMETERS_HPP
 #define __MEBPARAMETERS_HPP

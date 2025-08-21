@@ -1,7 +1,6 @@
 /*!
- *
  * @author Tim Spain <timothy.spain@nersc.no>
-*/
+ */
 
 #ifndef SRC_INCLUDE_IFREEZINGPOINT_HPP_
 #define SRC_INCLUDE_IFREEZINGPOINT_HPP_

@@ -1,7 +1,6 @@
 /*!
- *
  * @author Einar Örn Ólason <einar.olason@nersc.no>
-*/
+ */
 
 #ifndef SEASONALICEALBEDO_HPP
 #define SEASONALICEALBEDO_HPP

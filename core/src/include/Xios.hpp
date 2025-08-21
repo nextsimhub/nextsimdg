@@ -4,10 +4,8 @@
  * @author  Adeleke Bankole <ab3191@cam.ac.uk>
  * @brief   XIOS interface header
  * @details
- *
  * Header file for XIOS interface
- *
-*/
+  */
 #ifndef SRC_INCLUDE_XIOS_HPP
 #define SRC_INCLUDE_XIOS_HPP
 

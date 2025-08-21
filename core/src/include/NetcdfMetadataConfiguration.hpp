@@ -1,7 +1,6 @@
 /*!
- *
  * @author Tim Spain <timothy.spain@nersc.no>
-*/
+ */
 
 #ifndef NETCDFMETADATACONFIGURATION_HPP
 #define NETCDFMETADATACONFIGURATION_HPP

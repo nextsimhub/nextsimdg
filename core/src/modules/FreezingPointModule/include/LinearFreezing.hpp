@@ -1,7 +1,6 @@
 /*!
- *
  * @author Tim Spain <timothy.spain@nersc.no>
-*/
+ */
 
 #ifndef LINEARFREEZING_HPP
 #define LINEARFREEZING_HPP

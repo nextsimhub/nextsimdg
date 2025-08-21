@@ -1,7 +1,6 @@
 /*!
- *
  * @author Tim Spain <timothy.spain@nersc.no>
-*/
+ */
 
 #ifndef MISSINGDATA_HPP
 #define MISSINGDATA_HPP

@@ -1,7 +1,6 @@
 /*!
- *
  * @author Tim Spain <timothy.spain@nersc.no>
-*/
+ */
 
 #ifndef FILECALLBACKCLOSER_HPP
 #define FILECALLBACKCLOSER_HPP

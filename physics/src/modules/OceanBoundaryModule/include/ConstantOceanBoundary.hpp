@@ -1,7 +1,6 @@
 /*!
- *
  * @author Tim Spain <timothy.spain@nersc.no>
-*/
+ */
 
 #ifndef CONSTANTOCEANBOUNDARY_HPP
 #define CONSTANTOCEANBOUNDARY_HPP

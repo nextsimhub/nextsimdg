@@ -21,7 +21,7 @@ public:
      *
      * @param temperature Temperature of the water vapour [˚C]
      * @param pressure Hydrostatic pressure [Pa]
-*/
+ */
     virtual double operator()(double temperature, double pressure) const = 0;
     /*!
      * @brief Calculates humidity over sea water.

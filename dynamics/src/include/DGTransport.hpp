@@ -1,6 +1,6 @@
 /*!
  * @author  Thomas Richter <thomas.richter@ovgu.de>
-*/
+ */
 
 #ifndef __DGTRANSPORT_HPP
 #define __DGTRANSPORT_HPP

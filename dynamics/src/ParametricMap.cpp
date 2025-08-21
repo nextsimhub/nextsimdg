@@ -1,7 +1,6 @@
 /*!
- *
  * @author Thomas Richter <thomas.richter@ovgu.de>
-*/
+ */
 
 #include "ParametricMap.hpp"
 #include "ParametricTools.hpp"

@@ -1,6 +1,6 @@
 /*!
  * @author Tim Spain <timothy.spain@nersc.no>
-*/
+ */
 
 #include "include/Logged.hpp"
 

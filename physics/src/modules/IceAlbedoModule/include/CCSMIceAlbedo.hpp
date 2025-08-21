@@ -1,7 +1,6 @@
 /*!
- *
  * @author Tim Spain <timothy.spain@nersc.no>
-*/
+ */
 
 #ifndef CCSMICEALBEDO_HPP
 #define CCSMICEALBEDO_HPP

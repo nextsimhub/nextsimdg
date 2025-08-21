@@ -1,7 +1,6 @@
 /*!
- *
  * @author Tim Spain <timothy.spain@nersc.no>
-*/
+ */
 
 #ifndef CONFIGURATIONHELPPRINTER_HPP
 #define CONFIGURATIONHELPPRINTER_HPP

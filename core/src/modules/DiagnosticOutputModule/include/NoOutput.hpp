@@ -1,7 +1,6 @@
 /*!
- *
  * @author Tim Spain <timothy.spain@nersc.no>
-*/
+ */
 
 #ifndef NOOUTPUT_HPP
 #define NOOUTPUT_HPP

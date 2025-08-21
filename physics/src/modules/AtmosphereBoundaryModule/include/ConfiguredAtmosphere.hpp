@@ -1,7 +1,6 @@
 /*!
- *
  * @author Tim Spain <timothy.spain@nersc.no>
-*/
+ */
 
 #ifndef CONFIGUREDATMOSPHERE_HPP
 #define CONFIGUREDATMOSPHERE_HPP

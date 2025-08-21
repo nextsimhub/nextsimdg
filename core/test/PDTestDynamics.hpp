@@ -1,7 +1,6 @@
 /*!
- *
  * @author Tim Spain <timothy.spain@nersc.no>
-*/
+ */
 
 #ifndef PDTESTDYNAMICS_HPP
 #define PDTESTDYNAMICS_HPP

@@ -1,7 +1,6 @@
 /*!
- *
  * @author Tim Spain <timothy.spain@nersc.no>
-*/
+ */
 
 #include "include/Slice.hpp"
 #include "include/ThermoWinton.hpp"

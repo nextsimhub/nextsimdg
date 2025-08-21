@@ -1,7 +1,6 @@
 /*!
- *
  * @author Einar Örn Ólason <einar.olason@nersc.no>
-*/
+ */
 
 #ifndef MONTHLYCUBICBSPLINE_HPP
 #define MONTHLYCUBICBSPLINE_HPP

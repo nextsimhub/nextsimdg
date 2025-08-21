@@ -1,8 +1,7 @@
 /*!
- *
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Einar Ólason <einar.olason@nersc.no>
-*/
+ */
 
 #include "include/BBMDynamics.hpp"
 #include "include/constants.hpp"

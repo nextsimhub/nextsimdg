@@ -1,8 +1,7 @@
 /*!
- *
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Piotr Minakowski <piotr.minakowski@ovgu.de>
-*/
+ */
 
 #ifndef DUMMYDYNAMICSKERNEL_HPP
 #define DUMMYDYNAMICSKERNEL_HPP

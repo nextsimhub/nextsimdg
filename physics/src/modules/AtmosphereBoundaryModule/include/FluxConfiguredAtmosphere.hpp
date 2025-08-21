@@ -1,7 +1,6 @@
 /*!
- *
  * @author Tim Spain <timothy.spain@nersc.no>
-*/
+ */
 
 #ifndef FLUXCONFIGUREDATMOSPHERE_HPP
 #define FLUXCONFIGUREDATMOSPHERE_HPP

@@ -1,9 +1,8 @@
 /*!
- *
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Einar Ólason <einar.olason@nersc.no>
  * @author Robert Jendersie <robert.jendersie@ovgu.de>
-*/
+ */
 
 #ifndef BRITTLECGDYNAMICSKERNEL_HPP
 #define BRITTLECGDYNAMICSKERNEL_HPP

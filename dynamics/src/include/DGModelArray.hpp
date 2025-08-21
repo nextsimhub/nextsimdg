@@ -1,7 +1,6 @@
 /*!
- *
  * @author Tim Spain <timothy.spain@nersc.no>
-*/
+ */
 
 #ifndef DGMODELARRAY_HPP
 #define DGMODELARRAY_HPP

@@ -1,7 +1,6 @@
 /*!
- *
  * @author Tim Spain <timothy.spain@nersc.no>
-*/
+ */
 
 #ifndef CONFIGUREDOCEAN_HPP
 #define CONFIGUREDOCEAN_HPP

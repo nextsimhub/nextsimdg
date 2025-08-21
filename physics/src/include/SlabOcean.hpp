@@ -1,7 +1,6 @@
 /*!
- *
  * @author Tim Spain <timothy.spain@nersc.no>
-*/
+ */
 
 #ifndef SLABOCEAN_HPP
 #define SLABOCEAN_HPP

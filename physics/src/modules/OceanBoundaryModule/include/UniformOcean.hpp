@@ -1,7 +1,6 @@
 /*!
- *
  * @author Tim Spain <timothy.spain@nersc.no>
-*/
+ */
 
 #ifndef UNIFORMOCEAN_HPP
 #define UNIFORMOCEAN_HPP

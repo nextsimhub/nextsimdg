@@ -1,7 +1,6 @@
 /*!
- *
  * @author Tim Spain <timothy.spain@nersc.no>
-*/
+ */
 
 #ifndef IDYNAMICSUPDATE_HPP
 #define IDYNAMICSUPDATE_HPP

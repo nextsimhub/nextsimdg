@@ -1,6 +1,6 @@
 /*!
  * @author Piotr Minakowski <piotr.minakowski@ovgu.de>
-*/
+ */
 
 #ifndef __LIMITERS_HPP
 #define __LIMITERS_HPP

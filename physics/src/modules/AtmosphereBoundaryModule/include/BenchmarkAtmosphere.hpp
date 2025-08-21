@@ -1,7 +1,6 @@
 /*!
- *
  * @author Tim Spain <timothy.spain@nersc.no>
-*/
+ */
 
 #ifndef BENCHMARKATMOSPHERE_HPP
 #define BENCHMARKATMOSPHERE_HPP

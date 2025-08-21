@@ -1,6 +1,6 @@
 /*!
  * @author Tim Spain
-*/
+ */
 
 #ifndef SRC_INCLUDE_CONSTANTS_HPP
 #define SRC_INCLUDE_CONSTANTS_HPP

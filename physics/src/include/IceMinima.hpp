@@ -1,7 +1,6 @@
 /*!
- *
  * @author Tim Spain <timothy.spain@nersc.no>
-*/
+ */
 
 #ifndef ICEMINIMA_HPP
 #define ICEMINIMA_HPP

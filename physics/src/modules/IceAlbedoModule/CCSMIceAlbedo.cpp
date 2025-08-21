@@ -1,7 +1,6 @@
 /*!
- *
  * @author Tim Spain
-*/
+ */
 
 #include "include/CCSMIceAlbedo.hpp"
 

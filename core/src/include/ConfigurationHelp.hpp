@@ -1,7 +1,6 @@
 /*!
- *
  * @author Tim Spain <timothy.spain@nersc.no>
-*/
+ */
 
 #ifndef CONFIGURATIONHELP_HPP
 #define CONFIGURATIONHELP_HPP

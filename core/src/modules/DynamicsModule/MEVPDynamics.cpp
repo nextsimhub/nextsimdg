@@ -1,9 +1,8 @@
 /*!
- *
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Piotr Minakowski <piotr.minakowski@ovgu.de>
  * @author Einar Ólason <einar.olason@nersc.no>
-*/
+ */
 
 #include "include/MEVPDynamics.hpp"
 #include "include/constants.hpp"

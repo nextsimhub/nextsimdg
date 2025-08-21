@@ -1,7 +1,6 @@
 /*!
- *
  * @author Tim Spain <timothy.spain@nersc.no>
-*/
+ */
 
 #ifndef FAKESMESHDATA_HPP
 #define FAKESMESHDATA_HPP

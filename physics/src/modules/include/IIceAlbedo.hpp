@@ -25,7 +25,7 @@ public:
      * @param snowThickness The true snow thickness on top of the ice.
      * @param i0 The fraction of short-wave radiation that can penetrate bare ice (not taking snow
      * cover into account).
-*/
+ */
     virtual std::tuple<double, double> surfaceShortWaveBalance(
         double temperature, double snowThickness, double i0)
         = 0;

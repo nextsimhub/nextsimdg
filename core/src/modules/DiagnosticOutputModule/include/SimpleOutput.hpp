@@ -1,7 +1,6 @@
 /*!
- *
  * @author Tim Spain <timothy.spain@nersc.no>
-*/
+ */
 
 #ifndef SIMPLEOUTPUT_HPP
 #define SIMPLEOUTPUT_HPP

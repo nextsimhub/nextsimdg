@@ -1,7 +1,6 @@
 /*!
- *
  * @author Tim Spain <timothy.spain@nersc.no>
-*/
+ */
 
 #ifndef MODELARRAYSLICE_HPP
 #define MODELARRAYSLICE_HPP

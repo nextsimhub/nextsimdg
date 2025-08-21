@@ -1,7 +1,6 @@
 /*!
- *
  * @author Tom Meltzer <tdm39@cam.ac.uk>
-*/
+ */
 
 #ifndef MODELMPI_HPP
 #define MODELMPI_HPP

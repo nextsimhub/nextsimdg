@@ -1,7 +1,6 @@
 /*!
- *
  * @author Tim Spain <timothy.spain@nersc.no>
-*/
+ */
 
 #ifndef OUTPUTSPEC_HPP
 #define OUTPUTSPEC_HPP

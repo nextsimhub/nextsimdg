@@ -1,7 +1,6 @@
 /*!
- *
  * @author Tim Spain <timothy.spain@nersc.no>
-*/
+ */
 
 #ifndef DUMMYICETHERMODYNAMICS_HPP
 #define DUMMYICETHERMODYNAMICS_HPP

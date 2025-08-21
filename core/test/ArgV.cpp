@@ -1,7 +1,6 @@
 /*!
- *
  * @author Tim Spain
-*/
+ */
 
 #include "ArgV.hpp"
 

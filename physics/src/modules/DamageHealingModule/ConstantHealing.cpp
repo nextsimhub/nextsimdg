@@ -1,7 +1,6 @@
 /*!
- *
  * @author Einar Ólason <einar.olason@nersc.no>
-*/
+ */
 
 #include "include/ConstantHealing.hpp"
 

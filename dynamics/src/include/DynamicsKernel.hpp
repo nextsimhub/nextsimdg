@@ -1,7 +1,6 @@
 /*!
- *
  * @author Tim Spain <timothy.spain@nersc.no>
-*/
+ */
 
 #ifndef DYNAMICSKERNEL_HPP
 #define DYNAMICSKERNEL_HPP

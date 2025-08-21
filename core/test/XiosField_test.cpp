@@ -5,8 +5,7 @@
  * @details
  * This test is designed to test field functionality of the C++ interface
  * for XIOS.
- *
-*/
+ */
 #include <doctest/extensions/doctest_mpi.h>
 #undef INFO
 

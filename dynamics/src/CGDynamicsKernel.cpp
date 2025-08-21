@@ -1,8 +1,7 @@
 /*!
- *
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Robert Jendersie <robert.jendersie@ovgu.de>
-*/
+ */
 
 /*
  * The implementation of DynamicsKernel which uses continuous Galerkin (CG) numerics.

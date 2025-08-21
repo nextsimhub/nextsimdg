@@ -1,7 +1,6 @@
 /*!
- *
  * @author Tim Spain <timothy.spain@nersc.no>
-*/
+ */
 
 #ifndef HIBLERSPREAD_HPP
 #define HIBLERSPREAD_HPP

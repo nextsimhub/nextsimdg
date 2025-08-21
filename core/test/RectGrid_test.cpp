@@ -1,7 +1,6 @@
 /*!
- *
  * @author Tim Spain <timothy.spain@nersc.no>
-*/
+ */
 
 #ifdef USE_MPI
 #include <doctest/extensions/doctest_mpi.h>

@@ -1,7 +1,6 @@
 /*!
- *
  * @author Tim Spain <timothy.spain@nersc.no>
-*/
+ */
 
 #ifndef BENCHMARKCOORDINATES_HPP
 #define BENCHMARKCOORDINATES_HPP

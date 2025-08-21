@@ -1,7 +1,6 @@
 /*!
- *
  * @author Tim Spain <timothy.spain@nersc.no>
-*/
+ */
 
 #ifndef BBMSTRESSUPDATESTEP_HPP
 #define BBMSTRESSUPDATESTEP_HPP

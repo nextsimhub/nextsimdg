@@ -1,6 +1,6 @@
 /*!
  * @author Thomas Richter <thomas.richter@ovgu.de>
-*/
+ */
 
 #ifndef __VECTORMANIPULATIONS_HPP
 #define __VECTORMANIPULATIONS_HPP

@@ -1,7 +1,6 @@
 /*!
- *
  * @author Tim Spain <timothy.spain@nersc.no>
-*/
+ */
 
 #ifndef COMMONRESTARTMETADATA_HPP
 #define COMMONRESTARTMETADATA_HPP

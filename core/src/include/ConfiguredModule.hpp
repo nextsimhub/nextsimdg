@@ -1,7 +1,6 @@
 /*!
- *
  * @author Tim Spain <timothy.spain@nersc.no>
-*/
+ */
 
 #ifndef CONFIGUREDMODULE_HPP
 #define CONFIGUREDMODULE_HPP
