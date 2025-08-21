@@ -9,13 +9,22 @@ WORKDIR /oasis3-mct/util/make_dir
 # Set some ENV's and copy the make file include
 ENV OASIS_COUPLE=/oasis3-mct
 ENV OASIS_ENV=oasis_docker_spack_gcc
+ENV OASIS_DIR=$OASIS_COUPLE/build.$OASIS_ENV
 COPY make.oasis_docker make.$OASIS_ENV
 
 # make!
 RUN make -f TopMakefileOasis3 static-libs shared-libs pyoasis
 
-# make install ... of sorts
-RUN cp -a $OASIS_COUPLE/build.$OASIS_ENV/lib/* /usr/local/lib
-RUN cp -a $OASIS_COUPLE/build.$OASIS_ENV/include/* /usr/local/include
+# Install python packages that pyoasis may need
+RUN apt-get install -y python3-mpi4py python3-isodate
+
+# Append the OASIS library directory to LD_LIBRARY_PATH and append it to PYTHONPATH
+# We assume the last line of the file is 'exec "$@"' and try to retain that
+RUN sed -i~ '$d' /entrypoint.sh
+RUN { \
+    echo 'export LD_LIBRARY_PATH=$LD_LIBRARY_PATH':$OASIS_DIR/lib; \
+    echo 'export PYTHONPATH=$PYTHONPATH':$OASIS_DIR/python; \
+    echo 'exec "$@"'; \
+    } >> /entrypoint.sh
 
 WORKDIR /
