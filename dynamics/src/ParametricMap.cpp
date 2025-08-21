@@ -1,9 +1,7 @@
 /*!
- * @file ParametricMap.cpp
  *
- * @date 19 Feb 2025
  * @author Thomas Richter <thomas.richter@ovgu.de>
- */
+*/
 
 #include "ParametricMap.hpp"
 #include "ParametricTools.hpp"

@@ -1,14 +1,12 @@
 /*!
- * @file    XiosField_test.cpp
  * @author  Joe Wallwork <jw2423@cam.ac.uk>
  * @author  Adeleke Bankole <ab3191@cam.ac.uk>
- * @date    07 May 2025
  * @brief   Tests for XIOS fields
  * @details
  * This test is designed to test field functionality of the C++ interface
  * for XIOS.
  *
- */
+*/
 #include <doctest/extensions/doctest_mpi.h>
 #undef INFO
 

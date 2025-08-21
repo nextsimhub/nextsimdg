@@ -1,8 +1,6 @@
 /*!
- * @file dgBasisFunctionsGausspoints.hpp
- * @date 1 Mar 2022
  * @author Thomas Richter <thomas.richter@ovgu.de>
- */
+*/
 
 #ifndef __BASISFUNCTIONSGUASSPOINTS_HPP
 #define __BASISFUNCTIONSGUASSPOINTS_HPP

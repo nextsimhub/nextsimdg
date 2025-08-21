@@ -1,9 +1,7 @@
 /*!
- * @file FluxConfiguredAtmosphere.hpp
  *
- * @date Sep 29, 2022
  * @author Tim Spain <timothy.spain@nersc.no>
- */
+*/
 
 #ifndef FLUXCONFIGUREDATMOSPHERE_HPP
 #define FLUXCONFIGUREDATMOSPHERE_HPP

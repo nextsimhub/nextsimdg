@@ -1,10 +1,8 @@
 /*!
- * @file WintonAlbedo.cpp
  *
- * @date 20 Nov 2024
  * @author Tim Spain
  * @author Einar Ólason <einar.olason@nersc.no>
- */
+*/
 
 #include "include/WintonAlbedo.hpp"
 

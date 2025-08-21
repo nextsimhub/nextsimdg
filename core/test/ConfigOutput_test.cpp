@@ -1,9 +1,7 @@
 /*!
- * @file ConfigOutput_test.cpp
  *
- * @date 21 Aug 2025
  * @author Tim Spain <timothy.spain@nersc.no>
- */
+*/
 
 #ifdef USE_MPI
 #include <doctest/extensions/doctest_mpi.h>

@@ -1,9 +1,7 @@
 /*!
- * @file NextsimModule.hpp
  *
- * @date Sep 13, 2024
  * @author Tim Spain <timothy.spain@nersc.no>
- */
+*/
 
 #ifndef NEXTSIMMODULE_HPP
 #define NEXTSIMMODULE_HPP

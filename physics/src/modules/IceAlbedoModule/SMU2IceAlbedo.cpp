@@ -1,9 +1,7 @@
 /*!
- * @file SMU2IceAlbedo.cpp
  *
- * @date 24 Sep 2024
  * @author Tim Spain <timothy.spain@nersc.no>
- */
+*/
 
 #include "include/SMU2IceAlbedo.hpp"
 

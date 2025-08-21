@@ -1,9 +1,7 @@
 /*!
- * @file IDamageHealing.hpp
  *
- * @date 21 Nov 2024
  * @author Einar Ólason <einar.olason@nersc.no>
- */
+*/
 
 #ifndef IDAMAGEHEALING_HPP
 #define IDAMAGEHEALING_HPP

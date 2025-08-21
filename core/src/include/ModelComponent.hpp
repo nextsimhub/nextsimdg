@@ -1,10 +1,8 @@
 /*!
- * @file ModelComponent.hpp
  *
- * @date 11 Feb 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Einar Ólason <einar.olason@nersc.no>
- */
+*/
 
 #ifndef MODELCOMPONENT_HPP
 #define MODELCOMPONENT_HPP

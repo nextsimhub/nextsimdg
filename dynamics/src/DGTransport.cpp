@@ -1,8 +1,6 @@
 /*!
- * @file DGTransport.cpp
- * @date July 10, 2022
  * @author Thomas Richter <thomas.richter@ovgu.de>
- */
+*/
 
 #include "DGTransport.hpp"
 #include "Interpolations.hpp"

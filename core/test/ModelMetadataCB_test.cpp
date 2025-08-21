@@ -1,9 +1,7 @@
 /*!
- * @file ModelMetadata_test.cpp
  *
- * @date 04 Jun 2025
  * @author Tom Meltzer <tdm39@cam.ac.uk>
- */
+*/
 
 #include <doctest/extensions/doctest_mpi.h>
 #include <iostream>

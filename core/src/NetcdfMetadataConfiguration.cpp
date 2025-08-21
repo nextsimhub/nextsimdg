@@ -1,9 +1,7 @@
 /*!
- * @file NetcdfMetadataConfiguration.cpp
  *
- * @date Aug 29, 2022
  * @author Tim Spain <timothy.spain@nersc.no>
- */
+*/
 
 #include "include/NetcdfMetadataConfiguration.hpp"
 

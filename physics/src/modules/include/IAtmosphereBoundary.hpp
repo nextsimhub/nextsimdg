@@ -1,9 +1,7 @@
 /*!
- * @file IAtmosphereBoundary.hpp
  *
- * @date 11 Feb 2025
  * @author Tim Spain <timothy.spain@nersc.no>
- */
+*/
 
 #include "include/ModelArrayRef.hpp"
 #include "include/ModelComponent.hpp"

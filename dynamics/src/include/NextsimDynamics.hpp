@@ -1,8 +1,6 @@
 /*!
- * @file    NextsimDynamics.hpp
- * @date    Dec 13, 2022
  * @author  Thomas Richter <thomas.richter@ovgu.de>
- */
+*/
 
 #ifndef __NEXTSIMDYNAMICS_HPP
 #define __NEXTSIMDYNAMICS_HPP

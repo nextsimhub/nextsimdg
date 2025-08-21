@@ -1,9 +1,7 @@
 /*!
- * @file Finalizer.cpp
  *
- * @date Sep 11, 2024
  * @author Tim Spain <timothy.spain@nersc.no>
- */
+*/
 
 #include "include/Finalizer.hpp"
 

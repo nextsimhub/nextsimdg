@@ -1,10 +1,8 @@
 /*!
- * @file CGDynamicsKernel.hpp
  *
- * @date 27 Mar 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Robert Jendersie <robert.jendersie@ovgu.de>
- */
+*/
 
 #ifndef CGDYNAMICSKERNEL_HPP
 #define CGDYNAMICSKERNEL_HPP

@@ -1,9 +1,7 @@
 /*!
- * @file TextTag.hpp
  *
- * @date 27 Feb 2023
  * @author Tim Spain <timothy.spain@nersc.no>
- */
+*/
 
 #ifndef TEXTTAG_HPP
 #define TEXTTAG_HPP

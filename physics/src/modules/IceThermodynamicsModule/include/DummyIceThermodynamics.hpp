@@ -1,9 +1,7 @@
 /*!
- * @file DummyIceThermodynamics.hpp
  *
- * @date 24 Sep 2024
  * @author Tim Spain <timothy.spain@nersc.no>
- */
+*/
 
 #ifndef DUMMYICETHERMODYNAMICS_HPP
 #define DUMMYICETHERMODYNAMICS_HPP

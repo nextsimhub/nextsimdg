@@ -1,9 +1,7 @@
 /*!
- * @file SimpleOutput.hpp
  *
- * @date 04 Jun 2025
  * @author Tim Spain <timothy.spain@nersc.no>
- */
+*/
 
 #ifndef SIMPLEOUTPUT_HPP
 #define SIMPLEOUTPUT_HPP

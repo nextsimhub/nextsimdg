@@ -1,8 +1,6 @@
 /*!
- * @file    DGTransport.hpp
- * @date    Dec 5, 2022
  * @author  Thomas Richter <thomas.richter@ovgu.de>
- */
+*/
 
 #ifndef __DGTRANSPORT_HPP
 #define __DGTRANSPORT_HPP

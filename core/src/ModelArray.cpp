@@ -1,9 +1,7 @@
 /*!
- * @file   ModelArray.cpp
  *
- * @date   Feb 24, 2022
  * @author Tim Spain <timothy.spain@nersc.no>
- */
+*/
 
 #include "include/ModelArray.hpp"
 

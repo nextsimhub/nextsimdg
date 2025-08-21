@@ -1,9 +1,7 @@
 /*!
- * @file FluxConfiguredAtmosphere.cpp
  *
- * @date 20 Nov 2024
  * @author Tim Spain <timothy.spain@nersc.no>
- */
+*/
 
 #include "include/FluxConfiguredAtmosphere.hpp"
 

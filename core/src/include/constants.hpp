@@ -1,8 +1,6 @@
 /*!
- * @file constants.hpp
- * @date 05 Dec 2024
  * @author Tim Spain
- */
+*/
 
 #ifndef SRC_INCLUDE_CONSTANTS_HPP
 #define SRC_INCLUDE_CONSTANTS_HPP

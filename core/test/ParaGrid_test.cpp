@@ -1,10 +1,8 @@
 /*!
- * @file ParaGrid_test.cpp
  *
- * @date 21 Aug 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Tom Meltzer <tdm39@cam.ac.uk>
- */
+*/
 
 #include "ModelArray.hpp"
 #include <cstdlib>

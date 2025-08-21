@@ -1,9 +1,7 @@
 /*!
- * @file HiblerSpread.hpp
  *
- * @date 24 Sep 2024
  * @author Tim Spain <timothy.spain@nersc.no>
- */
+*/
 
 #ifndef HIBLERSPREAD_HPP
 #define HIBLERSPREAD_HPP

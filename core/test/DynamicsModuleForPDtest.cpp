@@ -1,9 +1,7 @@
 /*!
- * @file DynamicsModuleForPDtest.cpp
  *
- * @date 5 May 2023
  * @author Tim Spain <timothy.spain@nersc.no>
- */
+*/
 
 #include "include/IDynamics.hpp"
 #include "include/NextsimModule.hpp"

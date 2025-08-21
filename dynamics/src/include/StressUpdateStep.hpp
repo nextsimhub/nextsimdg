@@ -1,9 +1,7 @@
 /*!
- * @file StressUpdateStep.hpp
  *
- * @date Feb 1, 2024
  * @author Tim Spain <timothy.spain@nersc.no>
- */
+*/
 
 #ifndef STRESSUPDATESTEP_HPP
 #define STRESSUPDATESTEP_HPP

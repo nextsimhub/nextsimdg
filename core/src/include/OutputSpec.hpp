@@ -1,9 +1,7 @@
 /*!
- * @file OutputSpec.hpp
  *
- * @date Aug 25, 2022
  * @author Tim Spain <timothy.spain@nersc.no>
- */
+*/
 
 #ifndef OUTPUTSPEC_HPP
 #define OUTPUTSPEC_HPP

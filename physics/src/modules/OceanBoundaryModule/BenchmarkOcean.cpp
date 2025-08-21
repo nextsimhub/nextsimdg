@@ -1,9 +1,7 @@
 /*!
- * @file BenchmarkOcean.cpp
  *
- * @date 23 Aug 2024
  * @author Tim Spain <timothy.spain@nersc.no>
- */
+*/
 
 #include "include/BenchmarkOcean.hpp"
 

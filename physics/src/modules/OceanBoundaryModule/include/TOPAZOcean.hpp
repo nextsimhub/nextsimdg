@@ -1,9 +1,7 @@
 /*!
- * @file TOPAZOcean.hpp
  *
- * @date Nov 25, 2022
  * @author Tim Spain <timothy.spain@nersc.no>
- */
+*/
 
 #ifndef TOPAZOCEAN_HPP
 #define TOPAZOCEAN_HPP

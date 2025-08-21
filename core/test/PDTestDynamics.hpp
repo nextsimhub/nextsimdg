@@ -1,9 +1,7 @@
 /*!
- * @file PDTestDynamics.hpp
  *
- * @date Jan 21, 2025
  * @author Tim Spain <timothy.spain@nersc.no>
- */
+*/
 
 #ifndef PDTESTDYNAMICS_HPP
 #define PDTESTDYNAMICS_HPP

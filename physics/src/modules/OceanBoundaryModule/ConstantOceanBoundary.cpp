@@ -1,9 +1,7 @@
 /*!
- * @file ConstantOceanBoundary.cpp
  *
- * @date Aug 23, 2024
  * @author Tim Spain <timothy.spain@nersc.no>
- */
+*/
 
 #include "include/ConstantOceanBoundary.hpp"
 

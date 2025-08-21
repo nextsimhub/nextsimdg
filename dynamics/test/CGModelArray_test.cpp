@@ -1,12 +1,10 @@
 /*!
- * @file DGModelArray_test.cpp
  *
  * @brief Test that the functions to convert from the dynamics code CGVector
  * to and from ModelArray function correctly.
  *
- * @date Oct 6, 2022
  * @author Tim Spain <timothy.spain@nersc.no>
- */
+*/
 
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include <doctest/doctest.h>

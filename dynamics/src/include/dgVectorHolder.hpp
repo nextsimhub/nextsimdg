@@ -1,9 +1,7 @@
 /*!
- * @file dgVectorHolder.hpp
  *
- * @date Feb 4, 2025
  * @author Tim Spain <timothy.spain@nersc.no>
- */
+*/
 
 #ifndef DGVECTORHOLDER_HPP
 #define DGVECTORHOLDER_HPP

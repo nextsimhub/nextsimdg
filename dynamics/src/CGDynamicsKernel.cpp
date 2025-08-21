@@ -1,10 +1,8 @@
 /*!
- * @file CGDynamicsKernel.cpp
  *
- * @date 27 Mar 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Robert Jendersie <robert.jendersie@ovgu.de>
- */
+*/
 
 /*
  * The implementation of DynamicsKernel which uses continuous Galerkin (CG) numerics.

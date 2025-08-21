@@ -1,9 +1,7 @@
 /*!
- * @file ParaGridIO.hpp
  *
- * @date 04 Jun 2025
  * @author Tim Spain <timothy.spain@nersc.no>
- */
+*/
 
 #ifndef PARAGRIDIO_HPP
 #define PARAGRIDIO_HPP

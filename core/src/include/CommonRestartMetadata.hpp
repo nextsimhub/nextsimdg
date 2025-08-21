@@ -1,9 +1,7 @@
 /*!
- * @file CommonRestartMetadata.hpp
  *
- * @date 04 Jun 2025
  * @author Tim Spain <timothy.spain@nersc.no>
- */
+*/
 
 #ifndef COMMONRESTARTMETADATA_HPP
 #define COMMONRESTARTMETADATA_HPP

@@ -1,9 +1,7 @@
 /*!
- * @file ConstantHealing.hpp
  *
- * @date 21 Nov 2024
  * @author Einar Ólason <einar.olason@nersc.no>
- */
+*/
 
 #include "include/ConstantHealing.hpp"
 

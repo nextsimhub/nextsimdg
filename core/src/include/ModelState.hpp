@@ -1,9 +1,7 @@
 /*!
- * @file ModelState.hpp
  *
- * @date Feb 28, 2022
  * @author Tim Spain <timothy.spain@nersc.no>
- */
+*/
 
 #ifndef MODELSTATE_HPP
 #define MODELSTATE_HPP

@@ -1,9 +1,7 @@
 /*!
- * @file ThermoWinton.hpp
  *
- * @date 24 Sep 2024
  * @author Tim Spain <timothy.spain@nersc.no>
- */
+*/
 
 #ifndef THERMOWINTON_HPP
 #define THERMOWINTON_HPP

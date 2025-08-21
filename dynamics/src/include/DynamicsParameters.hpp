@@ -1,11 +1,9 @@
 /*!
- * @file DynamicsParameters.hpp
  *
- * @date 19 Nov 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Thomas Richter <thomas.richter@ovgu.de>
  *
- */
+*/
 
 #ifndef DYNAMICSPARAMETERS_HPP
 #define DYNAMICSPARAMETERS_HPP

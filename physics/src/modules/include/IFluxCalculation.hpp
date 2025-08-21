@@ -1,9 +1,7 @@
 /*!
- * @file IFluxCalculation.hpp
  *
- * @date 11 Feb 2025
  * @author Tim Spain <timothy.spain@nersc.no>
- */
+*/
 
 #ifndef IFLUXCALCULATION_HPP
 #define IFLUXCALCULATION_HPP

@@ -1,9 +1,7 @@
 /*!
- * @file ConfigOutput.hpp
  *
- * @date 04 Jun 2025
  * @author Tim Spain <timothy.spain@nersc.no>
- */
+*/
 
 #ifndef CONFIGOUTPUT_HPP
 #define CONFIGOUTPUT_HPP

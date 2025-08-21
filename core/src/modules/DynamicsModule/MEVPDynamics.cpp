@@ -1,11 +1,9 @@
 /*!
- * @file MEVPDynamics.cpp
  *
- * @date 05 Dec 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Piotr Minakowski <piotr.minakowski@ovgu.de>
  * @author Einar Ólason <einar.olason@nersc.no>
- */
+*/
 
 #include "include/MEVPDynamics.hpp"
 #include "include/constants.hpp"

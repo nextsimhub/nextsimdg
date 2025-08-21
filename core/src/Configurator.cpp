@@ -1,9 +1,7 @@
 /*!
- * @file Configurator.cpp
  *
- * @date Oct 8, 2021
  * @author Tim Spain
- */
+*/
 
 #include "include/Configurator.hpp"
 

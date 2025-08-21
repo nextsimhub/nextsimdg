@@ -1,8 +1,6 @@
 /*!
- * @file Iterator.cpp
- * @date 11 Aug 2021
  * @author Tim Spain <timothy.spain@nersc.no>
- */
+*/
 
 #include "include/Iterator.hpp"
 

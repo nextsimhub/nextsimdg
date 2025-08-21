@@ -1,9 +1,7 @@
 /*!
- * @file FiniteElementFluxes.cpp
  *
- * @date 11 Feb 2025
  * @author Tim Spain <timothy.spain@nersc.no>
- */
+*/
 
 #include "include/FiniteElementFluxes.hpp"
 

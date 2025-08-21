@@ -1,15 +1,13 @@
 /*!
- * @file    Xios.hpp
  * @author  Tom Meltzer <tdm39@cam.ac.uk>
  * @author  Joe Wallwork <jw2423@cam.ac.uk>
  * @author  Adeleke Bankole <ab3191@cam.ac.uk>
- * @date    12 May 2025
  * @brief   XIOS interface header
  * @details
  *
  * Header file for XIOS interface
  *
- */
+*/
 #ifndef SRC_INCLUDE_XIOS_HPP
 #define SRC_INCLUDE_XIOS_HPP
 

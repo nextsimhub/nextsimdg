@@ -1,9 +1,7 @@
 /*!
- * @file UniformOcean.hpp
  *
- * @date 30 Mar 2023
  * @author Tim Spain <timothy.spain@nersc.no>
- */
+*/
 
 #ifndef UNIFORMOCEAN_HPP
 #define UNIFORMOCEAN_HPP

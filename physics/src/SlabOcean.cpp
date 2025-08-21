@@ -1,9 +1,7 @@
 /*!
- * @file SlabOcean.cpp
  *
- * @date 29 Apr 2025
  * @author Tim Spain <timothy.spain@nersc.no>
- */
+*/
 
 #include "include/SlabOcean.hpp"
 

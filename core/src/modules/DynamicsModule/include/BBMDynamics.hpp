@@ -1,9 +1,7 @@
 /*!
- * @file BBMDynamics.hpp
  *
- * @date 27 Mar 2025
  * @author Tim Spain <timothy.spain@nersc.no>
- */
+*/
 
 #ifndef BBMDYNAMICS_HPP
 #define BBMDYNAMICS_HPP

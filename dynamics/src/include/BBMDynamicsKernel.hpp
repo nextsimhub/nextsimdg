@@ -1,10 +1,8 @@
 /*!
- * @file BBMDynamicsKernel.hpp
  *
- * @date 09 Nov 2024
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Piotr Minakowski <piotr.minakowski@ovgu.de>
- */
+*/
 
 #ifndef BBMDYNAMICSKERNEL_HPP
 #define BBMDYNAMICSKERNEL_HPP

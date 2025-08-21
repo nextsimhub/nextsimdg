@@ -1,9 +1,7 @@
 /*!
- * @file DynamicsKernel.hpp
  *
- * @date Jan 5, 2024
  * @author Tim Spain <timothy.spain@nersc.no>
- */
+*/
 
 #ifndef DYNAMICSKERNEL_HPP
 #define DYNAMICSKERNEL_HPP

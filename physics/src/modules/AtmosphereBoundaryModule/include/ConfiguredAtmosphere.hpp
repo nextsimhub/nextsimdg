@@ -1,9 +1,7 @@
 /*!
- * @file ConfiguredAtmosphere.hpp
  *
- * @date Aug 31, 2022
  * @author Tim Spain <timothy.spain@nersc.no>
- */
+*/
 
 #ifndef CONFIGUREDATMOSPHERE_HPP
 #define CONFIGUREDATMOSPHERE_HPP

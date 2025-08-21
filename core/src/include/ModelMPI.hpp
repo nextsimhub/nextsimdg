@@ -1,9 +1,7 @@
 /*!
- * @file ModelMPI.hpp
  *
- * @date 04 Jun 2025
  * @author Tom Meltzer <tdm39@cam.ac.uk>
- */
+*/
 
 #ifndef MODELMPI_HPP
 #define MODELMPI_HPP

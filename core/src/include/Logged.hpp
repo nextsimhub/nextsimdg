@@ -1,8 +1,6 @@
 /*!
- * @file Logged.hpp
- * @date 12 Aug 2021
  * @author Tim Spain <timothy.spain@nersc.no>
- */
+*/
 
 #ifndef SRC_INCLUDE_LOGGED_HPP
 #define SRC_INCLUDE_LOGGED_HPP

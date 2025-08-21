@@ -1,9 +1,7 @@
 /*!
- * @file IDynamics.hpp
  *
- * @date 06 Dec 2024
  * @author Tim Spain <timothy.spain@nersc.no>
- */
+*/
 
 #ifndef IDYNAMICS_HPP
 #define IDYNAMICS_HPP

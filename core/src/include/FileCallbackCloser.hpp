@@ -1,9 +1,7 @@
 /*!
- * @file FileCallbackCloser.hpp
  *
- * @date 15 May 2023
  * @author Tim Spain <timothy.spain@nersc.no>
- */
+*/
 
 #ifndef FILECALLBACKCLOSER_HPP
 #define FILECALLBACKCLOSER_HPP

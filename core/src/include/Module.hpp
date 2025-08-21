@@ -1,9 +1,7 @@
 /*!
- * @file Module.hpp
  *
- * @date 23 Sep 2024
  * @author Tim Spain <timothy.spain@nersc.no>
- */
+*/
 
 #ifndef MODULE_HPP
 #define MODULE_HPP

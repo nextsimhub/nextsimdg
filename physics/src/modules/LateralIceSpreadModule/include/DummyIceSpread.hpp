@@ -1,9 +1,7 @@
 /*!
- * @file DummyIceSpread.hpp
  *
- * @date 18 Apr 2023
  * @author Tim Spain <timothy.spain@nersc.no>
- */
+*/
 
 #ifndef DUMMYICESPREAD_HPP
 #define DUMMYICESPREAD_HPP

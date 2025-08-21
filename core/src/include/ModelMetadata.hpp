@@ -1,10 +1,8 @@
 /*!
- * @file ModelMetadata.hpp
  *
- * @date 19 Jun 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Tom Meltzer <tdm39@cam.ac.uk>
- */
+*/
 
 #ifndef MODELMETADATA_HPP
 #define MODELMETADATA_HPP

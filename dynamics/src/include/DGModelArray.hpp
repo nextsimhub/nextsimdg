@@ -1,9 +1,7 @@
 /*!
- * @file DGModelArray.hpp
  *
- * @date Oct 6, 2022
  * @author Tim Spain <timothy.spain@nersc.no>
- */
+*/
 
 #ifndef DGMODELARRAY_HPP
 #define DGMODELARRAY_HPP

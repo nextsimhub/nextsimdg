@@ -1,9 +1,7 @@
 /*!
- * @file ConfigMap.hpp
  *
- * @date Aug 19, 2022
  * @author Tim Spain <timothy.spain@nersc.no>
- */
+*/
 
 #ifndef CONFIGMAP_HPP
 #define CONFIGMAP_HPP

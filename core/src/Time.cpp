@@ -1,9 +1,7 @@
 /*!
- * @file Time.cpp
  *
- * @date 5 August, 2024
  * @author Tim Spain <timothy.spain@nersc.no>
- */
+*/
 
 #include "include/Time.hpp"
 

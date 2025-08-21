@@ -1,9 +1,7 @@
 /*!
- * @file BasicIceOceanFlux_test.cpp
  *
- * @date Sep 29, 2022
  * @author Tim Spain <timothy.spain@nersc.no>
- */
+*/
 
 // Does this class need testing? Not really, but it got removed from
 // FiniteElementFluxes_test and I thought the tests should continue to exist

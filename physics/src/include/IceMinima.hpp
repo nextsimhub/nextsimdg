@@ -1,9 +1,7 @@
 /*!
- * @file IceMinima.hpp
  *
- * @date 8 Feb 2023
  * @author Tim Spain <timothy.spain@nersc.no>
- */
+*/
 
 #ifndef ICEMINIMA_HPP
 #define ICEMINIMA_HPP

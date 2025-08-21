@@ -1,10 +1,8 @@
 /*!
- * @file RectGridIO.hpp
  *
- * @date 04 Jun 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Kacper Kornet <kk562@cam.ac.uk>
- */
+*/
 
 #ifndef RECTGRIDIO_HPP
 #define RECTGRIDIO_HPP

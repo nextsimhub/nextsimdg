@@ -1,9 +1,7 @@
 /*!
- * @file ModelMPI.cpp
  *
- * @date 04 Jun 2025
  * @author Tom Meltzer <tdm39@cam.ac.uk>
- */
+*/
 
 #ifdef USE_MPI
 #include "include/ModelMPI.hpp"

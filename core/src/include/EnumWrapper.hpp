@@ -1,9 +1,7 @@
 /*!
- * @file EnumWrapper.hpp
  *
- * @date 24 Sep 2024
  * @author Tim Spain <timothy.spain@nersc.no>
- */
+*/
 
 #ifndef ENUMWRAPPER_HPP
 #define ENUMWRAPPER_HPP

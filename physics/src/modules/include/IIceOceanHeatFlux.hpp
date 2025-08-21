@@ -35,7 +35,7 @@ public:
      * Updates the ice ocean heat flux calculation for the timestep.
      *
      * @param tStep The object containing the timestep start and duration times.
-     */
+*/
     virtual void update(const TimestepTime&) = 0;
 
 protected:

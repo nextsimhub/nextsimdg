@@ -1,9 +1,7 @@
 /*!
- * @file ConfigurationHelpPrinter.hpp
  *
- * @date Aug 18, 2022
  * @author Tim Spain <timothy.spain@nersc.no>
- */
+*/
 
 #ifndef CONFIGURATIONHELPPRINTER_HPP
 #define CONFIGURATIONHELPPRINTER_HPP

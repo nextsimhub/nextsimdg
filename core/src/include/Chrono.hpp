@@ -1,9 +1,7 @@
 /*!
- * @file Chrono.hpp
  *
- * @date Oct 28, 2021
  * @author Tim Spain <timothy.spain@nersc.no>
- */
+*/
 
 #ifndef SRC_INCLUDE_CHRONO_HPP_
 #define SRC_INCLUDE_CHRONO_HPP_

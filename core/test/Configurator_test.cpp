@@ -1,9 +1,7 @@
 /*!
- * @file Configurator_test.cpp
  *
- * @date 24 Sep 2024
  * @author Tim Spain <timothy.spain@nersc.no>
- */
+*/
 
 #include "ArgV.hpp"
 #include "Configurator.hpp"

@@ -1,9 +1,7 @@
 /*!
- * @file Halo.hpp
  *
- * @date 19 Aug 2025
  * @author Tom Meltzer <tdm39@cam.ac.uk>
- */
+*/
 
 #ifndef HALO_HPP
 #define HALO_HPP

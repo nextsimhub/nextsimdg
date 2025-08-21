@@ -16,7 +16,7 @@ namespace Nextsim {
 /*!
  * @brief The implementation class for the a seasonal atmospheric fluxes following Maykut and
  * Untersteiener's (1971) table 1. Only useful for comparison with that paper and derived setups.
- */
+*/
 class MU71Atmosphere : public IAtmosphereBoundary, public Configured<MU71Atmosphere> {
 
 public:

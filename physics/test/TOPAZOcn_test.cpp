@@ -1,9 +1,7 @@
 /*!
- * @file ERA5Atm_test.cpp
  *
- * @date 21 Aug 2025
  * @author Tim Spain <timothy.spain@nersc.no>
- */
+*/
 
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include <doctest/doctest.h>

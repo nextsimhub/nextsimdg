@@ -1,9 +1,7 @@
 /*!
- * @file ConfiguredModule.hpp
  *
- * @date Oct 29, 2021
  * @author Tim Spain <timothy.spain@nersc.no>
- */
+*/
 
 #ifndef CONFIGUREDMODULE_HPP
 #define CONFIGUREDMODULE_HPP

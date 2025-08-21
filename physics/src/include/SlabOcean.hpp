@@ -1,9 +1,7 @@
 /*!
- * @file SlabOcean.hpp
  *
- * @date 29 Apr 2025
  * @author Tim Spain <timothy.spain@nersc.no>
- */
+*/
 
 #ifndef SLABOCEAN_HPP
 #define SLABOCEAN_HPP

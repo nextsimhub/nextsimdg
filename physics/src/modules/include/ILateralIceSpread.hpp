@@ -1,10 +1,8 @@
 /*!
- * @file ILateralIceSpread.hpp
  *
- * @date Jul 5, 2022
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Einar Ólason <einar.olason@nersc.no>
- */
+*/
 
 #ifndef ILATERALICESPREAD_HPP
 #define ILATERALICESPREAD_HPP

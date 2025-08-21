@@ -1,9 +1,7 @@
 /*!
- * @file DamageHealing_test.cpp
  *
- * @date 22 Nov 2024
  * @author Einar Ólason <einar.olason@nersc.no>
- */
+*/
 
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include <doctest/doctest.h>

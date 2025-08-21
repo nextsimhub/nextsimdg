@@ -1,9 +1,7 @@
 /*!
- * @file SMUIceAlbedo.hpp
  *
- * @date 24 Sep 2024
  * @author Tim Spain <timothy.spain@nersc.no>
- */
+*/
 
 #ifndef SRC_INCLUDE_SMUICEALBEDO_HPP
 #define SRC_INCLUDE_SMUICEALBEDO_HPP

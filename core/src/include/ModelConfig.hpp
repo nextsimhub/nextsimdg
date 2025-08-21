@@ -1,9 +1,7 @@
 /*!
- * @file ModelConfig.hpp
  *
- * @date 14 Apr 2023
  * @author Tim Spain <timothy.spain@nersc.no>
- */
+*/
 
 #ifndef MODELCONFIG_HPP
 #define MODELCONFIG_HPP

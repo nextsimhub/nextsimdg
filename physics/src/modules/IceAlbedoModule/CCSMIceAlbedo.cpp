@@ -1,9 +1,7 @@
 /*!
- * @file CCSMIceAlbedo.cpp
  *
- * @date 20 Nov 2024
  * @author Tim Spain
- */
+*/
 
 #include "include/CCSMIceAlbedo.hpp"
 

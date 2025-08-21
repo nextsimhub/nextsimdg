@@ -1,9 +1,7 @@
 /*!
- * @file BasicIceOceanHeatFlux.cpp
  *
- * @date 07 Feb 2025
  * @author Tim Spain <timothy.spain@nersc.no>
- */
+*/
 
 #include "include/BasicIceOceanHeatFlux.hpp"
 

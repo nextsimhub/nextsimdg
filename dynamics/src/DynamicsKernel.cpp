@@ -1,9 +1,7 @@
 /*!
- * @file DynamicsKernel.cpp
  *
- * @date Jan 31, 2024
  * @author Tim Spain <timothy.spain@nersc.no>
- */
+*/
 
 #include "include/DynamicsKernel.hpp"
 

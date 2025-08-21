@@ -1,10 +1,8 @@
 /*!
- * @file StructureFactory.cpp
  *
- * @date 04 Jun 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Kacper Kornet <kk562@cam.ac.uk>
- */
+*/
 
 #include "include/StructureFactory.hpp"
 

@@ -1,9 +1,7 @@
 /*!
- * @file ThermoIce0.cpp
  *
- * @date 07 Feb 2025
  * @author Tim Spain <timothy.spain@nersc.no>
- */
+*/
 
 #include "include/ThermoIce0.hpp"
 

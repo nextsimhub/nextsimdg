@@ -1,8 +1,6 @@
 /*!
- * @file dgVisu.hpp
- * @date 24 Sep 2024
  * @author Thomas Richter <thomas.richter@ovgu.de>
- */
+*/
 
 #ifndef __DGVISU_HPP
 #define __DGVISU_HPP

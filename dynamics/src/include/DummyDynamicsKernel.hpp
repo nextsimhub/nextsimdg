@@ -1,10 +1,8 @@
 /*!
- * @file DummyDynamicsKernel.hpp
  *
- * @date 17 Feb 2023
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Piotr Minakowski <piotr.minakowski@ovgu.de>
- */
+*/
 
 #ifndef DUMMYDYNAMICSKERNEL_HPP
 #define DUMMYDYNAMICSKERNEL_HPP

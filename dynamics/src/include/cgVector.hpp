@@ -1,8 +1,6 @@
 /*!
- * @file cgVector.hpp
- * @date 1 Mar 2022
  * @author Thomas Richter <thomas.richter@ovgu.de>
- */
+*/
 
 #ifndef __CGVECTOR_HPP
 #define __CGVECTOR_HPP

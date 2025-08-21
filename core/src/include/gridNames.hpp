@@ -1,9 +1,7 @@
 /*!
- * @file gridNames.hpp
  *
- * @date Aug 23, 2024
  * @author Tim Spain <timothy.spain@nersc.no>
- */
+*/
 
 #ifndef GRIDNAMES_HPP
 #define GRIDNAMES_HPP

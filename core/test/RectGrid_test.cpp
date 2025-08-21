@@ -1,9 +1,7 @@
 /*!
- * @file RectGrid_test.cpp
  *
- * @date 04 Jun 2025
  * @author Tim Spain <timothy.spain@nersc.no>
- */
+*/
 
 #ifdef USE_MPI
 #include <doctest/extensions/doctest_mpi.h>

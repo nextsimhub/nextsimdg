@@ -1,9 +1,7 @@
 /*!
- * @file BasicIceOceanHeatFlux.hpp
  *
- * @date Oct 19, 2021
  * @author Tim Spain <timothy.spain@nersc.no>
- */
+*/
 
 #ifndef BASICICEOCEANHEATFLUX_HPP
 #define BASICICEOCEANHEATFLUX_HPP

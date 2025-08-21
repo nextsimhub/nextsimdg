@@ -1,9 +1,7 @@
 /*!
- * @file Configurator.hpp
  *
- * @date Oct 8, 2021
  * @author Tim Spain <timothy.spain@nersc.no>
- */
+*/
 
 #ifndef CONFIGURATOR_HPP
 #define CONFIGURATOR_HPP

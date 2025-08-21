@@ -1,9 +1,7 @@
 /*!
- * @file BenchmarkOcean.hpp
  *
- * @date 24 Sep 2024
  * @author Tim Spain <timothy.spain@nersc.no>
- */
+*/
 
 #ifndef BENCHMARKOCEAN_HPP
 #define BENCHMARKOCEAN_HPP
