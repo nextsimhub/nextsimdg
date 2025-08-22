@@ -38,12 +38,12 @@ class SingleColumnThermo(unittest.TestCase):
         subprocess.run(cls.executable + " --config-file " + cls.config_file, shell=True, check=True)
 
         # Load the basic variables
-        root = netCDF4.Dataset(cls.diagnostics_file, "r", format="NETCDF4")
-        cls.hice = np.squeeze(np.array(root.groups["data"].variables["hice"][:].data))
-        cls.hsnow = np.squeeze(np.array(root.groups["data"].variables["hsnow"][:].data))
-        cls.tsurf = np.array(root.groups["data"].variables["tsurf"][:].data)
-        cls.tintr = np.array(root.groups["data"].variables["tinterior"][:].data)
-        cls.tbott = np.array(root.groups["data"].variables["tbottom"][:].data)
+        ncFile = netCDF4.Dataset(cls.diagnostics_file, "r", format="NETCDF4")
+        cls.hice = np.squeeze(np.array(ncFile.variables["hice"][:].data))
+        cls.hsnow = np.squeeze(np.array(ncFile.variables["hsnow"][:].data))
+        cls.tsurf = np.array(ncFile.variables["tsurf"][:].data)
+        cls.tintr = np.array(ncFile.variables["tinterior"][:].data)
+        cls.tbott = np.array(ncFile.variables["tbottom"][:].data)
 
     @classmethod
     def __make_cfg_file(cls):
@@ -84,23 +84,17 @@ ks = 0.31
         import netCDF4
         import numpy as np
 
-        root = netCDF4.Dataset(cls.init_file, "w", format="NETCDF4")
-        metagrp = root.createGroup("structure")
+        ncFile = netCDF4.Dataset(cls.init_file, "w", format="NETCDF4")
         structure_name = "parametric_rectangular"
-        metagrp.type = structure_name
+        ncFile.structure_name = structure_name
 
-        metagrp = root.createGroup("metadata")
-        metagrp.type = structure_name
-        confgrp = metagrp.createGroup("configuration")  # But add nothing to it
-        timegrp = metagrp.createGroup("time")
-        time_var = timegrp.createVariable("time", "i8")
+        time_var = ncFile.createVariable("time_meta", "i8")
         data_time = 1263204000
         time_var[:] = data_time
         time.units = "seconds since 1970-01-01T00:00:00Z"
-        formatted = timegrp.createVariable("formatted", str)
+        formatted = ncFile.createVariable("formatted", str)
         formatted.format = "%Y-%m-%dT%H:%M:%SZ"
         formatted[0] = "2010-01-01T00:00:00Z"
-        datagrp = root.createGroup("data")
 
         nfirst = 1
         nsecond = 1
@@ -109,15 +103,15 @@ ks = 0.31
         n_dgstress = 1
         n_coords = 2
 
-        yDim = datagrp.createDimension("ydim", nfirst)
-        xDim = datagrp.createDimension("xdim", nsecond)
-        yVertexDim = datagrp.createDimension("yvertex", nfirst + 1)
-        xVertexDim = datagrp.createDimension("xvertex", nsecond + 1)
-        ycg_dim = datagrp.createDimension("y_cg", nfirst * ncg + 1)
-        xcg_dim = datagrp.createDimension("x_cg", nsecond * ncg + 1)
-        dg_comp = datagrp.createDimension("dg_comp", n_dg)
-        dgs_comp = datagrp.createDimension("dgstress_comp", n_dgstress)
-        n_coords_comp = datagrp.createDimension("ncoords", n_coords)
+        yDim = ncFile.createDimension("ydim", nfirst)
+        xDim = ncFile.createDimension("xdim", nsecond)
+        yVertexDim = ncFile.createDimension("yvertex", nfirst + 1)
+        xVertexDim = ncFile.createDimension("xvertex", nsecond + 1)
+        ycg_dim = ncFile.createDimension("y_cg", nfirst * ncg + 1)
+        xcg_dim = ncFile.createDimension("x_cg", nsecond * ncg + 1)
+        dg_comp = ncFile.createDimension("dg_comp", n_dg)
+        dgs_comp = ncFile.createDimension("dgstress_comp", n_dgstress)
+        n_coords_comp = ncFile.createDimension("ncoords", n_coords)
 
         field_dims = ("ydim", "xdim")
         coord_dims = ("yvertex", "xvertex", "ncoords")
@@ -135,40 +129,40 @@ ks = 0.31
 
         node_lat[:, :] = lat0
 
-        coords = datagrp.createVariable("coords", "f8", coord_dims)
+        coords = ncFile.createVariable("coords", "f8", coord_dims)
         coords[:, :, 0] = node_lon
         coords[:, :, 1] = node_lat
 
-        elem_lon = datagrp.createVariable("longitude", "f8", field_dims)
+        elem_lon = ncFile.createVariable("longitude", "f8", field_dims)
         elem_lon[:, :] = 0
-        elem_lat = datagrp.createVariable("latitude", "f8", field_dims)
+        elem_lat = ncFile.createVariable("latitude", "f8", field_dims)
         elem_lat[:, :] = 90
 
-        grid_azimuth = datagrp.createVariable("grid_azimuth", "f8", field_dims)
+        grid_azimuth = ncFile.createVariable("grid_azimuth", "f8", field_dims)
         grid_azimuth[:, :] = 0
 
         mu: float = -0.055  # should match Water::mu in constants.hpp
         ocean_temperature = -1.54
         ocean_salinity = ocean_temperature / mu
 
-        mask = datagrp.createVariable("mask", "f8", field_dims)
+        mask = ncFile.createVariable("mask", "f8", field_dims)
         mask[:, :] = [[1]]
-        cice = datagrp.createVariable("cice", "f8", field_dims)
+        cice = ncFile.createVariable("cice", "f8", field_dims)
         cice[:, :] = 1.
-        hice = datagrp.createVariable("hice", "f8", field_dims)
+        hice = ncFile.createVariable("hice", "f8", field_dims)
         hice[:, :] = 3.00
-        hsnow = datagrp.createVariable("hsnow", "f8", field_dims)
+        hsnow = ncFile.createVariable("hsnow", "f8", field_dims)
         hsnow[:, :] = 0.3
-        sss = datagrp.createVariable("sss", "f8", field_dims)
+        sss = ncFile.createVariable("sss", "f8", field_dims)
         sss[:, :] = ocean_salinity
-        sst = datagrp.createVariable("sst", "f8", field_dims)
+        sst = ncFile.createVariable("sst", "f8", field_dims)
         sst[:, :] = ocean_temperature
         # Ice is at rest
-        u = datagrp.createVariable("u", "f8", field_dims)
+        u = ncFile.createVariable("u", "f8", field_dims)
         u[:, :] = 0
-        v = datagrp.createVariable("v", "f8", field_dims)
+        v = ncFile.createVariable("v", "f8", field_dims)
         v[:, :] = 0
-        root.close()
+        ncFile.close()
 
     @classmethod
     def tearDownClass(cls):

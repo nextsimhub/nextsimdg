@@ -81162,40 +81162,34 @@ if __name__ == "__main__":
     
     era5_out_file = "25km_NH.ERA5_2010-01-01T000000_test_data.nc"
     print(f"Writing ERA5 data to {era5_out_file}")
-    era_root = netCDF4.Dataset(era5_out_file, "w", format="NETCDF4")
-    structgrp = era_root.createGroup("structure")
-    structgrp.type = target_structure
+    era_ncFile = netCDF4.Dataset(era5_out_file, "w", format="NETCDF4")
+    era_ncFile.structure_name = target_structure
     
-    metagrp = era_root.createGroup("metadata")
-    metagrp.type = target_structure
-    confgrp = metagrp.createGroup("configuration") # But add nothing to it
-    timegrp = metagrp.createGroup("time")
     # Use the start time as the timestamp for the file
-    formatted = timegrp.createVariable("formatted", str)
+    formatted = era_ncFile.createVariable("formatted", str)
     formatted.format = "%Y-%m-%dT%H:%M:%SZ"
     formatted[0] = "2010-01-01T00:00:00Z"
-    time_attr = timegrp.createVariable("time", "i8")
+    time_attr = era_ncFile.createVariable("time_meta", "i8")
     time_attr[:] = time
     time_attr.units = "seconds since 1970-01-01T00:00:00Z"
     
-    datagrp = era_root.createGroup("data")
-    xDim = datagrp.createDimension("xdim", nx)
-    yDim = datagrp.createDimension("ydim", ny)
-    tDim = datagrp.createDimension("time", 2)
+    xDim = era_ncFile.createDimension("xdim", nx)
+    yDim = era_ncFile.createDimension("ydim", ny)
+    tDim = era_ncFile.createDimension("time", 2)
     
     hfield_dims = ("ydim", "xdim")
     timefield_dims = ("time", "ydim", "xdim")
     
     dtime_era = 3600
-    time_var = datagrp.createVariable("time", "f8", ("time"))
+    time_var = era_ncFile.createVariable("time", "f8", ("time"))
     time_var[:] = [time, time+dtime_era]
     
     # For each field and time, get the corresponding file name for each dataset
     for field_name in atmos_fields:
-        data = datagrp.createVariable(field_name, "f8", timefield_dims)
+        data = era_ncFile.createVariable(field_name, "f8", timefield_dims)
         data[0, :, :] = get_era_data(field_name)
         data[1, :, :] = get_era_data(field_name)
-    era_root.close()
+    era_ncFile.close()
 
     ocean_fields = ("mld", "sss", "sst", "ssh", "u", "v")
     skip_ocean_fields = ()
@@ -81208,35 +81202,29 @@ if __name__ == "__main__":
     # TOPAZ data
     
     topaz_out_file = "25km_NH.TOPAZ4_2010-01-01T000000_test_data.nc"
-    topaz_root = netCDF4.Dataset(topaz_out_file, "w", format="NETCDF4")
+    topaz_ncFile = netCDF4.Dataset(topaz_out_file, "w", format="NETCDF4")
     print(f"Writing TOPAZ4 data to {topaz_out_file}")
-    structgrp = topaz_root.createGroup("structure")
-    structgrp.type = target_structure
+    topaz_ncFile.structure_name = target_structure
     
-    metagrp = topaz_root.createGroup("metadata")
-    metagrp.type = target_structure
-    confgrp = metagrp.createGroup("configuration") # But add nothing to it
-    timegrp = metagrp.createGroup("time")
     # Use the start time as the timestamp for the file
-    formatted = timegrp.createVariable("formatted", str)
+    formatted = topaz_ncFile.createVariable("formatted", str)
     formatted.format = "%Y-%m-%dT%H:%M:%SZ"
     formatted[0] = "2010-01-01T00:00:00Z"
-    time_attr = timegrp.createVariable("time", "i8")
+    time_attr = topaz_ncFile.createVariable("time_meta", "i8")
     time_attr[:] = time
     time_attr.units = "seconds since 1970-01-01T00:00:00Z"
     
-    datagrp = topaz_root.createGroup("data")
-    xDim = datagrp.createDimension("xdim", nx)
-    yDim = datagrp.createDimension("ydim", ny)
-    tDim = datagrp.createDimension("time", 2)
+    xDim = topaz_ncFile.createDimension("xdim", nx)
+    yDim = topaz_ncFile.createDimension("ydim", ny)
+    tDim = topaz_ncFile.createDimension("time", 2)
     
     dtime_topaz = 86400
-    time_var = datagrp.createVariable("time", "f8", ("time"))
+    time_var = topaz_ncFile.createVariable("time", "f8", ("time"))
     time_var[:] = [time, time+dtime_topaz]
 
     # For each field and time, get the corresponding file name for each dataset
     for field_name in ocean_fields:
-        data = datagrp.createVariable(field_name, "f8", timefield_dims)
+        data = topaz_ncFile.createVariable(field_name, "f8", timefield_dims)
         data[0, :,:] = get_topaz_data(field_name)
         data[1, :,:] = get_topaz_data(field_name)
-    topaz_root.close()
+    topaz_ncFile.close()
