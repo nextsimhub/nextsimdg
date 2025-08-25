@@ -21,7 +21,6 @@ MPI_TEST_CASE("OASIS init put and get", 1)
     OASIS_CHECK_ERR(oasis_c_get_localcomm(&modelCommunicator));
 
     ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
-    ModelArray::setDimensions(ModelArray::Type::Z, { 1, 1, 1 });
 
     double sstIn = -1.84;
     double sssIn = 28.0;
@@ -32,11 +31,7 @@ MPI_TEST_CASE("OASIS init put and get", 1)
 
     HField cice(ModelArray::Type::H);
     cice = 0.8;
-    ModelComponent::getStore().registerArray(Protected::C_ICE, &cice, RO);
-
-    HField emp(ModelArray::Type::H);
-    emp = 1e-6;
-    ModelComponent::getStore().registerArray(Protected::EVAP_MINUS_PRECIP, &emp, RO);
+    ModelComponent::getStore().registerArray(Shared::C_ICE_DG, &cice, RO);
 
     HField tauXIO(ModelArray::Type::H);
     tauXIO = -3e-2;
