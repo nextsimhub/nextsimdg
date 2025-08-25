@@ -47,12 +47,16 @@ if(ENABLE_MPI)
         ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} 1 testTOPAZOcn_MPI1 -ns)
 
     if (ENABLE_OASIS)
-        add_executable(testOASISCoupledOcean_MPI2 "OASISCoupledOcean_test.cpp" "MainMPI.cpp")
-        target_include_directories(testOASISCoupledOcean_MPI2
-            PRIVATE "${ModulesRoot}/OceanBoundaryModule")
-        target_compile_definitions(testOASISCoupledOcean_MPI2
-            PRIVATE TEST_FILES_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}\")
-        target_link_libraries(testOASISCoupledOcean_MPI2 PRIVATE nextsimlib doctest::doctest)
+        add_executable(testOASISCoupledOcean_MPI1 "OASISCoupledOcean_test.cpp" "../../core/test/MainMPI.cpp")
+        target_include_directories(testOASISCoupledOcean_MPI1 PRIVATE "${ModulesRoot}/OceanBoundaryModule")
+        target_compile_definitions(
+                testOASISCoupledOcean_MPI1
+                PRIVATE USE_MPI TEST_FILES_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}\"
+        )
+        target_link_libraries(testOASISCoupledOcean_MPI1 PRIVATE nextsimlib doctest::doctest)
+
+        add_test(NAME testOASISCoupledOcean_MPI1 COMMAND
+                ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} 1 testOASISCoupledOcean_MPI1 -ns)
     endif ()
 else()
     add_executable(testERA5Atm "ERA5Atm_test.cpp")
