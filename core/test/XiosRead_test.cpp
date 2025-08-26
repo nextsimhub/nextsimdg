@@ -20,7 +20,6 @@
 #include <filesystem>
 
 const std::string testFilesDir = TEST_FILES_DIR;
-const std::string partitionFilename = testFilesDir + "/partition_metadata_2.nc";
 const std::string filename = testFilesDir + "/xios_test_input.nc";
 
 namespace Nextsim {
@@ -59,8 +58,9 @@ MPI_TEST_CASE("TestXiosRead", 2)
 
     // Create ModelMetadata instance based off a partition metadata file
     // NOTE: ModelArray dimensions are determined from the input file, if present
-    ModelMetadata metadata("xios_test_partition_metadata_2.nc", test_comm);
-    xiosHandler.affixModelMetadata(metadata);
+    auto& modelMPI = ModelMPI::getInstance(test_comm);
+    auto& metadata = ModelMetadata::getInstance("xios_test_partition_metadata_2.nc");
+    xiosHandler.affixModelMetadata();
 
     // Create fields on the two grids
     // NOTE: Fields are created when the XIOS handler is constructed
@@ -88,10 +88,6 @@ MPI_TEST_CASE("TestXiosRead", 2)
     // Check the input file exists
     REQUIRE(std::filesystem::exists(filename));
 
-    // Create ModelMetadata instance
-    auto& modelMPI = ModelMPI::getInstance(test_comm);
-    auto& metadata = ModelMetadata::getInstance(partitionFilename);
-
     // Deduce the local lengths of the two dimensions
     const size_t nx = ModelArray::definedDimensions.at(ModelArray::Dimension::X).localLength;
     const size_t ny = ModelArray::definedDimensions.at(ModelArray::Dimension::Y).localLength;
@@ -102,7 +98,7 @@ MPI_TEST_CASE("TestXiosRead", 2)
         // Update the current timestep and verify it's updated in XIOS
         metadata.incrementTime(timestep);
         REQUIRE(xiosHandler.getCalendarStep() == ts);
-        ModelState state = grid.getModelState(filename, metadata);
+        ModelState state = grid.getModelState(filename);
         for (auto& entry : state.data) {
             for (size_t j = 0; j < ny; ++j) {
                 for (size_t i = 0; i < nx; ++i) {

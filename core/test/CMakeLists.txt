@@ -168,8 +168,7 @@ if(ENABLE_MPI)
         target_link_libraries(testXiosRead_MPI2 PRIVATE nextsimlib doctest::doctest)
 
         add_executable(testXiosWrite_MPI2 "XiosWrite_test.cpp" "MainMPI.cpp")
-        target_compile_definitions(testXiosWrite_MPI2 PRIVATE USE_XIOS
-          TEST_FILES_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\")
+        target_compile_definitions(testXiosWrite_MPI2 PRIVATE USE_XIOS)
         target_include_directories(
             testXiosWrite_MPI2
             PRIVATE "${MODEL_INCLUDE_DIR}" "${XIOS_INCLUDE_LIST}" "${ModulesRoot}/StructureModule"

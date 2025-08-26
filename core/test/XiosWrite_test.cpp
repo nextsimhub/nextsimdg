@@ -19,9 +19,6 @@
 
 #include <filesystem>
 
-const std::string testFilesDir = TEST_FILES_DIR;
-const std::string partitionFilename = testFilesDir + "/partition_metadata_2.nc";
-
 namespace Nextsim {
 
 /*!
@@ -57,8 +54,9 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     REQUIRE(xiosHandler.getClientMPISize() == 2);
 
     // Create ModelMetadata instance based off a partition metadata file
-    ModelMetadata metadata("xios_test_partition_metadata_2.nc", test_comm);
-    xiosHandler.affixModelMetadata(metadata);
+    auto& modelMPI = ModelMPI::getInstance(test_comm);
+    auto& metadata = ModelMetadata::getInstance("xios_test_partition_metadata_2.nc");
+    xiosHandler.affixModelMetadata();
 
     // Set ModelArray dimensions
     const size_t nx_glo = 4;
@@ -105,17 +103,13 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     // Check a file with the expected name doesn't exist yet
     REQUIRE_FALSE(std::filesystem::exists("xios_test_output*.nc"));
 
-    // Create ModelMetadata instance
-    auto& modelMPI = ModelMPI::getInstance(test_comm);
-    auto& metadata = ModelMetadata::getInstance(partitionFilename);
-
     // Simulate 4 iterations (timesteps)
     metadata.setTime(xiosHandler.getCalendarStart());
     for (int ts = 1; ts <= 4; ts++) {
         // Update the current timestep and verify it's updated in XIOS
         metadata.incrementTime(timestep);
         REQUIRE(xiosHandler.getCalendarStep() == ts);
-        grid.dumpModelState(state, metadata, "xios_test_output", true);
+        grid.dumpModelState(state, "xios_test_output", true);
     }
 
     // Check the files have indeed been created then remove it

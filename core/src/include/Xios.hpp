@@ -25,7 +25,6 @@
 namespace Nextsim {
 
 // Forward declarations to avoid circular dependencies
-class ModelMetadata;
 class ParaGridIO;
 
 void enableXios();
@@ -92,7 +91,7 @@ public:
     std::vector<double> getAxisValues(const std::string axisId);
 
     /* Domain */
-    void affixModelMetadata(ModelMetadata& metadata);
+    void affixModelMetadata();
 
     /* Grid */
     void createGrid(const std::string gridId);

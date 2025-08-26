@@ -8,7 +8,6 @@
 #include "include/CommonRestartMetadata.hpp"
 #include "include/FileCallbackCloser.hpp"
 #include "include/Finalizer.hpp"
-#include "include/Halo.hpp"
 #include "include/Logged.hpp"
 #include "include/MissingData.hpp"
 #include "include/ModelMPI.hpp"
@@ -202,7 +201,6 @@ void ParaGridIO::writeDiagnosticTime(const ModelState& state, const std::string&
         // Set the initial time to be zero (assigned above)
         // Piecewise construction is necessary to correctly construct the file handle/time index
         // pair
-#ifdef USE_MPI
         auto& modelMPI = ModelMPI::getInstance();
         openFilesAndIndices.emplace(std::piecewise_construct, std::make_tuple(filePath),
             std::forward_as_tuple(std::piecewise_construct,

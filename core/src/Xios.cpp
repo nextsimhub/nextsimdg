@@ -34,6 +34,7 @@
 
 #include "StructureModule/include/ParametricGrid.hpp"
 #include "include/Finalizer.hpp"
+#include "include/ModelMPI.hpp"
 #include "include/ModelMetadata.hpp"
 #include "include/ParallelNetcdfFile.hpp"
 #include "include/Xios.hpp"
@@ -626,15 +627,15 @@ xios::CDomain* Xios::getDomain()
  *
  * If the domain ID is 'xy_domain' then a grid called 'grid_2D' will automatically be created with
  * this domain.
- *
- * @param metadata ModelMetadata object containing the partition metadata
  */
-void Xios::affixModelMetadata(ModelMetadata& metadata)
+void Xios::affixModelMetadata()
 {
+    auto& metadata = ModelMetadata::getInstance();
     // Initial read of the NetCDF file to deduce the dimensions
     if (inputFilename.length() > 0) {
         try {
-            netCDF::NcFilePar ncFile(inputFilename, netCDF::NcFile::read, metadata.mpiComm);
+            auto& modelMPI = ModelMPI::getInstance();
+            netCDF::NcFilePar ncFile(inputFilename, netCDF::NcFile::read, modelMPI.getComm());
 
             // Dimensions and DG components
             std::multimap<std::string, netCDF::NcDim> dimMap = ncFile.getDims();
@@ -664,17 +665,17 @@ void Xios::affixModelMetadata(ModelMetadata& metadata)
                 size_t localLength = 0;
                 size_t start = 0;
                 if (dimType == ModelArray::Dimension::X) {
-                    localLength = metadata.localExtentX;
-                    start = metadata.localCornerX;
+                    localLength = metadata.getLocalExtentX();
+                    start = metadata.getLocalCornerX();
                 } else if (dimType == ModelArray::Dimension::Y) {
-                    localLength = metadata.localExtentY;
-                    start = metadata.localCornerY;
+                    localLength = metadata.getLocalExtentY();
+                    start = metadata.getLocalCornerY();
                 } else if (dimType == ModelArray::Dimension::XVERTEX) {
-                    localLength = metadata.localExtentX + 1;
-                    start = metadata.localCornerX;
+                    localLength = metadata.getLocalExtentX() + 1;
+                    start = metadata.getLocalCornerX();
                 } else if (dimType == ModelArray::Dimension::YVERTEX) {
-                    localLength = metadata.localExtentY + 1;
-                    start = metadata.localCornerY;
+                    localLength = metadata.getLocalExtentY() + 1;
+                    start = metadata.getLocalCornerY();
                 } else {
                     localLength = dim.getSize();
                     start = 0;
@@ -722,33 +723,33 @@ void Xios::affixModelMetadata(ModelMetadata& metadata)
     }
 
     // Set global sizes
-    cxios_set_domain_ni_glo(domain, (int)metadata.globalExtentX);
+    cxios_set_domain_ni_glo(domain, (int)metadata.getGlobalExtentX());
     if (!cxios_is_defined_domain_ni_glo(domain)) {
         throw std::runtime_error("Xios: Failed to set global x-size for domain '" + domainId + "'");
     }
-    cxios_set_domain_nj_glo(domain, (int)metadata.globalExtentY);
+    cxios_set_domain_nj_glo(domain, (int)metadata.getGlobalExtentY());
     if (!cxios_is_defined_domain_nj_glo(domain)) {
         throw std::runtime_error("Xios: Failed to set global y-size for domain '" + domainId + "'");
     }
 
     // Set local starts
-    cxios_set_domain_ibegin(domain, (int)metadata.localCornerX);
+    cxios_set_domain_ibegin(domain, (int)metadata.getLocalCornerX());
     if (!cxios_is_defined_domain_ibegin(domain)) {
         throw std::runtime_error(
             "Xios: Failed to set local starting x-index for domain '" + domainId + "'");
     }
-    cxios_set_domain_jbegin(domain, (int)metadata.localCornerY);
+    cxios_set_domain_jbegin(domain, (int)metadata.getLocalCornerY());
     if (!cxios_is_defined_domain_jbegin(domain)) {
         throw std::runtime_error(
             "Xios: Failed to set local starting y-index for domain '" + domainId + "'");
     }
 
     // Set local sizes
-    cxios_set_domain_ni(domain, (int)metadata.localExtentX);
+    cxios_set_domain_ni(domain, (int)metadata.getLocalExtentX());
     if (!cxios_is_defined_domain_ni(domain)) {
         throw std::runtime_error("Xios: Failed to set local x-size for domain '" + domainId + "'");
     }
-    cxios_set_domain_nj(domain, (int)metadata.localExtentY);
+    cxios_set_domain_nj(domain, (int)metadata.getLocalExtentY());
     if (!cxios_is_defined_domain_nj(domain)) {
         throw std::runtime_error("Xios: Failed to set local y-size for domain '" + domainId + "'");
     }
