@@ -171,12 +171,15 @@ private:
     cxios_duration convertDurationToXios(const Duration duration);
 
     /* Axis */
-    const std::string dgAxisId = "DGAxis";
-    const std::string vertexAxisId = "VertexAxis";
+    std::map<ModelArray::Type, std::string> axisIds = {
+        { ModelArray::Type::VERTEX, "VertexAxis" },
+        { ModelArray::Type::DG, "DGAxis" },
+    };
     xios::CAxisGroup* getAxisGroup();
     xios::CAxis* getAxis(const std::string axisId);
 
     /* Domain */
+    // TODO: Create domainIds
     const std::string hDomainId = "HDomain";
     const std::string vertexDomainId = "VertexDomain";
     xios::CDomainGroup* getDomainGroup();
@@ -193,7 +196,7 @@ private:
     /* Grid */
     xios::CGridGroup* getGridGroup();
     xios::CGrid* getGrid(const std::string gridId);
-    std::map<ModelArray::Type, std::string> gridRefs = {
+    std::map<ModelArray::Type, std::string> gridIds = {
         { ModelArray::Type::H, "HGrid" },
         { ModelArray::Type::VERTEX, "VertexGrid" },
         { ModelArray::Type::DG, "DGGrid" },

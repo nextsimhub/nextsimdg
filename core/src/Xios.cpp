@@ -823,7 +823,10 @@ void Xios::affixModelMetadata(ModelMetadata& metadata)
         }
     }
 
+    // TODO: Automate axis creation
+
     // Create XIOS axis 'DGAxis'
+    const std::string dgAxisId = axisIds[ModelArray::Type::DG];
     createAxis(dgAxisId);
     setAxisSize(dgAxisId, ModelArray::size(ModelArray::Dimension::DG));
     xios::CAxis* axis = getAxis(dgAxisId);
@@ -831,6 +834,7 @@ void Xios::affixModelMetadata(ModelMetadata& metadata)
     cxios_set_axis_dim_name(axis, dgAxisName.c_str(), dgAxisName.length());
 
     // Create XIOS axis 'VertexAxis' to account for the vector field
+    const std::string vertexAxisId = axisIds[ModelArray::Type::VERTEX];
     createAxis(vertexAxisId);
     setAxisSize(vertexAxisId, ModelArray::size(ModelArray::Dimension::NCOORDS));
     axis = getAxis(vertexAxisId);
@@ -838,7 +842,8 @@ void Xios::affixModelMetadata(ModelMetadata& metadata)
     cxios_set_axis_dim_name(axis, vertexAxisName.c_str(), vertexAxisName.length());
 
     // Check the axes were set up correctly
-    for (std::string axisId : { dgAxisId, vertexAxisId }) {
+    for (auto entry : axisIds) {
+        const std::string axisId = entry.second;
         axis = getAxis(axisId);
         if (!cxios_is_defined_axis_dim_name(axis)) {
             throw std::runtime_error("Xios: Failed to set name for axis '" + axisId + "'");
@@ -846,13 +851,13 @@ void Xios::affixModelMetadata(ModelMetadata& metadata)
     }
 
     // Create XIOS grid 'HGrid2D' associated with HDomain
-    const std::string hGridId = gridRefs[ModelArray::Type::H];
+    const std::string hGridId = gridIds[ModelArray::Type::H];
     createGrid(hGridId);
     xios::CGrid* grid = getGrid(hGridId);
     cxios_xml_tree_add_domaintogrid(grid, &domain, hDomainId.c_str(), hDomainId.length());
 
     // Create XIOS grid 'DGGrid2D' associated with HDomain and DGAxis
-    const std::string dgGridId = gridRefs[ModelArray::Type::DG];
+    const std::string dgGridId = gridIds[ModelArray::Type::DG];
     createGrid(dgGridId);
     grid = getGrid(dgGridId);
     axis = getAxis(dgAxisId);
@@ -860,7 +865,7 @@ void Xios::affixModelMetadata(ModelMetadata& metadata)
     cxios_xml_tree_add_domaintogrid(grid, &domain, hDomainId.c_str(), hDomainId.length());
 
     // Create XIOS grid 'VertexGrid2D' associated with VertexDomain
-    const std::string vertexGridId = gridRefs[ModelArray::Type::VERTEX];
+    const std::string vertexGridId = gridIds[ModelArray::Type::VERTEX];
     createGrid(vertexGridId);
     grid = getGrid(vertexGridId);
     cxios_xml_tree_add_axistogrid(grid, &axis, vertexAxisId.c_str(), vertexAxisId.length());
@@ -1224,7 +1229,7 @@ ModelArray::Type Xios::getFieldType(const std::string fieldId) { return fieldTyp
 void Xios::setFieldType(const std::string fieldId, ModelArray::Type type)
 {
     fieldTypes[fieldId] = type;
-    setFieldGridRef(fieldId, gridRefs[type]);
+    setFieldGridRef(fieldId, gridIds[type]);
 }
 
 /*!
