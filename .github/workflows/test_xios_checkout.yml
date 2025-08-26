@@ -1,0 +1,36 @@
+name: Checkout XIOS
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/test_xios_checkout.yml'
+      - 'core/*.sh'
+      - 'dynamics/*.sh'
+      - 'run/*.sh'
+      - 'test/*.sh'
+      - '**.cdl'
+      - '**.cfg'
+      - '**.cpp'
+      - '**.hpp'
+      - '**.py'
+      - '**.xml'
+      - '**CMakeLists.txt'
+
+jobs:
+
+  checkout-xios:
+
+    runs-on: ubuntu-latest
+
+    timeout-minutes: 10
+
+    container:
+      image: ghcr.io/nextsimhub/nextsimdg-dev-env:latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: build domain_decomp
+      run: |
+        . /opt/spack-environment/activate.sh
+        svn checkout http://forge.ipsl.fr/ioserver/svn/XIOS2/trunk
