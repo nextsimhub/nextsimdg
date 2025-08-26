@@ -186,6 +186,8 @@ private:
     void setFieldReadAccess(const std::string fieldId, const bool readAccess);
     std::set<std::string> configGetFieldNames(const bool reading);
     bool configCheckField(const std::string fieldId, const bool reading);
+    std::map<std::string, ModelArray::Type> fieldTypes;
+    ModelArray::Type getFieldType(const std::string fieldId);
 
     /* Grid */
     const std::string hGridId = "HGrid";

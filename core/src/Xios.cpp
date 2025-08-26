@@ -1171,6 +1171,14 @@ Duration Xios::getFieldFreqOffset(const std::string fieldId)
 }
 
 /*!
+ * Get the field type associated with a field with a given ID
+ *
+ * @param the field ID
+ * @return ModelArray::Type used for the corresponding field
+ */
+ModelArray::Type Xios::getFieldType(const std::string fieldId) { return fieldTypes[fieldId]; }
+
+/*!
  * Get the file_definition group
  *
  * @return a pointer to the XIOS CFileGroup object
