@@ -171,7 +171,7 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
                 count.push_back(dim.localLength);
             }
             // dims are looped in [dg], x, y, [z] order so start and count
-            // order must be reveresed to match order netcdf expects
+            // order must be reversed to match order netcdf expects
             std::reverse(start.begin(), start.end());
             std::reverse(count.begin(), count.end());
 
