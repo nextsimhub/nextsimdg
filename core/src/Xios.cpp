@@ -721,6 +721,9 @@ void Xios::affixModelMetadata(ModelMetadata& metadata)
     }
 
     // Create XIOS domains
+    // TODO: Automate domain setup
+    const std::string hDomainId = domainIds[ModelArray::Type::H];
+    const std::string vertexDomainId = domainIds[ModelArray::Type::VERTEX];
     xios::CDomain* domain = NULL;
     for (std::string domainId : { hDomainId, vertexDomainId }) {
         bool exists;

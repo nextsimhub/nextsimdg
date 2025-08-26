@@ -179,9 +179,11 @@ private:
     xios::CAxis* getAxis(const std::string axisId);
 
     /* Domain */
-    // TODO: Create domainIds
-    const std::string hDomainId = "HDomain";
-    const std::string vertexDomainId = "VertexDomain";
+    std::map<ModelArray::Type, std::string> domainIds = {
+        { ModelArray::Type::H, "HDomain" },
+        { ModelArray::Type::VERTEX, "VertexDomain" },
+        { ModelArray::Type::DG, "HDomain" },
+    };
     xios::CDomainGroup* getDomainGroup();
     xios::CDomain* getDomain(std::string domainId);
 
