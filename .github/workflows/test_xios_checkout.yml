@@ -33,4 +33,6 @@ jobs:
     - name: build domain_decomp
       run: |
         . /opt/spack-environment/activate.sh
-        svn checkout http://forge.ipsl.fr/ioserver/svn/XIOS2/trunk
+        rm -rf /xios
+        cp Dockerfiles/install-xios.sh .
+        bash install-xios.sh
