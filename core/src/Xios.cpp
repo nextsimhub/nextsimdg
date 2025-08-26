@@ -693,7 +693,7 @@ void Xios::affixModelMetadata(ModelMetadata& metadata)
 
             // Determine field types
             for (auto entry : ncFile.getVars()) {
-                const std::string& varName = entry.first;
+                const std::string& fieldId = entry.first;
                 netCDF::NcVar& var = entry.second;
                 // Determine the type from the dimensions
                 std::vector<netCDF::NcDim> varDims = var.getDims();
@@ -709,7 +709,8 @@ void Xios::affixModelMetadata(ModelMetadata& metadata)
                 if (!dimensionKeys.count(dimKey)) {
                     continue;
                 }
-                fieldTypes[varName] = dimensionKeys.at(dimKey);
+                ModelArray::Type type = dimensionKeys.at(dimKey);
+                setFieldType(fieldId, type);
             }
             ncFile.close();
         } catch (const netCDF::exceptions::NcException& nce) {
@@ -845,11 +846,13 @@ void Xios::affixModelMetadata(ModelMetadata& metadata)
     }
 
     // Create XIOS grid 'HGrid2D' associated with HDomain
+    const std::string hGridId = gridRefs[ModelArray::Type::H];
     createGrid(hGridId);
     xios::CGrid* grid = getGrid(hGridId);
     cxios_xml_tree_add_domaintogrid(grid, &domain, hDomainId.c_str(), hDomainId.length());
 
     // Create XIOS grid 'DGGrid2D' associated with HDomain and DGAxis
+    const std::string dgGridId = gridRefs[ModelArray::Type::DG];
     createGrid(dgGridId);
     grid = getGrid(dgGridId);
     axis = getAxis(dgAxisId);
@@ -857,6 +860,7 @@ void Xios::affixModelMetadata(ModelMetadata& metadata)
     cxios_xml_tree_add_domaintogrid(grid, &domain, hDomainId.c_str(), hDomainId.length());
 
     // Create XIOS grid 'VertexGrid2D' associated with VertexDomain
+    const std::string vertexGridId = gridRefs[ModelArray::Type::VERTEX];
     createGrid(vertexGridId);
     grid = getGrid(vertexGridId);
     cxios_xml_tree_add_axistogrid(grid, &axis, vertexAxisId.c_str(), vertexAxisId.length());
@@ -1210,6 +1214,18 @@ Duration Xios::getFieldFreqOffset(const std::string fieldId)
  * @return ModelArray::Type used for the corresponding field
  */
 ModelArray::Type Xios::getFieldType(const std::string fieldId) { return fieldTypes[fieldId]; }
+
+/*!
+ * Set the field type associated with a field with a given ID
+ *
+ * @param the field ID
+ * @param ModelArray::Type used for the corresponding field
+ */
+void Xios::setFieldType(const std::string fieldId, ModelArray::Type type)
+{
+    fieldTypes[fieldId] = type;
+    setFieldGridRef(fieldId, gridRefs[type]);
+}
 
 /*!
  * Get the file_definition group

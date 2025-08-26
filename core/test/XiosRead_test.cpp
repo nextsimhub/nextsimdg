@@ -77,10 +77,6 @@ MPI_TEST_CASE("TestXiosRead", 2)
         xiosHandler.setFieldOperation(fieldName, "instant");
         xiosHandler.setFieldFreqOffset(fieldName, timestep);
     }
-    // TODO: Automate the following
-    xiosHandler.setFieldGridRef(maskName, "HGrid");
-    xiosHandler.setFieldGridRef(hiceName, "DGGrid");
-    xiosHandler.setFieldGridRef(coordsName, "VertexGrid");
 
     xiosHandler.close_context_definition();
 

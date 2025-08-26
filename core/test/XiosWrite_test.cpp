@@ -80,10 +80,9 @@ MPI_TEST_CASE("TestXiosWrite", 2)
         xiosHandler.setFieldOperation(fieldName, "instant");
         xiosHandler.setFieldFreqOffset(fieldName, timestep);
     }
-    // TODO: Automate the following
-    xiosHandler.setFieldGridRef(maskName, "HGrid");
-    xiosHandler.setFieldGridRef(hiceName, "DGGrid");
-    xiosHandler.setFieldGridRef(coordsName, "VertexGrid");
+    xiosHandler.setFieldType(maskName, ModelArray::Type::H);
+    xiosHandler.setFieldType(coordsName, ModelArray::Type::VERTEX);
+    xiosHandler.setFieldType(hiceName, ModelArray::Type::DG);
 
     // Set file split frequency
     // NOTE: Files are created when the XIOS handler is constructed

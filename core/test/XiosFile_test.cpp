@@ -66,8 +66,10 @@ MPI_TEST_CASE("TestXiosFile", 2)
     // NOTE: fields are automatically created along with files
     xiosHandler.setFieldOperation("field_1D", "instant");
     xiosHandler.setFieldGridRef("field_1D", "grid_1D");
+    // TODO: xiosHandler.setFieldType("field_1D", ModelArray::Type::H);
     xiosHandler.setFieldOperation("field_2D", "instant");
     xiosHandler.setFieldGridRef("field_2D", "HGrid");
+    xiosHandler.setFieldType("field_2D", ModelArray::Type::H);
 
     // --- Tests for file API
     const std::string inFileId = "xios_test_input";

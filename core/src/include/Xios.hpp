@@ -110,6 +110,8 @@ public:
     std::string getFieldGridRef(const std::string fieldId);
     bool getFieldReadAccess(const std::string fieldId);
     Duration getFieldFreqOffset(const std::string fieldId);
+    ModelArray::Type getFieldType(const std::string fieldId);
+    void setFieldType(const std::string fieldId, ModelArray::Type type);
 
     /* File */
     void createFile(const std::string fileId);
@@ -187,14 +189,15 @@ private:
     std::set<std::string> configGetFieldNames(const bool reading);
     bool configCheckField(const std::string fieldId, const bool reading);
     std::map<std::string, ModelArray::Type> fieldTypes;
-    ModelArray::Type getFieldType(const std::string fieldId);
 
     /* Grid */
-    const std::string hGridId = "HGrid";
-    const std::string dgGridId = "DGGrid";
-    const std::string vertexGridId = "VertexGrid";
     xios::CGridGroup* getGridGroup();
     xios::CGrid* getGrid(const std::string gridId);
+    std::map<ModelArray::Type, std::string> gridRefs = {
+        { ModelArray::Type::H, "HGrid" },
+        { ModelArray::Type::VERTEX, "VertexGrid" },
+        { ModelArray::Type::DG, "DGGrid" },
+    };
 
     /* File */
     xios::CFileGroup* getFileGroup();
