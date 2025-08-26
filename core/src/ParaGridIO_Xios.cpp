@@ -96,25 +96,28 @@ ModelState ParaGridIO::getModelState(const std::string& filePath, ModelMetadata&
     ModelState state;
     Xios& xiosHandler = Xios::getInstance();
 
-    // Get all vars in the data group, and load them into a new ModelState
+    // Get all variables in the file and load them into a new ModelState
     const bool readAccess = true;
     for (std::string fieldId : xiosHandler.configGetFieldNames(readAccess)) {
-        // TODO: Proper implementation!
-        // Probably need to stash some info when we do the initial read of the NetCDF file.
-        if (fieldId == "mask") {
+        ModelArray::Type type = xiosHandler.getFieldType(fieldId);
+        if (type == ModelArray::Type::H) {
             HField field(ModelArray::Type::H);
             field.resize();
             state.merge(ModelState { { { fieldId, field } }, {} });
-        } else if (fieldId == "coords") {
+        } else if (type == ModelArray::Type::VERTEX) {
             VertexField field(ModelArray::Type::VERTEX);
             field.resize();
             state.merge(ModelState { { { fieldId, field } }, {} });
-        } else {
+        } else if (type == ModelArray::Type::DG) {
             DGField field(ModelArray::Type::DG);
             field.resize();
             state.merge(ModelState { { { fieldId, field } }, {} });
+        } else {
+            throw std::runtime_error(
+                "ParaGridIO::getModelState: field type for field" + fieldId + " is not supported.");
         }
     }
+
     // Assume that all fields in the supplied ModelState are necessary, and so read them from file.
     for (auto& entry : state.data) {
         const std::string fieldId = entry.first;

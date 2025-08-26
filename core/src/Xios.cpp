@@ -678,6 +678,39 @@ void Xios::affixModelMetadata(ModelMetadata& metadata)
                 }
                 ModelArray::setDimension(dimType, dim.getSize(), localLength, start);
             }
+
+            // Create map for field types
+            const std::map<std::string, ModelArray::Type> dimensionKeys = {
+                { "yx", ModelArray::Type::H },
+                { "ydimxdim", ModelArray::Type::H },
+                { "yxdg_comp", ModelArray::Type::DG },
+                { "ydimxdimdg_comp", ModelArray::Type::DG },
+                { "yxdgstress_comp", ModelArray::Type::DGSTRESS },
+                { "ydimxdimdgstress_comp", ModelArray::Type::DGSTRESS },
+                { "ycgxcg", ModelArray::Type::CG },
+                { "yvertexxvertexncoords", ModelArray::Type::VERTEX },
+            };
+
+            // Determine field types
+            for (auto entry : ncFile.getVars()) {
+                const std::string& varName = entry.first;
+                netCDF::NcVar& var = entry.second;
+                // Determine the type from the dimensions
+                std::vector<netCDF::NcDim> varDims = var.getDims();
+                std::string dimKey = "";
+                for (netCDF::NcDim& dim : varDims) {
+                    const std::string name = dim.getName();
+                    // Skip the time_counter dim as it's handled differently
+                    if (name != "time_counter") {
+                        dimKey += dim.getName();
+                    }
+                }
+                // Skip invalid dimension keys
+                if (!dimensionKeys.count(dimKey)) {
+                    continue;
+                }
+                fieldTypes[varName] = dimensionKeys.at(dimKey);
+            }
             ncFile.close();
         } catch (const netCDF::exceptions::NcException& nce) {
             std::string ncWhat(nce.what());
