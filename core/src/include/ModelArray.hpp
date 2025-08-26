@@ -660,7 +660,7 @@ private:
     static DimensionMap m_dims;
     DataType m_data;
 
-    // ModelArraySlice needs access to the internals for fast slcing
+    // ModelArraySlice needs access to the internals for fast slicing
     friend ModelArraySlice;
 };
 
