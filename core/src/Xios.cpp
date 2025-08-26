@@ -848,28 +848,20 @@ void Xios::affixModelMetadata(ModelMetadata& metadata)
         }
     }
 
-    // Create XIOS grid 'HGrid2D' associated with HDomain
-    const std::string hGridId = gridIds[ModelArray::Type::H];
-    createGrid(hGridId);
-    xios::CGrid* grid = getGrid(hGridId);
-    cxios_xml_tree_add_domaintogrid(grid, &domain, hDomainId.c_str(), hDomainId.length());
-
-    // Create XIOS grid 'DGGrid2D' associated with HDomain and DGAxis
-    const std::string dgGridId = gridIds[ModelArray::Type::DG];
-    createGrid(dgGridId);
-    grid = getGrid(dgGridId);
-    const std::string dgAxisId = axisIds[ModelArray::Type::DG];
-    xios::CAxis* axis = getAxis(dgAxisId);
-    cxios_xml_tree_add_axistogrid(grid, &axis, dgAxisId.c_str(), dgAxisId.length());
-    cxios_xml_tree_add_domaintogrid(grid, &domain, hDomainId.c_str(), hDomainId.length());
-
-    // Create XIOS grid 'VertexGrid2D' associated with VertexDomain
-    const std::string vertexGridId = gridIds[ModelArray::Type::VERTEX];
-    const std::string vertexAxisId = axisIds[ModelArray::Type::VERTEX];
-    createGrid(vertexGridId);
-    grid = getGrid(vertexGridId);
-    cxios_xml_tree_add_axistogrid(grid, &axis, vertexAxisId.c_str(), vertexAxisId.length());
-    cxios_xml_tree_add_domaintogrid(grid, &domain, vertexDomainId.c_str(), vertexDomainId.length());
+    // Create XIOS grid associated with domain and possibly axis
+    for (auto entry : gridIds) {
+        ModelArray::Type type = entry.first;
+        const std::string gridId = entry.second;
+        createGrid(gridId);
+        xios::CGrid* grid = getGrid(gridId);
+        if (axisIds.count(type) > 0) {
+            const std::string axisId = axisIds[type];
+            xios::CAxis* axis = getAxis(axisId);
+            cxios_xml_tree_add_axistogrid(grid, &axis, axisId.c_str(), axisId.length());
+        }
+        const std::string domainId = domainIds[type];
+        cxios_xml_tree_add_domaintogrid(grid, &domain, domainId.c_str(), domainId.length());
+    }
 }
 
 /*!
