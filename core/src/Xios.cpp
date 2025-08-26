@@ -817,14 +817,13 @@ void Xios::affixModelMetadata(ModelMetadata& metadata)
         }
     }
 
-    // Create axes
-    std::map<ModelArray::Type, ModelArray::Dimension> typeDimMap = {
-        { ModelArray::Type::DG, ModelArray::Dimension::DG },
-        { ModelArray::Type::VERTEX, ModelArray::Dimension::NCOORDS },
-    };
-    for (auto entry : typeDimMap) {
+    // Create XIOS axes for each ModelArray type
+    for (auto entry : ModelArray::componentMap) {
         ModelArray::Type type = entry.first;
         ModelArray::Dimension dim = entry.second;
+        if (axisIds.count(type) == 0) {
+            continue;
+        }
         const std::string axisId = axisIds[type];
         createAxis(axisId);
         setAxisSize(axisId, ModelArray::size(dim));
