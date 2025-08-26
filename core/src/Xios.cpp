@@ -720,7 +720,7 @@ void Xios::affixModelMetadata(ModelMetadata& metadata)
         }
     }
 
-    // Create XIOS domains
+    // Create XIOS domains associated with each ModelArray type
     for (auto entry : domainIds) {
         ModelArray::Type type = entry.first;
         const std::string domainId = entry.second;
@@ -752,68 +752,68 @@ void Xios::affixModelMetadata(ModelMetadata& metadata)
         }
 
         // Set domain extents based on model metadata
-        std::vector<std::string> domainNames;
-        if (type == ModelArray::Type::H) {
-            cxios_set_domain_ni_glo(domain, (int)metadata.globalExtentX);
-            cxios_set_domain_nj_glo(domain, (int)metadata.globalExtentY);
-            cxios_set_domain_ni(domain, (int)metadata.localExtentX);
-            cxios_set_domain_nj(domain, (int)metadata.localExtentY);
-            domainNames = { "x", "y" };
-        } else if (type == ModelArray::Type::VERTEX) {
-            cxios_set_domain_ni_glo(domain, (int)metadata.globalExtentX + 1);
-            cxios_set_domain_nj_glo(domain, (int)metadata.globalExtentY + 1);
-            cxios_set_domain_ni(domain, (int)metadata.localExtentX + 1);
-            cxios_set_domain_nj(domain, (int)metadata.localExtentY + 1);
-            domainNames = { "xvertex", "yvertex" };
-        } else {
-            throw std::runtime_error(
-                "Xios: ModelArray type for domain '" + domainId + "' not supported");
-        }
-        cxios_set_domain_ibegin(domain, (int)metadata.localCornerX);
-        cxios_set_domain_jbegin(domain, (int)metadata.localCornerY);
-        cxios_set_domain_dim_i_name(domain, domainNames[0].c_str(), domainNames[0].length());
-        cxios_set_domain_dim_j_name(domain, domainNames[1].c_str(), domainNames[1].length());
-        cxios_set_domain_lon_name(domain, domainNames[0].c_str(), domainNames[0].length());
-        cxios_set_domain_lat_name(domain, domainNames[1].c_str(), domainNames[1].length());
-        if (!cxios_is_defined_domain_ni_glo(domain)) {
-            throw std::runtime_error(
-                "Xios: Failed to set global x-size for domain '" + domainId + "'");
-        }
-        if (!cxios_is_defined_domain_nj_glo(domain)) {
-            throw std::runtime_error(
-                "Xios: Failed to set global y-size for domain '" + domainId + "'");
-        }
-        if (!cxios_is_defined_domain_ibegin(domain)) {
-            throw std::runtime_error(
-                "Xios: Failed to set local starting x-index for domain '" + domainId + "'");
-        }
-        if (!cxios_is_defined_domain_jbegin(domain)) {
-            throw std::runtime_error(
-                "Xios: Failed to set local starting y-index for domain '" + domainId + "'");
-        }
-        if (!cxios_is_defined_domain_ni(domain)) {
-            throw std::runtime_error(
-                "Xios: Failed to set local x-size for domain '" + domainId + "'");
-        }
-        if (!cxios_is_defined_domain_nj(domain)) {
-            throw std::runtime_error(
-                "Xios: Failed to set local y-size for domain '" + domainId + "'");
-        }
-        if (!cxios_is_defined_domain_dim_i_name(domain)) {
-            throw std::runtime_error(
-                "Xios: Failed to set x-coordinate name for domain '" + domainId + "'");
-        }
-        if (!cxios_is_defined_domain_dim_j_name(domain)) {
-            throw std::runtime_error(
-                "Xios: Failed to set y-coordinate name for domain '" + domainId + "'");
-        }
-        if (!cxios_is_defined_domain_lat_name(domain)) {
-            throw std::runtime_error(
-                "Xios: Failed to set latitude name for domain '" + domainId + "'");
-        }
-        if (!cxios_is_defined_domain_lon_name(domain)) {
-            throw std::runtime_error(
-                "Xios: Failed to set longitude name for domain '" + domainId + "'");
+        size_t counter = 0;
+        for (ModelArray::Dimension dim : ModelArray::typeDimensions[type]) {
+            const std::string domainName = ModelArray::definedDimensions[dim].name;
+            // TODO: Can we avoid this hack for getting the increment?
+            size_t increment = (type == ModelArray::Type::H) ? 0 : 1;
+            if (counter == 0) {
+                cxios_set_domain_ni_glo(domain, (int)metadata.globalExtentX + increment);
+                if (!cxios_is_defined_domain_ni_glo(domain)) {
+                    throw std::runtime_error(
+                        "Xios: Failed to set global x-size for domain '" + domainId + "'");
+                }
+                cxios_set_domain_ni(domain, (int)metadata.localExtentX + increment);
+                if (!cxios_is_defined_domain_ni(domain)) {
+                    throw std::runtime_error(
+                        "Xios: Failed to set local x-size for domain '" + domainId + "'");
+                }
+                cxios_set_domain_ibegin(domain, (int)metadata.localCornerX);
+                if (!cxios_is_defined_domain_ibegin(domain)) {
+                    throw std::runtime_error(
+                        "Xios: Failed to set local starting x-index for domain '" + domainId + "'");
+                }
+                cxios_set_domain_dim_i_name(domain, domainName.c_str(), domainName.length());
+                if (!cxios_is_defined_domain_dim_i_name(domain)) {
+                    throw std::runtime_error(
+                        "Xios: Failed to set x-coordinate name for domain '" + domainId + "'");
+                }
+                cxios_set_domain_lon_name(domain, domainName.c_str(), domainName.length());
+                if (!cxios_is_defined_domain_lon_name(domain)) {
+                    throw std::runtime_error(
+                        "Xios: Failed to set longitude name for domain '" + domainId + "'");
+                }
+            } else if (counter == 1) {
+                cxios_set_domain_nj_glo(domain, (int)metadata.globalExtentY + increment);
+                if (!cxios_is_defined_domain_nj_glo(domain)) {
+                    throw std::runtime_error(
+                        "Xios: Failed to set global y-size for domain '" + domainId + "'");
+                }
+                cxios_set_domain_nj(domain, (int)metadata.localExtentY + increment);
+                if (!cxios_is_defined_domain_nj(domain)) {
+                    throw std::runtime_error(
+                        "Xios: Failed to set local y-size for domain '" + domainId + "'");
+                }
+                cxios_set_domain_jbegin(domain, (int)metadata.localCornerY);
+                if (!cxios_is_defined_domain_jbegin(domain)) {
+                    throw std::runtime_error(
+                        "Xios: Failed to set local starting y-index for domain '" + domainId + "'");
+                }
+                cxios_set_domain_dim_j_name(domain, domainName.c_str(), domainName.length());
+                if (!cxios_is_defined_domain_dim_j_name(domain)) {
+                    throw std::runtime_error(
+                        "Xios: Failed to set y-coordinate name for domain '" + domainId + "'");
+                }
+                cxios_set_domain_lat_name(domain, domainName.c_str(), domainName.length());
+                if (!cxios_is_defined_domain_lat_name(domain)) {
+                    throw std::runtime_error(
+                        "Xios: Failed to set latitude name for domain '" + domainId + "'");
+                }
+            } else {
+                throw std::runtime_error(
+                    "Xios: More than 2 dimensions were associated with a domain.");
+            }
+            counter++;
         }
     }
 
