@@ -721,11 +721,9 @@ void Xios::affixModelMetadata(ModelMetadata& metadata)
     }
 
     // Create XIOS domains
-    // TODO: Automate domain setup
-    const std::string hDomainId = domainIds[ModelArray::Type::H];
-    const std::string vertexDomainId = domainIds[ModelArray::Type::VERTEX];
     xios::CDomain* domain = NULL;
-    for (std::string domainId : { hDomainId, vertexDomainId }) {
+    for (ModelArray::Type type : { ModelArray::Type::H, ModelArray::Type::VERTEX }) {
+        const std::string domainId = domainIds[type];
         bool exists;
         cxios_domain_valid_id(&exists, domainId.c_str(), domainId.length());
         if (exists) {
@@ -751,7 +749,10 @@ void Xios::affixModelMetadata(ModelMetadata& metadata)
         }
     }
 
+    // TODO: Automate domain setup
+
     // Set metadata for 'HDomain'
+    const std::string hDomainId = domainIds[ModelArray::Type::H];
     domain = getDomain(hDomainId);
     cxios_set_domain_ni_glo(domain, (int)metadata.globalExtentX);
     cxios_set_domain_nj_glo(domain, (int)metadata.globalExtentY);
@@ -766,6 +767,7 @@ void Xios::affixModelMetadata(ModelMetadata& metadata)
     cxios_set_domain_lat_name(domain, hDomainNames[1].c_str(), hDomainNames[1].length());
 
     // Set metadata for 'VertexDomain'
+    const std::string vertexDomainId = domainIds[ModelArray::Type::VERTEX];
     domain = getDomain(vertexDomainId);
     cxios_set_domain_ni_glo(domain, (int)metadata.globalExtentX + 1);
     cxios_set_domain_nj_glo(domain, (int)metadata.globalExtentY + 1);
@@ -782,7 +784,8 @@ void Xios::affixModelMetadata(ModelMetadata& metadata)
     cxios_set_domain_lat_name(domain, vertexDomainNames[1].c_str(), vertexDomainNames[1].length());
 
     // Check the domains were set up correctly
-    for (std::string domainId : { hDomainId, vertexDomainId }) {
+    for (ModelArray::Type type : { ModelArray::Type::H, ModelArray::Type::VERTEX }) {
+        const std::string domainId = domainIds[type];
         domain = getDomain(domainId);
         if (!cxios_is_defined_domain_ni_glo(domain)) {
             throw std::runtime_error(
