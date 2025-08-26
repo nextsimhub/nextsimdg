@@ -53,6 +53,13 @@ public:
         intializeHaloMetadata();
     }
 
+    /**
+     * @brief Sets the spatial dimensions of the domain
+     *
+     * This function sets the inner dimensions of the computational domain based on metadata,
+     * adjusts dimensions for vertex fields if necessary, and calculates total dimensions
+     * including halo cells.
+     */
     void setSpatialDims()
     {
         auto& metadata = ModelMetadata::getInstance();
@@ -72,6 +79,17 @@ public:
         m_Ny = m_innerNy + 2 * haloWidth;
     }
 
+    /**
+     * @brief Initializes halo metadata including buffers and slice information
+     *
+     * Sets up the send/receive buffers for each component and defines the boundary
+     * slices for halo exchanges. Handles both vertex and non-vertex cases.
+     *
+     * - Calculates total number of halo cells based on halo width
+     * - Allocates send/receive buffers for each component
+     * - Defines edge lengths
+     * - Sets up inner and outer slices for Bottom, Right, Top, Left edges
+     */
     void intializeHaloMetadata()
     {
         // number of halo cells (should be general for any halo width)
@@ -308,7 +326,18 @@ private:
         }
     }
 
-    void vertexAdjustedPositions(size_t& count, size_t& disp, size_t& recvOffset, Edge& edge)
+    /**
+     * @brief Adjusts positions and offsets for vertex communications in the halo region
+     *
+     * Updates the count, displacement and receive offset values for vertex communications
+     * across halo boundaries according to the halo width and specified edge.
+     *
+     * @param[in,out] count The count of elements to be communicated, increased by haloWidth
+     * @param[in,out] disp The displacement value, adjusted based on opposite edge
+     * @param[in,out] recvOffset The receive offset, adjusted based on edge
+     * @param[in] edge The edge along which communication occurs
+     */
+    void vertexAdjustedPositions(size_t& count, size_t& disp, size_t& recvOffset, const Edge& edge)
     {
         count = count + haloWidth;
         disp = disp + oppositeEdge.at(edge) * haloWidth;
