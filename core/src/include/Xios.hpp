@@ -175,6 +175,10 @@ private:
         { ModelArray::Type::VERTEX, "VertexAxis" },
         { ModelArray::Type::DG, "DGAxis" },
     };
+    std::map<std::string, std::string> axisNames = {
+        { "VertexAxis", "ncoords" },
+        { "DGAxis", "dg_comp" },
+    };
     xios::CAxisGroup* getAxisGroup();
     xios::CAxis* getAxis(const std::string axisId);
 
