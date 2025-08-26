@@ -9,6 +9,8 @@
 #include "DynamicsKernel.hpp"
 #include "DynamicsParameters.hpp"
 
+#include <limits>
+
 #ifndef CGDEGREE
 #define CGDEGREE 2
 #define DGSTRESSCOMP (CG2DGSTRESS(CGDEGREE))
@@ -47,6 +49,10 @@ public:
     void stressDivergence() override;
     void applyBoundaries() override;
     void prepareAdvection() override;
+
+    DGVector<DGadvection>& advectDGVField(double timestep, DGVector<DGadvection>& field,
+        double lowerLimit = -std::numeric_limits<double>::infinity(),
+        double upperLimit = std::numeric_limits<double>::infinity()) override;
 
 protected:
     void addStressTensorCell(const size_t eid, const size_t cx, const size_t cy);

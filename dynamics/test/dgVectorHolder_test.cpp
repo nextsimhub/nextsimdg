@@ -49,7 +49,5 @@ TEST_CASE("Cast to and from")
     REQUIRE(ma.components(0)[1] == ma0);
     REQUIRE(ema(0, 1) == ma0);
     REQUIRE(mHolder(0, 1) == ma0);
-
 }
 }
-

@@ -1,4 +1,5 @@
 /*!
+ *
  * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -38,7 +39,6 @@ private:
     HField topMelt;
     HField botMelt;
     HField qic;
-    ModelArrayRef<Protected::HTRUE_ICE> oldHi;
 
     static const double freezingPointIce;
     static double kappa_s;

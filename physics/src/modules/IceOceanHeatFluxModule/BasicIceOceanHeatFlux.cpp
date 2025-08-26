@@ -14,9 +14,8 @@ static inline double doOne(double tBot, double sst, double mlBulkCp, double time
 
 void BasicIceOceanHeatFlux::update(const TimestepTime& tst)
 {
-    overElements(std::bind(&BasicIceOceanHeatFlux::updateElement, this, std::placeholders::_1,
-                     std::placeholders::_2),
-        tst);
+    overElements(
+        [this](size_t i, const TimestepTime& tsTime) { this->updateElement(i, tsTime); }, tst);
 }
 
 void BasicIceOceanHeatFlux::updateElement(size_t i, const TimestepTime& tst)

@@ -1,8 +1,6 @@
 /*
- * @file IIceOceanHeatFlux.hpp
  *
- * @date 24 Sep 2024
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #ifndef IICEOCEANHEATFLUX_HPP
@@ -35,13 +33,13 @@ public:
      * Updates the ice ocean heat flux calculation for the timestep.
      *
      * @param tStep The object containing the timestep start and duration times.
- */
+     */
     virtual void update(const TimestepTime&) = 0;
 
 protected:
     ModelArrayRef<Protected::SST> sst;
     ModelArrayRef<Protected::TF> tf;
-    ModelArrayRef<Protected::C_ICE> cice;
+    ModelArrayRef<Shared::C_ICE_DG> cice;
 
     ModelArrayRef<Shared::Q_IO, RW> qio;
 };

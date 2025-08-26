@@ -1,9 +1,10 @@
 /*!
- * Implementation of "classic free drift", where we ignore all \rho h terms in the momentum
- * equation. This is equivalent to assuming that the ice is very thin.
  * @author  Tim Spain <timothy.spain@nersc.no>
  * @author  Einar Ólason <einar.olason@nersc.no>
  * @author  Robert Jendersie <robert.jendersie@ovgu.de>
+ * @brief Implementation of "classic free drift", where we ignore all \rho h
+ * terms in the momentum equation. This is equivalent to assuming that the ice
+ * is very thin.
  */
 
 #ifndef FREEDRIFTDYNAMICSKERNEL_HPP
@@ -11,16 +12,18 @@
 
 #include "CGDynamicsKernel.hpp"
 #include "DynamicsParameters.hpp"
+#include "include/constants.hpp"
 
 #include <cmath>
+#include <limits>
 
 namespace Nextsim {
 
 template <int DGadvection> class FreeDriftDynamicsKernel : public CGDynamicsKernel<DGadvection> {
     using DynamicsKernel<DGadvection, DGstressComp>::hice;
     using DynamicsKernel<DGadvection, DGstressComp>::cice;
-    using DynamicsKernel<DGadvection, DGstressComp>::advectionAndLimits;
     using DynamicsKernel<DGadvection, DGstressComp>::dgtransport;
+    using DynamicsKernel<DGadvection, DGstressComp>::advectDynamicsFields;
 
     using CGDynamicsKernel<DGadvection>::u;
     using CGDynamicsKernel<DGadvection>::v;
@@ -35,6 +38,9 @@ template <int DGadvection> class FreeDriftDynamicsKernel : public CGDynamicsKern
     using CGDynamicsKernel<DGadvection>::baseParams;
 
 public:
+    using DynamicsKernel<DGadvection, DGstressComp>::advectDGVField;
+    using CGDynamicsKernel<DGadvection>::advectField;
+
     FreeDriftDynamicsKernel(const DynamicsParameters& paramsIn)
         : CGDynamicsKernel<DGadvection>(paramsIn)
         , params(paramsIn)
@@ -43,7 +49,7 @@ public:
 
     void initialise(const ModelArray& coords, bool isSpherical, const ModelArray& mask) override
     {
-        DynamicsKernel<DGadvection, DGstressComp>::initialise(coords, isSpherical, mask);
+        CGDynamicsKernel<DGadvection>::initialise(coords, isSpherical, mask);
 
         // can't be done in the constructor since the param values are configured after construction
         FOcean = baseParams.COcean * baseParams.rhoOcean;
@@ -53,11 +59,10 @@ public:
 
     void update(const TimestepTime& tst) override
     {
+        advectDynamicsFields(tst.step.seconds());
+
         updateMomentum(tst);
         applyBoundaries();
-
-        // Let DynamicsKernel handle the advection step
-        advectionAndLimits(tst);
 
         updateIceOceanStress(u, v);
     };

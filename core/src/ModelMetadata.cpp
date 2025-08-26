@@ -9,10 +9,10 @@
 #include "include/IStructure.hpp"
 #include "include/ModelMPI.hpp"
 #include "include/NextsimModule.hpp"
-#include "include/gridNames.hpp"
 #ifdef USE_XIOS
 #include "include/Xios.hpp"
 #endif
+#include "include/gridNames.hpp"
 #include "mpi.h"
 #include <array>
 #include <cstddef>

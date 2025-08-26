@@ -285,7 +285,6 @@ TEST_CASE("Full component access")
     const ModelArray::DataType& eArray = dgRef.allComponents();
     REQUIRE(eArray.rows() == nx * ny);
     REQUIRE(eArray.cols() == nDG);
-
 }
 TEST_SUITE_END();
 

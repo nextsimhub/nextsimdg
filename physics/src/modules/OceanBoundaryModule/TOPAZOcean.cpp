@@ -53,10 +53,7 @@ void TOPAZOcean::configure()
     getStore().registerArray(Protected::EXT_SSS, &sssExt, RO);
 }
 
-ConfigMap TOPAZOcean::getConfiguration() const
-{
-    return { { keyMap.at(FILEPATH_KEY), filePath } };
-}
+ConfigMap TOPAZOcean::getConfiguration() const { return { { keyMap.at(FILEPATH_KEY), filePath } }; }
 
 void TOPAZOcean::updateBefore(const TimestepTime& tst)
 {
@@ -75,9 +72,7 @@ void TOPAZOcean::updateBefore(const TimestepTime& tst)
     }
 
     cpml = Water::rhoOcean * Water::cp * mld;
-    overElements(
-        std::bind(&TOPAZOcean::updateTf, this, std::placeholders::_1, std::placeholders::_2),
-        TimestepTime());
+    overElements([this](size_t i, const TimestepTime& tsTime) { this->updateTf(i, tsTime); }, tst);
 
     Module::getImplementation<IIceOceanHeatFlux>().update(tst);
 }
@@ -88,6 +83,18 @@ void TOPAZOcean::updateAfter(const TimestepTime& tst)
     slabOcean.update(tst);
     sst = ModelArrayRef<Protected::SLAB_SST, RO>(getStore());
     sss = ModelArrayRef<Protected::SLAB_SSS, RO>(getStore());
+}
+
+ModelState TOPAZOcean::getStatePrognostic() const
+{
+    ModelState state = IOceanBoundary::getStatePrognostic();
+    return state.merge(slabOcean.getStatePrognostic());
+}
+
+ModelState TOPAZOcean::getStateDiagnostic() const
+{
+    ModelState state = IOceanBoundary::getStateDiagnostic();
+    return state.merge(slabOcean.getStateDiagnostic());
 }
 
 void TOPAZOcean::setFilePath(const std::string& filePathIn) { filePath = filePathIn; }

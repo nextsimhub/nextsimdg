@@ -48,7 +48,7 @@ TEST_CASE("Test Qdw")
     HField cice(ModelArray::Type::H);
     double cice0 = 0.5;
     cice = cice0;
-    ModelComponent::getStore().registerArray(Protected::C_ICE, &cice, RO);
+    ModelComponent::getStore().registerArray(Shared::C_ICE_DG, &cice, RO);
 
     HField data0(ModelArray::Type::H);
     data0 = 0;

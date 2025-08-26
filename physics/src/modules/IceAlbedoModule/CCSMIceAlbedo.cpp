@@ -1,5 +1,5 @@
 /*!
- * @author  Tim Spain
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #include "include/CCSMIceAlbedo.hpp"

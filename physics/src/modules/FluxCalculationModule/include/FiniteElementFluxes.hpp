@@ -1,4 +1,5 @@
 /*!
+ *
  * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -19,7 +20,6 @@ class FiniteElementFluxes : public IFluxCalculation, public Configured<FiniteEle
 public:
     FiniteElementFluxes()
         : iIceAlbedoImpl(nullptr)
-        , evap(ModelArray::Type::H)
         , Q_lh_ow(ModelArray::Type::H)
         , Q_sh_ow(ModelArray::Type::H)
         , Q_lw_ow(ModelArray::Type::H)
@@ -41,8 +41,7 @@ public:
         , windSpeed(getStore())
         , u_air(getStore())
         , v_air(getStore())
-        , h_snow(getStore())
-        , h_snow_true(getStore())
+        , hsnow(getStore())
         , cice(getStore())
         , tsurf(getStore())
         , sw_in(getStore())
@@ -83,7 +82,6 @@ public:
 
 private:
     // Owned diagnostic fields
-    HField evap; // Open water evaporative mass flux [kg  m⁻²]
     HField Q_lh_ow; // Open water latent heat flux [W m⁻²]
     HField Q_sh_ow; // Open water sensible heat flux [W m⁻²]
     HField Q_lw_ow; // Open water net longwave radiative flux [W m⁻²]
@@ -108,9 +106,8 @@ private:
     ModelArrayRef<Protected::WIND_SPEED> windSpeed;
     ModelArrayRef<Protected::WIND_U> u_air;
     ModelArrayRef<Protected::WIND_V> v_air;
-    ModelArrayRef<Protected::H_SNOW> h_snow; // cell-averaged value
-    ModelArrayRef<Protected::HTRUE_SNOW> h_snow_true; // cell-averaged value
-    ModelArrayRef<Protected::C_ICE> cice;
+    ModelArrayRef<Shared::H_SNOW_DG> hsnow; // cell-averaged value
+    ModelArrayRef<Shared::C_ICE_DG> cice;
     ModelArrayRef<Protected::T_SURF> tsurf;
     ModelArrayRef<Protected::SW_IN> sw_in;
     ModelArrayRef<Protected::LW_IN> lw_in;

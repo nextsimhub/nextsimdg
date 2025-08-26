@@ -15,6 +15,10 @@ execute_process(
     COMMAND "${Python_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/old_names.py"
     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
 )
+execute_process(
+    COMMAND "${Python_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/ParaGridIO_input_test.py"
+    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+)
 
 include_directories(${COMMON_INCLUDE_DIRS})
 set(MODEL_INCLUDE_DIR "../../core/src/discontinuousgalerkin")
@@ -91,12 +95,25 @@ if(ENABLE_MPI)
                 "${CMAKE_CURRENT_BINARY_DIR}/iodef.xml"
             SYMBOLIC
         )
+
+        # Generate input and partition files needed for XIOS tests from respective cdl files
         add_custom_command(
             OUTPUT xios_test_input.nc
-            COMMAND ncgen -o xios_test_input.nc ${CMAKE_CURRENT_SOURCE_DIR}/xios_test_input.cdl
+            COMMAND ncgen -k netCDF-4 -o xios_test_input.nc
+                    ${CMAKE_CURRENT_SOURCE_DIR}/xios_test_input.cdl
             DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/xios_test_input.cdl
         )
         add_custom_target(generate_xios_input_file ALL DEPENDS xios_test_input.nc)
+        add_custom_command(
+            OUTPUT xios_test_partition_metadata_2.nc
+            COMMAND
+                ncgen -b -o xios_test_partition_metadata_2.nc
+                ${CMAKE_CURRENT_SOURCE_DIR}/xios_test_partition_metadata_2.cdl
+            DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/xios_test_partition_metadata_2.cdl
+        )
+        add_custom_target(generate_xios_partition_metadata_2 ALL
+            DEPENDS xios_test_partition_metadata_2.nc
+        )
 
         add_executable(testXiosCalendar_MPI1 "XiosCalendar_test.cpp" "MainMPI.cpp")
         target_compile_definitions(testXiosCalendar_MPI1 PRIVATE USE_XIOS)
@@ -114,21 +131,13 @@ if(ENABLE_MPI)
         )
         target_link_libraries(testXiosAxis_MPI3 PRIVATE nextsimlib doctest::doctest)
 
-        add_executable(testXiosDomain_MPI4 "XiosDomain_test.cpp" "MainMPI.cpp")
-        target_compile_definitions(testXiosDomain_MPI4 PRIVATE USE_XIOS)
+        add_executable(testXiosGrid_MPI2 "XiosGrid_test.cpp" "MainMPI.cpp")
+        target_compile_definitions(testXiosGrid_MPI2 PRIVATE USE_XIOS)
         target_include_directories(
-            testXiosDomain_MPI4
+            testXiosGrid_MPI2
             PRIVATE "${MODEL_INCLUDE_DIR}" "${XIOS_INCLUDE_LIST}" "${ModulesRoot}/StructureModule"
         )
-        target_link_libraries(testXiosDomain_MPI4 PRIVATE nextsimlib doctest::doctest)
-
-        add_executable(testXiosGrid_MPI4 "XiosGrid_test.cpp" "MainMPI.cpp")
-        target_compile_definitions(testXiosGrid_MPI4 PRIVATE USE_XIOS)
-        target_include_directories(
-            testXiosGrid_MPI4
-            PRIVATE "${MODEL_INCLUDE_DIR}" "${XIOS_INCLUDE_LIST}" "${ModulesRoot}/StructureModule"
-        )
-        target_link_libraries(testXiosGrid_MPI4 PRIVATE nextsimlib doctest::doctest)
+        target_link_libraries(testXiosGrid_MPI2 PRIVATE nextsimlib doctest::doctest)
 
         add_executable(testXiosField_MPI3 "XiosField_test.cpp" "MainMPI.cpp")
         target_compile_definitions(testXiosField_MPI3 PRIVATE USE_XIOS)
@@ -147,8 +156,11 @@ if(ENABLE_MPI)
         target_link_libraries(testXiosFile_MPI2 PRIVATE nextsimlib doctest::doctest)
 
         add_executable(testXiosRead_MPI2 "XiosRead_test.cpp" "MainMPI.cpp")
-        target_compile_definitions(testXiosRead_MPI2 PRIVATE USE_XIOS
-          TEST_FILES_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\")
+        target_compile_definitions(testXiosRead_MPI2
+            PRIVATE
+                USE_XIOS
+                TEST_FILES_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\"
+        )
         target_include_directories(
             testXiosRead_MPI2
             PRIVATE "${MODEL_INCLUDE_DIR}" "${XIOS_INCLUDE_LIST}" "${ModulesRoot}/StructureModule"
@@ -167,8 +179,7 @@ if(ENABLE_MPI)
         set(XIOS_TESTS
             testXiosCalendar_MPI1
             testXiosAxis_MPI3
-            testXiosDomain_MPI4
-            testXiosGrid_MPI4
+            testXiosGrid_MPI2
             testXiosField_MPI3
             testXiosFile_MPI2
             testXiosRead_MPI2

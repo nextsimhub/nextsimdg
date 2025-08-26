@@ -1,8 +1,6 @@
 /*
- * @file ISpecificHumidity.hpp
  *
- * @date 24 Sep 2024
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #ifndef ISPECIFICHUMIDITY_HPP
@@ -21,7 +19,7 @@ public:
      *
      * @param temperature Temperature of the water vapour [˚C]
      * @param pressure Hydrostatic pressure [Pa]
- */
+     */
     virtual double operator()(double temperature, double pressure) const = 0;
     /*!
      * @brief Calculates humidity over sea water.

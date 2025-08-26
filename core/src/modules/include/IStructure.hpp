@@ -65,17 +65,8 @@ public:
         const ModelState& state, const std::string& filePath, bool isRestart) const
         = 0;
 
-    // Node names in the default structure
-
-    //! Returns the name of the metadata node.
-    static const std::string metadataNodeName() { return "metadata"; }
-    //! Returns the name of the data node.
-    static const std::string dataNodeName() { return "data"; }
     //! The name of the group holding the definitive structure type
-    static const std::string structureNodeName() { return "structure"; }
-    //! The name of the node holding the name of the structure type processed
-    //! by this class.
-    static const std::string typeNodeName() { return "type"; }
+    static const std::string structureNodeName() { return "structure_name"; }
 
 private:
     //! Name of the structure type processed by this class.

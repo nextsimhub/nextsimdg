@@ -1,4 +1,5 @@
 /*!
+ *
  * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -7,6 +8,7 @@
 
 #include "include/FreeDriftDynamicsKernel.hpp"
 #include "include/IDynamics.hpp"
+#include "include/dgVectorHolder.hpp"
 
 #include "include/ModelArray.hpp"
 #include "include/ModelComponent.hpp"
@@ -28,8 +30,6 @@ public:
         : IDynamics()
         , kernel(params)
     {
-        getStore().registerArray(Protected::ICE_U, &uice, RO);
-        getStore().registerArray(Protected::ICE_V, &vice, RO);
     }
 
     std::string getName() const override { return "FreeDriftDynamics"; }
@@ -71,7 +71,17 @@ public:
         // Set the DG field data
         kernel.setDGArray(hiceName, hiceDG.allComponents());
         kernel.setDGArray(ciceName, ciceDG.allComponents());
+        kernel.setDGArray(hsnowName, hsnowDG.allComponents());
     }
+
+    void advectField(double timestep, ModelArray& field,
+        double lowerLimit = -std::numeric_limits<double>::infinity(),
+        double upperLimit = std::numeric_limits<double>::infinity()) override
+    {
+        kernel.advectField(timestep, field, lowerLimit, upperLimit);
+    }
+
+    void prepareAdvection() override { kernel.prepareAdvection(); }
 
 private:
     FreeDriftDynamicsKernel<DGCOMP> kernel;

@@ -10,7 +10,6 @@
 #include "include/ThermoIce0.hpp"
 
 #include "include/Configurator.hpp"
-#include "include/constants.hpp"
 #include "include/IFreezingPoint.hpp"
 #include "include/IIceAlbedo.hpp"
 #include "include/ModelArray.hpp"
@@ -212,7 +211,7 @@ TEST_CASE("Freezing conditions")
     double prec = 1e-5;
     REQUIRE(outState.count(tsurfName) > 0);
     REQUIRE(outState.at(tsurfName) == doctest::Approx(-8.90443).epsilon(prec));
-//    REQUIRE(tice[0] == doctest::Approx(-8.90443).epsilon(prec));
+    //    REQUIRE(tice[0] == doctest::Approx(-8.90443).epsilon(prec));
     REQUIRE(qic[0] == doctest::Approx(44.4839).epsilon(prec));
 }
 TEST_SUITE_END();

@@ -307,7 +307,6 @@ TEST_CASE("Components")
     REQUIRE(ModelArray::component0Type(ModelArray::Type::TWOD) == ModelArray::Type::TWOD);
     // Type::TWOCOMP maps to Type::TWOD
     REQUIRE(ModelArray::component0Type(ModelArray::Type::TWOCOMP) == ModelArray::Type::TWOD);
-
 }
 
 TEST_CASE("Direct DataType access")

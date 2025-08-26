@@ -9,15 +9,18 @@
 
 namespace Nextsim {
 
-class TheCount
-{
+class TheCount {
 public:
     inline static size_t increment() { return get()++; }
     inline static size_t preincrement() { return ++get(); }
-    inline static void incrementAndPrint() { std::cout << "TheCount=" << preincrement() << std::endl; }
+    inline static void incrementAndPrint()
+    {
+        std::cout << "TheCount=" << preincrement() << std::endl;
+    }
     inline static size_t value() { return get(); }
     inline static size_t count() { return get(); }
     inline static void reset() { get() = 0; }
+
 protected:
     inline static size_t& get()
     {
@@ -27,14 +30,12 @@ protected:
 };
 
 // In the British aristocracy an Earl is equivalent to a count in the rest of Europe!
-class Earl
-{
+class Earl {
 public:
     inline static void incr() { TheCount::increment(); }
 };
 
-class HappyTime : public std::exception
-{
+class HappyTime : public std::exception {
 public:
     const char* what() const noexcept { return "Nothing is wrong :D"; }
 };

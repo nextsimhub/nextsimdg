@@ -87,7 +87,7 @@ ConfigMap ConfiguredOcean::getConfiguration() const
         { keyMap.at(SSS_KEY), sss0 },
         { keyMap.at(MLD_KEY), mld0 },
         { keyMap.at(CURRENTU_KEY), u0 },
-        { keyMap.at(CURRENTV_KEY), v0},
+        { keyMap.at(CURRENTV_KEY), v0 },
     };
 }
 

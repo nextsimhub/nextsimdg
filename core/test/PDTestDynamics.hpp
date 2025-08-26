@@ -12,19 +12,11 @@ class PDTestDynamics : public DummyDynamics {
 public:
     std::string getName() const override { return "PDTestDynamics"; }
 
-    void setData (const ModelState::DataMap& ms) override
-    {
-        dataMap = ms;
-    }
-    ModelState getStateDiagnostic() const override
-    {
-        return { dataMap, {} };
-    }
+    void setData(const ModelState::DataMap& ms) override { dataMap = ms; }
+    ModelState getStateDiagnostic() const override { return { dataMap, {} }; }
 
-    ModelState getStatePrognostic() const override
-    {
-        return { dataMap, {} };
-    }
+    ModelState getStatePrognostic() const override { return { dataMap, {} }; }
+
 private:
     ModelState::DataMap dataMap;
 };

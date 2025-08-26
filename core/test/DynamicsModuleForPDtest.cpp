@@ -12,17 +12,15 @@
 namespace Module {
 const std::string PDTESTDYNAMICS = "Nextsim::PDTestDynamics";
 
-template <>
-const Module<Nextsim::IDynamics>::Map& Module<Nextsim::IDynamics>::functionMap()
+template <> const Module<Nextsim::IDynamics>::Map& Module<Nextsim::IDynamics>::functionMap()
 {
     static const Map theMap = {
-            { PDTESTDYNAMICS, newImpl<Nextsim::IDynamics, Nextsim::PDTestDynamics> },
+        { PDTESTDYNAMICS, newImpl<Nextsim::IDynamics, Nextsim::PDTestDynamics> },
     };
     return theMap;
 }
 
-template <>
-Module<Nextsim::IDynamics>::Fn& Module<Nextsim::IDynamics>::getGenerationFunction()
+template <> Module<Nextsim::IDynamics>::Fn& Module<Nextsim::IDynamics>::getGenerationFunction()
 {
     static Fn thePtr = functionMap().at(PDTESTDYNAMICS);
     return thePtr;

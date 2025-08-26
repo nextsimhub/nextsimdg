@@ -4,6 +4,8 @@
 
 #include "include/ConstantHealing.hpp"
 
+#include "include/IceMinima.hpp"
+
 namespace Nextsim {
 
 double ConstantHealing::tD = 0.;
@@ -19,10 +21,7 @@ void ConstantHealing::configure()
     tD *= 86400.;
 }
 
-ConfigMap ConstantHealing::getConfiguration() const
-{
-    return { { keyMap.at(TD_KEY), tD } };
-}
+ConfigMap ConstantHealing::getConfiguration() const { return { { keyMap.at(TD_KEY), tD } }; }
 
 ConstantHealing::HelpMap& ConstantHealing::getHelpText(HelpMap& map, bool getAll)
 {
@@ -42,20 +41,25 @@ ConstantHealing::HelpMap& ConstantHealing::getHelpRecursive(HelpMap& map, bool g
  * 2. Constant healing with a given time scale (tD) */
 void ConstantHealing::update(const TimestepTime& tstep)
 {
-    overElements(std::bind(&ConstantHealing::updateElement, this, std::placeholders::_1,
-                     std::placeholders::_2),
-        tstep);
+    overElements(
+        [this](size_t i, const TimestepTime& tsTime) { this->updateElement(i, tsTime); }, tstep);
 }
 
 void ConstantHealing::updateElement(size_t i, const TimestepTime& tstep)
 {
+    // No ice, no healing
+    if (cice[i] <= IceMinima::c()) {
+        damage[i] = 1.;
+        return;
+    }
+
     // Only lateral growth contributes to healing, not melt(!)
     double const lateralGrowth = std::max(0., deltaCi[i]);
 
     /* 1. Lateral ice formation
      * A weighted average of the original damage, weighted by the old concentration, and the
      * undamaged new ice damage (1), weighted by the concentration of new ice. */
-    damage[i] = (oldDamage[i] * (cice[i] - lateralGrowth) + lateralGrowth) / cice[i];
+    damage[i] = (damage[i] * (cice[i] - lateralGrowth) + lateralGrowth) / cice[i];
 
     /* 2. Constant healing
      * Damage healing using a constant timescale. Originally conceived as an exponential decay, but

@@ -1,4 +1,5 @@
 /*!
+ *
  * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -7,6 +8,7 @@
 
 #include "include/ModelComponent.hpp"
 #include "include/constants.hpp"
+#include "include/gridNames.hpp"
 
 namespace Nextsim {
 
@@ -32,7 +34,8 @@ public:
         , tauX(ModelArray::Type::H)
         , tauY(ModelArray::Type::H)
         , cice(getStore())
-        , emp(getStore())
+        , evap(getStore())
+        , rain(getStore())
         , newIce(getStore())
         , deltaHice(getStore())
         , deltaSmelt(getStore())
@@ -92,11 +95,11 @@ public:
         tauX.resize();
         tauY.resize();
 
-        if (ms.count("sst")) {
-            sst = ms.at("sst");
+        if (ms.count(sstName)) {
+            sst = ms.at(sstName);
         }
-        if (ms.count("sss")) {
-            sss = ms.at("sss");
+        if (ms.count(sssName)) {
+            sss = ms.at(sssName);
         }
     }
 
@@ -121,8 +124,8 @@ public:
     void mergeFluxes(const TimestepTime& tst)
     {
         dt = tst.step.seconds();
-        overElements(std::bind(&IOceanBoundary::mergeFluxesElement, this, std::placeholders::_1,
-                         std::placeholders::_2),
+        overElements([this](const size_t i,
+                         const TimestepTime& tsTime) { this->mergeFluxesElement(i, tsTime); },
             tst);
     }
 
@@ -147,7 +150,7 @@ private:
         // Positive flux is up!
         fwFlux[i]
             = ((1 - effectiveIceSal) * Ice::rho * deltaIceVol + Ice::rhoSnow * meltSnowVol) / dt
-            + emp[i] * (1 - cice[i]);
+            + (evap[i] - rain[i]) * (1 - cice[i]);
         sFlux[i] = effectiveIceSal * Ice::rho * deltaIceVol / dt;
 
         // Momentum fluxes
@@ -176,10 +179,11 @@ protected:
 
     ModelArrayReferenceStore m_couplingArrays;
 
-    ModelArrayRef<Protected::C_ICE, RO> cice;
-    ModelArrayRef<Protected::EVAP_MINUS_PRECIP, RO> emp;
+    ModelArrayRef<Shared::C_ICE_DG, RO> cice;
     ModelArrayRef<Protected::IO_STRESS_X> tauXIO;
     ModelArrayRef<Protected::IO_STRESS_X> tauYIO;
+    ModelArrayRef<Shared::EVAP, RW> evap;
+    ModelArrayRef<Shared::RAIN, RO> rain;
     ModelArrayRef<Shared::NEW_ICE, RW> newIce;
     ModelArrayRef<Shared::DELTA_HICE, RW> deltaHice;
     ModelArrayRef<Shared::HSNOW_MELT, RW> deltaSmelt;

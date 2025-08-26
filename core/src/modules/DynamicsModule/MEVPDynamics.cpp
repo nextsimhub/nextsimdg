@@ -69,9 +69,9 @@ MEVPDynamics::MEVPDynamics()
     : IDynamics()
     , kernel(params)
 {
-    getStore().registerArray(Protected::ICE_U, &uice, RO);
-    getStore().registerArray(Protected::ICE_V, &vice, RO);
 }
+
+void MEVPDynamics::prepareAdvection() { kernel.prepareAdvection(); }
 
 void MEVPDynamics::setData(const ModelState::DataMap& ms)
 {
@@ -97,6 +97,7 @@ void MEVPDynamics::setData(const ModelState::DataMap& ms)
     // Set the DG field data
     kernel.setDGArray(hiceName, hiceDG.allComponents());
     kernel.setDGArray(ciceName, ciceDG.allComponents());
+    kernel.setDGArray(hsnowName, hsnowDG.allComponents());
 }
 
 void MEVPDynamics::update(const TimestepTime& tst)
@@ -117,6 +118,17 @@ void MEVPDynamics::update(const TimestepTime& tst)
 
     taux = kernel.getDG0Data(uIOStressName);
     tauy = kernel.getDG0Data(vIOStressName);
+
+    shear = kernel.getDG0Data(shearName);
+    divergence = kernel.getDG0Data(divergenceName);
+    sigmaI = kernel.getDG0Data(sigmaIName);
+    sigmaII = kernel.getDG0Data(sigmaIIName);
+}
+
+void MEVPDynamics::advectField(
+    double timestep, ModelArray& field, double lowerLimit, double upperLimit)
+{
+    kernel.advectField(timestep, field, lowerLimit, upperLimit);
 }
 
 MEVPDynamics::HelpMap& MEVPDynamics::getHelpText(HelpMap& map, bool getAll)

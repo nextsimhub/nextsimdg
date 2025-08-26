@@ -1,5 +1,5 @@
 /*!
- * @author  Tim Spain
+ * @author  Tim Spain <timothy.spain@nersc.no>
  * @author  Einar Ólason <einar.olason@nersc.no>
  */
 

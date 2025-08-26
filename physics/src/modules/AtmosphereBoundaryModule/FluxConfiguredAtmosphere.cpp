@@ -79,15 +79,15 @@ void FluxConfiguredAtmosphere::configure()
 ConfigMap FluxConfiguredAtmosphere::getConfiguration() const
 {
     return {
-       { keyMap.at(QIA_KEY), qia0 },
-       { keyMap.at(DQIA_DT_KEY), dqia_dt0 },
-       { keyMap.at(QOW_KEY), qow0 },
-       { keyMap.at(SUBL_KEY), subl0 },
-       { keyMap.at(SNOW_KEY), snowfall0 },
-       { keyMap.at(RAIN_KEY), rain0 },
-       { keyMap.at(EVAP_KEY), evap0 },
-       { keyMap.at(WINDU_KEY), u0 },
-       { keyMap.at(WINDV_KEY), v0 },
+        { keyMap.at(QIA_KEY), qia0 },
+        { keyMap.at(DQIA_DT_KEY), dqia_dt0 },
+        { keyMap.at(QOW_KEY), qow0 },
+        { keyMap.at(SUBL_KEY), subl0 },
+        { keyMap.at(SNOW_KEY), snowfall0 },
+        { keyMap.at(RAIN_KEY), rain0 },
+        { keyMap.at(EVAP_KEY), evap0 },
+        { keyMap.at(WINDU_KEY), u0 },
+        { keyMap.at(WINDV_KEY), v0 },
     };
 }
 
@@ -103,6 +103,18 @@ void FluxConfiguredAtmosphere::setData(const ModelState::DataMap& dm)
     evap = evap0;
     uwind = u0;
     vwind = v0;
+
+    // Not configured here:
+    penSW = 0; // Penetrating shortwave radiation
+    tauXOW = 0; // x(east)-ward open ocean stress, Pa
+    tauYOW = 0; // y(north)-ward open ocean stress, Pa
+}
+
+void FluxConfiguredAtmosphere::update(const TimestepTime& tst)
+{
+    /* The open water heat flux is reset by the thermodynamics, so that the (slab) ocean doesn't
+     * super cool. Therefore, we have to reset it here on every update */
+    qow = qow0;
 }
 
 } /* namespace Nextsim */

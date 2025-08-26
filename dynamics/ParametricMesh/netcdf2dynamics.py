@@ -15,7 +15,7 @@ We assume that in the
 
 with Nx x Ny elements
 
-@author: Piotr Minakowski
+@author  Piotr Minakowski <piotr.minakowski@ovgu.de>
 """
 
 import numpy as np

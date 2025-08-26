@@ -1,4 +1,6 @@
-
+/*!
+ * @author  Thomas Richter <thomas.richter@ovgu.de>
+ */
 
 #ifndef __stopwatch_H
 #define __stopwatch_H

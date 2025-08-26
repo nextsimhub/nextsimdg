@@ -85,7 +85,6 @@ ModelState FiniteElementFluxes::getStateDiagnostic() const
 void FiniteElementFluxes::setData(const ModelState::DataMap& ms)
 {
     // Data arrays can now be set to the correct size
-    evap.resize();
     Q_lh_ow.resize();
     Q_sh_ow.resize();
     Q_lw_ow.resize();
@@ -171,14 +170,13 @@ void FiniteElementFluxes::calculateIce(size_t i, const TimestepTime& tst)
     double dQlh_dT = latentHeatIce(tsurf[i]) * dmdot_dT;
 
     // Sensible heat flux
-    Q_sh_ia[i]
-        = dragIce_t * rho_air[i] * cp_air[i] * windSpeed[i] * (tsurf[i] - t_air[i]);
+    Q_sh_ia[i] = dragIce_t * rho_air[i] * cp_air[i] * windSpeed[i] * (tsurf[i] - t_air[i]);
     double dQsh_dT = dragIce_t * rho_air[i] * cp_air[i] * windSpeed[i];
 
     // Shortwave flux
     double albedoValue, i0;
-    std::tie(albedoValue, i0)
-        = iIceAlbedoImpl->surfaceShortWaveBalance(tsurf[i], h_snow_true[i], m_I0);
+    const double hs = cice[i] > 0 ? hsnow[i] / cice[i] : 0.;
+    std::tie(albedoValue, i0) = iIceAlbedoImpl->surfaceShortWaveBalance(tsurf[i], hs, m_I0);
     Q_sw_ia[i] = -sw_in[i] * (1. - albedoValue) * (1. - i0);
     const double extinction = 0.; // TODO: Replace with de Beer's law or a module
     penSW[i] = sw_in[i] * (1. - albedoValue) * i0 * (1. - extinction);
@@ -186,8 +184,7 @@ void FiniteElementFluxes::calculateIce(size_t i, const TimestepTime& tst)
 
     // Longwave flux
     Q_lw_ia[i] = stefanBoltzmannLaw(tsurf[i]) - lw_in[i];
-    double dQlw_dT
-        = 4 / kelvin(tsurf[i]) * stefanBoltzmannLaw(tsurf[i]);
+    double dQlw_dT = 4 / kelvin(tsurf[i]) * stefanBoltzmannLaw(tsurf[i]);
 
     // Total flux
     qia[i] = Q_lh_ia[i] + Q_sh_ia[i] + Q_sw_ia[i] + Q_lw_ia[i];
@@ -205,24 +202,21 @@ void FiniteElementFluxes::update(const TimestepTime& tst)
 
 void FiniteElementFluxes::updateAtmosphere(const TimestepTime& tst)
 {
-    overElements(std::bind(&FiniteElementFluxes::calculateAtmos, this, std::placeholders::_1,
-                     std::placeholders::_2),
-        tst);
+    overElements(
+        [this](size_t i, const TimestepTime& tsTime) { this->calculateAtmos(i, tsTime); }, tst);
 }
 
 void FiniteElementFluxes::updateOW(const TimestepTime& tst)
 {
-    overElements(std::bind(&FiniteElementFluxes::calculateOW, this, std::placeholders::_1,
-                     std::placeholders::_2),
-        tst);
+    overElements(
+        [this](size_t i, const TimestepTime& tsTime) { this->calculateOW(i, tsTime); }, tst);
 }
 
 void FiniteElementFluxes::updateIce(const TimestepTime& tst)
 {
     iIceAlbedoImpl->setTime(tst.start);
-    overElements(std::bind(&FiniteElementFluxes::calculateIce, this, std::placeholders::_1,
-                     std::placeholders::_2),
-        tst);
+    overElements(
+        [this](size_t i, const TimestepTime& tsTime) { this->calculateIce(i, tsTime); }, tst);
 }
 
 void FiniteElementFluxes::calculateAtmos(size_t i, const TimestepTime& tst)

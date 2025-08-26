@@ -1,5 +1,7 @@
 /*!
+ *
  * This class has no corresponding implementation, just this header file
+ *
  * @author  Einar Ólason <einar.olason@nersc.no>
  */
 
@@ -20,7 +22,7 @@ public:
     virtual ~NoHealing() = default;
 
     // Do nothing when update is called.
-    void update(const TimestepTime& tstep) override { damage = oldDamage; }
+    void update(const TimestepTime& tstep) override { }
 };
 
 }

@@ -77,9 +77,6 @@ private:
     ModelArrayRef<CouplingFields::SFLUX, RO> sFlux;
     // TODO ModelArrayRef to assimilation flux
 
-    static const std::string sstSlabName;
-    static const std::string sssSlabName;
-
     double relaxationTimeT = defaultRelaxationTime;
     double relaxationTimeS = defaultRelaxationTime;
 

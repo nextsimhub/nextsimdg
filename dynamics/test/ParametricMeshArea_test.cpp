@@ -1,6 +1,6 @@
 /*!
- * @brief Test the ParametricMesh class, especially processing from ModelArray files.
  * @author  Tim Spain <timothy.spain@nersc.no>
+ * @brief Test the ParametricMesh class, especially processing from ModelArray files.
  */
 
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN

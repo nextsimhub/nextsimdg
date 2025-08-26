@@ -1,4 +1,5 @@
 /*!
+ *
  * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -10,7 +11,7 @@ std::map<ModelArray::Dimension, ModelArray::DimensionSpec> ModelArray::definedDi
     { ModelArray::Dimension::Y, { "y", "y", 1, 1, 0 } },
     { ModelArray::Dimension::Z, { "z", "z", 1, 1, 0 } },
     { ModelArray::Dimension::U, { "u", "u", 1, 1, 0 } },
-    { ModelArray::Dimension::COMP, { "comp", "comp", 1, 1, 0} },
+    { ModelArray::Dimension::COMP, { "comp", "comp", 1, 1, 0 } },
 };
 
 ModelArray::TypeDimensions ModelArray::typeDimensions = {
@@ -89,7 +90,7 @@ ModelArray::DimensionMap::DimensionMap()
 }
 
 const std::map<ModelArray::Type, ModelArray::Dimension> ModelArray::componentMap = {
-        { Type::TWOCOMP, Dimension::COMP },
+    { Type::TWOCOMP, Dimension::COMP },
 };
 
 const ModelArray::TypeMap ModelArray::definedComp0Map()

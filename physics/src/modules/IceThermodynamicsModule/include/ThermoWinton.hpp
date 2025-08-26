@@ -1,4 +1,5 @@
 /*!
+ *
  * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -34,7 +35,7 @@ public:
     static HelpMap& getHelpRecursive(HelpMap& map, bool getAll);
 
     void setData(const ModelState::DataMap&) override;
-    void update(const TimestepTime& tsTime) override;
+    void update(const TimestepTime& tst) override;
 
     static const std::string tInteriorName;
     static const std::string tBottomName;
@@ -42,12 +43,11 @@ public:
 private:
     void calculateElement(size_t i, const TimestepTime& tst);
 
-    HField tInternal;
-    HField tBottom;
+    AdvectedField tInternal;
+    AdvectedField tBottom;
     HField snowMelt;
     HField topMelt;
     HField botMelt;
-    ModelArrayRef<Protected::HTRUE_ICE> oldHi;
     ModelArrayRef<Protected::SW_IN> sw_in;
     ModelArrayRef<Shared::SUBLIM, RO> subl;
 

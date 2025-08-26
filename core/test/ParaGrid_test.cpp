@@ -1,6 +1,5 @@
 /*!
  * @author  Tim Spain <timothy.spain@nersc.no>
- * @author  Tom Meltzer <tdm39@cam.ac.uk>
  */
 
 #include "ModelArray.hpp"
@@ -33,7 +32,6 @@
 
 #include <ncAtt.h>
 #include <ncFile.h>
-#include <ncGroup.h>
 #include <ncVar.h>
 
 const std::string testFilesDir = TEST_FILES_DIR;
@@ -382,30 +380,24 @@ TEST_CASE("Write a diagnostic ParaGrid file")
     // What do we have in the file?
     netCDF::NcFile ncFile(diagFile, netCDF::NcFile::read);
 
-    REQUIRE(ncFile.getGroups().size() == 3);
-    netCDF::NcGroup structGrp(ncFile.getGroup(IStructure::structureNodeName()));
-    netCDF::NcGroup metaGrp(ncFile.getGroup(IStructure::metadataNodeName()));
-    netCDF::NcGroup dataGrp(ncFile.getGroup(IStructure::dataNodeName()));
-
     std::string structureType;
-    structGrp.getAtt(grid.typeNodeName()).getValues(structureType);
+    ncFile.getAtt(grid.structureNodeName()).getValues(structureType);
     REQUIRE(structureType == grid.structureType());
 
     // test data
-    REQUIRE(dataGrp.getVarCount() == 7);
-    netCDF::NcVar hiceVar = dataGrp.getVar(hiceName);
-    netCDF::NcVar ciceVar = dataGrp.getVar(ciceName);
-    netCDF::NcVar maskVar = dataGrp.getVar(maskName);
-    netCDF::NcVar timeVar = dataGrp.getVar(timeName);
+    netCDF::NcVar hiceVar = ncFile.getVar(hiceName);
+    netCDF::NcVar ciceVar = ncFile.getVar(ciceName);
+    netCDF::NcVar maskVar = ncFile.getVar(maskName);
+    netCDF::NcVar timeVar = ncFile.getVar(timeName);
 
     // hice
     REQUIRE(hiceVar.getDimCount() == 4);
 
     // coordinates
-    REQUIRE(dataGrp.getVars().count(xName) > 0);
-    REQUIRE(dataGrp.getVars().count(yName) > 0);
-    REQUIRE(dataGrp.getVars().count(coordsName) > 0);
-    REQUIRE(dataGrp.getVars().count(gridAzimuthName) > 0);
+    REQUIRE(ncFile.getVars().count(xName) > 0);
+    REQUIRE(ncFile.getVars().count(yName) > 0);
+    REQUIRE(ncFile.getVars().count(coordsName) > 0);
+    REQUIRE(ncFile.getVars().count(gridAzimuthName) > 0);
 
     ncFile.close();
 

@@ -10,7 +10,6 @@
 #include "include/ThermoWinton.hpp"
 
 #include "include/Configurator.hpp"
-#include "include/constants.hpp"
 #include "include/IAtmosphereBoundary.hpp"
 #include "include/IFreezingPoint.hpp"
 #include "include/IIceAlbedo.hpp"
@@ -48,32 +47,21 @@ TEST_CASE("Melting conditions")
     public:
         IceTemperatureData()
         {
-            getStore().registerArray(Protected::HTRUE_ICE, &hice0, RO);
-            getStore().registerArray(Protected::C_ICE, &cice0, RO);
-            getStore().registerArray(Protected::HTRUE_SNOW, &hsnow0, RO);
             getStore().registerArray(Protected::SW_IN, &sw_in, RO);
-
-            getStore().registerArray(Shared::H_ICE, &hice, RW);
-            getStore().registerArray(Shared::C_ICE, &cice, RW);
-            getStore().registerArray(Shared::H_SNOW, &hsnow, RW);
+            getStore().registerArray(Shared::H_ICE_DG, &hice, RW);
+            getStore().registerArray(Shared::C_ICE_DG, &cice, RW);
+            getStore().registerArray(Shared::H_SNOW_DG, &hsnow, RW);
         }
         std::string getName() const override { return "IceTemperatureData"; }
 
         void setData(const ModelState::DataMap&) override
         {
-            cice0[0] = 0.5;
-            hice0[0] = 0.1 / cice0[0]; // Here we are using the true thicknesses
-            hsnow0[0] = 0.01 / cice0[0];
+            cice[0] = 0.5;
+            hice[0] = 0.1;
+            hsnow[0] = 0.01;
             sw_in[0] = -10.1675; // Net shortwave flux from incident 50 W/m^2
-
-            hice = hice0;
-            cice = cice0;
-            hsnow = hsnow0;
         }
 
-        HField hice0;
-        HField cice0;
-        HField hsnow0;
         HField sw_in;
 
         HField hice;
@@ -105,9 +93,9 @@ TEST_CASE("Melting conditions")
 
     // Data for the Winton ice temperatures
     ModelState::DataMap iceTempState = {
-            { tsurfName, ModelArray(ModelArray::Type::H) },
-            { ThermoWinton::tInteriorName, ModelArray(ModelArray::Type::H) },
-            { ThermoWinton::tBottomName, ModelArray(ModelArray::Type::H) },
+        { tsurfName, ModelArray(ModelArray::Type::H) },
+        { ThermoWinton::tInteriorName, ModelArray(ModelArray::Type::H) },
+        { ThermoWinton::tBottomName, ModelArray(ModelArray::Type::H) },
     };
     iceTempState.at(tsurfName) = TICE;
     iceTempState.at(ThermoWinton::tInteriorName) = TICE;
@@ -150,23 +138,19 @@ TEST_CASE("Freezing conditions")
     public:
         IceTemperatureData()
         {
-            getStore().registerArray(Protected::HTRUE_ICE, &hice0, RO);
-            getStore().registerArray(Protected::C_ICE, &cice0, RO);
-            getStore().registerArray(Protected::HTRUE_SNOW, &hsnow0, RO);
             getStore().registerArray(Protected::SNOW, &snow, RO);
             getStore().registerArray(Protected::SW_IN, &sw_in, RO);
-
-            getStore().registerArray(Shared::H_ICE, &hice, RW);
-            getStore().registerArray(Shared::C_ICE, &cice, RW);
-            getStore().registerArray(Shared::H_SNOW, &hsnow, RW);
+            getStore().registerArray(Shared::H_ICE_DG, &hice, RW);
+            getStore().registerArray(Shared::C_ICE_DG, &cice, RW);
+            getStore().registerArray(Shared::H_SNOW_DG, &hsnow, RW);
         }
         std::string getName() const override { return "IceTemperatureData"; }
 
         void setData(const ModelState::DataMap&) override
         {
             cice0[0] = 0.5;
-            hice0[0] = 0.1 / cice0[0]; // Here we are using the true thicknesses
-            hsnow0[0] = 0.01 / cice0[0];
+            hice0[0] = 0.1;
+            hsnow0[0] = 0.01;
             snow[0] = 1e-3;
             sw_in[0] = 0;
 
@@ -208,9 +192,9 @@ TEST_CASE("Freezing conditions")
     TimestepTime tst = { TimePoint("2000-001"), Duration("P0-0T0:10:0") };
     // Data for the Winton ice temperatures
     ModelState::DataMap iceTempState = {
-            { tsurfName, ModelArray(ModelArray::Type::H) },
-            { ThermoWinton::tInteriorName, ModelArray(ModelArray::Type::H) },
-            { ThermoWinton::tBottomName, ModelArray(ModelArray::Type::H) },
+        { tsurfName, ModelArray(ModelArray::Type::H) },
+        { ThermoWinton::tInteriorName, ModelArray(ModelArray::Type::H) },
+        { ThermoWinton::tBottomName, ModelArray(ModelArray::Type::H) },
     };
     iceTempState.at(tsurfName) = TICE;
     iceTempState.at(ThermoWinton::tInteriorName) = TICE;
@@ -254,15 +238,12 @@ TEST_CASE("No ice do nothing")
     public:
         IceTemperatureData()
         {
-            getStore().registerArray(Protected::HTRUE_ICE, &hice0, RO);
-            getStore().registerArray(Protected::C_ICE, &cice0, RO);
-            getStore().registerArray(Protected::HTRUE_SNOW, &hsnow0, RO);
             getStore().registerArray(Protected::SNOW, &snow, RO);
             getStore().registerArray(Protected::SW_IN, &sw_in, RO);
 
-            getStore().registerArray(Shared::H_ICE, &hice, RW);
-            getStore().registerArray(Shared::C_ICE, &cice, RW);
-            getStore().registerArray(Shared::H_SNOW, &hsnow, RW);
+            getStore().registerArray(Shared::H_ICE_DG, &hice, RW);
+            getStore().registerArray(Shared::C_ICE_DG, &cice, RW);
+            getStore().registerArray(Shared::H_SNOW_DG, &hsnow, RW);
         }
         std::string getName() const override { return "IceTemperatureData"; }
 
@@ -324,9 +305,9 @@ TEST_CASE("No ice do nothing")
     TimestepTime tst = { TimePoint("2000-001"), Duration("P0-0T0:10:0") };
     // Data for the Winton ice temperatures
     ModelState::DataMap iceTempState = {
-            { tsurfName, ModelArray(ModelArray::Type::H) },
-            { ThermoWinton::tInteriorName, ModelArray(ModelArray::Type::H) },
-            { ThermoWinton::tBottomName, ModelArray(ModelArray::Type::H) },
+        { tsurfName, ModelArray(ModelArray::Type::H) },
+        { ThermoWinton::tInteriorName, ModelArray(ModelArray::Type::H) },
+        { ThermoWinton::tBottomName, ModelArray(ModelArray::Type::H) },
     };
     iceTempState.at(tsurfName) = TICE;
     iceTempState.at(ThermoWinton::tInteriorName) = TICE;
@@ -336,8 +317,8 @@ TEST_CASE("No ice do nothing")
     twin.configure();
     twin.update(tst);
 
-    ModelArrayRef<Shared::H_ICE, RO> hice(ModelComponent::getStore());
-    ModelArrayRef<Shared::C_ICE, RO> cice(ModelComponent::getStore());
+    ModelArrayRef<Shared::H_ICE_DG, RO> hice(ModelComponent::getStore());
+    ModelArrayRef<Shared::C_ICE_DG, RO> cice(ModelComponent::getStore());
 
     double prec = 1e-5;
 

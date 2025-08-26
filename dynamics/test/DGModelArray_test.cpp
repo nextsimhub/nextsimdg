@@ -1,7 +1,7 @@
 /*!
+ * @author  Tim Spain <timothy.spain@nersc.no>
  * @brief Test that the functions to convert from the dynamics code DGVector
  * to and from ModelArray function correctly.
- * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN

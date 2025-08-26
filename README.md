@@ -29,26 +29,23 @@ A [dedicated clang format file](https://github.com/nextsimhub/nextsimdg/blob/mai
 
 ## Commenting conventions for a nice automatic documentation
 
-The automatic generation of documentation is done with Doxygen and Sphinx. The update of the documentation each time the code is modified is done with readthedocs and github actions.
+The automatic generation of documentation is done with Doxygen and Sphinx. The update of the documentation each time the code is modified is done with ReadTheDocs and GitHub Actions.
 
 In order to have the most understandable and consistent documentation of the API, we expect that contributors to neXtSIM write some comments alongside their code for every C++ component (namespaces, types, methods, functions, and constants) they implement.
 
 Every file must begin with :
   -  a description of what it contains
-  -  the name of the authors
-  -  the date of creation/modification
+  -  the name of the main authors of the file, i.e., 'code owners'
 
 Example :
 
 ```
 /*!
-* @file   gridoutput.hpp
-* @author Einar Olason <einar.olason@nersc.no>
-* @date   Thu Aug  4 09:47:27 CEST 2016
-*/
-
+ * @author  Einar Olason <einar.olason@nersc.no>
+ */
 ```
-Note that the example [pre-commit](https://github.com/nextsimhub/nextsimdg/blob/658_pre-commit-date/.pre-commit) file mentioned above will also automatically update this if moved to `.git/hooks/pre-commit`.
+The filename and date of creation/modification are not required; they are
+determined and inserted automatically in the Doxygen GitHub Actions workflow.
 
 We ask every coders to follow the following commenting conventions for comments providing the automatic documentation:
   -  documentation blocks must appear before the component it describes, with the same indentation (classes and functions),

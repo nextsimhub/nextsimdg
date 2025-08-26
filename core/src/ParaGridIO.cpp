@@ -17,7 +17,6 @@
 #include <ncDim.h>
 #include <ncException.h>
 #include <ncFile.h>
-#include <ncGroup.h>
 #include <ncVar.h>
 
 #include <algorithm>
@@ -91,11 +90,9 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
 #else
         netCDF::NcFile ncFile(filePath, netCDF::NcFile::read);
 #endif
-        netCDF::NcGroup metaGroup(ncFile.getGroup(IStructure::metadataNodeName()));
-        netCDF::NcGroup dataGroup(ncFile.getGroup(IStructure::dataNodeName()));
 
         // Dimensions and DG components
-        std::multimap<std::string, netCDF::NcDim> dimMap = dataGroup.getDims();
+        std::multimap<std::string, netCDF::NcDim> dimMap = ncFile.getDims();
         for (auto entry : ModelArray::definedDimensions) {
             auto dimType = entry.first;
             if (dimCompMap.count(dimType) > 0)
@@ -105,10 +102,10 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
 
             ModelArray::DimensionSpec& dimensionSpec = entry.second;
             // Find dimensions in the netCDF file by their name in the ModelArray details
-            netCDF::NcDim dim = dataGroup.getDim(dimensionSpec.name);
+            netCDF::NcDim dim = ncFile.getDim(dimensionSpec.name);
             // Also check the old name
             if (dim.isNull()) {
-                dim = dataGroup.getDim(dimensionSpec.altName);
+                dim = ncFile.getDim(dimensionSpec.altName);
             }
             // If we didn't find a dimension with the dimensions name or altName, throw.
             if (dim.isNull()) {
@@ -144,9 +141,9 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
 #endif
         }
 
-        // Get all vars in the data group, and load them into a new ModelState
+        // Get all valid variables and load them into a new ModelState
 
-        for (auto entry : dataGroup.getVars()) {
+        for (auto entry : ncFile.getVars()) {
             const std::string& varName = entry.first;
             netCDF::NcVar& var = entry.second;
             // Determine the type from the dimensions
@@ -155,10 +152,9 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
             for (netCDF::NcDim& dim : varDims) {
                 dimKey += dim.getName();
             }
+            // Skip invalid dimension keys
             if (!dimensionKeys.count(dimKey)) {
-                throw std::out_of_range(
-                    std::string("No ModelArray::Type corresponds to the dimensional key ")
-                    + dimKey);
+                continue;
             }
             ModelArray::Type type = dimensionKeys.at(dimKey);
             state.data[varName] = ModelArray(type);
@@ -229,13 +225,11 @@ ModelState ParaGridIO::readForcingTimeStatic(
 
     try {
         netCDF::NcFile ncFile(filePath, netCDF::NcFile::read);
-        netCDF::NcGroup metaGroup(ncFile.getGroup(IStructure::metadataNodeName()));
-        netCDF::NcGroup dataGroup(ncFile.getGroup(IStructure::dataNodeName()));
 
         // Read the time axis
-        netCDF::NcDim timeDim = dataGroup.getDim(timeName);
+        netCDF::NcDim timeDim = ncFile.getDim(timeName);
         // Read the time variable
-        netCDF::NcVar timeVar = dataGroup.getVar(timeName);
+        netCDF::NcVar timeVar = ncFile.getVar(timeName);
         // Calculate the index of the largest time value on the axis below our target
         size_t targetTIndex;
         // Get the time axis as a vector
@@ -277,13 +271,13 @@ ModelState ParaGridIO::readForcingTimeStatic(
         std::reverse(indexArray.begin(), indexArray.end());
         std::reverse(extentArray.begin(), extentArray.end());
 
-        auto availableForcings = dataGroup.getVars();
+        auto availableForcings = ncFile.getVars();
         for (const std::string& varName : forcings) {
             // Don't try to read non-existent data
             if (!availableForcings.count(varName)) {
                 continue;
             }
-            netCDF::NcVar var = dataGroup.getVar(varName);
+            netCDF::NcVar var = ncFile.getVar(varName);
             state.data[varName] = ModelArray(ModelArray::Type::H);
             ModelArray& data = state.data.at(varName);
             data.resize();
@@ -322,9 +316,7 @@ void ParaGridIO::dumpModelState(const ModelState& state, const std::string& file
 #endif
 
     CommonRestartMetadata::writeStructureType(ncFile);
-    netCDF::NcGroup metaGroup = ncFile.addGroup(IStructure::metadataNodeName());
-    netCDF::NcGroup dataGroup = ncFile.addGroup(IStructure::dataNodeName());
-    CommonRestartMetadata::writeRestartMetadata(metaGroup);
+    CommonRestartMetadata::writeRestartMetadata(ncFile);
 
     // Dump the dimensions and number of components
     std::map<ModelArray::Dimension, netCDF::NcDim> ncFromMAMap;
@@ -332,7 +324,7 @@ void ParaGridIO::dumpModelState(const ModelState& state, const std::string& file
         ModelArray::Dimension dim = entry.first;
         size_t dimSz = (dimCompMap.count(dim)) ? ModelArray::nComponents(dimCompMap.at(dim))
                                                : dimSz = entry.second.globalLength;
-        ncFromMAMap[dim] = dataGroup.addDim(entry.second.name, dimSz);
+        ncFromMAMap[dim] = ncFile.addDim(entry.second.name, dimSz);
         // TODO Do I need to add data, even if it is just integers 0...n-1?
     }
 
@@ -387,7 +379,7 @@ void ParaGridIO::dumpModelState(const ModelState& state, const std::string& file
         std::reverse(count.begin(), count.end());
 
         std::vector<netCDF::NcDim>& ncDims = dimMap.at(type);
-        netCDF::NcVar var(dataGroup.addVar(entry.first, netCDF::ncDouble, ncDims));
+        netCDF::NcVar var(ncFile.addVar(entry.first, netCDF::ncDouble, ncDims));
         var.putAtt(mdiName, netCDF::ncDouble, MissingData::value());
 
 #ifdef USE_MPI
@@ -430,19 +422,12 @@ void ParaGridIO::writeDiagnosticTime(const ModelState& state, const std::string&
     // Get the file handle
     NetCDFFileType& ncFile = openFilesAndIndices.at(filePath).first;
 
-    // Get the netCDF groups, creating them if necessary
-    netCDF::NcGroup metaGroup = (isNew) ? ncFile.addGroup(IStructure::metadataNodeName())
-                                        : ncFile.getGroup(IStructure::metadataNodeName());
-    netCDF::NcGroup dataGroup = (isNew) ? ncFile.addGroup(IStructure::dataNodeName())
-                                        : ncFile.getGroup(IStructure::dataNodeName());
-
     if (isNew) {
         // Write the common structure and time metadata
         CommonRestartMetadata::writeStructureType(ncFile);
-        CommonRestartMetadata::writeRestartMetadata(metaGroup);
     }
     // Get the unlimited time dimension, creating it if necessary
-    netCDF::NcDim timeDim = (isNew) ? dataGroup.addDim(timeName) : dataGroup.getDim(timeName);
+    netCDF::NcDim timeDim = (isNew) ? ncFile.addDim(timeName) : ncFile.getDim(timeName);
 
     // All of the dimensions defined by the data at a particular timestep.
     std::map<ModelArray::Dimension, netCDF::NcDim> ncFromMAMap;
@@ -450,8 +435,8 @@ void ParaGridIO::writeDiagnosticTime(const ModelState& state, const std::string&
         ModelArray::Dimension dim = entry.first;
         size_t dimSz = (dimCompMap.count(dim)) ? ModelArray::nComponents(dimCompMap.at(dim))
                                                : dimSz = entry.second.globalLength;
-        ncFromMAMap[dim] = (isNew) ? dataGroup.addDim(entry.second.name, dimSz)
-                                   : dataGroup.getDim(entry.second.name);
+        ncFromMAMap[dim]
+            = (isNew) ? ncFile.addDim(entry.second.name, dimSz) : ncFile.getDim(entry.second.name);
     }
 
     // Also create the sets of dimensions to be connected to the data fields
@@ -534,14 +519,17 @@ void ParaGridIO::writeDiagnosticTime(const ModelState& state, const std::string&
 
     // Put the time axis variable
     std::vector<netCDF::NcDim> timeDimVec = { timeDim };
-    netCDF::NcVar timeVar((isNew) ? dataGroup.addVar(timeName, netCDF::ncDouble, timeDimVec)
-                                  : dataGroup.getVar(timeName));
+    netCDF::NcVar timeVar(
+        (isNew) ? ncFile.addVar(timeName, netCDF::ncDouble, timeDimVec) : ncFile.getVar(timeName));
     auto& metadata = ModelMetadata::getInstance();
     double secondsSinceEpoch = (metadata.time() - TimePoint()).seconds();
 #ifdef USE_MPI
-    netCDF::setVariableCollective(timeVar, dataGroup);
+    netCDF::setVariableCollective(timeVar, ncFile);
 #endif
     timeVar.putVar({ nt }, { 1 }, &secondsSinceEpoch);
+
+    if (isNew)
+        timeVar.putAtt("units", "seconds since 1970-01-01 00:00:00");
 
     // Write the data
     for (auto entry : state.data) {
@@ -551,10 +539,10 @@ void ParaGridIO::writeDiagnosticTime(const ModelState& state, const std::string&
             continue;
         if (entry.first == maskName) {
             // Land mask in a new file (since it was skipped above in existing files)
-            netCDF::NcVar var(dataGroup.addVar(maskName, netCDF::ncDouble, maskDims));
+            netCDF::NcVar var(ncFile.addVar(maskName, netCDF::ncDouble, maskDims));
             // No missing data
 #ifdef USE_MPI
-            netCDF::setVariableCollective(var, dataGroup);
+            netCDF::setVariableCollective(var, ncFile);
             auto& data = entry.second;
             Halo halo(data.nComponents(), type == ModelArray::Type::VERTEX);
             ModelArray::DataType tempData;
@@ -568,12 +556,12 @@ void ParaGridIO::writeDiagnosticTime(const ModelState& state, const std::string&
         } else {
             std::vector<netCDF::NcDim>& ncDims = dimMap.at(type);
             // Get the variable object, either creating a new one or getting the existing one
-            netCDF::NcVar var((isNew) ? dataGroup.addVar(entry.first, netCDF::ncDouble, ncDims)
-                                      : dataGroup.getVar(entry.first));
+            netCDF::NcVar var((isNew) ? ncFile.addVar(entry.first, netCDF::ncDouble, ncDims)
+                                      : ncFile.getVar(entry.first));
             if (isNew)
                 var.putAtt(mdiName, netCDF::ncDouble, MissingData::value());
 #ifdef USE_MPI
-            netCDF::setVariableCollective(var, dataGroup);
+            netCDF::setVariableCollective(var, ncFile);
             auto& data = entry.second;
             Halo halo(data.nComponents(), type == ModelArray::Type::VERTEX);
             ModelArray::DataType tempData;
