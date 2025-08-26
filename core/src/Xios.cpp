@@ -721,14 +721,17 @@ void Xios::affixModelMetadata(ModelMetadata& metadata)
     }
 
     // Create XIOS domains
-    xios::CDomain* domain = NULL;
-    for (ModelArray::Type type : { ModelArray::Type::H, ModelArray::Type::VERTEX }) {
-        const std::string domainId = domainIds[type];
+    for (auto entry : domainIds) {
+        ModelArray::Type type = entry.first;
+        const std::string domainId = entry.second;
         bool exists;
         cxios_domain_valid_id(&exists, domainId.c_str(), domainId.length());
         if (exists) {
-            throw std::runtime_error("Xios: Domain '" + domainId + "' already exists");
+            continue;
         }
+
+        // Create the domain
+        xios::CDomain* domain = NULL;
         cxios_xml_tree_add_domain(getDomainGroup(), &domain, domainId.c_str(), domainId.length());
         if (!domain) {
             throw std::runtime_error("Xios: Null pointer for domain '" + domainId + "'");
@@ -747,46 +750,31 @@ void Xios::affixModelMetadata(ModelMetadata& metadata)
         if (!cxios_is_defined_domain_type(domain)) {
             throw std::runtime_error("Xios: Failed to set type for domain '" + domainId + "'");
         }
-    }
 
-    // TODO: Automate domain setup
-
-    // Set metadata for 'HDomain'
-    const std::string hDomainId = domainIds[ModelArray::Type::H];
-    domain = getDomain(hDomainId);
-    cxios_set_domain_ni_glo(domain, (int)metadata.globalExtentX);
-    cxios_set_domain_nj_glo(domain, (int)metadata.globalExtentY);
-    cxios_set_domain_ibegin(domain, (int)metadata.localCornerX);
-    cxios_set_domain_jbegin(domain, (int)metadata.localCornerY);
-    cxios_set_domain_ni(domain, (int)metadata.localExtentX);
-    cxios_set_domain_nj(domain, (int)metadata.localExtentY);
-    const std::vector<std::string> hDomainNames = { "x", "y" };
-    cxios_set_domain_dim_i_name(domain, hDomainNames[0].c_str(), hDomainNames[0].length());
-    cxios_set_domain_dim_j_name(domain, hDomainNames[1].c_str(), hDomainNames[1].length());
-    cxios_set_domain_lon_name(domain, hDomainNames[0].c_str(), hDomainNames[0].length());
-    cxios_set_domain_lat_name(domain, hDomainNames[1].c_str(), hDomainNames[1].length());
-
-    // Set metadata for 'VertexDomain'
-    const std::string vertexDomainId = domainIds[ModelArray::Type::VERTEX];
-    domain = getDomain(vertexDomainId);
-    cxios_set_domain_ni_glo(domain, (int)metadata.globalExtentX + 1);
-    cxios_set_domain_nj_glo(domain, (int)metadata.globalExtentY + 1);
-    cxios_set_domain_ibegin(domain, (int)metadata.localCornerX);
-    cxios_set_domain_jbegin(domain, (int)metadata.localCornerY);
-    cxios_set_domain_ni(domain, (int)metadata.localExtentX + 1);
-    cxios_set_domain_nj(domain, (int)metadata.localExtentY + 1);
-    const std::vector<std::string> vertexDomainNames = { "xvertex", "yvertex" };
-    cxios_set_domain_dim_i_name(
-        domain, vertexDomainNames[0].c_str(), vertexDomainNames[0].length());
-    cxios_set_domain_dim_j_name(
-        domain, vertexDomainNames[1].c_str(), vertexDomainNames[1].length());
-    cxios_set_domain_lon_name(domain, vertexDomainNames[0].c_str(), vertexDomainNames[0].length());
-    cxios_set_domain_lat_name(domain, vertexDomainNames[1].c_str(), vertexDomainNames[1].length());
-
-    // Check the domains were set up correctly
-    for (ModelArray::Type type : { ModelArray::Type::H, ModelArray::Type::VERTEX }) {
-        const std::string domainId = domainIds[type];
-        domain = getDomain(domainId);
+        // Set domain extents based on model metadata
+        std::vector<std::string> domainNames;
+        if (type == ModelArray::Type::H) {
+            cxios_set_domain_ni_glo(domain, (int)metadata.globalExtentX);
+            cxios_set_domain_nj_glo(domain, (int)metadata.globalExtentY);
+            cxios_set_domain_ni(domain, (int)metadata.localExtentX);
+            cxios_set_domain_nj(domain, (int)metadata.localExtentY);
+            domainNames = { "x", "y" };
+        } else if (type == ModelArray::Type::VERTEX) {
+            cxios_set_domain_ni_glo(domain, (int)metadata.globalExtentX + 1);
+            cxios_set_domain_nj_glo(domain, (int)metadata.globalExtentY + 1);
+            cxios_set_domain_ni(domain, (int)metadata.localExtentX + 1);
+            cxios_set_domain_nj(domain, (int)metadata.localExtentY + 1);
+            domainNames = { "xvertex", "yvertex" };
+        } else {
+            throw std::runtime_error(
+                "Xios: ModelArray type for domain '" + domainId + "' not supported");
+        }
+        cxios_set_domain_ibegin(domain, (int)metadata.localCornerX);
+        cxios_set_domain_jbegin(domain, (int)metadata.localCornerY);
+        cxios_set_domain_dim_i_name(domain, domainNames[0].c_str(), domainNames[0].length());
+        cxios_set_domain_dim_j_name(domain, domainNames[1].c_str(), domainNames[1].length());
+        cxios_set_domain_lon_name(domain, domainNames[0].c_str(), domainNames[0].length());
+        cxios_set_domain_lat_name(domain, domainNames[1].c_str(), domainNames[1].length());
         if (!cxios_is_defined_domain_ni_glo(domain)) {
             throw std::runtime_error(
                 "Xios: Failed to set global x-size for domain '" + domainId + "'");
@@ -860,6 +848,7 @@ void Xios::affixModelMetadata(ModelMetadata& metadata)
             cxios_xml_tree_add_axistogrid(grid, &axis, axisId.c_str(), axisId.length());
         }
         const std::string domainId = domainIds[type];
+        xios::CDomain* domain = getDomain(domainId);
         cxios_xml_tree_add_domaintogrid(grid, &domain, domainId.c_str(), domainId.length());
     }
 }
