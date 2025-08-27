@@ -5,7 +5,6 @@
  * @details
  * This test is designed to test file functionality of the C++ interface
  * for XIOS.
- *
  */
 #include <doctest/extensions/doctest_mpi.h>
 #undef INFO
@@ -40,11 +39,11 @@ MPI_TEST_CASE("TestXiosFile", 2)
     config << "[XiosInput]" << std::endl;
     config << "period = P0-0T03:00:00" << std::endl;
     config << "filename = xios_test_input.nc" << std::endl;
-    config << "field_names = field_1D" << std::endl;
+    config << "field_names = mask" << std::endl;
     config << "[XiosOutput]" << std::endl;
     config << "period = P0-0T03:00:00" << std::endl;
     config << "filename = xios_test_output.nc" << std::endl;
-    config << "field_names = field_2D" << std::endl;
+    config << "field_names = hice" << std::endl;
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
 
@@ -57,19 +56,12 @@ MPI_TEST_CASE("TestXiosFile", 2)
     REQUIRE(xiosHandler.isInitialized());
     REQUIRE(xiosHandler.getClientMPISize() == 2);
 
-    // Create a 1D grid based off VertexAxis, which has two components
-    // NOTE: The 2D HGrid is created automatically along with the HFieldDomain
-    xiosHandler.createGrid("grid_1D");
-    xiosHandler.gridAddAxis("grid_1D", "VertexAxis");
-
     // Associate fields with grids
     // NOTE: fields are automatically created along with files
-    xiosHandler.setFieldOperation("field_1D", "instant");
-    xiosHandler.setFieldGridRef("field_1D", "grid_1D");
-    // TODO: xiosHandler.setFieldType("field_1D", ModelArray::Type::H);
-    xiosHandler.setFieldOperation("field_2D", "instant");
-    xiosHandler.setFieldGridRef("field_2D", "HGrid");
-    xiosHandler.setFieldType("field_2D", ModelArray::Type::H);
+    xiosHandler.setFieldOperation("mask", "instant");
+    xiosHandler.setFieldOperation("hice", "instant");
+    xiosHandler.setFieldType("mask", ModelArray::Type::H);
+    xiosHandler.setFieldType("hice", ModelArray::Type::DG);
 
     // --- Tests for file API
     const std::string inFileId = "xios_test_input";
@@ -104,12 +96,12 @@ MPI_TEST_CASE("TestXiosFile", 2)
     // File add field
     // NOTE: fileAddField is triggered by a call to createFile, which parses the config to create
     // all the corresponding fields and then associated them with the file
-    std::vector<std::string> field_1DIds = xiosHandler.fileGetFieldIds(inFileId);
-    REQUIRE(field_1DIds.size() == 1);
-    REQUIRE(field_1DIds[0] == "field_1D");
-    std::vector<std::string> field_2DIds = xiosHandler.fileGetFieldIds(outFileId);
-    REQUIRE(field_2DIds.size() == 1);
-    REQUIRE(field_2DIds[0] == "field_2D");
+    std::vector<std::string> inputIds = xiosHandler.fileGetFieldIds(inFileId);
+    REQUIRE(inputIds.size() == 1);
+    REQUIRE(inputIds[0] == "mask");
+    std::vector<std::string> outputIds = xiosHandler.fileGetFieldIds(outFileId);
+    REQUIRE(outputIds.size() == 1);
+    REQUIRE(outputIds[0] == "hice");
 
     // Create a new file for each time unit to check more thoroughly that XIOS interprets output
     // frequency and split frequency correctly.

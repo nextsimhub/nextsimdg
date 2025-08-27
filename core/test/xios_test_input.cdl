@@ -59,12 +59,6 @@ variables:
 		time_counter:time_origin = "2020-01-23 00:08:15" ;
 		time_counter:bounds = "time_counter_bounds" ;
 	double time_counter_bounds(time_counter, axis_nbounds) ;
-  float field_1D(time_counter, ncoords) ;
-    field_1D:online_operation = "instant" ;
-    field_1D:interval_operation = "5400 s" ;
-    field_1D:interval_write = "5400 s" ;
-    field_1D:cell_methods = "time: point" ;
-    field_1D:coordinates = "time_instant VertexAxis" ;
 	float coords(time_counter, yvertex, xvertex, ncoords) ;
 		coords:online_operation = "instant" ;
 		coords:interval_operation = "5400 s" ;
@@ -116,9 +110,6 @@ data:
   99345765, 99345765,
   99351165, 99351165,
   99356565, 99356565 ;
-
- field_1D =
-  0, 1, 0, 1 ;
 
  coords =
   0, 0,
