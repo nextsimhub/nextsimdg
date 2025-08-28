@@ -692,8 +692,13 @@ void Xios::affixModelMetadata(ModelMetadata& metadata)
             };
 
             // Determine field types
+            std::set<std::string> configFieldIds = configGetFieldNames(true);
             for (auto entry : ncFile.getVars()) {
                 const std::string& fieldId = entry.first;
+                // Only consider fields that appear in the config
+                if (configFieldIds.count(fieldId) == 0) {
+                    continue;
+                }
                 netCDF::NcVar& var = entry.second;
                 // Determine the type from the dimensions
                 std::vector<netCDF::NcDim> varDims = var.getDims();
