@@ -39,11 +39,11 @@ MPI_TEST_CASE("TestXiosFile", 2)
     config << "time_step = P0-0T01:30:00" << std::endl;
     config << "[XiosInput]" << std::endl;
     config << "period = P0-0T03:00:00" << std::endl;
-    config << "filename = xios_test_input" << std::endl;
+    config << "filename = xios_test_input.nc" << std::endl;
     config << "field_names = field_1D" << std::endl;
     config << "[XiosOutput]" << std::endl;
     config << "period = P0-0T03:00:00" << std::endl;
-    config << "filename = xios_test_output" << std::endl;
+    config << "filename = xios_test_output.nc" << std::endl;
     config << "field_names = field_2D" << std::endl;
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));

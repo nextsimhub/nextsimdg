@@ -19,6 +19,9 @@
 
 #include <filesystem>
 
+const std::string testFilesDir = TEST_FILES_DIR;
+const std::string filename = testFilesDir + "/xios_test_input.nc";
+
 namespace Nextsim {
 
 /*!
@@ -37,7 +40,7 @@ MPI_TEST_CASE("TestXiosRead", 2)
     config << "time_step = P0-0T01:30:00" << std::endl;
     config << "[XiosInput]" << std::endl;
     config << "period = P0-0T01:30:00" << std::endl;
-    config << "filename = xios_test_input" << std::endl;
+    config << "filename = xios_test_input.nc" << std::endl;
     config << "field_names = hice" << std::endl;
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
@@ -48,23 +51,15 @@ MPI_TEST_CASE("TestXiosRead", 2)
     ParaGridIO* pio = new ParaGridIO(grid);
     grid.setIO(pio);
 
-    // Create ModelMetadata instance based off a partition metadata file
-    ModelMetadata metadata("xios_test_partition_metadata_2.nc", test_comm);
-
     // Get the Xios singleton instance and check it's initialized
     Xios& xiosHandler = Xios::getInstance();
-    xiosHandler.affixModelMetadata(metadata);
     REQUIRE(xiosHandler.isInitialized());
     REQUIRE(xiosHandler.getClientMPISize() == 2);
 
-    // Set ModelArray dimensions
-    const size_t nx_glo = 4;
-    const size_t ny_glo = 2;
-    const size_t nx = 2;
-    const size_t ny = 2;
-    const size_t nz = 2;
-    ModelArray::setDimension(ModelArray::Dimension::X, nx_glo, nx, 0);
-    ModelArray::setDimension(ModelArray::Dimension::Y, ny_glo, ny, 0);
+    // Create ModelMetadata instance based off a partition metadata file
+    // NOTE: ModelArray dimensions are determined from the input file, if present
+    ModelMetadata metadata("xios_test_partition_metadata_2.nc", test_comm);
+    xiosHandler.affixModelMetadata(metadata);
 
     // Create fields on the two grids
     // NOTE: Fields are created when the XIOS handler is constructed
@@ -90,7 +85,11 @@ MPI_TEST_CASE("TestXiosRead", 2)
     REQUIRE(xiosHandler.getCalendarStep() == 0);
 
     // Check the input file exists
-    REQUIRE(std::filesystem::exists("xios_test_input.nc"));
+    REQUIRE(std::filesystem::exists(filename));
+
+    // Deduce the local lengths of the two dimensions
+    const size_t nx = ModelArray::definedDimensions.at(ModelArray::Dimension::X).localLength;
+    const size_t ny = ModelArray::definedDimensions.at(ModelArray::Dimension::Y).localLength;
 
     // Simulate 4 iterations (timesteps)
     metadata.setTime(xiosHandler.getCalendarStart());
@@ -98,16 +97,12 @@ MPI_TEST_CASE("TestXiosRead", 2)
         // Update the current timestep and verify it's updated in XIOS
         metadata.incrementTime(timestep);
         REQUIRE(xiosHandler.getCalendarStep() == ts);
-        // Receive data from XIOS that is read from disk
+        ModelState state = grid.getModelState(filename, metadata);
         for (auto& entry : state.data) {
-            xiosHandler.read(entry.first, entry.second);
-        }
-    }
-
-    for (auto& entry : state.data) {
-        for (size_t j = 0; j < ny; ++j) {
-            for (size_t i = 0; i < nx; ++i) {
-                REQUIRE(entry.second(i, j) == doctest::Approx(i + nx * j));
+            for (size_t j = 0; j < ny; ++j) {
+                for (size_t i = 0; i < nx; ++i) {
+                    REQUIRE(entry.second(i, j) == doctest::Approx(i + nx * j));
+                }
             }
         }
     }
