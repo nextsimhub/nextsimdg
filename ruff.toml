@@ -19,7 +19,11 @@ extend-select = ["D417"]
 # Ignore RUF002 (ambiguous characters) as it does not allow apostrophes in strings.
 # Ignore E501 (line too long) as it currently raises too many errors.
 # Ignore PLR2004 (magic value comparison)  TODO: enforce this
-ignore = ["SIM108", "RUF002", "E501", "PLR2004"]
+# Ignore PLR0911 (too many return statements) TODO: enforce this
+# Ignore PLR0912 (too many branches) TODO: enforce this
+# Ignore PLR0913 (too many arguments) TODO: enforce this
+# Ignore PLR0915 (too many statements) TODO: enforce this
+ignore = ["SIM108", "RUF002", "E501", "PLR2004", "PLR0911", "PLR0912", "PLR0913", "PLR0915"]
 
 [lint.per-file-ignores]
 "dynamics/ParametricMesh/netcdf2dynamics.py" = [
