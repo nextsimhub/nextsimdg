@@ -175,10 +175,7 @@ ks = 0.31
             os.remove(cls.config_file)
 
     def test_iceThickness(self):
-        """
-        Test the ice thickness against standard max, min, and mean values
-        """
-
+        """Test the ice thickness against standard max, min, and mean values."""
         meanval = 3.1093
         maxval = 3.3327
         minval = 2.9702
