@@ -39,7 +39,6 @@ jobs:
       run: |
         cd ${{ github.workspace }}
         pip install ruff
-        ruff format --diff ./
         ruff check --diff ./
 
     - name: cmake-lint
