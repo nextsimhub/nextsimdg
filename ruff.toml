@@ -18,16 +18,18 @@ extend-select = ["D417"]
 # Ignore SIM108 (use ternary instead of if-else) as it can arguably obscure intent.
 # Ignore RUF002 (ambiguous characters) as it does not allow apostrophes in strings.
 # Ignore E501 (line too long) as it currently raises too many errors.
-# Ignore PLR2004 (magic value comparison)  TODO: enforce this
+# Ignore PLR2004 (magic value comparison) TODO: enforce this
 # Ignore PLR0911 (too many return statements) TODO: enforce this
 # Ignore PLR0912 (too many branches) TODO: enforce this
 # Ignore PLR0913 (too many arguments) TODO: enforce this
 # Ignore PLR0915 (too many statements) TODO: enforce this
 # Ignore S602 (subprocess call with shell=True) TODO: enforce this
 # Ignore S607 (start process with partial path) TODO: enforce this
+# Ignore D100 (missing docstring in public module) TODO: enforce this
+# Ignore D103 (missing docstring in public function) TODO: enforce this
 ignore = ["SIM108", "RUF002", "E501",
           "PLR2004", "PLR0911", "PLR0912", "PLR0913", "PLR0915",
-          "S602", "S607"]
+          "S602", "S607", "D100", "D103"]
 
 [lint.per-file-ignores]
 "docs/conf.py" = [
