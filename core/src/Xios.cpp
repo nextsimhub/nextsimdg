@@ -1052,17 +1052,9 @@ void Xios::createField(const std::string fieldId)
     if (!exists) {
         throw std::runtime_error("Xios: Failed to create field '" + fieldId + "'");
     }
-}
 
-/*!
- * Set the operation for a field with a given ID
- *
- * @param the field ID
- * @param operation to set
- */
-void Xios::setFieldOperation(const std::string fieldId, const std::string operation)
-{
-    xios::CField* field = getField(fieldId);
+    // We always assume the field operation type is "instant"
+    const std::string operation = "instant";
     if (cxios_is_defined_field_operation(field)) {
         Logged::warning("Xios: Overwriting operation for field '" + fieldId + "'");
     }
@@ -1125,23 +1117,6 @@ void Xios::setFieldFreqOffset(const std::string fieldId, const Duration freqOffs
         throw std::runtime_error(
             "Xios: Failed to set frequency offset for field '" + fieldId + "'");
     }
-}
-
-/*!
- * Get the operation associated with a field with a given ID
- *
- * @param the field ID
- * @return operation used for the corresponding field
- */
-std::string Xios::getFieldOperation(const std::string fieldId)
-{
-    xios::CField* field = getField(fieldId);
-    if (!cxios_is_defined_field_operation(field)) {
-        throw std::runtime_error("Xios: Undefined operation for field '" + fieldId + "'");
-    }
-    char cStr[cStrLen];
-    cxios_get_field_operation(field, cStr, cStrLen);
-    return convertCStrToCppStr(cStr, cStrLen);
 }
 
 /*!

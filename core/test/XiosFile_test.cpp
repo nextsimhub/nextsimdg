@@ -58,8 +58,6 @@ MPI_TEST_CASE("TestXiosFile", 2)
 
     // Associate fields with grids
     // NOTE: fields are automatically created along with files
-    xiosHandler.setFieldOperation("mask", "instant");
-    xiosHandler.setFieldOperation("hice", "instant");
     xiosHandler.setFieldType("mask", ModelArray::Type::H);
     xiosHandler.setFieldType("hice", ModelArray::Type::DG);
 

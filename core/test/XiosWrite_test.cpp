@@ -77,7 +77,6 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     // NOTE: The 2D grid is created along with the 2D domain
     Duration timestep = xiosHandler.getCalendarTimestep();
     for (std::string fieldName : { maskName, coordsName, hiceName }) {
-        xiosHandler.setFieldOperation(fieldName, "instant");
         xiosHandler.setFieldFreqOffset(fieldName, timestep);
     }
     xiosHandler.setFieldType(maskName, ModelArray::Type::H);
