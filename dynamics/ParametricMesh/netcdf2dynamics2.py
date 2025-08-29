@@ -73,7 +73,7 @@ if __name__ == "__main__":
               if mask[ix+shift[0],iy+shift[1]] != 1:
                 dirichlet_list.append([no_element, shift[2]])
             #except: we are on the boundary of the domain
-            except:
+            except AssertionError:
               dirichlet_list.append([no_element, shift[2]])
     ## write landmask
     f.write("landmask\t{}\n".format(nx*ny))
