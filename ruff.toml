@@ -23,7 +23,11 @@ extend-select = ["D417"]
 # Ignore PLR0912 (too many branches) TODO: enforce this
 # Ignore PLR0913 (too many arguments) TODO: enforce this
 # Ignore PLR0915 (too many statements) TODO: enforce this
-ignore = ["SIM108", "RUF002", "E501", "PLR2004", "PLR0911", "PLR0912", "PLR0913", "PLR0915"]
+# Ignore S602 (subprocess call with shell=True) TODO: enforce this
+# Ignore S607 (start process with partial path) TODO: enforce this
+ignore = ["SIM108", "RUF002", "E501",
+          "PLR2004", "PLR0911", "PLR0912", "PLR0913", "PLR0915",
+          "S602", "S607"]
 
 [lint.per-file-ignores]
 "dynamics/ParametricMesh/netcdf2dynamics.py" = [
