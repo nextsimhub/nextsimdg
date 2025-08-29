@@ -29,7 +29,9 @@ for N in [32, 64, 128]:  # number of elements in y-direction
     hx = Lx/nx
     hy = Ly/ny
 
-    assert hx==hy
+    if not np.isclose(hx, hy):
+        msg = "Horizontal and vertical mesh spacing must coincide."
+        raise ValueError(msg)
 
     nLayers = 1
 

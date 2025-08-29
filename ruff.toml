@@ -21,6 +21,14 @@ extend-select = ["D417"]
 # Ignore PLR2004 (magic value comparison)  TODO: enforce this
 ignore = ["SIM108", "RUF002", "E501", "PLR2004"]
 
+[lint.per-file-ignores]
+"dynamics/ParametricMesh/netcdf2dynamics.py" = [
+  "S101",  # Use of assert detected  # TODO: enforce this
+]
+"dynamics/ParametricMesh/netcdf2dynamics2.py" = [
+  "S101",  # Use of assert detected  # TODO: enforce this
+]
+
 [lint.pydocstyle]
 # Use NumPy convention for checking docstrings
 convention = "numpy"
