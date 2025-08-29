@@ -30,6 +30,9 @@ ignore = ["SIM108", "RUF002", "E501",
           "S602", "S607"]
 
 [lint.per-file-ignores]
+"docs/conf.py" = [
+  "A001", # Built-in variable shadowing
+]
 "dynamics/ParametricMesh/netcdf2dynamics.py" = [
   "S101",  # Use of assert detected  # TODO: enforce this
 ]
