@@ -49,8 +49,9 @@ def sanitycheck_gauss():
             gi = 0.0
             for k in range(q+1):
                 gi = gi + gaussweights[q,k] * gausspoints[q,k]**p
-            if np.fabs(gi-ex)>1.e-14:
-                assert p>=2*(q+1), "Gauss rule should be exact"
+            if (np.fabs(gi-ex) > 1.e-14) and (p < 2*(q+1)):
+                msg = "Gauss rule should be exact"
+                raise ValueError(msg)
 
 # Evaluates the dG-basis functions on [0,1]^2 in (x,y)
 def basisfunction(j,x,y):
