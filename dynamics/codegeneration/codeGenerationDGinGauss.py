@@ -316,7 +316,7 @@ for g in [1,2,3,4]:
         print("static const Eigen::Matrix<double, 2, {0}> GAUSS_{1} =".format(g*g,g))
         print("\t(Eigen::Matrix<double, 2, {0}>() <<".format(g*g))
     print("\t",end=" ")
-    for gy in range(g):
+    for _ in range(g):
         for gx in range(g):
             print(gq.gausspoints[g-1][gx],end=",")
     for gy in range(g):
