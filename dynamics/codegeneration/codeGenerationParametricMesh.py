@@ -28,7 +28,7 @@ def q1basis(i,x,y):
     msg = "q1 basis only for i=0,1,2,3"
     raise AssertionError(msg)
 
-def dx_q1basis(i,x,y):
+def dx_q1basis(i,y):
     if i==0:
         return -(1.-y)
     elif i==1:
@@ -39,7 +39,7 @@ def dx_q1basis(i,x,y):
         return y
     msg = "q1 basis only for i=0,1,2,3"
     raise AssertionError(msg)
-def dy_q1basis(i,x,y):
+def dy_q1basis(i,x):
     if i==0:
         return -(1.-x)
     elif i==1:
@@ -95,7 +95,7 @@ def cg_q1grad(g):
     for i in range(4):
         for gy in range(g):
             for gx in range(g):
-                    print(dx_q1basis(i, gq.gausspoints[g-1,gx], gq.gausspoints[g-1,gy]), sep=",",end="")
+                    print(dx_q1basis(i, gq.gausspoints[g-1,gy]), sep=",",end="")
 
                     if (gx<g-1 or gy<g-1 or i<3):
                         print(", ",end="")
@@ -113,7 +113,7 @@ def cg_q1grad(g):
     for i in range (4):
         for gy in range(g):
             for gx in range(g):
-                    print(dy_q1basis(i, gq.gausspoints[g-1,gx], gq.gausspoints[g-1,gy]), sep=",",end="")
+                    print(dy_q1basis(i, gq.gausspoints[g-1,gx]), sep=",",end="")
 
                     if (gx<g-1 or gy<g-1 or i<3):
                         print(", ",end="")

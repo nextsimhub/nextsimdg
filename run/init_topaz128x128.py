@@ -7,8 +7,8 @@ from numpy import ma
 
 topaz_mdi = -32767
 
-# Returns the file name that holds the TOPAZ data for a given field at a given time
-def topaz4_source_file_name(field, unix_time):
+# Returns the file name that holds the TOPAZ data at a given time
+def topaz4_source_file_name(unix_time):
     unix_tm = time.gmtime(unix_time)
     return f"TP4DAILY_{unix_tm.tm_year}{unix_tm.tm_mon:02}_3m.nc"
 
@@ -133,8 +133,8 @@ if __name__ == "__main__":
     element_lat = np.degrees(np.arctan2(element_z, np.hypot(element_x, element_y)))
 
     # Access the TOPAZ data, initally to get latitudes
-    source_file_name = topaz4_source_file_name("hice", data_time)
-    source_file = netCDF4.Dataset(topaz4_source_file_name("hice", data_time), "r")
+    source_file_name = topaz4_source_file_name(data_time)
+    source_file = netCDF4.Dataset(topaz4_source_file_name(data_time), "r")
     source_lats = source_file["latitude"][:, :]
     lat_array = source_lats[550:, 380]
 
