@@ -13,7 +13,6 @@
 #include "include/Xios.hpp"
 #endif
 #include "include/gridNames.hpp"
-#include "mpi.h"
 #include <array>
 #include <cstddef>
 #include <functional>
