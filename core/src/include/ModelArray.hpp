@@ -16,10 +16,6 @@
 
 #include "indexer.hpp"
 
-#ifndef HALOWIDTH
-#define HALOWIDTH 1
-#endif
-
 namespace ArraySlicer {
 class Slice;
 // class SliceIter;
@@ -300,19 +296,6 @@ public:
     const MultiDim& dimensions() const { return dimensions(type); }
     //! Returns a vector<size_t> of the size of each dimension of the specified type of ModelArray.
     static const MultiDim& dimensions(Type type) { return m_dims.at(type); }
-#ifdef USE_MPI
-    /**
-     * @brief Sets the inner block of the ModelArray data from a given source.
-     *
-     * @details
-     * Copies the inner block from the provided source data into the ModelArray's internal data
-     * buffer. The inner block is defined by slicing off HALOWIDTH elements from each boundary. The
-     * method initializes the entire data buffer to zero before copying the inner block.
-     *
-     * @param source The source DataType (Eigen array) from which to copy the inner block.
-     */
-    void setInnerBlock(DataType& source);
-#endif
 
     //! Returns the total number of elements of this type of ModelArray.
     size_t size() const { return size(type); }

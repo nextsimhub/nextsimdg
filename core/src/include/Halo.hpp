@@ -358,7 +358,7 @@ public:
     template <typename S, typename T = S> void getInnerBlock(S& source, T& target)
     {
         ArraySlicer::Slice::VBounds sourceSlice, targetSlice;
-        sourceSlice = { { HALOWIDTH, -HALOWIDTH }, { HALOWIDTH, -HALOWIDTH } };
+        sourceSlice = { { haloWidth, -haloWidth }, { haloWidth, -haloWidth } };
         targetSlice = { {}, {} };
         ArraySlicer::SliceIter sourceIter(sourceSlice, { m_Nx, m_Ny });
         ArraySlicer::SliceIter targetIter(targetSlice, { m_innerNx, m_innerNy });
@@ -370,7 +370,7 @@ public:
     {
         ArraySlicer::Slice::VBounds sourceSlice, targetSlice;
         sourceSlice = { {}, {} };
-        targetSlice = { { HALOWIDTH, -HALOWIDTH }, { HALOWIDTH, -HALOWIDTH } };
+        targetSlice = { { haloWidth, -haloWidth }, { haloWidth, -haloWidth } };
         ArraySlicer::SliceIter sourceIter(sourceSlice, { m_innerNx, m_innerNy });
         ArraySlicer::SliceIter targetIter(targetSlice, { m_Nx, m_Ny });
 

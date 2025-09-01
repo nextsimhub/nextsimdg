@@ -134,8 +134,8 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
                 localLength = dim.getSize();
                 start = 0;
             }
-            ModelArray::setDimension(
-                dimType, dim.getSize() + 2 * HALOWIDTH, localLength + 2 * HALOWIDTH, start);
+            ModelArray::setDimension(dimType, dim.getSize() + 2 * Halo::haloWidth,
+                localLength + 2 * Halo::haloWidth, start);
 #else
             ModelArray::setDimension(dimType, dim.getSize());
 #endif
@@ -176,10 +176,10 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
                 size_t localLength = dim.localLength;
 #ifdef USE_MPI
                 if (dt == Dim::X or dt == Dim::Y) {
-                    localLength = localLength - 2 * HALOWIDTH;
+                    localLength = localLength - 2 * Halo::haloWidth;
                 }
                 if (dt == Dim::XVERTEX or dt == Dim::YVERTEX) {
-                    localLength = localLength - 2 * HALOWIDTH;
+                    localLength = localLength - 2 * Halo::haloWidth;
                 }
 #endif
                 start.push_back(startIndex);
@@ -256,10 +256,10 @@ ModelState ParaGridIO::readForcingTimeStatic(
             auto localLength = dim.localLength;
 #ifdef USE_MPI
             if (dt == Dim::X or dt == Dim::Y) {
-                localLength = localLength - 2 * HALOWIDTH;
+                localLength = localLength - 2 * Halo::haloWidth;
             }
             if (dt == Dim::XVERTEX or dt == Dim::YVERTEX) {
-                localLength = localLength - 2 * HALOWIDTH;
+                localLength = localLength - 2 * Halo::haloWidth;
             }
 #endif
             indexArray.push_back(startIndex);
@@ -364,10 +364,10 @@ void ParaGridIO::dumpModelState(const ModelState& state, const std::string& file
             size_t localLength = dim.localLength;
 #ifdef USE_MPI
             if (dt == Dim::X or dt == Dim::Y) {
-                localLength = localLength - 2 * HALOWIDTH;
+                localLength = localLength - 2 * Halo::haloWidth;
             }
             if (dt == Dim::XVERTEX or dt == Dim::YVERTEX) {
-                localLength = localLength - 2 * HALOWIDTH;
+                localLength = localLength - 2 * Halo::haloWidth;
             }
 #endif
             start.push_back(dim.start);
@@ -466,10 +466,10 @@ void ParaGridIO::writeDiagnosticTime(const ModelState& state, const std::string&
             auto localLength = dim.localLength;
 #ifdef USE_MPI
             if (dt == Dim::X or dt == Dim::Y) {
-                localLength = localLength - 2 * HALOWIDTH;
+                localLength = localLength - 2 * Halo::haloWidth;
             }
             if (dt == Dim::XVERTEX or dt == Dim::YVERTEX) {
-                localLength = localLength - 2 * HALOWIDTH;
+                localLength = localLength - 2 * Halo::haloWidth;
             }
 #endif
             ncDims.push_back(ncFromMAMap.at(dt));
@@ -510,7 +510,7 @@ void ParaGridIO::writeDiagnosticTime(const ModelState& state, const std::string&
             auto dim = ModelArray::definedDimensions.at(dt);
             auto localLength = dim.localLength;
 #ifdef USE_MPI
-            localLength = localLength - 2 * HALOWIDTH;
+            localLength = localLength - 2 * Halo::haloWidth;
 #endif
             maskIndexes.push_back(0);
             maskExtents.push_back(localLength);
