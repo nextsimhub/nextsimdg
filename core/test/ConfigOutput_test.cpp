@@ -133,8 +133,9 @@ TEST_CASE("Test periodic output")
     IDiagnosticOutput& ido = Module::getImplementation<IDiagnosticOutput>();
     tryConfigure(ido);
 
-    for (size_t j = 0; j < localNY - 2 * HALOWIDTH; ++j) {
-        for (size_t i = 0; i < localNX - 2 * HALOWIDTH; ++i) {
+#ifdef USE_MPI
+    for (size_t j = 0; j < localNY - 2 * Halo::haloWidth; ++j) {
+        for (size_t i = 0; i < localNX - 2 * Halo::haloWidth; ++i) {
             hice(i + 1, j + 1) = 0 + 0.01 * (j * nx + (i + offsetX));
             cice(i + 1, j + 1) = 0.1 + 0.01 * (j * nx + (i + offsetX));
             hsnow(i + 1, j + 1) = 0.2 + 0.01 * (j * nx + (i + offsetX));
@@ -142,6 +143,17 @@ TEST_CASE("Test periodic output")
             topMelt(i + 1, j + 1) = 0.6 + 0.01 * (j * nx + (i + offsetX));
         }
     }
+#else
+    for (size_t j = 0; j < localNY; ++j) {
+        for (size_t i = 0; i < localNX; ++i) {
+            hice(i, j) = 0 + 0.01 * (j * nx + (i + offsetX));
+            cice(i, j) = 0.1 + 0.01 * (j * nx + (i + offsetX));
+            hsnow(i, j) = 0.2 + 0.01 * (j * nx + (i + offsetX));
+            tsurf(i, j) = 0.4 + 0.01 * (j * nx + (i + offsetX));
+            topMelt(i, j) = 0.6 + 0.01 * (j * nx + (i + offsetX));
+        }
+    }
+#endif
     std::vector<std::string> diagFiles;
     const std::string pfx = "diag01";
     const std::string sfx = ".nc";

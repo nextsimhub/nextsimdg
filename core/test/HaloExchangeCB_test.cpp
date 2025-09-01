@@ -76,7 +76,7 @@ MPI_TEST_CASE("test halo exchange on 3 proc grid", 3)
     testData = 0.;
 
     // create halo for testData model array
-    Halo halo(testData.nComponents());
+    Halo halo(testData);
 
     // create and allocate temporary Eigen array
     ModelArray::DataType innerData;
@@ -109,7 +109,7 @@ MPI_TEST_CASE("test halo exchange on 3 proc grid", 3)
     coordinates.resize();
     coordinates = 0.;
 
-    Halo haloVertex(coordinates.nComponents(), true);
+    Halo haloVertex(coordinates);
 
     // Vetex coordinates
     auto localNxVertex = localNx + 1;
@@ -198,7 +198,7 @@ MPI_TEST_CASE("DGField", 3)
     testData = 0.;
 
     // create halo for testData model array
-    Halo halo(testData.nComponents());
+    Halo halo(testData);
 
     // create and allocate temporary Eigen array
     ModelArray::DataType innerData;
@@ -265,7 +265,7 @@ MPI_TEST_CASE("DGVector", 3)
     testData.zero();
 
     // create halo for testData model array
-    Halo halo(DG);
+    Halo halo(testData);
 
     // create and allocate temporary Eigen array
     ModelArray::DataType innerData;

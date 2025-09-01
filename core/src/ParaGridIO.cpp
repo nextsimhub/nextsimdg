@@ -196,7 +196,7 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
             // need to check what happens for non-H-field modelarrays
             // need to figure out what happens w.r.t to coords in non-periodic and periodic case
 
-            Halo halo(data.nComponents(), type == ModelArray::Type::VERTEX);
+            Halo halo(data);
             // create and allocate temporary Eigen array
             ModelArray::DataType tempData;
             tempData.resize(halo.getInnerSize(), data.nComponents());
@@ -283,7 +283,7 @@ ModelState ParaGridIO::readForcingTimeStatic(
             data.resize();
 
 #ifdef USE_MPI
-            Halo halo(data.nComponents(), false);
+            Halo halo(data);
             // create and allocate temporary Eigen array
             ModelArray::DataType tempData;
             tempData.resize(halo.getInnerSize(), data.nComponents());
@@ -384,7 +384,7 @@ void ParaGridIO::dumpModelState(const ModelState& state, const std::string& file
 
 #ifdef USE_MPI
         auto& data = entry.second;
-        Halo halo(data.nComponents(), type == ModelArray::Type::VERTEX);
+        Halo halo(data);
         ModelArray::DataType tempData;
         tempData.resize(halo.getInnerSize(), data.nComponents());
         halo.getInnerBlock(data.getDataRef(), tempData);
@@ -544,7 +544,7 @@ void ParaGridIO::writeDiagnosticTime(const ModelState& state, const std::string&
 #ifdef USE_MPI
             netCDF::setVariableCollective(var, ncFile);
             auto& data = entry.second;
-            Halo halo(data.nComponents(), type == ModelArray::Type::VERTEX);
+            Halo halo(data);
             ModelArray::DataType tempData;
             tempData.resize(halo.getInnerSize(), data.nComponents());
             halo.getInnerBlock(data.getDataRef(), tempData);
@@ -563,7 +563,7 @@ void ParaGridIO::writeDiagnosticTime(const ModelState& state, const std::string&
 #ifdef USE_MPI
             netCDF::setVariableCollective(var, ncFile);
             auto& data = entry.second;
-            Halo halo(data.nComponents(), type == ModelArray::Type::VERTEX);
+            Halo halo(data);
             ModelArray::DataType tempData;
             tempData.resize(halo.getInnerSize(), data.nComponents());
             halo.getInnerBlock(data.getDataRef(), tempData);

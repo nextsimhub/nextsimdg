@@ -11,6 +11,7 @@
 #include <vector>
 
 #include "Slice.hpp"
+#include "dgVector.hpp"
 #include "include/ModelArray.hpp"
 #include "include/ModelArraySlice.hpp"
 #include "include/ModelMPI.hpp"
@@ -31,12 +32,23 @@ namespace Nextsim {
 class Halo {
 public:
     /*!
-     * @brief Constructs a halo object
+     * @brief Constructs a halo object from ModelArray
      */
-    Halo(size_t numComps, bool isVertex = false)
-        : m_numComps(numComps)
-        , isVertex(isVertex)
+    Halo(ModelArray& ma)
     {
+        m_numComps = ma.nComponents();
+        isVertex = ma.getType() == ModelArray::Type::VERTEX;
+        setSpatialDims();
+        intializeHaloMetadata();
+    }
+
+    /*!
+     * @brief Constructs a halo object from DGVector
+     */
+    template <int N> Halo(DGVector<N>& dgv)
+    {
+        m_numComps = N;
+        isVertex = false;
         setSpatialDims();
         intializeHaloMetadata();
     }

@@ -201,6 +201,7 @@ if(ENABLE_MPI)
             "${ModulesRoot}/StructureModule"
             "../src"
             "../../dynamics/src"
+            "../../dynamics/src/include"
         )
         target_link_libraries(testHaloExchangeCB_MPI3 PRIVATE nextsimlib doctest::doctest)
 
@@ -218,6 +219,7 @@ if(ENABLE_MPI)
             "${ModulesRoot}/StructureModule"
             "../src"
             "../../dynamics/src"
+            "../../dynamics/src/include"
         )
         target_link_libraries(testHaloExchangePB_MPI3 PRIVATE nextsimlib doctest::doctest)
 
@@ -230,8 +232,10 @@ if(ENABLE_MPI)
             TEST_FILE_SOURCE=\"${CMAKE_CURRENT_SOURCE_DIR}\"
         )
         target_include_directories(
-            testParaGrid_MPI2
-            PRIVATE ${MODEL_INCLUDE_DIR} "${ModulesRoot}/StructureModule"
+            testParaGrid_MPI2 PRIVATE
+            ${MODEL_INCLUDE_DIR}
+            "${ModulesRoot}/StructureModule"
+            "../../dynamics/src/include"
         )
         target_link_libraries(testParaGrid_MPI2 PRIVATE nextsimlib doctest::doctest)
 
@@ -279,7 +283,11 @@ if(ENABLE_MPI)
             testConfigOutput_MPI2
             PRIVATE USE_MPI TEST_FILES_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\"
         )
-        target_include_directories(testConfigOutput_MPI2 PRIVATE ${MODEL_INCLUDE_DIR})
+        target_include_directories(
+          testConfigOutput_MPI2 PRIVATE
+          ${MODEL_INCLUDE_DIR}
+          "../../dynamics/src/include"
+        )
         target_link_libraries(testConfigOutput_MPI2 PRIVATE nextsimlib doctest::doctest)
 
         set(MPI_TESTS
