@@ -8,6 +8,8 @@
 #include "dgVector.hpp"
 #include "include/ModelArray.hpp"
 
+#include <exception>
+
 namespace Nextsim {
 
 template <int DG> class DGVectorHolder {
@@ -20,6 +22,10 @@ public:
     DGVectorHolder(ModelArray& ma)
         : DGVectorHolder(static_cast<ModelArray::DataType&>(ma))
     {
+        if (ma.nComponents() != DG) {
+            std::string msg = "DGVectorHolder<"+std::to_string(DG)+">(ModelArray&): incorrect number of components = " + std::to_string(ma.nComponents());
+            throw std::length_error(msg);
+        }
     }
     DGVectorHolder(ModelArray::DataType& madt)
         : DGVectorHolder(reinterpret_cast<EigenDGVector&>(madt))
