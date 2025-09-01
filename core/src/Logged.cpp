@@ -73,7 +73,7 @@ void Logged::configure()
         boost::log::keywords::filter = (Severity >= minimumLogLevel));
 
     level consoleLogLevel = levelNames.at(Configured<Logged>::getConfiguration(
-        keyMap.at(CONSOLE_LOG_LEVEL_KEY), std::string("none")));
+        keyMap.at(CONSOLE_LOG_LEVEL_KEY), std::string("error")));
     boost::log::add_console_log(
         std::cout, boost::log::keywords::filter = (Severity >= consoleLogLevel));
 }

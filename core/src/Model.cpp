@@ -167,7 +167,14 @@ Model::HelpMap& Model::getHelpRecursive(HelpMap& map, bool getAll)
 
 void Model::run()
 {
-    iterator.run();
+    try {
+        iterator.run();
+    } catch (const std::exception& e) {
+        writeRestartFile();
+        Finalizer::finalize();
+        throw;
+    }
+
     writeRestartFile();
     Finalizer::finalize();
 }
