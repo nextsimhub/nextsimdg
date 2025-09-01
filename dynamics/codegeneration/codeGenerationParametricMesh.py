@@ -16,37 +16,40 @@ import gaussquadrature as gq
 # |    |
 # 0 -- 1
 #
-def q1basis(i,x,y):
-    if i==0:
-        return (1.-x)*(1.-y)
-    elif i==1:
-        return x*(1.-y)
-    elif i==2:
-        return (1.-x)*y
-    elif i==3:
-        return x*y
+def q1basis(i, x, y):
+    if i == 0:
+        return (1.0 - x) * (1.0 - y)
+    elif i == 1:
+        return x * (1.0 - y)
+    elif i == 2:
+        return (1.0 - x) * y
+    elif i == 3:
+        return x * y
     msg = "q1 basis only for i=0,1,2,3"
     raise AssertionError(msg)
 
-def dx_q1basis(i,y):
-    if i==0:
-        return -(1.-y)
-    elif i==1:
-        return (1.-y)
-    elif i==2:
+
+def dx_q1basis(i, y):
+    if i == 0:
+        return -(1.0 - y)
+    elif i == 1:
+        return 1.0 - y
+    elif i == 2:
         return -y
-    elif i==3:
+    elif i == 3:
         return y
     msg = "q1 basis only for i=0,1,2,3"
     raise AssertionError(msg)
-def dy_q1basis(i,x):
-    if i==0:
-        return -(1.-x)
-    elif i==1:
+
+
+def dy_q1basis(i, x):
+    if i == 0:
+        return -(1.0 - x)
+    elif i == 1:
         return -x
-    elif i==2:
-        return (1.-x)
-    elif i==3:
+    elif i == 2:
+        return 1.0 - x
+    elif i == 3:
         return x
     msg = "q1 basis only for i=0,1,2,3"
     raise AssertionError(msg)
@@ -57,26 +60,32 @@ def dy_q1basis(i,x):
 ## where Q is the no of guass points in each direction
 ## It is a 4 - Q^2 - Matrix
 def cg_q1(g):
-    if (g>1):
-        print("static const Eigen::Matrix<double, 4, {0}, Eigen::RowMajor> CG_Q1_{1} =".format(g*g,g))
-        print("\t(Eigen::Matrix<double, 4, {0}, Eigen::RowMajor>() <<".format(g*g))
+    if g > 1:
+        print(
+            "static const Eigen::Matrix<double, 4, {0}, Eigen::RowMajor> CG_Q1_{1} =".format(
+                g * g, g
+            )
+        )
+        print("\t(Eigen::Matrix<double, 4, {0}, Eigen::RowMajor>() <<".format(g * g))
 
     else:
-        print("static const Eigen::Matrix<double, 4, {0}> CG_Q1_{1} =".format(g*g,g))
-        print("\t(Eigen::Matrix<double, 4, {0}>() <<".format(g*g))
-    print("\t",end=" ")
+        print("static const Eigen::Matrix<double, 4, {0}> CG_Q1_{1} =".format(g * g, g))
+        print("\t(Eigen::Matrix<double, 4, {0}>() <<".format(g * g))
+    print("\t", end=" ")
     for i in range(4):
         for gy in range(g):
             for gx in range(g):
-                    print(q1basis(i, gq.gausspoints[g-1,gx], gq.gausspoints[g-1,gy]), sep=",",end="")
+                print(
+                    q1basis(i, gq.gausspoints[g - 1, gx], gq.gausspoints[g - 1, gy]),
+                    sep=",",
+                    end="",
+                )
 
-                    if (gx<g-1 or gy<g-1 or i<3):
-                        print(", ",end="")
-                    else:
-                        print(").finished();")
+                if gx < g - 1 or gy < g - 1 or i < 3:
+                    print(", ", end="")
+                else:
+                    print(").finished();")
     print("")
-
-
 
 
 ## x- and y-derivative of the q1 basis functions in the Gauss-Points
@@ -84,43 +93,54 @@ def cg_q1(g):
 ## where Q is the no of guass points in each direction
 ## It is a 4 - Q^2
 def cg_q1grad(g):
-    if (g>1):
-        print("static const Eigen::Matrix<double, 4, {0}, Eigen::RowMajor> CG_Q1x_{1} =".format(g*g,g))
-        print("\t(Eigen::Matrix<double, 4, {0}, Eigen::RowMajor>() <<".format(g*g))
+    if g > 1:
+        print(
+            "static const Eigen::Matrix<double, 4, {0}, Eigen::RowMajor> CG_Q1x_{1} =".format(
+                g * g, g
+            )
+        )
+        print("\t(Eigen::Matrix<double, 4, {0}, Eigen::RowMajor>() <<".format(g * g))
 
     else:
-        print("static const Eigen::Matrix<double, 4, {0}> CG_Q1x_{1} =".format(g*g,g))
-        print("\t(Eigen::Matrix<double, 4, {0}>() <<".format(g*g))
-    print("\t",end=" ")
+        print(
+            "static const Eigen::Matrix<double, 4, {0}> CG_Q1x_{1} =".format(g * g, g)
+        )
+        print("\t(Eigen::Matrix<double, 4, {0}>() <<".format(g * g))
+    print("\t", end=" ")
     for i in range(4):
         for gy in range(g):
             for gx in range(g):
-                    print(dx_q1basis(i, gq.gausspoints[g-1,gy]), sep=",",end="")
+                print(dx_q1basis(i, gq.gausspoints[g - 1, gy]), sep=",", end="")
 
-                    if (gx<g-1 or gy<g-1 or i<3):
-                        print(", ",end="")
-                    else:
-                        print(").finished();")
+                if gx < g - 1 or gy < g - 1 or i < 3:
+                    print(", ", end="")
+                else:
+                    print(").finished();")
     print("")
 
-    if (g>1):
-        print("static const Eigen::Matrix<double, 4, {0}, Eigen::RowMajor> CG_Q1y_{1} =".format(g*g,g))
-        print("\t(Eigen::Matrix<double, 4, {0}, Eigen::RowMajor>() <<".format(g*g))
+    if g > 1:
+        print(
+            "static const Eigen::Matrix<double, 4, {0}, Eigen::RowMajor> CG_Q1y_{1} =".format(
+                g * g, g
+            )
+        )
+        print("\t(Eigen::Matrix<double, 4, {0}, Eigen::RowMajor>() <<".format(g * g))
     else:
-        print("static const Eigen::Matrix<double, 4, {0}> CG_Q1y_{1} =".format(g*g,g))
-        print("\t(Eigen::Matrix<double, 4, {0}>() <<".format(g*g))
-    print("\t",end=" ")
-    for i in range (4):
+        print(
+            "static const Eigen::Matrix<double, 4, {0}> CG_Q1y_{1} =".format(g * g, g)
+        )
+        print("\t(Eigen::Matrix<double, 4, {0}>() <<".format(g * g))
+    print("\t", end=" ")
+    for i in range(4):
         for gy in range(g):
             for gx in range(g):
-                    print(dy_q1basis(i, gq.gausspoints[g-1,gx]), sep=",",end="")
+                print(dy_q1basis(i, gq.gausspoints[g - 1, gx]), sep=",", end="")
 
-                    if (gx<g-1 or gy<g-1 or i<3):
-                        print(", ",end="")
-                    else:
-                        print(").finished();")
+                if gx < g - 1 or gy < g - 1 or i < 3:
+                    print(", ", end="")
+                else:
+                    print(").finished();")
     print("")
-
 
 
 #################
@@ -131,27 +151,25 @@ print("// Automatically generated by codegeneration/codeGenerationParametricMesh
 print("//")
 
 
-
-
-
-
 ## CG_Q1[0-3]_GRAD_[1-3]
 # Gradient of the Q1 test functions for mapping in the Gauss points
-print("//CG_Q1_[i]_GRAD_[Q] stores the gradient of the Q1 basis fucntions in the Gauss points on the unit element")
-print("//                  These values are e.g. required to compute the Jacobian of the mapping")
+print(
+    "//CG_Q1_[i]_GRAD_[Q] stores the gradient of the Q1 basis fucntions in the Gauss points on the unit element"
+)
+print(
+    "//                  These values are e.g. required to compute the Jacobian of the mapping"
+)
 
-for q in [1,2,3,4]:
+for q in [1, 2, 3, 4]:
     cg_q1grad(q)
 
 ## CG_Q1_[1-3]
 # Gradient of the Q1 test functions for mapping in the Gauss points
-print("//CG_Q1_[Q] stores the 4 Q1 basis fucntions in the Gauss points on the unit element")
-for q in [1,2,3,4]:
+print(
+    "//CG_Q1_[Q] stores the 4 Q1 basis fucntions in the Gauss points on the unit element"
+)
+for q in [1, 2, 3, 4]:
     cg_q1(q)
 
 
-
-
-
 print("\n#endif //__CODEGENERATIONPARAMETRICMESH_HPP")
-

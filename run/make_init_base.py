@@ -23,7 +23,18 @@ class initMaker:
         (e.g. when the program ends or at the end of a loop).
     """
 
-    def __init__(self, fname, nFirst, nSecond, res, nCg=1, nDg=1, nDgStress=3, nCoords=2, checkZeros=True):
+    def __init__(
+        self,
+        fname,
+        nFirst,
+        nSecond,
+        res,
+        nCg=1,
+        nDg=1,
+        nDgStress=3,
+        nCoords=2,
+        checkZeros=True,
+    ):
         """
         Initialise most internal variables to zero and all arrays to the right size.
 
@@ -70,26 +81,69 @@ class initMaker:
         Print a warning if they're zero (this may be ok). Raise a RuntimeError if the
         shape is wrong.
         """
-        if (self.mask==0).all():
-            print("Error: 'mask' is not set (all values are zero, meaning land everywhere)")
+        if (self.mask == 0).all():
+            print(
+                "Error: 'mask' is not set (all values are zero, meaning land everywhere)"
+            )
             runtime_err = "'mask' is not set"
             raise RuntimeError(runtime_err)
 
-        for check in [["cice", (self.cice==0).all(), self.cice.shape==(self.__nFirst,self.__nSecond)],
-                      ["hice", (self.hice==0).all(), self.hice.shape==(self.__nFirst,self.__nSecond)],
-                      ["hsnow", (self.hsnow==0).all(), self.hsnow.shape==(self.__nFirst,self.__nSecond)],
-                      ["damage", (self.damage==0).all(), self.damage.shape==(self.__nFirst,self.__nSecond)],
-                      ["uice", (self.uice==0).all(), self.uice.shape==(self.__nFirst,self.__nSecond)],
-                      ["vice", (self.vice==0).all(), self.vice.shape==(self.__nFirst,self.__nSecond)],
-                      ["sss", (self.sss==0).all(), self.sss.shape==(self.__nFirst,self.__nSecond)],
-                      ["sst", (self.sst==0).all(), self.sst.shape==(self.__nFirst,self.__nSecond)],
-                      ["azimuth", (self.azimuth==0).all(), self.azimuth.shape==(self.__nFirst,self.__nSecond)]]:
-
+        for check in [
+            [
+                "cice",
+                (self.cice == 0).all(),
+                self.cice.shape == (self.__nFirst, self.__nSecond),
+            ],
+            [
+                "hice",
+                (self.hice == 0).all(),
+                self.hice.shape == (self.__nFirst, self.__nSecond),
+            ],
+            [
+                "hsnow",
+                (self.hsnow == 0).all(),
+                self.hsnow.shape == (self.__nFirst, self.__nSecond),
+            ],
+            [
+                "damage",
+                (self.damage == 0).all(),
+                self.damage.shape == (self.__nFirst, self.__nSecond),
+            ],
+            [
+                "uice",
+                (self.uice == 0).all(),
+                self.uice.shape == (self.__nFirst, self.__nSecond),
+            ],
+            [
+                "vice",
+                (self.vice == 0).all(),
+                self.vice.shape == (self.__nFirst, self.__nSecond),
+            ],
+            [
+                "sss",
+                (self.sss == 0).all(),
+                self.sss.shape == (self.__nFirst, self.__nSecond),
+            ],
+            [
+                "sst",
+                (self.sst == 0).all(),
+                self.sst.shape == (self.__nFirst, self.__nSecond),
+            ],
+            [
+                "azimuth",
+                (self.azimuth == 0).all(),
+                self.azimuth.shape == (self.__nFirst, self.__nSecond),
+            ],
+        ]:
             if self.__checkZeros and check[1]:
-                print("Warning: '"+check[0]+"' is all zeros (this may be ok, if that's what you want).")
+                print(
+                    "Warning: '"
+                    + check[0]
+                    + "' is all zeros (this may be ok, if that's what you want)."
+                )
 
             if not check[2]:
-                print("Error: '"+check[0]+"' is the wrong shape")
+                print("Error: '" + check[0] + "' is the wrong shape")
                 runtime_err = "Incorrect array shape"
                 raise RuntimeError(runtime_err)
 

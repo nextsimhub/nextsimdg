@@ -32,7 +32,9 @@ class SingleColumnThermo(unittest.TestCase):
         cls.__make_cfg_file()
 
         # Run the model
-        subprocess.run(cls.executable + " --config-file " + cls.config_file, shell=True, check=True)
+        subprocess.run(
+            cls.executable + " --config-file " + cls.config_file, shell=True, check=True
+        )
 
         # Load the basic variables
         ncFile = netCDF4.Dataset(cls.diagnostics_file, "r", format="NETCDF4")
@@ -75,7 +77,6 @@ ks = 0.31
 
     @classmethod
     def __make_init_column(cls):
-
         ncFile = netCDF4.Dataset(cls.init_file, "w", format="NETCDF4")
         structure_name = "parametric_rectangular"
         ncFile.structure_name = structure_name
@@ -140,7 +141,7 @@ ks = 0.31
         mask = ncFile.createVariable("mask", "f8", field_dims)
         mask[:, :] = [[1]]
         cice = ncFile.createVariable("cice", "f8", field_dims)
-        cice[:, :] = 1.
+        cice[:, :] = 1.0
         hice = ncFile.createVariable("hice", "f8", field_dims)
         hice[:, :] = 3.00
         hsnow = ncFile.createVariable("hsnow", "f8", field_dims)
@@ -174,9 +175,15 @@ ks = 0.31
         maxval = 3.3327
         minval = 2.9702
         hiceDG0 = self.hice[:, 0]
-        self.assertAlmostEqual(maxval, hiceDG0.max(), 4, f"Max ice thickness not ~= {maxval} m")
-        self.assertAlmostEqual(minval, hiceDG0.min(), 4, f"Min ice thickness not ~= {minval} m")
-        self.assertAlmostEqual(meanval, hiceDG0.mean(), 4, f"Mean ice thickness not ~= {meanval} m")
+        self.assertAlmostEqual(
+            maxval, hiceDG0.max(), 4, f"Max ice thickness not ~= {maxval} m"
+        )
+        self.assertAlmostEqual(
+            minval, hiceDG0.min(), 4, f"Min ice thickness not ~= {minval} m"
+        )
+        self.assertAlmostEqual(
+            meanval, hiceDG0.mean(), 4, f"Mean ice thickness not ~= {meanval} m"
+        )
 
     def test_snowThickness(self):
         """Test the snow thickness against standard max, min, and mean values."""
@@ -184,9 +191,15 @@ ks = 0.31
         maxval = 0.4000
         minval = 0.0000
         snowDG0 = self.hsnow[:, 0]
-        self.assertAlmostEqual(maxval, snowDG0.max(), 4, f"Max snow thickness not ~= {maxval} m")
-        self.assertAlmostEqual(minval, snowDG0.min(), 4, f"Min snow thickness not ~= {minval} m")
-        self.assertAlmostEqual(meanval, snowDG0.mean(), 4, f"Mean snow thickness not ~= {meanval} m")
+        self.assertAlmostEqual(
+            maxval, snowDG0.max(), 4, f"Max snow thickness not ~= {maxval} m"
+        )
+        self.assertAlmostEqual(
+            minval, snowDG0.min(), 4, f"Min snow thickness not ~= {minval} m"
+        )
+        self.assertAlmostEqual(
+            meanval, snowDG0.mean(), 4, f"Mean snow thickness not ~= {meanval} m"
+        )
 
     def test_temperatureTest(self):
         """
@@ -203,10 +216,18 @@ ks = 0.31
         meanvals = [-17.6202, -7.5904, -3.7944]
         maxvals = [0.0000, -1.1280, -1.5939]
         minvals = [-33.1569, -14.8520, -6.1389]
-        for i, t_level in enumerate((self.tsurf[:, 0, 0, 0], self.tintr[:, 0, 0, 0], self.tbott[:, 0, 0, 0])):
-            self.assertAlmostEqual(maxvals[i], t_level.max(), 4, f"Max T {i} not ~= {maxvals[i]} ˚C")
-            self.assertAlmostEqual(minvals[i], t_level.min(), 3, f"Min T {i} not ~= {minvals[i]} ˚C")
-            self.assertAlmostEqual(meanvals[i], t_level.mean(), 3, f"Mean T {i} not ~= {meanvals[i]} ˚C")
+        for i, t_level in enumerate(
+            (self.tsurf[:, 0, 0, 0], self.tintr[:, 0, 0, 0], self.tbott[:, 0, 0, 0])
+        ):
+            self.assertAlmostEqual(
+                maxvals[i], t_level.max(), 4, f"Max T {i} not ~= {maxvals[i]} ˚C"
+            )
+            self.assertAlmostEqual(
+                minvals[i], t_level.min(), 3, f"Min T {i} not ~= {minvals[i]} ˚C"
+            )
+            self.assertAlmostEqual(
+                meanvals[i], t_level.mean(), 3, f"Mean T {i} not ~= {meanvals[i]} ˚C"
+            )
 
 
 if __name__ == "__main__":

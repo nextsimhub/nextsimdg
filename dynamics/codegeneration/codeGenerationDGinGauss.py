@@ -16,26 +16,54 @@ import numpy as np
 # g   : number of gauss points (1,2,3)
 def basisfunctions_in_gausspoints_edge(edge, d, g):
     # print header
-    if g>1 and d>1:
-        print("static const Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor> PSI{2}{3}_{4} =".format(g,d,d,g,edge))
-        print("\t(Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor>() <<".format(g,d))
+    if g > 1 and d > 1:
+        print(
+            "static const Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor> PSI{2}{3}_{4} =".format(
+                g, d, d, g, edge
+            )
+        )
+        print("\t(Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor>() <<".format(g, d))
     else:
-        print("static const Eigen::Matrix<double, {0}, {1}> PSI{2}{3}_{4} =".format(g,d,d,g,edge))
-        print("\t(Eigen::Matrix<double, {0}, {1}>() <<".format(g,d))
+        print(
+            "static const Eigen::Matrix<double, {0}, {1}> PSI{2}{3}_{4} =".format(
+                g, d, d, g, edge
+            )
+        )
+        print("\t(Eigen::Matrix<double, {0}, {1}>() <<".format(g, d))
 
-    print("\t",end=" ")
+    print("\t", end=" ")
     for gp in range(g):
         for dp in range(d):
-            if (edge==3):
-                print(bf.inversemass[dp]*gq.gaussweights[g-1,gp] * bf.dgbasis(dp, 0.0, gq.gausspoints[g-1,gp]),end="")
-            elif (edge==1):
-                print(bf.inversemass[dp]*gq.gaussweights[g-1,gp] * bf.dgbasis(dp, 1.0, gq.gausspoints[g-1,gp]),end="")
-            elif (edge==0):
-                print(bf.inversemass[dp]*gq.gaussweights[g-1,gp] * bf.dgbasis(dp, gq.gausspoints[g-1,gp], 0.0),end="")
-            elif (edge==2):
-                print(bf.inversemass[dp]*gq.gaussweights[g-1,gp] * bf.dgbasis(dp, gq.gausspoints[g-1,gp], 1.0),end="")
-            if (gp<g-1 or dp<d-1):
-                print(", ",end="")
+            if edge == 3:
+                print(
+                    bf.inversemass[dp]
+                    * gq.gaussweights[g - 1, gp]
+                    * bf.dgbasis(dp, 0.0, gq.gausspoints[g - 1, gp]),
+                    end="",
+                )
+            elif edge == 1:
+                print(
+                    bf.inversemass[dp]
+                    * gq.gaussweights[g - 1, gp]
+                    * bf.dgbasis(dp, 1.0, gq.gausspoints[g - 1, gp]),
+                    end="",
+                )
+            elif edge == 0:
+                print(
+                    bf.inversemass[dp]
+                    * gq.gaussweights[g - 1, gp]
+                    * bf.dgbasis(dp, gq.gausspoints[g - 1, gp], 0.0),
+                    end="",
+                )
+            elif edge == 2:
+                print(
+                    bf.inversemass[dp]
+                    * gq.gaussweights[g - 1, gp]
+                    * bf.dgbasis(dp, gq.gausspoints[g - 1, gp], 1.0),
+                    end="",
+                )
+            if gp < g - 1 or dp < d - 1:
+                print(", ", end="")
             else:
                 print(").finished();")
 
@@ -50,28 +78,52 @@ def basisfunctions_in_gausspoints_edge(edge, d, g):
 # g   : number of gauss points (1,2,3)
 def basisfunctions_in_gausspoints_edge_new(edge, d, g):
     # print header
-      # print header
+    # print header
 
-    if g>1 and d>1:
-        print("template<> struct PSIe_wImpl< {0}, {1}, {2} >{{".format(d,g,edge) )
-        print("static inline const Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor> value = (Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor>() <<".format(g,d))
+    if g > 1 and d > 1:
+        print("template<> struct PSIe_wImpl< {0}, {1}, {2} >{{".format(d, g, edge))
+        print(
+            "static inline const Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor> value = (Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor>() <<".format(
+                g, d
+            )
+        )
     else:
-        print("template<> struct PSIe_wImpl< {0}, {1}, {2} >{{".format(d,g,edge) )
-        print("static inline const Eigen::Matrix<double, {0}, {1}> value = (Eigen::Matrix<double, {0}, {1}>() <<".format(g,d))
-    print("\t",end=" ")
+        print("template<> struct PSIe_wImpl< {0}, {1}, {2} >{{".format(d, g, edge))
+        print(
+            "static inline const Eigen::Matrix<double, {0}, {1}> value = (Eigen::Matrix<double, {0}, {1}>() <<".format(
+                g, d
+            )
+        )
+    print("\t", end=" ")
 
     for gp in range(g):
         for dp in range(d):
-            if (edge==3):
-                print(gq.gaussweights[g-1,gp] * bf.dgbasis(dp, 0.0, gq.gausspoints[g-1,gp]),end="")
-            elif (edge==1):
-                print(gq.gaussweights[g-1,gp] * bf.dgbasis(dp, 1.0, gq.gausspoints[g-1,gp]),end="")
-            elif (edge==0):
-                print(gq.gaussweights[g-1,gp] * bf.dgbasis(dp, gq.gausspoints[g-1,gp], 0.0),end="")
-            elif (edge==2):
-                print(gq.gaussweights[g-1,gp] * bf.dgbasis(dp, gq.gausspoints[g-1,gp], 1.0),end="")
-            if (gp<g-1 or dp<d-1):
-                print(", ",end="")
+            if edge == 3:
+                print(
+                    gq.gaussweights[g - 1, gp]
+                    * bf.dgbasis(dp, 0.0, gq.gausspoints[g - 1, gp]),
+                    end="",
+                )
+            elif edge == 1:
+                print(
+                    gq.gaussweights[g - 1, gp]
+                    * bf.dgbasis(dp, 1.0, gq.gausspoints[g - 1, gp]),
+                    end="",
+                )
+            elif edge == 0:
+                print(
+                    gq.gaussweights[g - 1, gp]
+                    * bf.dgbasis(dp, gq.gausspoints[g - 1, gp], 0.0),
+                    end="",
+                )
+            elif edge == 2:
+                print(
+                    gq.gaussweights[g - 1, gp]
+                    * bf.dgbasis(dp, gq.gausspoints[g - 1, gp], 1.0),
+                    end="",
+                )
+            if gp < g - 1 or dp < d - 1:
+                print(", ", end="")
             else:
                 print(").finished();};")
 
@@ -86,24 +138,39 @@ def basisfunctions_in_gausspoints_edge_new(edge, d, g):
 # d   : number of dG - dofs (1, 3, 6, 8) for dG0/1/2 and dG2+ (nabla Q2)
 # g   : number of gauss points (1,2,3) in each direction
 def integration_basisfunctions_in_gausspoints_cell(d, g):
-
-
-
     # print header
-    if d>1:
-        print("static const Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor> IBC{2}{3} =".format(d,g*g,d,g))
-        print("\t(Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor>() <<".format(d,g*g))
+    if d > 1:
+        print(
+            "static const Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor> IBC{2}{3} =".format(
+                d, g * g, d, g
+            )
+        )
+        print(
+            "\t(Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor>() <<".format(d, g * g)
+        )
     else:
-        print("static const Eigen::Matrix<double, {0}, {1}> IBC{2}{3} =".format(d,g*g,d,g))
-        print("\t(Eigen::Matrix<double, {0}, {1}>() <<".format(d,g*g))
-    print("\t",end=" ")
+        print(
+            "static const Eigen::Matrix<double, {0}, {1}> IBC{2}{3} =".format(
+                d, g * g, d, g
+            )
+        )
+        print("\t(Eigen::Matrix<double, {0}, {1}>() <<".format(d, g * g))
+    print("\t", end=" ")
     for dp in range(d):
         for gy in range(g):
             for gx in range(g):
-                print(bf.inversemass[dp]*gq.gaussweights[g-1,gx]*gq.gaussweights[g-1,gy] * bf.dgbasis(dp, gq.gausspoints[g-1,gx],gq.gausspoints[g-1,gy]),end="")
+                print(
+                    bf.inversemass[dp]
+                    * gq.gaussweights[g - 1, gx]
+                    * gq.gaussweights[g - 1, gy]
+                    * bf.dgbasis(
+                        dp, gq.gausspoints[g - 1, gx], gq.gausspoints[g - 1, gy]
+                    ),
+                    end="",
+                )
 
-                if (gx<g-1 or gy<g-1 or dp<d-1):
-                    print(", ",end="")
+                if gx < g - 1 or gy < g - 1 or dp < d - 1:
+                    print(", ", end="")
                 else:
                     print(").finished();")
 
@@ -115,20 +182,29 @@ def integration_basisfunctions_in_gausspoints_cell(d, g):
 # d   : number of dG - dofs (1, 3, 6, 8) for dG0/1/2 and dG2+ (nabla Q2)
 # g   : 2 Trapecoidal, 3 Simpson
 def basisfunctions_in_lagrangepoints_cell(d, g):
-
     # print header
     print("template<> struct PSILagrangeImpl< {0}, {1} >{{".format(d, g))
-    print("static inline const Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor> value = (Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor>() <<".format(d,g*g))
-    print("\t",end=" ")
+    print(
+        "static inline const Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor> value = (Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor>() <<".format(
+            d, g * g
+        )
+    )
+    print("\t", end=" ")
     for dp in range(d):
         for gy in range(g):
             for gx in range(g):
-                print(bf.dgbasis(dp, gq.lagrangepoints[g-2,gx], gq.lagrangepoints[g-2,gy]),end="")
+                print(
+                    bf.dgbasis(
+                        dp, gq.lagrangepoints[g - 2, gx], gq.lagrangepoints[g - 2, gy]
+                    ),
+                    end="",
+                )
 
-                if (gx<g-1 or gy<g-1 or dp<d-1):
-                    print(", ",end="")
+                if gx < g - 1 or gy < g - 1 or dp < d - 1:
+                    print(", ", end="")
                 else:
                     print(").finished();};")
+
 
 #
 # evaluate basis functions in the quadrature points on
@@ -137,24 +213,35 @@ def basisfunctions_in_lagrangepoints_cell(d, g):
 # d   : number of dG - dofs (1, 3, 6, 8) for dG0/1/2 and dG2+ (nabla Q2)
 # g   : Gauss points in each direction (2,3). lower left to upper right, y/x
 def basisfunctions_in_gausspoints_cell(d, g):
-
     # print header
     print("template<> struct PSIImpl< {0}, {1} >{{".format(d, g))
-    if g>1:
-        print("static inline const Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor> value = (Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor>() <<".format(d,g*g))
+    if g > 1:
+        print(
+            "static inline const Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor> value = (Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor>() <<".format(
+                d, g * g
+            )
+        )
     else:
-        print("static inline const Eigen::Matrix<double, {0}, {1}> value = (Eigen::Matrix<double, {0}, {1}>() <<".format(d,g*g))
-    print("\t",end=" ")
+        print(
+            "static inline const Eigen::Matrix<double, {0}, {1}> value = (Eigen::Matrix<double, {0}, {1}>() <<".format(
+                d, g * g
+            )
+        )
+    print("\t", end=" ")
     for dp in range(d):
         for gy in range(g):
             for gx in range(g):
-                print(bf.dgbasis(dp, gq.gausspoints[g-1,gx], gq.gausspoints[g-1,gy]),end="")
+                print(
+                    bf.dgbasis(
+                        dp, gq.gausspoints[g - 1, gx], gq.gausspoints[g - 1, gy]
+                    ),
+                    end="",
+                )
 
-                if (gx<g-1 or gy<g-1 or dp<d-1):
-                    print(", ",end="")
+                if gx < g - 1 or gy < g - 1 or dp < d - 1:
+                    print(", ", end="")
                 else:
                     print(").finished();};")
-
 
 
 #
@@ -164,42 +251,65 @@ def basisfunctions_in_gausspoints_cell(d, g):
 # d   : number of dG - dofs (1, 3, 6, 8) for dG0/1/2 and dG2+ (nabla Q2)
 # g   : Gauss points in each direction (2,3). lower left to upper right, y/x
 def basisfunctions_in_gausspoints_cell_gradient(d, g):
-
     # print header
     print("template<> struct PSIxImpl< {0}, {1} >{{".format(d, g))
-    if g>1:
-        print("static inline const Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor> value = (Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor>() <<".format(d,g*g))
+    if g > 1:
+        print(
+            "static inline const Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor> value = (Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor>() <<".format(
+                d, g * g
+            )
+        )
     else:
-        print("static inline const Eigen::Matrix<double, {0}, {1}> value = (Eigen::Matrix<double, {0}, {1}>() <<".format(d,g*g))
-    print("\t",end=" ")
+        print(
+            "static inline const Eigen::Matrix<double, {0}, {1}> value = (Eigen::Matrix<double, {0}, {1}>() <<".format(
+                d, g * g
+            )
+        )
+    print("\t", end=" ")
     for dp in range(d):
         for gy in range(g):
             for gx in range(g):
-                print(bf.dx_dgbasis(dp, gq.gausspoints[g-1,gx], gq.gausspoints[g-1,gy]),end="")
+                print(
+                    bf.dx_dgbasis(
+                        dp, gq.gausspoints[g - 1, gx], gq.gausspoints[g - 1, gy]
+                    ),
+                    end="",
+                )
 
-                if (gx<g-1 or gy<g-1 or dp<d-1):
-                    print(", ",end="")
+                if gx < g - 1 or gy < g - 1 or dp < d - 1:
+                    print(", ", end="")
                 else:
                     print(").finished();};")
 
     # print header
     print("template<> struct PSIyImpl< {0}, {1} >{{".format(d, g))
-    if g>1:
-        print("static inline const Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor> value = (Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor>() <<".format(d,g*g))
+    if g > 1:
+        print(
+            "static inline const Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor> value = (Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor>() <<".format(
+                d, g * g
+            )
+        )
     else:
-        print("static inline const Eigen::Matrix<double, {0}, {1}> value = (Eigen::Matrix<double, {0}, {1}>() <<".format(d,g*g))
-    print("\t",end=" ")
+        print(
+            "static inline const Eigen::Matrix<double, {0}, {1}> value = (Eigen::Matrix<double, {0}, {1}>() <<".format(
+                d, g * g
+            )
+        )
+    print("\t", end=" ")
     for dp in range(d):
         for gy in range(g):
             for gx in range(g):
-                print(bf.dy_dgbasis(dp, gq.gausspoints[g-1,gx], gq.gausspoints[g-1,gy]),end="")
+                print(
+                    bf.dy_dgbasis(
+                        dp, gq.gausspoints[g - 1, gx], gq.gausspoints[g - 1, gy]
+                    ),
+                    end="",
+                )
 
-                if (gx<g-1 or gy<g-1 or dp<d-1):
-                    print(", ",end="")
+                if gx < g - 1 or gy < g - 1 or dp < d - 1:
+                    print(", ", end="")
                 else:
                     print(").finished();};")
-
-
 
 
 #
@@ -207,24 +317,28 @@ def basisfunctions_in_gausspoints_cell_gradient(d, g):
 # d   : number of dG - dofs (1,2,3) for dG0/1/2 and dG2+ (nabla Q2)
 # g   : number of gauss points (1,2,3)
 def edge_basisfunctions_in_gausspoints(d, g):
-
     # print header
     print("template<> struct PSIeImpl< {0}, {1} >{{".format(d, g))
-    if g>1 and d>1:
-        print("static inline const Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor> value = (Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor>() <<".format(d,g))
+    if g > 1 and d > 1:
+        print(
+            "static inline const Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor> value = (Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor>() <<".format(
+                d, g
+            )
+        )
     else:
-        print("static inline const Eigen::Matrix<double, {0}, {1}> value = (Eigen::Matrix<double, {0}, {1}>() <<".format(d,g))
-    print("\t",end=" ")
+        print(
+            "static inline const Eigen::Matrix<double, {0}, {1}> value = (Eigen::Matrix<double, {0}, {1}>() <<".format(
+                d, g
+            )
+        )
+    print("\t", end=" ")
     for dp in range(d):
         for gp in range(g):
-            print(bf.dgbasis_edge(dp, gq.gausspoints[g-1,gp]),end="")
-            if (dp<d-1 or gp<g-1):
-                print(", ",end="")
+            print(bf.dgbasis_edge(dp, gq.gausspoints[g - 1, gp]), end="")
+            if dp < d - 1 or gp < g - 1:
+                print(", ", end="")
             else:
                 print(").finished();};")
-
-
-
 
 
 ### Main
@@ -268,66 +382,73 @@ print("")
 
 # print out guass points and weights
 print("\n\n//------------------------------ Gauss Quadrature\n")
-for gp in [1,2,3,4]:
-    print("constexpr double gauss_points{0}[{0}] = {{".format(gp),end="")
+for gp in [1, 2, 3, 4]:
+    print("constexpr double gauss_points{0}[{0}] = {{".format(gp), end="")
     for q in range(gp):
-        print(gq.gausspoints[gp-1,q],end="")
-        if q<gp-1:
-            print(",",end="")
+        print(gq.gausspoints[gp - 1, q], end="")
+        if q < gp - 1:
+            print(",", end="")
     print("};")
-    print("constexpr double gauss_weights{0}[{0}] = {{".format(gp),end="")
+    print("constexpr double gauss_weights{0}[{0}] = {{".format(gp), end="")
     for q in range(gp):
-        print(gq.gaussweights[gp-1,q],end="")
-        if q<gp-1:
-            print(",",end="")
+        print(gq.gaussweights[gp - 1, q], end="")
+        if q < gp - 1:
+            print(",", end="")
     print("};")
 
 print("\n\n//------------------------------ Gauss Quadrature\n")
 
 print("template<int NGP>")
 print("struct GAUSSWEIGHTSImpl;")
-for g in [1,2,3,4]:
-
+for g in [1, 2, 3, 4]:
     # print header
     print("template<> struct GAUSSWEIGHTSImpl< {0} >{{".format(g))
-    print("static inline const Eigen::Matrix<double, 1, {0}, Eigen::RowMajor> value = (Eigen::Matrix<double, 1, {0}, Eigen::RowMajor>() <<".format(g*g))
-    print("\t",end=" ")
+    print(
+        "static inline const Eigen::Matrix<double, 1, {0}, Eigen::RowMajor> value = (Eigen::Matrix<double, 1, {0}, Eigen::RowMajor>() <<".format(
+            g * g
+        )
+    )
+    print("\t", end=" ")
 
     for gy in range(g):
         for gx in range(g):
-            print(gq.gaussweights[g-1][gx]*gq.gaussweights[g-1][gy],end="")
+            print(gq.gaussweights[g - 1][gx] * gq.gaussweights[g - 1][gy], end="")
 
-            if (gx<g-1 or gy<g-1):
-                print(", ",end="")
+            if gx < g - 1 or gy < g - 1:
+                print(", ", end="")
             else:
                 print(").finished();};")
 print("template<int NGP>")
-print("const Eigen::Matrix<double, 1, NGP*NGP, Eigen::RowMajor> GAUSSWEIGHTS = GAUSSWEIGHTSImpl<NGP>::value;")
+print(
+    "const Eigen::Matrix<double, 1, NGP*NGP, Eigen::RowMajor> GAUSSWEIGHTS = GAUSSWEIGHTSImpl<NGP>::value;"
+)
 print("")
 
 
-
 print("\n\n//------------------------------ Gauss Points\n")
-for g in [1,2,3,4]:
-    if g>1:
-        print("static const Eigen::Matrix<double, 2, {0}, Eigen::RowMajor> GAUSSPOINTS_{1} =".format(g*g,g))
-        print("\t(Eigen::Matrix<double, 2, {0}, Eigen::RowMajor>() <<".format(g*g))
+for g in [1, 2, 3, 4]:
+    if g > 1:
+        print(
+            "static const Eigen::Matrix<double, 2, {0}, Eigen::RowMajor> GAUSSPOINTS_{1} =".format(
+                g * g, g
+            )
+        )
+        print("\t(Eigen::Matrix<double, 2, {0}, Eigen::RowMajor>() <<".format(g * g))
     else:
-        print("static const Eigen::Matrix<double, 2, {0}> GAUSS_{1} =".format(g*g,g))
-        print("\t(Eigen::Matrix<double, 2, {0}>() <<".format(g*g))
-    print("\t",end=" ")
+        print("static const Eigen::Matrix<double, 2, {0}> GAUSS_{1} =".format(g * g, g))
+        print("\t(Eigen::Matrix<double, 2, {0}>() <<".format(g * g))
+    print("\t", end=" ")
     for _ in range(g):
         for gx in range(g):
-            print(gq.gausspoints[g-1][gx],end=",")
+            print(gq.gausspoints[g - 1][gx], end=",")
     for gy in range(g):
         for gx in range(g):
-            print(gq.gausspoints[g-1][gy],end="")
+            print(gq.gausspoints[g - 1][gy], end="")
 
-            if (gx<g-1 or gy<g-1):
-                print(", ",end="")
+            if gx < g - 1 or gy < g - 1:
+                print(", ", end="")
             else:
                 print(").finished();")
-
 
 
 print("\n\n//------------------------------ Basis Functions in Gauss Points (edge)\n")
@@ -335,43 +456,49 @@ print("\n\n//------------------------------ Basis Functions in Gauss Points (edg
 
 print("template<int DG, int GP, int E>")
 print("struct PSIe_wImpl;")
-for dg in [1,3,6,8]:
-    for e in [0,1,2,3]:
-        if dg==1:
-            basisfunctions_in_gausspoints_edge(e, dg,1)
-#            basisfunctions_in_gausspoints_edge(e, dg,2)
-        elif dg==3:
-            basisfunctions_in_gausspoints_edge(e, dg,2)
-#            basisfunctions_in_gausspoints_edge(e, dg,3)
+for dg in [1, 3, 6, 8]:
+    for e in [0, 1, 2, 3]:
+        if dg == 1:
+            basisfunctions_in_gausspoints_edge(e, dg, 1)
+        #            basisfunctions_in_gausspoints_edge(e, dg,2)
+        elif dg == 3:
+            basisfunctions_in_gausspoints_edge(e, dg, 2)
+        #            basisfunctions_in_gausspoints_edge(e, dg,3)
         else:
-            basisfunctions_in_gausspoints_edge(e, dg,3)
-#            basisfunctions_in_gausspoints_edge(e, dg,4)
+            basisfunctions_in_gausspoints_edge(e, dg, 3)
+        #            basisfunctions_in_gausspoints_edge(e, dg,4)
         print("")
 
-        if dg==1:
-            basisfunctions_in_gausspoints_edge_new(e, dg,1)
-#            basisfunctions_in_gausspoints_edge_new(e, dg,2)
-        elif dg==3:
-            basisfunctions_in_gausspoints_edge_new(e, dg,2)
-#            basisfunctions_in_gausspoints_edge_new(e, dg,3)
+        if dg == 1:
+            basisfunctions_in_gausspoints_edge_new(e, dg, 1)
+        #            basisfunctions_in_gausspoints_edge_new(e, dg,2)
+        elif dg == 3:
+            basisfunctions_in_gausspoints_edge_new(e, dg, 2)
+        #            basisfunctions_in_gausspoints_edge_new(e, dg,3)
         else:
-            basisfunctions_in_gausspoints_edge_new(e, dg,3)
-#            basisfunctions_in_gausspoints_edge_new(e, dg,4)
+            basisfunctions_in_gausspoints_edge_new(e, dg, 3)
+        #            basisfunctions_in_gausspoints_edge_new(e, dg,4)
         print("")
 print("template<int DG, int GP, int E>")
-print("const Eigen::Matrix<double, GP, DG, Eigen::RowMajor> PSIe_w = PSIe_wImpl<DG, GP, E>::value;")
+print(
+    "const Eigen::Matrix<double, GP, DG, Eigen::RowMajor> PSIe_w = PSIe_wImpl<DG, GP, E>::value;"
+)
 print("")
 
 
-print("\n\n//------------------------------ Basis Functions in Lagrange Points (cell)\n")
+print(
+    "\n\n//------------------------------ Basis Functions in Lagrange Points (cell)\n"
+)
 
 print("template<int DG, int GP>")
 print("struct PSILagrangeImpl;")
-for dg in [1, 3,6,8]:
-    basisfunctions_in_lagrangepoints_cell(dg,2)
-    basisfunctions_in_lagrangepoints_cell(dg,3)
+for dg in [1, 3, 6, 8]:
+    basisfunctions_in_lagrangepoints_cell(dg, 2)
+    basisfunctions_in_lagrangepoints_cell(dg, 3)
 print("template<int DG, int GP>")
-print("const Eigen::Matrix<double, DG, GP*GP, Eigen::RowMajor> PSILagrange = PSILagrangeImpl<DG, GP>::value;")
+print(
+    "const Eigen::Matrix<double, DG, GP*GP, Eigen::RowMajor> PSILagrange = PSILagrangeImpl<DG, GP>::value;"
+)
 print("")
 
 
@@ -379,38 +506,42 @@ print("\n\n//------------------------------ Basis Functions in Gauss Points (cel
 
 print("template<int DG, int GP>")
 print("struct PSIImpl;")
-for dg in [1, 3,6,8]:
-    basisfunctions_in_gausspoints_cell(dg,1)
-    basisfunctions_in_gausspoints_cell(dg,2)
-    basisfunctions_in_gausspoints_cell(dg,3)
-    basisfunctions_in_gausspoints_cell(dg,4)
+for dg in [1, 3, 6, 8]:
+    basisfunctions_in_gausspoints_cell(dg, 1)
+    basisfunctions_in_gausspoints_cell(dg, 2)
+    basisfunctions_in_gausspoints_cell(dg, 3)
+    basisfunctions_in_gausspoints_cell(dg, 4)
 
 print("template<int DG, int GP>")
-print("const Eigen::Matrix<double, DG, GP*GP, Eigen::RowMajor> PSI = PSIImpl<DG, GP>::value;")
+print(
+    "const Eigen::Matrix<double, DG, GP*GP, Eigen::RowMajor> PSI = PSIImpl<DG, GP>::value;"
+)
 print("")
-
 
 
 print("template<int DG, int GP>")
 print("struct PSIxImpl;")
 print("template<int DG, int GP>")
 print("struct PSIyImpl;")
-for dg in [1, 3,6,8]:
-    basisfunctions_in_gausspoints_cell_gradient(dg,1)
-    basisfunctions_in_gausspoints_cell_gradient(dg,2)
-    basisfunctions_in_gausspoints_cell_gradient(dg,3)
-    basisfunctions_in_gausspoints_cell_gradient(dg,4)
+for dg in [1, 3, 6, 8]:
+    basisfunctions_in_gausspoints_cell_gradient(dg, 1)
+    basisfunctions_in_gausspoints_cell_gradient(dg, 2)
+    basisfunctions_in_gausspoints_cell_gradient(dg, 3)
+    basisfunctions_in_gausspoints_cell_gradient(dg, 4)
 print("template<int DG, int GP>")
-print("const Eigen::Matrix<double, DG, GP*GP, Eigen::RowMajor> PSIx = PSIxImpl<DG, GP>::value;")
+print(
+    "const Eigen::Matrix<double, DG, GP*GP, Eigen::RowMajor> PSIx = PSIxImpl<DG, GP>::value;"
+)
 print("template<int DG, int GP>")
-print("const Eigen::Matrix<double, DG, GP*GP, Eigen::RowMajor> PSIy = PSIyImpl<DG, GP>::value;")
+print(
+    "const Eigen::Matrix<double, DG, GP*GP, Eigen::RowMajor> PSIy = PSIyImpl<DG, GP>::value;"
+)
 print("")
 
 
-
-for dg in [1,3,6,8]:
-    integration_basisfunctions_in_gausspoints_cell(dg,2)
-    integration_basisfunctions_in_gausspoints_cell(dg,3)
+for dg in [1, 3, 6, 8]:
+    integration_basisfunctions_in_gausspoints_cell(dg, 2)
+    integration_basisfunctions_in_gausspoints_cell(dg, 3)
 
 
 print("\n\n//------------------------------ Edge Basis Functions in Gauss Points\n")
@@ -418,14 +549,16 @@ print("\n\n//------------------------------ Edge Basis Functions in Gauss Points
 
 print("template<int DG, int GP>")
 print("struct PSIeImpl;")
-for dg in [1,2,3]:
-    edge_basisfunctions_in_gausspoints(dg,dg)
-#    edge_basisfunctions_in_gausspoints(dg,dg+1)
+for dg in [1, 2, 3]:
+    edge_basisfunctions_in_gausspoints(dg, dg)
+    #    edge_basisfunctions_in_gausspoints(dg,dg+1)
     print("")
-edge_basisfunctions_in_gausspoints(2,3)
+edge_basisfunctions_in_gausspoints(2, 3)
 
 print("template<int DG, int GP>")
-print("const Eigen::Matrix<double, DG, GP, Eigen::RowMajor> PSIe = PSIeImpl<DG, GP>::value;")
+print(
+    "const Eigen::Matrix<double, DG, GP, Eigen::RowMajor> PSIe = PSIeImpl<DG, GP>::value;"
+)
 print("")
 
 # Some output

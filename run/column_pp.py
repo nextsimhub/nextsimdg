@@ -17,8 +17,16 @@ rhoOcean = 1025
 iceDraught = (hice * rho + hsnow * rhoSnow) / rhoOcean
 
 # Some simple diagnostics
-print("hice  max: {0:0.2f}, min: {1:0.2f}, mean: {2:0.2f}".format(hice.max(), hice.min(), hice.mean()))
-print("hsnow max: {0:0.2f}, min: {1:0.2f}, mean: {2:0.2f}".format(hsnow.max(), hsnow.min(), hsnow.mean()))
+print(
+    "hice  max: {0:0.2f}, min: {1:0.2f}, mean: {2:0.2f}".format(
+        hice.max(), hice.min(), hice.mean()
+    )
+)
+print(
+    "hsnow max: {0:0.2f}, min: {1:0.2f}, mean: {2:0.2f}".format(
+        hsnow.max(), hsnow.min(), hsnow.mean()
+    )
+)
 
 # Figure showing temperature evolution, cf,. Winton (2000) figure 2
 plt.figure(1)

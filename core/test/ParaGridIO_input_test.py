@@ -1,4 +1,5 @@
 """Generate the ParaGridIO_input_test.nc file used by core/test/ParaGrid_test.cpp."""
+
 import netCDF4
 import numpy as np
 
@@ -55,9 +56,9 @@ if __name__ == "__main__":
 
     nc_times = ncFile.createVariable("time", "f8", ("time"))
 
-    #(unix_times_e, era5_times) = create_era5_times(start_time, stop_time)
+    # (unix_times_e, era5_times) = create_era5_times(start_time, stop_time)
     # For each field and time, get the corresponding file name for each dataset
-        # get the source data
+    # get the source data
     data = ncFile.createVariable(field_name, "f8", ("time", "y", "x"))
     data[0, :, :] = time_data
     # 'fill' the time axis
