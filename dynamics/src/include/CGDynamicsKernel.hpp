@@ -8,6 +8,7 @@
 
 #include "DynamicsKernel.hpp"
 #include "DynamicsParameters.hpp"
+#include "SlopeLimiter.hpp"
 
 #include <limits>
 

@@ -156,7 +156,6 @@ jobs:
         brew unlink pkg-config
         brew install pkgconf
         brew link --overwrite pkgconf
-        brew install cmake
         brew install eigen
         brew install netcdf
         brew install netcdf-cxx
