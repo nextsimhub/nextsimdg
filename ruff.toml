@@ -1,3 +1,6 @@
+# Exclude large data generation scripts
+extend-exclude = ["test/era5_topaz4_test_data.py", "test/make_init25kmNH_test_data.py"]
+
 [format]
 docstring-code-format = true
 
