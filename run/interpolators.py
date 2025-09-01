@@ -1,7 +1,9 @@
 import math
+
 import numpy as np
-from scipy import interpolate
 import pyproj
+from scipy import interpolate
+
 
 def topaz4_interpolate(target_lon, target_lat, data, data_x, data_y, proj_string):
     """
@@ -15,7 +17,6 @@ def topaz4_interpolate(target_lon, target_lat, data, data_x, data_y, proj_string
     :param proj_string: Map projection (proj4 string) of the data grid
     :return: Interpolated data on the target grid
     """
-
     # Use pyproj and the fact that the proj4 string is embedded in the TOPAZ files
     P = pyproj.Proj(proj_string)
     target_x, target_y = P(target_lon, target_lat)
@@ -35,7 +36,7 @@ def topaz4_interpolate(target_lon, target_lat, data, data_x, data_y, proj_string
     points = np.array([target_x.ravel()[nanmask], target_y.ravel()[nanmask]]).T
     xi = np.array([target_x.ravel(), target_y.ravel()]).T
 
-    return (interpolate.griddata(points, field.ravel()[nanmask], xi, method='nearest').reshape(target_lon.shape))
+    return (interpolate.griddata(points, field.ravel()[nanmask], xi, method="nearest").reshape(target_lon.shape))
 
 def bilinear(eyes, jays, data):
     """"
@@ -45,7 +46,6 @@ def bilinear(eyes, jays, data):
     :param jays: Fractional indices along the y-axis
     :param data: Data to interpolate
     """
-
     i = np.floor(eyes).astype(int)
     j = np.floor(jays).astype(int)
 
@@ -70,7 +70,6 @@ def era5_interpolate(target_lons, target_lats, data, data_lons, data_lats):
     :param data_lats: Latitudes of the data grid
     :return: Interpolated data on the target grid
     """
-
     target_i = (target_lons - data_lons[0]) / (data_lons[1] - data_lons[0])
     # Make sure that the index is in the range of the size of the longitude array
     target_i %= len(data_lons)
@@ -88,7 +87,6 @@ def heading_to_greenland(lat, lon):
     :param lon: Longitude of the location
     :return: The rotation of the basis vector, computed as the azimuth of the great circle path from the location to the location of the new pole.
     """
-
     # The pole lies at 75˚ N, 40˚ W = -40˚ E = 320˚ E
     pole_lat = math.radians(75.0)
     pole_lon = 320.0
@@ -110,7 +108,6 @@ def rotate_velocities(u, v, angle):
     :param angle: The angle to rotate by, in radians
     :return: A tuple of the rotated u and v components.
     """
-
     return (u * np.cos(angle) + v * np.sin(angle), -u * np.sin(angle) + v * np.cos(angle))
 
 def rotate_pole_to_greenland(lat, lon):
@@ -122,7 +119,6 @@ def rotate_pole_to_greenland(lat, lon):
     :param lon: Longitudes of the mesh
     :return: A tuple of the rotated latitudes and longitudes.
     """
-
     latr = np.deg2rad(lat)
     lonr = np.deg2rad(lon)
 

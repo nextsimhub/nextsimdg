@@ -1,9 +1,14 @@
+import calendar
+import time
+
 import netCDF4
 import numpy as np
-import time
-import calendar
-
-from interpolators import topaz4_interpolate, era5_interpolate, heading_to_greenland, rotate_velocities
+from interpolators import (
+    era5_interpolate,
+    heading_to_greenland,
+    rotate_velocities,
+    topaz4_interpolate,
+)
 
 sec_per_hr = 3600
 hr_per_day = 24
@@ -18,7 +23,6 @@ def create_era5_times(start_tm, stop_tm):
     :param stop_tm: End time for the time series
     :return: Arrays of times for the ERA5 file, in Unix and ERA5 format
     """
-
     from collections import namedtuple
     # Define the tm named tuple structure locally
     Tm = namedtuple("Tm", "tm_year tm_mon tm_mday tm_hour tm_min tm_sec tm_wday tm_yday tm_isdst")
@@ -45,7 +49,6 @@ def create_topaz_times(start_tm, stop_tm):
     :param stop_tm: End time for the time series
     :return: Arrays of times for the TOPAZ file, in Unix and TOPAZ format
     """
-
     from collections import namedtuple
     # Define the tm named tuple structure locally
     Tm = namedtuple("Tm", "tm_year tm_mon tm_mday tm_hour tm_min tm_sec tm_wday tm_yday tm_isdst")
@@ -74,7 +77,6 @@ def era5_source_file_name(field, unix_time, path):
     :param path: Path for the ERA5 file
     :return: File name
     """
-
     file_year = time.gmtime(unix_time).tm_year
     return f"{path}/ERA5_{field}_y{file_year}.nc"
 
@@ -88,7 +90,6 @@ def topaz4_source_file_name(unix_time, path):
     :param path: Path for the TOPAZ4 file
     :return: File name
     """
-
     unix_tm = time.gmtime(unix_time)
     return f"{path}/{unix_tm.tm_year}/topaz_rean_{unix_tm.tm_year}{unix_tm.tm_mon:02}.nc"
 
@@ -142,11 +143,11 @@ if __name__ == "__main__":
     node_x = np.cos(np.radians(node_lon)) * np.cos(np.radians(node_lat))
     node_y = np.sin(np.radians(node_lon)) * np.cos(np.radians(node_lat))
     node_z = np.sin(np.radians(node_lat))
-    
+
     element_x = 0.25 * (node_x[0:-1, 0:-1] + node_x[1:, 0:-1] + node_x[0:-1, 1:] + node_x[1:, 1:])
     element_y = 0.25 * (node_y[0:-1, 0:-1] + node_y[1:, 0:-1] + node_y[0:-1, 1:] + node_y[1:, 1:])
     element_z = 0.25 * (node_z[0:-1, 0:-1] + node_z[1:, 0:-1] + node_z[0:-1, 1:] + node_z[1:, 1:])
-    
+
     # take grid coordinates out of the init file
     element_lon[:, :] = ncFile["longitude"][:,:]
     element_lat[:, :] = ncFile["latitude"][:,:]
@@ -168,7 +169,7 @@ if __name__ == "__main__":
     ###################################################################
 
     # ERA5 data
-    
+
     era5_out_file = f"{filepfx}ERA5_{args.start}_{args.stop}.nc"
     print(f"Writing ERA5 data to {era5_out_file}")
     era5_ncFile = netCDF4.Dataset(era5_out_file, "w", format="NETCDF4")
@@ -177,18 +178,18 @@ if __name__ == "__main__":
     xDim = era5_ncFile.createDimension("xdim", nx)
     yDim = era5_ncFile.createDimension("ydim", ny)
     tDim = era5_ncFile.createDimension("time", None)
-    
+
     hfield_dims = ("ydim", "xdim")
     timefield_dims = ("time", "ydim", "xdim")
-    
+
     # Position and time variables
     nc_lons = era5_ncFile.createVariable("longitude", "f8", hfield_dims)
     nc_lons[:, :] = element_lon
     nc_lats = era5_ncFile.createVariable("latitude", "f8", hfield_dims)
     nc_lats[:, :] = element_lat
-    
+
     greenland_headings = heading_to_greenland(element_lat, element_lon)
-    
+
     nc_times = era5_ncFile.createVariable("time", "f8", ("time"))
     nc_times.units = "seconds since 1970-01-01T00:00:00Z"
 
@@ -259,18 +260,18 @@ if __name__ == "__main__":
 
 
     ###################################################################
-    
+
     # TOPAZ data
-    
+
     topaz_out_file = f"{filepfx}TOPAZ4_{args.start}_{args.stop}.nc"
     topaz_ncFile = netCDF4.Dataset(topaz_out_file, "w", format="NETCDF4")
     print(f"Writing TOPAZ4 data to {topaz_out_file}")
     topaz_ncFile.structure_name = target_structure
-    
+
     xDim = topaz_ncFile.createDimension("xdim", nx)
     yDim = topaz_ncFile.createDimension("ydim", ny)
     tDim = topaz_ncFile.createDimension("time", None)
-    
+
     (unix_times_t, topaz4_times) = create_topaz_times(start_time, stop_time)
 
     source_file = netCDF4.Dataset(topaz4_source_file_name(unix_times_t[0], topaz4_path), "r")
@@ -283,13 +284,13 @@ if __name__ == "__main__":
     nc_lons[:, :] = element_lon
     nc_lats = topaz_ncFile.createVariable("latitude", "f8", hfield_dims)
     nc_lats[:, :] = element_lat
-    
+
     nc_times = topaz_ncFile.createVariable("time", "f8", ("time"))
     nc_times.units = "seconds since 1970-01-01T00:00:00Z"
 
     # TOPAZ data is daily, not hourly
     topaz_time_ratio = hr_per_day
-    
+
     # The current components are offset by 45˚
     topaz_phi0 = 45 # degrees
 
@@ -310,7 +311,7 @@ if __name__ == "__main__":
                 source_data = source_file[topaz_field][time_index, :, :].squeeze()
                 # Now interpolate the source data to the target grid
                 time_data = np.zeros((nx, ny))
-                proj_string = getattr(source_file["stereographic"], 'proj4')
+                proj_string = source_file["stereographic"].proj4
                 source_x = source_file["x"][:]
                 source_y = source_file["y"][:]
                 time_data = topaz4_interpolate(element_lon, element_lat, source_data, source_x, source_y, proj_string)
@@ -322,7 +323,7 @@ if __name__ == "__main__":
                 # Now interpolate the source data to the target grid
                 time_data = np.zeros((nx, ny))
                 data[target_t_index, :, :] = time_data
-        
+
     # Ocean currents
     udata = topaz_ncFile.createVariable("u", "f8", timefield_dims)
     vdata = topaz_ncFile.createVariable("v", "f8", timefield_dims)
@@ -337,7 +338,7 @@ if __name__ == "__main__":
         u_source_data_tgrid = np.zeros((nx, ny))
         v_source_data_tgrid = np.zeros((nx, ny))
         # Interpolate the current components on the TOPAZ basis on to the new grid
-        proj_string = getattr(source_file["stereographic"], 'proj4')
+        proj_string = source_file["stereographic"].proj4
         source_x = source_file["x"][:]
         source_y = source_file["y"][:]
         u_source_data_tgrid = topaz4_interpolate(element_lon, element_lat, u_source_data, source_x, source_y,
@@ -348,9 +349,9 @@ if __name__ == "__main__":
         # Rotate from grid coordinates to geographic eastward/northward components
         rotation_rad = np.radians(element_lon + topaz_phi0 - element_azimuth)
         rotation_rad += heading_to_greenland(element_lat, element_lon)
-        
+
         (u_target_data, v_target_data) = rotate_velocities(u_source_data_tgrid, v_source_data_tgrid, rotation_rad)
-        
+
         udata[target_t_index, :, :] = u_target_data
         vdata[target_t_index, :, :] = v_target_data
 

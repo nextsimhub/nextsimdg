@@ -27,7 +27,6 @@ class SingleColumnThermo(unittest.TestCase):
           - Runs the model
           - Loads the neccesary variables from the output file
         """
-
         # Make the init column
         cls.__make_init_column()
 
@@ -169,7 +168,6 @@ ks = 0.31
         """
         A tear-down class that deletes the netCDF output and temporary files
         """
-
         if os.path.isfile(cls.diagnostics_file):
             os.remove(cls.diagnostics_file)
 
@@ -183,7 +181,6 @@ ks = 0.31
         """
         Test the ice thickness against standard max, min, and mean values
         """
-
         mean = 3.1093
         max = 3.3327
         min = 2.9702
@@ -196,7 +193,6 @@ ks = 0.31
         """
         Test the snow thickness against standard max, min, and mean values
         """
-
         mean = 0.2474
         max = 0.4000
         min = 0.0000
@@ -217,7 +213,6 @@ ks = 0.31
         significant digit changes between 4 and 5 for the T1 mean, so the result is either -17.6250 or -17.6249 - up
         to 4 digits. This is normal, because the output is only accurate to six significant digits anyway.
         """
-
         mean = [-17.6202, -7.5904, -3.7944]
         max = [0.0000, -1.1280, -1.5939]
         min = [-33.1569, -14.8520, -6.1389]
@@ -229,5 +224,5 @@ ks = 0.31
                                    "Mean T" + str(i) + " not ~= " + str(mean[i]) + " ˚C")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

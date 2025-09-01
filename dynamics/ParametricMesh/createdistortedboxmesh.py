@@ -22,6 +22,7 @@ ny =  32
 
 import numpy as np
 
+
 def distx(x,y):
     return np.sin(3.0*np.pi*x/Lx)*np.sin(2.0*np.pi*y/Ly)
 
@@ -37,9 +38,9 @@ sy = 0.05*Ly
 
 f = open("distortedbox.smesh", "w")
 f.write("ParametricMesh 1.0\n")
-f.write('{0}\t{1}\n'.format(nx,ny))
-for y in np.linspace(0,Ly,ny+1):    
+f.write("{0}\t{1}\n".format(nx,ny))
+for y in np.linspace(0,Ly,ny+1):
     for x in np.linspace(0,Lx,nx+1):
-        f.write('{0}\t{1}\n'.format(x+sx*distx(x,y),y+sy*disty(x,y)))
+        f.write("{0}\t{1}\n".format(x+sx*distx(x,y),y+sy*disty(x,y)))
 
 f.close()

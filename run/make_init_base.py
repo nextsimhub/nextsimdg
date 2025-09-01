@@ -31,7 +31,6 @@ class initMaker:
         :param nSecond: Number of columns (seond dimension)
         :param res: Model resolution [m]
         """
-
         # Set the file name
         self.__fname = fname
 
@@ -94,7 +93,6 @@ class initMaker:
         """
         Write everything to file. This is called by the destructor.
         """
-
         print("Producing file", self.__fname)
 
         self.__testFields__()

@@ -19,18 +19,17 @@ with Nx x Ny elements
 @author  Tim Spain <timothy.spain@nersc.no>
 """
 
-import numpy as np
-import netCDF4
 import matplotlib.pyplot as plt
+import netCDF4
+import numpy as np
 
-
-if __name__ == '__main__':
+if __name__ == "__main__":
 
 
   input_file ="25km_NH.nc"
   restart_file = "init_25km_NH.nc" # get the land mask from the restart file
 
-  output_file = input_file.replace(".nc",'_newmask.smesh')
+  output_file = input_file.replace(".nc","_newmask.smesh")
 
   #load file
   nc = netCDF4.Dataset(input_file)
@@ -52,7 +51,7 @@ if __name__ == '__main__':
   #Start of the mesh file
   f.write("ParametricMesh 2.0\n")
   #number of elements in x and y directions
-  f.write('{0}\t{1}\n'.format(nx,ny))
+  f.write("{0}\t{1}\n".format(nx,ny))
 
   x_scale = 25000
   y_scale = 25000
@@ -60,7 +59,7 @@ if __name__ == '__main__':
   #simple write mesh elements 1x1
   for iy in range(ny+1):
    for ix in range(nx+1):
-      f.write('{0}\t{1}\n'.format(ix * x_scale, iy * y_scale))
+      f.write("{0}\t{1}\n".format(ix * x_scale, iy * y_scale))
 
   for iy in range(ny):
     for ix in range(nx):
@@ -79,7 +78,7 @@ if __name__ == '__main__':
           except:
             dirichlet_list.append([no_element, shift[2]])
   ## write landmask
-  f.write("landmask\t{}\n".format(nx*ny));
+  f.write("landmask\t{}\n".format(nx*ny))
   for iy in range(ny):
     for ix in range(nx):
       f.write("{}\n".format(int(mask[ix,iy])))
@@ -89,7 +88,7 @@ if __name__ == '__main__':
   #write dirichlet boundaries into file
   f.write("dirichlet\t{}\n".format(len(dirichlet_list)))
   for dirichlet in dirichlet_list:
-    f.write('{}\t{}\n'.format(dirichlet[0], dirichlet[1]))
+    f.write("{}\t{}\n".format(dirichlet[0], dirichlet[1]))
 
   f.write("periodic 0")
   f.close()
