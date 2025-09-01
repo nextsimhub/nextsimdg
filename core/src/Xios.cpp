@@ -760,15 +760,16 @@ void Xios::affixModelMetadata(ModelMetadata& metadata)
         size_t counter = 0;
         for (ModelArray::Dimension dim : ModelArray::typeDimensions[type]) {
             const std::string domainName = ModelArray::definedDimensions[dim].name;
-            // TODO: Can we avoid this hack for getting the increment?
-            size_t increment = (type == ModelArray::Type::H) ? 0 : 1;
+            // Add 1 in the case of vertex-based field types
+            ModelArray::Base base = ModelArray::baseTypes[type];
+            size_t extension = (base == ModelArray::Base::Vertex) ? 1 : 0;
             if (counter == 0) {
-                cxios_set_domain_ni_glo(domain, (int)metadata.globalExtentX + increment);
+                cxios_set_domain_ni_glo(domain, (int)metadata.globalExtentX + extension);
                 if (!cxios_is_defined_domain_ni_glo(domain)) {
                     throw std::runtime_error(
                         "Xios: Failed to set global x-size for domain '" + domainId + "'");
                 }
-                cxios_set_domain_ni(domain, (int)metadata.localExtentX + increment);
+                cxios_set_domain_ni(domain, (int)metadata.localExtentX + extension);
                 if (!cxios_is_defined_domain_ni(domain)) {
                     throw std::runtime_error(
                         "Xios: Failed to set local x-size for domain '" + domainId + "'");
@@ -789,12 +790,12 @@ void Xios::affixModelMetadata(ModelMetadata& metadata)
                         "Xios: Failed to set longitude name for domain '" + domainId + "'");
                 }
             } else if (counter == 1) {
-                cxios_set_domain_nj_glo(domain, (int)metadata.globalExtentY + increment);
+                cxios_set_domain_nj_glo(domain, (int)metadata.globalExtentY + extension);
                 if (!cxios_is_defined_domain_nj_glo(domain)) {
                     throw std::runtime_error(
                         "Xios: Failed to set global y-size for domain '" + domainId + "'");
                 }
-                cxios_set_domain_nj(domain, (int)metadata.localExtentY + increment);
+                cxios_set_domain_nj(domain, (int)metadata.localExtentY + extension);
                 if (!cxios_is_defined_domain_nj(domain)) {
                     throw std::runtime_error(
                         "Xios: Failed to set local y-size for domain '" + domainId + "'");
