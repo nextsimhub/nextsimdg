@@ -1,5 +1,13 @@
 /*!
  * @author  Tom Meltzer <tdm39@cam.ac.uk>
+ * @brief   Test halo exchange class for Periodic Boundaries (PB)
+ * @details
+ *
+ * Test halo exchange class for Periodic Boundaries (PB) on following fields:
+ * - HField
+ * - VertexField
+ * - DGField
+ * - DGVector
  */
 
 #include <doctest/extensions/doctest_mpi.h>

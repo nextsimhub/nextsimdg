@@ -1,5 +1,13 @@
 /*!
  * @author  Tom Meltzer <tdm39@cam.ac.uk>
+ * @brief   Test halo exchange class for Closed Boundaries (CB)
+ * @details
+ *
+ * Test halo exchange class for Closed Boundaries (CB) on following fields:
+ * - HField
+ * - VertexField
+ * - DGField
+ * - DGVector
  */
 
 #include <doctest/extensions/doctest_mpi.h>
