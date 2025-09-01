@@ -38,7 +38,7 @@ static const std::string EMPKeyDefault = "I_fwflux";
 static const std::string QNoSunKeyDefault = "I_rsnos";
 static const std::string QSWKeyDefault = "I_rsso";
 static const std::string SFluxKeyDefault = "I_sfi";
-static const std::string CIceKeyDefault = "I_conc";
+static const std::string CIceKeyDefault = "I_sic";
 
 static const std::string SSTConfigKey = moduleName + ".sea_surface_temperature";
 static const std::string SSSConfigKey = moduleName + ".sea_surface_salinity";
