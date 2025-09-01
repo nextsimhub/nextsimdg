@@ -180,7 +180,6 @@ void ParametricMesh::readmesh(std::string fname)
 void ParametricMesh::coordinatesFromModelArray(const ModelArray& coords)
 {
     // Fill in the array sizes from the ModelArray dimensions
-    // TODO check do we need to make any additional changes here
     nx = ModelArray::size(ModelArray::Dimension::X);
     ny = ModelArray::size(ModelArray::Dimension::Y);
     nelements = nx * ny;
