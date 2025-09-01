@@ -11,6 +11,7 @@
 #include "include/ModelArray.hpp"
 #include "include/constants.hpp"
 
+#include "SlopeLimiter.hpp"
 #include "include/Interpolations.hpp"
 #include "include/ParametricMap.hpp"
 #include "include/VectorManipulations.hpp"
@@ -417,10 +418,24 @@ DGVector<DGadvection>& CGDynamicsKernel<DGadvection>::advectDGVField(
     double timestep, DGVector<DGadvection>& field, double lowerLimit, double upperLimit)
 {
     dgtransport->step(timestep, field);
-    if (lowerLimit > -std::numeric_limits<double>::infinity())
-        LimitMin(field, lowerLimit);
-    if (upperLimit < std::numeric_limits<double>::infinity())
-        LimitMax(field, upperLimit);
+
+    //! Slope Limiting
+    SlopeLimiter<DGadvection> SL(*smesh);
+    bool limitSlope = false;
+
+    // First, limit minimum and/or maximum of the average component
+    if (lowerLimit > -std::numeric_limits<double>::infinity()) {
+        SL.limitMin(field, lowerLimit);
+        limitSlope = true;
+    }
+    if (upperLimit < std::numeric_limits<double>::infinity()) {
+        SL.limitMax(field, upperLimit);
+        limitSlope = true;
+    }
+
+    // Then prevent new local minima and maxima
+    if (limitSlope)
+        SL.limit(field);
 
     return field;
 }
