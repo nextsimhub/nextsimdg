@@ -47,11 +47,13 @@ if(ENABLE_MPI)
         ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} 1 testTOPAZOcn_MPI1 -ns)
 
     if (ENABLE_OASIS)
-        add_executable(testOASISCoupledOcean_MPI1 "OASISCoupledOcean_test.cpp" "../../core/test/MainMPI.cpp")
-        target_include_directories(testOASISCoupledOcean_MPI1 PRIVATE "${ModulesRoot}/OceanBoundaryModule")
+        add_executable(testOASISCoupledOcean_MPI1
+            "OASISCoupledOcean_test.cpp" "../../core/test/MainMPI.cpp")
+        target_include_directories(testOASISCoupledOcean_MPI1
+            PRIVATE "${ModulesRoot}/OceanBoundaryModule")
         target_compile_definitions(
-                testOASISCoupledOcean_MPI1
-                PRIVATE USE_MPI TEST_FILES_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}\"
+            testOASISCoupledOcean_MPI1
+            PRIVATE USE_MPI TEST_FILES_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}\"
         )
         target_link_libraries(testOASISCoupledOcean_MPI1 PRIVATE nextsimlib doctest::doctest)
 
