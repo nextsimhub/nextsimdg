@@ -82,8 +82,8 @@ private:
 
     // A map to relate the strings in the namcouple file to the numbers def_var spits out
     std::map<std::string, int> couplingId;
-    std::string SSTKey, SSSKey, UOceanKey, VOceanKey, SSHKey, MLDKey, TauXKey, TauYKey, TauModKey,
-        EMPKey, QNoSunKey, QSWKey, SFluxKey, CIceKey;
+    std::string SSTKey, SSSKey, UOceanKey, VOceanKey, SSHKey, FracQSWKey, MLDKey, TauXKey, TauYKey,
+        TauModKey, EMPKey, QNoSunKey, QSWKey, SFluxKey, CIceKey;
 
     // A map relating the namcouple strings to ModelArrayRef's
     std::map<std::string, std::string> fieldTags;
