@@ -1,7 +1,6 @@
 /*!
  * @file OASISCoupledOcean.cpp
  *
- * @date 05 Jun 2025
  * @author Tim Spain <timothy.spain@nersc.no>
  * @author Einar Ólason <einar.olason@nersc.no>
  */
@@ -65,6 +64,9 @@ void OASISCoupledOcean::updateBefore(const TimestepTime& tst)
 
     OASIS_CHECK_ERR(oasis_c_get(couplingId.at(SSHKey), OASISTime, dimension0, dimension1,
         bundleSize, OASIS_DOUBLE, OASIS_COL_MAJOR, &ssh[0], &kinfo));
+
+      OASIS_CHECK_ERR(oasis_c_get(couplingId.at(FracQSWKey), OASISTime, dimension0, dimension1,
+          bundleSize, OASIS_DOUBLE, OASIS_COL_MAJOR, &fracQSWAbs[0], &kinfo));
 
     if (couplingId.find(MLDKey) != couplingId.end()) {
         OASIS_CHECK_ERR(oasis_c_get(couplingId.at(MLDKey), OASISTime, dimension0, dimension1,
@@ -152,6 +154,7 @@ void OASISCoupledOcean::configure()
     UOceanKey = Configured::getConfiguration(UOceanConfigKey, UOceanKeyDefault);
     VOceanKey = Configured::getConfiguration(VOceanConfigKey, VOceanKeyDefault);
     SSHKey = Configured::getConfiguration(SSHConfigKey, SSHKeyDefault);
+    FracQSWKey = Configured::getConfiguration(FracQSWConfigKey, FracQSWKeyDefault);
     MLDKey = Configured::getConfiguration(MLDConfigKey, MLDKeyDefault);
     TauXKey = Configured::getConfiguration(TauXConfigKey, TauXKeyDefault);
     TauYKey = Configured::getConfiguration(TauYConfigKey, TauYKeyDefault);

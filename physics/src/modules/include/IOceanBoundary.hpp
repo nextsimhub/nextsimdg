@@ -32,6 +32,7 @@ public:
         , sFlux(ModelArray::Type::H)
         , qswow(ModelArray::Type::H)
         , qswBase(ModelArray::Type::H)
+        , fracQSWAbs(ModelArray::Type::H)
         , tauX(ModelArray::Type::H)
         , tauY(ModelArray::Type::H)
         , cice(getStore())
@@ -137,7 +138,7 @@ private:
     void mergeFluxesElement(size_t i, const TimestepTime& tst)
     {
         // Heat fluxes - partitioned in solar and non-solar
-        qswNet[i] = cice[i] * qswBase[i] + (1 - cice[i]) * qswow[i];
+        qswNet[i] = fracQSWAbs[i] * (cice[i] * qswBase[i] + (1 - cice[i]) * qswow[i]);
         qNoSun[i] = cice[i] * qio[i] + (1 - cice[i]) * qow[i] - qswNet[i];
 
         // Mass fluxes - fresh water and salt
@@ -176,6 +177,7 @@ protected:
     HField sFlux; // Net surface ocean salt flux, kg m⁻²
     HField qswow; // Shortwave flux in open water W m⁻²
     HField qswBase; // Shortwave flux at the base of the ice W m⁻²
+    HField fracQSWAbs; // The fraction of solar radiation absorbed in the surface ocean layer
     HField tauX; // x(east)-ward total ocean stress, Pa
     HField tauY; // y(north)-ward total ocean stress, Pa
 
