@@ -374,7 +374,7 @@ public:
         ArraySlicer::SliceIter sourceIter(sourceSlice, { m_innerNx, m_innerNy });
         ArraySlicer::SliceIter targetIter(targetSlice, { m_Nx, m_Ny });
 
-        // target = 0.; // everything outside the inner block should be initialized to zero.
+        target.setZero(); // everything outside the inner block should be initialized to zero.
 
         ModelArraySlice::copySliceWithIters(source, sourceIter, target, targetIter);
     }
