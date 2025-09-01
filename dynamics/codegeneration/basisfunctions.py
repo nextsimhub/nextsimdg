@@ -90,7 +90,7 @@ def dx_dgbasis(j,x,y):
         raise AssertionError
 
 def dy_dgbasis(j,x,y):
-    if j==0 or j==1:
+    if j in {0, 1}:
         return 0.
     elif j==2:
         return 1.
