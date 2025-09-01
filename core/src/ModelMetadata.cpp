@@ -103,10 +103,8 @@ void ModelMetadata::readNeighbourData(netCDF::NcFile& ncFile)
     }
 }
 
-// rename
 void ModelMetadata::getPartitionMetadata(std::string partitionFile)
 {
-    // TODO: Move the reading of the partition file to its own class
     netCDF::NcFile ncFile(partitionFile, netCDF::NcFile::read);
     int sizes = ncFile.getDim("L").getSize();
     int nBoxes = ncFile.getDim("P").getSize();
