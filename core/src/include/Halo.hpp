@@ -21,18 +21,6 @@
 #define HALOWIDTH 1
 #endif
 
-#ifndef DGCOMP
-#define DGCOMP 3
-#endif
-
-#ifndef DGSTRESSCOMP
-#define DGSTRESSCOMP 8
-#endif
-
-#ifndef CGDEGREE
-#define CGDEGREE 2
-#endif
-
 namespace Nextsim {
 
 /*!
