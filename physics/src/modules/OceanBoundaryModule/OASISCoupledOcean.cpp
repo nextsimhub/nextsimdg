@@ -167,7 +167,7 @@ void OASISCoupledOcean::configure()
 
     firstLayerDepth = Configured::getConfiguration(layerDepthConfigKey, FIRST_LAYER_DEPTH);
 
-    cplStringsIn = { SSTKey, SSSKey, UOceanKey, VOceanKey, SSHKey };
+    cplStringsIn = { SSTKey, SSSKey, UOceanKey, VOceanKey, SSHKey, FracQSWKey };
     if (Configured::getConfiguration(exchangeFirstLayerConfigKey, exchangeFirstLayerDefault)) {
         cplStringsIn.push_back(MLDKey);
     }

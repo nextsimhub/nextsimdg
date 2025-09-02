@@ -95,6 +95,7 @@ public:
         sFlux.resize();
         qswow.resize();
         qswBase.resize();
+        fracQSWAbs.resize();
         tauX.resize();
         tauY.resize();
 
