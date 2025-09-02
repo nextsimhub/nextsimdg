@@ -6,7 +6,7 @@
 #ifndef IOCEANBOUNDARY_HPP
 #define IOCEANBOUNDARY_HPP
 
-#include "include/ModelComponent.hpp"
+#include "include/CheckingModelComponent.hpp"
 #include "include/ModelMetadata.hpp"
 #include "include/constants.hpp"
 #include "include/gridNames.hpp"
@@ -14,27 +14,27 @@
 namespace Nextsim {
 
 //! An interface class for the oceanic inputs into the ice physics.
-class IOceanBoundary : public ModelComponent {
+class IOceanBoundary : public CheckingModelComponent {
 public:
     IOceanBoundary()
-        : qio(ModelArray::Type::H)
-        , sst(ModelArray::Type::H)
-        , sss(ModelArray::Type::H)
-        , mld(ModelArray::Type::H)
-        , cpml(ModelArray::Type::H)
-        , tf(ModelArray::Type::H)
-        , u(ModelArray::Type::H)
-        , v(ModelArray::Type::H)
-        , ssh(ModelArray::Type::H)
-        , qNoSun(ModelArray::Type::H)
-        , qswNet(ModelArray::Type::H)
+        : qio(ModelArray::Type::H, { -1e8, 1e8 })
+        , sst(ModelArray::Type::H, { -5, 50 })
+        , sss(ModelArray::Type::H, { 0, 50 })
+        , mld(ModelArray::Type::H, { 1e-3, 12e3 })
+        , cpml(ModelArray::Type::H, { 0, 1e11 })
+        , tf(ModelArray::Type::H, { -5, 0 })
+        , u(ModelArray::Type::H, { -1, 1 })
+        , v(ModelArray::Type::H, { -1, 1 })
+        , ssh(ModelArray::Type::H, { -10, 10 })
+        , qNoSun(ModelArray::Type::H, { -1e6, 1e6 })
+        , qswNet(ModelArray::Type::H, { -1e3, 1e3 })
         , fwFlux(ModelArray::Type::H)
         , sFlux(ModelArray::Type::H)
-        , qswow(ModelArray::Type::H)
-        , qswBase(ModelArray::Type::H)
+        , qswow(ModelArray::Type::H, { -1e3, 1e-6 })
+        , qswBase(ModelArray::Type::H, { -1e3, 1e-6 })
         , fracQSWAbs(ModelArray::Type::H)
-        , tauX(ModelArray::Type::H)
-        , tauY(ModelArray::Type::H)
+        , tauX(ModelArray::Type::H, { -10, 10 })
+        , tauY(ModelArray::Type::H, { -10, 10 })
         , cice(getStore())
         , evap(getStore())
         , rain(getStore())
@@ -98,6 +98,26 @@ public:
         fracQSWAbs.resize();
         tauX.resize();
         tauY.resize();
+
+        addChecks({
+            { "qio", &qio },
+            { "sst", &sst },
+            { "sss", &sss },
+            { "mld", &mld },
+            { "cpml", &cpml },
+            { "tf", &tf },
+            { "u", &u },
+            { "v", &v },
+            { "ssh", &ssh },
+            { "qNoSun", &qNoSun },
+            { "qswNet", &qswNet },
+            { "fwFlux", &fwFlux },
+            { "sFlux", &sFlux },
+            { "qswow", &qswow },
+            { "qswBase", &qswBase },
+            { "tauX", &tauX },
+            { "tauY", &tauY },
+        });
 
         if (ms.count(sstName)) {
             sst = ms.at(sstName);

@@ -75,6 +75,8 @@ jobs:
         python3 ThermoIntegration_test.py
         ./run_test_jan2010_integration.sh python3
         ./run_test_advection.sh python3
+        ./run_test_error_handling_test.sh python3
+        cd -
 
   test-ubuntu-mpi-noxios:
 
@@ -154,7 +156,6 @@ jobs:
         brew unlink pkg-config
         brew install pkgconf
         brew link --overwrite pkgconf
-        brew install cmake
         brew install eigen
         brew install netcdf
         brew install netcdf-cxx
@@ -184,3 +185,5 @@ jobs:
         python ThermoIntegration_test.py
         ./run_test_jan2010_integration.sh python
         ./run_test_advection.sh python
+        ./run_test_error_handling_test.sh python
+        cd -

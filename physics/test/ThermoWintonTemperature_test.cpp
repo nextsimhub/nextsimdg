@@ -185,6 +185,7 @@ TEST_CASE("Freezing conditions")
             qia[0] = 42.2955;
             dqia_dt[0] = 16.7615;
             subl[0] = 2.15132e-6;
+            penSW[0] = 0.;
         }
     } atmosState;
     atmosState.setData(ModelState().data);

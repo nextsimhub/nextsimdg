@@ -19,6 +19,14 @@ public:
     std::string getName() const override { return "DummyDynamics"; }
     void update(const TimestepTime& tst) override {};
     void prepareAdvection() override { }
+    void setData(const ModelState::DataMap& state) override
+    {
+        IDynamics::setData(state);
+
+        // Set the ice velocity to zero so that we don't trip the PrognosticData field checks.
+        uice = 0.;
+        vice = 0.;
+    }
 };
 }
 

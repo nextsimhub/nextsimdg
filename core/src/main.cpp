@@ -25,6 +25,8 @@ int main(int argc, char* argv[])
     MPI_Comm modelCommunicator = MPI_COMM_WORLD;
 #endif // USE_MPI
 
+    int return_code = 0;
+
     // Pass the command line to Configurator to handle
     Nextsim::Configurator::setCommandLine(argc, argv);
     // Extract any config files defined on the command line
@@ -64,7 +66,12 @@ int main(int argc, char* argv[])
         // Apply the model configuration
         model.configure();
         // Run the Model
-        model.run();
+        try {
+            model.run();
+        } catch (const std::exception& e) {
+            return_code = -1;
+            Nextsim::Logged::error(e.what());
+        }
 #ifdef USE_MPI
 #ifdef USE_OASIS
         OASIS_CHECK_ERR(oasis_c_terminate());
@@ -75,5 +82,5 @@ int main(int argc, char* argv[])
     MPI_Finalize();
 #endif
 
-    return 0;
+    return return_code;
 }
