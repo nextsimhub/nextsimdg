@@ -122,8 +122,10 @@ void OASISCoupledOcean::updateAfter(const TimestepTime& tst)
     OASIS_CHECK_ERR(oasis_c_put(couplingId.at(TauModKey), OASISTime, dimension0, dimension1, 1,
         OASIS_DOUBLE, OASIS_COL_MAJOR, &tauMod[0], OASIS_No_Restart, &kinfo));
 
+    // Implicitly copy the 0th DG component (the mean)
+    const HField cice0 = cice;
     OASIS_CHECK_ERR(oasis_c_put(couplingId.at(CIceKey), OASISTime, dimension0, dimension1, 1,
-        OASIS_DOUBLE, OASIS_COL_MAJOR, &cice[0], OASIS_No_Restart, &kinfo));
+        OASIS_DOUBLE, OASIS_COL_MAJOR, &cice0[0], OASIS_No_Restart, &kinfo));
 
     // Increment the "OASIS" time by the number of seconds in the time step
     updateOASISTime(tst);
