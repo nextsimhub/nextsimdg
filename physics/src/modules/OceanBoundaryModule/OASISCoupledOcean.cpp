@@ -37,7 +37,7 @@ void OASISCoupledOcean::setMetadata(const ModelMetadata& metadata)
         couplingId[idString] = idNumber;
     }
 #else
-    throw std::runtime_error(std::string(__func__) + ": " + OASISError);
+    throw std::runtime_error(std::string(__func__) + ": " + NoOASISError);
 #endif
 }
 
@@ -65,8 +65,8 @@ void OASISCoupledOcean::updateBefore(const TimestepTime& tst)
     OASIS_CHECK_ERR(oasis_c_get(couplingId.at(SSHKey), OASISTime, dimension0, dimension1,
         bundleSize, OASIS_DOUBLE, OASIS_COL_MAJOR, &ssh[0], &kinfo));
 
-      OASIS_CHECK_ERR(oasis_c_get(couplingId.at(FracQSWKey), OASISTime, dimension0, dimension1,
-          bundleSize, OASIS_DOUBLE, OASIS_COL_MAJOR, &fracQSWAbs[0], &kinfo));
+    OASIS_CHECK_ERR(oasis_c_get(couplingId.at(FracQSWKey), OASISTime, dimension0, dimension1,
+        bundleSize, OASIS_DOUBLE, OASIS_COL_MAJOR, &fracQSWAbs[0], &kinfo));
 
     if (couplingId.find(MLDKey) != couplingId.end()) {
         OASIS_CHECK_ERR(oasis_c_get(couplingId.at(MLDKey), OASISTime, dimension0, dimension1,
@@ -84,7 +84,7 @@ void OASISCoupledOcean::updateBefore(const TimestepTime& tst)
     Module::getImplementation<IIceOceanHeatFlux>().update(tst);
 
 #else
-    throw std::runtime_error(std::string(__func__) + ": " + OASISError);
+    throw std::runtime_error(std::string(__func__) + ": " + NoOASISError);
 #endif
 }
 
@@ -142,7 +142,7 @@ void OASISCoupledOcean::updateAfter(const TimestepTime& tst)
     std::cout << CIceKey << ": " << cice[0] << std::endl;
     */
 #else
-    throw std::runtime_error(std::string(__func__) + ": " + OASISError);
+    throw std::runtime_error(std::string(__func__) + ": " + NoOASISError);
 #endif
 }
 

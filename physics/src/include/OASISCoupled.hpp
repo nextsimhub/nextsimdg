@@ -29,7 +29,7 @@ public:
     // Must be called at the end of the child class' update or updateAfter call.
     void updateOASISTime(const TimestepTime& tst) { OASISTime += tst.step.seconds(); }
 #else
-    const std::string OASISError = std::string(": OASIS support not compiled in.\n");
+    const std::string NoOASISError = std::string(": OASIS support not compiled in.\n");
 #endif
 };
 
