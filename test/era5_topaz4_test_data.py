@@ -81148,6 +81148,13 @@ def get_topaz_data(name):
             ]).reshape(ny, nx)
             
 if __name__ == "__main__":
+    # Set up the argument parsing so that we can create arroneous data
+    import argparse
+    parser = argparse.ArgumentParser(description = "Create ERA5 and TOPAZ4 data for the integration test.")
+    parser.add_argument("--errors", dest="errors", required = False, action=argparse.BooleanOptionalAction, \
+        help = "Multiply all the fields with 10 to test error handling routines.")
+    args = parser.parse_args()
+
     target_structure = "parametric_rectangular"
 
     nx = 154
@@ -81164,7 +81171,7 @@ if __name__ == "__main__":
     print(f"Writing ERA5 data to {era5_out_file}")
     era_ncFile = netCDF4.Dataset(era5_out_file, "w", format="NETCDF4")
     era_ncFile.structure_name = target_structure
-    
+
     # Use the start time as the timestamp for the file
     formatted = era_ncFile.createVariable("formatted", str)
     formatted.format = "%Y-%m-%dT%H:%M:%SZ"
@@ -81189,6 +81196,9 @@ if __name__ == "__main__":
         data = era_ncFile.createVariable(field_name, "f8", timefield_dims)
         data[0, :, :] = get_era_data(field_name)
         data[1, :, :] = get_era_data(field_name)
+        if args.errors:
+            data[0, :, :] = 10*data[0, :, :]
+
     era_ncFile.close()
 
     ocean_fields = ("mld", "sss", "sst", "ssh", "u", "v")
@@ -81205,7 +81215,7 @@ if __name__ == "__main__":
     topaz_ncFile = netCDF4.Dataset(topaz_out_file, "w", format="NETCDF4")
     print(f"Writing TOPAZ4 data to {topaz_out_file}")
     topaz_ncFile.structure_name = target_structure
-    
+
     # Use the start time as the timestamp for the file
     formatted = topaz_ncFile.createVariable("formatted", str)
     formatted.format = "%Y-%m-%dT%H:%M:%SZ"

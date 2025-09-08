@@ -41,7 +41,13 @@ void Iterator::run()
 
     for (auto t = startTime; t < stopTime; t += timestep) {
         TimestepTime tsTime = { t, timestep };
-        iterant.iterate(tsTime);
+        try {
+            iterant.iterate(tsTime);
+        } catch (const std::exception& e) {
+            iterant.stop(t);
+            throw std::runtime_error(
+                e.what() + std::string(" Execution halted at time step ") + tsTime.start.format());
+        }
     }
 
     iterant.stop(stopTime);
