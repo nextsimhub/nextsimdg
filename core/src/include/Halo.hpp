@@ -21,6 +21,7 @@
 #include <vector>
 
 #include "Slice.hpp"
+#include "cgVector.hpp"
 #include "dgVector.hpp"
 #include "include/ModelArray.hpp"
 #include "include/ModelArraySlice.hpp"
@@ -61,6 +62,19 @@ public:
         intializeHaloMetadata();
     }
 
+    /*!
+     * @brief Constructs a halo object from CGVector
+     */
+    template <int N> Halo(CGVector<N>& cgv)
+    {
+        m_numComps = 1;
+        isCG = true;
+        CGdegree = N;
+        isVertex = false;
+        setSpatialDims();
+        intializeHaloMetadata();
+    }
+
     /**
      * @brief Sets the spatial dimensions of the domain
      *
@@ -76,6 +90,11 @@ public:
         m_innerNx = metadata.getLocalExtentX();
         m_innerNy = metadata.getLocalExtentY();
 
+        // extend dimensions for CGVectors
+        if (isCG) {
+            m_innerNy = m_innerNy * CGdegree + 1;
+            m_innerNx = m_innerNx * CGdegree + 1;
+        }
         // extend dimensions by 1 for vertex fields
         if (isVertex) {
             m_innerNx += 1;
@@ -191,7 +210,9 @@ private:
 
     MPI_Win m_win; // RMA memory window object (used for sharing send buffers between ranks)
 
-    bool isVertex; // some ModelArrays can be of type VERTEX
+    bool isVertex = false; // some ModelArrays can be of type VERTEX
+    bool isCG = false; // is layout CGVector
+    int CGdegree = 0;
 
     std::vector<std::vector<double>>
         send; // buffer to store halo region that will be read by other ranks

@@ -14,8 +14,10 @@
 
 #include "ModelMPI.hpp"
 #include "ModelMetadata.hpp"
+#include "cgVector.hpp"
 #include "include/DGModelArray.hpp"
 #include "include/Halo.hpp"
+#include "include/Interpolations.hpp"
 
 namespace Nextsim {
 
@@ -23,6 +25,7 @@ const std::string testFilesDir = TEST_FILES_DIR;
 const std::string file = testFilesDir + "/partition_metadata_3_cb.nc";
 
 static const int DG = 3;
+static const int CGDEGREE = 2;
 static const bool debug = false;
 
 // reference data for each process
@@ -239,7 +242,7 @@ MPI_TEST_CASE("DGField", 3)
     }
 }
 
-MPI_TEST_CASE("DGVector", 3)
+MPI_TEST_CASE("DGVector and CGVector", 3)
 {
     auto& modelMPI = ModelMPI::getInstance();
     auto& metadata = ModelMetadata::getInstance();
@@ -258,13 +261,13 @@ MPI_TEST_CASE("DGVector", 3)
     ParametricMesh smesh(CARTESIAN);
     smesh.nx = localNx;
     smesh.ny = localNy;
-    smesh.nnodes = localNx * localNy;
     smesh.nelements = localNx * localNy;
-    smesh.vertices.resize(smesh.nelements, Eigen::NoChange);
-    for (size_t i = 0; i < localNx; ++i) {
-        for (size_t j = 0; j < localNy; ++j) {
-            smesh.vertices(i * localNy + j, 0) = i;
-            smesh.vertices(i * localNy + j, 1) = j;
+    smesh.nnodes = (localNx + 1) * (localNy + 1);
+    smesh.vertices.resize(smesh.nnodes, Eigen::NoChange);
+    for (size_t i = 0; i < localNx + 1; ++i) {
+        for (size_t j = 0; j < localNy + 1; ++j) {
+            smesh.vertices(i * (localNy + 1) + j, 0) = i;
+            smesh.vertices(i * (localNy + 1) + j, 1) = j;
         }
     }
 
@@ -304,5 +307,14 @@ MPI_TEST_CASE("DGVector", 3)
             }
         }
     }
+
+    // initialize CGVector (after halo exchange on DGVector)
+    CGVector<CGDEGREE> cgVector;
+    cgVector.resize_by_mesh(smesh);
+    Interpolations::DG2CG(smesh, cgVector, testData);
+
+    // create halo for testData model array
+    Halo haloCG(testData);
+    // haloCG.exchangeHalos(cgVector);
 }
 }
