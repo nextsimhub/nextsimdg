@@ -1,5 +1,6 @@
 import netCDF4
 import numpy as np
+from interpolators import rotate_pole_to_greenland
 
 
 class initMaker:
@@ -18,7 +19,7 @@ class initMaker:
             * "p": only center points of the grid are given
             * "ur": the centre and upper right corner of the grid is given
             * "ll": the centre and lower left corner of the grid is given
-          >>> init.make_geographic_grid("coords.nc", "p", p_lat_name="latitude", p_lon_name="longitude")
+          >>> init.make_geographic_grid("coordinates.nc", "ur", plat_name="gphit", plon_name="glamt", qlat_name="gphif", qlon_name="glamf")
      3. Modify any variables needed, e.g.
       >>> init.cice = 1
       >>> init.hice = 3
@@ -63,7 +64,7 @@ class initMaker:
         self.sss = np.zeros((nFirst, nSecond))
         self.sst = np.zeros((nFirst, nSecond))
 
-    def __init_file(self):
+    def __init_file__(self):
         """
         Open the netCDF file for writing and create the dimensions and basic structure.
         """
@@ -101,7 +102,8 @@ class initMaker:
         # Initialise the arrays
         self.__init_vars__(nFirst, nSecond)
 
-        self.__init_file()
+        # Open the output file and create the basic structure
+        self.__init_file__()
 
         # Array coordinates
         x = np.zeros((self.__nFirst + 1, self.__nSecond + 1))
@@ -129,6 +131,128 @@ class initMaker:
 
         grid_azimuth = self.__ncFile.createVariable("grid_azimuth", "f8", self.__field_dims)
         grid_azimuth[:, :] = 0.
+
+    def make_geographic_grid(self, grid_file, pos, plon_name="plon", plat_name="plat", qlon_name="qlon", qlat_name="qlat"):
+
+        grid = netCDF4.Dataset(f"{grid_file}", "r")
+
+        # Grid dimensions. We're dealing with files written in and for FORTRAN, so y is the first dimension and x the second.
+        nfirst = grid.dimensions["y"].size
+        nsecond = grid.dimensions["x"].size
+
+        # Initialise the arrays
+        self.__init_vars__(nfirst, nsecond)
+
+        # Open the output file and create the basic structure
+        self.__init_file__()
+
+        # Array coordinates
+        node_lon = np.zeros((nfirst + 1, nsecond + 1))
+        node_lat = np.zeros((nfirst + 1, nsecond + 1))
+
+        # Deduce the coordinates of the grid corners
+        if pos == "ur":
+            """
+            This is for grids with plon and plat at the centre of the grid cell and qlon and qlat at the upper right
+            corner; typical for an ocean model C-grid. The NEMO/ORCA grid is one of those.
+            That means making up the locations of the first few points.
+            """
+            plon = grid.variables[plon_name][:, :]
+            plat = grid.variables[plat_name][:, :]
+            qlon = grid.variables[qlon_name][:, :]
+            qlat = grid.variables[qlat_name][:, :]
+
+            # Stay in the [-180, 180] range
+            plon = self.__wrap_to_180__(plon)
+
+            # We proceed through the grid from the lower left corner in a row-major order. For the UR grid, that means
+            # making up the locations of the first few points.
+
+            # Extrapolate to get the lower right corner
+            node_lon[0, 0] = qlon[0, 0] - (qlon[1, 0]-qlon[0, 0]) - (qlon[0, 1]-qlon[0, 0])
+            node_lat[0, 0] = qlat[0, 0] - (qlat[1, 0]-qlat[0, 0]) - (qlat[0, 1]-qlat[0, 0])
+
+            # Extrapolate to get the rest of the bottom row
+            node_lon[0, 1:] = qlon[0, :] - (qlon[1, :]-qlon[0, :])
+            node_lat[0, 1:] = qlat[0, :] - (qlat[1, :]-qlat[0, :])
+
+            # Extrapolate to get the first column
+            node_lon[1:, 0] = qlon[:, 0] - (qlon[:, 1]-qlon[:, 0])
+            node_lat[1:, 0] = qlat[:, 0] - (qlat[:, 1]-qlat[:, 0])
+
+            # Fill the rest with the values provided on the upper left corner
+            node_lon[1:, 1:] = qlon[:, :]
+            node_lat[1:, 1:] = qlat[:, :]
+
+        else:
+            raise ValueError(f"Posigion {pos} not yet implemented (expected 'ur', 'll', or 'p').")
+
+        coords = self.__ncFile.createVariable("coords", "f8", self.__coord_dims)
+        coords[:, :, 0] = node_lon
+        coords[:, :, 1] = node_lat
+
+        elem_lon = self.__ncFile.createVariable("longitude", "f8", self.__field_dims)
+        elem_lon[:, :] = plon
+        elem_lat = self.__ncFile.createVariable("latitude", "f8", self.__field_dims)
+        elem_lat[:, :] = plat
+
+        grid_azimuth = self.__ncFile.createVariable("grid_azimuth", "f8", self.__field_dims)
+
+        # Rotate the pole to Greenland
+        (rlat, rlon) = rotate_pole_to_greenland(node_lat, node_lon)
+        # Return the grid azimuth to the range -180˚ to 180˚
+        grid_azimuth_data = self.__wrap_to_180__(self.__grid_angle__(rlon, rlat))
+        grid_azimuth[:, :] = grid_azimuth_data
+
+        grid.close()
+
+    def __wrap_to_180__(self, x_in):
+        x = x_in
+        x += 180.
+        x %= 360.
+        x -= 180.
+        return x
+
+    def __grid_angle__(self, lons, lats):
+
+        n = np.shape(lons)[0] - 1
+        m = np.shape(lons)[1] - 1
+
+        theta = np.zeros((n, m))
+
+        for i in range(0, n):
+            for j in range(0, m):
+
+                lonVerts = lons[i:i+2, j:j+2].ravel()
+                latVerts = lats[i:i+2, j:j+2].ravel()
+
+                # Rotate the longitude if needed
+                if abs(lonVerts[0] - lonVerts[1]) > 90. or abs(lonVerts[2] - lonVerts[3]) > 90:
+                    for ii in range(0,4):
+                        if lonVerts[ii] < 0:
+                            lonVerts[ii] += 360
+
+                #
+                # (lon3,lat3) --- (x1,y1) --- (lon2,lat2)
+                #      |                           |
+                #      |                           |
+                #      |                           |
+                # (lon0,lat0) --- (x0,y0) --- (lon1,lat1)
+                #
+
+                # Find the centre points alatg the x-axis
+                x0 = 0.5*(latVerts[0] + latVerts[1])
+                x1 = 0.5*(latVerts[2] + latVerts[3])
+                y0 = 0.5*(lonVerts[0] + lonVerts[1])
+                y1 = 0.5*(lonVerts[2] + lonVerts[3])
+
+                # Calculate the angle as the change in lat/lat coordinates across the grid cell
+                dx = x1 - x0
+                dy = y1 - y0
+
+                theta[i, j] = np.arctan2(dy, dx)
+
+        return theta
 
     def __testFields__(self):
         """
