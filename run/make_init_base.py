@@ -175,7 +175,7 @@ class initMaker:
             # We proceed through the grid from the lower left corner in a row-major order. For the UR grid, that means
             # making up the locations of the first few points.
 
-            # Extrapolate to get the lower right corner
+            # Extrapolate to get the lower left corner
             node_lon[0, 0] = qlon[0, 0] - (qlon[1, 0]-qlon[0, 0]) - (qlon[0, 1]-qlon[0, 0])
             node_lat[0, 0] = qlat[0, 0] - (qlat[1, 0]-qlat[0, 0]) - (qlat[0, 1]-qlat[0, 0])
 
@@ -187,7 +187,7 @@ class initMaker:
             node_lon[1:, 0] = qlon[:, 0] - (qlon[:, 1]-qlon[:, 0])
             node_lat[1:, 0] = qlat[:, 0] - (qlat[:, 1]-qlat[:, 0])
 
-            # Fill the rest with the values provided on the upper left corner
+            # Fill the rest with the values provided on the upper right corner
             node_lon[1:, 1:] = qlon[:, :]
             node_lat[1:, 1:] = qlat[:, :]
 
