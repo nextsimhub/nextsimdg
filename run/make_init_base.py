@@ -10,22 +10,21 @@ class initMaker:
     initialisation fields they need, as well as a land mask.
     Usage:
      0. Import make_init_base
-      >>> from make_init_base import initMaker
+      >> from make_init_base import initMaker
      1. Create an initialiser object with a given filename, e.g.
-      >>> init = initMaker("test")
+      >> init = initMaker("test")
          2a. Create a cartesian grid from dimensions and resolution, e.g.
-          >>> init.make_cartesian_grid(128, 128, 3e3)
+          >> init.make_cartesian_grid(128, 128, 3e3)
          2b. Create a geographic grid from a file containing coordinates. We need to define type of grid:
-            * "p": only center points of the grid are given
+            * "p": only centre points of the grid are given
             * "ur": the centre and upper right corner of the grid is given
             * "ll": the centre and lower left corner of the grid is given
-          >>> init.make_geographic_grid("coordinates.nc", "ur", plat_name="gphit", plon_name="glamt", qlat_name="gphif", qlon_name="glamf")
+          init.make_geographic_grid("coordinates.nc", "ur", plat_name="gphit", plon_name="glamt", qlat_name="gphif", qlon_name="glamf")
      3. Modify any variables needed, e.g.
-      >>> init.cice = 1
-      >>> init.hice = 3
-      >>> init.hice[10:20, 10:20] = 4
-     4. The init file is written when the initialiser object goes out of scope
-        (e.g. when the program ends or at the end of a loop).
+      >> init.cice = 1
+      >> init.hice = 3
+      >> init.hice[10:20, 10:20] = 4
+     4. The init file is written when the initialiser object goes out of scope (e.g. when the program ends or at the end of a loop).
     """
 
     def __init__(self, fname, nCg=1, nDg=1, nDgStress=3, nCoords=2, checkZeros=True):
@@ -47,28 +46,34 @@ class initMaker:
         # Do we check for zeros?
         self.__checkZeros = checkZeros
 
-    def __init_vars__(self, nFirst, nSecond):
+    def __init_vars_and_file__(self, nFirst, nSecond):
+        """
+        Initialise the arrays. Open the netCDF file for writing and create the dimensions and basic structure. This must
+        be called from inside make_cartesian_grid or make_geographic_grid.
+
+        :param nFirst: The number of rows (first dimension)
+        :param nSecond: The number of columns (second dimension)
+        """
 
         # Set all arrays to the correct size
         self.__nFirst = nFirst
         self.__nSecond = nSecond
 
+        # Set all arrays to zero ...
         self.mask = np.zeros((nFirst, nSecond))
         self.cice = np.zeros((nFirst, nSecond))
         self.hice = np.zeros((nFirst, nSecond))
         self.hsnow = np.zeros((nFirst, nSecond))
-        self.damage = np.zeros((self.__nFirst, nSecond))
         self.uice = np.zeros((nFirst, nSecond))
         self.vice = np.zeros((nFirst, nSecond))
         self.azimuth = np.zeros((nFirst, nSecond))
         self.sss = np.zeros((nFirst, nSecond))
         self.sst = np.zeros((nFirst, nSecond))
 
-    def __init_file__(self):
-        """
-        Open the netCDF file for writing and create the dimensions and basic structure.
-        """
+        # ... except for the damage array, which is all ones.
+        self.damage = np.ones((nFirst, nSecond))
 
+        #Open the netCDF file for writing and create the dimensions and basic structure.
         self.__ncFile = netCDF4.Dataset(self.__fname, "w", format="NETCDF4")
 
         structure_name = "parametric_rectangular"
@@ -96,22 +101,16 @@ class initMaker:
         :param res: Model resolution [m]
         """
 
-        # Set the array dimensions and resolution
-        self.__res = res
-
-        # Initialise the arrays
-        self.__init_vars__(nFirst, nSecond)
-
-        # Open the output file and create the basic structure
-        self.__init_file__()
+        # Initialise the arrays and the output file
+        self.__init_vars_and_file__(nFirst, nSecond)
 
         # Array coordinates
         x = np.zeros((self.__nFirst + 1, self.__nSecond + 1))
         y = np.zeros((self.__nFirst + 1, self.__nSecond + 1))
         for j in range(self.__nFirst + 1):
             for i in range(self.__nSecond + 1):
-                x[j, i] = i * self.__res
-                y[j, i] = j * self.__res
+                x[j, i] = i * res
+                y[j, i] = j * res
 
         coords = self.__ncFile.createVariable("coords", "f8", self.__coord_dims)
         coords[:, :, 0] = x
@@ -121,8 +120,8 @@ class initMaker:
         py = np.zeros((self.__nFirst, self.__nSecond))
         for j in range(self.__nFirst):
             for i in range(self.__nSecond):
-                px[j, i] = (j + 0.5) * self.__res
-                py[j, i] = (i + 0.5) * self.__res
+                px[j, i] = (j + 0.5) * res
+                py[j, i] = (i + 0.5) * res
 
         elem_x = self.__ncFile.createVariable("x", "f8", self.__field_dims)
         elem_x[:, :] = px
@@ -133,6 +132,17 @@ class initMaker:
         grid_azimuth[:, :] = 0.
 
     def make_geographic_grid(self, grid_file, pos, plon_name="plon", plat_name="plat", qlon_name="qlon", qlat_name="qlat"):
+        """
+        Create a geographic grid from a file containing coordinates.
+
+        :param grid_file: The input grid file.
+        :param pos: The position of the grid corners. Either "ur", "ll", or "p".
+        :param plon_name: Name of the longitude variable in the grid file for the grid cell centre.
+        :param plat_name: Name of the latitude variable in the grid file for the grid cell centre.
+        :param qlon_name: Name of the longitude variable in the grid file for the grid cell upper right or lower left corner.
+        :param qlat_name: Name of the latitude variable in the grid file for the grid cell upper right or lower left corner.
+        :return:
+        """
 
         grid = netCDF4.Dataset(f"{grid_file}", "r")
 
@@ -140,11 +150,8 @@ class initMaker:
         nfirst = grid.dimensions["y"].size
         nsecond = grid.dimensions["x"].size
 
-        # Initialise the arrays
-        self.__init_vars__(nfirst, nsecond)
-
-        # Open the output file and create the basic structure
-        self.__init_file__()
+        # Initialise the arrays and the output file
+        self.__init_vars_and_file__(nfirst, nsecond)
 
         # Array coordinates
         node_lon = np.zeros((nfirst + 1, nsecond + 1))
@@ -157,13 +164,13 @@ class initMaker:
             corner; typical for an ocean model C-grid. The NEMO/ORCA grid is one of those.
             That means making up the locations of the first few points.
             """
-            plon = grid.variables[plon_name][:, :]
-            plat = grid.variables[plat_name][:, :]
+            self.__plon = grid.variables[plon_name][:, :]
+            self.__plat = grid.variables[plat_name][:, :]
             qlon = grid.variables[qlon_name][:, :]
             qlat = grid.variables[qlat_name][:, :]
 
             # Stay in the [-180, 180] range
-            plon = self.__wrap_to_180__(plon)
+            self.__plon = self.__wrap_to_180__(self.__plon)
 
             # We proceed through the grid from the lower left corner in a row-major order. For the UR grid, that means
             # making up the locations of the first few points.
@@ -192,21 +199,26 @@ class initMaker:
         coords[:, :, 1] = node_lat
 
         elem_lon = self.__ncFile.createVariable("longitude", "f8", self.__field_dims)
-        elem_lon[:, :] = plon
+        elem_lon[:, :] = self.__plon
         elem_lat = self.__ncFile.createVariable("latitude", "f8", self.__field_dims)
-        elem_lat[:, :] = plat
+        elem_lat[:, :] = self.__plat
 
         grid_azimuth = self.__ncFile.createVariable("grid_azimuth", "f8", self.__field_dims)
 
         # Rotate the pole to Greenland
         (rlat, rlon) = rotate_pole_to_greenland(node_lat, node_lon)
-        # Return the grid azimuth to the range -180˚ to 180˚
-        grid_azimuth_data = self.__wrap_to_180__(self.__grid_angle__(rlon, rlat))
-        grid_azimuth[:, :] = grid_azimuth_data
+        # Return the grid azimuth
+        grid_azimuth[:, :] = self.__grid_angle__(rlon, rlat)
 
         grid.close()
 
     def __wrap_to_180__(self, x_in):
+        """
+        Wrap the input array to the range [-180, 180].
+
+        :param x_in: Input longitudes.
+        :return: Output longitudes in the range [-180, 180].
+        """
         x = x_in
         x += 180.
         x %= 360.
@@ -214,6 +226,13 @@ class initMaker:
         return x
 
     def __grid_angle__(self, lons, lats):
+        """
+        Calculate the angle between the grid y-axis and north.
+
+        :param lons: Longitudes of the grid vertices.
+        :param lats: Latitudes of the grid vertices.
+        :return: Angle between the grid y-axis and north.
+        """
 
         n = np.shape(lons)[0] - 1
         m = np.shape(lons)[1] - 1
@@ -223,36 +242,54 @@ class initMaker:
         for i in range(0, n):
             for j in range(0, m):
 
-                lonVerts = lons[i:i+2, j:j+2].ravel()
-                latVerts = lats[i:i+2, j:j+2].ravel()
+                lonVerts = lons[i:i + 2, j:j + 2]
+                latVerts = lats[i:i + 2, j:j + 2]
 
                 # Rotate the longitude if needed
-                if abs(lonVerts[0] - lonVerts[1]) > 90. or abs(lonVerts[2] - lonVerts[3]) > 90:
-                    for ii in range(0,4):
-                        if lonVerts[ii] < 0:
-                            lonVerts[ii] += 360
+                if (abs(lonVerts[0, 0] - lonVerts[1, 0]) > 90. or abs(lonVerts[0, 1] - lonVerts[1, 1]) > 90 or abs(
+                    lonVerts[0, 0] - lonVerts[0, 1]) > 90 or abs(lonVerts[1, 0] - lonVerts[1, 1]) > 90):
+                    for ii in range(0, 2):
+                        for jj in range(0, 2):
+                            if lonVerts[ii, jj] < 0:
+                                lonVerts[ii, jj] += 360
 
-                #
-                # (lon3,lat3) --- (x1,y1) --- (lon2,lat2)
-                #      |                           |
-                #      |                           |
-                #      |                           |
-                # (lon0,lat0) --- (x0,y0) --- (lon1,lat1)
-                #
-
-                # Find the centre points alatg the x-axis
-                x0 = 0.5*(latVerts[0] + latVerts[1])
-                x1 = 0.5*(latVerts[2] + latVerts[3])
-                y0 = 0.5*(lonVerts[0] + lonVerts[1])
-                y1 = 0.5*(lonVerts[2] + lonVerts[3])
+                # Find the centre points along the x-axis
+                # The array looks like this:
+                # [1,0] --- (lat1,lon1) --- [1,1]
+                #   |                     |
+                #   |                     |
+                #   |                     |
+                # [0,0] --- (lat0,lon0) --- [0,1]
+                # Where (lat1,lon1) and (lat0,lon0) are the centre points of the top and bottom sides of the grid cell. I've
+                # removed the division by two from the averaging, as it gets cancelled out in atan2.
+                lat0 = latVerts[0, 0] + latVerts[0, 1]
+                lat1 = latVerts[1, 0] + latVerts[1, 1]
+                lon0 = lonVerts[0, 0] + lonVerts[0, 1]
+                lon1 = lonVerts[1, 0] + lonVerts[1, 1]
 
                 # Calculate the angle as the change in lat/lat coordinates across the grid cell
-                dx = x1 - x0
-                dy = y1 - y0
+                dx = lat1 - lat0
+                dy = lon1 - lon0
 
                 theta[i, j] = np.arctan2(dy, dx)
 
         return theta
+
+    def get_element_longitude(self):
+        """
+        Returns the longitude of the grid cell centre.
+
+        :return: Longitude of the grid cell centre.
+        """
+        return self.__plon
+
+    def get_element_latitude(self):
+        """
+        Returns the latitude of the grid cell centre.
+
+        :return: Latitude of the grid cell centre.
+        """
+        return self.__plat
 
     def __testFields__(self):
         """
@@ -266,12 +303,8 @@ class initMaker:
         for check in [["cice", (self.cice == 0).all(), self.cice.shape == (self.__nFirst, self.__nSecond)],
                       ["hice", (self.hice == 0).all(), self.hice.shape == (self.__nFirst, self.__nSecond)],
                       ["hsnow", (self.hsnow == 0).all(), self.hsnow.shape == (self.__nFirst, self.__nSecond)],
-                      ["damage", (self.damage == 0).all(), self.damage.shape == (self.__nFirst, self.__nSecond)],
-                      ["uice", (self.uice == 0).all(), self.uice.shape == (self.__nFirst, self.__nSecond)],
-                      ["vice", (self.vice == 0).all(), self.vice.shape == (self.__nFirst, self.__nSecond)],
                       ["sss", (self.sss == 0).all(), self.sss.shape == (self.__nFirst, self.__nSecond)],
-                      ["sst", (self.sst == 0).all(), self.sst.shape == (self.__nFirst, self.__nSecond)],
-                      ["azimuth", (self.azimuth == 0).all(), self.azimuth.shape == (self.__nFirst, self.__nSecond)]]:
+                      ["sst", (self.sst == 0).all(), self.sst.shape == (self.__nFirst, self.__nSecond)]]:
 
             if self.__checkZeros and check[1]:
                 print("Warning: '" + check[0] + "' is all zeros (this may be ok, if that's what you want).")
@@ -281,11 +314,15 @@ class initMaker:
                 raise RuntimeError("Incorrect array shape")
 
     def __del__(self):
+        """
+        Write the file when the object is destroyed.
+        """
+
         self.__writeFile__()
 
     def __writeFile__(self):
         """
-        Write everything to file. This is called by the destructor.
+        Write everything to a file. This is called by the destructor.
         """
 
         print("Producing file", self.__fname)
