@@ -95,7 +95,7 @@ y_coords = np.zeros((nx + 1, ny + 1))
 for i in range(nx + 1):
     x_coords[i, :] = coord1d
     y_coords[:, i] = coord1d
-    
+
 lat = 90 - (x_coords**2 + y_coords**2)**0.5
 
 lon_x0 = 270. # degrees

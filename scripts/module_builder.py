@@ -8,6 +8,7 @@ import os
 
 from module_strings import *
 
+
 # A valid implementation section has an entry "file_prefix = "
 def is_impl_section_valid(section):
     return (file_prefix_str in section)
@@ -30,11 +31,10 @@ def write_source_file(source, config, strings):
     for section in config:
         if section in (module_section_str, default_str,):
             continue
-        else:
-            if file_prefix_str in config[section]:
-                valid_impl_sections.append(section)
-                if is_default_str in config[section] and config[section][is_default_str]:
-                    default_impl = section
+        elif file_prefix_str in config[section]:
+            valid_impl_sections.append(section)
+            if is_default_str in config[section] and config[section][is_default_str]:
+                default_impl = section
 
     module_templ = f"Module<{strings[class_name]}>"
     h_class = "HelpMap"
@@ -44,10 +44,10 @@ def write_source_file(source, config, strings):
 #    source.write(f"#include \"{strings[header_file_path_str]}\"\n")
 #    source.write("\n")
     module_file = f"NextsimModule.{header_suffix}"
-    source.write(f"#include \"{os.path.join(strings[internal_header_dir], strings[interface_prefix_str])}{strings[file_prefix_str]}.{header_suffix}\"\n")
-    source.write(f"#include \"{os.path.join(strings[internal_header_dir], module_file)}\"\n")
+    source.write(f'#include "{os.path.join(strings[internal_header_dir], strings[interface_prefix_str])}{strings[file_prefix_str]}.{header_suffix}"\n')
+    source.write(f'#include "{os.path.join(strings[internal_header_dir], module_file)}"\n')
     for section in valid_impl_sections:
-        source.write(f"#include \"{os.path.join(strings[internal_header_dir], config[section][file_prefix_str])}.{header_suffix}\"\n")
+        source.write(f'#include "{os.path.join(strings[internal_header_dir], config[section][file_prefix_str])}.{header_suffix}"\n')
     source.write("""
 #include <string>
 
@@ -59,7 +59,7 @@ namespace {strings[module_class_name]} {{
     impl_strings = {}
     for section in valid_impl_sections:
         impl_strings[section] = config[section][file_prefix_str].upper()
-        source.write(f"const std::string {impl_strings[section]} = \"{section}\";\n")
+        source.write(f'const std::string {impl_strings[section]} = "{section}";\n')
     source.write("}\n") # End of the module-specific namespace
     mapVarName = "theMap"
     source.write(f"""
@@ -91,8 +91,8 @@ template <> HelpMap& {module_templ}::getHelpRecursive(HelpMap& map, bool getAll)
         {{ """)
     for section in valid_impl_sections:
         source.write(f"{strings[module_class_name]}::{impl_strings[section]}, ")
-    source.write(f"}}, {strings[module_class_name]}::{impl_strings[default_impl]}, \"\",\n")
-    source.write(f"        \"{config[module_section_str][description_str]}\" }});\n")
+    source.write(f'}}, {strings[module_class_name]}::{impl_strings[default_impl]}, "",\n')
+    source.write(f'        "{config[module_section_str][description_str]}" }});\n')
     for section in valid_impl_sections:
         if (has_help_str in config[section]) and (config[section][has_help_str] == true_str):
             source.write(f"    {section}::getHelpRecursive(map, getAll);\n")
@@ -135,28 +135,26 @@ template class {module_templ};
     source.write("""
 } /* namespace Module */
 """)
-    
-'''
+
+"""
 Main program
 
 Parse the module.cfg file in a directory and generate the corresponding
 module source file.
-'''
+"""
 def main():
     config = get_config_with_defaults()
-    
+
     config_status = check_config_errors(config)
     if config_status > 0:
         return config_status
-    
+
     # Create a dictionary of common strings
     strings = common_strings(config)
-    
-    source = open(module_file_prefix + "." + source_suffix, "w", encoding=file_encoding)
-    
-    write_file_header(source, strings[module_class_name])
-    write_source_file(source, config, strings)
-    source.close()
-    
+
+    with open(module_file_prefix + "." + source_suffix, "w", encoding=file_encoding) as source:
+        write_file_header(source, strings[module_class_name])
+        write_source_file(source, config, strings)
+
 if __name__ == "__main__":
     main()

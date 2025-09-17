@@ -4,9 +4,11 @@ import numpy as np
 
 class initMaker:
     """
-    A "plug-and-play" initialisation class for neXtSIM. The user needs to supply
-    at minimum the grid dimensions and resolution. They may also supply any
-    initialisation fields they need, as well as a land mask.
+    A "plug-and-play" initialisation class for neXtSIM.
+
+    The user needs to supply at minimum the grid dimensions and resolution. They may
+    also supply any initialisation fields they need, as well as a land mask.
+
     Usage:
      0. Import make_init_base
       >>> from make_init_base import initMaker
@@ -23,15 +25,15 @@ class initMaker:
 
     def __init__(self, fname, nFirst, nSecond, res, nCg=1, nDg=1, nDgStress=3, nCoords=2, checkZeros=True):
         """
-        Initialise all internal variables, except __nfirst, __nsecond, __nLayers,
-        and __res to zero. All arrays are set to the right size as well.
-        
+        Initialise most internal variables to zero and all arrays to the right size.
+
+        Exceptions: __nfirst, __nsecond, __nLayers, and __res are not set to zero.
+
         :param fname: Name of the file to write the output into
         :param nFirst: Number of rows (first dimension)
         :param nSecond: Number of columns (seond dimension)
         :param res: Model resolution [m]
         """
-
         # Set the file name
         self.__fname = fname
 
@@ -63,12 +65,15 @@ class initMaker:
 
     def __testFields__(self):
         """
-        Check if arrays are non-zero and the right size. Print a warning if
-        they're zero (this may be ok). Raise a RuntimeError if the shape is wrong.
+        Check if arrays are non-zero and the right size.
+
+        Print a warning if they're zero (this may be ok). Raise a RuntimeError if the
+        shape is wrong.
         """
         if (self.mask==0).all():
             print("Error: 'mask' is not set (all values are zero, meaning land everywhere)")
-            raise RuntimeError("'mask' is not set")
+            runtime_err = "'mask' is not set"
+            raise RuntimeError(runtime_err)
 
         for check in [["cice", (self.cice==0).all(), self.cice.shape==(self.__nFirst,self.__nSecond)],
                       ["hice", (self.hice==0).all(), self.hice.shape==(self.__nFirst,self.__nSecond)],
@@ -85,16 +90,15 @@ class initMaker:
 
             if not check[2]:
                 print("Error: '"+check[0]+"' is the wrong shape")
-                raise RuntimeError("Incorrect array shape")
+                runtime_err = "Incorrect array shape"
+                raise RuntimeError(runtime_err)
 
     def __del__(self):
+        """Destructor that writes the file when the object goes out of scope."""
         self.__writeFile__()
 
     def __writeFile__(self):
-        """
-        Write everything to file. This is called by the destructor.
-        """
-
+        """Write everything to file. This is called by the destructor."""
         print("Producing file", self.__fname)
 
         self.__testFields__()
