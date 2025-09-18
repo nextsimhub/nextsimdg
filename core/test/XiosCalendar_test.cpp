@@ -68,12 +68,12 @@ MPI_TEST_CASE("TestXiosCalendar", 1)
 
     // --- Tests for getCurrentDate method
     REQUIRE(xiosHandler.getCalendarStep() == 0);
-    REQUIRE(xiosHandler.getCurrentDate() == "2023-03-17T17:11:00Z");
-    REQUIRE(xiosHandler.getCurrentDate(false) == "2023-03-17 17:11:00");
+    REQUIRE(xiosHandler.getCurrentDate().format() == "2023-03-17T17:11:00Z");
 
     // -- Tests that the timestep is set up correctly
     xiosHandler.setCalendarStep(1);
-    REQUIRE(xiosHandler.getCurrentDate() == "2023-03-17T18:41:00Z");
+    REQUIRE(xiosHandler.getCalendarStep() == 1);
+    REQUIRE(xiosHandler.getCurrentDate().format() == "2023-03-17T18:41:00Z");
 
     xiosHandler.context_finalize();
     Finalizer::finalize();

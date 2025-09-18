@@ -487,11 +487,11 @@ int Xios::getCalendarStep() { return clientCalendar->getCalendar()->getStep(); }
  *
  * @return current calendar date
  */
-std::string Xios::getCurrentDate(const bool isoFormat)
+TimePoint Xios::getCurrentDate()
 {
     cxios_date xiosDate;
     cxios_get_current_date(&xiosDate);
-    return convertXiosDatetimeToString(xiosDate, isoFormat);
+    return TimePoint(convertXiosDatetimeToString(xiosDate, true));
 }
 
 /*!

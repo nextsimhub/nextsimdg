@@ -90,7 +90,7 @@ public:
     TimePoint getCalendarStart();
     Duration getCalendarTimestep();
     int getCalendarStep();
-    std::string getCurrentDate(const bool isoFormat = true);
+    TimePoint getCurrentDate();
 
     /* Axis */
     void createAxis(const std::string axisId);
