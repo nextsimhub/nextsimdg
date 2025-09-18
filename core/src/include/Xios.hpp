@@ -208,6 +208,7 @@ private:
     xios::CFileGroup* getFileGroup();
     xios::CFile* getFile(const std::string fileId);
     void setFileMode(const std::string fileId, const std::string mode);
+    // TODO: Account for separate restart and forcing files
     std::string inputFilename;
     std::string inputFileId;
     std::string outputFilename;

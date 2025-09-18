@@ -954,9 +954,14 @@ std::set<std::string> Xios::configGetFieldNames(const bool reading)
     if (reading) {
         istringstream(Configured::getConfiguration(keyMap.at(INPUT_FIELD_NAMES_KEY), std::string()))
             >> fieldsStr;
+        // TODO: Avoid the following hacky approach
+        std::string tmpStr;
         istringstream(
             Configured::getConfiguration(keyMap.at(FORCING_FIELD_NAMES_KEY), std::string()))
-            >> fieldsStr;
+            >> tmpStr;
+        if (tmpStr.length() > 0) {
+            fieldsStr += "," + tmpStr;
+        }
     } else {
         istringstream(
             Configured::getConfiguration(keyMap.at(OUTPUT_FIELD_NAMES_KEY), std::string()))
@@ -1270,7 +1275,9 @@ void Xios::createFile(const std::string fileId)
 
     // Determine whether the file is configured for reading or writing
     bool readAccess = ((inputFileId.length() > 0) && (inputFileId == fileId));
+    // TODO: Account for separate restart and forcing files
     bool writeAccess = ((outputFileId.length() > 0) && (outputFileId == fileId));
+    // TODO: Account for diagnostics (#917)
 
     // Check that the filename is not in both the XiosOutput and XiosInput config sections
     if (readAccess && writeAccess) {
@@ -1307,10 +1314,18 @@ void Xios::createFile(const std::string fileId)
         istringstream(
             Configured::getConfiguration(keyMap.at(INPUT_RESTARTPERIOD_KEY), std::string()))
             >> periodStr;
+        // TODO: Avoid this hacky approach
+        std::string tmpStr;
+        istringstream(Configured::getConfiguration(keyMap.at(FORCING_PERIOD_KEY), std::string()))
+            >> tmpStr;
+        if (tmpStr.length() > 0) {
+            periodStr += "," + tmpStr;
+        }
     } else {
         istringstream(
             Configured::getConfiguration(keyMap.at(OUTPUT_RESTARTPERIOD_KEY), std::string()))
             >> periodStr;
+        // TODO: Account for diagnostics (#917)
     }
     if (periodStr.length() == 0 || periodStr == "0") {
         setFileOutputFreq(fileId, stopTime - startTime);
@@ -1319,7 +1334,8 @@ void Xios::createFile(const std::string fileId)
     }
 
     // Create all fields found in the config based off the field names found in the
-    // XiosInput.field_names or XiosOutput.field_names entries in the config.
+    // XiosInput.field_names, XiosOutput.field_names, or XiosForcing.field_names entries in the
+    // config.
     for (std::string fieldId : configGetFieldNames(readAccess)) {
         createField(fieldId);
         fileAddField(fileId, fieldId);

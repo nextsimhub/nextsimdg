@@ -69,6 +69,8 @@ MPI_TEST_CASE("TestXiosRead", 2)
     // NOTE: The 2D grid is created along with the 2D domain
     xiosHandler.setFieldOperation(hiceName, "instant");
     xiosHandler.setFieldGridRef(hiceName, "grid_2D");
+    xiosHandler.setFieldOperation(uName, "instant");
+    xiosHandler.setFieldGridRef(uName, "grid_2D");
     Duration timestep = xiosHandler.getCalendarTimestep();
     xiosHandler.setFieldFreqOffset(hiceName, timestep);
 
@@ -94,20 +96,20 @@ MPI_TEST_CASE("TestXiosRead", 2)
     auto forcingFieldNames = xiosHandler.configGetFieldNames(true, false);
     for (int ts = 1; ts <= 4; ts++) {
 
-        // Update the current timestep and verify it's updated in XIOS
-        metadata.incrementTime(timestep);
-        REQUIRE(xiosHandler.getCalendarStep() == ts);
-
         // Read forcings from file and check they take the expected values
         TimePoint time = xiosHandler.getCurrentDate();
         ModelState forcings = pio->readForcingTimeStatic(forcingFieldNames, time, filename);
         for (auto& entry : forcings.data) {
             for (size_t j = 0; j < ny; ++j) {
                 for (size_t i = 0; i < nx; ++i) {
-                    REQUIRE(entry.second(i, j) == doctest::Approx(-(i + nx * j)));
+                    REQUIRE(entry.second(i, j) == doctest::Approx(ts - 1));
                 }
             }
         }
+
+        // Update the current timestep and verify it's updated in XIOS
+        metadata.incrementTime(timestep);
+        REQUIRE(xiosHandler.getCalendarStep() == ts);
 
         // Read restarts from file and check they take the expected values
         ModelState restarts = grid.getModelState(filename, metadata);

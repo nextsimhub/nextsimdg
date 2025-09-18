@@ -135,7 +135,7 @@ ModelState ParaGridIO::readForcingTimeStatic(
     const bool readAccess = true;
     std::set<std::string> readFieldIds = xiosHandler.configGetFieldNames(readAccess, false);
     for (const std::string& fieldId : forcings) {
-        if (readFieldIds.count(fieldId) || !xiosHandler.getFieldReadAccess(fieldId)) {
+        if (readFieldIds.count(fieldId) == 0 || !xiosHandler.getFieldReadAccess(fieldId)) {
             throw std::runtime_error("ParaGridIO::readForcingTimeStatic: forcing " + fieldId
                 + " is not configured for reading, but is being read from file.");
         }
