@@ -137,7 +137,7 @@ Xios::HelpMap& Xios::getHelpText(HelpMap& map, bool getAll)
             "an ISO8601 duration (P prefix) or number of seconds. A value of zero assumes no "
             "intermediate restart files." },
         { keyMap.at(INPUT_RESTARTFILE_KEY), ConfigType::STRING, {}, "", "",
-            // TODO: Support format "restart%Y-%m-%dT%H:%M:%SZ.nc"
+            // TODO: Support format "restart%Y-%m-%dT%H:%M:%SZ.nc" (#898)
             "The file name to be used for input." },
         { keyMap.at(INPUT_FIELD_NAMES_KEY), ConfigType::STRING, {}, "", "",
             "Comma-separated list of field names to be read from the input file." },
@@ -148,7 +148,7 @@ Xios::HelpMap& Xios::getHelpText(HelpMap& map, bool getAll)
             "duration (P prefix) or number of seconds. A value of zero "
             "ensures no intermediate restart files are written." },
         { keyMap.at(OUTPUT_RESTARTFILE_KEY), ConfigType::STRING, {}, "", "",
-            // TODO: Support format "restart%Y-%m-%dT%H:%M:%SZ.nc"
+            // TODO: Support format "restart%Y-%m-%dT%H:%M:%SZ.nc" (#898)
             "The file name to be used for output." },
         { keyMap.at(OUTPUT_FIELD_NAMES_KEY), ConfigType::STRING, {}, "", "",
             "Comma-separated list of field names to be written to the output file." },
@@ -159,7 +159,7 @@ Xios::HelpMap& Xios::getHelpText(HelpMap& map, bool getAll)
             "read, formatted as an ISO8601 duration (P prefix) or number of "
             "seconds. A value of zero assumes no intermediate restart files." },
         { keyMap.at(FORCING_FILE_KEY), ConfigType::STRING, {}, "", "",
-            // TODO: Support format "restart%Y-%m-%dT%H:%M:%SZ.nc"
+            // TODO: Support format "restart%Y-%m-%dT%H:%M:%SZ.nc" (#898)
             "The file name to be used for forcings." },
         { keyMap.at(FORCING_FIELD_NAMES_KEY), ConfigType::STRING, {}, "", "",
             "Comma-separated list of field names to be read from the forcings "
@@ -978,9 +978,7 @@ std::set<std::string> Xios::configGetForcingFieldNames()
     return str2set(fieldsStr);
 }
 
-/*!
- * Extract the field_names entry from the XiosInput and XiosForcing sections of the config.
- */
+// Extract the field_names entry from the XiosInput and XiosForcing sections of the config.
 std::set<std::string> Xios::configGetInputFieldNames()
 {
     std::set<std::string> restartFieldNames = configGetInputRestartFieldNames();
@@ -1305,13 +1303,7 @@ void Xios::createFile(const std::string fileId)
         istringstream(
             Configured::getConfiguration(keyMap.at(INPUT_RESTARTPERIOD_KEY), std::string()))
             >> periodStr;
-        // TODO: Avoid this hacky approach
-        std::string tmpStr;
-        istringstream(Configured::getConfiguration(keyMap.at(FORCING_PERIOD_KEY), std::string()))
-            >> tmpStr;
-        if (tmpStr.length() > 0) {
-            periodStr += "," + tmpStr;
-        }
+        // TODO: Account for forcing period
     } else {
         istringstream(
             Configured::getConfiguration(keyMap.at(OUTPUT_RESTARTPERIOD_KEY), std::string()))
