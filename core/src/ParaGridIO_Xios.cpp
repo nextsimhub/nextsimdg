@@ -98,7 +98,7 @@ ModelState ParaGridIO::getModelState(const std::string& filePath, ModelMetadata&
 
     // Get all vars in the data group, and load them into a new ModelState
     const bool readAccess = true;
-    for (std::string fieldId : xiosHandler.configGetFieldNames(readAccess)) {
+    for (std::string fieldId : xiosHandler.configGetFieldNames(readAccess, true)) {
         HField field(ModelArray::Type::H); // TODO: Support other dimTypes
         field.resize();
         state.merge(ModelState { { { fieldId, field } }, {} });
@@ -133,7 +133,7 @@ ModelState ParaGridIO::readForcingTimeStatic(
 
     // Get all forcings and load them into a new ModelState
     const bool readAccess = true;
-    std::set<std::string> readFieldIds = xiosHandler.configGetFieldNames(readAccess);
+    std::set<std::string> readFieldIds = xiosHandler.configGetFieldNames(readAccess, false);
     for (const std::string& fieldId : forcings) {
         if (readFieldIds.count(fieldId) || !xiosHandler.getFieldReadAccess(fieldId)) {
             throw std::runtime_error("ParaGridIO::readForcingTimeStatic: forcing " + fieldId

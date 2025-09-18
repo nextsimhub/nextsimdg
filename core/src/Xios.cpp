@@ -43,6 +43,7 @@ namespace Nextsim {
 
 static const std::string xOutputPfx = "XiosOutput";
 static const std::string xInputPfx = "XiosInput";
+static const std::string xForcingPfx = "XiosForcing";
 static const std::map<int, std::string> keyMap
     = { { Xios::ENABLED_KEY, "xios.enable" }, { Xios::STARTTIME_KEY, "model.start" },
           { Xios::STOPTIME_KEY, "model.stop" }, { Xios::TIME_STEP_KEY, "model.time_step" },
@@ -51,7 +52,10 @@ static const std::map<int, std::string> keyMap
           { Xios::OUTPUT_FIELD_NAMES_KEY, xOutputPfx + ".field_names" },
           { Xios::INPUT_RESTARTPERIOD_KEY, xInputPfx + ".period" },
           { Xios::INPUT_RESTARTFILE_KEY, xInputPfx + ".filename" },
-          { Xios::INPUT_FIELD_NAMES_KEY, xInputPfx + ".field_names" } };
+          { Xios::INPUT_FIELD_NAMES_KEY, xInputPfx + ".field_names" },
+          { Xios::FORCING_PERIOD_KEY, xForcingPfx + ".period" },
+          { Xios::FORCING_FILE_KEY, xForcingPfx + ".filename" },
+          { Xios::FORCING_FIELD_NAMES_KEY, xForcingPfx + ".field_names" } };
 
 //! Enable XIOS in the 'config'
 void enableXios()
@@ -148,6 +152,18 @@ Xios::HelpMap& Xios::getHelpText(HelpMap& map, bool getAll)
             "The file name to be used for output." },
         { keyMap.at(OUTPUT_FIELD_NAMES_KEY), ConfigType::STRING, {}, "", "",
             "Comma-separated list of field names to be written to the output file." },
+    };
+    map["XiosForcing"] = {
+        { keyMap.at(FORCING_PERIOD_KEY), ConfigType::STRING, {}, "0", "",
+            "The period between forcing file outputs expected in a file to be "
+            "read, formatted as an ISO8601 duration (P prefix) or number of "
+            "seconds. A value of zero assumes no intermediate restart files." },
+        { keyMap.at(FORCING_FILE_KEY), ConfigType::STRING, {}, "", "",
+            // TODO: Support format "restart%Y-%m-%dT%H:%M:%SZ.nc"
+            "The file name to be used for forcings." },
+        { keyMap.at(FORCING_FIELD_NAMES_KEY), ConfigType::STRING, {}, "", "",
+            "Comma-separated list of field names to be read from the forcings "
+            "file." },
     };
 
     return map;
@@ -926,18 +942,68 @@ xios::CField* Xios::getField(const std::string fieldId)
     }
     return field;
 }
-
-// Extract the field_names entry from the XiosInput or XiosOutput section of the config
+/*!
+ * Extract the field_names entry from the XiosInput, XiosOutput, or XiosForcing section of the
+ * config.
+ *
+ * @param reading true if the field configured for reading, false if for writing
+ */
 std::set<std::string> Xios::configGetFieldNames(const bool reading)
 {
     std::string fieldsStr;
     if (reading) {
         istringstream(Configured::getConfiguration(keyMap.at(INPUT_FIELD_NAMES_KEY), std::string()))
             >> fieldsStr;
+        istringstream(
+            Configured::getConfiguration(keyMap.at(FORCING_FIELD_NAMES_KEY), std::string()))
+            >> fieldsStr;
     } else {
         istringstream(
             Configured::getConfiguration(keyMap.at(OUTPUT_FIELD_NAMES_KEY), std::string()))
             >> fieldsStr;
+        // TODO: Account for diagnostics (#917)
+    }
+    std::set<std::string> fieldNames;
+    if (fieldsStr.length() > 0) {
+        const char delim = ',';
+        std::istringstream iss(fieldsStr);
+        std::string item;
+        while (std::getline(iss, item, delim)) {
+            fieldNames.insert(item);
+        }
+    }
+    return fieldNames;
+}
+
+/*!
+ * Extract the field_names entry from the XiosInput, XiosOutput, or XiosForcing section of the
+ * config.
+ *
+ * @param reading true if the field configured for reading, false if for writing
+ * @param restart true if the field configured as a restart, false if as a diagnostic
+ */
+// TODO: Avoid duplication with the above
+std::set<std::string> Xios::configGetFieldNames(const bool reading, const bool restart)
+{
+    std::string fieldsStr;
+    if (reading) {
+        if (restart) {
+            istringstream(
+                Configured::getConfiguration(keyMap.at(INPUT_FIELD_NAMES_KEY), std::string()))
+                >> fieldsStr;
+        } else {
+            istringstream(
+                Configured::getConfiguration(keyMap.at(FORCING_FIELD_NAMES_KEY), std::string()))
+                >> fieldsStr;
+        }
+    } else {
+        if (restart) {
+            istringstream(
+                Configured::getConfiguration(keyMap.at(OUTPUT_FIELD_NAMES_KEY), std::string()))
+                >> fieldsStr;
+        } else {
+            throw std::runtime_error("Xios: Diagnostic outputs not implemented yet."); // TODO: #917
+        }
     }
     std::set<std::string> fieldNames;
     if (fieldsStr.length() > 0) {

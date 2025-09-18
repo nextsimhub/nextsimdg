@@ -146,6 +146,9 @@ public:
         INPUT_RESTARTPERIOD_KEY,
         INPUT_RESTARTFILE_KEY,
         INPUT_FIELD_NAMES_KEY,
+        FORCING_PERIOD_KEY,
+        FORCING_FILE_KEY,
+        FORCING_FIELD_NAMES_KEY,
     };
 
     /* Length of C-strings passed to XIOS */
@@ -190,6 +193,7 @@ private:
     xios::CField* getField(const std::string fieldId);
     void setFieldReadAccess(const std::string fieldId, const bool readAccess);
     std::set<std::string> configGetFieldNames(const bool reading);
+    std::set<std::string> configGetFieldNames(const bool reading, const bool restart);
     bool configCheckField(const std::string fieldId, const bool reading);
 
     /* Grid */
