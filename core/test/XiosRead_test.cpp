@@ -92,8 +92,8 @@ MPI_TEST_CASE("TestXiosRead", 2)
 
     // Simulate 4 iterations (timesteps)
     metadata.setTime(xiosHandler.getCalendarStart());
-    // TODO: Avoid making configGetFieldNames public
-    auto forcingFieldNames = xiosHandler.configGetFieldNames(true, false);
+    // TODO: Avoid making configGetForcingFieldNames public?
+    auto forcingFieldNames = xiosHandler.configGetForcingFieldNames();
     for (int ts = 1; ts <= 4; ts++) {
 
         // Read forcings from file and check they take the expected values

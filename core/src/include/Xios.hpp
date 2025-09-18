@@ -116,6 +116,7 @@ public:
     std::string getFieldGridRef(const std::string fieldId);
     bool getFieldReadAccess(const std::string fieldId);
     Duration getFieldFreqOffset(const std::string fieldId);
+    std::set<std::string> configGetForcingFieldNames();
 
     /* File */
     void createFile(const std::string fileId);
@@ -192,13 +193,11 @@ private:
     xios::CFieldGroup* getFieldGroup();
     xios::CField* getField(const std::string fieldId);
     void setFieldReadAccess(const std::string fieldId, const bool readAccess);
-    std::set<std::string> configGetFieldNames(const bool reading);
-    // TODO: Avoid making configGetFieldNames public
-public:
-    std::set<std::string> configGetFieldNames(const bool reading, const bool restart);
-
-private:
-    bool configCheckField(const std::string fieldId, const bool reading);
+    std::set<std::string> configGetInputRestartFieldNames();
+    std::set<std::string> configGetInputFieldNames();
+    std::set<std::string> configGetOutputFieldNames();
+    std::set<std::string> configGetFieldNames(const bool readAccess);
+    bool configCheckField(const std::string fieldId, const bool readAccess);
 
     /* Grid */
     xios::CGridGroup* getGridGroup();

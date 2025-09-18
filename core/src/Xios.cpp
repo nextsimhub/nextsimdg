@@ -942,91 +942,82 @@ xios::CField* Xios::getField(const std::string fieldId)
     }
     return field;
 }
-/*!
- * Extract the field_names entry from the XiosInput, XiosOutput, or XiosForcing section of the
- * config.
- *
- * @param reading true if the field configured for reading, false if for writing
- */
-std::set<std::string> Xios::configGetFieldNames(const bool reading)
+
+// Split a string into a set by some delimiter.
+std::set<std::string> str2set(std::string asStr, const char delim = ',')
 {
-    std::string fieldsStr;
-    if (reading) {
-        istringstream(Configured::getConfiguration(keyMap.at(INPUT_FIELD_NAMES_KEY), std::string()))
-            >> fieldsStr;
-        // TODO: Avoid the following hacky approach
-        std::string tmpStr;
-        istringstream(
-            Configured::getConfiguration(keyMap.at(FORCING_FIELD_NAMES_KEY), std::string()))
-            >> tmpStr;
-        if (tmpStr.length() > 0) {
-            fieldsStr += "," + tmpStr;
-        }
-    } else {
-        istringstream(
-            Configured::getConfiguration(keyMap.at(OUTPUT_FIELD_NAMES_KEY), std::string()))
-            >> fieldsStr;
-        // TODO: Account for diagnostics (#917)
-    }
-    std::set<std::string> fieldNames;
-    if (fieldsStr.length() > 0) {
+    std::set<std::string> asSet;
+    if (asStr.length() > 0) {
         const char delim = ',';
-        std::istringstream iss(fieldsStr);
+        std::istringstream iss(asStr);
         std::string item;
         while (std::getline(iss, item, delim)) {
-            fieldNames.insert(item);
+            asSet.insert(item);
         }
     }
-    return fieldNames;
+    return asSet;
+}
+
+// Extract the field_names entry from the XiosInput section of the config.
+std::set<std::string> Xios::configGetInputRestartFieldNames()
+{
+    std::string fieldsStr;
+    istringstream(Configured::getConfiguration(keyMap.at(INPUT_FIELD_NAMES_KEY), std::string()))
+        >> fieldsStr;
+    return str2set(fieldsStr);
 }
 
 /*!
- * Extract the field_names entry from the XiosInput, XiosOutput, or XiosForcing section of the
- * config.
- *
- * @param reading true if the field configured for reading, false if for writing
- * @param restart true if the field configured as a restart, false if as a diagnostic
+ * Extract the field_names entry from the XiosForcing section of the config.
  */
-// TODO: Avoid duplication with the above
-std::set<std::string> Xios::configGetFieldNames(const bool reading, const bool restart)
+std::set<std::string> Xios::configGetForcingFieldNames()
 {
     std::string fieldsStr;
-    if (reading) {
-        if (restart) {
-            istringstream(
-                Configured::getConfiguration(keyMap.at(INPUT_FIELD_NAMES_KEY), std::string()))
-                >> fieldsStr;
-        } else {
-            istringstream(
-                Configured::getConfiguration(keyMap.at(FORCING_FIELD_NAMES_KEY), std::string()))
-                >> fieldsStr;
-        }
+    istringstream(Configured::getConfiguration(keyMap.at(FORCING_FIELD_NAMES_KEY), std::string()))
+        >> fieldsStr;
+    return str2set(fieldsStr);
+}
+
+/*!
+ * Extract the field_names entry from the XiosInput and XiosForcing sections of the config.
+ */
+std::set<std::string> Xios::configGetInputFieldNames()
+{
+    std::set<std::string> restartFieldNames = configGetInputRestartFieldNames();
+    std::set<std::string> forcingFieldNames = configGetForcingFieldNames();
+    restartFieldNames.insert(forcingFieldNames.begin(), forcingFieldNames.end());
+    return restartFieldNames;
+}
+
+// Extract the field_names entry from the XiosOutput section of the config.
+std::set<std::string> Xios::configGetOutputFieldNames()
+{
+    // TODO: Account for diagnostics (#917)
+    std::string fieldsStr;
+    istringstream(Configured::getConfiguration(keyMap.at(OUTPUT_FIELD_NAMES_KEY), std::string()))
+        >> fieldsStr;
+    return str2set(fieldsStr);
+}
+
+/*!
+ * Extract the field_names entry from the XIOS config.
+ *
+ * @param readAccess true if the fields are to be read, false if written
+ */
+std::set<std::string> Xios::configGetFieldNames(const bool readAccess)
+{
+    if (readAccess) {
+        return configGetInputFieldNames();
     } else {
-        if (restart) {
-            istringstream(
-                Configured::getConfiguration(keyMap.at(OUTPUT_FIELD_NAMES_KEY), std::string()))
-                >> fieldsStr;
-        } else {
-            throw std::runtime_error("Xios: Diagnostic outputs not implemented yet."); // TODO: #917
-        }
+        return configGetOutputFieldNames();
     }
-    std::set<std::string> fieldNames;
-    if (fieldsStr.length() > 0) {
-        const char delim = ',';
-        std::istringstream iss(fieldsStr);
-        std::string item;
-        while (std::getline(iss, item, delim)) {
-            fieldNames.insert(item);
-        }
-    }
-    return fieldNames;
 }
 
 // Check whether a fieldId exists in a string of field names separated by commas, as determined by
 // the map key
-bool Xios::configCheckField(const std::string fieldId, const bool reading)
+bool Xios::configCheckField(const std::string fieldId, const bool readAccess)
 {
-    std::set<std::string> fieldNames = configGetFieldNames(reading);
+    std::set<std::string> fieldNames = configGetFieldNames(readAccess);
     return fieldNames.find(fieldId) != fieldNames.end();
 }
 
