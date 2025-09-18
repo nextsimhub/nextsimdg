@@ -193,7 +193,11 @@ private:
     xios::CField* getField(const std::string fieldId);
     void setFieldReadAccess(const std::string fieldId, const bool readAccess);
     std::set<std::string> configGetFieldNames(const bool reading);
+    // TODO: Avoid making configGetFieldNames public
+public:
     std::set<std::string> configGetFieldNames(const bool reading, const bool restart);
+
+private:
     bool configCheckField(const std::string fieldId, const bool reading);
 
     /* Grid */

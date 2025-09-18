@@ -40,7 +40,11 @@ MPI_TEST_CASE("TestXiosRead", 2)
     config << "time_step = P0-0T01:30:00" << std::endl;
     config << "[XiosInput]" << std::endl;
     config << "filename = xios_test_input.nc" << std::endl;
-    config << "field_names = hice" << std::endl;
+    config << "field_names = " << hiceName << std::endl;
+    config << "[XiosForcing]" << std::endl;
+    // TODO: Account for separate restart and forcing files
+    config << "filename = xios_test_input.nc" << std::endl;
+    config << "field_names = " << uName << std::endl;
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
 
@@ -74,12 +78,6 @@ MPI_TEST_CASE("TestXiosRead", 2)
     HField hice(ModelArray::Type::H);
     hice.resize();
 
-    // Setup ModelState with field above
-    ModelState state = { {
-                             { hiceName, hice },
-                         },
-        {} };
-
     // Check calendar step is zero initially
     REQUIRE(xiosHandler.getCalendarStep() == 0);
 
@@ -92,12 +90,28 @@ MPI_TEST_CASE("TestXiosRead", 2)
 
     // Simulate 4 iterations (timesteps)
     metadata.setTime(xiosHandler.getCalendarStart());
+    // TODO: Avoid making configGetFieldNames public
+    auto forcingFieldNames = xiosHandler.configGetFieldNames(true, false);
     for (int ts = 1; ts <= 4; ts++) {
+
         // Update the current timestep and verify it's updated in XIOS
         metadata.incrementTime(timestep);
         REQUIRE(xiosHandler.getCalendarStep() == ts);
-        ModelState state = grid.getModelState(filename, metadata);
-        for (auto& entry : state.data) {
+
+        // Read forcings from file and check they take the expected values
+        TimePoint time = xiosHandler.getCurrentDate();
+        ModelState forcings = pio->readForcingTimeStatic(forcingFieldNames, time, filename);
+        for (auto& entry : forcings.data) {
+            for (size_t j = 0; j < ny; ++j) {
+                for (size_t i = 0; i < nx; ++i) {
+                    REQUIRE(entry.second(i, j) == doctest::Approx(-(i + nx * j)));
+                }
+            }
+        }
+
+        // Read restarts from file and check they take the expected values
+        ModelState restarts = grid.getModelState(filename, metadata);
+        for (auto& entry : restarts.data) {
             for (size_t j = 0; j < ny; ++j) {
                 for (size_t i = 0; i < nx; ++i) {
                     REQUIRE(entry.second(i, j) == doctest::Approx(i + nx * j));

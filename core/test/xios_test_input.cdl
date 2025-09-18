@@ -78,6 +78,13 @@ variables:
 		hice:cell_methods = "time: point" ;
 		hice:coordinates = "time_instant" ;
 
+	float u(time_counter, y, x) ;
+		u:online_operation = "instant" ;
+		u:interval_operation = "5400 s" ;
+		u:interval_write = "5400 s" ;
+		u:cell_methods = "time: point" ;
+		u:coordinates = "time_instant" ;
+
 // global attributes:
 		:structure_name = "parametric_rectangular" ;
 		:name = "xios_test_input" ;
@@ -121,4 +128,14 @@ data:
   2, 3, 2, 3,
   0, 1, 0, 1,
   2, 3, 2, 3 ;
+
+ u =
+  -0, -1, -0, -1,
+  -2, -3, -2, -3,
+  -0, -1, -0, -1,
+  -2, -3, -2, -3,
+  -0, -1, -0, -1,
+  -2, -3, -2, -3,
+  -0, -1, -0, -1,
+  -2, -3, -2, -3 ;
 }
