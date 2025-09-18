@@ -82,23 +82,18 @@ Xios::Xios(const std::string contextid, const std::string calendartype)
     if (firstTime) {
         istringstream(Configured::getConfiguration(keyMap.at(INPUT_RESTARTFILE_KEY), std::string()))
             >> inputFilename;
-        if (inputFilename.length() > 0) {
-            inputFileId = ((std::filesystem::path)inputFilename).replace_extension();
-        }
+        inputFileId = ((std::filesystem::path)inputFilename).replace_extension();
         istringstream(
             Configured::getConfiguration(keyMap.at(OUTPUT_RESTARTFILE_KEY), std::string()))
             >> outputFilename;
-        if (outputFilename.length() > 0) {
-            outputFileId = ((std::filesystem::path)outputFilename).replace_extension();
-        }
+        outputFileId = ((std::filesystem::path)outputFilename).replace_extension();
         istringstream(Configured::getConfiguration(keyMap.at(FORCING_FILE_KEY), std::string()))
             >> forcingFilename;
-        if (forcingFilename.length() > 0) {
-            forcingFileId = ((std::filesystem::path)forcingFilename).replace_extension();
-        }
+        forcingFileId = ((std::filesystem::path)forcingFilename).replace_extension();
 
         // TODO: Account for separate restart and forcing files (#929)
-        if (inputFileId != forcingFileId) {
+        if (forcingFilename.length() > 0 && inputFilename.length() > 0
+            && inputFilename != forcingFilename) {
             throw std::runtime_error("Xios: Separate forcing and restart files not yet supported");
         }
 
