@@ -118,9 +118,33 @@ ModelState ParaGridIO::getModelState(const std::string& filePath, ModelMetadata&
 ModelState ParaGridIO::readForcingTimeStatic(
     const std::set<std::string>& forcings, const TimePoint& time, const std::string& filePath)
 {
-    // TODO: XIOS implementation
-
     ModelState state;
+    Xios& xiosHandler = Xios::getInstance();
+
+    // Get all forcings and load them into a new ModelState
+    const bool readAccess = true;
+    std::set<std::string> readFieldIds = xiosHandler.configGetFieldNames(readAccess);
+    for (const std::string& fieldId : forcings) {
+        if (readFieldIds.count(fieldId) || !xiosHandler.getFieldReadAccess(fieldId)) {
+            throw std::runtime_error("ParaGridIO::readForcingTimeStatic: forcing " + fieldId
+                + " is not configured for reading, but is being read from file.");
+        }
+        // ASSUME all forcings are HFields: finite volume fields on the same
+        // grid as ice thickness
+        HField field(ModelArray::Type::H);
+        field.resize();
+        state.merge(ModelState { { { fieldId, field } }, {} });
+    }
+
+    // Read all forcings from file
+    for (auto& entry : state.data) {
+        const std::string fieldId = entry.first;
+        if (forcings.count(fieldId)) {
+            xiosHandler.read(fieldId, entry.second);
+        }
+    }
+
+    // TODO: XIOS implementation of the below
 
     try {
         netCDF::NcFile ncFile(filePath, netCDF::NcFile::read);
@@ -157,10 +181,7 @@ ModelState ParaGridIO::readForcingTimeStatic(
 
         for (const std::string& varName : forcings) {
             netCDF::NcVar var = ncFile.getVar(varName);
-            state.data[varName] = ModelArray(ModelArray::Type::H);
             ModelArray& data = state.data.at(varName);
-            data.resize();
-
             var.getVar(indexArray, extentArray, &data[0]);
         }
         ncFile.close();
