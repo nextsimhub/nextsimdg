@@ -121,6 +121,16 @@ ModelState ParaGridIO::readForcingTimeStatic(
     ModelState state;
     Xios& xiosHandler = Xios::getInstance();
 
+    // Increment the XIOS calendar until it reaches the requested time
+    while (xiosHandler.getCurrentDate() < time) {
+        xiosHandler.incrementCalendar();
+    }
+    TimePoint xiosTime = xiosHandler.getCurrentDate();
+    if (xiosTime > time) {
+        throw std::runtime_error("ParaGridIO::readForcingTimeStatic: requested time point does"
+                                 " not align with the calendar and timestep used by XIOS.");
+    }
+
     // Get all forcings and load them into a new ModelState
     const bool readAccess = true;
     std::set<std::string> readFieldIds = xiosHandler.configGetFieldNames(readAccess);
@@ -142,53 +152,6 @@ ModelState ParaGridIO::readForcingTimeStatic(
         if (forcings.count(fieldId)) {
             xiosHandler.read(fieldId, entry.second);
         }
-    }
-
-    // TODO: XIOS implementation of the below
-
-    try {
-        netCDF::NcFile ncFile(filePath, netCDF::NcFile::read);
-
-        // Read the time axis
-        netCDF::NcDim timeDim = ncFile.getDim(timeName);
-        // Read the time variable
-        netCDF::NcVar timeVar = ncFile.getVar(timeName);
-        // Calculate the index of the largest time value on the axis below our target
-        size_t targetTIndex;
-        // Get the time axis as a vector
-        std::vector<double> timeVec(timeDim.getSize());
-        timeVar.getVar(timeVec.data());
-        // Get the index of the largest TimePoint less than the target.
-        targetTIndex = std::find_if(std::begin(timeVec), std::end(timeVec), [time](double t) {
-            return (TimePoint() + Duration(t)) > time;
-        }) - timeVec.begin();
-        // Rather than the first that is greater than, get the last that is less
-        // than or equal to. But don't go out of bounds.
-        if (targetTIndex > 0)
-            --targetTIndex;
-        // ASSUME all forcings are HFields: finite volume fields on the same
-        // grid as ice thickness
-        std::vector<size_t> indexArray = { targetTIndex };
-        std::vector<size_t> extentArray = { 1 };
-
-        // Loop over the dimensions of H
-        const std::vector<ModelArray::Dimension>& dimensions
-            = ModelArray::typeDimensions.at(ModelArray::Type::H);
-        for (auto riter = dimensions.rbegin(); riter != dimensions.rend(); ++riter) {
-            indexArray.push_back(0);
-            extentArray.push_back(ModelArray::definedDimensions.at(*riter).localLength);
-        }
-
-        for (const std::string& varName : forcings) {
-            netCDF::NcVar var = ncFile.getVar(varName);
-            ModelArray& data = state.data.at(varName);
-            var.getVar(indexArray, extentArray, &data[0]);
-        }
-        ncFile.close();
-    } catch (const netCDF::exceptions::NcException& nce) {
-        std::string ncWhat(nce.what());
-        ncWhat += ": " + filePath;
-        throw std::runtime_error(ncWhat);
     }
     return state;
 }
