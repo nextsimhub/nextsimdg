@@ -373,11 +373,11 @@ class initMaker:
 
                 # Find the centre points along the x-axis
                 # The array looks like this:
-                # [1,0] --- (lat1,lon1) --- [1,1]
-                #   |                     |
-                #   |                     |
-                #   |                     |
                 # [0,0] --- (lat0,lon0) --- [0,1]
+                #   |                         |
+                #   |                         |
+                #   |                         |
+                # [1,0] --- (lat1,lon1) --- [1,1]
                 # Where (lat1,lon1) and (lat0,lon0) are the centre points of the top and bottom sides of the grid cell. I've
                 # removed the division by two from the averaging, as it gets cancelled out in atan2.
                 lat0 = latVerts[0, 0] + latVerts[0, 1]
@@ -389,7 +389,9 @@ class initMaker:
                 dx = lat1 - lat0
                 dy = lon1 - lon0
 
-                theta[i, j] = np.arctan2(dy, dx)
+                # Negative of the angle to get the rotation of the vector to the displaced pole (not the other way around).
+                # Negative on dy, because the y-axis is pointing downwards.
+                theta[i, j] = -np.arctan2(-dy, dx)
 
         return theta
 
