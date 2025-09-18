@@ -22,29 +22,34 @@ execute_process(
 include_directories(${COMMON_INCLUDE_DIRS})
 
 if(ENABLE_MPI)
-    add_executable(testERA5Atm_MPI1 "ERA5Atm_test.cpp" "../../core/test/MainMPI.cpp")
-    target_compile_definitions(
-        testERA5Atm_MPI1
-        PRIVATE USE_MPI TEST_FILES_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}\"
-    )
-    target_include_directories(testERA5Atm_MPI1 PRIVATE "${ModulesRoot}/AtmosphereBoundaryModule")
-    target_link_libraries(testERA5Atm_MPI1 PRIVATE nextsimlib doctest::doctest)
+    if(NOT ENABLE_XIOS)
+        add_executable(testERA5Atm_MPI1 "ERA5Atm_test.cpp" "../../core/test/MainMPI.cpp")
+        target_compile_definitions(
+            testERA5Atm_MPI1
+            PRIVATE USE_MPI TEST_FILES_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}\"
+        )
+        target_include_directories(
+            testERA5Atm_MPI1
+            PRIVATE "${ModulesRoot}/AtmosphereBoundaryModule"
+        )
+        target_link_libraries(testERA5Atm_MPI1 PRIVATE nextsimlib doctest::doctest)
 
-    add_executable(testTOPAZOcn_MPI1 "TOPAZOcn_test.cpp" "../../core/test/MainMPI.cpp")
-    target_include_directories(testTOPAZOcn_MPI1 PRIVATE "${ModulesRoot}/OceanBoundaryModule")
-    target_compile_definitions(
-        testTOPAZOcn_MPI1
-        PRIVATE USE_MPI TEST_FILES_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}\"
-    )
-    target_link_libraries(testTOPAZOcn_MPI1 PRIVATE nextsimlib doctest::doctest)
+        add_executable(testTOPAZOcn_MPI1 "TOPAZOcn_test.cpp" "../../core/test/MainMPI.cpp")
+        target_include_directories(testTOPAZOcn_MPI1 PRIVATE "${ModulesRoot}/OceanBoundaryModule")
+        target_compile_definitions(
+            testTOPAZOcn_MPI1
+            PRIVATE USE_MPI TEST_FILES_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}\"
+        )
+        target_link_libraries(testTOPAZOcn_MPI1 PRIVATE nextsimlib doctest::doctest)
 
-    # In the MPI tests it's important to include the "-ns" flag which tells
-    # doctest to fail if test has been skipped. Without this, the test will
-    # technically pass if we run with fewer ranks than requested.
-    add_test(NAME testERA5Atm_MPI1
-        COMMAND ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} 1 testERA5Atm_MPI1 -ns)
-    add_test(NAME testTOPAZOcn_MPI1 COMMAND
-        ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} 1 testTOPAZOcn_MPI1 -ns)
+        # In the MPI tests it's important to include the "-ns" flag which tells
+        # doctest to fail if test has been skipped. Without this, the test will
+        # technically pass if we run with fewer ranks than requested.
+        add_test(NAME testERA5Atm_MPI1
+            COMMAND ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} 1 testERA5Atm_MPI1 -ns)
+        add_test(NAME testTOPAZOcn_MPI1 COMMAND
+            ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} 1 testTOPAZOcn_MPI1 -ns)
+    endif()
 else()
     add_executable(testERA5Atm "ERA5Atm_test.cpp")
     target_compile_definitions(testERA5Atm PRIVATE TEST_FILES_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}\")
