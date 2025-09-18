@@ -19,6 +19,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Generate an initial state file from TOPAZ4 data and a grid file")
     parser.add_argument("--start-date", dest="start_date", default="2010-01-01",
                         help="Date of the start of the simulation (YYYY-MM-DD)")
+    parser.add_argument("--grid-type", dest="grid_type", default="regular", help="The type of input grid to use ('regular' or 'NEMO').")
     parser.add_argument("--grid-file", dest="grid_file", default="25km_NH.nc", help="Path of the input grid file.")
     parser.add_argument("--mask-file", dest="mask_file", default="25km_NH.nc", help="Path of the input mask file.")
     parser.add_argument("--topaz-path", dest = "topaz_path", default=".", help = "Path containing the TOPAZ4 files.")
@@ -36,11 +37,19 @@ if __name__ == "__main__":
     out_name = f"init_{grid_name}{out_suffix}.nc"
 
     init_base = initMaker(out_name)
-    init_base.make_geographic_grid(grid_name + '.nc', 'ur', plon_name='glamt', plat_name='gphit', qlon_name='glamf',
-                                   qlat_name='gphif')
 
-    bathy_meter = netCDF4.Dataset(f"{args.mask_file}", "r")
-    init_base.mask[:, :] = bathy_meter["Bathymetry"][:, :] > 0.
+    if args.grid_type == "regular":
+        init_base.make_geographic_grid(grid_name + '.nc', 'p', plon_name='plon', plat_name='plat')
+        mask = netCDF4.Dataset(grid_name + '.nc', "r")
+        init_base.mask[:, :] = mask["mask"][:, :]
+    elif args.grid_type == "NEMO":
+        init_base.make_geographic_grid(grid_name + '.nc', 'ur', plon_name='glamt', plat_name='gphit', qlon_name='glamf',
+                                       qlat_name='gphif')
+
+        bathy_meter = netCDF4.Dataset(f"{args.mask_file}", "r")
+        init_base.mask[:, :] = bathy_meter["Bathymetry"][:, :] > 0.
+    else:
+        raise ValueError(f"Grid type {args.grid_type} not supported.")
 
     land_ratio = np.count_nonzero(init_base.mask[:, :]) / init_base.mask[:, :].size
     print(f"ratio of sea (active) cells to total: {land_ratio}")

@@ -1,7 +1,5 @@
 import netCDF4
 import numpy as np
-from interpolators import rotate_pole_to_greenland
-
 
 class initMaker:
     """
@@ -191,8 +189,69 @@ class initMaker:
             node_lon[1:, 1:] = qlon[:, :]
             node_lat[1:, 1:] = qlat[:, :]
 
+        elif pos == "p":
+            """
+            This is for grids with plon and plat at the centre of the grid cell.
+            That means making up the locations of the grid nodes/vertices.
+            """
+            self.__plon = grid.variables[plon_name][:, :]
+            self.__plat = grid.variables[plat_name][:, :]
+
+            # Stay in the [-180, 180] range
+            self.__plon = self.__wrap_to_180__(self.__plon)
+
+            # First, we project the grid centers to Greenland
+            (rlat, rlon) = self.__rotate_pole_to_greenland__(self.__plat, self.__plon)
+
+            # Then, we create the grid nodes/vertices
+
+            # Differences in longitude and latitude
+            dlat_dx = 0.5 * np.diff(rlat, axis=0)
+            dlon_dx = 0.5 * self.__wrap_to_180__(np.diff(rlon, axis=0))
+
+            # A minus here, because the array is effectively flipped upside down.
+            dlat_dy = -0.5 * np.diff(rlat, axis=1)
+            dlon_dy = -0.5 * self.__wrap_to_180__(np.diff(rlon, axis=1))
+
+            # The corners
+            # lower left
+            node_lon[0,0] = rlon[0,0] - dlon_dx[0,0] - dlon_dy[0,0]
+            node_lat[0,0] = rlat[0,0] - dlat_dx[0,0] - dlat_dy[0,0]
+            # upper left
+            node_lon[0,-1] = rlon[0,-1] - dlon_dx[0,-1] + dlon_dy[0,-1]
+            node_lat[0,-1] = rlat[0,-1] - dlat_dx[0,-1] + dlat_dy[0,-1]
+
+            # upper right
+            node_lon[-1,-1] = rlon[-1,-1] + dlon_dx[-1,-1] + dlon_dy[-1,-1]
+            node_lat[-1,-1] = rlat[-1,-1] + dlat_dx[-1,-1] + dlat_dy[-1,-1]
+            # lower right
+            node_lon[-1,0] = rlon[-1,0] + dlon_dx[-1,0] - dlon_dy[-1,0]
+            node_lat[-1,0] = rlat[-1,0] + dlat_dx[-1,0] - dlat_dy[-1,0]
+
+            # Columns and rows
+            # first column
+            node_lon[0,1:-1] = rlon[0,:-1] - dlon_dx[0,:-1] + dlon_dy[0,:]
+            node_lat[0,1:-1] = rlat[0,:-1] - dlat_dx[0,:-1] + dlat_dy[0,:]
+            # top row
+            node_lon[1:-1,-1] = rlon[:-1,-1] + dlon_dx[:,-1] + dlon_dy[:-1,-1]
+            node_lat[1:-1,-1] = rlat[:-1,-1] + dlat_dx[:,-1] + dlat_dy[:-1,-1]
+            # last column
+            node_lon[-1,1:-1] = rlon[-1,:-1] + dlon_dx[-1,:-1] + dlon_dy[-1,:]
+            node_lat[-1,1:-1] = rlat[-1,:-1] + dlat_dx[-1,:-1] + dlat_dy[-1,:]
+            # bottom row
+            node_lon[1:-1,0] = rlon[:-1,0] + dlon_dx[:,0] - dlon_dy[:-1,0]
+            node_lat[1:-1,0] = rlat[:-1,0] + dlat_dx[:,0] - dlat_dy[:-1,0]
+
+            # Fill the innermost points
+            # The upper right corner is centre coordinate, plus half the grid spacing in each direction
+            node_lon[1:-1, 1:-1] = rlon[:-1, :-1] + dlon_dx[:, 1:] + dlon_dy[1:, :]
+            node_lat[1:-1, 1:-1] = rlat[:-1, :-1] + dlat_dx[:, 1:] + dlat_dy[1:, :]
+
+            (node_lat, node_lon) = self.__rotate_pole_from_greenland__(node_lat, node_lon)
+            node_lon = self.__wrap_to_180__(node_lon)
+
         else:
-            raise ValueError(f"Posigion {pos} not yet implemented (expected 'ur', 'll', or 'p').")
+            raise ValueError(f"Position {pos} not yet implemented (expected 'ur', 'll', or 'p').")
 
         coords = self.__ncFile.createVariable("coords", "f8", self.__coord_dims)
         coords[:, :, 0] = node_lon
@@ -206,11 +265,70 @@ class initMaker:
         grid_azimuth = self.__ncFile.createVariable("grid_azimuth", "f8", self.__field_dims)
 
         # Rotate the pole to Greenland
-        (rlat, rlon) = rotate_pole_to_greenland(node_lat, node_lon)
+        (rlat, rlon) = self.__rotate_pole_to_greenland__(node_lat, node_lon)
         # Return the grid azimuth
         grid_azimuth[:, :] = self.__grid_angle__(rlon, rlat)
 
         grid.close()
+
+    def __rotate_pole_to_greenland__(self, lat, lon):
+        """
+        Rotates the mesh such that the singularities are in Greenland / Antarctica at 75°N / 40°W and 75°S / 140°E
+        This is a copy of ParametricMesh::RotatePoleToGreenland in dynamics/src/include/ParametricMesh.hpp.
+
+        :param lat: Latitudes of the mesh
+        :param lon: Longitudes of the mesh
+        :return: A tuple of the rotated latitudes and longitudes.
+        """
+
+        latr = np.deg2rad(lat)
+        lonr = np.deg2rad(lon)
+
+        x = np.cos(latr) * np.cos(lonr)
+        y = np.cos(latr) * np.sin(lonr)
+        z = np.sin(latr)
+
+        aw = np.deg2rad(40.0)
+        x1 = np.cos(aw) * x - np.sin(aw) * y
+        y1 = np.sin(aw) * x + np.cos(aw) * y
+        z1 = z
+
+        bw = np.deg2rad(15.0)
+        x2 = np.cos(bw) * x1 - np.sin(bw) * z1
+        y2 = y1
+        z2 = np.sin(bw) * x1 + np.cos(bw) * z1
+
+        return (np.rad2deg(np.arcsin(z2)), np.rad2deg(np.arctan2(y2, x2)))
+
+    def __rotate_pole_from_greenland__(self, lat, lon):
+        """
+        Rotates back the mesh from having the singularities in Greenland / Antarctica at 75°N / 40°W and 75°S / 140°E to the original coordinates.
+        This is a copy of ParametricMesh::RotatePoleFromGreenland in dynamics/src/include/ParametricMesh.hpp.
+
+        :param lat: Latitudes of the rotated mesh
+        :param lon: Longitudes of the rotated mesh
+        :return: A tuple of the geographical latitudes and longitudes.
+        """
+
+        latr = np.deg2rad(lat)
+        lonr = np.deg2rad(lon)
+
+        x = np.cos(latr) * np.cos(lonr)
+        y = np.cos(latr) * np.sin(lonr)
+        z = np.sin(latr)
+
+        aw = np.deg2rad(-40.0)
+        bw = np.deg2rad(-15.0)
+
+        x1 = np.cos(bw) * x - np.sin(bw) * z
+        y1 = y
+        z1 = np.sin(bw) * x + np.cos(bw) * z
+
+        x2 = np.cos(aw) * x1 - np.sin(aw) * y1
+        y2 = np.sin(aw) * x1 + np.cos(aw) * y1
+        z2 = z1
+
+        return (np.rad2deg(np.arcsin(z2)), np.rad2deg(np.arctan2(y2, x2)))
 
     def __wrap_to_180__(self, x_in):
         """
