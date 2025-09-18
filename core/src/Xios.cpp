@@ -1308,7 +1308,7 @@ void Xios::createFile(const std::string fileId)
         istringstream(
             Configured::getConfiguration(keyMap.at(INPUT_RESTARTPERIOD_KEY), std::string()))
             >> periodStr;
-        // TODO: Account for forcing period being different than restart period (#929)
+        // TODO: Account for forcing period being different to restart period (#929)
     } else {
         istringstream(
             Configured::getConfiguration(keyMap.at(OUTPUT_RESTARTPERIOD_KEY), std::string()))
