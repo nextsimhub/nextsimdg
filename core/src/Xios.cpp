@@ -91,6 +91,16 @@ Xios::Xios(const std::string contextid, const std::string calendartype)
         if (outputFilename.length() > 0) {
             outputFileId = ((std::filesystem::path)outputFilename).replace_extension();
         }
+        istringstream(Configured::getConfiguration(keyMap.at(FORCING_FILE_KEY), std::string()))
+            >> forcingFilename;
+        if (forcingFilename.length() > 0) {
+            forcingFileId = ((std::filesystem::path)forcingFilename).replace_extension();
+        }
+
+        // TODO: Account for separate restart and forcing files (#929)
+        if (inputFileId != forcingFileId) {
+            throw std::runtime_error("Xios: Separate forcing and restart files not yet supported");
+        }
 
         for (std::string fileId : { inputFileId, outputFileId }) {
             if (fileId.length() > 0) {
@@ -1264,7 +1274,7 @@ void Xios::createFile(const std::string fileId)
 
     // Determine whether the file is configured for reading or writing
     bool readAccess = ((inputFileId.length() > 0) && (inputFileId == fileId));
-    // TODO: Account for separate restart and forcing files
+    // TODO: Account for separate restart and forcing files (#929)
     bool writeAccess = ((outputFileId.length() > 0) && (outputFileId == fileId));
     // TODO: Account for diagnostics (#917)
 
@@ -1303,7 +1313,7 @@ void Xios::createFile(const std::string fileId)
         istringstream(
             Configured::getConfiguration(keyMap.at(INPUT_RESTARTPERIOD_KEY), std::string()))
             >> periodStr;
-        // TODO: Account for forcing period
+        // TODO: Account for forcing period being different than restart period (#929)
     } else {
         istringstream(
             Configured::getConfiguration(keyMap.at(OUTPUT_RESTARTPERIOD_KEY), std::string()))

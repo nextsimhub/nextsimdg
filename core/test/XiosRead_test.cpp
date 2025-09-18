@@ -42,7 +42,7 @@ MPI_TEST_CASE("TestXiosRead", 2)
     config << "filename = xios_test_input.nc" << std::endl;
     config << "field_names = " << hiceName << std::endl;
     config << "[XiosForcing]" << std::endl;
-    // TODO: Account for separate restart and forcing files
+    // TODO: Account for separate restart and forcing files (#929)
     config << "filename = xios_test_input.nc" << std::endl;
     config << "field_names = " << uName << std::endl;
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
