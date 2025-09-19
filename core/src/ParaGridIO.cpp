@@ -175,10 +175,9 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
                 size_t startIndex = dim.start;
                 size_t localLength = dim.localLength;
 #ifdef USE_MPI
-                if (dt == Dim::X or dt == Dim::Y) {
-                    localLength = localLength - 2 * Halo::haloWidth;
-                }
-                if (dt == Dim::XVERTEX or dt == Dim::YVERTEX) {
+                // Halo cells (which only exist in the lateral direction) are not included in netCDF
+                // files. Only read/write the inner block
+                if (Halo::isDimLateral(dt)) {
                     localLength = localLength - 2 * Halo::haloWidth;
                 }
 #endif
@@ -255,10 +254,9 @@ ModelState ParaGridIO::readForcingTimeStatic(
             auto startIndex = dim.start;
             auto localLength = dim.localLength;
 #ifdef USE_MPI
-            if (dt == Dim::X or dt == Dim::Y) {
-                localLength = localLength - 2 * Halo::haloWidth;
-            }
-            if (dt == Dim::XVERTEX or dt == Dim::YVERTEX) {
+            // Halo cells (which only exist in the lateral direction) are not included in netCDF
+            // files. Only read/write the inner block
+            if (Halo::isDimLateral(dt)) {
                 localLength = localLength - 2 * Halo::haloWidth;
             }
 #endif
@@ -363,10 +361,9 @@ void ParaGridIO::dumpModelState(const ModelState& state, const std::string& file
             auto dim = entry.second.definedDimensions.at(dt);
             size_t localLength = dim.localLength;
 #ifdef USE_MPI
-            if (dt == Dim::X or dt == Dim::Y) {
-                localLength = localLength - 2 * Halo::haloWidth;
-            }
-            if (dt == Dim::XVERTEX or dt == Dim::YVERTEX) {
+            // Halo cells (which only exist in the lateral direction) are not included in netCDF
+            // files. Only read/write the inner block
+            if (Halo::isDimLateral(dt)) {
                 localLength = localLength - 2 * Halo::haloWidth;
             }
 #endif
@@ -465,10 +462,9 @@ void ParaGridIO::writeDiagnosticTime(const ModelState& state, const std::string&
             auto dim = ModelArray::definedDimensions.at(dt);
             auto localLength = dim.localLength;
 #ifdef USE_MPI
-            if (dt == Dim::X or dt == Dim::Y) {
-                localLength = localLength - 2 * Halo::haloWidth;
-            }
-            if (dt == Dim::XVERTEX or dt == Dim::YVERTEX) {
+            // Halo cells (which only exist in the lateral direction) are not included in netCDF
+            // files. Only read/write the inner block
+            if (Halo::isDimLateral(dt)) {
                 localLength = localLength - 2 * Halo::haloWidth;
             }
 #endif
@@ -510,7 +506,11 @@ void ParaGridIO::writeDiagnosticTime(const ModelState& state, const std::string&
             auto dim = ModelArray::definedDimensions.at(dt);
             auto localLength = dim.localLength;
 #ifdef USE_MPI
-            localLength = localLength - 2 * Halo::haloWidth;
+            // Halo cells (which only exist in the lateral direction) are not included in netCDF
+            // files. Only read/write the inner block
+            if (Halo::isDimLateral(dt)) {
+                localLength = localLength - 2 * Halo::haloWidth;
+            }
 #endif
             maskIndexes.push_back(0);
             maskExtents.push_back(localLength);

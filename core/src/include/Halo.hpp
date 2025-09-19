@@ -345,6 +345,21 @@ private:
     }
 
 public:
+    /**
+     * @brief Check if dimension is in the lateral direction i.e., X, Y, XVERTEX, or YVERTEX
+     *
+     * Determines whether a dimension represents a lateral (horizontal) direction,
+     * which includes both cell centers and vertices in X and Y dimensions.
+     *
+     * @param dim The dimension to check
+     * @return true if dimension is X, Y, XVERTEX, or YVERTEX, false otherwise
+     */
+    static const bool isDimLateral(const ModelArray::Dimension dim)
+    {
+        return dim == ModelArray::Dimension::X || dim == ModelArray::Dimension::Y
+            || dim == ModelArray::Dimension::XVERTEX || dim == ModelArray::Dimension::YVERTEX;
+    }
+
     /*!
      * @brief Returns size of the inner flattened array
      */
