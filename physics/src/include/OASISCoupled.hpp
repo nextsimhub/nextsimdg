@@ -12,6 +12,9 @@
 #include <oasis_c.h>
 #endif
 
+#include "include/ModelArray.hpp"
+#include "include/ModelState.hpp"
+
 namespace Nextsim {
 
 class OASISCoupled {
@@ -31,6 +34,23 @@ public:
 #else
     const std::string NoOASISError = std::string(": OASIS support not compiled in.\n");
 #endif
+
+protected:
+    void rotateVectorToGreenland(
+        const ModelArray& uIn, const ModelArray& vIn, ModelArray& uOut, ModelArray& vOut) const
+    {
+        uOut = uIn * cosAngle - vIn * sinAngle;
+        vOut = uIn * sinAngle + vIn * cosAngle;
+    };
+
+    void rotateVectorFromGreenland(
+        const ModelArray& uIn, const ModelArray& vIn, ModelArray& uOut, ModelArray& vOut) const
+    {
+        uOut = uIn * cosAngle + vIn * sinAngle;
+        vOut = -uIn * sinAngle + vIn * cosAngle;
+    };
+
+    ModelArray cosAngle, sinAngle;
 };
 
 }

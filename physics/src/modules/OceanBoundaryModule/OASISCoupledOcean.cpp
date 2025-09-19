@@ -14,6 +14,16 @@
 
 namespace Nextsim {
 
+void OASISCoupledOcean::setData(const ModelState::DataMap& ms)
+{
+    IOceanBoundary::setData(ms);
+
+    // Precalculate cos and sin of the azimut angle to use in the rotateVector... functions
+    ModelArray gridAzimuthAngle = ms.at(gridAzimuthName);
+    cosAngle = gridAzimuthAngle.cos();
+    sinAngle = gridAzimuthAngle.sin();
+}
+
 void OASISCoupledOcean::setMetadata(const ModelMetadata& metadata)
 {
 #ifdef USE_OASIS
@@ -56,11 +66,13 @@ void OASISCoupledOcean::updateBefore(const TimestepTime& tst)
     OASIS_CHECK_ERR(oasis_c_get(couplingId.at(SSSKey), OASISTime, dimension0, dimension1,
         bundleSize, OASIS_DOUBLE, OASIS_COL_MAJOR, &sss[0], &kinfo));
 
+    ModelArray uOnGrid;
     OASIS_CHECK_ERR(oasis_c_get(couplingId.at(UOceanKey), OASISTime, dimension0, dimension1,
-        bundleSize, OASIS_DOUBLE, OASIS_COL_MAJOR, &u[0], &kinfo));
+        bundleSize, OASIS_DOUBLE, OASIS_COL_MAJOR, &uOnGrid[0], &kinfo));
 
+    ModelArray vOnGrid;
     OASIS_CHECK_ERR(oasis_c_get(couplingId.at(VOceanKey), OASISTime, dimension0, dimension1,
-        bundleSize, OASIS_DOUBLE, OASIS_COL_MAJOR, &v[0], &kinfo));
+        bundleSize, OASIS_DOUBLE, OASIS_COL_MAJOR, &vOnGrid[0], &kinfo));
 
     OASIS_CHECK_ERR(oasis_c_get(couplingId.at(SSHKey), OASISTime, dimension0, dimension1,
         bundleSize, OASIS_DOUBLE, OASIS_COL_MAJOR, &ssh[0], &kinfo));
@@ -76,6 +88,7 @@ void OASISCoupledOcean::updateBefore(const TimestepTime& tst)
     }
 
     cpml = Water::rhoOcean * Water::cp * mld;
+    rotateVectorToGreenland(uOnGrid, vOnGrid, u, v);
 
     overElements(
         std::bind(&OASISCoupledOcean::updateTf, this, std::placeholders::_1, std::placeholders::_2),
@@ -97,11 +110,13 @@ void OASISCoupledOcean::updateAfter(const TimestepTime& tst)
     const int dimension0 = ModelArray::dimensions(ModelArray::Type::H)[0];
     const int dimension1 = ModelArray::dimensions(ModelArray::Type::H)[1];
 
+    ModelArray tauXToGreenland;
     OASIS_CHECK_ERR(oasis_c_put(couplingId.at(TauXKey), OASISTime, dimension0, dimension1, 1,
-        OASIS_DOUBLE, OASIS_COL_MAJOR, &tauX[0], OASIS_No_Restart, &kinfo));
+        OASIS_DOUBLE, OASIS_COL_MAJOR, &tauXToGreenland[0], OASIS_No_Restart, &kinfo));
 
+    ModelArray tauYToGreenland;
     OASIS_CHECK_ERR(oasis_c_put(couplingId.at(TauYKey), OASISTime, dimension0, dimension1, 1,
-        OASIS_DOUBLE, OASIS_COL_MAJOR, &tauY[0], OASIS_No_Restart, &kinfo));
+        OASIS_DOUBLE, OASIS_COL_MAJOR, &tauYToGreenland[0], OASIS_No_Restart, &kinfo));
 
     OASIS_CHECK_ERR(oasis_c_put(couplingId.at(EMPKey), OASISTime, dimension0, dimension1, 1,
         OASIS_DOUBLE, OASIS_COL_MAJOR, &fwFlux[0], OASIS_No_Restart, &kinfo));
@@ -126,6 +141,8 @@ void OASISCoupledOcean::updateAfter(const TimestepTime& tst)
     const HField cice0 = cice;
     OASIS_CHECK_ERR(oasis_c_put(couplingId.at(CIceKey), OASISTime, dimension0, dimension1, 1,
         OASIS_DOUBLE, OASIS_COL_MAJOR, &cice0[0], OASIS_No_Restart, &kinfo));
+
+    rotateVectorFromGreenland(tauXToGreenland, tauYToGreenland, tauX, tauY);
 
     // Increment the "OASIS" time by the number of seconds in the time step
     updateOASISTime(tst);

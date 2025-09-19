@@ -46,7 +46,8 @@ static const std::string UOceanConfigKey = moduleName + ".ocean_u_velocity";
 static const std::string VOceanConfigKey = moduleName + ".ocean_v_velocity";
 static const std::string SSHConfigKey = moduleName + ".sea_surface_height";
 static const std::string FracQSWConfigKey = moduleName + ".frac_solar_absorbed";
-static const std::string MLDConfigKey = moduleName + ".first_ocean_layer_depth"; // This one is optional
+static const std::string MLDConfigKey
+    = moduleName + ".first_ocean_layer_depth"; // This one is optional
 static const std::string TauXConfigKey = moduleName + ".ice_ocean_stress_x";
 static const std::string TauYConfigKey = moduleName + ".ice_ocean_stress_y";
 static const std::string TauModConfigKey = moduleName + ".ice_ocean_stress_modulo";
@@ -67,6 +68,7 @@ public:
     std::string getName() const override { return moduleName; }
     void updateBefore(const TimestepTime& tst) override;
     void updateAfter(const TimestepTime& tst) override;
+    void setData(const ModelState::DataMap& ms) override;
     void setMetadata(const ModelMetadata& metadata) override;
 
     void configure() override;
