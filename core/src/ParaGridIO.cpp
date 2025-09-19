@@ -190,11 +190,6 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
             std::reverse(count.begin(), count.end());
 
 #ifdef USE_MPI
-            // TODO
-            // at this point we should add the halo exchange logic for each modelarray
-            // need to check what happens for non-H-field modelarrays
-            // need to figure out what happens w.r.t to coords in non-periodic and periodic case
-
             Halo halo(data);
             // create and allocate temporary Eigen array
             ModelArray::DataType tempData;
