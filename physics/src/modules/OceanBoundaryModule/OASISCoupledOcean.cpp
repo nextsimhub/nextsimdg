@@ -66,11 +66,11 @@ void OASISCoupledOcean::updateBefore(const TimestepTime& tst)
     OASIS_CHECK_ERR(oasis_c_get(couplingId.at(SSSKey), OASISTime, dimension0, dimension1,
         bundleSize, OASIS_DOUBLE, OASIS_COL_MAJOR, &sss[0], &kinfo));
 
-    HField uOnGrid;
+    HField uOnGrid; uOnGrid.resize();
     OASIS_CHECK_ERR(oasis_c_get(couplingId.at(UOceanKey), OASISTime, dimension0, dimension1,
         bundleSize, OASIS_DOUBLE, OASIS_COL_MAJOR, &uOnGrid[0], &kinfo));
 
-    HField vOnGrid;
+    HField vOnGrid; vOnGrid.resize();
     OASIS_CHECK_ERR(oasis_c_get(couplingId.at(VOceanKey), OASISTime, dimension0, dimension1,
         bundleSize, OASIS_DOUBLE, OASIS_COL_MAJOR, &vOnGrid[0], &kinfo));
 
