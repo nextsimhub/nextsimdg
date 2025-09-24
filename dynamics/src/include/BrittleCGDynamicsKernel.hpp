@@ -20,12 +20,6 @@ namespace Nextsim {
 // The brittle momentum solver for CG velocity fields
 template <int DGadvection> class BrittleCGDynamicsKernel : public CGDynamicsKernel<DGadvection> {
 protected:
-    using DynamicsKernel<DGadvection, DGstressComp>::s11;
-    using DynamicsKernel<DGadvection, DGstressComp>::s12;
-    using DynamicsKernel<DGadvection, DGstressComp>::s22;
-    using DynamicsKernel<DGadvection, DGstressComp>::e11;
-    using DynamicsKernel<DGadvection, DGstressComp>::e12;
-    using DynamicsKernel<DGadvection, DGstressComp>::e22;
     using DynamicsKernel<DGadvection, DGstressComp>::hice;
     using DynamicsKernel<DGadvection, DGstressComp>::cice;
     using DynamicsKernel<DGadvection, DGstressComp>::smesh;
@@ -37,6 +31,12 @@ protected:
 
     using CGDynamicsKernel<DGadvection>::u;
     using CGDynamicsKernel<DGadvection>::v;
+    using CGDynamicsKernel<DGadvection>::s11;
+    using CGDynamicsKernel<DGadvection>::s12;
+    using CGDynamicsKernel<DGadvection>::s22;
+    using CGDynamicsKernel<DGadvection>::e11;
+    using CGDynamicsKernel<DGadvection>::e12;
+    using CGDynamicsKernel<DGadvection>::e22;
     using CGDynamicsKernel<DGadvection>::xGradSeaSurfaceHeight;
     using CGDynamicsKernel<DGadvection>::yGradSeaSurfaceHeight;
     using CGDynamicsKernel<DGadvection>::uAtmos;
@@ -153,12 +153,12 @@ public:
     {
         if (name == damageName) {
             throw std::runtime_error(std::string("Use setDGArray() to set the data for ") + name);
-        } else if (name == stress11Name) {
-            DGModelArray::ma2dg(data, s11);
-        } else if (name == stress12Name) {
-            DGModelArray::ma2dg(data, s12);
-        } else if (name == stress22Name) {
-            DGModelArray::ma2dg(data, s22);
+//        } else if (name == stress11Name) {
+//            DGModelArray::ma2dg(data, s11);
+//        } else if (name == stress12Name) {
+//            DGModelArray::ma2dg(data, s12);
+//        } else if (name == stress22Name) {
+//            DGModelArray::ma2dg(data, s22);
         } else {
             CGDynamicsKernel<DGadvection>::setData(name, data);
         }

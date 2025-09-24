@@ -15,6 +15,7 @@
 #include "include/ParametricMap.hpp"
 #include "include/VectorManipulations.hpp"
 #include "include/cgVector.hpp"
+#include "include/DGModelArray.hpp"
 
 #include <limits>
 
@@ -40,6 +41,10 @@ void CGDynamicsKernel<DGadvection>::initialise(
 
     u.resize_by_mesh(*smesh);
     v.resize_by_mesh(*smesh);
+
+    e11.resize_by_mesh(*smesh);
+    e12.resize_by_mesh(*smesh);
+    e22.resize_by_mesh(*smesh);
 
     cgH.resize_by_mesh(*smesh);
     cgA.resize_by_mesh(*smesh);
@@ -82,6 +87,20 @@ void CGDynamicsKernel<DGadvection>::setData(const std::string& name, const Model
 }
 
 template <int DGadvection>
+void CGDynamicsKernel<DGadvection>::setDGArray(const std::string& name, ModelArray::DataType& dgData)
+{
+    if (name == stress11Name) {
+        s11 = DGVectorHolder<DGstressComp>(dgData);
+    } else if (name == stress12Name) {
+        s12 = DGVectorHolder<DGstressComp>(dgData);
+    } else if (name == stress22Name) {
+        s22 = DGVectorHolder<DGstressComp>(dgData);
+    } else {
+        DynamicsKernel<DGadvection, DGstressComp>::setDGArray(name, dgData);
+    }
+}
+
+template <int DGadvection>
 ModelArray CGDynamicsKernel<DGadvection>::getDG0Data(const std::string& name) const
 {
     if (name == uName) {
@@ -104,7 +123,27 @@ ModelArray CGDynamicsKernel<DGadvection>::getDG0Data(const std::string& name) co
         DGVector<DGadvection> vtmp(*smesh);
         Nextsim::Interpolations::CG2DG(*smesh, vtmp, vIceOceanStress);
         return DGModelArray::dg2ma(vtmp, data);
-    } else {
+    } else if (name == shearName) {
+        ModelArray data(ModelArray::Type::H);
+        return DGModelArray::dg2ma(Tools::Shear(*smesh, e11, e12, e22), data);
+    } else if (name == divergenceName) {
+        ModelArray data(ModelArray::Type::H);
+        return DGModelArray::dg2ma(Tools::TensorInvI(*smesh, e11, e12, e22), data);
+    } else if (name == sigmaIName) {
+        ModelArray data(ModelArray::Type::H);
+        return DGModelArray::dg2ma(Tools::TensorInvI(*smesh,
+                static_cast<const DGVector<DGstressComp>&>(s11),
+                static_cast<const DGVector<DGstressComp>&>(s12),
+                static_cast<const DGVector<DGstressComp>&>(s22)
+                ), data);
+    } else if (name == sigmaIIName) {
+        ModelArray data(ModelArray::Type::H);
+        return DGModelArray::dg2ma(Tools::TensorInvII(*smesh,
+                static_cast<const DGVector<DGstressComp>&>(s11),
+                static_cast<const DGVector<DGstressComp>&>(s12),
+                static_cast<const DGVector<DGstressComp>&>(s22)
+                ), data);
+   } else {
         return DynamicsKernel<DGadvection, DGstressComp>::getDG0Data(name);
     }
 }

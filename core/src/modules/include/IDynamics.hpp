@@ -27,9 +27,9 @@ public:
         , divergence(ModelArray::Type::H)
         , sigmaI(ModelArray::Type::H)
         , sigmaII(ModelArray::Type::H)
-        , stress11(ModelArray::Type::DG)
-        , stress12(ModelArray::Type::DG)
-        , stress22(ModelArray::Type::DG)
+        , stress11(ModelArray::Type::DGSTRESS)
+        , stress12(ModelArray::Type::DGSTRESS)
+        , stress22(ModelArray::Type::DGSTRESS)
         , damage(getStore())
         , uwind(getStore())
         , vwind(getStore())
@@ -129,9 +129,9 @@ protected:
     HField sigmaI;
     HField sigmaII;
     // Stress components. Diagnostic for some dynamics, prognostic for brittle and others.
-    DGField stress11;
-    DGField stress12;
-    DGField stress22;
+    DGSField stress11;
+    DGSField stress12;
+    DGSField stress22;
     // References to the DG0 finite volume data arrays
     ModelArrayRef<Shared::DAMAGE, RW> damage;
 

@@ -26,14 +26,9 @@ namespace Nextsim {
 template <int DGadvection>
 class CGDynamicsKernel : public DynamicsKernel<DGadvection, DGstressComp> {
 protected:
-    using DynamicsKernel<DGadvection, DGstressComp>::s11;
-    using DynamicsKernel<DGadvection, DGstressComp>::s12;
-    using DynamicsKernel<DGadvection, DGstressComp>::s22;
-    using DynamicsKernel<DGadvection, DGstressComp>::e11;
-    using DynamicsKernel<DGadvection, DGstressComp>::e12;
-    using DynamicsKernel<DGadvection, DGstressComp>::e22;
     using DynamicsKernel<DGadvection, DGstressComp>::smesh;
     using DynamicsKernel<DGadvection, DGstressComp>::dgtransport;
+    using DynamicsKernel<DGadvection, DGstressComp>::setDGArray;
     using typename DynamicsKernel<DGadvection, DGstressComp>::DataMap;
 
 public:
@@ -42,6 +37,7 @@ public:
     void initialise(const ModelArray& coords, bool isSpherical, const ModelArray& mask) override;
 
     void setData(const std::string& name, const ModelArray& data) override;
+    void setDGArray(const std::string& name, ModelArray::DataType& dgData) override;
     ModelArray getDG0Data(const std::string& name) const override;
     void computeGradientOfSeaSurfaceHeight(const DGVector<1>& seaSurfaceHeight);
     void prepareIteration(const DataMap& data) override;
@@ -66,6 +62,10 @@ protected:
     // CG ice thickness and concentration
     CGVector<CGdegree> cgA;
     CGVector<CGdegree> cgH;
+
+    //! DGVectorHolders for strain and stress components
+    DGVector<DGstressComp> e11, e12, e22;
+    DGVectorHolder<DGstressComp> s11, s12, s22;
 
     // CG gradient of the seaSurfaceHeight
     CGVector<CGdegree> xGradSeaSurfaceHeight;

@@ -47,6 +47,9 @@ public:
 
     void zero() { ref->setZero(); }
 
+    auto row(Eigen::Index i) { return static_cast<DGVector<DG>&>(*ref).row(i); }
+    auto col(Eigen::Index i) { return static_cast<DGVector<DG>&>(*ref).col(i); }
+
 private:
     EigenDGVector* ref;
 };
