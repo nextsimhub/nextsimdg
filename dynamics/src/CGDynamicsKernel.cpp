@@ -11,25 +11,25 @@
 #include "include/ModelArray.hpp"
 #include "include/constants.hpp"
 
+#include "include/DGModelArray.hpp"
 #include "include/Interpolations.hpp"
 #include "include/ParametricMap.hpp"
 #include "include/VectorManipulations.hpp"
 #include "include/cgVector.hpp"
-#include "include/DGModelArray.hpp"
 
 #include <limits>
 
 namespace Nextsim {
 
-template<int DGadvection>
+template <int DGadvection>
 CGDynamicsKernel<DGadvection>::CGDynamicsKernel(const DynamicsParameters& params)
-        : baseParams(params)
+    : baseParams(params)
 {
 }
 
-template<int DGadvection>
-void CGDynamicsKernel<DGadvection>::initialise(const ModelArray& coords, bool isSpherical,
-        const ModelArray& mask)
+template <int DGadvection>
+void CGDynamicsKernel<DGadvection>::initialise(
+    const ModelArray& coords, bool isSpherical, const ModelArray& mask)
 {
     DynamicsKernel<DGadvection, DGstressComp>::initialise(coords, isSpherical, mask);
 
@@ -68,12 +68,17 @@ void CGDynamicsKernel<DGadvection>::initialise(const ModelArray& coords, bool is
     sinOceanAngle = std::sin(radians(baseParams.oceanTurningAngle));
 }
 
-template<int DGadvection>
+template <int DGadvection>
 void CGDynamicsKernel<DGadvection>::setData(const std::string& name, const ModelArray& data)
 {
-    const std::map<std::string, CGVector<CGdegree>*> targetMap = { { uName, &u }, { vName, &v }, {
-            uWindName, &uAtmos }, { vWindName, &vAtmos }, { uOceanName, &uOcean }, { vOceanName,
-            &vOcean }, };
+    const std::map<std::string, CGVector<CGdegree>*> targetMap = {
+        { uName, &u },
+        { vName, &v },
+        { uWindName, &uAtmos },
+        { vWindName, &vAtmos },
+        { uOceanName, &uOcean },
+        { vOceanName, &vOcean },
+    };
     if (targetMap.count(name)) {
         ma2cg(data, *targetMap.at(name));
     } else {
@@ -81,9 +86,9 @@ void CGDynamicsKernel<DGadvection>::setData(const std::string& name, const Model
     }
 }
 
-template<int DGadvection>
-void CGDynamicsKernel<DGadvection>::setDGArray(const std::string& name,
-        ModelArray::DataType& dgData)
+template <int DGadvection>
+void CGDynamicsKernel<DGadvection>::setDGArray(
+    const std::string& name, ModelArray::DataType& dgData)
 {
     if (name == stress11Name) {
         s11 = DGVectorHolder<DGstressComp>(dgData);
@@ -96,7 +101,7 @@ void CGDynamicsKernel<DGadvection>::setDGArray(const std::string& name,
     }
 }
 
-template<int DGadvection>
+template <int DGadvection>
 ModelArray CGDynamicsKernel<DGadvection>::getDG0Data(const std::string& name) const
 {
     if (name == uName) {
@@ -128,28 +133,30 @@ ModelArray CGDynamicsKernel<DGadvection>::getDG0Data(const std::string& name) co
     } else if (name == sigmaIName) {
         ModelArray data(ModelArray::Type::H);
         return DGModelArray::dg2ma(
-                Tools::TensorInvI(*smesh, static_cast<const DGVector<DGstressComp>&>(s11),
-                        static_cast<const DGVector<DGstressComp>&>(s12),
-                        static_cast<const DGVector<DGstressComp>&>(s22)), data);
+            Tools::TensorInvI(*smesh, static_cast<const DGVector<DGstressComp>&>(s11),
+                static_cast<const DGVector<DGstressComp>&>(s12),
+                static_cast<const DGVector<DGstressComp>&>(s22)),
+            data);
     } else if (name == sigmaIIName) {
         ModelArray data(ModelArray::Type::H);
         return DGModelArray::dg2ma(
-                Tools::TensorInvII(*smesh, static_cast<const DGVector<DGstressComp>&>(s11),
-                        static_cast<const DGVector<DGstressComp>&>(s12),
-                        static_cast<const DGVector<DGstressComp>&>(s22)), data);
+            Tools::TensorInvII(*smesh, static_cast<const DGVector<DGstressComp>&>(s11),
+                static_cast<const DGVector<DGstressComp>&>(s12),
+                static_cast<const DGVector<DGstressComp>&>(s22)),
+            data);
     } else {
         return DynamicsKernel<DGadvection, DGstressComp>::getDG0Data(name);
     }
 }
 
-template<int DGadvection> void CGDynamicsKernel<DGadvection>::prepareAdvection()
+template <int DGadvection> void CGDynamicsKernel<DGadvection>::prepareAdvection()
 {
     dgtransport->prepareAdvection(u, v);
 }
 
-template<int DGadvection>
+template <int DGadvection>
 void CGDynamicsKernel<DGadvection>::computeGradientOfSeaSurfaceHeight(
-        const DGVector<1>& seaSurfaceHeight)
+    const DGVector<1>& seaSurfaceHeight)
 {
     // First transform to CG1 Vector and do all computations in CG1
     CGVector<1> cgSeasurfaceHeight(*smesh);
@@ -171,9 +178,8 @@ void CGDynamicsKernel<DGadvection>::computeGradientOfSeaSurfaceHeight(
                 for (size_t cx = 0; cx < smesh->nx; ++cx, ++eid, ++cg1id) {
                     // get local CG nodes
                     Eigen::Vector<Nextsim::FloatType, 4> loc_cgSSH = { cgSeasurfaceHeight(cg1id),
-                            cgSeasurfaceHeight(cg1id + 1), cgSeasurfaceHeight(
-                                    cg1id + smesh->nx + 1), cgSeasurfaceHeight(
-                                    cg1id + smesh->nx + 1 + 1) };
+                        cgSeasurfaceHeight(cg1id + 1), cgSeasurfaceHeight(cg1id + smesh->nx + 1),
+                        cgSeasurfaceHeight(cg1id + smesh->nx + 1 + 1) };
 
                     // compute grad
                     Eigen::Vector<Nextsim::FloatType, 4> tx = pmap->dX_SSH[eid] * loc_cgSSH;
@@ -204,14 +210,14 @@ void CGDynamicsKernel<DGadvection>::computeGradientOfSeaSurfaceHeight(
     size_t cg1row = smesh->nx + 1;
     size_t topleft = smesh->ny * cg1row;
     for (size_t i = 1; i < smesh->nx; ++i) // bottom / top
-            {
+    {
         uGrad(i) = uGrad(i + cg1row);
         vGrad(i) = vGrad(i + cg1row);
         uGrad(topleft + i) = uGrad(topleft + i - cg1row);
         vGrad(topleft + i) = vGrad(topleft + i - cg1row);
     }
     for (size_t i = 1; i < smesh->ny; ++i) // left / right
-            {
+    {
         uGrad(i * cg1row) = uGrad(i * cg1row + 1);
         vGrad(i * cg1row) = vGrad(i * cg1row + 1);
 
@@ -246,7 +252,7 @@ void CGDynamicsKernel<DGadvection>::computeGradientOfSeaSurfaceHeight(
         // along lines
 #pragma omp parallel for
         for (size_t iy = 0; iy <= smesh->ny; ++iy) // horizontal
-                {
+        {
             size_t icg1 = (smesh->nx + 1) * iy;
             size_t icg2 = (2 * smesh->nx + 1) * 2 * iy + 1;
             for (size_t ix = 0; ix < smesh->nx; ++ix, ++icg1, icg2 += 2) {
@@ -256,7 +262,7 @@ void CGDynamicsKernel<DGadvection>::computeGradientOfSeaSurfaceHeight(
         }
 #pragma omp parallel for
         for (size_t iy = 0; iy < smesh->ny; ++iy) // vertical
-                {
+        {
             size_t icg1 = (smesh->nx + 1) * iy;
             size_t icg2 = (2 * smesh->nx + 1) * (2 * iy + 1);
             for (size_t ix = 0; ix <= smesh->nx; ++ix, ++icg1, icg2 += 2) {
@@ -268,22 +274,22 @@ void CGDynamicsKernel<DGadvection>::computeGradientOfSeaSurfaceHeight(
         // midpoints
 #pragma omp parallel for
         for (size_t iy = 0; iy < smesh->ny; ++iy) // vertical
-                {
+        {
             size_t icg1 = (smesh->nx + 1) * iy;
             size_t icg2 = (2 * smesh->nx + 1) * (2 * iy + 1) + 1;
             for (size_t ix = 0; ix < smesh->nx; ++ix, ++icg1, icg2 += 2) {
                 xGradSeaSurfaceHeight(icg2) = 0.25
-                        * (uGrad(icg1) + uGrad(icg1 + 1) + uGrad(icg1 + cg1row)
-                                + uGrad(icg1 + cg1row + 1));
+                    * (uGrad(icg1) + uGrad(icg1 + 1) + uGrad(icg1 + cg1row)
+                        + uGrad(icg1 + cg1row + 1));
                 yGradSeaSurfaceHeight(icg2) = 0.25
-                        * (vGrad(icg1) + vGrad(icg1 + 1) + vGrad(icg1 + cg1row)
-                                + vGrad(icg1 + cg1row + 1));
+                    * (vGrad(icg1) + vGrad(icg1 + 1) + vGrad(icg1 + cg1row)
+                        + vGrad(icg1 + cg1row + 1));
             }
         }
     }
 }
 
-template<int DGadvection> void CGDynamicsKernel<DGadvection>::prepareIteration(const DataMap& data)
+template <int DGadvection> void CGDynamicsKernel<DGadvection>::prepareIteration(const DataMap& data)
 {
     // interpolate ice height and concentration to local cg Variables
     Interpolations::DG2CG(*smesh, cgH, data.at(hiceName));
@@ -305,11 +311,11 @@ template<int DGadvection> void CGDynamicsKernel<DGadvection>::prepareIteration(c
     cgH = cgH.cwiseMax(0.05);
 }
 
-template<int CG>
-Eigen::Matrix<double, CGDOFS(CG), 1> cgLocal(const CGVector<CG>& globalVelocity, int cgi,
-        int cgShift);
+template <int CG>
+Eigen::Matrix<double, CGDOFS(CG), 1> cgLocal(
+    const CGVector<CG>& globalVelocity, int cgi, int cgShift);
 
-template<>
+template <>
 Eigen::Matrix<double, CGDOFS(1), 1> cgLocal(const CGVector<1>& vGlobal, int cgi, int cgShift)
 {
     Eigen::Matrix<double, CGDOFS(1), 1> vLocal;
@@ -317,17 +323,17 @@ Eigen::Matrix<double, CGDOFS(1), 1> cgLocal(const CGVector<1>& vGlobal, int cgi,
     return vLocal;
 }
 
-template<>
+template <>
 Eigen::Matrix<double, CGDOFS(2), 1> cgLocal(const CGVector<2>& vGlobal, int cgi, int cgShift)
 {
     Eigen::Matrix<double, CGDOFS(2), 1> vLocal;
-    vLocal << vGlobal(cgi), vGlobal(cgi + 1), vGlobal(cgi + 2), vGlobal(cgi + cgShift), vGlobal(
-            cgi + 1 + cgShift), vGlobal(cgi + 2 + cgShift), vGlobal(cgi + 2 * cgShift), vGlobal(
-            cgi + 1 + 2 * cgShift), vGlobal(cgi + 2 + 2 * cgShift);
+    vLocal << vGlobal(cgi), vGlobal(cgi + 1), vGlobal(cgi + 2), vGlobal(cgi + cgShift),
+        vGlobal(cgi + 1 + cgShift), vGlobal(cgi + 2 + cgShift), vGlobal(cgi + 2 * cgShift),
+        vGlobal(cgi + 1 + 2 * cgShift), vGlobal(cgi + 2 + 2 * cgShift);
     return vLocal;
 }
 
-template<int DGadvection> void CGDynamicsKernel<DGadvection>::projectVelocityToStrain()
+template <int DGadvection> void CGDynamicsKernel<DGadvection>::projectVelocityToStrain()
 {
     // !!! must still be converted to the spherical system!!!
 
@@ -339,16 +345,17 @@ template<int DGadvection> void CGDynamicsKernel<DGadvection>::projectVelocityToS
         int dgi = smesh->nx * row; //!< Index of dg vector
         int cgi = CGdegree * cgshift * row; //!< Lower left index of cg vector
 
-        for (size_t col = 0; col < smesh->nx; ++col, ++dgi, cgi += CGdegree) { // loop over all elements
+        for (size_t col = 0; col < smesh->nx;
+             ++col, ++dgi, cgi += CGdegree) { // loop over all elements
 
             if (smesh->landmask[dgi] == 0) // only on ice
                 continue;
 
             // get the local x/y - velocity coefficients on the element
-            Eigen::Matrix<double, CGDOFS(CGdegree), 1> vx_local = cgLocal<CGdegree>(u, cgi,
-                    cgshift);
-            Eigen::Matrix<double, CGDOFS(CGdegree), 1> vy_local = cgLocal<CGdegree>(v, cgi,
-                    cgshift);
+            Eigen::Matrix<double, CGDOFS(CGdegree), 1> vx_local
+                = cgLocal<CGdegree>(u, cgi, cgshift);
+            Eigen::Matrix<double, CGDOFS(CGdegree), 1> vy_local
+                = cgLocal<CGdegree>(v, cgi, cgshift);
 
             // Solve (E, Psi) = (0.5(DV + DV^T), Psi)
             // by integrating rhs and inverting with dG(stress) mass matrix
@@ -365,21 +372,22 @@ template<int DGadvection> void CGDynamicsKernel<DGadvection>::projectVelocityToS
     }
 }
 
-template<int DGadvection>
-void CGDynamicsKernel<DGadvection>::addStressTensorCell(const size_t eid, const size_t cx,
-        const size_t cy)
+template <int DGadvection>
+void CGDynamicsKernel<DGadvection>::addStressTensorCell(
+    const size_t eid, const size_t cx, const size_t cy)
 {
     Eigen::Vector<Nextsim::FloatType, CGdof> tx = (pmap->divS1[eid] * s11.row(eid).transpose()
-            + pmap->divS2[eid] * s12.row(eid).transpose());
+        + pmap->divS2[eid] * s12.row(eid).transpose());
     Eigen::Vector<Nextsim::FloatType, CGdof> ty = (pmap->divS1[eid] * s12.row(eid).transpose()
-            + pmap->divS2[eid] * s22.row(eid).transpose());
+        + pmap->divS2[eid] * s22.row(eid).transpose());
 
     if (smesh->CoordinateSystem == SPHERICAL) {
         tx += pmap->divM[eid] * s12.row(eid).transpose();
         ty -= pmap->divM[eid] * s11.row(eid).transpose();
     }
     const size_t cgRow = CGdegree * smesh->nx + 1;
-    const size_t cg_i = CGdegree * cgRow * cy + CGdegree * cx; //!< lower left CG-index in element (cx,cy)
+    const size_t cg_i
+        = CGdegree * cgRow * cy + CGdegree * cx; //!< lower left CG-index in element (cx,cy)
 
     // Fill the stress divergence values
     for (size_t row = 0; row <= CGdegree; ++row) {
@@ -390,11 +398,11 @@ void CGDynamicsKernel<DGadvection>::addStressTensorCell(const size_t eid, const 
     }
 }
 
-template<int DGadvection> void CGDynamicsKernel<DGadvection>::stressDivergence()
+template <int DGadvection> void CGDynamicsKernel<DGadvection>::stressDivergence()
 {
     // Somewhat meaningless, but it uses the name in the former version of the code
-    auto &tx = dStressX;
-    auto &ty = dStressY;
+    auto& tx = dStressX;
+    auto& ty = dStressY;
 
     // Zero the stress gradient vectors
 #pragma omp parallel for
@@ -425,7 +433,7 @@ template<int DGadvection> void CGDynamicsKernel<DGadvection>::stressDivergence()
     VectorManipulations::CGAveragePeriodic(*smesh, ty);
 }
 
-template<int DGadvection>
+template <int DGadvection>
 void CGDynamicsKernel<DGadvection>::dirichletZero(CGVector<CGdegree>& v) const
 {
     // TR 07.04.2025: Dirichlet Zero (u=v=0) holds on land and on the boundary betreen
@@ -437,16 +445,16 @@ void CGDynamicsKernel<DGadvection>::dirichletZero(CGVector<CGdegree>& v) const
             v(i) = 0;
 }
 
-template<int DGadvection> void CGDynamicsKernel<DGadvection>::applyBoundaries()
+template <int DGadvection> void CGDynamicsKernel<DGadvection>::applyBoundaries()
 {
     dirichletZero(u);
     dirichletZero(v);
     // TODO Periodic boundary conditions.
 }
 
-template<int DGadvection>
-DGVector<DGadvection>& CGDynamicsKernel<DGadvection>::advectDGVField(double timestep,
-        DGVector<DGadvection>& field, double lowerLimit, double upperLimit)
+template <int DGadvection>
+DGVector<DGadvection>& CGDynamicsKernel<DGadvection>::advectDGVField(
+    double timestep, DGVector<DGadvection>& field, double lowerLimit, double upperLimit)
 {
     dgtransport->step(timestep, field);
     if (lowerLimit > -std::numeric_limits<double>::infinity())
@@ -457,9 +465,9 @@ DGVector<DGadvection>& CGDynamicsKernel<DGadvection>::advectDGVField(double time
     return field;
 }
 
-template<int DGadvection>
-void CGDynamicsKernel<DGadvection>::updateIceOceanStress(const CGVector<CGdegree>& uIce,
-        const CGVector<CGdegree>& vIce)
+template <int DGadvection>
+void CGDynamicsKernel<DGadvection>::updateIceOceanStress(
+    const CGVector<CGdegree>& uIce, const CGVector<CGdegree>& vIce)
 {
     const double FOcean = baseParams.COcean * baseParams.rhoOcean;
 
@@ -474,8 +482,8 @@ void CGDynamicsKernel<DGadvection>::updateIceOceanStress(const CGVector<CGdegree
 }
 
 // Instantiate the templates for all (1, 3, 6) degrees of DGadvection
-template class CGDynamicsKernel<1> ;
-template class CGDynamicsKernel<3> ;
-template class CGDynamicsKernel<6> ;
+template class CGDynamicsKernel<1>;
+template class CGDynamicsKernel<3>;
+template class CGDynamicsKernel<6>;
 
 }

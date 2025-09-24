@@ -12,66 +12,48 @@
 
 namespace Nextsim {
 
-template<int DG> class DGVectorHolder {
+template <int DG> class DGVectorHolder {
 public:
     using EigenDGVector = typename DGVector<DG>::EigenDGVector;
     DGVectorHolder()
-            : ref(nullptr)
+        : ref(nullptr)
     {
     }
     DGVectorHolder(ModelArray& ma)
-            : DGVectorHolder(static_cast<ModelArray::DataType&>(ma))
+        : DGVectorHolder(static_cast<ModelArray::DataType&>(ma))
     {
         if (ma.nComponents() != DG) {
             std::string msg = "DGVectorHolder<" + std::to_string(DG)
-                    + ">(ModelArray&): incorrect number of components = "
-                    + std::to_string(ma.nComponents());
+                + ">(ModelArray&): incorrect number of components = "
+                + std::to_string(ma.nComponents());
             throw std::length_error(msg);
         }
     }
     DGVectorHolder(ModelArray::DataType& madt)
-            : DGVectorHolder(reinterpret_cast<EigenDGVector&>(madt))
+        : DGVectorHolder(reinterpret_cast<EigenDGVector&>(madt))
     {
     }
     DGVectorHolder(EigenDGVector& edgv)
-            : ref(&edgv)
+        : ref(&edgv)
     {
     }
     DGVectorHolder(DGVector<DG>& dgv)
-            : ref(&dgv)
+        : ref(&dgv)
     {
     }
 
-    operator DGVector<DG>&()
-    {
-        return reinterpret_cast<DGVector<DG>&>(*ref);
-    }
-    operator const DGVector<DG>&() const
-    {
-        return reinterpret_cast<const DGVector<DG>&>(*ref);
-    }
+    operator DGVector<DG>&() { return reinterpret_cast<DGVector<DG>&>(*ref); }
+    operator const DGVector<DG>&() const { return reinterpret_cast<const DGVector<DG>&>(*ref); }
 
-    double& operator()(size_t i, size_t j)
-    {
-        return (*ref)(i, j);
-    }
+    double& operator()(size_t i, size_t j) { return (*ref)(i, j); }
 
-    void zero()
-    {
-        ref->setZero();
-    }
+    void zero() { ref->setZero(); }
 
-    auto row(Eigen::Index i)
-    {
-        return static_cast<DGVector<DG>&>(*ref).row(i);
-    }
-    auto col(Eigen::Index i)
-    {
-        return static_cast<DGVector<DG>&>(*ref).col(i);
-    }
+    auto row(Eigen::Index i) { return static_cast<DGVector<DG>&>(*ref).row(i); }
+    auto col(Eigen::Index i) { return static_cast<DGVector<DG>&>(*ref).col(i); }
 
 private:
-    EigenDGVector *ref;
+    EigenDGVector* ref;
 };
 }
 

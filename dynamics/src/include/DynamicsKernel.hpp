@@ -31,9 +31,9 @@
 namespace Nextsim {
 
 // forward declare the class holding the potentially non-DG parts
-template<int DGdegree> class DynamicsInternals;
+template <int DGdegree> class DynamicsInternals;
 
-template<int DGadvection, int DGstress> class DynamicsKernel {
+template <int DGadvection, int DGstress> class DynamicsKernel {
 public:
     typedef std::pair<const std::string, const DGVector<DGadvection>&> DataMapping;
     typedef std::map<typename DataMapping::first_type, typename DataMapping::second_type> DataMap;
@@ -44,7 +44,7 @@ public:
     {
         //! Define the spatial mesh
         smesh = std::make_unique<ParametricMesh>(
-                (isSpherical) ? Nextsim::SPHERICAL : Nextsim::CARTESIAN);
+            (isSpherical) ? Nextsim::SPHERICAL : Nextsim::CARTESIAN);
 
         smesh->coordinatesFromModelArray(coords);
         if (isSpherical)
@@ -57,20 +57,20 @@ public:
 
         seaSurfaceHeight.resize_by_mesh(*smesh);
 
-//        e11.resize_by_mesh(*smesh);
-//        e12.resize_by_mesh(*smesh);
-//        e22.resize_by_mesh(*smesh);
-//        s11.resize_by_mesh(*smesh);
-//        s12.resize_by_mesh(*smesh);
-//        s22.resize_by_mesh(*smesh);
+        //        e11.resize_by_mesh(*smesh);
+        //        e12.resize_by_mesh(*smesh);
+        //        e22.resize_by_mesh(*smesh);
+        //        s11.resize_by_mesh(*smesh);
+        //        s12.resize_by_mesh(*smesh);
+        //        s22.resize_by_mesh(*smesh);
 
-// Set initial values to zero. Prognostic fields will be filled from the restart file.
-//        e11.zero();
-//        e12.zero();
-//        e22.zero();
-//        s11.zero();
-//        s12.zero();
-//        s22.zero();
+        // Set initial values to zero. Prognostic fields will be filled from the restart file.
+        //        e11.zero();
+        //        e12.zero();
+        //        e22.zero();
+        //        s11.zero();
+        //        s12.zero();
+        //        s22.zero();
     }
 
     /*!
@@ -91,8 +91,14 @@ public:
      */
     virtual void setData(const std::string& name, const ModelArray& data)
     {
-        static const std::set<std::string> vectorHolderNames = { hiceName, ciceName, hsnowName,
-                stress11Name, stress12Name, stress22Name, };
+        static const std::set<std::string> vectorHolderNames = {
+            hiceName,
+            ciceName,
+            hsnowName,
+            stress11Name,
+            stress12Name,
+            stress22Name,
+        };
         // Special cases: hice, cice, (damage, stress) <- not yet implemented
         if (vectorHolderNames.count(name)) {
             throw std::runtime_error(std::string("Use setDGArray() to set the data for ") + name);
@@ -125,17 +131,14 @@ public:
         HField data(ModelArray::Type::H);
         if (name == hiceName || name == ciceName || name == hsnowName) {
             throw std::runtime_error(
-                    std::string("DynamicsKernel::getDG0Data: Use array sharing for ") + name);
+                std::string("DynamicsKernel::getDG0Data: Use array sharing for ") + name);
         } else {
             // Any other named field must exist
             return ModelArray(ModelArray::component0Type(ModelArray::AdvectionType));
         }
     }
 
-    virtual void update(const TimestepTime& tst)
-    {
-        ++stepNumber;
-    }
+    virtual void update(const TimestepTime& tst) { ++stepNumber; }
 
     /*!
      * Prepares the transport objects to perform the advection step.
@@ -153,9 +156,9 @@ public:
      *
      * @return A reference to the advected array.
      */
-    ModelArray& advectField(double timestep, ModelArray& field, double lowerLimit =
-            -std::numeric_limits<double>::infinity(), double upperLimit =
-            std::numeric_limits<double>::infinity())
+    ModelArray& advectField(double timestep, ModelArray& field,
+        double lowerLimit = -std::numeric_limits<double>::infinity(),
+        double upperLimit = std::numeric_limits<double>::infinity())
     {
         DGVectorHolder<DGadvection> holder(field);
         advectDGVField(timestep, holder, lowerLimit, upperLimit);
@@ -173,9 +176,9 @@ public:
      * @return A reference to the advected array.
      */
     virtual DGVector<DGadvection>& advectDGVField(double timestep, DGVector<DGadvection>& field,
-            double lowerLimit = -std::numeric_limits<double>::infinity(), double upperLimit =
-                    std::numeric_limits<double>::infinity())
-                    = 0;
+        double lowerLimit = -std::numeric_limits<double>::infinity(),
+        double upperLimit = std::numeric_limits<double>::infinity())
+        = 0;
 
     virtual void advectDynamicsFields(double timestep)
     {
@@ -195,9 +198,9 @@ protected:
     DGVector<1> seaSurfaceHeight;
 
     //! Vectors storing strain and stress components
-//    DGVector<DGstress> e11, e12, e22;
-//    DGVector<DGstress> /*s11,*/ s12, s22;
-//    DGVectorHolder<DGstress> s11, s12, s22;
+    //    DGVector<DGstress> e11, e12, e22;
+    //    DGVector<DGstress> /*s11,*/ s12, s22;
+    //    DGVectorHolder<DGstress> s11, s12, s22;
 
     size_t stepNumber = 0;
 
