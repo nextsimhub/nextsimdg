@@ -4,9 +4,11 @@ import numpy as np
 
 class initMaker:
     """
-    A "plug-and-play" initialisation class for neXtSIM. The user needs to supply
-    at minimum the grid dimensions and resolution. They may also supply any
-    initialisation fields they need, as well as a land mask.
+    A "plug-and-play" initialisation class for neXtSIM.
+
+    The user needs to supply at minimum the grid dimensions and resolution. They may
+    also supply any initialisation fields they need, as well as a land mask.
+
     Usage:
      0. Import make_init_base
       >>> from make_init_base import initMaker
@@ -23,15 +25,15 @@ class initMaker:
 
     def __init__(self, fname, nFirst, nSecond, res, nCg=1, nDg=1, nDgStress=3, nCoords=2, checkZeros=True):
         """
-        Initialise all internal variables, except __nfirst, __nsecond, __nLayers,
-        and __res to zero. All arrays are set to the right size as well.
-        
+        Initialise most internal variables to zero and all arrays to the right size.
+
+        Exceptions: __nfirst, __nsecond, __nLayers, and __res are not set to zero.
+
         :param fname: Name of the file to write the output into
         :param nFirst: Number of rows (first dimension)
         :param nSecond: Number of columns (seond dimension)
         :param res: Model resolution [m]
         """
-
         # Set the file name
         self.__fname = fname
 
@@ -63,12 +65,15 @@ class initMaker:
 
     def __testFields__(self):
         """
-        Check if arrays are non-zero and the right size. Print a warning if
-        they're zero (this may be ok). Raise a RuntimeError if the shape is wrong.
+        Check if arrays are non-zero and the right size.
+
+        Print a warning if they're zero (this may be ok). Raise a RuntimeError if the
+        shape is wrong.
         """
         if (self.mask==0).all():
             print("Error: 'mask' is not set (all values are zero, meaning land everywhere)")
-            raise RuntimeError("'mask' is not set")
+            runtime_err = "'mask' is not set"
+            raise RuntimeError(runtime_err)
 
         for check in [["cice", (self.cice==0).all(), self.cice.shape==(self.__nFirst,self.__nSecond)],
                       ["hice", (self.hice==0).all(), self.hice.shape==(self.__nFirst,self.__nSecond)],
@@ -85,40 +90,33 @@ class initMaker:
 
             if not check[2]:
                 print("Error: '"+check[0]+"' is the wrong shape")
-                raise RuntimeError("Incorrect array shape")
+                runtime_err = "Incorrect array shape"
+                raise RuntimeError(runtime_err)
 
     def __del__(self):
+        """Destructor that writes the file when the object goes out of scope."""
         self.__writeFile__()
 
     def __writeFile__(self):
-        """
-        Write everything to file. This is called by the destructor.
-        """
-
+        """Write everything to file. This is called by the destructor."""
         print("Producing file", self.__fname)
 
         self.__testFields__()
 
-        root = netCDF4.Dataset(self.__fname, "w", format="NETCDF4")
+        ncFile = netCDF4.Dataset(self.__fname, "w", format="NETCDF4")
 
         structure_name = "parametric_rectangular"
-        structgrp = root.createGroup("structure")
-        structgrp.type = structure_name
+        ncFile.structure_name = structure_name
 
-        metagrp = root.createGroup("metadata")
-        metagrp.type = structure_name
-        metagrp.createGroup("configuration")  # But add nothing to it
-        datagrp = root.createGroup("data")
-
-        datagrp.createDimension("ydim", self.__nFirst)
-        datagrp.createDimension("xdim", self.__nSecond)
-        datagrp.createDimension("yvertex", self.__nFirst + 1)
-        datagrp.createDimension("xvertex", self.__nSecond + 1)
-        datagrp.createDimension("y_cg", self.__nFirst * self.__nCg + 1)
-        datagrp.createDimension("x_cg", self.__nSecond * self.__nCg + 1)
-        datagrp.createDimension("dg_comp", self.__nDg)
-        datagrp.createDimension("dgstress_comp", self.__nDgStress)
-        datagrp.createDimension("ncoords", self.__nCoords)
+        ncFile.createDimension("ydim", self.__nFirst)
+        ncFile.createDimension("xdim", self.__nSecond)
+        ncFile.createDimension("yvertex", self.__nFirst + 1)
+        ncFile.createDimension("xvertex", self.__nSecond + 1)
+        ncFile.createDimension("y_cg", self.__nFirst * self.__nCg + 1)
+        ncFile.createDimension("x_cg", self.__nSecond * self.__nCg + 1)
+        ncFile.createDimension("dg_comp", self.__nDg)
+        ncFile.createDimension("dgstress_comp", self.__nDgStress)
+        ncFile.createDimension("ncoords", self.__nCoords)
 
         field_dims = ("ydim", "xdim")
         coord_dims = ("yvertex", "xvertex", "ncoords")
@@ -131,7 +129,7 @@ class initMaker:
                 x[j, i] = i * self.__res
                 y[j, i] = j * self.__res
 
-        coords = datagrp.createVariable("coords", "f8", coord_dims)
+        coords = ncFile.createVariable("coords", "f8", coord_dims)
         coords[:, :, 0] = x
         coords[:, :, 1] = y
 
@@ -142,45 +140,45 @@ class initMaker:
                 px[j, i] = (j + 0.5) * self.__res
                 py[j, i] = (i + 0.5) * self.__res
 
-        elem_x = datagrp.createVariable("x", "f8", field_dims)
+        elem_x = ncFile.createVariable("x", "f8", field_dims)
         elem_x[:, :] = px
-        elem_y = datagrp.createVariable("y", "f8", field_dims)
+        elem_y = ncFile.createVariable("y", "f8", field_dims)
         elem_y[:, :] = py
 
-        grid_azimuth = datagrp.createVariable("grid_azimuth", "f8", field_dims)
+        grid_azimuth = ncFile.createVariable("grid_azimuth", "f8", field_dims)
         grid_azimuth[:, :] = self.azimuth
 
         # Set the mask
-        mask = datagrp.createVariable("mask", "f8", field_dims)
+        mask = ncFile.createVariable("mask", "f8", field_dims)
         mask[:, :] = self.mask
         antimask = 1 - mask[:, :]
 
         # Set the concentration
-        cice = datagrp.createVariable("cice", "f8", field_dims)
+        cice = ncFile.createVariable("cice", "f8", field_dims)
         cice[:, :] = self.cice
 
         # Set the thickness
-        hice = datagrp.createVariable("hice", "f8", field_dims)
+        hice = ncFile.createVariable("hice", "f8", field_dims)
         hice[:, :] = self.hice
 
         # Set snow thickness
-        hsnow = datagrp.createVariable("hsnow", "f8", field_dims)
+        hsnow = ncFile.createVariable("hsnow", "f8", field_dims)
         hsnow[:, :] = self.hsnow
 
         # Set snow thickness
-        damage = datagrp.createVariable("damage", "f8", field_dims)
+        damage = ncFile.createVariable("damage", "f8", field_dims)
         damage[:, :] = self.damage
 
         # Set ice velocity
-        u = datagrp.createVariable("u", "f8", field_dims)
+        u = ncFile.createVariable("u", "f8", field_dims)
         u[:, :] = self.uice
-        v = datagrp.createVariable("v", "f8", field_dims)
+        v = ncFile.createVariable("v", "f8", field_dims)
         v[:, :] = self.vice
 
         # Set ocean state
-        sst = datagrp.createVariable("sst", "f8", field_dims)
+        sst = ncFile.createVariable("sst", "f8", field_dims)
         sst[:, :] = self.sst
-        sss = datagrp.createVariable("sss", "f8", field_dims)
+        sss = ncFile.createVariable("sss", "f8", field_dims)
         sss[:, :] = self.sss
 
         # mask data
@@ -201,4 +199,4 @@ class initMaker:
         sss[:, :] = sss[:, :] * mask[:, :]
         sst[:, :] = sst[:, :] * mask[:, :]
 
-        root.close()
+        ncFile.close()

@@ -5,9 +5,9 @@
 
 // External SharedArray names must be unique wrt to the external ProtectedArray names as well
 { "damage_upd", "DAMAGE" }, // Updated ice thickness, ice average, m
-    { "hice_true", "H_ICE" }, // Updated ice thickness, ice average, m
-    { "cice_upd", "C_ICE" }, // Updated ice concentration
-    { "hsnow_true", "H_SNOW" }, // Updated snow depth, ice average, m
+    { "hice", "H_ICE_DG" }, // Updated ice thickness, ice average, m
+    { "cice", "C_ICE_DG" }, // Updated ice concentration
+    { "hsnow", "H_SNOW_DG" }, // Updated snow depth, ice average, m
     { "tice_upd", "T_ICE" }, // Updated ice temperatures, ˚C
     { "qia", "Q_IA" }, // Ice to atmosphere heat flux W m⁻²
     { "qic", "Q_IC" }, // Ice conduction heat flux W m⁻²
@@ -20,3 +20,7 @@
     { "delta_hice", "DELTA_HICE" }, // Change in sea ice thickness, m
     { "delta_cice", "DELTA_CICE" }, // Change in sea ice concentration
     { "new_ice", "NEW_ICE" }, // Volume of new ice formed [m]
+    { "qsw_base", "Q_SW_BASE" }, // Short-wave flux through ice base W m⁻²
+    { "qsw_ow", "Q_SW_OW" }, // Short-wave flux into ice free ocean W m⁻²
+    { "taux_ow", "OW_STRESS_Y" }, // y(north)-ward open ocean stress, Pa
+    { "tauy_ow", "OW_STRESS_X" }, // x(east)-ward open ocean stress, Pa

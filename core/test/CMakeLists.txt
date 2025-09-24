@@ -14,6 +14,10 @@ execute_process(
     COMMAND "${Python_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/old_names.py"
     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
 )
+execute_process(
+    COMMAND "${Python_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/ParaGridIO_input_test.py"
+    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+)
 
 include_directories(${COMMON_INCLUDE_DIRS})
 set(MODEL_INCLUDE_DIR "../../core/src/discontinuousgalerkin")
@@ -59,7 +63,8 @@ if(ENABLE_MPI)
         # Generate input and partition files needed for XIOS tests from respective cdl files
         add_custom_command(
             OUTPUT xios_test_input.nc
-            COMMAND ncgen -o xios_test_input.nc ${CMAKE_CURRENT_SOURCE_DIR}/xios_test_input.cdl
+            COMMAND ncgen -k netCDF-4 -o xios_test_input.nc
+                    ${CMAKE_CURRENT_SOURCE_DIR}/xios_test_input.cdl
             DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/xios_test_input.cdl
         )
         add_custom_target(generate_xios_input_file ALL DEPENDS xios_test_input.nc)
@@ -115,7 +120,11 @@ if(ENABLE_MPI)
         target_link_libraries(testXiosFile_MPI2 PRIVATE nextsimlib doctest::doctest)
 
         add_executable(testXiosRead_MPI2 "XiosRead_test.cpp" "MainMPI.cpp")
-        target_compile_definitions(testXiosRead_MPI2 PRIVATE USE_XIOS)
+        target_compile_definitions(testXiosRead_MPI2
+            PRIVATE
+                USE_XIOS
+                TEST_FILES_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\"
+        )
         target_include_directories(
             testXiosRead_MPI2
             PRIVATE "${MODEL_INCLUDE_DIR}" "${XIOS_INCLUDE_LIST}" "${ModulesRoot}/StructureModule"

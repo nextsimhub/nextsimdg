@@ -13,6 +13,9 @@
 #include "include/MissingData.hpp"
 #include "include/NextsimModule.hpp"
 #include "include/StructureFactory.hpp"
+#ifdef USE_XIOS
+#include "include/Xios.hpp"
+#endif
 
 #include <string>
 
@@ -162,12 +165,22 @@ Model::HelpMap& Model::getHelpRecursive(HelpMap& map, bool getAll)
     getHelpText(map, getAll);
     PrognosticData::getHelpRecursive(map, getAll);
     Module::getHelpRecursive<IDiagnosticOutput>(map, getAll);
+#ifdef USE_XIOS
+    Xios::getHelpRecursive(map, getAll);
+#endif
     return map;
 }
 
 void Model::run()
 {
-    iterator.run();
+    try {
+        iterator.run();
+    } catch (const std::exception& e) {
+        writeRestartFile();
+        Finalizer::finalize();
+        throw;
+    }
+
     writeRestartFile();
     Finalizer::finalize();
 }

@@ -145,6 +145,10 @@ public:
 
         updateIceOceanStress(avgU, avgV);
 
+        // TODO: It's annoying to have to limit damage again. We need to find a better solution.
+        Nextsim::LimitMax(damage, 1.0);
+        Nextsim::LimitMin(damage, 1e-12);
+
         // Finally, do the base class update
         DynamicsKernel<DGadvection, DGstressComp>::update(tst);
     }

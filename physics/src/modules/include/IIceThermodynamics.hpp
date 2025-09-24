@@ -81,6 +81,7 @@ protected:
         , hsnow(getStore())
         , qic(getStore())
         , qio(getStore())
+        , qow(getStore())
         , qia(getStore())
         , dQia_dt(getStore())
         , penSw(getStore())
@@ -94,13 +95,14 @@ protected:
         getStore().registerArray(Protected::T_SURF, &tsurf, RO);
     }
 
-    ModelArrayRef<Shared::H_ICE, RW> hice; // From IceGrowth
-    ModelArrayRef<Shared::C_ICE, RW> cice; // From IceGrowth
-    ModelArrayRef<Shared::H_SNOW, RW> hsnow; // From Ice Growth
+    ModelArrayRef<Shared::H_ICE_DG, RW> hice; // From PrognosticData
+    ModelArrayRef<Shared::C_ICE_DG, RW> cice; // From PrognosticData
+    ModelArrayRef<Shared::H_SNOW_DG, RW> hsnow; // From PrognosticData
     ModelArrayRef<Shared::Q_IC, RW>
         qic; // From IceTemperature. Conductive heat flux to the ice surface.
     ModelArrayRef<Shared::Q_SW_BASE, RW> qswBase; // Short-wave flux through the base of the ice
     ModelArrayRef<Shared::Q_IO, RW> qio; // From FluxCalculation
+    ModelArrayRef<Shared::Q_OW, RW> qow; // From FluxCalculation
     ModelArrayRef<Shared::Q_IA, RO> qia; // From FluxCalculation
     ModelArrayRef<Shared::DQIA_DT, RO> dQia_dt; // From FluxCalculation
     ModelArrayRef<Shared::Q_PEN_SW, RO> penSw; // From FluxCalculation
