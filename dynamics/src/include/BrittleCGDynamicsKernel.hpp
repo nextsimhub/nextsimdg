@@ -18,7 +18,7 @@
 namespace Nextsim {
 
 // The brittle momentum solver for CG velocity fields
-template <int DGadvection> class BrittleCGDynamicsKernel : public CGDynamicsKernel<DGadvection> {
+template<int DGadvection> class BrittleCGDynamicsKernel: public CGDynamicsKernel<DGadvection> {
 protected:
     using DynamicsKernel<DGadvection, DGstressComp>::hice;
     using DynamicsKernel<DGadvection, DGstressComp>::cice;
@@ -58,12 +58,10 @@ protected:
 public:
     using CGDynamicsKernel<DGadvection>::advectField;
 
-    BrittleCGDynamicsKernel(
-        StressUpdateStep<DGadvection, DGstressComp>& stressStepIn, const BBMParameters& paramsIn)
-        : CGDynamicsKernel<DGadvection>(paramsIn)
-        , stressStep(stressStepIn)
-        , params(paramsIn)
-        , stresstransport(nullptr)
+    BrittleCGDynamicsKernel(StressUpdateStep<DGadvection, DGstressComp>& stressStepIn,
+            const BBMParameters& paramsIn)
+            : CGDynamicsKernel<DGadvection>(paramsIn), stressStep(stressStepIn), params(paramsIn), stresstransport(
+                    nullptr)
     {
     }
     virtual ~BrittleCGDynamicsKernel() = default;
@@ -85,7 +83,10 @@ public:
     }
 
     // The brittle rheologies use avgU and avgV to do the advection, not u and v, like mEVP
-    void prepareAdvection() override { dgtransport->prepareAdvection(avgU, avgV); }
+    void prepareAdvection() override
+    {
+        dgtransport->prepareAdvection(avgU, avgV);
+    }
 
     /*!
      * Advection function for stress. Stress components have no limits.
@@ -116,7 +117,7 @@ public:
     {
         advectDynamicsFields(tst.step.seconds());
 
-        prepareIteration({ { hiceName, hice }, { ciceName, cice } });
+        prepareIteration( { { hiceName, hice }, { ciceName, cice } });
 
         // The timestep for the brittle solver is the solver subtimestep
         deltaT = tst.step.seconds() / params.nSteps;
@@ -128,11 +129,11 @@ public:
 
             projectVelocityToStrain();
 
-            std::array<std::reference_wrapper<DGVector<DGstressComp>>, N_TENSOR_ELEMENTS> stress
-                = { s11, s12, s22 }; // Call the step function on the StressUpdateStep class
+            std::array<std::reference_wrapper<DGVector<DGstressComp>>, N_TENSOR_ELEMENTS> stress = {
+                    s11, s12, s22 }; // Call the step function on the StressUpdateStep class
             // Call the step function on the StressUpdateStep class
-            stressStep.stressUpdateHighOrder(
-                params, *smesh, stress, { e11, e12, e22 }, hice, cice, deltaT);
+            stressStep.stressUpdateHighOrder(params, *smesh, stress, { e11, e12, e22 }, hice, cice,
+                    deltaT);
 
             stressDivergence(); // Compute divergence of stress tensor
 
@@ -177,8 +178,8 @@ protected:
     CGVector<CGdegree> avgU;
     CGVector<CGdegree> avgV;
 
-    StressUpdateStep<DGadvection, DGstressComp>& stressStep;
-    const BBMParameters& params;
+    StressUpdateStep<DGadvection, DGstressComp> &stressStep;
+    const BBMParameters &params;
 
     std::unique_ptr<DGTransport<DGstressComp>> stresstransport;
 
@@ -216,22 +217,22 @@ protected:
             // Atmospheric drag
             const double dragAtm = cgA(i) * FAtm * std::hypot(uAtmos(i), vAtmos(i));
             const double tauX = dragAtm * uAtmos(i)
-                + cPrime * (uOcean(i) * cosOceanAngle - vOcean(i) * sinOceanAngle);
+                    + cPrime * (uOcean(i) * cosOceanAngle - vOcean(i) * sinOceanAngle);
             const double tauY = dragAtm * vAtmos(i)
-                + cPrime * (vOcean(i) * cosOceanAngle + uOcean(i) * sinOceanAngle);
+                    + cPrime * (vOcean(i) * cosOceanAngle + uOcean(i) * sinOceanAngle);
 
             // Stress gradient
             const double gradX = dStressX(i) / pmap->lumpedcgmass(i)
-                - params.rhoIce * cgH(i) * PhysicalConstants::g * xGradSeaSurfaceHeight(i);
+                    - params.rhoIce * cgH(i) * PhysicalConstants::g * xGradSeaSurfaceHeight(i);
             const double gradY = dStressY(i) / pmap->lumpedcgmass(i)
-                - params.rhoIce * cgH(i) * PhysicalConstants::g * yGradSeaSurfaceHeight(i);
+                    - params.rhoIce * cgH(i) * PhysicalConstants::g * yGradSeaSurfaceHeight(i);
 
             u(i) = alpha * uIce + beta * vIce
-                + dteOverMass * (alpha * (gradX + tauX) + beta * (gradY + tauY));
+                    + dteOverMass * (alpha * (gradX + tauX) + beta * (gradY + tauY));
             u(i) *= rDenom;
 
             v(i) = alpha * vIce - beta * uIce
-                + dteOverMass * (alpha * (gradY + tauY) + beta * (gradX + tauX));
+                    + dteOverMass * (alpha * (gradY + tauY) + beta * (gradX + tauX));
             v(i) *= rDenom;
 
             // Calculate the contribution to the average velocity
