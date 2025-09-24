@@ -23,7 +23,7 @@ if __name__ == "__main__":
     parser.add_argument("--grid-file", dest="grid_file", default="25km_NH.nc", help="Path of the input grid file.")
     parser.add_argument("--mask-file", dest="mask_file", default="25km_NH.nc", help="Path of the input mask file.")
     parser.add_argument("--topaz-path", dest = "topaz_path", default=".", help = "Path containing the TOPAZ4 files.")
-    parser.add_argument("--boundary", dest = "boundary", default='open', help='One of "open" (default) or "closed"')
+    parser.add_argument("--boundary", dest = "boundary", default='open', help='One of "open" (default), "closed", or "double".')
     parser.add_argument("--out-suffix", dest = "out_suffix", default='', help='Added to the name of the output file '
                                                                               'before the ending"')
 
@@ -51,15 +51,23 @@ if __name__ == "__main__":
     else:
         raise ValueError(f"Grid type {args.grid_type} not supported.")
 
-    land_ratio = np.count_nonzero(init_base.mask[:, :]) / init_base.mask[:, :].size
-    print(f"ratio of sea (active) cells to total: {land_ratio}")
     if args.boundary in ['closed']:
         init_base.mask[:, 0] = 0.0
         init_base.mask[:, -1] = 0.0
         init_base.mask[0, :] = 0.0
         init_base.mask[-1, :] = 0.0
-        land_ratio = np.count_nonzero(init_base.mask[:, :]) / init_base.mask[:, :].size
-        print(f"ratio after adjustment: {land_ratio}")
+    elif args.boundary in ['double']:
+        init_base.mask[:, 0] = 0.0
+        init_base.mask[:, -1] = 0.0
+        init_base.mask[0, :] = 0.0
+        init_base.mask[-1, :] = 0.0
+        init_base.mask[:, 1] = 0.0
+        init_base.mask[:, -2] = 0.0
+        init_base.mask[1, :] = 0.0
+        init_base.mask[-2, :] = 0.0
+
+    land_ratio = np.count_nonzero(init_base.mask[:, :]) / init_base.mask[:, :].size
+    print(f"ratio of sea (active) cells to total: {land_ratio}")
 
     # Access the TOPAZ data for initial conditions
     data_time = time.strptime(args.start_date, "%Y-%m-%d")
