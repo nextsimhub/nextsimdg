@@ -13,7 +13,7 @@
 #endif
 
 #include "include/ModelArray.hpp"
-#include "include/ModelState.hpp"
+#include "include/Time.hpp"
 
 namespace Nextsim {
 
@@ -36,14 +36,14 @@ public:
 #endif
 
 protected:
-    void rotateVectorToGreenland(
+    void rotateVectorFromGreenland(
         const ModelArray& uIn, const ModelArray& vIn, ModelArray& uOut, ModelArray& vOut) const
     {
         uOut = uIn * cosAngle - vIn * sinAngle;
         vOut = uIn * sinAngle + vIn * cosAngle;
     };
 
-    void rotateVectorFromGreenland(
+    void rotateVectorToGreenland(
         const ModelArray& uIn, const ModelArray& vIn, ModelArray& uOut, ModelArray& vOut) const
     {
         uOut = uIn * cosAngle + vIn * sinAngle;
