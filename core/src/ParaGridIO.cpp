@@ -134,8 +134,10 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
                 localLength = dim.getSize();
                 start = 0;
             }
-            ModelArray::setDimension(dimType, dim.getSize() + 2 * Halo::haloWidth,
-                localLength + 2 * Halo::haloWidth, start);
+            // globalLength doesnt need to be padded with halo cells but localLength does
+            // setDimension(dim, globalLength, localLength, start)
+            ModelArray::setDimension(
+                dimType, dim.getSize(), localLength + 2 * Halo::haloWidth, start);
 #else
             ModelArray::setDimension(dimType, dim.getSize());
 #endif
