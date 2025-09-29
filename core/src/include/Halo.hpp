@@ -1,5 +1,15 @@
 /*!
  * @author  Tom Meltzer <tdm39@cam.ac.uk>
+ * @brief Halo exchange class
+ * @details
+ *
+ * Halo exchange class
+ *
+ * All functionality for halo exchange between MPI ranks is contained in this class.
+ *
+ * Halo supports the main data structures of NextSim e.g., ModelArray and DGVector.
+ *
+ * The halos are exchange via one-sided MPI communication using RMA.
  */
 
 #ifndef HALO_HPP

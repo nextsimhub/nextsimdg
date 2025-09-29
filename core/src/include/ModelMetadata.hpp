@@ -1,5 +1,16 @@
 /*!
  * @author  Tim Spain <timothy.spain@nersc.no>
+ * @author  Tom Meltzer <tdm39@cam.ac.uk>
+ * @brief Model metadata as a singleton class
+ * @details
+ *
+ * Model metadata as a singleton class
+ *
+ * This class holds the metadata pertaining to the model as a whole, as well as the MPI metadata
+ * which is used for halo exchange.
+ *
+ * The first time getInstance() is called, the class is initialized. If compiled with MPI then a
+ * partition file must be supplied.
  */
 
 #ifndef MODELMETADATA_HPP

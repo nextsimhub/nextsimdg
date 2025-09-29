@@ -1,5 +1,11 @@
 /*!
  * @author  Tom Meltzer <tdm39@cam.ac.uk>
+ * @brief Model MPI singleton
+ * @details
+ *
+ * Model MPI singleton
+ *
+ * MPI metadata is stored in the singleton.
  */
 
 #ifndef MODELMPI_HPP
