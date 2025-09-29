@@ -36,6 +36,10 @@ const std::string& ModelMetadata::structureName() const
 #ifdef USE_MPI
 ModelMetadata::ModelMetadata(std::string partitionFile)
 {
+    if (partitionFile.empty()) {
+        throw std::runtime_error(
+            "ModelMetadata :: getInstance() called without partition file in MPI build.");
+    }
     getPartitionMetadata(partitionFile);
     static bool doneOnce = doOnce();
     isInitialized = true;
