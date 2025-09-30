@@ -109,6 +109,11 @@ private:
 
     //! Performs some one-time initialization for the class. Returns true.
     static bool doOnce();
+
+    //! A templated function to get the dimensions from a netCDF file, whether
+    //! they are stored in the root or a group.
+    template <typename N>
+    void readDimensions(const N& node);
 };
 
 } /* namespace Nextsim */

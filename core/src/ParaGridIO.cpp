@@ -79,6 +79,60 @@ bool ParaGridIO::doOnce()
 
 ParaGridIO::~ParaGridIO() = default;
 
+template <typename N>
+void ParaGridIO::readDimensions(const N& node)
+{
+    for (auto entry : ModelArray::definedDimensions) {
+        auto dimType = entry.first;
+        if (dimCompMap.count(dimType) > 0)
+            // TODO Assertions that DG in the file equals the compile time DG in the model. See
+            // #205
+            continue;
+
+        ModelArray::DimensionSpec& dimensionSpec = entry.second;
+        // Find dimensions in the netCDF file by their name in the ModelArray details
+        netCDF::NcDim dim = node.getDim(dimensionSpec.name);
+        // Also check the old name
+        if (dim.isNull()) {
+            dim = node.getDim(dimensionSpec.altName);
+        }
+        // If we didn't find a dimension with the dimensions name or altName, throw.
+        if (dim.isNull()) {
+            throw std::out_of_range(
+                std::string("No netCDF dimension found corresponding to the dimension named ")
+                + dimensionSpec.name + std::string(" or ") + dimensionSpec.altName);
+        }
+#ifdef USE_MPI
+        auto dimName = dim.getName();
+        size_t localLength = 0;
+        size_t start = 0;
+        auto& metadata = ModelMetadata::getInstance();
+        if (dimType == ModelArray::Dimension::X) {
+            localLength = metadata.getLocalExtentX();
+            start = metadata.getLocalCornerX();
+        } else if (dimType == ModelArray::Dimension::Y) {
+            localLength = metadata.getLocalExtentY();
+            start = metadata.getLocalCornerY();
+        } else if (dimType == ModelArray::Dimension::XVERTEX) {
+            localLength = metadata.getLocalExtentX() + 1;
+            start = metadata.getLocalCornerX();
+        } else if (dimType == ModelArray::Dimension::YVERTEX) {
+            localLength = metadata.getLocalExtentY() + 1;
+            start = metadata.getLocalCornerY();
+        } else {
+            localLength = dim.getSize();
+            start = 0;
+        }
+        // globalLength doesnt need to be padded with halo cells but localLength does
+        // setDimension(dim, globalLength, localLength, start)
+        ModelArray::setDimension(
+            dimType, dim.getSize(), localLength + 2 * Halo::haloWidth, start);
+#else
+        ModelArray::setDimension(dimType, dim.getSize());
+#endif
+    }
+}
+
 ModelState ParaGridIO::getModelState(const std::string& filePath)
 {
     ModelState state;
@@ -91,61 +145,21 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
         netCDF::NcFile ncFile(filePath, netCDF::NcFile::read);
 #endif
 
-        // Dimensions and DG components
-        std::multimap<std::string, netCDF::NcDim> dimMap = ncFile.getDims();
-        for (auto entry : ModelArray::definedDimensions) {
-            auto dimType = entry.first;
-            if (dimCompMap.count(dimType) > 0)
-                // TODO Assertions that DG in the file equals the compile time DG in the model. See
-                // #205
-                continue;
+        std::multimap<std::string,netCDF::NcVar> vars;
 
-            ModelArray::DimensionSpec& dimensionSpec = entry.second;
-            // Find dimensions in the netCDF file by their name in the ModelArray details
-            netCDF::NcDim dim = ncFile.getDim(dimensionSpec.name);
-            // Also check the old name
-            if (dim.isNull()) {
-                dim = ncFile.getDim(dimensionSpec.altName);
-            }
-            // If we didn't find a dimension with the dimensions name or altName, throw.
-            if (dim.isNull()) {
-                throw std::out_of_range(
-                    std::string("No netCDF dimension found corresponding to the dimension named ")
-                    + dimensionSpec.name + std::string(" or ") + dimensionSpec.altName);
-            }
-#ifdef USE_MPI
-            auto dimName = dim.getName();
-            size_t localLength = 0;
-            size_t start = 0;
-            auto& metadata = ModelMetadata::getInstance();
-            if (dimType == ModelArray::Dimension::X) {
-                localLength = metadata.getLocalExtentX();
-                start = metadata.getLocalCornerX();
-            } else if (dimType == ModelArray::Dimension::Y) {
-                localLength = metadata.getLocalExtentY();
-                start = metadata.getLocalCornerY();
-            } else if (dimType == ModelArray::Dimension::XVERTEX) {
-                localLength = metadata.getLocalExtentX() + 1;
-                start = metadata.getLocalCornerX();
-            } else if (dimType == ModelArray::Dimension::YVERTEX) {
-                localLength = metadata.getLocalExtentY() + 1;
-                start = metadata.getLocalCornerY();
-            } else {
-                localLength = dim.getSize();
-                start = 0;
-            }
-            // globalLength doesnt need to be padded with halo cells but localLength does
-            // setDimension(dim, globalLength, localLength, start)
-            ModelArray::setDimension(
-                dimType, dim.getSize(), localLength + 2 * Halo::haloWidth, start);
-#else
-            ModelArray::setDimension(dimType, dim.getSize());
-#endif
+        if (ncFile.getGroupCount()) {
+            // Read in the legacy file format with groups
+            netCDF::NcGroup dataGroup = ncFile.getGroup("data");
+            readDimensions<netCDF::NcGroup>(dataGroup);
+            vars = dataGroup.getVars();
+        } else {
+            // File format without groups
+            readDimensions<netCDF::NcFile>(ncFile);
+            vars = ncFile.getVars();
         }
 
         // Get all valid variables and load them into a new ModelState
-
-        for (auto entry : ncFile.getVars()) {
+        for (auto entry : vars) {
             const std::string& varName = entry.first;
             netCDF::NcVar& var = entry.second;
             // Determine the type from the dimensions
