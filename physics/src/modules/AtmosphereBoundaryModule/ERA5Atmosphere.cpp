@@ -14,6 +14,8 @@ std::string ERA5Atmosphere::filePath;
 
 static const std::string pfx = "ERA5Atmosphere";
 static const std::string fileKey = pfx + ".file";
+static const std::string dirKey = pfx + ".directory";
+static const std::string checkOverrideKey = pfx + ".ignore_missing";
 
 static const std::map<int, std::string> keyMap = {
     { ERA5Atmosphere::FILEPATH_KEY, fileKey },
@@ -41,6 +43,10 @@ ConfigurationHelp::HelpMap& ERA5Atmosphere::getHelpRecursive(HelpMap& map, bool 
     map[pfx] = {
         { fileKey, ConfigType::STRING, {}, "", "",
             "Path to the processed NetCDF file providing the ERA5 forcings." },
+        { dirKey, ConfigType::STRING, {}, "", "",
+            "Path to the directory containing the ERA5 NetCDF files." },
+        { dirKey, ConfigType::BOOLEAN, {"true", "false"}, "false", "",
+            "Continue without error even if required ERA5 files are missing." },
     };
     Module::getHelpRecursive<IFluxCalculation>(map, getAll);
 
@@ -52,6 +58,8 @@ void ERA5Atmosphere::configure()
     Finalizer::registerUnique(Module::finalize<IFluxCalculation>);
 
     filePath = Configured::getConfiguration(keyMap.at(FILEPATH_KEY), std::string());
+    fileDirectory() = Configured::getConfiguration(keyMap.at(FILEPATH_KEY), fileDirectory());
+    checkOverride() = Configured::getConfiguration(keyMap.at(FILEPATH_KEY), false);
 
     fluxImpl = &Module::getImplementation<IFluxCalculation>();
     tryConfigure(fluxImpl);

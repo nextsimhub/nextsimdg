@@ -43,6 +43,18 @@ private:
     // Since the configuration is global, it makes sense for the file path to
     // be static.
     static std::string filePath;
+    // Location of the ERA5 files
+    static std::string& fileDirectory()
+    {
+        static std::string dir = ".";
+        return dir;
+    }
+    static bool& checkOverride()
+    {
+        static bool ignore = false;
+        return ignore;
+    }
+
 
     HField tair;
     HField tdew;
