@@ -7,7 +7,7 @@
  *
  * All functionality for halo exchange between MPI ranks is contained in this class.
  *
- * Halo supports the main data structures of NextSim e.g., ModelArray and DGVector.
+ * Halo supports the main data structures of NextSim e.g., ModelArray, DGVector and CGVector.
  *
  * The halos are exchange via one-sided MPI communication using RMA.
  */
