@@ -36,7 +36,7 @@ std::string structureNameFromFile(const std::string& filePath)
     } catch (const netCDF::exceptions::NcException& nce) {
         std::string ncWhat(nce.what());
         ncWhat += ": " + filePath;
-        throw std::runtime_error(ncWhat);
+        throw std::runtime_error(std::string("StructureFactory: ") + ncWhat);
     }
 
     return structureName;
