@@ -228,84 +228,99 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
     return state;
 }
 
-ModelState ParaGridIO::readForcingTimeStatic(
-    const std::set<std::string>& forcings, const TimePoint& time, const std::string& filePath)
+
+template <typename N>
+ModelState ParaGridIO::readForcingTimeGeneric(const std::set<std::string>& forcings, const TimePoint& time, const N& node)
 {
     ModelState state;
 
+    netCDF::NcDim timeDim = node.getDim(timeName);
+    // Read the time variable
+    netCDF::NcVar timeVar = node.getVar(timeName);
+    // Calculate the index of the largest time value on the axis below our target
+    size_t targetTIndex;
+    // Get the time axis as a vector
+    std::vector<double> timeVec(timeDim.getSize());
+    timeVar.getVar(timeVec.data());
+    // Get the index of the largest TimePoint less than the target.
+    targetTIndex = std::find_if(std::begin(timeVec), std::end(timeVec), [time](double t) {
+        return (TimePoint() + Duration(t)) > time;
+    }) - timeVec.begin();
+    // Rather than the first that is greater than, get the last that is less
+    // than or equal to. But don't go out of bounds.
+    if (targetTIndex > 0)
+        --targetTIndex;
+    // ASSUME all forcings are HFields: finite volume fields on the same
+    // grid as ice thickness
+    std::vector<size_t> indexArray;
+    std::vector<size_t> extentArray;
+
+    // Loop over the dimensions of H
+    using Dim = ModelArray::Dimension;
+    for (Dim dt : ModelArray::typeDimensions.at(ModelArray::Type::H)) {
+        auto dim = ModelArray::definedDimensions.at(dt);
+        auto startIndex = dim.start;
+        auto localLength = dim.localLength;
+#ifdef USE_MPI
+        // Halo cells (which only exist in the lateral direction) are not included in netCDF
+        // files. Only read/write the inner block
+        if (Halo::isDimLateral(dt)) {
+            localLength = localLength - 2 * Halo::haloWidth;
+        }
+#endif
+        indexArray.push_back(startIndex);
+        extentArray.push_back(localLength);
+    }
+
+    indexArray.push_back(targetTIndex);
+    extentArray.push_back(1);
+    std::reverse(indexArray.begin(), indexArray.end());
+    std::reverse(extentArray.begin(), extentArray.end());
+
+    auto availableForcings = node.getVars();
+    for (const std::string& varName : forcings) {
+        // Don't try to read non-existent data
+        if (!availableForcings.count(varName)) {
+            continue;
+        }
+        netCDF::NcVar var = node.getVar(varName);
+        state.data[varName] = ModelArray(ModelArray::Type::H);
+        ModelArray& data = state.data.at(varName);
+        data.resize();
+
+#ifdef USE_MPI
+        Halo halo(data);
+        // create and allocate temporary Eigen array
+        ModelArray::DataType tempData;
+        tempData.resize(halo.getInnerSize(), data.nComponents());
+        // populate temp Eigen array with data from netCDF file
+        var.getVar(indexArray, extentArray, tempData.data());
+        // populate inner block of modelarray with data from tempData
+        halo.setInnerBlock(tempData, data.getDataRef());
+        halo.exchangeHalos(data.getDataRef());
+#else
+        var.getVar(indexArray, extentArray, &data[0]);
+#endif
+    }
+    return state;
+}
+
+
+ModelState ParaGridIO::readForcingTimeStatic(
+    const std::set<std::string>& forcings, const TimePoint& time, const std::string& filePath)
+{
+
+        ModelState state;
     try {
         netCDF::NcFile ncFile(filePath, netCDF::NcFile::read);
 
-        // Read the time axis
-        netCDF::NcDim timeDim = ncFile.getDim(timeName);
-        // Read the time variable
-        netCDF::NcVar timeVar = ncFile.getVar(timeName);
-        // Calculate the index of the largest time value on the axis below our target
-        size_t targetTIndex;
-        // Get the time axis as a vector
-        std::vector<double> timeVec(timeDim.getSize());
-        timeVar.getVar(timeVec.data());
-        // Get the index of the largest TimePoint less than the target.
-        targetTIndex = std::find_if(std::begin(timeVec), std::end(timeVec), [time](double t) {
-            return (TimePoint() + Duration(t)) > time;
-        }) - timeVec.begin();
-        // Rather than the first that is greater than, get the last that is less
-        // than or equal to. But don't go out of bounds.
-        if (targetTIndex > 0)
-            --targetTIndex;
-        // ASSUME all forcings are HFields: finite volume fields on the same
-        // grid as ice thickness
-        std::vector<size_t> indexArray;
-        std::vector<size_t> extentArray;
-
-        // Loop over the dimensions of H
-        using Dim = ModelArray::Dimension;
-        for (Dim dt : ModelArray::typeDimensions.at(ModelArray::Type::H)) {
-            auto dim = ModelArray::definedDimensions.at(dt);
-            auto startIndex = dim.start;
-            auto localLength = dim.localLength;
-#ifdef USE_MPI
-            // Halo cells (which only exist in the lateral direction) are not included in netCDF
-            // files. Only read/write the inner block
-            if (Halo::isDimLateral(dt)) {
-                localLength = localLength - 2 * Halo::haloWidth;
-            }
-#endif
-            indexArray.push_back(startIndex);
-            extentArray.push_back(localLength);
-        }
-
-        indexArray.push_back(targetTIndex);
-        extentArray.push_back(1);
-        std::reverse(indexArray.begin(), indexArray.end());
-        std::reverse(extentArray.begin(), extentArray.end());
-
-        auto availableForcings = ncFile.getVars();
-        for (const std::string& varName : forcings) {
-            // Don't try to read non-existent data
-            if (!availableForcings.count(varName)) {
-                continue;
-            }
-            netCDF::NcVar var = ncFile.getVar(varName);
-            state.data[varName] = ModelArray(ModelArray::Type::H);
-            ModelArray& data = state.data.at(varName);
-            data.resize();
-
-#ifdef USE_MPI
-            Halo halo(data);
-            // create and allocate temporary Eigen array
-            ModelArray::DataType tempData;
-            tempData.resize(halo.getInnerSize(), data.nComponents());
-            // populate temp Eigen array with data from netCDF file
-            var.getVar(indexArray, extentArray, tempData.data());
-            // populate inner block of modelarray with data from tempData
-            halo.setInnerBlock(tempData, data.getDataRef());
-            halo.exchangeHalos(data.getDataRef());
-#else
-            var.getVar(indexArray, extentArray, &data[0]);
-#endif
+        if (ncFile.getGroupCount()) {
+            state = readForcingTimeGeneric(forcings, time, ncFile.getGroup("data"));
+        } else {
+            state = readForcingTimeGeneric(forcings, time, ncFile);
         }
         ncFile.close();
+
     } catch (const netCDF::exceptions::NcException& nce) {
         std::string ncWhat(nce.what());
         ncWhat += ": " + filePath;

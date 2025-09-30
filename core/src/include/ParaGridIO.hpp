@@ -114,6 +114,9 @@ private:
     //! they are stored in the root or a group.
     template <typename N>
     void readDimensions(const N& node);
+
+    template <typename N>
+    static ModelState readForcingTimeGeneric(const std::set<std::string>& forcings, const TimePoint& time, const N& node);
 };
 
 } /* namespace Nextsim */
