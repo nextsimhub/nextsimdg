@@ -19,6 +19,8 @@ static const std::string checkOverrideKey = pfx + ".ignore_missing";
 
 static const std::map<int, std::string> keyMap = {
     { ERA5Atmosphere::FILEPATH_KEY, fileKey },
+    { ERA5Atmosphere::DIRPATH_KEY, dirKey },
+    { ERA5Atmosphere::CHECKOVERRIDE_KEY, checkOverrideKey },
 };
 
 ERA5Atmosphere::ERA5Atmosphere()
@@ -58,8 +60,8 @@ void ERA5Atmosphere::configure()
     Finalizer::registerUnique(Module::finalize<IFluxCalculation>);
 
     filePath = Configured::getConfiguration(keyMap.at(FILEPATH_KEY), std::string());
-    fileDirectory() = Configured::getConfiguration(keyMap.at(FILEPATH_KEY), fileDirectory());
-    checkOverride() = Configured::getConfiguration(keyMap.at(FILEPATH_KEY), false);
+    fileDirectory() = Configured::getConfiguration(keyMap.at(DIRPATH_KEY), fileDirectory());
+    checkOverride() = Configured::getConfiguration(keyMap.at(CHECKOVERRIDE_KEY), false);
 
     fluxImpl = &Module::getImplementation<IFluxCalculation>();
     tryConfigure(fluxImpl);

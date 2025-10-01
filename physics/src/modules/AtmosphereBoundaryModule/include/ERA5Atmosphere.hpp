@@ -24,6 +24,8 @@ public:
 
     enum {
         FILEPATH_KEY,
+        DIRPATH_KEY,
+        CHECKOVERRIDE_KEY,
     };
 
     void setData(const ModelState::DataMap&) override;
