@@ -794,11 +794,16 @@ void Xios::createField(const std::string& fieldId)
         throw std::runtime_error("Xios: Failed to create field '" + fieldId + "'");
     }
 
-    // Restarts are read "once", everything else is written "instant"ly (no averaging)
+    // Set the operation type
     std::string operation;
     if (configGetInputRestartFieldNames().count(fieldId) > 0) {
+        // Restarts are read "once"
         operation = "once";
+    } else if (configGetDiagnosticFieldNames().count(fieldId) > 0) {
+        // Diagonstics are averaged over the diagnostic output period
+        operation = "average";
     } else {
+        // Otherwise, read/write all timesteps without post-processing
         operation = "instant";
     }
     if (cxios_is_defined_field_operation(field)) {
