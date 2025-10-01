@@ -58,11 +58,8 @@ Model::Model()
 
 Model::~Model() { }
 
-void Model::configure()
+void Model::configureTime()
 {
-    // Configure logging
-    Logged::configure();
-
     // Store the start/stop/step configuration directly in ModelConfig before
     // parsing these values to the numerical time values used by the model.
     ModelConfig::startTimeStr
@@ -73,9 +70,17 @@ void Model::configure()
     ModelConfig::stepStr = Configured::getConfiguration(keyMap.at(TIMESTEP_KEY), std::string());
 
     // Set the time correspond to the current (initial) model state
-    TimePoint timeNow = Iterator::parseAndSet(ModelConfig::startTimeStr, ModelConfig::stopTimeStr,
+    TimePoint timeNow = iterator.parseAndSet(ModelConfig::startTimeStr, ModelConfig::stopTimeStr,
         ModelConfig::durationStr, ModelConfig::stepStr);
     m_etadata.setTime(timeNow);
+}
+
+void Model::configure()
+{
+    // Configure logging
+    Logged::configure();
+
+    configureTime();
 
     // Configure the missing data value
     MissingData::setValue(

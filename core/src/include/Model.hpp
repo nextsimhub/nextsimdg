@@ -31,6 +31,8 @@ public:
 #endif
     ~Model(); // Finalize the model. Collect data and so on.
 
+    void configureTime();
+
     void configure() override;
 
     enum {
