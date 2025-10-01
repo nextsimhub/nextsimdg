@@ -40,6 +40,7 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     config << "[XiosOutput]" << std::endl;
     config << "filename = xios_test_output.nc" << std::endl;
     config << "field_names = hice" << std::endl;
+    config << "period = P0-0T01:30:00" << std::endl;
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
 

@@ -43,6 +43,7 @@ MPI_TEST_CASE("TestXiosRead", 2)
     config << "[XiosInput]" << std::endl;
     config << "filename = xios_test_input.nc" << std::endl;
     config << "field_names = hice" << std::endl;
+    config << "period = P0-0T01:30:00" << std::endl;
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
 
@@ -79,12 +80,6 @@ MPI_TEST_CASE("TestXiosRead", 2)
     // Create HField and ZField instances to read the data into
     HField hice(ModelArray::Type::H);
     hice.resize();
-
-    // Setup ModelState with field above
-    ModelState state = { {
-                             { hiceName, hice },
-                         },
-        {} };
 
     // Check calendar step is zero initially
     REQUIRE(xiosHandler.getCalendarStep() == 0);
