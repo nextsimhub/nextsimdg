@@ -20,7 +20,8 @@
 #include <filesystem>
 
 const std::string testFilesDir = TEST_FILES_DIR;
-const std::string filename = testFilesDir + "/xios_test_input.nc";
+const std::string filename = "xios_test_input.nc";
+const std::string filepath = testFilesDir + "/" + filename;
 
 static const int DG = 3;
 
@@ -41,7 +42,7 @@ MPI_TEST_CASE("TestXiosRead", 2)
     config << "start = 2023-03-17T17:11:00Z" << std::endl;
     config << "stop = 2023-03-17T23:11:00Z" << std::endl;
     config << "time_step = P0-0T01:30:00" << std::endl;
-    config << "init_file = xios_test_input.nc" << std::endl;
+    config << "init_file = " << filename << std::endl;
     config << "restart_period = P0-0T01:30:00" << std::endl;
     config << "[XiosInput]" << std::endl;
     config << "field_names = " << maskName << "," << coordsName << "," << hiceName << std::endl;
@@ -87,7 +88,7 @@ MPI_TEST_CASE("TestXiosRead", 2)
     REQUIRE(xiosHandler.getCalendarStep() == 0);
 
     // Check the input file exists
-    REQUIRE(std::filesystem::exists(filename));
+    REQUIRE(std::filesystem::exists(filepath));
 
     // Deduce the local lengths of the two dimensions
     const size_t nx = ModelArray::size(ModelArray::Dimension::X);
@@ -123,7 +124,7 @@ MPI_TEST_CASE("TestXiosRead", 2)
 
         // Read forcings from file and check they take the expected values
         TimePoint time = xiosHandler.getCurrentDate();
-        ModelState forcings = pio->readForcingTimeStatic(forcingFieldNames, time, filename);
+        ModelState forcings = pio->readForcingTimeStatic(forcingFieldNames, time, filepath);
         for (auto& entry : forcings.data) {
             for (size_t j = 0; j < ny; ++j) {
                 for (size_t i = 0; i < nx; ++i) {
