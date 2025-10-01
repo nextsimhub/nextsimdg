@@ -138,6 +138,9 @@ public:
         OUTPUT_FIELD_NAMES_KEY,
         INPUT_RESTARTFILE_KEY,
         INPUT_FIELD_NAMES_KEY,
+        DIAGNOSTIC_PERIOD_KEY,
+        DIAGNOSTIC_FILE_KEY,
+        DIAGNOSTIC_FIELD_NAMES_KEY,
         FORCING_PERIOD_KEY,
         FORCING_FILE_KEY,
         FORCING_FIELD_NAMES_KEY,
@@ -193,9 +196,11 @@ private:
     xios::CFieldGroup* getFieldGroup();
     xios::CField* getField(const std::string fieldId);
     void setFieldReadAccess(const std::string fieldId, const bool readAccess);
+    std::set<std::string> configGetOutputRestartFieldNames();
     std::set<std::string> configGetInputRestartFieldNames();
-    std::set<std::string> configGetInputFieldNames();
+    std::set<std::string> configGetDiagnosticFieldNames();
     std::set<std::string> configGetOutputFieldNames();
+    std::set<std::string> configGetInputFieldNames();
     std::set<std::string> configGetFieldNames(const bool readAccess);
     bool configCheckField(const std::string fieldId, const bool readAccess);
     std::map<std::string, ModelArray::Type> fieldTypes;
@@ -213,10 +218,12 @@ private:
     xios::CFileGroup* getFileGroup();
     xios::CFile* getFile(const std::string fileId);
     void setFileMode(const std::string fileId, const std::string mode);
-    std::string inputFilename;
-    std::string inputFileId;
     std::string outputFilename;
     std::string outputFileId;
+    std::string inputFilename;
+    std::string inputFileId;
+    std::string diagnosticFilename;
+    std::string diagnosticFileId;
     std::string forcingFilename;
     std::string forcingFileId;
 

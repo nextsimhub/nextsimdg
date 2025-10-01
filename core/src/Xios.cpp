@@ -44,6 +44,7 @@ namespace Nextsim {
 
 static const std::string xOutputPfx = "XiosOutput";
 static const std::string xInputPfx = "XiosInput";
+static const std::string xDiagonsticPfx = "XiosDiagnostic";
 static const std::string xForcingPfx = "XiosForcing";
 static const std::map<int, std::string> keyMap
     = { { Xios::ENABLED_KEY, "xios.enable" }, { Xios::RESTARTPERIOD_KEY, "model.restart_period" },
@@ -52,6 +53,9 @@ static const std::map<int, std::string> keyMap
           { Xios::OUTPUT_RESTARTFILE_KEY, "model.restart_file" },
           { Xios::OUTPUT_FIELD_NAMES_KEY, xOutputPfx + ".field_names" },
           { Xios::INPUT_FIELD_NAMES_KEY, xInputPfx + ".field_names" },
+          { Xios::DIAGNOSTIC_PERIOD_KEY, xDiagonsticPfx + ".period" },
+          { Xios::DIAGNOSTIC_FILE_KEY, xDiagonsticPfx + ".filename" },
+          { Xios::DIAGNOSTIC_FIELD_NAMES_KEY, xDiagonsticPfx + ".field_names" },
           { Xios::FORCING_PERIOD_KEY, xForcingPfx + ".period" },
           { Xios::FORCING_FILE_KEY, xForcingPfx + ".filename" },
           { Xios::FORCING_FIELD_NAMES_KEY, xForcingPfx + ".field_names" } };
@@ -79,18 +83,21 @@ Xios::Xios(const std::string contextid, const std::string calendartype)
 
     // Create the input and output files (if found in the config)
     if (firstTime) {
-        istringstream(Configured::getConfiguration(keyMap.at(INPUT_RESTARTFILE_KEY), std::string()))
-            >> inputFilename;
-        inputFileId = ((std::filesystem::path)inputFilename).replace_extension();
         istringstream(
             Configured::getConfiguration(keyMap.at(OUTPUT_RESTARTFILE_KEY), std::string()))
             >> outputFilename;
         outputFileId = ((std::filesystem::path)outputFilename).replace_extension();
+        istringstream(Configured::getConfiguration(keyMap.at(INPUT_RESTARTFILE_KEY), std::string()))
+            >> inputFilename;
+        inputFileId = ((std::filesystem::path)inputFilename).replace_extension();
+        istringstream(Configured::getConfiguration(keyMap.at(DIAGNOSTIC_FILE_KEY), std::string()))
+            >> diagnosticFilename;
+        diagnosticFileId = ((std::filesystem::path)diagnosticFilename).replace_extension();
         istringstream(Configured::getConfiguration(keyMap.at(FORCING_FILE_KEY), std::string()))
             >> forcingFilename;
         forcingFileId = ((std::filesystem::path)forcingFilename).replace_extension();
 
-        for (std::string fileId : { inputFileId, outputFileId, forcingFileId }) {
+        for (std::string fileId : { inputFileId, outputFileId, forcingFileId, diagnosticFileId }) {
             if (fileId.length() > 0) {
                 createFile(fileId);
 
@@ -122,19 +129,31 @@ Xios::HelpMap& Xios::getHelpText(HelpMap& map, bool getAll)
             "-DENABLE_XIOS=ON, passing the path to your XIOS installation with "
             "-Dxios_DIR=/path/to/xios." },
     };
+    map["XiosOutput"] = {
+        { keyMap.at(OUTPUT_FIELD_NAMES_KEY), ConfigType::STRING, {}, "", "",
+            "Comma-separated list of field names to be written to the output file." },
+    };
     map["XiosInput"] = {
         { keyMap.at(INPUT_FIELD_NAMES_KEY), ConfigType::STRING, {}, "", "",
             "Comma-separated list of field names to be read from the input file." },
     };
-    map["XiosOutput"] = {
-        { keyMap.at(OUTPUT_FIELD_NAMES_KEY), ConfigType::STRING, {}, "", "",
-            "Comma-separated list of field names to be written to the output file." },
+    map["XiosDiagnostic"] = {
+        { keyMap.at(DIAGNOSTIC_PERIOD_KEY), ConfigType::STRING, {}, "0", "",
+            "The period between diagnostics file outputs expected in a file to be "
+            "read, formatted as an ISO8601 duration (P prefix) or number of "
+            "seconds. A value of zero assumes no intermediate diagnostics files." },
+        { keyMap.at(DIAGNOSTIC_FILE_KEY), ConfigType::STRING, {}, "", "",
+            // TODO: Support format "restart%Y-%m-%dT%H:%M:%SZ.nc" (#898)
+            "The file name to be used for diagnostics." },
+        { keyMap.at(DIAGNOSTIC_FIELD_NAMES_KEY), ConfigType::STRING, {}, "", "",
+            "Comma-separated list of field names to be read from the diagnostics "
+            "file." },
     };
     map["XiosForcing"] = {
         { keyMap.at(FORCING_PERIOD_KEY), ConfigType::STRING, {}, "0", "",
             "The period between forcing file outputs expected in a file to be "
             "read, formatted as an ISO8601 duration (P prefix) or number of "
-            "seconds. A value of zero assumes no intermediate restart files." },
+            "seconds. A value of zero assumes no intermediate forcing files." },
         { keyMap.at(FORCING_FILE_KEY), ConfigType::STRING, {}, "", "",
             // TODO: Support format "restart%Y-%m-%dT%H:%M:%SZ.nc" (#898)
             "The file name to be used for forcings." },
@@ -1051,13 +1070,31 @@ std::set<std::string> Xios::configGetInputFieldNames()
 }
 
 // Extract the field_names entry from the XiosOutput section of the config.
-std::set<std::string> Xios::configGetOutputFieldNames()
+std::set<std::string> Xios::configGetOutputRestartFieldNames()
 {
-    // TODO: Account for diagnostics (#917)
     std::string fieldsStr;
     istringstream(Configured::getConfiguration(keyMap.at(OUTPUT_FIELD_NAMES_KEY), std::string()))
         >> fieldsStr;
     return str2set(fieldsStr);
+}
+
+// Extract the field_names entry from the XiosDiagnostic section of the config.
+std::set<std::string> Xios::configGetDiagnosticFieldNames()
+{
+    std::string fieldsStr;
+    istringstream(
+        Configured::getConfiguration(keyMap.at(DIAGNOSTIC_FIELD_NAMES_KEY), std::string()))
+        >> fieldsStr;
+    return str2set(fieldsStr);
+}
+
+// Extract the field_names entry from the XiosOutput and XiosDiagnostic sections of the config.
+std::set<std::string> Xios::configGetOutputFieldNames()
+{
+    std::set<std::string> restartFieldNames = configGetOutputRestartFieldNames();
+    std::set<std::string> diagnosticFieldNames = configGetDiagnosticFieldNames();
+    restartFieldNames.insert(diagnosticFieldNames.begin(), diagnosticFieldNames.end());
+    return restartFieldNames;
 }
 
 /*!
@@ -1329,12 +1366,14 @@ void Xios::createFile(const std::string fileId)
     bool inputRestart = ((inputFileId.length() > 0) && (inputFileId == fileId));
     bool forcing = ((forcingFileId.length() > 0) && (forcingFileId == fileId));
     bool outputRestart = ((outputFileId.length() > 0) && (outputFileId == fileId));
-    // TODO: Account for diagnostics (#917)
+    bool diagnostic = ((diagnosticFileId.length() > 0) && (diagnosticFileId == fileId));
+    bool readAccess = (inputRestart || forcing);
+    bool writeAccess = (outputRestart || diagnostic);
 
-    // Check that the filename is not used to both read and write restarts
-    if (inputRestart && outputRestart) {
-        throw std::runtime_error("Xios: File '" + fileId
-            + "' found in both the XiosInput and XiosOutput config sections");
+    // Check that the filename is not used for both reading and writing
+    if (readAccess && writeAccess) {
+        throw std::runtime_error("Xios: File '" + fileId + "' configured for both reading and"
+            + " writing. This is not yet supported in the XIOS I/O implementation.")
         // TODO: Refactor to allow a field to be both read and written
     }
 
@@ -1346,13 +1385,12 @@ void Xios::createFile(const std::string fileId)
     }
 
     // Check that the filename is in the XiosOutput or XiosInput config section
-    if (!(inputRestart || forcing || outputRestart)) {
+    if (!(diagnostic || forcing || inputRestart || outputRestart)) {
         throw std::runtime_error("Xios: File '" + fileId
-            + "' cannot be found in the model or XiosForcing config sections");
+            + "' cannot be found in the model, XiosDiagnostic, or XiosForcing config sections");
     }
 
     // Set the file mode and some defaults
-    bool readAccess = (inputRestart || forcing);
     if (readAccess) {
         setFileMode(fileId, "read");
     } else {
@@ -1366,7 +1404,9 @@ void Xios::createFile(const std::string fileId)
     if (forcing) {
         istringstream(Configured::getConfiguration(keyMap.at(FORCING_PERIOD_KEY), std::string()))
             >> periodStr;
-        // TODO: Account for diagnostics (#917)
+    } else if (diagnostic) {
+        istringstream(Configured::getConfiguration(keyMap.at(DIAGNOSTIC_PERIOD_KEY), std::string()))
+            >> periodStr;
     } else {
         istringstream(Configured::getConfiguration(keyMap.at(RESTARTPERIOD_KEY), std::string()))
             >> periodStr;
@@ -1378,14 +1418,11 @@ void Xios::createFile(const std::string fileId)
         setFileOutputFreq(fileId, Duration(periodStr));
     }
 
-    // Create all fields found in the config based off the field names found in the
-    // XiosInput.field_names, XiosOutput.field_names, or XiosForcing.field_names entries in the
-    // config.
+    // XiosOutput.field_names, XiosInput.field_names, XiosDiagnostic.field_names, or
+    // XiosForcing.field_names entries in the config.
     std::set<std::string> fieldIds;
-    if (inputRestart) {
-        fieldIds = configGetInputRestartFieldNames();
-    } else if (forcing) {
-        fieldIds = configGetForcingFieldNames();
+    if (readAccess) {
+        fieldIds = configGetInputFieldNames();
     } else {
         fieldIds = configGetOutputFieldNames();
     }
