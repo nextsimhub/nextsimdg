@@ -19,6 +19,10 @@
 
 #include <filesystem>
 
+const std::string testFilesDir = TEST_FILES_DIR;
+const std::string filename = "xios_test_output.nc";
+const std::string filepath = testFilesDir + "/" + filename;
+
 static const int DG = 3;
 
 namespace Nextsim {
@@ -38,10 +42,14 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     config << "start = 2023-03-17T17:11:00Z" << std::endl;
     config << "stop = 2023-03-17T23:11:00Z" << std::endl;
     config << "time_step = P0-0T01:30:00" << std::endl;
-    config << "restart_file = xios_test_output.nc" << std::endl;
+    config << "restart_file = " << filename << std::endl;
     config << "restart_period = P0-0T01:30:00" << std::endl;
     config << "[XiosOutput]" << std::endl;
     config << "field_names = " << maskName << "," << coordsName << "," << hiceName << std::endl;
+    config << "[XiosDiagnostic]" << std::endl;
+    // TODO: Account for separate restart and diagnostics files (#929)
+    config << "filename = " << filename << std::endl;
+    config << "field_names = " << uName << std::endl;
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
 
@@ -87,9 +95,10 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     xiosHandler.setFieldType(coordsName, ModelArray::Type::VERTEX);
     xiosHandler.setFieldType(hiceName, ModelArray::Type::DG);
 
-    // Set file split frequency
+    // Set file split frequency for restarts
     // NOTE: Files are created when the XIOS handler is constructed
     const std::string fileId = "xios_test_output";
+    // TODO: Account for separate restart and diagnostics files (#929)
     xiosHandler.setFileSplitFreq(fileId, Duration("P0-0T03:00:00"));
 
     xiosHandler.close_context_definition();
@@ -119,14 +128,8 @@ MPI_TEST_CASE("TestXiosWrite", 2)
             }
         }
     }
-
-    // Setup ModelState with field above
-    ModelState state = { {
-                             { maskName, mask },
-                             { coordsName, coordinates },
-                             { hiceName, hice },
-                         },
-        {} };
+    HField u(ModelArray::Type::H);
+    u.resize();
 
     // Check calendar step is zero initially
     REQUIRE(xiosHandler.getCalendarStep() == 0);
@@ -138,10 +141,33 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     Duration timestep = xiosHandler.getCalendarTimestep();
     metadata.setTime(xiosHandler.getCalendarStart());
     for (int ts = 1; ts <= 4; ts++) {
+
         // Update the current timestep and verify it's updated in XIOS
         metadata.incrementTime(timestep);
         REQUIRE(xiosHandler.getCalendarStep() == ts);
-        grid.dumpModelState(state, "xios_test_output", true);
+
+        // Update diagnostics
+        for (size_t j = 0; j < ny; ++j) {
+            for (size_t i = 0; i < nx; ++i) {
+                u(i, j) = ts;
+            }
+        }
+
+        // Set up two ModelStates: one for restarts and one for diagnostics
+        ModelState restarts = { {
+                                    { maskName, mask },
+                                    { coordsName, coordinates },
+                                    { hiceName, hice },
+                                },
+            {} };
+        ModelState diagnostics = { {
+                                       { uName, u },
+                                   },
+            {} };
+
+        // Write out diagnostics and then restarts
+        pio->writeDiagnosticTime(diagnostics, metadata, filepath);
+        grid.dumpModelState(restarts, metadata, "xios_test_output", true);
     }
 
     // Check the files have indeed been created then remove it
