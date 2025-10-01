@@ -11,13 +11,14 @@
 
 #include "StructureModule/include/ParametricGrid.hpp"
 #include "include/Finalizer.hpp"
-#include "include/ModelMetadata.hpp"
+#include "include/Model.hpp"
 #include "include/NextsimModule.hpp"
 #include "include/ParaGridIO.hpp"
 #include "include/Xios.hpp"
 #include "include/gridNames.hpp"
 
 #include <filesystem>
+#include <mpi.h>
 
 const std::string testFilesDir = TEST_FILES_DIR;
 const std::string filename = testFilesDir + "/xios_test_input.nc";
@@ -37,12 +38,17 @@ MPI_TEST_CASE("TestXiosRead", 2)
     std::stringstream config;
     config << "[model]" << std::endl;
     config << "start = 2023-03-17T17:11:00Z" << std::endl;
+    config << "stop = 2023-03-17T23:11:00Z" << std::endl;
     config << "time_step = P0-0T01:30:00" << std::endl;
     config << "[XiosInput]" << std::endl;
     config << "filename = xios_test_input.nc" << std::endl;
     config << "field_names = hice" << std::endl;
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
+
+    // Create a Model and configure it so that options are parsed
+    Model model(MPI_COMM_WORLD);
+    model.configureTime(); // TODO: Use Model.configure to parse restart files this way, too?
 
     // Create ParametricGrid and ParaGridIO instances
     Module::setImplementation<IStructure>("Nextsim::ParametricGrid");

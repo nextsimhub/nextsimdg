@@ -13,8 +13,10 @@
 #include "StructureModule/include/ParametricGrid.hpp"
 #include "include/Configurator.hpp"
 #include "include/Finalizer.hpp"
-#include "include/ModelMetadata.hpp"
+#include "include/Model.hpp"
 #include "include/Xios.hpp"
+
+#include <mpi.h>
 
 using namespace doctest;
 
@@ -36,6 +38,7 @@ MPI_TEST_CASE("TestXiosFile", 2)
     std::stringstream config;
     config << "[model]" << std::endl;
     config << "start = 2023-03-17T17:11:00Z" << std::endl;
+    config << "stop = 2023-03-17T18:11:00Z" << std::endl;
     config << "time_step = P0-0T01:30:00" << std::endl;
     config << "[XiosInput]" << std::endl;
     config << "period = P0-0T03:00:00" << std::endl;
@@ -47,6 +50,10 @@ MPI_TEST_CASE("TestXiosFile", 2)
     config << "field_names = field_2D" << std::endl;
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
+
+    // Create a Model and configure it so that options are parsed
+    Model model(MPI_COMM_WORLD);
+    model.configureTime(); // TODO: Use Model.configure to parse restart files this way, too?
 
     // Create ModelMetadata instance based off a partition metadata file
     ModelMetadata metadata("xios_test_partition_metadata_2.nc", test_comm);

@@ -11,8 +11,11 @@
 #undef INFO
 
 #include "include/Finalizer.hpp"
+#include "include/Model.hpp"
 #include "include/ModelMetadata.hpp"
 #include "include/Xios.hpp"
+
+#include <mpi.h>
 
 namespace Nextsim {
 
@@ -27,7 +30,19 @@ namespace Nextsim {
  */
 MPI_TEST_CASE("TestXiosGrid", 2)
 {
+    // Enable XIOS in the 'config' and provide parameters to configure it
     enableXios();
+    std::stringstream config;
+    config << "[model]" << std::endl;
+    config << "start = 2023-03-17T17:11:00Z" << std::endl;
+    config << "stop = 2023-03-17T18:11:00Z" << std::endl;
+    config << "time_step = P0-0T01:00:00" << std::endl;
+    std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
+    Configurator::addStream(std::move(pcstream));
+
+    // Create a Model and configure it so that time partition options are parsed
+    Model model(MPI_COMM_WORLD);
+    model.configureTime();
 
     // Create ModelMetadata instance based off a partition metadata file
     ModelMetadata metadata("xios_test_partition_metadata_2.nc", test_comm);
