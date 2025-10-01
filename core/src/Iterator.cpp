@@ -1,5 +1,6 @@
 /*!
  * @author  Tim Spain <timothy.spain@nersc.no>
+ * @author  Joe Wallwork <jw2423@cam.ac.uk>
  */
 
 #include "include/Iterator.hpp"
@@ -10,37 +11,43 @@ namespace Nextsim {
 
 void Iterator::setStartStopStep(TimePoint startTime, TimePoint stopTime, Duration timestep)
 {
-    this->startTime = startTime;
-    this->stopTime = stopTime;
-    this->timestep = timestep;
+    TimePartition& timePartition = Iterator::getTimePartition();
+    timePartition.startTime = startTime;
+    timePartition.stopTime = stopTime;
+    timePartition.timestep = timestep;
 }
 
 TimePoint Iterator::parseAndSet(const std::string& startTimeStr, const std::string& stopTimeStr,
     const std::string& durationStr, const std::string& stepStr)
 {
+    TimePartition& timePartition = Iterator::getTimePartition();
+
     std::stringstream ss(startTimeStr);
-    ss >> startTime;
+    ss >> timePartition.startTime;
     ss = std::stringstream(stepStr);
-    ss >> timestep;
+    ss >> timePartition.timestep;
     if (!durationStr.empty()) {
         ss = std::stringstream(durationStr);
         Duration duration;
         ss >> duration;
-        stopTime = startTime + duration;
+        timePartition.stopTime = timePartition.startTime + duration;
     } else {
         ss = std::stringstream(stopTimeStr);
-        ss >> stopTime;
+        ss >> timePartition.stopTime;
     }
 
-    return startTime;
+    return timePartition.startTime;
 }
 
 void Iterator::run()
 {
-    iterant.start(startTime);
+    TimePartition& timePartition = Iterator::getTimePartition();
 
-    for (auto t = startTime; t < stopTime; t += timestep) {
-        TimestepTime tsTime = { t, timestep };
+    iterant.start(timePartition.startTime);
+
+    for (auto t = timePartition.startTime; t < timePartition.stopTime;
+         t += timePartition.timestep) {
+        TimestepTime tsTime = { t, timePartition.timestep };
         try {
             iterant.iterate(tsTime);
         } catch (const std::exception& e) {
@@ -50,7 +57,7 @@ void Iterator::run()
         }
     }
 
-    iterant.stop(stopTime);
+    iterant.stop(timePartition.stopTime);
 }
 
 } /* namespace Nextsim */

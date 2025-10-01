@@ -1,5 +1,6 @@
 /*!
  * @author  Tim Spain <timothy.spain@nersc.no>
+ * @author  Joe Wallwork <jw2423@cam.ac.uk>
  */
 
 #ifndef SRC_INCLUDE_ITERATOR_HPP
@@ -34,7 +35,7 @@ public:
      * @param stopTime Stop time point.
      * @param timestep Timestep length.
      */
-    void setStartStopStep(TimePoint startTime, TimePoint stopTime, Duration timestep);
+    static void setStartStopStep(TimePoint startTime, TimePoint stopTime, Duration timestep);
     /*!
      * @brief Sets the time parameters as a start time, run length and timestep
      * length.
@@ -57,18 +58,28 @@ public:
      * @param durationStr string to parse for the model run duration.
      * @param stepStr string to parse for the model time step length.
      */
-    TimePoint parseAndSet(const std::string& startTimeStr, const std::string& stopTimeStr,
+    static TimePoint parseAndSet(const std::string& startTimeStr, const std::string& stopTimeStr,
         const std::string& durationStr, const std::string& stepStr);
     //! Run the Iterant over the specified time period.
     void run();
 
 private:
+    // A struct to hold information related to the time partition.
+    struct TimePartition {
+        TimePoint startTime;
+        TimePoint stopTime;
+        Duration timestep;
+    };
     Iterant& iterant;
-    TimePoint startTime;
-    TimePoint stopTime;
-    Duration timestep;
 
 public:
+    //! Returns a reference to the static TimePartition instance.
+    static TimePartition& getTimePartition()
+    {
+        static TimePartition instance;
+        return instance;
+    }
+
     //! A base class for classes that specify what happens during one timestep.
     class Iterant {
     public:

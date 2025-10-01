@@ -52,7 +52,7 @@ TEST_CASE("Count iterator testing")
     Duration overall(dt);
     overall *= nSteps;
     TimePoint stop = start + overall;
-    iterator.setStartStopStep(start, start + overall, dt);
+    Iterator::setStartStopStep(start, start + overall, dt);
     iterator.run();
 
     REQUIRE(dt.seconds() == 1);
