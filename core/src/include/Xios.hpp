@@ -15,6 +15,7 @@
 #if USE_XIOS
 
 #include "include/Configured.hpp"
+#include "include/Iterator.hpp"
 #include "include/Logged.hpp"
 #include "include/ModelArray.hpp"
 #include "include/ModelConfig.hpp"

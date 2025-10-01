@@ -188,10 +188,9 @@ void Xios::finalize()
 }
 
 /*!
- * Overrides `Configure` method from `Configured`
+ * @brief   Overrides `Configure` method from `Configured`
  *
- * Configure the XIOS server if XIOS is enabled in the settings.
- *
+ * @details Configure the XIOS server if XIOS is enabled in the settings.
  */
 void Xios::configure()
 {
@@ -199,39 +198,11 @@ void Xios::configure()
     istringstream(Configured::getConfiguration(keyMap.at(ENABLED_KEY), std::string()))
         >> std::boolalpha >> isEnabled;
 
-    // Extract the start time from the model configuration
-    // TODO: Deduce from Model.iterator rather than duplicating here?
-    std::string startTimeStr;
-    istringstream(Configured::getConfiguration(keyMap.at(STARTTIME_KEY), std::string()))
-        >> startTimeStr;
-    if (startTimeStr.length() == 0) {
-        Logged::warning("Xios: Setting default start: 1970-01-01T00:00:00Z");
-        startTimeStr = "1970-01-01T00:00:00Z";
-    }
-    startTime = TimePoint(startTimeStr);
-
-    // Extract the timestep from the model configuration
-    // TODO: Deduce from Model.iterator rather than duplicating here?
-    std::string timeStepStr;
-    istringstream(Configured::getConfiguration(keyMap.at(TIME_STEP_KEY), std::string()))
-        >> timeStepStr;
-    if (timeStepStr.length() == 0) {
-        Logged::warning("Xios: Setting default time_step: P0-0T01:00:00");
-        timeStepStr = "P0-0T01:00:00";
-    }
-    timestep = Duration(timeStepStr);
-
-    // Extract the stop time from the model configuration
-    // TODO: Deduce from Model.iterator rather than duplicating here?
-    std::string stopTimeStr;
-    istringstream(Configured::getConfiguration(keyMap.at(STOPTIME_KEY), std::string()))
-        >> stopTimeStr;
-    if (stopTimeStr.length() == 0) {
-        Logged::warning("Xios: Setting default stop: start time plus P0-0T01:00:00");
-        stopTime = startTime + timestep;
-    } else {
-        stopTime = TimePoint(stopTimeStr);
-    }
+    // Extract the time partition information from the Iterator class
+    Iterator::TimePartition& timePartition = Iterator::getTimePartition();
+    startTime = timePartition.startTime;
+    timestep = timePartition.timestep;
+    stopTime = timePartition.stopTime;
 
     if (isEnabled) {
         configureServer();

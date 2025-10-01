@@ -63,16 +63,13 @@ public:
     //! Run the Iterant over the specified time period.
     void run();
 
-private:
     // A struct to hold information related to the time partition.
     struct TimePartition {
         TimePoint startTime;
         TimePoint stopTime;
         Duration timestep;
     };
-    Iterant& iterant;
 
-public:
     //! Returns a reference to the static TimePartition instance.
     static TimePartition& getTimePartition()
     {
@@ -80,6 +77,10 @@ public:
         return instance;
     }
 
+private:
+    Iterant& iterant;
+
+public:
     //! A base class for classes that specify what happens during one timestep.
     class Iterant {
     public:
