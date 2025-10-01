@@ -50,8 +50,9 @@ building without XIOS. That is, the ``model`` section should include
   restart_file = my_restart_file.nc
   restart_period = P0-0T02:00:00
 
-In the case of forcing files, the input file name is configured differently, via
-the ``filename`` entry in the ``XiosForcing`` section. For example,
+In the cases of forcing and diagnostics files, the file names are configured
+differently, via the ``filename`` entry in the ``XiosForcing`` and/or
+``XiosDiagnostic`` sections, respectively. For example,
 
 .. code-block::
 
@@ -69,8 +70,8 @@ refer to restarts. For example, we could specify that two fields labelled
   field_names = field_A,field_B
 
 The ``field_names`` entry may contain a single field name or a comma-separated
-list. Note that all of the ``XiosInput``, ``XiosOutput``, and ``XiosForcing``
-sections are optional.
+list. Note that all of the ``XiosOutput``, ``XiosInput``, ``XiosDiagnostic``,
+and ``XiosForcing`` sections are optional.
 
 As elsewhere in the model, these configuration values are parsed by calling the
 ``Model.configure`` member function. Since building with XIOS implies also
