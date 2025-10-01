@@ -4,6 +4,7 @@ if(NOT ENABLE_MPI)
 
     set(ModulesRoot "../src/modules")
     set(CoreModulesRoot "../../core/src/modules")
+    set(CoreSrc "../../core/src")
 
     # Generate the boundary test data files
     execute_process(COMMAND "${Python_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/era5_test_data.py"
@@ -17,6 +18,11 @@ if(NOT ENABLE_MPI)
     target_compile_definitions(testERA5Atm PRIVATE TEST_FILES_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}\")
     target_include_directories(testERA5Atm PRIVATE "${ModulesRoot}/AtmosphereBoundaryModule")
     target_link_libraries(testERA5Atm PRIVATE nextsimlib doctest::doctest)
+
+    add_executable(testERA5Atmosphere "ERA5Atmosphere_test.cpp")
+    target_compile_definitions(testERA5Atmosphere PRIVATE TEST_FILES_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}\")
+    target_include_directories(testERA5Atmosphere PRIVATE "${ModulesRoot}/AtmosphereBoundaryModule")
+    target_link_libraries(testERA5Atmosphere PRIVATE nextsimlib doctest::doctest)
 
     add_executable(testTOPAZOcn "TOPAZOcn_test.cpp")
     target_include_directories(testTOPAZOcn PRIVATE "${ModulesRoot}/OceanBoundaryModule")

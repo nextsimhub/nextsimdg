@@ -8,6 +8,8 @@
 #include "include/NextsimModule.hpp"
 #include "include/ParaGridIO.hpp"
 
+#include <ctime>
+
 namespace Nextsim {
 
 std::string ERA5Atmosphere::filePath;
@@ -118,4 +120,34 @@ void ERA5Atmosphere::setData(const ModelState::DataMap& ms)
     fluxImpl->setData(ms);
 }
 
+const std::string ERA5Atmosphere::filename(const std::string& era5Name, const TimePoint& time)
+{
+    std::tm* cTime = time.gmtime();
+    int year = cTime->tm_year;
+    return "ERA5_" + era5Name + "_y" + std::to_string(year) + ".nc";
+}
+
+const std::string ERA5Atmosphere::era5FromNSName(const std::string& nsName)
+{
+    static const std::map<std::string, std::string> era5FromNS = {
+            {"tair", "t2m"},
+            {"tdew", "d2m"},
+            {"pair", "msl"},
+            {"sw_in", "msdwswrf"},
+            {"lw_in", "msdwlwrf"},
+    };
+    return era5FromNS.at(nsName);
+}
+
+const ModelArray ERA5Atmosphere::getData(const std::string& nsName, const TimePoint& time)
+{
+    if (nsName == "wind_speed") {
+        era5Buffer u, v;
+        u = dataBuffer(filename("u10", time), time);
+        v = dataBuffer(filename("v10", time), time);
+        return maFromERA5Buffer((u.square() + v.square()).sqrt());
+    } else {
+        return maFromERA5Buffer(dataBuffer(filename(era5FromNSName(nsName), time), time));
+    }
+}
 } /* namespace Nextsim */
