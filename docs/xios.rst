@@ -27,13 +27,14 @@ build nextSIM-DG with XIOS as the I/O driver.
   [xios]
   enable = true
 
-The ``model`` section, which is used elsewhere in nextSIM-DG, contains two
-entries relevant to XIOS: ``start`` and ``time_step``. These are used to
-configure the calendar used by XIOS and take the following default values.
+The ``model`` section, which is used elsewhere in nextSIM-DG, contains three
+entries relevant to XIOS: ``start``, ``stop``, and ``time_step``. These are
+used to configure the calendar used by XIOS. For example,
 
 .. code-block::
   [model]
   start = 1970-01-01T00:00:00Z
+  stop = 1970-01-01T01:00:00Z
   time_step = P0-0T01:00:00
 
 Files and fields to be read and written to files are configured via
@@ -49,6 +50,11 @@ labelled ``field_A`` and ``field_B``, which are written to file
   fields = field_A,field_B
 
 Note that both the ``XiosInput`` and ``XiosOutput`` sections are optional.
+
+As elsewhere in the model, these configuration values are parsed by calling the
+``Model.configure`` member function. Since building with XIOS implies also
+building with MPI, you will need to pass the MPI communicator to this member
+function when calling it.
 
 Developer notes
 ^^^^^^^^^^^^^^^
