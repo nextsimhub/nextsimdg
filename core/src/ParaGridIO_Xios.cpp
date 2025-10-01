@@ -72,12 +72,17 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
     }
 
     // Assume that all fields in the supplied ModelState are necessary, and so read them from file.
+    std::set<std::string> restartFieldIds = xiosHandler.configGetInputRestartFieldNames();
     for (auto& entry : state.data) {
         const std::string fieldId = entry.first;
         if (!xiosHandler.getFieldReadAccess(fieldId)) {
             throw std::runtime_error("ParaGridIO::getModelState: field " + fieldId
                 + " is not configured for reading, but is being read from file.");
         };
+        if (restartFieldIds.count(fieldId) == 0) {
+            throw std::runtime_error(
+                "ParaGridIO::getModelState: field " + fieldId + " is not configured as a restart.");
+        }
         xiosHandler.read(fieldId, entry.second);
     }
     return state;
@@ -103,9 +108,13 @@ ModelState ParaGridIO::readForcingTimeStatic(
     const bool readAccess = true;
     std::set<std::string> forcingFieldIds = xiosHandler.configGetForcingFieldNames();
     for (const std::string& fieldId : forcings) {
-        if (forcingFieldIds.count(fieldId) == 0 || !xiosHandler.getFieldReadAccess(fieldId)) {
+        if (!xiosHandler.getFieldReadAccess(fieldId)) {
             throw std::runtime_error("ParaGridIO::readForcingTimeStatic: forcing " + fieldId
                 + " is not configured for reading, but is being read from file.");
+        }
+        if (forcingFieldIds.count(fieldId) == 0) {
+            throw std::runtime_error("ParaGridIO::readForcingTimeStatic: field " + fieldId
+                + " is not configured as a forcing.");
         }
         // ASSUME all forcings are HFields: finite volume fields on the same
         // grid as ice thickness
@@ -128,15 +137,18 @@ void ParaGridIO::dumpModelState(const ModelState& state, const std::string& file
 {
     Xios& xiosHandler = Xios::getInstance();
 
-    // Assume that all fields in the supplied ModelState are necessary, and so write them to
-    // file.
-    // TODO: Check they are indeed restarts
+    // Assume that all fields in the supplied ModelState are necessary, and so write them to file.
+    std::set<std::string> restartFieldIds = xiosHandler.configGetOutputRestartFieldNames();
     for (auto entry : state.data) {
         const std::string fieldId = entry.first;
         if (xiosHandler.getFieldReadAccess(fieldId)) {
             throw std::runtime_error("ParaGridIO::dumpModelState: field " + fieldId
                 + " is not configured for writing, but is being written to file.");
         };
+        if (restartFieldIds.count(fieldId) == 0) {
+            throw std::runtime_error("ParaGridIO::dumpModelState: field " + fieldId
+                + " is not configured as a restart.");
+        }
         xiosHandler.write(fieldId, entry.second);
     }
 }
@@ -145,19 +157,20 @@ void ParaGridIO::writeDiagnosticTime(const ModelState& state, const std::string&
 {
     Xios& xiosHandler = Xios::getInstance();
 
-    // Assume that all fields in the supplied ModelState are necessary, and so write them to
-    // file.
-    // TODO: Check they are indeed diagnostics
+    // Assume that all fields in the supplied ModelState are necessary, and so write them to file.
+    std::set<std::string> diagnosticFieldIds = xiosHandler.configGetDiagnosticFieldNames();
     for (auto entry : state.data) {
         const std::string fieldId = entry.first;
         if (xiosHandler.getFieldReadAccess(fieldId)) {
             throw std::runtime_error("ParaGridIO::writeDiagnosticTime: field " + fieldId
                 + " is not configured for writing, but is being written to file.");
         };
+        if (diagnosticFieldIds.count(fieldId) == 0) {
+            throw std::runtime_error("ParaGridIO::writeDiagnosticTime: field " + fieldId
+                + " is not configured as a diagnostic.");
+        }
         xiosHandler.write(fieldId, entry.second);
     }
-    // TODO: Create a special timeless set of dimensions for the landmask - use 'once' operation
-    // TODO: Put the time axis variable
 }
 
 } /* namespace Nextsim */
