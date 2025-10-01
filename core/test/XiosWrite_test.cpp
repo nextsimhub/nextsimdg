@@ -48,8 +48,10 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     config << "field_names = " << maskName << "," << coordsName << "," << hiceName << std::endl;
     config << "[XiosDiagnostic]" << std::endl;
     // TODO: Account for separate restart and diagnostics files (#929)
+    config << "[XiosDiagnostic]" << std::endl;
     config << "filename = " << filename << std::endl;
     config << "field_names = " << uName << std::endl;
+    config << "period = P0-0T01:30:00" << std::endl;
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
 
@@ -131,15 +133,15 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     HField u(ModelArray::Type::H);
     u.resize();
 
-    // Check calendar step is zero initially
-    REQUIRE(xiosHandler.getCalendarStep() == 0);
-
     // Check a file with the expected name doesn't exist yet
     REQUIRE_FALSE(std::filesystem::exists("xios_test_output*.nc"));
 
     // Simulate 4 iterations (timesteps)
     Duration timestep = xiosHandler.getCalendarTimestep();
     metadata.setTime(xiosHandler.getCalendarStart());
+    REQUIRE(xiosHandler.getCalendarStep() == 0);
+
+    // Simulate 4 iterations (timesteps)
     for (int ts = 1; ts <= 4; ts++) {
 
         // Update the current timestep and verify it's updated in XIOS
@@ -167,7 +169,7 @@ MPI_TEST_CASE("TestXiosWrite", 2)
 
         // Write out diagnostics and then restarts
         pio->writeDiagnosticTime(diagnostics, metadata, filepath);
-        grid.dumpModelState(restarts, metadata, "xios_test_output", true);
+        grid.dumpModelState(restarts, metadata, filepath, true);
     }
 
     // Check the files have indeed been created then remove it

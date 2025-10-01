@@ -156,7 +156,7 @@ void ParaGridIO::writeDiagnosticTime(const ModelState& state, const std::string&
         };
         xiosHandler.write(fieldId, entry.second);
     }
-    // TODO: Create a special timeless set of dimensions for the landmask
+    // TODO: Create a special timeless set of dimensions for the landmask - use 'once' operation
     // TODO: Put the time axis variable
 }
 
