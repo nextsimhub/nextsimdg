@@ -83,7 +83,11 @@ if(ENABLE_MPI)
         target_compile_definitions(testXiosCalendar_MPI1 PRIVATE USE_XIOS)
         target_include_directories(
             testXiosCalendar_MPI1
-            PRIVATE "${MODEL_INCLUDE_DIR}" "${XIOS_INCLUDE_LIST}" "${ModulesRoot}/StructureModule"
+            PRIVATE
+                ${PHYSICS_INCLUDE_DIRS}
+                "${MODEL_INCLUDE_DIR}"
+                "${XIOS_INCLUDE_LIST}"
+                "${ModulesRoot}/StructureModule"
         )
         target_link_libraries(testXiosCalendar_MPI1 PRIVATE nextsimlib doctest::doctest)
 
