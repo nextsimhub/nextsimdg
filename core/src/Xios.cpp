@@ -23,6 +23,7 @@
 #include "include/ModelMetadata.hpp"
 #include "include/ParallelNetcdfFile.hpp"
 #include "include/Xios.hpp"
+#include "include/gridNames.hpp"
 
 #include <boost/algorithm/string.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
@@ -1136,11 +1137,13 @@ void Xios::createField(const std::string fieldId)
         throw std::runtime_error("Xios: Failed to create field '" + fieldId + "'");
     }
 
-    // Restarts are read "once", everything else is written "instant"ly (no averaging)
+    // Set the operation type
     std::string operation;
-    if (configGetInputRestartFieldNames().count(fieldId) > 0) {
+    if (configGetInputRestartFieldNames().count(fieldId) > 0 || fieldId == maskName) {
+        // Restarts are read "once" and the mask is fixed so only written once
         operation = "once";
     } else {
+        // Otherwise, read/write all timesteps without post-processing
         operation = "instant";
     }
     if (cxios_is_defined_field_operation(field)) {
