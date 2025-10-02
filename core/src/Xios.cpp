@@ -112,10 +112,7 @@ bool Xios::doOnce()
 }
 
 //! Get the configuration for the XIOS handler
-ConfigMap Xios::getConfig() const
-{
-    return ConfigMap();
-}
+ConfigMap Xios::getConfig() const { return ConfigMap(); }
 
 Xios::HelpMap& Xios::getHelpText(HelpMap& map, bool getAll)
 {

@@ -72,8 +72,8 @@ void Model::configure()
 
     if (runLengthStr.empty()) {
         if (stopTimeStr.empty()) {
-            throw std::invalid_argument(std::string("At least one of ") + keyMap.at(STOPTIME_KEY) +
-                    " or " + keyMap.at(RUNLENGTH_KEY) + " must be set");
+            throw std::invalid_argument(std::string("At least one of ") + keyMap.at(STOPTIME_KEY)
+                + " or " + keyMap.at(RUNLENGTH_KEY) + " must be set");
         } else {
             m_etadata.setTimes(startTimeStr, TimePoint(stopTimeStr), stepStr);
         }
