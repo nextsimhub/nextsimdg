@@ -96,6 +96,7 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     xiosHandler.setFieldType(maskName, ModelArray::Type::H);
     xiosHandler.setFieldType(coordsName, ModelArray::Type::VERTEX);
     xiosHandler.setFieldType(hiceName, ModelArray::Type::DG);
+    xiosHandler.setFieldType(uName, ModelArray::Type::H);
 
     // Set file split frequency for restarts
     // NOTE: Files are created when the XIOS handler is constructed
@@ -169,8 +170,8 @@ MPI_TEST_CASE("TestXiosWrite", 2)
             {} };
 
         // Write out diagnostics and then restarts
-        pio->writeDiagnosticTime(diagnostics, metadata, filepath);
-        grid.dumpModelState(restarts, metadata, filepath, true);
+        pio->writeDiagnosticTime(diagnostics, filepath);
+        grid.dumpModelState(restarts, filepath, true);
     }
 
     // Check the files have indeed been created then remove it
