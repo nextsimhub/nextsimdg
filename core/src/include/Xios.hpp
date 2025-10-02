@@ -12,10 +12,10 @@
 #include "date.hpp"
 #if USE_XIOS
 
-#include "Configured.hpp"
-#include "Logged.hpp"
-#include "ModelArray.hpp"
-#include "Time.hpp"
+#include "include/Configured.hpp"
+#include "include/Logged.hpp"
+#include "include/ModelArray.hpp"
+#include "include/Time.hpp"
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/format.hpp>
 #include <boost/format/group.hpp>
@@ -54,6 +54,11 @@ public:
         static Xios instance = Xios(contextId, calendarType);
         return instance;
     };
+
+    /* Help config */
+    ConfigMap getConfig() const;
+    static HelpMap& getHelpText(HelpMap& map, bool getAll);
+    static HelpMap& getHelpRecursive(HelpMap& map, bool getAll);
 
     /* Initialization and finalization */
     void close_context_definition();
@@ -127,14 +132,15 @@ public:
 
     enum {
         ENABLED_KEY,
-        START_TIME_KEY,
+        STARTTIME_KEY,
+        STOPTIME_KEY,
         TIME_STEP_KEY,
         READ_MODE_KEY,
-        OUTPUT_PERIOD_KEY,
-        OUTPUT_FILENAME_KEY,
+        OUTPUT_RESTARTPERIOD_KEY,
+        OUTPUT_RESTARTFILE_KEY,
         OUTPUT_FIELD_NAMES_KEY,
-        INPUT_PERIOD_KEY,
-        INPUT_FILENAME_KEY,
+        INPUT_RESTARTPERIOD_KEY,
+        INPUT_RESTARTFILE_KEY,
         INPUT_FIELD_NAMES_KEY,
     };
 
@@ -158,6 +164,7 @@ private:
     std::string calendarType;
     Duration timestep;
     TimePoint startTime;
+    TimePoint stopTime;
     xios::CCalendarWrapper* clientCalendar;
     std::string convertXiosDatetimeToString(const cxios_date datetime, const bool isoFormat = true);
     cxios_date convertStringToXiosDatetime(const std::string datetime, const bool isoFormat = true);

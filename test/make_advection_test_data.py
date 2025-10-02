@@ -1,8 +1,9 @@
+import math
+import time
+
 import netCDF4
 import numpy as np
-import numpy.ma as ma
-import time
-import math
+from numpy import ma
 
 ice_dim = 16
 ice_start = 2
@@ -17,7 +18,7 @@ def get_data(name):
     ny = 21
     x0 = 30
     y0 = 30
-    
+
     lon0 = 0.
     dlon = 0.25
     lat0 = -2.5
@@ -80,12 +81,12 @@ if __name__ == "__main__":
     n_dg = 1
     n_dgstress = 3
     n_coords = get_data("ncoords")
-    
+
     ncFile = netCDF4.Dataset("advection_test_init.nc", "w", format="NETCDF4")
-    
+
     structure_name = "parametric_rectangular"
     ncFile.structure_name = structure_name
-    
+
     time_var = ncFile.createVariable("time_meta", "i8")
     data_time = 1263204000
     time_var[:] = data_time
@@ -103,21 +104,21 @@ if __name__ == "__main__":
     dg_comp = ncFile.createDimension("dg_comp", n_dg)
     dgs_comp = ncFile.createDimension("dgstress_comp", n_dgstress)
     n_coords_comp = ncFile.createDimension("ncoords", n_coords)
-    
+
     field_dims = ("ydim", "xdim")
     coord_dims = ("yvertex", "xvertex", "ncoords")
 
     ncFile.createVariable("coords", "f8", coord_dims)[:] = get_data("coords")
     ncFile.createVariable("longitude", "f8", field_dims)[:] = get_data("longitude")
     ncFile.createVariable("latitude", "f8", field_dims)[:] = get_data("latitude")
-    
+
     ncFile.createVariable("grid_azimuth", "f8", field_dims)[:] = get_data("grid_azimuth")
 
     ncFile.createVariable("mask", "f8", field_dims)[:, :] = get_data("mask")
 
     ncFile.createVariable("cice", "f8", field_dims)[:, :] = get_data("cice")
     ncFile.createVariable("hice", "f8", field_dims)[:, :] = get_data("hice")
-    
+
     # Snow thickness. Zero everywhere on the ocean
     hsnow = 0 * get_data("hice")
     snow_start = ice_start + snow_offset
@@ -133,10 +134,10 @@ if __name__ == "__main__":
 
     # Ice temperature
     ncFile.createVariable("tsurf", "f8", field_dims)[:, :] = get_data("tsurf")
-    
+
     # Ice starts at rest
     ncFile.createVariable("u", "f8", field_dims)[:, :] = 0
 
     ncFile.createVariable("v", "f8", field_dims)[:, :] = 0
-    
+
     ncFile.close()

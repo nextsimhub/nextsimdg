@@ -191,6 +191,24 @@ ModelState& ModelMetadata::affixCoordinates(ModelState& state) const
     return state;
 }
 
+void ModelMetadata::setTimes(const TimePoint& start, const TimePoint& stop, const Duration& step)
+{
+    this->start = start;
+    this->stop = stop;
+    this->step = step;
+    this->run = stop - start;
+    setTime(start);
+}
+
+void ModelMetadata::setTimes(const TimePoint& start, const Duration& runLen, const Duration& step)
+{
+    this->start = start;
+    this->stop = start + runLen;
+    this->step = step;
+    this->run = runLen;
+    setTime(start);
+}
+
 void ModelMetadata::setTime(const TimePoint& time)
 {
     m_time = time;

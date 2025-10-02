@@ -10,7 +10,6 @@
 
 #include "include/Configured.hpp"
 #include "include/Iterator.hpp"
-#include "include/ModelConfig.hpp"
 #include "include/ModelMetadata.hpp"
 #include "include/ModelState.hpp"
 #include "include/PrognosticData.hpp"
@@ -31,12 +30,11 @@ public:
 
     enum {
         RESTARTFILE_KEY,
-        // Configuration keys mirrored from ModelConfig. These will be written to the restart file.
-        STARTTIME_KEY = ModelConfig::STARTTIME_KEY,
-        STOPTIME_KEY = ModelConfig::STOPTIME_KEY,
-        RUNLENGTH_KEY = ModelConfig::RUNLENGTH_KEY,
-        TIMESTEP_KEY = ModelConfig::TIMESTEP_KEY,
-        MISSINGVALUE_KEY = ModelConfig::MISSINGVALUE_KEY,
+        STARTTIME_KEY,
+        STOPTIME_KEY,
+        RUNLENGTH_KEY,
+        TIMESTEP_KEY,
+        MISSINGVALUE_KEY,
 #ifdef USE_MPI
         PARTITIONFILE_KEY,
 #endif
@@ -45,7 +43,7 @@ public:
         RESTARTOUTFILE_KEY,
     };
 
-    ConfigMap getConfig() const;
+    ConfigMap getConfig() const { return ConfigMap(); };
 
     static HelpMap& getHelpText(HelpMap& map, bool getAll);
     static HelpMap& getHelpRecursive(HelpMap& map, bool getAll);

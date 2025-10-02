@@ -5,8 +5,11 @@
 #include "include/CommonRestartMetadata.hpp"
 #include "include/ModelMetadata.hpp"
 
+#include "include/MissingData.hpp"
+
 #include <cstdint>
 #include <cstring>
+#include <ncDouble.h>
 #include <ncInt64.h>
 #include <ncString.h>
 #include <ncVar.h>
@@ -37,6 +40,13 @@ netCDF::NcFile& CommonRestartMetadata::writeRestartMetadata(netCDF::NcFile& ncFi
     // in parallel mode
     unixVar.putAtt(std::string("format"), TimePoint::ymdhmsFormat);
     unixVar.putAtt(formattedName(), metadata.m_time.format());
+
+    ncFile.putAtt(startTimeName(), metadata.startTime().format());
+    ncFile.putAtt(stopTimeName(), metadata.stopTime().format());
+    ncFile.putAtt(stepLengthName(), std::to_string(metadata.stepLength().seconds()));
+    ncFile.putAtt(runLengthName(), std::to_string(metadata.runLength().seconds()));
+
+    ncFile.putAtt(missingDataName(), netCDF::NcDouble(), MissingData::value());
 
     for (auto entry : metadata.m_config) {
         switch (entry.second.index()) {

@@ -1,0 +1,50 @@
+# Exclude large data generation scripts
+extend-exclude = ["test/era5_topaz4_test_data.py", "test/make_init25kmNH_test_data.py"]
+
+[format]
+docstring-code-format = true
+
+[lint]
+# See https://docs.astral.sh/ruff/rules for full details of each ruleset.
+
+# Enable:  D: `pydocstyle`, PL: `pylint`, I: `isort`, W: `pycodestyle whitespace`
+#          NPY: `numpy`, FLY: `flynt`, RUF: `ruff`
+#          From flake8: "ARG", "SLF", "S", "BLE", "B", "A", "C4", "EM", "ICN",
+#                       "PIE", "Q", "RSE", "SIM", "TID"
+select = ["D", "PL", "I", "E", "W", "NPY", "FLY", "RUF",
+          "ARG", "SLF", "S", "BLE","B", "A", "C4", "EM", "ICN", "PIE", "Q", "RSE",
+          "SIM", "TID"]
+
+# Enable D417 (Missing argument description) on top of the NumPy convention.
+extend-select = ["D417"]
+
+# Ignore SIM108 (use ternary instead of if-else) as it can arguably obscure intent.
+# Ignore RUF002 (ambiguous characters) as it does not allow apostrophes in strings.
+# Ignore E501 (line too long) as it currently raises too many errors.
+# Ignore PLR2004 (magic value comparison) TODO: enforce this
+# Ignore PLR0911 (too many return statements) TODO: enforce this
+# Ignore PLR0912 (too many branches) TODO: enforce this
+# Ignore PLR0913 (too many arguments) TODO: enforce this
+# Ignore PLR0915 (too many statements) TODO: enforce this
+# Ignore S602 (subprocess call with shell=True) TODO: enforce this
+# Ignore S607 (start process with partial path) TODO: enforce this
+# Ignore D100 (missing docstring in public module) TODO: enforce this
+# Ignore D103 (missing docstring in public function) TODO: enforce this
+ignore = ["SIM108", "RUF002", "E501",
+          "PLR2004", "PLR0911", "PLR0912", "PLR0913", "PLR0915",
+          "S602", "S607", "D100", "D103"]
+
+[lint.per-file-ignores]
+"docs/conf.py" = [
+  "A001", # Built-in variable shadowing
+]
+"dynamics/ParametricMesh/netcdf2dynamics.py" = [
+  "S101",  # Use of assert detected  # TODO: enforce this
+]
+"dynamics/ParametricMesh/netcdf2dynamics2.py" = [
+  "S101",  # Use of assert detected  # TODO: enforce this
+]
+
+[lint.pydocstyle]
+# Use NumPy convention for checking docstrings
+convention = "numpy"
