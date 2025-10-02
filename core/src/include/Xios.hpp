@@ -112,6 +112,8 @@ public:
     std::string getFieldGridRef(const std::string fieldId);
     bool getFieldReadAccess(const std::string fieldId);
     Duration getFieldFreqOffset(const std::string fieldId);
+    ModelArray::Type getFieldType(const std::string fieldId);
+    void setFieldType(const std::string fieldId, ModelArray::Type type);
 
     /* File */
     void createFile(const std::string fileId);
@@ -173,13 +175,25 @@ private:
     cxios_duration convertDurationToXios(const Duration duration);
 
     /* Axis */
+    std::map<ModelArray::Type, std::string> axisIds = {
+        { ModelArray::Type::VERTEX, "VertexAxis" },
+        { ModelArray::Type::DG, "DGAxis" },
+    };
+    std::map<std::string, std::string> axisNames = {
+        { "VertexAxis", "ncoords" },
+        { "DGAxis", "dg_comp" },
+    };
     xios::CAxisGroup* getAxisGroup();
     xios::CAxis* getAxis(const std::string axisId);
 
     /* Domain */
-    const std::string domainId = "xy_domain";
+    std::map<ModelArray::Type, std::string> domainIds = {
+        { ModelArray::Type::H, "HDomain" },
+        { ModelArray::Type::VERTEX, "VertexDomain" },
+        { ModelArray::Type::DG, "HDomain" },
+    };
     xios::CDomainGroup* getDomainGroup();
-    xios::CDomain* getDomain();
+    xios::CDomain* getDomain(std::string domainId);
 
     /* Field */
     xios::CFieldGroup* getFieldGroup();
@@ -187,10 +201,16 @@ private:
     void setFieldReadAccess(const std::string fieldId, const bool readAccess);
     std::set<std::string> configGetFieldNames(const bool reading);
     bool configCheckField(const std::string fieldId, const bool reading);
+    std::map<std::string, ModelArray::Type> fieldTypes;
 
     /* Grid */
     xios::CGridGroup* getGridGroup();
     xios::CGrid* getGrid(const std::string gridId);
+    std::map<ModelArray::Type, std::string> gridIds = {
+        { ModelArray::Type::H, "HGrid" },
+        { ModelArray::Type::VERTEX, "VertexGrid" },
+        { ModelArray::Type::DG, "DGGrid" },
+    };
 
     /* File */
     xios::CFileGroup* getFileGroup();

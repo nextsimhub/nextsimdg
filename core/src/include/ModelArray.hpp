@@ -62,6 +62,7 @@ public:
     // Forward defines make Eclipse less red and squiggly
     enum class Type;
     enum class Dimension;
+    enum class Base;
 
 #include "include/ModelArrayDetails.hpp"
 
@@ -99,6 +100,8 @@ public:
     static std::map<Dimension, DimensionSpec> definedDimensions;
     //! The name of each type of ModelArray
     static const std::map<Type, std::string> typeNames;
+    //! The base type of each type of ModelArray
+    static std::map<Type, Base> baseTypes;
     // The dimension that defines the components of each ModelArray type, if any
     static const std::map<Type, Dimension> componentMap;
 
@@ -681,7 +684,7 @@ private:
     static DimensionMap m_dims;
     DataType m_data;
 
-    // ModelArraySlice needs access to the internals for fast slcing
+    // ModelArraySlice needs access to the internals for fast slicing
     friend ModelArraySlice;
     friend Halo;
 };

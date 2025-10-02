@@ -23,6 +23,8 @@ enum class Type {
     CG,
 };
 
+enum class Base { Cell, Vertex };
+
 static const Type AdvectionType = Type::DG;
 
 static ModelArray HField() { return ModelArray(Type::H); }

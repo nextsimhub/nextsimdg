@@ -652,7 +652,7 @@ xios::CDomainGroup* Xios::getDomainGroup()
  *
  * @return a pointer to the XIOS CDomain object
  */
-xios::CDomain* Xios::getDomain()
+xios::CDomain* Xios::getDomain(const std::string domainId)
 {
     bool exists;
     cxios_domain_valid_id(&exists, domainId.c_str(), domainId.length());
@@ -668,10 +668,7 @@ xios::CDomain* Xios::getDomain()
 }
 
 /*!
- * Create a domain with some ID based off the provided metadata.
- *
- * If the domain ID is 'xy_domain' then a grid called 'grid_2D' will automatically be created with
- * this domain.
+ * Create axes, domains, and grids based off the provided metadata.
  */
 void Xios::affixModelMetadata()
 {
@@ -727,6 +724,45 @@ void Xios::affixModelMetadata()
                 }
                 ModelArray::setDimension(dimType, dim.getSize(), localLength, start);
             }
+
+            // Create map for field types
+            const std::map<std::string, ModelArray::Type> dimensionKeys = {
+                { "yx", ModelArray::Type::H },
+                { "ydimxdim", ModelArray::Type::H },
+                { "yxdg_comp", ModelArray::Type::DG },
+                { "ydimxdimdg_comp", ModelArray::Type::DG },
+                { "yxdgstress_comp", ModelArray::Type::DGSTRESS },
+                { "ydimxdimdgstress_comp", ModelArray::Type::DGSTRESS },
+                { "ycgxcg", ModelArray::Type::CG },
+                { "yvertexxvertexncoords", ModelArray::Type::VERTEX },
+            };
+
+            // Determine field types
+            std::set<std::string> configFieldIds = configGetFieldNames(true);
+            for (auto entry : ncFile.getVars()) {
+                const std::string& fieldId = entry.first;
+                // Only consider fields that appear in the config
+                if (configFieldIds.count(fieldId) == 0) {
+                    continue;
+                }
+                netCDF::NcVar& var = entry.second;
+                // Determine the type from the dimensions
+                std::vector<netCDF::NcDim> varDims = var.getDims();
+                std::string dimKey = "";
+                for (netCDF::NcDim& dim : varDims) {
+                    const std::string name = dim.getName();
+                    // Skip the time_counter dim as it's handled differently
+                    if (name != "time_counter") {
+                        dimKey += dim.getName();
+                    }
+                }
+                // Skip invalid dimension keys
+                if (!dimensionKeys.count(dimKey)) {
+                    continue;
+                }
+                ModelArray::Type type = dimensionKeys.at(dimKey);
+                setFieldType(fieldId, type);
+            }
             ncFile.close();
         } catch (const netCDF::exceptions::NcException& nce) {
             std::string ncWhat(nce.what());
@@ -735,68 +771,136 @@ void Xios::affixModelMetadata()
         }
     }
 
-    // Create the XIOS domain 'xy_domain'
-    bool exists;
-    cxios_domain_valid_id(&exists, domainId.c_str(), domainId.length());
-    if (exists) {
-        throw std::runtime_error("Xios: Domain '" + domainId + "' already exists");
-    }
-    xios::CDomain* domain = NULL;
-    cxios_xml_tree_add_domain(getDomainGroup(), &domain, domainId.c_str(), domainId.length());
-    if (!domain) {
-        throw std::runtime_error("Xios: Null pointer for domain '" + domainId + "'");
-    }
-    cxios_domain_valid_id(&exists, domainId.c_str(), domainId.length());
-    if (!exists) {
-        throw std::runtime_error("Xios: Failed to create domain '" + domainId + "'");
+    // Create XIOS domains associated with each ModelArray type
+    for (auto entry : domainIds) {
+        ModelArray::Type type = entry.first;
+        const std::string domainId = entry.second;
+        bool exists;
+        cxios_domain_valid_id(&exists, domainId.c_str(), domainId.length());
+        if (exists) {
+            continue;
+        }
+
+        // Create the domain
+        xios::CDomain* domain = NULL;
+        cxios_xml_tree_add_domain(getDomainGroup(), &domain, domainId.c_str(), domainId.length());
+        if (!domain) {
+            throw std::runtime_error("Xios: Null pointer for domain '" + domainId + "'");
+        }
+        cxios_domain_valid_id(&exists, domainId.c_str(), domainId.length());
+        if (!exists) {
+            throw std::runtime_error("Xios: Failed to create domain '" + domainId + "'");
+        }
+
+        // Set domain type
+        const std::string domainType = "rectilinear";
+        if (cxios_is_defined_domain_type(domain)) {
+            Logged::warning("Xios: Overwriting type for domain '" + domainId + "'");
+        }
+        cxios_set_domain_type(domain, domainType.c_str(), domainType.length());
+        if (!cxios_is_defined_domain_type(domain)) {
+            throw std::runtime_error("Xios: Failed to set type for domain '" + domainId + "'");
+        }
+
+        // Set domain extents based on model metadata
+        size_t counter = 0;
+        for (ModelArray::Dimension dim : ModelArray::typeDimensions[type]) {
+            const std::string domainName = ModelArray::definedDimensions[dim].name;
+            // Add 1 in the case of vertex-based field types
+            ModelArray::Base base = ModelArray::baseTypes[type];
+            size_t extension = (base == ModelArray::Base::Vertex) ? 1 : 0;
+            if (counter == 0) {
+                cxios_set_domain_ni_glo(domain, (int)metadata.getGlobalExtentX() + extension);
+                if (!cxios_is_defined_domain_ni_glo(domain)) {
+                    throw std::runtime_error(
+                        "Xios: Failed to set global x-size for domain '" + domainId + "'");
+                }
+                cxios_set_domain_ni(domain, (int)metadata.getLocalExtentX() + extension);
+                if (!cxios_is_defined_domain_ni(domain)) {
+                    throw std::runtime_error(
+                        "Xios: Failed to set local x-size for domain '" + domainId + "'");
+                }
+                cxios_set_domain_ibegin(domain, (int)metadata.getLocalCornerX());
+                if (!cxios_is_defined_domain_ibegin(domain)) {
+                    throw std::runtime_error(
+                        "Xios: Failed to set local starting x-index for domain '" + domainId + "'");
+                }
+                cxios_set_domain_dim_i_name(domain, domainName.c_str(), domainName.length());
+                if (!cxios_is_defined_domain_dim_i_name(domain)) {
+                    throw std::runtime_error(
+                        "Xios: Failed to set x-coordinate name for domain '" + domainId + "'");
+                }
+                cxios_set_domain_lon_name(domain, domainName.c_str(), domainName.length());
+                if (!cxios_is_defined_domain_lon_name(domain)) {
+                    throw std::runtime_error(
+                        "Xios: Failed to set longitude name for domain '" + domainId + "'");
+                }
+            } else if (counter == 1) {
+                cxios_set_domain_nj_glo(domain, (int)metadata.getGlobalExtentY() + extension);
+                if (!cxios_is_defined_domain_nj_glo(domain)) {
+                    throw std::runtime_error(
+                        "Xios: Failed to set global y-size for domain '" + domainId + "'");
+                }
+                cxios_set_domain_nj(domain, (int)metadata.getLocalExtentY() + extension);
+                if (!cxios_is_defined_domain_nj(domain)) {
+                    throw std::runtime_error(
+                        "Xios: Failed to set local y-size for domain '" + domainId + "'");
+                }
+                cxios_set_domain_jbegin(domain, (int)metadata.getLocalCornerY());
+                if (!cxios_is_defined_domain_jbegin(domain)) {
+                    throw std::runtime_error(
+                        "Xios: Failed to set local starting y-index for domain '" + domainId + "'");
+                }
+                cxios_set_domain_dim_j_name(domain, domainName.c_str(), domainName.length());
+                if (!cxios_is_defined_domain_dim_j_name(domain)) {
+                    throw std::runtime_error(
+                        "Xios: Failed to set y-coordinate name for domain '" + domainId + "'");
+                }
+                cxios_set_domain_lat_name(domain, domainName.c_str(), domainName.length());
+                if (!cxios_is_defined_domain_lat_name(domain)) {
+                    throw std::runtime_error(
+                        "Xios: Failed to set latitude name for domain '" + domainId + "'");
+                }
+            } else {
+                throw std::runtime_error(
+                    "Xios: More than 2 dimensions were associated with a domain.");
+            }
+            counter++;
+        }
     }
 
-    // Create XIOS grid 'grid_2D' associated with the domain
-    const std::string gridId = "grid_2D";
-    createGrid(gridId);
-    xios::CGrid* grid = getGrid(gridId);
-    cxios_xml_tree_add_domaintogrid(grid, &domain, domainId.c_str(), domainId.length());
-
-    // Set domain type
-    const std::string domainType = "rectilinear";
-    if (cxios_is_defined_domain_type(domain)) {
-        Logged::warning("Xios: Overwriting type for domain '" + domainId + "'");
-    }
-    cxios_set_domain_type(domain, domainType.c_str(), domainType.length());
-    if (!cxios_is_defined_domain_type(domain)) {
-        throw std::runtime_error("Xios: Failed to set type for domain '" + domainId + "'");
-    }
-
-    // Set global sizes
-    cxios_set_domain_ni_glo(domain, (int)metadata.getGlobalExtentX());
-    if (!cxios_is_defined_domain_ni_glo(domain)) {
-        throw std::runtime_error("Xios: Failed to set global x-size for domain '" + domainId + "'");
-    }
-    cxios_set_domain_nj_glo(domain, (int)metadata.getGlobalExtentY());
-    if (!cxios_is_defined_domain_nj_glo(domain)) {
-        throw std::runtime_error("Xios: Failed to set global y-size for domain '" + domainId + "'");
+    // Create XIOS axes for each ModelArray type
+    for (auto entry : ModelArray::componentMap) {
+        ModelArray::Type type = entry.first;
+        ModelArray::Dimension dim = entry.second;
+        if (axisIds.count(type) == 0) {
+            continue;
+        }
+        const std::string axisId = axisIds[type];
+        createAxis(axisId);
+        setAxisSize(axisId, ModelArray::size(dim));
+        xios::CAxis* axis = getAxis(axisId);
+        const std::string axisName = axisNames[axisId];
+        cxios_set_axis_dim_name(axis, axisName.c_str(), axisName.length());
+        if (!cxios_is_defined_axis_dim_name(axis)) {
+            throw std::runtime_error("Xios: Failed to set name for axis '" + axisId + "'");
+        }
     }
 
-    // Set local starts
-    cxios_set_domain_ibegin(domain, (int)metadata.getLocalCornerX());
-    if (!cxios_is_defined_domain_ibegin(domain)) {
-        throw std::runtime_error(
-            "Xios: Failed to set local starting x-index for domain '" + domainId + "'");
-    }
-    cxios_set_domain_jbegin(domain, (int)metadata.getLocalCornerY());
-    if (!cxios_is_defined_domain_jbegin(domain)) {
-        throw std::runtime_error(
-            "Xios: Failed to set local starting y-index for domain '" + domainId + "'");
-    }
-
-    // Set local sizes
-    cxios_set_domain_ni(domain, (int)metadata.getLocalExtentX());
-    if (!cxios_is_defined_domain_ni(domain)) {
-        throw std::runtime_error("Xios: Failed to set local x-size for domain '" + domainId + "'");
-    }
-    cxios_set_domain_nj(domain, (int)metadata.getLocalExtentY());
-    if (!cxios_is_defined_domain_nj(domain)) {
-        throw std::runtime_error("Xios: Failed to set local y-size for domain '" + domainId + "'");
+    // Create XIOS grid associated with domain and possibly axis
+    for (auto entry : gridIds) {
+        ModelArray::Type type = entry.first;
+        const std::string gridId = entry.second;
+        createGrid(gridId);
+        xios::CGrid* grid = getGrid(gridId);
+        if (axisIds.count(type) > 0) {
+            const std::string axisId = axisIds[type];
+            xios::CAxis* axis = getAxis(axisId);
+            cxios_xml_tree_add_axistogrid(grid, &axis, axisId.c_str(), axisId.length());
+        }
+        const std::string domainId = domainIds[type];
+        xios::CDomain* domain = getDomain(domainId);
+        cxios_xml_tree_add_domaintogrid(grid, &domain, domainId.c_str(), domainId.length());
     }
 }
 
@@ -995,17 +1099,9 @@ void Xios::createField(const std::string fieldId)
     if (!exists) {
         throw std::runtime_error("Xios: Failed to create field '" + fieldId + "'");
     }
-}
 
-/*!
- * Set the operation for a field with a given ID
- *
- * @param the field ID
- * @param operation to set
- */
-void Xios::setFieldOperation(const std::string fieldId, const std::string operation)
-{
-    xios::CField* field = getField(fieldId);
+    // We always assume the field operation type is "instant"
+    const std::string operation = "instant";
     if (cxios_is_defined_field_operation(field)) {
         Logged::warning("Xios: Overwriting operation for field '" + fieldId + "'");
     }
@@ -1071,23 +1167,6 @@ void Xios::setFieldFreqOffset(const std::string fieldId, const Duration freqOffs
 }
 
 /*!
- * Get the operation associated with a field with a given ID
- *
- * @param the field ID
- * @return operation used for the corresponding field
- */
-std::string Xios::getFieldOperation(const std::string fieldId)
-{
-    xios::CField* field = getField(fieldId);
-    if (!cxios_is_defined_field_operation(field)) {
-        throw std::runtime_error("Xios: Undefined operation for field '" + fieldId + "'");
-    }
-    char cStr[cStrLen];
-    cxios_get_field_operation(field, cStr, cStrLen);
-    return convertCStrToCppStr(cStr, cStrLen);
-}
-
-/*!
  * Get the grid reference associated with a field with a given ID
  *
  * @param the field ID
@@ -1138,6 +1217,26 @@ Duration Xios::getFieldFreqOffset(const std::string fieldId)
     char cStr[cStrLen];
     cxios_duration_convert_to_string(duration, cStr, cStrLen);
     return convertDurationFromXios(duration);
+}
+
+/*!
+ * Get the field type associated with a field with a given ID
+ *
+ * @param the field ID
+ * @return ModelArray::Type used for the corresponding field
+ */
+ModelArray::Type Xios::getFieldType(const std::string fieldId) { return fieldTypes[fieldId]; }
+
+/*!
+ * Set the field type associated with a field with a given ID
+ *
+ * @param the field ID
+ * @param ModelArray::Type used for the corresponding field
+ */
+void Xios::setFieldType(const std::string fieldId, ModelArray::Type type)
+{
+    fieldTypes[fieldId] = type;
+    setFieldGridRef(fieldId, gridIds[type]);
 }
 
 /*!
@@ -1486,13 +1585,22 @@ void Xios::write(const std::string fieldId, ModelArray& modelarray)
         throw std::runtime_error(
             "Xios::write: field " + fieldId + " has not been configured for writing with XIOS.");
     }
-    auto ndim = modelarray.nDimensions();
+    if (modelarray.nDimensions() != 2) {
+        throw std::invalid_argument("Only ModelArrays of dimension 2 are supported");
+    }
     auto dims = modelarray.dimensions();
-    if (ndim == 2) {
+    auto type = modelarray.getType();
+    if (type == ModelArray::Type::H) {
         cxios_write_data_k82(
             fieldId.c_str(), fieldId.length(), modelarray.getData(), dims[0], dims[1], -1);
+    } else if (type == ModelArray::Type::VERTEX) {
+        cxios_write_data_k83(fieldId.c_str(), fieldId.length(), modelarray.getData(), dims[0],
+            dims[1], ModelArray::size(ModelArray::Dimension::NCOORDS), -1);
+    } else if (type == ModelArray::Type::DG) {
+        cxios_write_data_k83(fieldId.c_str(), fieldId.length(), modelarray.getData(), dims[0],
+            dims[1], ModelArray::size(ModelArray::Dimension::DG), -1);
     } else {
-        throw std::invalid_argument("Only ModelArrays of dimension 2 are supported");
+        throw std::invalid_argument("Only HFields, VertexFields, and DGFields are supported");
     }
 }
 
@@ -1510,13 +1618,22 @@ void Xios::read(const std::string fieldId, ModelArray& modelarray)
         throw std::runtime_error(
             "Xios::read: field " + fieldId + " has not been configured for reading with XIOS.");
     }
-    auto ndim = modelarray.nDimensions();
+    if (modelarray.nDimensions() != 2) {
+        throw std::invalid_argument("Only ModelArrays of dimension 2 are supported");
+    }
     auto dims = modelarray.dimensions();
-    if (ndim == 2) {
+    auto type = modelarray.getType();
+    if (type == ModelArray::Type::H) {
         cxios_read_data_k82(
             fieldId.c_str(), fieldId.length(), modelarray.getData(), dims[0], dims[1]);
+    } else if (type == ModelArray::Type::VERTEX) {
+        cxios_read_data_k83(fieldId.c_str(), fieldId.length(), modelarray.getData(), dims[0],
+            dims[1], ModelArray::size(ModelArray::Dimension::NCOORDS));
+    } else if (type == ModelArray::Type::DG) {
+        cxios_read_data_k83(fieldId.c_str(), fieldId.length(), modelarray.getData(), dims[0],
+            dims[1], ModelArray::size(ModelArray::Dimension::DG));
     } else {
-        throw std::invalid_argument("Only ModelArrays of dimension 2 are supported");
+        throw std::invalid_argument("Only HFields, VertexFields, and DGFields are supported");
     }
 }
 }

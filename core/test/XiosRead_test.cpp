@@ -22,6 +22,8 @@
 const std::string testFilesDir = TEST_FILES_DIR;
 const std::string filename = testFilesDir + "/xios_test_input.nc";
 
+static const int DG = 3;
+
 namespace Nextsim {
 
 /*!
@@ -40,7 +42,7 @@ MPI_TEST_CASE("TestXiosRead", 2)
     config << "time_step = P0-0T01:30:00" << std::endl;
     config << "[XiosInput]" << std::endl;
     config << "filename = xios_test_input.nc" << std::endl;
-    config << "field_names = hice" << std::endl;
+    config << "field_names = " << maskName << "," << coordsName << "," << hiceName << std::endl;
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
 
@@ -55,31 +57,27 @@ MPI_TEST_CASE("TestXiosRead", 2)
     REQUIRE(xiosHandler.isInitialized());
     REQUIRE(xiosHandler.getClientMPISize() == 2);
 
+    // TODO: We could deduce this from the NetCDF file
+    ModelArray::setNComponents(ModelArray::Type::DG, DG);
+    ModelArray::setNComponents(ModelArray::Type::VERTEX, ModelArray::nCoords);
+    REQUIRE(ModelArray::nComponents(ModelArray::Type::DG) == DG);
+    REQUIRE(ModelArray::nComponents(ModelArray::Type::VERTEX) == ModelArray::nCoords);
+
     // Create ModelMetadata instance based off a partition metadata file
     // NOTE: ModelArray dimensions are determined from the input file, if present
-    auto& modelMPI = ModelMPI::getInstance(test_comm);
-    auto& metadata = ModelMetadata::getInstance("xios_test_partition_metadata_2.nc");
+    ModelMPI& modelMPI = ModelMPI::getInstance(test_comm);
+    ModelMetadata& metadata = ModelMetadata::getInstance("xios_test_partition_metadata_2.nc");
     xiosHandler.affixModelMetadata();
 
-    // Create fields on the two grids
+    // Create fields on the grid
     // NOTE: Fields are created when the XIOS handler is constructed
     // NOTE: The 2D grid is created along with the 2D domain
-    xiosHandler.setFieldOperation(hiceName, "instant");
-    xiosHandler.setFieldGridRef(hiceName, "grid_2D");
     Duration timestep = xiosHandler.getCalendarTimestep();
-    xiosHandler.setFieldFreqOffset(hiceName, timestep);
+    for (std::string fieldName : { maskName, coordsName, hiceName }) {
+        xiosHandler.setFieldFreqOffset(fieldName, timestep);
+    }
 
     xiosHandler.close_context_definition();
-
-    // Create HField and ZField instances to read the data into
-    HField hice(ModelArray::Type::H);
-    hice.resize();
-
-    // Setup ModelState with field above
-    ModelState state = { {
-                             { hiceName, hice },
-                         },
-        {} };
 
     // Check calendar step is zero initially
     REQUIRE(xiosHandler.getCalendarStep() == 0);
@@ -88,8 +86,8 @@ MPI_TEST_CASE("TestXiosRead", 2)
     REQUIRE(std::filesystem::exists(filename));
 
     // Deduce the local lengths of the two dimensions
-    const size_t nx = ModelArray::definedDimensions.at(ModelArray::Dimension::X).localLength;
-    const size_t ny = ModelArray::definedDimensions.at(ModelArray::Dimension::Y).localLength;
+    const size_t nx = ModelArray::size(ModelArray::Dimension::X);
+    const size_t ny = ModelArray::size(ModelArray::Dimension::Y);
 
     // Simulate 4 iterations (timesteps)
     metadata.setTime(xiosHandler.getCalendarStart());
@@ -97,11 +95,23 @@ MPI_TEST_CASE("TestXiosRead", 2)
         // Update the current timestep and verify it's updated in XIOS
         metadata.incrementTime(timestep);
         REQUIRE(xiosHandler.getCalendarStep() == ts);
+        // Check that the fields contain the expected data
         ModelState state = grid.getModelState(filename);
         for (auto& entry : state.data) {
             for (size_t j = 0; j < ny; ++j) {
                 for (size_t i = 0; i < nx; ++i) {
-                    REQUIRE(entry.second(i, j) == doctest::Approx(i + nx * j));
+                    if (entry.first == maskName) {
+                        REQUIRE(entry.second(i, j) == doctest::Approx(j >= 1 ? 1.0 : 0.0));
+                    } else if (entry.first == coordsName) {
+                        REQUIRE(entry.second.components({ i, j })[0] == doctest::Approx(i));
+                        REQUIRE(entry.second.components({ i, j })[1] == doctest::Approx(j));
+                    } else if (entry.first == hiceName) {
+                        for (size_t d = 0; d < DG; ++d) {
+                            float expected = 1.0 * (d + DG * (i + nx * j));
+                            REQUIRE(
+                                entry.second.components({ i, j })[d] == doctest::Approx(expected));
+                        }
+                    }
                 }
             }
         }
