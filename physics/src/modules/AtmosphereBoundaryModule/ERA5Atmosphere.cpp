@@ -20,7 +20,13 @@ static const std::map<int, std::string> keyMap = {
 };
 
 ERA5Atmosphere::ERA5Atmosphere()
-    : fluxImpl(0)
+    : fluxImpl(nullptr)
+    , tair(ModelArray::Type::H, { -100, 100 })
+    , tdew(ModelArray::Type::H, { -100, 100 })
+    , pair(ModelArray::Type::H, { 500e2, 2000e2 })
+    , sw_in(ModelArray::Type::H, { -1e-6, 1e4 })
+    , lw_in(ModelArray::Type::H, { -1e-6, 1e4 })
+    , wind(ModelArray::Type::H, { 0, 100 })
 {
     getStore().registerArray(Protected::T_AIR, &tair, RO);
     getStore().registerArray(Protected::DEW_2M, &tdew, RO);
@@ -49,6 +55,15 @@ void ERA5Atmosphere::configure()
 
     fluxImpl = &Module::getImplementation<IFluxCalculation>();
     tryConfigure(fluxImpl);
+
+    addChecks({
+        { "tair", &tair },
+        { "tdew", &tdew },
+        { "pair", &pair },
+        { "sw_in", &sw_in },
+        { "lw_in", &lw_in },
+        { "wind", &wind },
+    });
 }
 
 ConfigMap ERA5Atmosphere::getConfiguration() const
@@ -77,6 +92,12 @@ void ERA5Atmosphere::update(const TimestepTime& tst)
     rain = 0; // FIXME get rain data
 
     fluxImpl->update(tst);
+
+    try {
+        checkFields();
+    } catch (const std::exception& e) {
+        throw std::runtime_error("ERA5Atmosphere:update: " + std::string(e.what()));
+    }
 }
 
 void ERA5Atmosphere::setFilePath(const std::string& filePathIn) { filePath = filePathIn; }

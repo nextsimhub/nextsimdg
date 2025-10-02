@@ -2,7 +2,7 @@ import netCDF4
 
 # Currently creates the 30 x 30 rect grid files with land-sea mask. For the
 # earlier, more rudimentary version of this script, please see the git file
-# history. 
+# history.
 
 nx = 20
 ny = 30

@@ -36,19 +36,22 @@ configure the calendar used by XIOS and take the following default values.
   start = 1970-01-01T00:00:00Z
   time_step = P0-0T01:00:00
 
-Files and fields to be read and written to files are configured via
-``XiosInput`` and ``XiosOutput`` sections, which accept the same entries. For
-example, we could set the following values, which would specify two fields
-labelled ``field_A`` and ``field_B``, which are written to file
-``my_output_file.nc`` every two (simulated) hours.
+Files and fields to be read and written to files are configured via the
+``XiosInput``, ``XiosOutput``, and ``XiosForcing`` sections, where the first two
+refer to restarts. These sections all accept the same entries for period,
+filename, and field names. For example, we could set the following values, which
+would specify two fields labelled ``field_A`` and ``field_B``, which are written
+to file ``my_output_file.nc`` every two (simulated) hours.
 
 .. code-block::
   [XiosOutput]
   period = P0-0T02:00:00
   filename = my_output_file.nc
-  fields = field_A,field_B
+  field_names = field_A,field_B
 
-Note that both the ``XiosInput`` and ``XiosOutput`` sections are optional.
+The ``field_names`` entry may contain a single field name or a comma-separated
+list. Note that all of the ``XiosInput``, ``XiosOutput``, and ``XiosForcing``
+sections are optional.
 
 Developer notes
 ^^^^^^^^^^^^^^^

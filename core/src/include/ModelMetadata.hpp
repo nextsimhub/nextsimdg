@@ -1,5 +1,16 @@
 /*!
  * @author  Tim Spain <timothy.spain@nersc.no>
+ * @author  Tom Meltzer <tdm39@cam.ac.uk>
+ * @brief Model metadata as a singleton class
+ * @details
+ *
+ * Model metadata as a singleton class
+ *
+ * This class holds the metadata pertaining to the model as a whole, as well as the MPI metadata
+ * which is used for halo exchange.
+ *
+ * The first time getInstance() is called, the class is initialized. If compiled with MPI then a
+ * partition file must be supplied.
  */
 
 #ifndef MODELMETADATA_HPP
@@ -9,7 +20,9 @@
 #include "include/ModelArray.hpp"
 #include "include/ModelState.hpp"
 #include "include/Time.hpp"
+#include <ncFile.h>
 #include <string>
+#include <vector>
 
 #ifdef USE_MPI
 #include <mpi.h>
@@ -24,19 +37,58 @@ class CommonRestartMetadata;
  * output.
  */
 class ModelMetadata {
+private:
+#ifdef USE_MPI
+    ModelMetadata(std::string partitionFile);
+#else
+    ModelMetadata();
+#endif
+    // Prevent copying
+    ModelMetadata(const ModelMetadata&) = delete;
+    //! Performs some one-time initialization for the class. Returns true.
+    static bool doOnce();
+
 public:
 #ifdef USE_MPI
-    /*!
-     * @brief Construct a ModelMedata based on file with decompostion data
-     *
-     * @param partitionFile The name of file with decompostion data
-     * @param comm MPI communicator
-     */
-    ModelMetadata(std::string partitionFile, MPI_Comm comm);
-
-    // We need to force default constructor also
-    ModelMetadata() = default;
+    inline static ModelMetadata& getInstance(std::string partitionFile = "")
+    {
+        static ModelMetadata instance = ModelMetadata(partitionFile);
+        if (instance.isInitialized) {
+            return instance;
+        } else {
+            throw std::runtime_error("ModelMetadata :: Object needs to be initialized before use.");
+        }
+    }
+#else
+    inline static ModelMetadata& getInstance()
+    {
+        static ModelMetadata instance = ModelMetadata();
+        if (instance.isInitialized) {
+            return instance;
+        } else {
+            throw std::runtime_error("ModelMetadata :: Object needs to be initialized before use.");
+        }
+    }
 #endif
+
+    // finalize ModelMetadata
+    static void finalize();
+
+    /*! Sets the model start, stop and step times directly.
+     *
+     * @param start. The model initial TimePoint.
+     * @param stop. The model final TimePoint.
+     * @param step. The model advection/thermodynamics step Duration.
+     */
+    void setTimes(const TimePoint& start, const TimePoint& stop, const Duration& step);
+
+    /*! Sets the model start, stop and step times from a run length.
+     *
+     * @param start. The model initial TimePoint.
+     * @param runLength. The model run Duration.
+     * @param step. The model advection/thermodynamics step Duration.
+     */
+    void setTimes(const TimePoint& start, const Duration& runLength, const Duration& step);
 
     /*!
      * @brief Sets the initial or current model time
@@ -44,14 +96,25 @@ public:
      * @param time TimePoint instance encoding the current time.
      */
     void setTime(const TimePoint& time);
+
     /*!
      * @brief Increments the model time metadata value.
      *
      * @param step Duration of the time increment to add.
      */
     void incrementTime(const Duration& step);
+
     //! Returns the current model time.
     inline const TimePoint& time() const { return m_time; }
+
+    //! Returns the model start time
+    inline const TimePoint& startTime() const { return start; }
+    //! Returns the model stop time
+    inline const TimePoint& stopTime() const { return stop; }
+    //! Returns the model step length
+    inline const Duration& stepLength() const { return step; }
+    //! Returns the model run length
+    inline const Duration& runLength() const { return run; }
 
     //! Returns the string description of the model grid structure.
     const std::string& structureName() const;
@@ -81,7 +144,6 @@ public:
     ModelState& affixCoordinates(ModelState& state) const;
 
 #ifdef USE_MPI
-    void setMpiMetadata(MPI_Comm comm);
     /*!
      * @brief Extracts and sets MPI partition metadata from partition file
      *
@@ -89,15 +151,72 @@ public:
      */
     void getPartitionMetadata(std::string partitionFile);
 
-    MPI_Comm mpiComm;
-    int mpiSize = 0;
-    int mpiMyRank = -1;
-    int localCornerX, localCornerY, localExtentX, localExtentY, globalExtentX, globalExtentY;
+    /*!
+     * @brief Gets the local X coordinate of the partition's lower-left corner.
+     * @return The X index of the local partition's corner.
+     */
+    int getLocalCornerX() const;
+    /*!
+     * @brief Gets the local Y coordinate of the partition's lower-left corner.
+     * @return The Y index of the local partition's corner.
+     */
+    int getLocalCornerY() const;
+    /*!
+     * @brief Gets the extent of the partition in the X direction.
+     * @return The number of grid points in X for the local partition.
+     */
+    int getLocalExtentX() const;
+    /*!
+     * @brief Gets the extent of the partition in the Y direction.
+     * @return The number of grid points in Y for the local partition.
+     */
+    int getLocalExtentY() const;
+    /*!
+     * @brief Gets the global extent of the grid in the X direction.
+     * @return The total number of grid points in X for the global domain.
+     */
+    int getGlobalExtentX() const;
+    /*!
+     * @brief Gets the global extent of the grid in the Y direction.
+     * @return The total number of grid points in Y for the global domain.
+     */
+    int getGlobalExtentY() const;
+
+    enum Edge { BOTTOM, RIGHT, TOP, LEFT, N_EDGE };
+    // An array to allow the edges to be accessed in the correct order.
+    static constexpr std::array<Edge, N_EDGE> edges = { BOTTOM, RIGHT, TOP, LEFT };
+    std::array<std::string, N_EDGE> edgeNames = { "bottom", "right", "top", "left" };
+
+    typedef std::array<std::vector<int>, N_EDGE> neighbourArray;
+    neighbourArray neighbourRanks;
+    neighbourArray neighbourExtents;
+    neighbourArray neighbourHaloSend;
+    neighbourArray neighbourHaloRecv;
+    neighbourArray neighbourRanksPeriodic;
+    neighbourArray neighbourExtentsPeriodic;
+    neighbourArray neighbourHaloSendPeriodic;
+    neighbourArray neighbourHaloRecvPeriodic;
 #endif
 
 private:
+    /*!
+     * @brief Read neighbour metadata from netCDF file
+     *
+     * @param netCDF file with partition metadata
+     */
+    void readNeighbourData(netCDF::NcFile& ncFile);
+
+#ifdef USE_MPI
+    void setMpiMetadata(MPI_Comm comm);
+#endif
+
     TimePoint m_time;
     ConfigMap m_config;
+
+    TimePoint start;
+    TimePoint stop;
+    Duration step;
+    Duration run;
 
     // position coordinates on vertices
     ModelArray m_vertexCoords;
@@ -110,8 +229,14 @@ private:
     bool isCartesian = false;
     // Are the more complex coordinates stored?
     bool hasParameters = false;
+    // has metadata been initialized
+    bool isInitialized = false;
 #ifdef USE_MPI
+    int localCornerX, localCornerY;
+    int localExtentX, localExtentY;
+    int globalExtentX, globalExtentY;
     const std::string bboxName = "bounding_boxes";
+    const std::string neighbourName = "connectivity";
 #endif
 };
 

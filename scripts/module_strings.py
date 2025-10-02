@@ -27,34 +27,34 @@ module_class_name = "module_class_name"
 def get_config_with_defaults():
     config = configparser.ConfigParser()
     config.read(module_file_str)
-    
+
     # Add in defaults, if optional data is absent
-    if not interface_prefix_str in config[module_section_str]:
+    if interface_prefix_str not in config[module_section_str]:
         config[module_section_str][interface_prefix_str] = ""
-    
-    if not description_str in config[module_section_str]:
+
+    if description_str not in config[module_section_str]:
         config[module_section_str][description_str] = ""
-    
+
     # Default to ../include for the external header file path
-    if not header_dir_path_str in config[module_section_str]:
+    if header_dir_path_str not in config[module_section_str]:
         config[module_section_str][header_dir_path_str] = "../include"
 
     # Default to include for the internal header file path
-    if not header_dir_path_str in config[module_section_str]:
+    if header_dir_path_str not in config[module_section_str]:
         config[module_section_str][header_dir_path_str] = "include"
-    
+
     return config
 
 def check_config_errors(config):
     # Error reporting if the module section is invalid
-    if not name_str in config[module_section_str]:
+    if name_str not in config[module_section_str]:
         print(f"The main '{module_section_str}' section lacks a name for the module.")
         return 1
-    
-    if not file_prefix_str in config[module_section_str]:
+
+    if file_prefix_str not in config[module_section_str]:
         print(f"The main '{module_section_str}' section lacks a file prefix for the source files for the module.")
         return 2
-    
+
     return 0
 
 def common_strings(config):

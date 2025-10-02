@@ -91,7 +91,7 @@ y_coords = np.zeros((nx + 1, ny + 1))
 for i in range(nx + 1):
     x_coords[:, i] = coord1d
     y_coords[i, :] = coord1d
-    
+
 lat = 90 - (x_coords**2 + y_coords**2)**0.5
 lon = np.rad2deg(np.arctan2(y_coords, x_coords))
 
@@ -120,19 +120,19 @@ ssh = ncFile.createVariable("ssh", "f8", timefield_dims)
 # 12 monthly values
 for t in range(12):
     time_var[t] = 946684800 + 2592000 * t # 30 day months
-    
+
     sst[t, :, :] = (-test_data - t) * mask + mdi * antimask
     sst.missing_value = mdi
-    
+
     sss[t, :, :] = (30 + test_data + t) * mask + mdi * antimask
     sss.missing_value = mdi
-    
+
     mld[t, :, :] = (test_data + 10 + t) * mask + mdi * antimask
     mld.missing_value = mdi
-    
+
     u[t, :, :] = ((test_data + t) * 0.01) * mask + mdi * antimask
     u.missing_value = mdi
-    
+
     v[t, :, :] = (200 + test_data + 100*t) * mask + mdi * antimask
     v.missing_value = mdi
 

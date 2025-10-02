@@ -13,16 +13,23 @@
 
 namespace Nextsim {
 
+static const std::string checkFieldsKey = "debug.check_fields";
+static const std::string checkFieldsFastKey = "debug.check_fields_fast";
+static const std::map<int, std::string> keyMap
+    = { { PrognosticData::CHECKFIELDS_KEY, checkFieldsKey },
+          { PrognosticData::CHECKFIELDSFAST_KEY, checkFieldsFastKey } };
+static constexpr bool checkFieldsDefault = false;
+static constexpr bool checkFieldsFastDefault = true;
+
 PrognosticData::PrognosticData()
     : m_dt(1)
-    , hice(ModelArray::AdvectionType)
-    , cice(ModelArray::AdvectionType)
-    , damage(ModelArray::AdvectionType)
-    , hsnow(ModelArray::AdvectionType)
-    , pAtmBdy(0)
-    , pOcnBdy(0)
-    , pDynamics(0)
-
+    , hice(ModelArray::AdvectionType, { 0, 50 })
+    , cice(ModelArray::AdvectionType, { 0, 1 })
+    , damage(ModelArray::AdvectionType, { 0, 1 })
+    , hsnow(ModelArray::AdvectionType, { 0, 10 })
+    , pAtmBdy(nullptr)
+    , pOcnBdy(nullptr)
+    , pDynamics(nullptr)
 {
     getStore().registerArray(Shared::DAMAGE, &damage, RW);
     getStore().registerArray(Shared::H_ICE_DG, &hice, RW);
@@ -47,6 +54,20 @@ void PrognosticData::configure()
     tryConfigure(pDynamics);
 
     tryConfigure(iceGrowth);
+
+    checkAll() = Configured::getConfiguration(keyMap.at(CHECKFIELDS_KEY), checkFieldsDefault);
+    checkFast
+        = Configured::getConfiguration(keyMap.at(CHECKFIELDSFAST_KEY), checkFieldsFastDefault);
+    if (checkAll()) {
+        for (const auto& field : getStore().getAllData()) {
+            addChecks({ { field.first, field.second } });
+        }
+    } else if (checkFast) {
+        addChecks({
+            { "thickness", &hice },
+            { "concentration", &cice },
+        });
+    }
 }
 
 // Copies an HField from a source ModelArray that is either an HField or a DGField.
@@ -106,6 +127,12 @@ void PrognosticData::update(const TimestepTime& tst)
 
     // Update the ocean after ice growth (or send fields to the coupler)
     pOcnBdy->updateAfter(tst);
+
+    try {
+        checkFields();
+    } catch (const std::exception& e) {
+        throw std::runtime_error("PrognosticData::update: " + std::string(e.what()));
+    }
 }
 
 // Gets the diagnostic data from all subcomponents
@@ -142,13 +169,28 @@ ModelState PrognosticData::getStatePrognostic() const
     return state;
 }
 
-PrognosticData::HelpMap& PrognosticData::getHelpText(HelpMap& map, bool getAll) { return map; }
+PrognosticData::HelpMap& PrognosticData::getHelpText(HelpMap& map, bool getAll)
+{
+    map["debug"] = {
+        { checkFieldsKey, ConfigType::BOOLEAN, { "true", "false" },
+            ConfigurationHelp::toString(checkFieldsDefault), "",
+            "Set to true to check if all variables in the ModelArrayReferenceStore fall within a "
+            "reasonable physical range." },
+        { checkFieldsFastKey, ConfigType::BOOLEAN, { "true", "false" },
+            ConfigurationHelp::toString(checkFieldsFastDefault), "",
+            "Set to true to check if thickness, concentration, and velocities fall within a "
+            "reasonable physical range." }
+    };
+
+    return map;
+}
 PrognosticData::HelpMap& PrognosticData::getHelpRecursive(HelpMap& map, bool getAll)
 {
     Module::getHelpRecursive<IAtmosphereBoundary>(map, getAll);
     Module::getHelpRecursive<IOceanBoundary>(map, getAll);
     Module::getHelpRecursive<IDynamics>(map, getAll);
     IceGrowth::getHelpRecursive(map, getAll);
+    getHelpText(map, getAll);
     return map;
 }
 

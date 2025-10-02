@@ -31,20 +31,9 @@ public:
     virtual ~IStructure() = default;
 
     /*!
-     * @brief Dumps the data to a file path.
-     *
-     * @param filePath The path to attempt writing the data to.
-     */
-    //    virtual void init(const std::string& filePath) = 0;
-
-    /*!
      * @brief Returns the ModelState stored in the file
      */
-#ifdef USE_MPI
-    virtual ModelState getModelState(const std::string& filePath, ModelMetadata& metadata) = 0;
-#else
     virtual ModelState getModelState(const std::string& filePath) = 0;
-#endif
 
     //! Returns the structure name that this class will process
     virtual const std::string& structureType() const { return processedStructureName; }
@@ -72,8 +61,8 @@ public:
      * @param state The ModelState data
      * @param filePath The path to attempt to write the data to.
      */
-    virtual void dumpModelState(const ModelState& state, const ModelMetadata& metadata,
-        const std::string& filePath, bool isRestart) const
+    virtual void dumpModelState(
+        const ModelState& state, const std::string& filePath, bool isRestart) const
         = 0;
 
     //! The name of the group holding the definitive structure type
