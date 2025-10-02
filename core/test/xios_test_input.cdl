@@ -78,6 +78,13 @@ variables:
 		mask:cell_methods = "time: point" ;
 		mask:coordinates = "time_instant lat lon" ;
 
+	float u(time_counter, y, x) ;
+		u:online_operation = "instant" ;
+		u:interval_operation = "5400 s" ;
+		u:interval_write = "5400 s" ;
+		u:cell_methods = "time: point" ;
+		u:coordinates = "time_instant" ;
+
 // global attributes:
 		:structure_name = "parametric_rectangular" ;
 		:name = "xios_test_input" ;
@@ -216,4 +223,14 @@ data:
   1, 1, 1, 1,
   0, 0, 0, 0,
   1, 1, 1, 1 ;
+
+ u =
+  0, 0, 0, 0,
+  0, 0, 0, 0,
+  1, 1, 1, 1,
+  1, 1, 1, 1,
+  2, 2, 2, 2,
+  2, 2, 2, 2,
+  3, 3, 3, 3,
+  3, 3, 3, 3 ;
 }

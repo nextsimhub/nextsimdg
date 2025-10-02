@@ -44,6 +44,7 @@ namespace Nextsim {
 
 static const std::string xOutputPfx = "XiosOutput";
 static const std::string xInputPfx = "XiosInput";
+static const std::string xForcingPfx = "XiosForcing";
 static const std::map<int, std::string> keyMap
     = { { Xios::ENABLED_KEY, "xios.enable" }, { Xios::STARTTIME_KEY, "model.start" },
           { Xios::STOPTIME_KEY, "model.stop" }, { Xios::TIME_STEP_KEY, "model.time_step" },
@@ -52,7 +53,10 @@ static const std::map<int, std::string> keyMap
           { Xios::OUTPUT_FIELD_NAMES_KEY, xOutputPfx + ".field_names" },
           { Xios::INPUT_RESTARTPERIOD_KEY, xInputPfx + ".period" },
           { Xios::INPUT_RESTARTFILE_KEY, xInputPfx + ".filename" },
-          { Xios::INPUT_FIELD_NAMES_KEY, xInputPfx + ".field_names" } };
+          { Xios::INPUT_FIELD_NAMES_KEY, xInputPfx + ".field_names" },
+          { Xios::FORCING_PERIOD_KEY, xForcingPfx + ".period" },
+          { Xios::FORCING_FILE_KEY, xForcingPfx + ".filename" },
+          { Xios::FORCING_FIELD_NAMES_KEY, xForcingPfx + ".field_names" } };
 
 //! Enable XIOS in the 'config'
 void enableXios()
@@ -79,14 +83,19 @@ Xios::Xios(const std::string contextid, const std::string calendartype)
     if (firstTime) {
         istringstream(Configured::getConfiguration(keyMap.at(INPUT_RESTARTFILE_KEY), std::string()))
             >> inputFilename;
-        if (inputFilename.length() > 0) {
-            inputFileId = ((std::filesystem::path)inputFilename).replace_extension();
-        }
+        inputFileId = ((std::filesystem::path)inputFilename).replace_extension();
         istringstream(
             Configured::getConfiguration(keyMap.at(OUTPUT_RESTARTFILE_KEY), std::string()))
             >> outputFilename;
-        if (outputFilename.length() > 0) {
-            outputFileId = ((std::filesystem::path)outputFilename).replace_extension();
+        outputFileId = ((std::filesystem::path)outputFilename).replace_extension();
+        istringstream(Configured::getConfiguration(keyMap.at(FORCING_FILE_KEY), std::string()))
+            >> forcingFilename;
+        forcingFileId = ((std::filesystem::path)forcingFilename).replace_extension();
+
+        // TODO: Account for separate restart and forcing files (#929)
+        if (forcingFilename.length() > 0 && inputFilename.length() > 0
+            && inputFilename != forcingFilename) {
+            throw std::runtime_error("Xios: Separate forcing and restart files not yet supported");
         }
 
         for (std::string fileId : { inputFileId, outputFileId }) {
@@ -130,7 +139,7 @@ Xios::HelpMap& Xios::getHelpText(HelpMap& map, bool getAll)
             "an ISO8601 duration (P prefix) or number of seconds. A value of zero assumes no "
             "intermediate restart files." },
         { keyMap.at(INPUT_RESTARTFILE_KEY), ConfigType::STRING, {}, "", "",
-            // TODO: Support format "restart%Y-%m-%dT%H:%M:%SZ.nc"
+            // TODO: Support format "restart%Y-%m-%dT%H:%M:%SZ.nc" (#898)
             "The file name to be used for input." },
         { keyMap.at(INPUT_FIELD_NAMES_KEY), ConfigType::STRING, {}, "", "",
             "Comma-separated list of field names to be read from the input file." },
@@ -141,10 +150,22 @@ Xios::HelpMap& Xios::getHelpText(HelpMap& map, bool getAll)
             "duration (P prefix) or number of seconds. A value of zero "
             "ensures no intermediate restart files are written." },
         { keyMap.at(OUTPUT_RESTARTFILE_KEY), ConfigType::STRING, {}, "", "",
-            // TODO: Support format "restart%Y-%m-%dT%H:%M:%SZ.nc"
+            // TODO: Support format "restart%Y-%m-%dT%H:%M:%SZ.nc" (#898)
             "The file name to be used for output." },
         { keyMap.at(OUTPUT_FIELD_NAMES_KEY), ConfigType::STRING, {}, "", "",
             "Comma-separated list of field names to be written to the output file." },
+    };
+    map["XiosForcing"] = {
+        { keyMap.at(FORCING_PERIOD_KEY), ConfigType::STRING, {}, "0", "",
+            "The period between forcing file outputs expected in a file to be "
+            "read, formatted as an ISO8601 duration (P prefix) or number of "
+            "seconds. A value of zero assumes no intermediate restart files." },
+        { keyMap.at(FORCING_FILE_KEY), ConfigType::STRING, {}, "", "",
+            // TODO: Support format "restart%Y-%m-%dT%H:%M:%SZ.nc" (#898)
+            "The file name to be used for forcings." },
+        { keyMap.at(FORCING_FIELD_NAMES_KEY), ConfigType::STRING, {}, "", "",
+            "Comma-separated list of field names to be read from the forcings "
+            "file." },
     };
 
     return map;
@@ -484,11 +505,11 @@ int Xios::getCalendarStep() { return clientCalendar->getCalendar()->getStep(); }
  *
  * @return current calendar date
  */
-std::string Xios::getCurrentDate(const bool isoFormat)
+TimePoint Xios::getCurrentDate()
 {
     cxios_date xiosDate;
     cxios_get_current_date(&xiosDate);
-    return convertXiosDatetimeToString(xiosDate, isoFormat);
+    return TimePoint(convertXiosDatetimeToString(xiosDate, true));
 }
 
 /*!
@@ -1028,35 +1049,79 @@ xios::CField* Xios::getField(const std::string fieldId)
     return field;
 }
 
-// Extract the field_names entry from the XiosInput or XiosOutput section of the config
-std::set<std::string> Xios::configGetFieldNames(const bool reading)
+// Split a string into a set by some delimiter.
+std::set<std::string> str2set(std::string asStr, const char delim = ',')
 {
-    std::string fieldsStr;
-    if (reading) {
-        istringstream(Configured::getConfiguration(keyMap.at(INPUT_FIELD_NAMES_KEY), std::string()))
-            >> fieldsStr;
-    } else {
-        istringstream(
-            Configured::getConfiguration(keyMap.at(OUTPUT_FIELD_NAMES_KEY), std::string()))
-            >> fieldsStr;
-    }
-    std::set<std::string> fieldNames;
-    if (fieldsStr.length() > 0) {
+    std::set<std::string> asSet;
+    if (asStr.length() > 0) {
         const char delim = ',';
-        std::istringstream iss(fieldsStr);
+        std::istringstream iss(asStr);
         std::string item;
         while (std::getline(iss, item, delim)) {
-            fieldNames.insert(item);
+            asSet.insert(item);
         }
     }
-    return fieldNames;
+    return asSet;
+}
+
+// Extract the field_names entry from the XiosInput section of the config.
+std::set<std::string> Xios::configGetInputRestartFieldNames()
+{
+    std::string fieldsStr;
+    istringstream(Configured::getConfiguration(keyMap.at(INPUT_FIELD_NAMES_KEY), std::string()))
+        >> fieldsStr;
+    return str2set(fieldsStr);
+}
+
+/*!
+ * Extract the field_names entry from the XiosForcing section of the config.
+ */
+std::set<std::string> Xios::configGetForcingFieldNames()
+{
+    std::string fieldsStr;
+    istringstream(Configured::getConfiguration(keyMap.at(FORCING_FIELD_NAMES_KEY), std::string()))
+        >> fieldsStr;
+    return str2set(fieldsStr);
+}
+
+// Extract the field_names entry from the XiosInput and XiosForcing sections of the config.
+std::set<std::string> Xios::configGetInputFieldNames()
+{
+    std::set<std::string> restartFieldNames = configGetInputRestartFieldNames();
+    std::set<std::string> forcingFieldNames = configGetForcingFieldNames();
+    restartFieldNames.insert(forcingFieldNames.begin(), forcingFieldNames.end());
+    return restartFieldNames;
+}
+
+// Extract the field_names entry from the XiosOutput section of the config.
+std::set<std::string> Xios::configGetOutputFieldNames()
+{
+    // TODO: Account for diagnostics (#917)
+    std::string fieldsStr;
+    istringstream(Configured::getConfiguration(keyMap.at(OUTPUT_FIELD_NAMES_KEY), std::string()))
+        >> fieldsStr;
+    return str2set(fieldsStr);
+}
+
+/*!
+ * Extract the field_names entry from the XIOS config.
+ *
+ * @param readAccess true if the fields are to be read, false if written
+ */
+std::set<std::string> Xios::configGetFieldNames(const bool readAccess)
+{
+    if (readAccess) {
+        return configGetInputFieldNames();
+    } else {
+        return configGetOutputFieldNames();
+    }
 }
 
 // Check whether a fieldId exists in a string of field names separated by commas, as determined by
 // the map key
-bool Xios::configCheckField(const std::string fieldId, const bool reading)
+bool Xios::configCheckField(const std::string fieldId, const bool readAccess)
 {
-    std::set<std::string> fieldNames = configGetFieldNames(reading);
+    std::set<std::string> fieldNames = configGetFieldNames(readAccess);
     return fieldNames.find(fieldId) != fieldNames.end();
 }
 
@@ -1300,7 +1365,9 @@ void Xios::createFile(const std::string fileId)
 
     // Determine whether the file is configured for reading or writing
     bool readAccess = ((inputFileId.length() > 0) && (inputFileId == fileId));
+    // TODO: Account for separate restart and forcing files (#929)
     bool writeAccess = ((outputFileId.length() > 0) && (outputFileId == fileId));
+    // TODO: Account for diagnostics (#917)
 
     // Check that the filename is not in both the XiosOutput and XiosInput config sections
     if (readAccess && writeAccess) {
@@ -1337,10 +1404,12 @@ void Xios::createFile(const std::string fileId)
         istringstream(
             Configured::getConfiguration(keyMap.at(INPUT_RESTARTPERIOD_KEY), std::string()))
             >> periodStr;
+        // TODO: Account for forcing period being different to restart period (#929)
     } else {
         istringstream(
             Configured::getConfiguration(keyMap.at(OUTPUT_RESTARTPERIOD_KEY), std::string()))
             >> periodStr;
+        // TODO: Account for diagnostics (#917)
     }
     if (periodStr.length() == 0 || periodStr == "0") {
         setFileOutputFreq(fileId, stopTime - startTime);
@@ -1349,7 +1418,8 @@ void Xios::createFile(const std::string fileId)
     }
 
     // Create all fields found in the config based off the field names found in the
-    // XiosInput.field_names or XiosOutput.field_names entries in the config.
+    // XiosInput.field_names, XiosOutput.field_names, or XiosForcing.field_names entries in the
+    // config.
     for (std::string fieldId : configGetFieldNames(readAccess)) {
         createField(fieldId);
         fileAddField(fileId, fieldId);

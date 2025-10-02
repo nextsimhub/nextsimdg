@@ -86,7 +86,7 @@ public:
     TimePoint getCalendarStart();
     Duration getCalendarTimestep();
     int getCalendarStep();
-    std::string getCurrentDate(const bool isoFormat = true);
+    TimePoint getCurrentDate();
 
     /* Axis */
     void createAxis(const std::string axisId);
@@ -112,6 +112,7 @@ public:
     std::string getFieldGridRef(const std::string fieldId);
     bool getFieldReadAccess(const std::string fieldId);
     Duration getFieldFreqOffset(const std::string fieldId);
+    std::set<std::string> configGetForcingFieldNames();
     ModelArray::Type getFieldType(const std::string fieldId);
     void setFieldType(const std::string fieldId, ModelArray::Type type);
 
@@ -144,6 +145,9 @@ public:
         INPUT_RESTARTPERIOD_KEY,
         INPUT_RESTARTFILE_KEY,
         INPUT_FIELD_NAMES_KEY,
+        FORCING_PERIOD_KEY,
+        FORCING_FILE_KEY,
+        FORCING_FIELD_NAMES_KEY,
     };
 
     /* Length of C-strings passed to XIOS */
@@ -199,8 +203,11 @@ private:
     xios::CFieldGroup* getFieldGroup();
     xios::CField* getField(const std::string fieldId);
     void setFieldReadAccess(const std::string fieldId, const bool readAccess);
-    std::set<std::string> configGetFieldNames(const bool reading);
-    bool configCheckField(const std::string fieldId, const bool reading);
+    std::set<std::string> configGetInputRestartFieldNames();
+    std::set<std::string> configGetInputFieldNames();
+    std::set<std::string> configGetOutputFieldNames();
+    std::set<std::string> configGetFieldNames(const bool readAccess);
+    bool configCheckField(const std::string fieldId, const bool readAccess);
     std::map<std::string, ModelArray::Type> fieldTypes;
 
     /* Grid */
@@ -220,6 +227,8 @@ private:
     std::string inputFileId;
     std::string outputFilename;
     std::string outputFileId;
+    std::string forcingFilename;
+    std::string forcingFileId;
 
     /* I/O */
     void write(const std::string fieldId, ModelArray& modelarray);
