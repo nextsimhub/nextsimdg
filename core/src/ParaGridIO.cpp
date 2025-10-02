@@ -11,6 +11,7 @@
 #include "include/Halo.hpp"
 #include "include/ModelMPI.hpp"
 #endif
+#include "include/Logged.hpp"
 #include "include/MissingData.hpp"
 #include "include/gridNames.hpp"
 
@@ -147,6 +148,8 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
 
         if (ncFile.getGroupCount()) {
             // Read in the legacy file format with groups
+            Logged::notice(
+                std::string("Reading legacy restart file with netCDF groups: ") + filePath);
             netCDF::NcGroup dataGroup = ncFile.getGroup("data");
             readDimensions<netCDF::NcGroup>(dataGroup);
             vars = dataGroup.getVars();
