@@ -65,18 +65,24 @@ void Model::configure()
 
     // Store the start/stop/step configuration directly in ModelConfig before
     // parsing these values to the numerical time values used by the model.
-    ModelConfig::startTimeStr
+    std::string startTimeStr
         = Configured::getConfiguration(keyMap.at(STARTTIME_KEY), std::string());
-    ModelConfig::stopTimeStr = Configured::getConfiguration(keyMap.at(STOPTIME_KEY), std::string());
-    ModelConfig::durationStr
+    std::string stopTimeStr = Configured::getConfiguration(keyMap.at(STOPTIME_KEY), std::string());
+    std::string runLengthStr
         = Configured::getConfiguration(keyMap.at(RUNLENGTH_KEY), std::string());
-    ModelConfig::stepStr = Configured::getConfiguration(keyMap.at(TIMESTEP_KEY), std::string());
+    std::string stepStr = Configured::getConfiguration(keyMap.at(TIMESTEP_KEY), std::string());
 
-    // Set the time correspond to the current (initial) model state
-    TimePoint timeNow = iterator.parseAndSet(ModelConfig::startTimeStr, ModelConfig::stopTimeStr,
-        ModelConfig::durationStr, ModelConfig::stepStr);
-    m_etadata.setTime(timeNow);
-
+    if (stopTimeStr.empty()) {
+        if (runLengthStr.empty()) {
+            throw std::invalid_argument(std::string("At least one of ") + keyMap.at(STOPTIME_KEY) +
+                    " or " + keyMap.at(RUNLENGTH_KEY) + " must be set");
+        } else {
+            m_etadata.setTimes(startTimeStr, Duration(runLengthStr), stepStr);
+        }
+    } else {
+        m_etadata.setTimes(startTimeStr, TimePoint(stopTimeStr), stepStr);
+    }
+    iterator.setStartStopStep(m_etadata.startTime(), m_etadata.stopTime(), m_etadata.stepLength());
     // Configure the missing data value
     MissingData::setValue(
         Configured::getConfiguration(keyMap.at(MISSINGVALUE_KEY), MissingData::defaultValue));

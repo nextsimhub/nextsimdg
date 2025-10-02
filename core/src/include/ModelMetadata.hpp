@@ -38,6 +38,22 @@ public:
     ModelMetadata() = default;
 #endif
 
+    /*! Sets the model start, stop and step times directly.
+     *
+     * @param start. The model initial TimePoint.
+     * @param stop. The model final TimePoint.
+     * @param step. The model advection/thermodynamics step Duration.
+     */
+    void setTimes(const TimePoint& start, const TimePoint& stop, const Duration& step);
+
+    /*! Sets the model start, stop and step times from a run length.
+     *
+     * @param start. The model initial TimePoint.
+     * @param runLength. The model run Duration.
+     * @param step. The model advection/thermodynamics step Duration.
+     */
+    void setTimes(const TimePoint& start, const Duration& runLength, const Duration& step);
+
     /*!
      * @brief Sets the initial or current model time
      *
@@ -52,6 +68,15 @@ public:
     void incrementTime(const Duration& step);
     //! Returns the current model time.
     inline const TimePoint& time() const { return m_time; }
+
+    //! Returns the model start time
+    inline const TimePoint& startTime() const { return start; }
+    //! Returns the model stop time
+    inline const TimePoint& stopTime() const { return stop; }
+    //! Returns the model step length
+    inline const Duration& stepLength() const { return step; }
+    //! Returns the model run length
+    inline const Duration& runLength() const { return run; }
 
     //! Returns the string description of the model grid structure.
     const std::string& structureName() const;
@@ -98,6 +123,11 @@ public:
 private:
     TimePoint m_time;
     ConfigMap m_config;
+
+    TimePoint start;
+    TimePoint stop;
+    Duration step;
+    Duration run;
 
     // position coordinates on vertices
     ModelArray m_vertexCoords;
