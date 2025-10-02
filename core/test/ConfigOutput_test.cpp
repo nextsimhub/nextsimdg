@@ -133,6 +133,7 @@ TEST_CASE("Test periodic output")
     tryConfigure(ido);
 
 #ifdef USE_MPI
+    // offset indices by 1 (haloWidth) so only the "inner" data is initialized
     for (size_t j = 0; j < localNY - 2 * Halo::haloWidth; ++j) {
         for (size_t i = 0; i < localNX - 2 * Halo::haloWidth; ++i) {
             hice(i + 1, j + 1) = 0 + 0.01 * (j * nx + (i + offsetX));

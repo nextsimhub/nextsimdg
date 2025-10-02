@@ -1,5 +1,10 @@
 /*!
  * @author  Tom Meltzer <tdm39@cam.ac.uk>
+ * @brief   Test ModelMetadata class for Closed Boundaries (CB)
+ * @details
+ *
+ * Test ModelMetadata class for Closed Boundaries (CB). Check that it correctly reads the
+ * partition metadata from a netCDF file and populates the relevant member variables.
  */
 
 #include <doctest/extensions/doctest_mpi.h>

@@ -36,8 +36,6 @@ namespace Nextsim {
 
 /*!
  * @brief A class to facilitate halo exchange between MPI ranks
- *
- * @details
  */
 class Halo {
 public:
@@ -105,7 +103,7 @@ public:
         // number of halo cells (should be general for any halo width)
         m_numHaloCells = 2 * haloWidth * (m_innerNx + m_innerNy + 2 * haloWidth);
 
-        // need send / recv buffers for each componenet (e.g., each DGCOMP)
+        // need send / recv buffers for each component (e.g., each DGCOMP)
         send.resize(m_numComps);
         recv.resize(m_numComps);
         for (size_t i = 0; i < m_numComps; i++) {
@@ -204,7 +202,7 @@ private:
     /*!
      * @brief Open memory window to exchange send buffer between MPI ranks.
      *
-     * @ details this is not intended to be used manually. It should only be called as part of the
+     * @details this is not intended to be used manually. It should only be called as part of the
      * update method.
      */
     void openMemoryWindow(size_t idx)
@@ -220,7 +218,7 @@ private:
     /*!
      * @brief Initialise memory window to exchange send buffer between MPI ranks.
      *
-     * @ details this is not intended to be used manually. It should only be called as part of the
+     * @details this is not intended to be used manually. It should only be called as part of the
      * update method.
      */
     void closeMemoryWindow()

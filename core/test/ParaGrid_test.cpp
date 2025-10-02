@@ -162,7 +162,7 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file")
         *arr = 0.;
     }
 
-    // populate model arrays with dummy data
+    // populate model arrays with example data
     initializeTestData(fractional, fractionalDG, mask, coordinates, x, y);
 
     DGField hice = fractionalDG + 10;
@@ -323,7 +323,7 @@ TEST_CASE("Write a diagnostic ParaGrid file")
         *arr = 0.;
     }
 
-    // populate model arrays with dummy data
+    // populate model arrays with example data
     initializeTestData(fractional, fractionalDG, mask, coordinates, x, y);
 
     REQUIRE(fractional.nDimensions() == 2);
