@@ -88,7 +88,9 @@ void OASISCoupledOcean::updateBefore(const TimestepTime& tst)
     }
 
     cpml = Water::rhoOcean * Water::cp * mld;
-    rotateVectorToGreenland(uOnGrid, vOnGrid, u, v);
+    HField uOnAGrid, vOnAGrid;
+    interpCURtoA(uOnCGrid, vOnCGrid, uOnAGrid, vOnAGrid);
+    rotateVectorToGreenland(uOnAGrid, vOnAGrid, u, v);
 
     overElements(
         std::bind(&OASISCoupledOcean::updateTf, this, std::placeholders::_1, std::placeholders::_2),
@@ -106,9 +108,10 @@ void OASISCoupledOcean::updateAfter(const TimestepTime& tst)
 #ifdef USE_OASIS
     mergeFluxes(tst);
 
-    HField tauXOnGrid;
-    HField tauYOnGrid;
-    rotateVectorFromGreenland(tauX, tauY, tauXOnGrid, tauYOnGrid);
+    UField tauXOnCGrid, tauXRotated;
+    VField tauYOnCGrid, tauYRotated;
+    rotateVectorFromGreenland(tauX, tauY, tauXRotated, tauYRotated);
+    interpAtoCUR(tauXRotated, tauYRotated, tauXOnCGrid, tauYOnCGrid);
 
     int kinfo;
     const int dimension0 = ModelArray::dimensions(ModelArray::Type::H)[0];
