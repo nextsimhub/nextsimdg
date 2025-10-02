@@ -41,11 +41,11 @@ MPI_TEST_CASE("TestXiosFile", 2)
     config << "[XiosInput]" << std::endl;
     config << "period = P0-0T03:00:00" << std::endl;
     config << "filename = xios_test_input.nc" << std::endl;
-    config << "field_names = field_1D" << std::endl;
+    config << "field_names = mask" << std::endl;
     config << "[XiosOutput]" << std::endl;
     config << "period = P0-0T03:00:00" << std::endl;
     config << "filename = xios_test_output.nc" << std::endl;
-    config << "field_names = field_2D" << std::endl;
+    config << "field_names = hice" << std::endl;
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
 
@@ -63,21 +63,10 @@ MPI_TEST_CASE("TestXiosFile", 2)
     REQUIRE(xiosHandler.isInitialized());
     REQUIRE(xiosHandler.getClientMPISize() == 2);
 
-    // Create a vertical axis, too
-    xiosHandler.createAxis("z_axis");
-    xiosHandler.setAxisValues("z_axis", { 0.0, 1.0 });
-
-    // Create a 1D grid
-    // NOTE: The 2D grid is created automatically along with the xy_domain
-    xiosHandler.createGrid("grid_1D");
-    xiosHandler.gridAddAxis("grid_1D", "z_axis");
-
     // Associate fields with grids
     // NOTE: fields are automatically created along with files
-    xiosHandler.setFieldOperation("field_1D", "instant");
-    xiosHandler.setFieldGridRef("field_1D", "grid_1D");
-    xiosHandler.setFieldOperation("field_2D", "instant");
-    xiosHandler.setFieldGridRef("field_2D", "grid_2D");
+    xiosHandler.setFieldType("mask", ModelArray::Type::H);
+    xiosHandler.setFieldType("hice", ModelArray::Type::DG);
 
     // --- Tests for file API
     const std::string inFileId = "xios_test_input";
@@ -112,12 +101,12 @@ MPI_TEST_CASE("TestXiosFile", 2)
     // File add field
     // NOTE: fileAddField is triggered by a call to createFile, which parses the config to create
     // all the corresponding fields and then associated them with the file
-    std::vector<std::string> field_1DIds = xiosHandler.fileGetFieldIds(inFileId);
-    REQUIRE(field_1DIds.size() == 1);
-    REQUIRE(field_1DIds[0] == "field_1D");
-    std::vector<std::string> field_2DIds = xiosHandler.fileGetFieldIds(outFileId);
-    REQUIRE(field_2DIds.size() == 1);
-    REQUIRE(field_2DIds[0] == "field_2D");
+    std::vector<std::string> inputIds = xiosHandler.fileGetFieldIds(inFileId);
+    REQUIRE(inputIds.size() == 1);
+    REQUIRE(inputIds[0] == "mask");
+    std::vector<std::string> outputIds = xiosHandler.fileGetFieldIds(outFileId);
+    REQUIRE(outputIds.size() == 1);
+    REQUIRE(outputIds[0] == "hice");
 
     // Create a new file for each time unit to check more thoroughly that XIOS interprets output
     // frequency and split frequency correctly.
