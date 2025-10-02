@@ -78,7 +78,6 @@ public:
     void setCalendarType(const std::string type);
     void setCalendarOrigin(const TimePoint origin);
     void setCalendarStart(const TimePoint start);
-    void setCalendarTimestep(const Duration timestep);
     void setCalendarStep(const int stepNumber);
     void incrementCalendar();
     std::string getCalendarType();
@@ -162,9 +161,6 @@ private:
 
     /* Calendar, date and duration */
     std::string calendarType;
-    Duration timestep;
-    TimePoint startTime;
-    TimePoint stopTime;
     xios::CCalendarWrapper* clientCalendar;
     std::string convertXiosDatetimeToString(const cxios_date datetime, const bool isoFormat = true);
     cxios_date convertStringToXiosDatetime(const std::string datetime, const bool isoFormat = true);

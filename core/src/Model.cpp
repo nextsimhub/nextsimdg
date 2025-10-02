@@ -52,6 +52,8 @@ Model::~Model() { }
 
 void Model::configureTime()
 {
+    ModelMetadata& metadata = ModelMetadata::getInstance();
+
     // Start/stop times. Run length will override stop time, if present.
     std::string startTimeStr
         = Configured::getConfiguration(keyMap.at(STARTTIME_KEY), std::string());
@@ -65,12 +67,12 @@ void Model::configureTime()
             throw std::invalid_argument(std::string("At least one of ") + keyMap.at(STOPTIME_KEY)
                 + " or " + keyMap.at(RUNLENGTH_KEY) + " must be set");
         } else {
-            m_etadata.setTimes(startTimeStr, TimePoint(stopTimeStr), stepStr);
+            metadata.setTimes(startTimeStr, TimePoint(stopTimeStr), stepStr);
         }
     } else {
-        m_etadata.setTimes(startTimeStr, Duration(runLengthStr), stepStr);
+        metadata.setTimes(startTimeStr, Duration(runLengthStr), stepStr);
     }
-    iterator.setStartStopStep(m_etadata.startTime(), m_etadata.stopTime(), m_etadata.stepLength());
+    iterator.setStartStopStep(metadata.startTime(), metadata.stopTime(), metadata.stepLength());
 }
 
 void Model::configure()

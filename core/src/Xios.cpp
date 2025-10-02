@@ -196,12 +196,6 @@ void Xios::configure()
     istringstream(Configured::getConfiguration(keyMap.at(ENABLED_KEY), std::string()))
         >> std::boolalpha >> isEnabled;
 
-    // Extract the time information from the model configuration
-    ModelMetadata& metadata = ModelMetadata::getInstance();
-    startTime = metadata.start;
-    timestep = metadata.step;
-    stopTime = metadata.stop;
-
     if (isEnabled) {
         configureServer();
     }
@@ -226,7 +220,9 @@ void Xios::configureServer()
     // Initialize calendar wrapper for 'nextSIM-DG' context
     cxios_get_current_calendar_wrapper(&clientCalendar);
     cxios_set_calendar_wrapper_type(clientCalendar, calendarType.c_str(), calendarType.length());
-    cxios_set_calendar_wrapper_timestep(clientCalendar, convertDurationToXios(timestep));
+    ModelMetadata& metadata = ModelMetadata::getInstance();
+    cxios_set_calendar_wrapper_timestep(
+        clientCalendar, convertDurationToXios(metadata.stepLength()));
     cxios_create_calendar(clientCalendar);
     cxios_update_calendar_timestep(clientCalendar);
 
@@ -234,7 +230,7 @@ void Xios::configureServer()
     setCalendarOrigin(TimePoint("1970-01-01T00:00:00Z")); // Unix epoch
 
     // Set start time from configuration file
-    setCalendarStart(TimePoint(startTime));
+    setCalendarStart(metadata.startTime());
 }
 
 /*!
@@ -362,17 +358,6 @@ void Xios::setCalendarStart(const TimePoint start)
 {
     cxios_date datetime = convertStringToXiosDatetime(start.format(), true);
     cxios_set_calendar_wrapper_date_start_date(clientCalendar, datetime);
-}
-
-/*!
- * Set calendar timestep
- *
- * @param timestep
- */
-void Xios::setCalendarTimestep(const Duration timestep)
-{
-    cxios_set_calendar_wrapper_timestep(clientCalendar, convertDurationToXios(timestep));
-    cxios_update_calendar_timestep(clientCalendar);
 }
 
 /*!
@@ -1216,7 +1201,8 @@ void Xios::createFile(const std::string fileId)
             >> periodStr;
     }
     if (periodStr.length() == 0 || periodStr == "0") {
-        setFileOutputFreq(fileId, stopTime - startTime);
+        ModelMetadata& metadata = ModelMetadata::getInstance();
+        setFileOutputFreq(fileId, metadata.stopTime() - metadata.startTime());
     } else {
         setFileOutputFreq(fileId, Duration(periodStr));
     }
