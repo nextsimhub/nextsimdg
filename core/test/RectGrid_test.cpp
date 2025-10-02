@@ -24,7 +24,7 @@ const std::string test_files_dir = TEST_FILES_DIR;
 const std::string filename = test_files_dir + "/RectGrid_test.nc";
 #ifdef USE_MPI
 const std::string filename_parallel = test_files_dir + "/RectGrid_test_parallel.nc";
-const std::string partition_filename = test_files_dir + "/partition_metadata_3.nc";
+const std::string partition_filename = test_files_dir + "/rectgrid_test_partition_metadata_3.nc";
 #endif
 const std::string date_string = "2000-01-01T00:00:00Z";
 

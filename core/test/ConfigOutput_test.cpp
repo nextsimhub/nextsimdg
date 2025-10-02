@@ -36,7 +36,7 @@
 
 const std::string test_files_dir = TEST_FILES_DIR;
 #ifdef USE_MPI
-const std::string partition_filename = test_files_dir + "/partition_metadata_2.nc";
+const std::string partition_filename = test_files_dir + "/paragrid_test_partition_metadata_2.nc";
 #endif
 
 namespace Nextsim {
