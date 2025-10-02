@@ -139,7 +139,7 @@ const std::string ERA5Atmosphere::era5FromNSName(const std::string& nsName)
     return era5FromNS.at(nsName);
 }
 
-const ModelArray ERA5Atmosphere::getData(const std::string& nsName, const TimePoint& time)
+const ModelArray ERA5Atmosphere::getData(const std::string& nsName, const TimePoint& time) const
 {
     if (nsName == "wind_speed") {
         era5Buffer u, v;
