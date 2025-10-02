@@ -47,19 +47,47 @@ if(ENABLE_MPI)
         endforeach()
     endfunction()
 
+    # Generate mask files needed for MPI test from respective cdl files
+    add_custom_command(
+        OUTPUT rectgrid_test_mask.nc
+        COMMAND
+            ncgen -b -o rectgrid_test_mask.nc ${CMAKE_CURRENT_SOURCE_DIR}/rectgrid_test_mask.cdl
+        DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/rectgrid_test_mask.cdl
+    )
+    add_custom_command(
+        OUTPUT paragrid_test_mask.nc
+        COMMAND
+            ncgen -b -o paragrid_test_mask.nc ${CMAKE_CURRENT_SOURCE_DIR}/paragrid_test_mask.cdl
+        DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/paragrid_test_mask.cdl
+    )
+    add_custom_target(
+        generate_masks
+        ALL
+        DEPENDS rectgrid_test_mask.nc paragrid_test_mask.nc
+    )
+
+    # Generate partition files using domain_decomp
+    add_custom_command(
+        OUTPUT rectgrid_test_partition_metadata_3.nc
+        COMMAND
+            ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} 3 decomp -m mask -o xy
+                -g rectgrid_test_mask.nc --output-prefix rectgrid_test
+        DEPENDS rectgrid_test_mask.nc
+    )
+    add_custom_command(
+        OUTPUT paragrid_test_partition_metadata_2.nc
+        COMMAND
+            ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} 2 decomp -m mask -o xy
+                -g paragrid_test_mask.nc --output-prefix paragrid_test
+        DEPENDS paragrid_test_mask.nc
+    )
+    add_custom_target(
+        generate_partition_files
+        ALL
+        DEPENDS rectgrid_test_partition_metadata_3.nc paragrid_test_partition_metadata_2.nc
+    )
+
     # Generate partition files needed for MPI test from respective cdl files
-    add_custom_command(
-        OUTPUT partition_metadata_3.nc
-        COMMAND
-        ncgen -b -o partition_metadata_3.nc ${CMAKE_CURRENT_SOURCE_DIR}/partition_metadata_3.cdl
-        DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/partition_metadata_3.cdl
-    )
-    add_custom_command(
-        OUTPUT partition_metadata_2.nc
-        COMMAND
-        ncgen -b -o partition_metadata_2.nc ${CMAKE_CURRENT_SOURCE_DIR}/partition_metadata_2.cdl
-        DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/partition_metadata_2.cdl
-    )
     add_custom_command(
         OUTPUT partition_metadata_3_cb.nc partition_metadata_3_pb.nc
         COMMAND
@@ -73,11 +101,9 @@ if(ENABLE_MPI)
         ${CMAKE_CURRENT_SOURCE_DIR}/partition_metadata_3_pb.cdl
     )
     add_custom_target(
-        generate_partition_files
+        generate_partition_files_b
         ALL
         DEPENDS
-        partition_metadata_3.nc
-        partition_metadata_2.nc
         partition_metadata_3_cb.nc
         partition_metadata_3_pb.nc
     )
@@ -105,13 +131,19 @@ if(ENABLE_MPI)
         )
         add_custom_target(generate_xios_input_file ALL DEPENDS xios_test_input.nc)
         add_custom_command(
+            OUTPUT xios_test_mask.nc
+            COMMAND ncgen -b -o xios_test_mask.nc ${CMAKE_CURRENT_SOURCE_DIR}/xios_test_mask.cdl
+            DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/xios_test_mask.cdl
+        )
+        add_custom_target(generate_xios_masks ALL DEPENDS xios_test_mask.nc)
+        add_custom_command(
             OUTPUT xios_test_partition_metadata_2.nc
             COMMAND
-                ncgen -b -o xios_test_partition_metadata_2.nc
-                ${CMAKE_CURRENT_SOURCE_DIR}/xios_test_partition_metadata_2.cdl
-            DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/xios_test_partition_metadata_2.cdl
+                ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} 2 decomp -m mask -o xy
+                    -g xios_test_mask.nc --output-prefix xios_test
+            DEPENDS xios_test_mask.nc
         )
-        add_custom_target(generate_xios_partition_metadata_2 ALL
+        add_custom_target(generate_xios_partition_metadata ALL
             DEPENDS xios_test_partition_metadata_2.nc
         )
 
