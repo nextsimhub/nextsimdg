@@ -26,6 +26,7 @@ public:
              // environment and configuration to the model
     ~Model(); // Finalize the model. Collect data and so on.
 
+    void configureTime();
     void configure() override;
 
     enum {
