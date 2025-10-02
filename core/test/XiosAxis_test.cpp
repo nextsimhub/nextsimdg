@@ -12,6 +12,7 @@
 #include "StructureModule/include/ParametricGrid.hpp"
 #include "include/Finalizer.hpp"
 #include "include/Model.hpp"
+#include "include/ModelMPI.hpp"
 #include "include/Xios.hpp"
 
 namespace Nextsim {
@@ -36,6 +37,10 @@ MPI_TEST_CASE("TestXiosAxis", 3)
     config << "time_step = P0-0T01:00:00" << std::endl;
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
+
+    // Create ModelMetadata instance based off a partition metadata file
+    auto& modelMPI = ModelMPI::getInstance(test_comm);
+    auto& metadata = ModelMetadata::getInstance("xios_test_partition_metadata_3.nc");
 
     // Create a Model and configure it so that time options are parsed
     Model model;

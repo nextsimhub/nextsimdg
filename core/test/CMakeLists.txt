@@ -137,14 +137,31 @@ if(ENABLE_MPI)
         )
         add_custom_target(generate_xios_masks ALL DEPENDS xios_test_mask.nc)
         add_custom_command(
+            OUTPUT xios_test_partition_metadata_1.nc
+            COMMAND
+                ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} 1 decomp -m mask -o xy
+                    -g xios_test_mask.nc --output-prefix xios_test
+            DEPENDS xios_test_mask.nc
+        )
+        add_custom_command(
             OUTPUT xios_test_partition_metadata_2.nc
             COMMAND
                 ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} 2 decomp -m mask -o xy
                     -g xios_test_mask.nc --output-prefix xios_test
             DEPENDS xios_test_mask.nc
         )
+        add_custom_command(
+            OUTPUT xios_test_partition_metadata_3.nc
+            COMMAND
+                ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} 3 decomp -m mask -o xy
+                    -g xios_test_mask.nc --output-prefix xios_test
+            DEPENDS xios_test_mask.nc
+        )
         add_custom_target(generate_xios_partition_metadata ALL
-            DEPENDS xios_test_partition_metadata_2.nc
+            DEPENDS
+                xios_test_partition_metadata_1.nc
+                xios_test_partition_metadata_2.nc
+                xios_test_partition_metadata_3.nc
         )
 
         add_executable(testXiosCalendar_MPI1 "XiosCalendar_test.cpp" "MainMPI.cpp")
