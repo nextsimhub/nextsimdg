@@ -4,9 +4,7 @@
  * @author  Adeleke Bankole <ab3191@cam.ac.uk>
  * @brief   XIOS interface header
  * @details
- *
  * Header file for XIOS interface
- *
  */
 #ifndef SRC_INCLUDE_XIOS_HPP
 #define SRC_INCLUDE_XIOS_HPP
@@ -17,7 +15,6 @@
 #include "include/Configured.hpp"
 #include "include/Logged.hpp"
 #include "include/ModelArray.hpp"
-#include "include/ModelConfig.hpp"
 #include "include/Time.hpp"
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/format.hpp>
@@ -28,7 +25,6 @@
 namespace Nextsim {
 
 // Forward declarations to avoid circular dependencies
-class ModelMetadata;
 class ParaGridIO;
 
 void enableXios();
@@ -100,7 +96,7 @@ public:
     std::vector<double> getAxisValues(const std::string axisId);
 
     /* Domain */
-    void affixModelMetadata(ModelMetadata& metadata);
+    void affixModelMetadata();
 
     /* Grid */
     void createGrid(const std::string gridId);
@@ -117,6 +113,8 @@ public:
     bool getFieldReadAccess(const std::string fieldId);
     Duration getFieldFreqOffset(const std::string fieldId);
     std::set<std::string> configGetForcingFieldNames();
+    ModelArray::Type getFieldType(const std::string fieldId);
+    void setFieldType(const std::string fieldId, ModelArray::Type type);
 
     /* File */
     void createFile(const std::string fileId);
@@ -181,13 +179,25 @@ private:
     cxios_duration convertDurationToXios(const Duration duration);
 
     /* Axis */
+    std::map<ModelArray::Type, std::string> axisIds = {
+        { ModelArray::Type::VERTEX, "VertexAxis" },
+        { ModelArray::Type::DG, "DGAxis" },
+    };
+    std::map<std::string, std::string> axisNames = {
+        { "VertexAxis", "ncoords" },
+        { "DGAxis", "dg_comp" },
+    };
     xios::CAxisGroup* getAxisGroup();
     xios::CAxis* getAxis(const std::string axisId);
 
     /* Domain */
-    const std::string domainId = "xy_domain";
+    std::map<ModelArray::Type, std::string> domainIds = {
+        { ModelArray::Type::H, "HDomain" },
+        { ModelArray::Type::VERTEX, "VertexDomain" },
+        { ModelArray::Type::DG, "HDomain" },
+    };
     xios::CDomainGroup* getDomainGroup();
-    xios::CDomain* getDomain();
+    xios::CDomain* getDomain(std::string domainId);
 
     /* Field */
     xios::CFieldGroup* getFieldGroup();
@@ -198,10 +208,16 @@ private:
     std::set<std::string> configGetOutputFieldNames();
     std::set<std::string> configGetFieldNames(const bool readAccess);
     bool configCheckField(const std::string fieldId, const bool readAccess);
+    std::map<std::string, ModelArray::Type> fieldTypes;
 
     /* Grid */
     xios::CGridGroup* getGridGroup();
     xios::CGrid* getGrid(const std::string gridId);
+    std::map<ModelArray::Type, std::string> gridIds = {
+        { ModelArray::Type::H, "HGrid" },
+        { ModelArray::Type::VERTEX, "VertexGrid" },
+        { ModelArray::Type::DG, "DGGrid" },
+    };
 
     /* File */
     xios::CFileGroup* getFileGroup();

@@ -22,7 +22,6 @@ public:
     void writeRestartFile(const std::string& filePath) override {};
 
     void setData(PrognosticData& pDat) override { pData = &pDat; }
-    void setMetadata(ModelMetadata& metadata) override { mData = &metadata; }
 
     /*!
      * Sets the period with which restart files are created.
@@ -41,7 +40,6 @@ public:
 
 private:
     PrognosticData* pData;
-    ModelMetadata* mData;
     Duration m_restartPeriod;
     TimePoint lastOutput; // The time a restart file was last output
     std::string m_restartFileName;

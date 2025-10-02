@@ -6,10 +6,8 @@
  * This interface is based on an earlier version provided by Laurent as part of
  * the https://github.com/nextsimhub/xios_cpp_toy repo. This C interface is
  * designed to connect with the underlying Fortran interface of XIOS 2.
- *
  * This can be expanded as we add more XIOS functionality to the nextSIM-DG XIOS
  * C++ interface `Xios.cpp`.
- *
  */
 #ifndef XIOS_C_INTERFACE
 #define XIOS_C_INTERFACE
@@ -79,10 +77,13 @@ void cxios_axis_handle_create(xios::CAxis** _ret, const char* _id, int _id_len);
 void cxios_axis_valid_id(bool* _ret, const char* _id, int _id_len);
 void cxios_set_axis_n_glo(xios::CAxis* axis_hdl, int n_glo);
 void cxios_set_axis_value(xios::CAxis* axis_hdl, double* value, int* extent);
+void cxios_set_axis_dim_name(xios::CAxis* axis_hdl, const char* dim_name, int dim_name_size);
+void cxios_set_axis_dim_name(xios::CAxis* axis_hdl, const char* dim_name, int dim_name_size);
 void cxios_get_axis_n_glo(xios::CAxis* axis_hdl, int* n_glo);
 void cxios_get_axis_value(xios::CAxis* axis_hdl, double* value, int* extent);
 bool cxios_is_defined_axis_n_glo(xios::CAxis* axis_hdl);
 bool cxios_is_defined_axis_value(xios::CAxis* axis_hdl);
+bool cxios_is_defined_axis_dim_name(xios::CAxis* axis_hdl);
 
 // domain group methods
 void cxios_domaingroup_handle_create(xios::CDomainGroup** _ret, const char* _id, int _id_len);
@@ -93,19 +94,27 @@ void cxios_xml_tree_add_domain(
 void cxios_domain_handle_create(xios::CDomain** _ret, const char* _id, int _id_len);
 void cxios_domain_valid_id(bool* _ret, const char* _id, int _id_len);
 void cxios_set_domain_type(xios::CDomain* domain_hdl, const char* type, int type_size);
+void cxios_set_domain_dim_i_name(xios::CDomain* domain_hdl, const char* iname, int iname_size);
+void cxios_set_domain_dim_j_name(xios::CDomain* domain_hdl, const char* jname, int jname_size);
+void cxios_set_domain_lat_name(xios::CDomain* domain_hdl, const char* latname, int latname_size);
+void cxios_set_domain_lon_name(xios::CDomain* domain_hdl, const char* lonname, int lonname_size);
 void cxios_set_domain_ni_glo(xios::CDomain* domain_hdl, int ni_glo);
 void cxios_set_domain_nj_glo(xios::CDomain* domain_hdl, int nj_glo);
 void cxios_set_domain_ni(xios::CDomain* domain_hdl, int ni);
 void cxios_set_domain_nj(xios::CDomain* domain_hdl, int nj);
 void cxios_set_domain_ibegin(xios::CDomain* domain_hdl, int ibegin);
 void cxios_set_domain_jbegin(xios::CDomain* domain_hdl, int jbegin);
-bool cxios_is_defined_domain_type(xios::CDomain* axis_hdl);
-bool cxios_is_defined_domain_ni_glo(xios::CDomain* axis_hdl);
-bool cxios_is_defined_domain_nj_glo(xios::CDomain* axis_hdl);
-bool cxios_is_defined_domain_ni(xios::CDomain* axis_hdl);
-bool cxios_is_defined_domain_nj(xios::CDomain* axis_hdl);
-bool cxios_is_defined_domain_ibegin(xios::CDomain* axis_hdl);
-bool cxios_is_defined_domain_jbegin(xios::CDomain* axis_hdl);
+bool cxios_is_defined_domain_type(xios::CDomain* domain_hdl);
+bool cxios_is_defined_domain_dim_i_name(xios::CDomain* domain_hdl);
+bool cxios_is_defined_domain_dim_j_name(xios::CDomain* domain_hdl);
+bool cxios_is_defined_domain_lat_name(xios::CDomain* domain_hdl);
+bool cxios_is_defined_domain_lon_name(xios::CDomain* domain_hdl);
+bool cxios_is_defined_domain_ni_glo(xios::CDomain* domain_hdl);
+bool cxios_is_defined_domain_nj_glo(xios::CDomain* domain_hdl);
+bool cxios_is_defined_domain_ni(xios::CDomain* domain_hdl);
+bool cxios_is_defined_domain_nj(xios::CDomain* domain_hdl);
+bool cxios_is_defined_domain_ibegin(xios::CDomain* domain_hdl);
+bool cxios_is_defined_domain_jbegin(xios::CDomain* domain_hdl);
 
 // grid group methods
 void cxios_gridgroup_handle_create(xios::CGridGroup** _ret, const char* _id, int _id_len);
@@ -135,7 +144,6 @@ void cxios_set_field_operation(xios::CField* _ret, const char* operation, int op
 void cxios_set_field_grid_ref(xios::CField* _ret, const char* grid_ref, int grid_ref_size);
 void cxios_set_field_read_access(xios::CField* _ret, bool read_access);
 void cxios_set_field_freq_offset(xios::CField* _ret, cxios_duration freq_offset);
-void cxios_get_field_operation(xios::CField* _ret, char* operation, int operation_size);
 void cxios_get_field_grid_ref(xios::CField* _ret, char* grid_ref, int grid_ref_size);
 void cxios_get_field_read_access(xios::CField* _ret, bool* read_access);
 void cxios_get_field_freq_offset(xios::CField* _ret, cxios_duration* freq_offset);
@@ -176,8 +184,12 @@ void cxios_xml_tree_add_fieldtofile(
 // I/O methods
 void cxios_write_data_k82(const char* fieldid, int fieldid_size, const double* data_k8,
     int data_size1, int data_size2, int tileid);
+void cxios_write_data_k83(const char* fieldid, int fieldid_size, const double* data_k8,
+    int data_size1, int data_size2, int data_size3, int tileid);
 void cxios_read_data_k82(
     const char* fieldid, int fieldid_size, const double* data_k8, int data_size1, int data_size2);
+void cxios_read_data_k83(const char* fieldid, int fieldid_size, const double* data_k8,
+    int data_size1, int data_size2, int data_size3);
 };
 
 #endif

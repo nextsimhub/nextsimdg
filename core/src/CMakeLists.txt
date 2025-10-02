@@ -13,8 +13,8 @@ else()
 endif()
 
 set(BaseSources
+    "ModelMPI.cpp"
     "Logged.cpp"
-    "ModelConfig.cpp"
     "Model.cpp"
     "Iterator.cpp"
     "Configurator.cpp"

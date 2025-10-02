@@ -24,6 +24,10 @@ __pycache__/
 *.sif
 *.smesh
 .*sw?
+/run/*.cdl
+.cache/
+.clangd
+compile_commands.json
 *.vtk
 
 # Specific files

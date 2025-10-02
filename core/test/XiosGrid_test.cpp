@@ -5,12 +5,12 @@
  * @details
  * This test is designed to test grid functionality of the C++ interface
  * for XIOS.
- *
  */
 #include <doctest/extensions/doctest_mpi.h>
 #undef INFO
 
 #include "include/Finalizer.hpp"
+#include "include/ModelMPI.hpp"
 #include "include/ModelMetadata.hpp"
 #include "include/Xios.hpp"
 
@@ -30,22 +30,23 @@ MPI_TEST_CASE("TestXiosGrid", 2)
     enableXios();
 
     // Create ModelMetadata instance based off a partition metadata file
-    ModelMetadata metadata("xios_test_partition_metadata_2.nc", test_comm);
+    auto& modelMPI = ModelMPI::getInstance(test_comm);
+    auto& metadata = ModelMetadata::getInstance("xios_test_partition_metadata_2.nc");
 
     // Get the Xios singleton instance and check it's initialized
     Xios& xiosHandler = Xios::getInstance();
-    xiosHandler.affixModelMetadata(metadata);
+    xiosHandler.affixModelMetadata();
     REQUIRE(xiosHandler.isInitialized());
     REQUIRE(xiosHandler.getClientMPISize() == 2);
 
-    const std::string gridId = "grid_2D";
-    REQUIRE_THROWS_WITH(xiosHandler.createGrid(gridId), "Xios: Grid 'grid_2D' already exists");
+    const std::string gridId = "HGrid";
+    REQUIRE_THROWS_WITH(xiosHandler.createGrid(gridId), "Xios: Grid 'HGrid' already exists");
 
     // Add a vertical axis, too
     const std::string axisId = "z_axis";
     xiosHandler.createAxis(axisId);
     xiosHandler.setAxisValues(axisId, { 0.0, 1.0 });
-    xiosHandler.gridAddAxis("grid_2D", axisId);
+    xiosHandler.gridAddAxis("HGrid", axisId);
     std::vector<std::string> axisIds = xiosHandler.getGridAxisIds(gridId);
     REQUIRE(axisIds.size() == 1);
     REQUIRE(axisIds[0] == axisId);

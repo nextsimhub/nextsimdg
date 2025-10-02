@@ -10,6 +10,8 @@
 #include "include/Finalizer.hpp"
 #include "include/Logged.hpp"
 #include "include/MissingData.hpp"
+#include "include/ModelMPI.hpp"
+
 #ifdef USE_XIOS
 #include "include/Xios.hpp"
 #endif
@@ -91,18 +93,33 @@ bool ParaGridIO::doOnce()
 
 ParaGridIO::~ParaGridIO() = default;
 
-ModelState ParaGridIO::getModelState(const std::string& filePath, ModelMetadata& metadata)
+ModelState ParaGridIO::getModelState(const std::string& filePath)
 {
     ModelState state;
     Xios& xiosHandler = Xios::getInstance();
 
-    // Get all vars in the data group, and load them into a new ModelState
+    // Get all variables in the file and load them into a new ModelState
     const bool readAccess = true;
-    for (std::string fieldId : xiosHandler.configGetInputRestartFieldNames()) {
-        HField field(ModelArray::Type::H); // TODO: Support other dimTypes
-        field.resize();
-        state.merge(ModelState { { { fieldId, field } }, {} });
+    for (std::string fieldId : xiosHandler.configGetFieldNames(readAccess)) {
+        ModelArray::Type type = xiosHandler.getFieldType(fieldId);
+        if (type == ModelArray::Type::H) {
+            HField field(ModelArray::Type::H);
+            field.resize();
+            state.merge(ModelState { { { fieldId, field } }, {} });
+        } else if (type == ModelArray::Type::VERTEX) {
+            VertexField field(ModelArray::Type::VERTEX);
+            field.resize();
+            state.merge(ModelState { { { fieldId, field } }, {} });
+        } else if (type == ModelArray::Type::DG) {
+            DGField field(ModelArray::Type::DG);
+            field.resize();
+            state.merge(ModelState { { { fieldId, field } }, {} });
+        } else {
+            throw std::runtime_error(
+                "ParaGridIO::getModelState: field type for field" + fieldId + " is not supported.");
+        }
     }
+
     // Assume that all fields in the supplied ModelState are necessary, and so read them from file.
     for (auto& entry : state.data) {
         const std::string fieldId = entry.first;
@@ -156,8 +173,7 @@ ModelState ParaGridIO::readForcingTimeStatic(
     return state;
 }
 
-void ParaGridIO::dumpModelState(
-    const ModelState& state, const ModelMetadata& metadata, const std::string& filePath)
+void ParaGridIO::dumpModelState(const ModelState& state, const std::string& filePath)
 {
     Xios& xiosHandler = Xios::getInstance();
 
@@ -173,8 +189,7 @@ void ParaGridIO::dumpModelState(
     }
 }
 
-void ParaGridIO::writeDiagnosticTime(
-    const ModelState& state, const ModelMetadata& meta, const std::string& filePath)
+void ParaGridIO::writeDiagnosticTime(const ModelState& state, const std::string& filePath)
 {
     // TODO: XIOS implementation
 
@@ -185,9 +200,10 @@ void ParaGridIO::writeDiagnosticTime(
         // Set the initial time to be zero (assigned above)
         // Piecewise construction is necessary to correctly construct the file handle/time index
         // pair
+        auto& modelMPI = ModelMPI::getInstance();
         openFilesAndIndices.emplace(std::piecewise_construct, std::make_tuple(filePath),
             std::forward_as_tuple(std::piecewise_construct,
-                std::forward_as_tuple(filePath, netCDF::NcFile::replace, meta.mpiComm),
+                std::forward_as_tuple(filePath, netCDF::NcFile::replace, modelMPI.getComm()),
                 std::forward_as_tuple(nt)));
     }
     // Get the file handle
@@ -195,7 +211,7 @@ void ParaGridIO::writeDiagnosticTime(
 
     if (isNew) {
         // Write the common structure and time metadata
-        CommonRestartMetadata::writeStructureType(ncFile, meta);
+        CommonRestartMetadata::writeStructureType(ncFile);
     }
     // Get the unlimited time dimension, creating it if necessary
     netCDF::NcDim timeDim = (isNew) ? ncFile.addDim(timeName) : ncFile.getDim(timeName);
@@ -278,7 +294,8 @@ void ParaGridIO::writeDiagnosticTime(
     std::vector<netCDF::NcDim> timeDimVec = { timeDim };
     netCDF::NcVar timeVar(
         (isNew) ? ncFile.addVar(timeName, netCDF::ncDouble, timeDimVec) : ncFile.getVar(timeName));
-    double secondsSinceEpoch = (meta.time() - TimePoint()).seconds();
+    auto& metadata = ModelMetadata::getInstance();
+    double secondsSinceEpoch = (metadata.time() - TimePoint()).seconds();
     netCDF::setVariableCollective(timeVar, ncFile);
     timeVar.putVar({ nt }, { 1 }, &secondsSinceEpoch);
 

@@ -1,56 +1,18 @@
-set(COMMON_INCLUDE_DIRS
-    "../../core/src/discontinuousgalerkin"
-    "../../core/src"
-    "../../core/src/modules"
-    "../src"
-    "../src/modules"
-)
+if(NOT ENABLE_MPI)
+    set(COMMON_INCLUDE_DIRS "../../core/src/discontinuousgalerkin" "../../core/src"
+                            "../../core/src/modules" "../src" "../src/modules")
 
-set(ModulesRoot "../src/modules")
-set(CoreModulesRoot "../../core/src/modules")
+    set(ModulesRoot "../src/modules")
+    set(CoreModulesRoot "../../core/src/modules")
 
-# Generate the boundary test data files
-execute_process(
-    COMMAND "${Python_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/era5_test_data.py"
-    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
-)
-execute_process(
-    COMMAND "${Python_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/topaz_test_data.py"
-    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
-)
+    # Generate the boundary test data files
+    execute_process(COMMAND "${Python_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/era5_test_data.py"
+                    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}")
+    execute_process(COMMAND "${Python_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/topaz_test_data.py"
+                    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}")
 
-include_directories(${COMMON_INCLUDE_DIRS})
+    include_directories(${COMMON_INCLUDE_DIRS})
 
-if(ENABLE_MPI)
-    if(NOT ENABLE_XIOS)
-        add_executable(testERA5Atm_MPI1 "ERA5Atm_test.cpp" "../../core/test/MainMPI.cpp")
-        target_compile_definitions(
-            testERA5Atm_MPI1
-            PRIVATE USE_MPI TEST_FILES_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}\"
-        )
-        target_include_directories(
-            testERA5Atm_MPI1
-            PRIVATE "${ModulesRoot}/AtmosphereBoundaryModule"
-        )
-        target_link_libraries(testERA5Atm_MPI1 PRIVATE nextsimlib doctest::doctest)
-
-        add_executable(testTOPAZOcn_MPI1 "TOPAZOcn_test.cpp" "../../core/test/MainMPI.cpp")
-        target_include_directories(testTOPAZOcn_MPI1 PRIVATE "${ModulesRoot}/OceanBoundaryModule")
-        target_compile_definitions(
-            testTOPAZOcn_MPI1
-            PRIVATE USE_MPI TEST_FILES_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}\"
-        )
-        target_link_libraries(testTOPAZOcn_MPI1 PRIVATE nextsimlib doctest::doctest)
-
-        # In the MPI tests it's important to include the "-ns" flag which tells
-        # doctest to fail if test has been skipped. Without this, the test will
-        # technically pass if we run with fewer ranks than requested.
-        add_test(NAME testERA5Atm_MPI1
-            COMMAND ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} 1 testERA5Atm_MPI1 -ns)
-        add_test(NAME testTOPAZOcn_MPI1 COMMAND
-            ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} 1 testTOPAZOcn_MPI1 -ns)
-    endif()
-else()
     add_executable(testERA5Atm "ERA5Atm_test.cpp")
     target_compile_definitions(testERA5Atm PRIVATE TEST_FILES_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}\")
     target_include_directories(testERA5Atm PRIVATE "${ModulesRoot}/AtmosphereBoundaryModule")
@@ -62,37 +24,27 @@ else()
     target_link_libraries(testTOPAZOcn PRIVATE nextsimlib doctest::doctest)
 
     add_executable(testIceGrowth "IceGrowth_test.cpp")
-    target_include_directories(
-        testIceGrowth
-        PRIVATE "${ModulesRoot}/OceanBoundaryModule" "${CoreModulesRoot}/FreezingPointModule"
-    )
+    target_include_directories(testIceGrowth PRIVATE "${ModulesRoot}/OceanBoundaryModule"
+                                                     "${CoreModulesRoot}/FreezingPointModule")
     target_link_libraries(testIceGrowth PRIVATE nextsimlib doctest::doctest)
 
     add_executable(testThermoWinton "ThermoWintonTemperature_test.cpp")
-    target_include_directories(
-        testThermoWinton
-        PRIVATE "${ModulesRoot}/IceThermodynamicsModule" "${ModulesRoot}/OceanBoundaryModule"
-    )
+    target_include_directories(testThermoWinton PRIVATE "${ModulesRoot}/IceThermodynamicsModule"
+                                                        "${ModulesRoot}/OceanBoundaryModule")
     target_link_libraries(testThermoWinton PRIVATE nextsimlib doctest::doctest)
 
     add_executable(testFEFluxes "FiniteElementFluxes_test.cpp")
     target_include_directories(
         testFEFluxes
-        PRIVATE
-            "${ModulesRoot}/FluxCalculationModule"
-            "${ModulesRoot}/OceanBoundaryModule"
-            "${CoreModulesRoot}/FreezingPointModule"
-    )
+        PRIVATE "${ModulesRoot}/FluxCalculationModule" "${ModulesRoot}/OceanBoundaryModule"
+                "${CoreModulesRoot}/FreezingPointModule")
     target_link_libraries(testFEFluxes PRIVATE nextsimlib doctest::doctest)
 
     add_executable(testBIOHFluxes "BasicIceOceanFlux_test.cpp")
     target_include_directories(
         testBIOHFluxes
-        PRIVATE
-            "${ModulesRoot}/IceOceanHeatFluxModule"
-            "${ModulesRoot}/OceanBoundaryModule"
-            "${CoreModulesRoot}/FreezingPointModule"
-    )
+        PRIVATE "${ModulesRoot}/IceOceanHeatFluxModule" "${ModulesRoot}/OceanBoundaryModule"
+                "${CoreModulesRoot}/FreezingPointModule")
     target_link_libraries(testBIOHFluxes PRIVATE nextsimlib doctest::doctest)
 
     add_executable(testSpecHum "SpecificHumidity_test.cpp")
@@ -120,16 +72,13 @@ else()
 
     add_executable(testBenchmarkBoundaries "BenchmarkBoundaries_test.cpp")
     target_include_directories(
-        testBenchmarkBoundaries
-        PRIVATE "${ModulesRoot}/AtmosphereBoundaryModule" "${ModulesRoot}/OceanBoundaryModule"
-    )
+        testBenchmarkBoundaries PRIVATE "${ModulesRoot}/AtmosphereBoundaryModule"
+                                        "${ModulesRoot}/OceanBoundaryModule")
     target_link_libraries(testBenchmarkBoundaries PRIVATE nextsimlib doctest::doctest)
 
     add_executable(testDamageHealing "DamageHealing_test.cpp")
-    target_include_directories(
-        testDamageHealing
-        PRIVATE "${ModulesRoot}/DamageHealingModule" "${ModulesRoot}/DamageHealingModule"
-    )
+    target_include_directories(testDamageHealing PRIVATE "${ModulesRoot}/DamageHealingModule"
+                                                         "${ModulesRoot}/DamageHealingModule")
     target_link_libraries(testDamageHealing PRIVATE nextsimlib doctest::doctest)
 
     set(TEST_EXECUTABLES
@@ -146,8 +95,7 @@ else()
         testSlabOcn
         testUniformOcean
         testBenchmarkBoundaries
-        testDamageHealing
-    )
+        testDamageHealing)
 
     foreach(test_exec IN LISTS TEST_EXECUTABLES)
         add_test(NAME ${test_exec} COMMAND ${test_exec})
