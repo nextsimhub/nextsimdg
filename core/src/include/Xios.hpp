@@ -17,7 +17,6 @@
 #include "include/Configured.hpp"
 #include "include/Logged.hpp"
 #include "include/ModelArray.hpp"
-#include "include/ModelConfig.hpp"
 #include "include/Time.hpp"
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/format.hpp>

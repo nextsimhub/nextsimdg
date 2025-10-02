@@ -29,6 +29,16 @@ public:
     static const std::string unformattedName() { return "time_meta"; }
 
     static const std::string configurationNode() { return "configuration"; }
+
+    static const std::string startTimeName() { return "start"; }
+
+    static const std::string stopTimeName() { return "stop"; }
+
+    static const std::string stepLengthName() { return "step"; }
+
+    static const std::string runLengthName() { return "run_length"; }
+
+    static const std::string missingDataName() { return "missing_value"; }
 };
 
 } /* namespace Nextsim */

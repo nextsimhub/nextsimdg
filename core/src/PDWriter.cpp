@@ -5,7 +5,6 @@
 #include "include/PrognosticData.hpp"
 
 #include "include/ConfiguredModule.hpp"
-#include "include/ModelConfig.hpp"
 #include "include/ModelMetadata.hpp"
 #include "include/StructureFactory.hpp"
 
@@ -16,7 +15,6 @@ void PrognosticData::writeRestartFile(
     Logged::notice(std::string("  Writing state-based restart file: ") + filePath + '\n');
 
     ModelState state = getStatePrognostic();
-    state.merge(ModelConfig::getConfig());
 
     ModelMetadata meta(metadata);
     meta.affixCoordinates(state);

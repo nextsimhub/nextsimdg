@@ -14,7 +14,6 @@ endif()
 
 set(BaseSources
     "Logged.cpp"
-    "ModelConfig.cpp"
     "Model.cpp"
     "Iterator.cpp"
     "Configurator.cpp"

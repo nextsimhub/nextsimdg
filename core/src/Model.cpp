@@ -29,7 +29,6 @@ const std::string Model::restartOptionName = "model.init_file";
 // Map of all configuration keys for the main model, including those not to be
 // written to the restart file.
 static const std::map<int, std::string> keyMap = {
-#include "include/ModelConfigMapElements.ipp"
     { Model::RESTARTFILE_KEY, Model::restartOptionName },
 #ifdef USE_MPI
     { Model::PARTITIONFILE_KEY, "model.partition_file" },
@@ -63,8 +62,7 @@ void Model::configure()
     // Configure logging
     Logged::configure();
 
-    // Store the start/stop/step configuration directly in ModelConfig before
-    // parsing these values to the numerical time values used by the model.
+    // Start/stop times. Run length will override stop time, if present.
     std::string startTimeStr
         = Configured::getConfiguration(keyMap.at(STARTTIME_KEY), std::string());
     std::string stopTimeStr = Configured::getConfiguration(keyMap.at(STOPTIME_KEY), std::string());
@@ -72,15 +70,15 @@ void Model::configure()
         = Configured::getConfiguration(keyMap.at(RUNLENGTH_KEY), std::string());
     std::string stepStr = Configured::getConfiguration(keyMap.at(TIMESTEP_KEY), std::string());
 
-    if (stopTimeStr.empty()) {
-        if (runLengthStr.empty()) {
+    if (runLengthStr.empty()) {
+        if (stopTimeStr.empty()) {
             throw std::invalid_argument(std::string("At least one of ") + keyMap.at(STOPTIME_KEY) +
                     " or " + keyMap.at(RUNLENGTH_KEY) + " must be set");
         } else {
-            m_etadata.setTimes(startTimeStr, Duration(runLengthStr), stepStr);
+            m_etadata.setTimes(startTimeStr, TimePoint(stopTimeStr), stepStr);
         }
     } else {
-        m_etadata.setTimes(startTimeStr, TimePoint(stopTimeStr), stepStr);
+        m_etadata.setTimes(startTimeStr, Duration(runLengthStr), stepStr);
     }
     iterator.setStartStopStep(m_etadata.startTime(), m_etadata.stopTime(), m_etadata.stepLength());
     // Configure the missing data value
@@ -120,12 +118,6 @@ void Model::configure()
     modelStep.setMetadata(m_etadata);
     modelStep.setRestartDetails(restartPeriod, finalFileName);
     pData.setData(initialState.data);
-}
-
-ConfigMap Model::getConfig() const
-{
-    ConfigMap cMap = ModelConfig::getConfig();
-    return cMap;
 }
 
 Model::HelpMap& Model::getHelpText(HelpMap& map, bool getAll)
