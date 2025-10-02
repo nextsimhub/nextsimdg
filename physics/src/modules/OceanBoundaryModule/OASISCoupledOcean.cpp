@@ -66,13 +66,13 @@ void OASISCoupledOcean::updateBefore(const TimestepTime& tst)
     OASIS_CHECK_ERR(oasis_c_get(couplingId.at(SSSKey), OASISTime, dimension0, dimension1,
         bundleSize, OASIS_DOUBLE, OASIS_COL_MAJOR, &sss[0], &kinfo));
 
-    HField uOnGrid; uOnGrid.resize();
+    HField uOnCGrid; uOnCGrid.resize();
     OASIS_CHECK_ERR(oasis_c_get(couplingId.at(UOceanKey), OASISTime, dimension0, dimension1,
-        bundleSize, OASIS_DOUBLE, OASIS_COL_MAJOR, &uOnGrid[0], &kinfo));
+        bundleSize, OASIS_DOUBLE, OASIS_COL_MAJOR, &uOnCGrid[0], &kinfo));
 
-    HField vOnGrid; vOnGrid.resize();
+    HField vOnCGrid; vOnCGrid.resize();
     OASIS_CHECK_ERR(oasis_c_get(couplingId.at(VOceanKey), OASISTime, dimension0, dimension1,
-        bundleSize, OASIS_DOUBLE, OASIS_COL_MAJOR, &vOnGrid[0], &kinfo));
+        bundleSize, OASIS_DOUBLE, OASIS_COL_MAJOR, &vOnCGrid[0], &kinfo));
 
     OASIS_CHECK_ERR(oasis_c_get(couplingId.at(SSHKey), OASISTime, dimension0, dimension1,
         bundleSize, OASIS_DOUBLE, OASIS_COL_MAJOR, &ssh[0], &kinfo));
@@ -118,10 +118,10 @@ void OASISCoupledOcean::updateAfter(const TimestepTime& tst)
     const int dimension1 = ModelArray::dimensions(ModelArray::Type::H)[1];
 
     OASIS_CHECK_ERR(oasis_c_put(couplingId.at(TauXKey), OASISTime, dimension0, dimension1, 1,
-        OASIS_DOUBLE, OASIS_COL_MAJOR, &tauXOnGrid[0], OASIS_No_Restart, &kinfo));
+        OASIS_DOUBLE, OASIS_COL_MAJOR, &tauXOnCGrid[0], OASIS_No_Restart, &kinfo));
 
     OASIS_CHECK_ERR(oasis_c_put(couplingId.at(TauYKey), OASISTime, dimension0, dimension1, 1,
-        OASIS_DOUBLE, OASIS_COL_MAJOR, &tauYOnGrid[0], OASIS_No_Restart, &kinfo));
+        OASIS_DOUBLE, OASIS_COL_MAJOR, &tauYOnCGrid[0], OASIS_No_Restart, &kinfo));
 
     OASIS_CHECK_ERR(oasis_c_put(couplingId.at(EMPKey), OASISTime, dimension0, dimension1, 1,
         OASIS_DOUBLE, OASIS_COL_MAJOR, &fwFlux[0], OASIS_No_Restart, &kinfo));
