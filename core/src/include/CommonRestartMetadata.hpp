@@ -6,7 +6,6 @@
 #define COMMONRESTARTMETADATA_HPP
 
 #include "include/IStructure.hpp"
-#include "include/ModelMetadata.hpp"
 
 #include <ncFile.h>
 
@@ -16,11 +15,9 @@ class CommonRestartMetadata {
 public:
     //! Writes the structure type to the root of the restart file for future
     //! retrieval.
-    static netCDF::NcFile& writeStructureType(
-        netCDF::NcFile& ncFile, const ModelMetadata& metadata);
+    static netCDF::NcFile& writeStructureType(netCDF::NcFile& ncFile);
     //! Writes the standard restart file metadata to a metadata node.
-    static netCDF::NcFile& writeRestartMetadata(
-        netCDF::NcFile& ncFile, const ModelMetadata& metadata);
+    static netCDF::NcFile& writeRestartMetadata(netCDF::NcFile& ncFile);
 
     static const std::string timeNodeName() { return "time"; }
 

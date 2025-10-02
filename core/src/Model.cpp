@@ -42,16 +42,9 @@ static const std::map<int, std::string> keyMap = {
     { Model::RESTARTOUTFILE_KEY, "model.restart_file" },
 };
 
-#ifdef USE_MPI
-Model::Model(MPI_Comm comm)
-#else
 Model::Model()
-#endif
     : iterator(modelStep)
 {
-#ifdef USE_MPI
-    m_etadata.setMpiMetadata(comm);
-#endif
     finalFileName = std::string("restart") + TimePoint::ymdhmsFormat + ".nc";
 }
 
@@ -62,25 +55,6 @@ void Model::configure()
     // Configure logging
     Logged::configure();
 
-    // Start/stop times. Run length will override stop time, if present.
-    std::string startTimeStr
-        = Configured::getConfiguration(keyMap.at(STARTTIME_KEY), std::string());
-    std::string stopTimeStr = Configured::getConfiguration(keyMap.at(STOPTIME_KEY), std::string());
-    std::string runLengthStr
-        = Configured::getConfiguration(keyMap.at(RUNLENGTH_KEY), std::string());
-    std::string stepStr = Configured::getConfiguration(keyMap.at(TIMESTEP_KEY), std::string());
-
-    if (runLengthStr.empty()) {
-        if (stopTimeStr.empty()) {
-            throw std::invalid_argument(std::string("At least one of ") + keyMap.at(STOPTIME_KEY)
-                + " or " + keyMap.at(RUNLENGTH_KEY) + " must be set");
-        } else {
-            m_etadata.setTimes(startTimeStr, TimePoint(stopTimeStr), stepStr);
-        }
-    } else {
-        m_etadata.setTimes(startTimeStr, Duration(runLengthStr), stepStr);
-    }
-    iterator.setStartStopStep(m_etadata.startTime(), m_etadata.stopTime(), m_etadata.stepLength());
     // Configure the missing data value
     MissingData::setValue(
         Configured::getConfiguration(keyMap.at(MISSINGVALUE_KEY), MissingData::defaultValue));
@@ -97,14 +71,32 @@ void Model::configure()
 #ifdef USE_MPI
     std::string partitionFile
         = Configured::getConfiguration(keyMap.at(PARTITIONFILE_KEY), std::string("partition.nc"));
-    m_etadata.getPartitionMetadata(partitionFile);
+    auto& metadata = ModelMetadata::getInstance(partitionFile);
+#else
+    auto& metadata = ModelMetadata::getInstance();
 #endif
 
-#ifdef USE_MPI
-    ModelState initialState(StructureFactory::stateFromFile(initialFileName, m_etadata));
-#else
+    // Start/stop times. Run length will override stop time, if present.
+    std::string startTimeStr
+        = Configured::getConfiguration(keyMap.at(STARTTIME_KEY), std::string());
+    std::string stopTimeStr = Configured::getConfiguration(keyMap.at(STOPTIME_KEY), std::string());
+    std::string runLengthStr
+        = Configured::getConfiguration(keyMap.at(RUNLENGTH_KEY), std::string());
+    std::string stepStr = Configured::getConfiguration(keyMap.at(TIMESTEP_KEY), std::string());
+
+    if (runLengthStr.empty()) {
+        if (stopTimeStr.empty()) {
+            throw std::invalid_argument(std::string("At least one of ") + keyMap.at(STOPTIME_KEY)
+                + " or " + keyMap.at(RUNLENGTH_KEY) + " must be set");
+        } else {
+            metadata.setTimes(startTimeStr, TimePoint(stopTimeStr), stepStr);
+        }
+    } else {
+        metadata.setTimes(startTimeStr, Duration(runLengthStr), stepStr);
+    }
+    iterator.setStartStopStep(metadata.startTime(), metadata.stopTime(), metadata.stepLength());
+
     ModelState initialState(StructureFactory::stateFromFile(initialFileName));
-#endif
 
     // The period with which to write restart files.
     std::string restartPeriodStr
@@ -112,10 +104,9 @@ void Model::configure()
     restartPeriod = Duration(restartPeriodStr);
 
     // Get the coordinates from the ModelState for persistence
-    m_etadata.extractCoordinates(initialState);
+    metadata.extractCoordinates(initialState);
 
     modelStep.setData(pData);
-    modelStep.setMetadata(m_etadata);
     modelStep.setRestartDetails(restartPeriod, finalFileName);
     pData.setData(initialState.data);
 }
@@ -186,9 +177,9 @@ void Model::run()
 //! Write a restart file for the model.
 void Model::writeRestartFile()
 {
-    std::string formattedFileName = m_etadata.time().format(finalFileName);
-    pData.writeRestartFile(formattedFileName, m_etadata);
+    auto& metadata = ModelMetadata::getInstance();
+    std::string formattedFileName = metadata.time().format(finalFileName);
+    pData.writeRestartFile(formattedFileName);
 }
 
-ModelMetadata& Model::metadata() { return m_etadata; }
 } /* namespace Nextsim */

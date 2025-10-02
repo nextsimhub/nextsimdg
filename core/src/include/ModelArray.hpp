@@ -6,6 +6,8 @@
 #define MODELARRAY_HPP
 
 #include <Eigen/Core>
+#include <algorithm>
+#include <array>
 #include <cstddef>
 #include <map>
 #include <string>
@@ -16,11 +18,13 @@
 
 namespace ArraySlicer {
 class Slice;
+// class SliceIter;
 }
 
 namespace Nextsim {
 
 class ModelArraySlice;
+class Halo;
 class ConstModelArraySlice;
 /*
  * Set the storage order to row major. This matches with DGVector when there is
@@ -54,6 +58,7 @@ using Indexer::indexer;
 class ModelArray {
 public:
     using Slice = ArraySlicer::Slice;
+    // using SliceIter = ArraySlicer::SliceIter;
     // Forward defines make Eclipse less red and squiggly
     enum class Type;
     enum class Dimension;
@@ -294,6 +299,7 @@ public:
     const MultiDim& dimensions() const { return dimensions(type); }
     //! Returns a vector<size_t> of the size of each dimension of the specified type of ModelArray.
     static const MultiDim& dimensions(Type type) { return m_dims.at(type); }
+
     //! Returns the total number of elements of this type of ModelArray.
     size_t size() const { return size(type); }
     //! Returns the total number of elements of the specified type of ModelArray.
@@ -305,6 +311,9 @@ public:
 
     //! Returns a read-only pointer to the underlying data buffer.
     const double* getData() const { return m_data.data(); }
+
+    //! Returns a reference to the underlying ModelArray::DataType object.
+    ModelArray::DataType& getDataRef() { return m_data; }
 
     //! Returns a const reference to the Eigen data
     const DataType& data() const { return m_data; }
@@ -674,6 +683,7 @@ private:
 
     // ModelArraySlice needs access to the internals for fast slcing
     friend ModelArraySlice;
+    friend Halo;
 };
 
 #include "include/ModelArrayTypedefs.hpp"

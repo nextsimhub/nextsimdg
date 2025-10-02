@@ -4,9 +4,7 @@
  * @author  Adeleke Bankole <ab3191@cam.ac.uk>
  * @brief   XIOS interface header
  * @details
- *
  * Header file for XIOS interface
- *
  */
 #ifndef SRC_INCLUDE_XIOS_HPP
 #define SRC_INCLUDE_XIOS_HPP
@@ -27,7 +25,6 @@
 namespace Nextsim {
 
 // Forward declarations to avoid circular dependencies
-class ModelMetadata;
 class ParaGridIO;
 
 void enableXios();
@@ -99,7 +96,7 @@ public:
     std::vector<double> getAxisValues(const std::string axisId);
 
     /* Domain */
-    void affixModelMetadata(ModelMetadata& metadata);
+    void affixModelMetadata();
 
     /* Grid */
     void createGrid(const std::string gridId);

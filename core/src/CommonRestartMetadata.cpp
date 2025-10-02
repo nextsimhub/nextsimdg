@@ -3,6 +3,7 @@
  */
 
 #include "include/CommonRestartMetadata.hpp"
+#include "include/ModelMetadata.hpp"
 
 #include "include/MissingData.hpp"
 
@@ -15,17 +16,17 @@
 
 namespace Nextsim {
 
-netCDF::NcFile& CommonRestartMetadata::writeStructureType(
-    netCDF::NcFile& ncFile, const ModelMetadata& metadata)
+netCDF::NcFile& CommonRestartMetadata::writeStructureType(netCDF::NcFile& ncFile)
 {
+    auto& metadata = ModelMetadata::getInstance();
     ncFile.putAtt(IStructure::structureNodeName(), metadata.structureName());
     return ncFile;
 }
 
-netCDF::NcFile& CommonRestartMetadata::writeRestartMetadata(
-    netCDF::NcFile& ncFile, const ModelMetadata& metadata)
+netCDF::NcFile& CommonRestartMetadata::writeRestartMetadata(netCDF::NcFile& ncFile)
 {
     // Structure type
+    auto& metadata = ModelMetadata::getInstance();
     ncFile.putAtt(IStructure::structureNodeName(), metadata.structureName());
 
     // As Unix time

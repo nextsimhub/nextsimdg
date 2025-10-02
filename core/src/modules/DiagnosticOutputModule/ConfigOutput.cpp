@@ -137,8 +137,9 @@ void ConfigOutput::setModelStart(const TimePoint& modelStart)
     }
 }
 
-void ConfigOutput::outputState(const ModelState& diagState, const ModelMetadata& meta)
+void ConfigOutput::outputState(const ModelState& diagState)
 {
+    auto& meta = ModelMetadata::getInstance();
     const TimePoint& time = meta.time();
     if (currentFileName == "" || (lastFileChange + fileChangePeriod <= time)) {
         std::string newFileName = time.format(m_filePrefix) + ".nc";
@@ -205,7 +206,7 @@ void ConfigOutput::outputState(const ModelState& diagState, const ModelMetadata&
         Logged::info("ConfigOutput: Outputting " + std::to_string(state.data.size()) + " fields to "
             + currentFileName + " at " + meta.time().format() + "\n");
         meta.affixCoordinates(state);
-        StructureFactory::fileFromState(state, meta, currentFileName, false);
+        StructureFactory::fileFromState(state, currentFileName, false);
         lastOutput = meta.time();
     }
 }

@@ -4,13 +4,13 @@
  * @details
  * This test is designed to test the file writing functionality of the C++
  * interface for XIOS.
- *
  */
 #include <doctest/extensions/doctest_mpi.h>
 #undef INFO
 
 #include "StructureModule/include/ParametricGrid.hpp"
 #include "include/Finalizer.hpp"
+#include "include/ModelMPI.hpp"
 #include "include/ModelMetadata.hpp"
 #include "include/NextsimModule.hpp"
 #include "include/ParaGridIO.hpp"
@@ -53,8 +53,9 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     REQUIRE(xiosHandler.getClientMPISize() == 2);
 
     // Create ModelMetadata instance based off a partition metadata file
-    ModelMetadata metadata("xios_test_partition_metadata_2.nc", test_comm);
-    xiosHandler.affixModelMetadata(metadata);
+    auto& modelMPI = ModelMPI::getInstance(test_comm);
+    auto& metadata = ModelMetadata::getInstance("xios_test_partition_metadata_2.nc");
+    xiosHandler.affixModelMetadata();
 
     // Set ModelArray dimensions
     const size_t nx_glo = 4;
@@ -107,7 +108,7 @@ MPI_TEST_CASE("TestXiosWrite", 2)
         // Update the current timestep and verify it's updated in XIOS
         metadata.incrementTime(timestep);
         REQUIRE(xiosHandler.getCalendarStep() == ts);
-        grid.dumpModelState(state, metadata, "xios_test_output", true);
+        grid.dumpModelState(state, "xios_test_output", true);
     }
 
     // Check the files have indeed been created then remove it

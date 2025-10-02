@@ -9,16 +9,15 @@
 #include "include/StructureFactory.hpp"
 
 namespace Nextsim {
-void PrognosticData::writeRestartFile(
-    const std::string& filePath, const ModelMetadata& metadata) const
+void PrognosticData::writeRestartFile(const std::string& filePath) const
 {
     Logged::notice(std::string("  Writing state-based restart file: ") + filePath + '\n');
 
     ModelState state = getStatePrognostic();
 
-    ModelMetadata meta(metadata);
+    auto& meta = ModelMetadata::getInstance();
     meta.affixCoordinates(state);
 
-    StructureFactory::fileFromState(state, meta, filePath, true);
+    StructureFactory::fileFromState(state, filePath, true);
 }
 }
