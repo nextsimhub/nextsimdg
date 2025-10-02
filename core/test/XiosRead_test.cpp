@@ -39,14 +39,17 @@ MPI_TEST_CASE("TestXiosRead", 2)
     std::stringstream config;
     config << "[model]" << std::endl;
     config << "start = 2023-03-17T17:11:00Z" << std::endl;
+    config << "stop = 2023-03-17T23:11:00Z" << std::endl;
     config << "time_step = P0-0T01:30:00" << std::endl;
     config << "[XiosInput]" << std::endl;
     config << "filename = xios_test_input.nc" << std::endl;
     config << "field_names = " << maskName << "," << coordsName << "," << hiceName << std::endl;
+    config << "period = P0-0T01:30:00" << std::endl;
     // TODO: Account for separate restart and forcing files (#929)
     config << "[XiosForcing]" << std::endl;
     config << "filename = xios_test_input.nc" << std::endl;
     config << "field_names = " << uName << std::endl;
+    config << "period = P0-0T01:30:00" << std::endl;
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
 
@@ -73,14 +76,6 @@ MPI_TEST_CASE("TestXiosRead", 2)
     ModelMetadata& metadata = ModelMetadata::getInstance("xios_test_partition_metadata_2.nc");
     xiosHandler.affixModelMetadata();
 
-    // Create fields on the grid
-    // NOTE: Fields are created when the XIOS handler is constructed
-    // NOTE: The 2D grid is created along with the 2D domain
-    Duration timestep = xiosHandler.getCalendarTimestep();
-    for (std::string fieldName : { maskName, coordsName, hiceName, uName }) {
-        xiosHandler.setFieldFreqOffset(fieldName, timestep);
-    }
-
     xiosHandler.close_context_definition();
 
     // Check calendar step is zero initially
@@ -94,6 +89,7 @@ MPI_TEST_CASE("TestXiosRead", 2)
     const size_t ny = ModelArray::size(ModelArray::Dimension::Y);
 
     // Simulate 4 iterations (timesteps)
+    Duration timestep = xiosHandler.getCalendarTimestep();
     metadata.setTime(xiosHandler.getCalendarStart());
     // TODO: Avoid making configGetForcingFieldNames public?
     auto forcingFieldNames = xiosHandler.configGetForcingFieldNames();
@@ -110,12 +106,8 @@ MPI_TEST_CASE("TestXiosRead", 2)
             }
         }
 
-        // Update the current timestep and verify it's updated in XIOS
-        metadata.incrementTime(timestep);
-        REQUIRE(xiosHandler.getCalendarStep() == ts);
-
         // Read restarts from file and check they take the expected values
-        ModelState restarts = grid.getModelState(filename, metadata);
+        ModelState restarts = grid.getModelState(filename);
         for (auto& entry : restarts.data) {
             for (size_t j = 0; j < ny; ++j) {
                 for (size_t i = 0; i < nx; ++i) {
@@ -134,6 +126,10 @@ MPI_TEST_CASE("TestXiosRead", 2)
                 }
             }
         }
+
+        // Update the current timestep and verify it's updated in XIOS
+        metadata.incrementTime(timestep);
+        REQUIRE(xiosHandler.getCalendarStep() == ts);
     }
     xiosHandler.context_finalize();
     Finalizer::finalize();

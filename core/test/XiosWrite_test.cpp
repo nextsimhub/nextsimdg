@@ -36,10 +36,12 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     std::stringstream config;
     config << "[model]" << std::endl;
     config << "start = 2023-03-17T17:11:00Z" << std::endl;
+    config << "stop = 2023-03-17T23:11:00Z" << std::endl;
     config << "time_step = P0-0T01:30:00" << std::endl;
     config << "[XiosOutput]" << std::endl;
     config << "filename = xios_test_output.nc" << std::endl;
     config << "field_names = " << maskName << "," << coordsName << "," << hiceName << std::endl;
+    config << "period = P0-0T01:30:00" << std::endl;
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
 
@@ -73,13 +75,7 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     ModelMetadata& metadata = ModelMetadata::getInstance("xios_test_partition_metadata_2.nc");
     xiosHandler.affixModelMetadata();
 
-    // Create fields on the grid
-    // NOTE: Fields are created when the XIOS handler is constructed
-    // NOTE: The 2D grid is created along with the 2D domain
-    Duration timestep = xiosHandler.getCalendarTimestep();
-    for (std::string fieldName : { maskName, coordsName, hiceName }) {
-        xiosHandler.setFieldFreqOffset(fieldName, timestep);
-    }
+    // Set field types
     xiosHandler.setFieldType(maskName, ModelArray::Type::H);
     xiosHandler.setFieldType(coordsName, ModelArray::Type::VERTEX);
     xiosHandler.setFieldType(hiceName, ModelArray::Type::DG);
@@ -132,6 +128,7 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     REQUIRE_FALSE(std::filesystem::exists("xios_test_output*.nc"));
 
     // Simulate 4 iterations (timesteps)
+    Duration timestep = xiosHandler.getCalendarTimestep();
     metadata.setTime(xiosHandler.getCalendarStart());
     for (int ts = 1; ts <= 4; ts++) {
         // Update the current timestep and verify it's updated in XIOS

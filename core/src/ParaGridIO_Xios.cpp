@@ -100,7 +100,7 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
 
     // Get all variables in the file and load them into a new ModelState
     const bool readAccess = true;
-    for (std::string fieldId : xiosHandler.configGetFieldNames(readAccess)) {
+    for (std::string fieldId : xiosHandler.configGetInputRestartFieldNames()) {
         ModelArray::Type type = xiosHandler.getFieldType(fieldId);
         if (type == ModelArray::Type::H) {
             HField field(ModelArray::Type::H);
