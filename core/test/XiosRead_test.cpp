@@ -78,10 +78,8 @@ MPI_TEST_CASE("TestXiosRead", 2)
     REQUIRE(ModelArray::nComponents(ModelArray::Type::DG) == DG);
     REQUIRE(ModelArray::nComponents(ModelArray::Type::VERTEX) == ModelArray::nCoords);
 
-    // Create ModelMetadata instance based off a partition metadata file
-    // NOTE: ModelArray dimensions are determined from the input file, if present
-    ModelMPI& modelMPI = ModelMPI::getInstance(test_comm);
-    ModelMetadata& metadata = ModelMetadata::getInstance("xios_test_partition_metadata_2.nc");
+    // Affix ModelMetadata to Xios handler
+    // TODO: Automate this - can't be inlined in Xios::getInstance because need set field types
     xiosHandler.affixModelMetadata();
 
     xiosHandler.close_context_definition();

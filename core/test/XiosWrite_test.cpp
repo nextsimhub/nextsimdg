@@ -78,9 +78,8 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     REQUIRE(ModelArray::nComponents(ModelArray::Type::DG) == DG);
     REQUIRE(ModelArray::nComponents(ModelArray::Type::VERTEX) == ModelArray::nCoords);
 
-    // Create ModelMetadata instance based off a partition metadata file
-    ModelMPI& modelMPI = ModelMPI::getInstance(test_comm);
-    ModelMetadata& metadata = ModelMetadata::getInstance("xios_test_partition_metadata_2.nc");
+    // Affix ModelMetadata to Xios handler
+    // TODO: Automate this - can't be inlined in Xios::getInstance because need set field types
     xiosHandler.affixModelMetadata();
 
     // Set field types

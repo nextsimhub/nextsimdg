@@ -59,7 +59,6 @@ MPI_TEST_CASE("TestXiosFile", 2)
 
     // Get the Xios singleton instance and check it's initialized
     Xios& xiosHandler = Xios::getInstance();
-    xiosHandler.affixModelMetadata();
     REQUIRE(xiosHandler.isInitialized());
     REQUIRE(xiosHandler.getClientMPISize() == 2);
 
@@ -67,6 +66,10 @@ MPI_TEST_CASE("TestXiosFile", 2)
     // NOTE: fields are automatically created along with files
     xiosHandler.setFieldType("mask", ModelArray::Type::H);
     xiosHandler.setFieldType("hice", ModelArray::Type::DG);
+
+    // Affix ModelMetadata to Xios handler
+    // TODO: Automate this - can't be inlined in Xios::getInstance because need set field types
+    xiosHandler.affixModelMetadata();
 
     // --- Tests for file API
     const std::string inFileId = "xios_test_input";
