@@ -13,6 +13,7 @@
 #include "include/Configurator.hpp"
 #include "include/ConfiguredModule.hpp"
 #include "include/Model.hpp"
+#include "include/ModelMPI.hpp"
 #include "include/NetcdfMetadataConfiguration.hpp"
 
 int main(int argc, char* argv[])
@@ -20,6 +21,8 @@ int main(int argc, char* argv[])
 #ifdef USE_MPI
     MPI_Init(&argc, &argv);
 #endif // USE_MPI
+
+    int return_code = 0;
 
     // Pass the command line to Configurator to handle
     Nextsim::Configurator::setCommandLine(argc, argv);
@@ -45,18 +48,24 @@ int main(int argc, char* argv[])
     } else {
         // Construct the Model
 #ifdef USE_MPI
-        Nextsim::Model model(MPI_COMM_WORLD);
+        Nextsim::ModelMPI& modelMPI = Nextsim::ModelMPI::getInstance(MPI_COMM_WORLD);
+        Nextsim::Model model;
 #else
         Nextsim::Model model;
 #endif
         // Apply the model configuration
         model.configure();
         // Run the Model
-        model.run();
+        try {
+            model.run();
+        } catch (const std::exception& e) {
+            return_code = -1;
+            Nextsim::Logged::error(e.what());
+        }
     }
 #ifdef USE_MPI
     MPI_Finalize();
 #endif
 
-    return 0;
+    return return_code;
 }

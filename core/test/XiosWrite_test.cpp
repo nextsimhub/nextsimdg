@@ -10,6 +10,7 @@
 
 #include "StructureModule/include/ParametricGrid.hpp"
 #include "include/Finalizer.hpp"
+#include "include/ModelMPI.hpp"
 #include "include/ModelMetadata.hpp"
 #include "include/NextsimModule.hpp"
 #include "include/ParaGridIO.hpp"
@@ -37,7 +38,6 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     config << "start = 2023-03-17T17:11:00Z" << std::endl;
     config << "time_step = P0-0T01:30:00" << std::endl;
     config << "[XiosOutput]" << std::endl;
-    config << "period = P0-0T01:30:00" << std::endl;
     config << "filename = xios_test_output.nc" << std::endl;
     config << "field_names = " << maskName << "," << coordsName << "," << hiceName << std::endl;
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
@@ -69,8 +69,9 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     REQUIRE(ModelArray::nComponents(ModelArray::Type::VERTEX) == ModelArray::nCoords);
 
     // Create ModelMetadata instance based off a partition metadata file
-    ModelMetadata metadata("xios_test_partition_metadata_2.nc", test_comm);
-    xiosHandler.affixModelMetadata(metadata);
+    ModelMPI& modelMPI = ModelMPI::getInstance(test_comm);
+    ModelMetadata& metadata = ModelMetadata::getInstance("xios_test_partition_metadata_2.nc");
+    xiosHandler.affixModelMetadata();
 
     // Create fields on the grid
     // NOTE: Fields are created when the XIOS handler is constructed
@@ -136,7 +137,7 @@ MPI_TEST_CASE("TestXiosWrite", 2)
         // Update the current timestep and verify it's updated in XIOS
         metadata.incrementTime(timestep);
         REQUIRE(xiosHandler.getCalendarStep() == ts);
-        grid.dumpModelState(state, metadata, "xios_test_output", true);
+        grid.dumpModelState(state, "xios_test_output", true);
     }
 
     // Check the files have indeed been created then remove it

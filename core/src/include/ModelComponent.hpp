@@ -9,13 +9,12 @@
 #include "include/Logged.hpp"
 #include "include/MissingData.hpp"
 #include "include/ModelArrayRef.hpp"
+#include "include/ModelArrayReferenceStore.hpp"
 #include "include/ModelState.hpp"
 #include "include/OutputSpec.hpp"
 #include "include/TextTag.hpp"
 #include "include/Time.hpp"
 
-#include "ModelArrayRef.hpp"
-#include "ModelArrayReferenceStore.hpp"
 #include <functional>
 #include <string>
 #include <unordered_map>
@@ -209,8 +208,9 @@ protected:
      * @brief Returns a copy of the provided ModelArray, masked according to the
      * land-ocean mask.
      * @param data The data to be masked.
+     * @param missingValue The mask value to use (defaults to MissingData::value()).
      */
-    static ModelArray mask(const ModelArray& data);
+    static ModelArray mask(const ModelArray& data, double missingValue = MissingData::value());
 
     /*!
      * @brief Returns the ocean mask.

@@ -6,10 +6,8 @@
  * This interface is based on an earlier version provided by Laurent as part of
  * the https://github.com/nextsimhub/xios_cpp_toy repo. This C interface is
  * designed to connect with the underlying Fortran interface of XIOS 2.
- *
  * This can be expanded as we add more XIOS functionality to the nextSIM-DG XIOS
  * C++ interface `Xios.cpp`.
- *
  */
 #ifndef XIOS_C_INTERFACE
 #define XIOS_C_INTERFACE

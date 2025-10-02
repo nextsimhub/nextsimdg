@@ -5,7 +5,7 @@
 #ifndef PROGNOSTICDATA_HPP
 #define PROGNOSTICDATA_HPP
 
-#include "ModelComponent.hpp"
+#include "CheckingModelComponent.hpp"
 #include "include/Configured.hpp"
 #include "include/IAtmosphereBoundary.hpp"
 #include "include/IDynamics.hpp"
@@ -21,7 +21,7 @@ namespace Nextsim {
  * data values and handles their updates in the timestep, including all calls
  * to the variables those calculations depend on.
  */
-class PrognosticData : public ModelComponent, public Configured<PrognosticData> {
+class PrognosticData : public CheckingModelComponent, public Configured<PrognosticData> {
 public:
     PrognosticData();
     virtual ~PrognosticData() = default;
@@ -48,7 +48,9 @@ public:
      * Writes a restart file to the specified file path.
      * @param filePath the file path to write the restart file to.
      */
-    void writeRestartFile(const std::string& filePath, const ModelMetadata& metadata) const;
+    void writeRestartFile(const std::string& filePath) const;
+
+    enum { CHECKFIELDS_KEY, CHECKFIELDSFAST_KEY };
 
 private:
     double m_dt;

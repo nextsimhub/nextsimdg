@@ -5,8 +5,6 @@
 #include "include/TOPAZOcean.hpp"
 
 #include "include/Finalizer.hpp"
-#include "include/IFreezingPoint.hpp"
-#include "include/IIceOceanHeatFlux.hpp"
 #include "include/NextsimModule.hpp"
 #include "include/ParaGridIO.hpp"
 #include "include/constants.hpp"
@@ -24,8 +22,8 @@ static const std::map<int, std::string> keyMap = {
 };
 
 TOPAZOcean::TOPAZOcean()
-    : sstExt(ModelArray::Type::H)
-    , sssExt(ModelArray::Type::H)
+    : sstExt(ModelArray::Type::H, { -5, 50 })
+    , sssExt(ModelArray::Type::H, { 0, 50 })
     , slabOcean(m_couplingArrays)
 {
 }
@@ -44,6 +42,12 @@ void TOPAZOcean::configure()
 {
     Finalizer::registerUnique(Module::finalize<IIceOceanHeatFlux>);
     Finalizer::registerUnique(Module::finalize<IFreezingPoint>);
+
+    pIOHeatFlux = std::move(Module::getInstance<IIceOceanHeatFlux>());
+    tryConfigure(*pIOHeatFlux);
+
+    pFreezingPoint = std::move(Module::getInstance<IFreezingPoint>());
+    tryConfigure(*pFreezingPoint);
 
     filePath = Configured::getConfiguration(keyMap.at(FILEPATH_KEY), std::string());
 
@@ -83,6 +87,12 @@ void TOPAZOcean::updateAfter(const TimestepTime& tst)
     slabOcean.update(tst);
     sst = ModelArrayRef<Protected::SLAB_SST, RO>(getStore());
     sss = ModelArrayRef<Protected::SLAB_SSS, RO>(getStore());
+
+    try {
+        checkFields();
+    } catch (const std::exception& e) {
+        throw std::runtime_error("TOPAZOcean::updateAfter: " + std::string(e.what()));
+    }
 }
 
 ModelState TOPAZOcean::getStatePrognostic() const
@@ -105,12 +115,15 @@ void TOPAZOcean::setData(const ModelState::DataMap& ms)
 
     sstExt.resize();
     sssExt.resize();
+
+    addChecks({
+        { "sstExt", &sstExt },
+        { "sssExt", &sssExt },
+    });
+
     slabOcean.setData(ms);
 }
 
-void TOPAZOcean::updateTf(size_t i, const TimestepTime& tst)
-{
-    tf[i] = Module::getImplementation<IFreezingPoint>()(sss[i]);
-}
+void TOPAZOcean::updateTf(size_t i, const TimestepTime& tst) { tf[i] = (*pFreezingPoint)(sss[i]); }
 
 } /* namespace Nextsim */

@@ -1,7 +1,9 @@
-import numpy as np
-import netCDF4
-import sys
+"""Test the advection of snow as recorded in advection_test.diagnostic.nc."""
 import os.path
+import sys
+
+import netCDF4
+import numpy as np
 
 file_name = "advection_test.diagnostic.nc"
 # Check that the diagnostic file was output
@@ -13,7 +15,7 @@ ncFile = netCDF4.Dataset(file_name, "r")
 
 # Check that an hsnow variable exists
 hsnow_name = "hsnow"
-if not hsnow_name in ncFile.variables:
+if hsnow_name not in ncFile.variables:
     print(f"Error: no variable {hsnow_name} found in netCDF path {file_name}.")
     sys.exit(2)
 

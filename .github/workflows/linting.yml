@@ -4,23 +4,24 @@ on:
   push:
     branches: [ main, develop ]
   pull_request:
-    branches: [ main, develop ]
     paths:
       - '.github/workflows/linting.yml'
       - '**.cpp'
       - '**.hpp'
+      - '**.py'
       - '**CMakeLists.txt'
   pull_request_review:
     branches: [ main, develop ]
 
 jobs:
-  clang-format:
+  linting:
     runs-on: ubuntu-latest
 
     timeout-minutes: 5
 
     steps:
     - uses: actions/checkout@v2
+
     - name: clang-format
       run: |
         sudo apt update
@@ -32,14 +33,14 @@ jobs:
           cd -
         done
 
-  cmake-lint:
-    runs-on: ubuntu-latest
+    - name: ruff
+      if: always()
+      run: |
+        cd ${{ github.workspace }}
+        pip install ruff
+        ruff check --diff ./
 
-    timeout-minutes: 5
-
-    steps:
-    - uses: actions/checkout@v2
-    - name: cmake-format
+    - name: cmake-lint
       run: |
         pip install cmakelang
         cmake-lint $(find . -name CMakeLists.txt) -c .cmake-lint-config.py

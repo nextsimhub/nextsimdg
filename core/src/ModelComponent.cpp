@@ -4,8 +4,6 @@
 
 #include "include/ModelComponent.hpp"
 
-#include "include/MissingData.hpp"
-
 namespace Nextsim {
 
 size_t ModelComponent::nOcean = 0;
@@ -28,6 +26,7 @@ void ModelComponent::setOceanMask(const ModelArray& mask)
     oceanMaskSingleton() = mask;
     // Generate the oceanIndex to grid index mapping
     // 1. Count the number of non-land squares
+    nOcean = 0;
     for (size_t i = 0; i < ModelArray::size(ModelArray::Type::H); ++i) {
         if (oceanMask()[i] > 0)
             ++nOcean;
@@ -56,20 +55,14 @@ void ModelComponent::noLandMask()
     }
 }
 
-ModelArray ModelComponent::mask(const ModelArray& data)
+ModelArray ModelComponent::mask(const ModelArray& data, const double missingValue)
 {
-    switch (data.getType()) {
-    default: {
-        return ModelArray(data);
-        break;
+    auto copy = data;
+    copy = missingValue;
+    for (size_t iOcean = 0; iOcean < nOcean; ++iOcean) {
+        copy(oceanIndex[iOcean]) = data(oceanIndex[iOcean]);
     }
-    case (ModelArray::Type::H):
-    case (ModelArray::Type::U):
-    case (ModelArray::Type::V): {
-        return data * oceanMask() + MissingData::value() * (1 - oceanMask());
-        break;
-    }
-    }
+    return copy;
 }
 
 const ModelArray& ModelComponent::oceanMask() { return oceanMaskSingleton(); }
