@@ -79,8 +79,7 @@ bool ParaGridIO::doOnce()
 
 ParaGridIO::~ParaGridIO() = default;
 
-template <typename N>
-void ParaGridIO::readDimensions(const N& node)
+template <typename N> void ParaGridIO::readDimensions(const N& node)
 {
     for (auto entry : ModelArray::definedDimensions) {
         auto dimType = entry.first;
@@ -125,8 +124,7 @@ void ParaGridIO::readDimensions(const N& node)
         }
         // globalLength doesnt need to be padded with halo cells but localLength does
         // setDimension(dim, globalLength, localLength, start)
-        ModelArray::setDimension(
-            dimType, dim.getSize(), localLength + 2 * Halo::haloWidth, start);
+        ModelArray::setDimension(dimType, dim.getSize(), localLength + 2 * Halo::haloWidth, start);
 #else
         ModelArray::setDimension(dimType, dim.getSize());
 #endif
@@ -145,7 +143,7 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
         netCDF::NcFile ncFile(filePath, netCDF::NcFile::read);
 #endif
 
-        std::multimap<std::string,netCDF::NcVar> vars;
+        std::multimap<std::string, netCDF::NcVar> vars;
 
         if (ncFile.getGroupCount()) {
             // Read in the legacy file format with groups
@@ -228,9 +226,9 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
     return state;
 }
 
-
 template <typename N>
-ModelState ParaGridIO::readForcingTimeGeneric(const std::set<std::string>& forcings, const TimePoint& time, const N& node)
+ModelState ParaGridIO::readForcingTimeGeneric(
+    const std::set<std::string>& forcings, const TimePoint& time, const N& node)
 {
     ModelState state;
 
@@ -305,12 +303,11 @@ ModelState ParaGridIO::readForcingTimeGeneric(const std::set<std::string>& forci
     return state;
 }
 
-
 ModelState ParaGridIO::readForcingTimeStatic(
     const std::set<std::string>& forcings, const TimePoint& time, const std::string& filePath)
 {
 
-        ModelState state;
+    ModelState state;
     try {
         netCDF::NcFile ncFile(filePath, netCDF::NcFile::read);
 
