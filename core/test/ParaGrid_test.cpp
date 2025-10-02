@@ -70,7 +70,7 @@ void initializeTestData(
 
     // In the following loops we only set the "inner" data
 
-    // Hfield's, DGField and mask
+    // HFields, DGField and mask
     for (size_t j = 0; j < localNY - 2 * haloWidth; ++j) {
         double yy = scale * (j - float(ny) / 2);
         for (size_t i = 0; i < localNX - 2 * haloWidth; ++i) {
