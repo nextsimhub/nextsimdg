@@ -681,6 +681,14 @@ void Xios::affixModelMetadata()
 
             // Dimensions and DG components
             std::multimap<std::string, netCDF::NcDim> dimMap = ncFile.getDims();
+            // Check that the root node has any dimensions associated with it
+            if (dimMap.empty()) {
+                std::string badFileMsg = (ncFile.getGroups().count("data"))
+                    ? "legacy nextSIM-DG restart"
+                    : "unknown netCDF";
+                throw std::runtime_error(std::string(
+                    "Cannot read " + badFileMsg + " file when using nextSIM-DG XIOS support."));
+            }
             for (auto entry : ModelArray::definedDimensions) {
                 auto dimType = entry.first;
                 // TODO: Account for DG
