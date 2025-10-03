@@ -24,6 +24,7 @@ The ``xios`` section contains a single entry, which determines whether or not to
 build nextSIM-DG with XIOS as the I/O driver.
 
 .. code-block::
+
   [xios]
   enable = true
 
@@ -32,6 +33,7 @@ entries relevant to XIOS: ``start`` and ``time_step``. These are used to
 configure the calendar used by XIOS and take the following default values.
 
 .. code-block::
+
   [model]
   start = 1970-01-01T00:00:00Z
   time_step = P0-0T01:00:00
@@ -43,6 +45,7 @@ labelled ``field_A`` and ``field_B``, which are written to file
 ``my_output_file.nc`` every two (simulated) hours.
 
 .. code-block::
+
   [XiosOutput]
   period = P0-0T02:00:00
   filename = my_output_file.nc
