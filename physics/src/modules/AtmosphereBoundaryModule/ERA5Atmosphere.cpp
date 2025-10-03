@@ -10,6 +10,10 @@
 
 #include <ctime>
 
+#include <ncDim.h>
+#include <ncFile.h>
+#include <ncVar.h>
+
 namespace Nextsim {
 
 std::string ERA5Atmosphere::filePath;
@@ -120,14 +124,12 @@ void ERA5Atmosphere::setData(const ModelState::DataMap& ms)
     fluxImpl->setData(ms);
 }
 
-const std::string ERA5Atmosphere::filename(const std::string& era5Name, const TimePoint& time)
+std::string e5FilenameFromYear(const std::string& era5Name, size_t year)
 {
-    std::tm* cTime = time.gmtime();
-    int year = cTime->tm_year;
     return "ERA5_" + era5Name + "_y" + std::to_string(year) + ".nc";
 }
 
-const std::string ERA5Atmosphere::era5FromNSName(const std::string& nsName)
+const std::string era5FromNSName(const std::string& nsName)
 {
     static const std::map<std::string, std::string> era5FromNS = {
             {"tair", "t2m"},
@@ -139,15 +141,82 @@ const std::string ERA5Atmosphere::era5FromNSName(const std::string& nsName)
     return era5FromNS.at(nsName);
 }
 
+using era5Buffer = Eigen::Array<double, Eigen::Dynamic, 1>;
+
+era5Buffer getFileIndexData(const std::string& filename, size_t tIndex)
+{
+    era5Buffer data;
+    netCDF::NcFile ncFile(filename, netCDF::NcFile::read, netCDF::NcFile::nc4);
+    netCDF::NcVar dataVar;
+
+    size_t nLat;
+    size_t nLon;
+    // There should be 4 vars, longitude, latitude, time and the data variable
+    for (auto entry : ncFile.getVars()) {
+        if (entry.first == "longitude") {
+            nLon = entry.second.getDim(0).getSize();
+        } else if (entry.first == "latitude") {
+            nLat = entry.second.getDim(0).getSize();
+        } else if (entry.first == "time") {
+        } else {
+            dataVar = entry.second;
+        }
+    }
+    std::vector<size_t> start = {tIndex, 0, 0};
+    std::vector<size_t> count = {1, nLat, nLon};
+    // Time dimension
+    start[0] = tIndex;
+    count[0] = 1;
+
+    data.resize(nLon*nLat, 1);
+
+    dataVar.getVar(start, count, data.data());
+
+    ncFile.close();
+
+    return data;
+}
+
+era5Buffer getVarIndexData(const std::string& era5Name, size_t year, size_t tIndex)
+{
+    return getFileIndexData(e5FilenameFromYear(era5Name, year), tIndex);
+}
+
+// time index from the C tm struct
+size_t timeIndexFromTM(const std::tm* tm)
+{
+    return tm->tm_yday * 24 + tm->tm_hour;
+}
+
+
+// Time interpolation happens here
+era5Buffer getVarTimeData(const std::string& era5Name, const TimePoint& time)
+{
+    std::tm* tm1 = time.gmtime();
+
+    era5Buffer v1 = getVarIndexData(era5Name, tm1->tm_year, timeIndexFromTM(tm1));
+    TimePoint t2 = time + Duration(3600);
+    std::tm* tm2 = t2.gmtime();
+    era5Buffer v2 = getVarIndexData(era5Name, tm1->tm_year, timeIndexFromTM(tm1));
+    double f = tm1->tm_min / 60.;
+    return v2 * f + v1 * (1-f);
+}
+
+ModelArray maFromERA5Buffer(const era5Buffer& buffer)
+{
+    return ModelArray(ModelArray::Type::H);
+}
+
 const ModelArray ERA5Atmosphere::getData(const std::string& nsName, const TimePoint& time) const
 {
     if (nsName == "wind_speed") {
         era5Buffer u, v;
-        u = dataBuffer(filename("u10", time), time);
-        v = dataBuffer(filename("v10", time), time);
+        u = getVarTimeData("u10", time);
+        v = getVarTimeData("v10", time);
         return maFromERA5Buffer((u.square() + v.square()).sqrt());
     } else {
-        return maFromERA5Buffer(dataBuffer(filename(era5FromNSName(nsName), time), time));
+        return maFromERA5Buffer(getVarTimeData(era5FromNSName(nsName), time));
     }
 }
+
 } /* namespace Nextsim */

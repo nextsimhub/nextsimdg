@@ -57,14 +57,7 @@ private:
         return ignore;
     }
 
-    static const std::string filename(const std::string& era5Name, const TimePoint& time);
-    static const std::string era5FromNSName(const std::string& nsName);
-
     const ModelArray getData(const std::string& nsName, const TimePoint& time) const;
-
-    using era5Buffer = Eigen::Array<double, Eigen::Dynamic, 1>;
-    era5Buffer dataBuffer(const std::string& filename, const TimePoint& time) const { return era5Buffer(); }
-    static ModelArray maFromERA5Buffer(const era5Buffer& buffer) { return ModelArray(ModelArray::Type::H); }
 
     HField tair;
     HField tdew;
