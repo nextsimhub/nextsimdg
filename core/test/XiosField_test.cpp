@@ -11,6 +11,8 @@
 
 #include "StructureModule/include/ParametricGrid.hpp"
 #include "include/Finalizer.hpp"
+#include "include/Model.hpp"
+#include "include/ModelMPI.hpp"
 #include "include/Xios.hpp"
 
 namespace Nextsim {
@@ -29,12 +31,24 @@ MPI_TEST_CASE("TestXiosField", 3)
     // Enable XIOS in the 'config' and provide parameters to configure it
     enableXios();
     std::stringstream config;
+    config << "[model]" << std::endl;
+    config << "start = 2023-03-17T17:11:00Z" << std::endl;
+    config << "stop = 2023-03-17T18:11:00Z" << std::endl;
+    config << "time_step = P0-0T01:00:00" << std::endl;
     config << "[XiosOutput]" << std::endl;
     config << "period = P0-0T03:00:00" << std::endl;
     config << "filename = xios_test_output" << std::endl;
     config << "field_names = field_A" << std::endl;
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
+
+    // Create ModelMetadata instance based off a partition metadata file
+    auto& modelMPI = ModelMPI::getInstance(test_comm);
+    auto& metadata = ModelMetadata::getInstance("xios_test_partition_metadata_3.nc");
+
+    // Create a Model and configure it so that time options are parsed
+    Model model;
+    model.configureTime();
 
     // Get the Xios singleton instance and check it's initialized
     Xios& xiosHandler = Xios::getInstance();

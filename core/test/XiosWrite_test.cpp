@@ -10,8 +10,8 @@
 
 #include "StructureModule/include/ParametricGrid.hpp"
 #include "include/Finalizer.hpp"
+#include "include/Model.hpp"
 #include "include/ModelMPI.hpp"
-#include "include/ModelMetadata.hpp"
 #include "include/NextsimModule.hpp"
 #include "include/ParaGridIO.hpp"
 #include "include/Xios.hpp"
@@ -45,6 +45,14 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
 
+    // Create ModelMetadata instance based off a partition metadata file
+    auto& modelMPI = ModelMPI::getInstance(test_comm);
+    auto& metadata = ModelMetadata::getInstance("xios_test_partition_metadata_2.nc");
+
+    // Create a Model and configure it so that time options are parsed
+    Model model;
+    model.configureTime(); // TODO: Use Model.configure to parse restart files this way, too?
+
     // Create ParametricGrid and ParaGridIO instances
     Module::setImplementation<IStructure>("Nextsim::ParametricGrid");
     ParametricGrid grid;
@@ -70,9 +78,8 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     REQUIRE(ModelArray::nComponents(ModelArray::Type::DG) == DG);
     REQUIRE(ModelArray::nComponents(ModelArray::Type::VERTEX) == ModelArray::nCoords);
 
-    // Create ModelMetadata instance based off a partition metadata file
-    ModelMPI& modelMPI = ModelMPI::getInstance(test_comm);
-    ModelMetadata& metadata = ModelMetadata::getInstance("xios_test_partition_metadata_2.nc");
+    // Affix ModelMetadata to Xios handler
+    // TODO: Automate this - can't be inlined in Xios::getInstance because need set field types
     xiosHandler.affixModelMetadata();
 
     // Set field types

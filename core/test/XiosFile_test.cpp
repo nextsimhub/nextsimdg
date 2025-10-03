@@ -12,8 +12,8 @@
 #include "StructureModule/include/ParametricGrid.hpp"
 #include "include/Configurator.hpp"
 #include "include/Finalizer.hpp"
+#include "include/Model.hpp"
 #include "include/ModelMPI.hpp"
-#include "include/ModelMetadata.hpp"
 #include "include/Xios.hpp"
 
 using namespace doctest;
@@ -36,6 +36,7 @@ MPI_TEST_CASE("TestXiosFile", 2)
     std::stringstream config;
     config << "[model]" << std::endl;
     config << "start = 2023-03-17T17:11:00Z" << std::endl;
+    config << "stop = 2023-03-17T18:41:00Z" << std::endl;
     config << "time_step = P0-0T01:30:00" << std::endl;
     config << "[XiosInput]" << std::endl;
     config << "period = P0-0T03:00:00" << std::endl;
@@ -52,9 +53,12 @@ MPI_TEST_CASE("TestXiosFile", 2)
     auto& modelMPI = ModelMPI::getInstance(test_comm);
     auto& metadata = ModelMetadata::getInstance("xios_test_partition_metadata_2.nc");
 
+    // Create a Model and configure it so that time options are parsed
+    Model model;
+    model.configureTime(); // TODO: Use Model.configure to parse restart files this way, too?
+
     // Get the Xios singleton instance and check it's initialized
     Xios& xiosHandler = Xios::getInstance();
-    xiosHandler.affixModelMetadata();
     REQUIRE(xiosHandler.isInitialized());
     REQUIRE(xiosHandler.getClientMPISize() == 2);
 
@@ -62,6 +66,10 @@ MPI_TEST_CASE("TestXiosFile", 2)
     // NOTE: fields are automatically created along with files
     xiosHandler.setFieldType("mask", ModelArray::Type::H);
     xiosHandler.setFieldType("hice", ModelArray::Type::DG);
+
+    // Affix ModelMetadata to Xios handler
+    // TODO: Automate this - can't be inlined in Xios::getInstance because need set field types
+    xiosHandler.affixModelMetadata();
 
     // --- Tests for file API
     const std::string inFileId = "xios_test_input";

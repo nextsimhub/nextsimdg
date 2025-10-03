@@ -137,21 +137,42 @@ if(ENABLE_MPI)
         )
         add_custom_target(generate_xios_masks ALL DEPENDS xios_test_mask.nc)
         add_custom_command(
+            OUTPUT xios_test_partition_metadata_1.nc
+            COMMAND
+                ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} 1 decomp -m mask -o xy
+                    -g xios_test_mask.nc --output-prefix xios_test
+            DEPENDS xios_test_mask.nc
+        )
+        add_custom_command(
             OUTPUT xios_test_partition_metadata_2.nc
             COMMAND
                 ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} 2 decomp -m mask -o xy
                     -g xios_test_mask.nc --output-prefix xios_test
             DEPENDS xios_test_mask.nc
         )
+        add_custom_command(
+            OUTPUT xios_test_partition_metadata_3.nc
+            COMMAND
+                ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} 3 decomp -m mask -o xy
+                    -g xios_test_mask.nc --output-prefix xios_test
+            DEPENDS xios_test_mask.nc
+        )
         add_custom_target(generate_xios_partition_metadata ALL
-            DEPENDS xios_test_partition_metadata_2.nc
+            DEPENDS
+                xios_test_partition_metadata_1.nc
+                xios_test_partition_metadata_2.nc
+                xios_test_partition_metadata_3.nc
         )
 
         add_executable(testXiosCalendar_MPI1 "XiosCalendar_test.cpp" "MainMPI.cpp")
         target_compile_definitions(testXiosCalendar_MPI1 PRIVATE USE_XIOS)
         target_include_directories(
             testXiosCalendar_MPI1
-            PRIVATE "${MODEL_INCLUDE_DIR}" "${XIOS_INCLUDE_LIST}" "${ModulesRoot}/StructureModule"
+            PRIVATE
+                ${PHYSICS_INCLUDE_DIRS}
+                "${MODEL_INCLUDE_DIR}"
+                "${XIOS_INCLUDE_LIST}"
+                "${ModulesRoot}/StructureModule"
         )
         target_link_libraries(testXiosCalendar_MPI1 PRIVATE nextsimlib doctest::doctest)
 
@@ -159,7 +180,11 @@ if(ENABLE_MPI)
         target_compile_definitions(testXiosAxis_MPI3 PRIVATE USE_XIOS)
         target_include_directories(
             testXiosAxis_MPI3
-            PRIVATE "${MODEL_INCLUDE_DIR}" "${XIOS_INCLUDE_LIST}" "${ModulesRoot}/StructureModule"
+            PRIVATE
+                ${PHYSICS_INCLUDE_DIRS}
+                "${MODEL_INCLUDE_DIR}"
+                "${XIOS_INCLUDE_LIST}"
+                "${ModulesRoot}/StructureModule"
         )
         target_link_libraries(testXiosAxis_MPI3 PRIVATE nextsimlib doctest::doctest)
 
@@ -167,7 +192,11 @@ if(ENABLE_MPI)
         target_compile_definitions(testXiosGrid_MPI2 PRIVATE USE_XIOS)
         target_include_directories(
             testXiosGrid_MPI2
-            PRIVATE "${MODEL_INCLUDE_DIR}" "${XIOS_INCLUDE_LIST}" "${ModulesRoot}/StructureModule"
+            PRIVATE
+                ${PHYSICS_INCLUDE_DIRS}
+                "${MODEL_INCLUDE_DIR}"
+                "${XIOS_INCLUDE_LIST}"
+                "${ModulesRoot}/StructureModule"
         )
         target_link_libraries(testXiosGrid_MPI2 PRIVATE nextsimlib doctest::doctest)
 
@@ -175,7 +204,11 @@ if(ENABLE_MPI)
         target_compile_definitions(testXiosField_MPI3 PRIVATE USE_XIOS)
         target_include_directories(
             testXiosField_MPI3
-            PRIVATE "${MODEL_INCLUDE_DIR}" "${XIOS_INCLUDE_LIST}" "${ModulesRoot}/StructureModule"
+            PRIVATE
+                ${PHYSICS_INCLUDE_DIRS}
+                "${MODEL_INCLUDE_DIR}"
+                "${XIOS_INCLUDE_LIST}"
+                "${ModulesRoot}/StructureModule"
         )
         target_link_libraries(testXiosField_MPI3 PRIVATE nextsimlib doctest::doctest)
 
@@ -183,7 +216,11 @@ if(ENABLE_MPI)
         target_compile_definitions(testXiosFile_MPI2 PRIVATE USE_XIOS)
         target_include_directories(
             testXiosFile_MPI2
-            PRIVATE "${MODEL_INCLUDE_DIR}" "${XIOS_INCLUDE_LIST}" "${ModulesRoot}/StructureModule"
+            PRIVATE
+                ${PHYSICS_INCLUDE_DIRS}
+                "${MODEL_INCLUDE_DIR}"
+                "${XIOS_INCLUDE_LIST}"
+                "${ModulesRoot}/StructureModule"
         )
         target_link_libraries(testXiosFile_MPI2 PRIVATE nextsimlib doctest::doctest)
 
@@ -195,7 +232,11 @@ if(ENABLE_MPI)
         )
         target_include_directories(
             testXiosRead_MPI2
-            PRIVATE "${MODEL_INCLUDE_DIR}" "${XIOS_INCLUDE_LIST}" "${ModulesRoot}/StructureModule"
+            PRIVATE
+                ${PHYSICS_INCLUDE_DIRS}
+                "${MODEL_INCLUDE_DIR}"
+                "${XIOS_INCLUDE_LIST}"
+                "${ModulesRoot}/StructureModule"
         )
         target_link_libraries(testXiosRead_MPI2 PRIVATE nextsimlib doctest::doctest)
 
@@ -203,7 +244,11 @@ if(ENABLE_MPI)
         target_compile_definitions(testXiosWrite_MPI2 PRIVATE USE_XIOS)
         target_include_directories(
             testXiosWrite_MPI2
-            PRIVATE "${MODEL_INCLUDE_DIR}" "${XIOS_INCLUDE_LIST}" "${ModulesRoot}/StructureModule"
+            PRIVATE
+                ${PHYSICS_INCLUDE_DIRS}
+                "${MODEL_INCLUDE_DIR}"
+                "${XIOS_INCLUDE_LIST}"
+                "${ModulesRoot}/StructureModule"
         )
         target_link_libraries(testXiosWrite_MPI2 PRIVATE nextsimlib doctest::doctest)
 
