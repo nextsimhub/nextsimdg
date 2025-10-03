@@ -207,13 +207,18 @@ ModelArray maFromERA5Buffer(const era5Buffer& buffer)
     return ModelArray(ModelArray::Type::H);
 }
 
+era5Buffer era5BufferHypot(const era5Buffer& x, const era5Buffer& y)
+{
+    return (x.square() + y.square()).sqrt();
+}
+
 const ModelArray ERA5Atmosphere::getData(const std::string& nsName, const TimePoint& time) const
 {
     if (nsName == "wind_speed") {
         era5Buffer u, v;
         u = getVarTimeData("u10", time);
         v = getVarTimeData("v10", time);
-        return maFromERA5Buffer((u.square() + v.square()).sqrt());
+        return maFromERA5Buffer(era5BufferHypot(u, v));
     } else {
         return maFromERA5Buffer(getVarTimeData(era5FromNSName(nsName), time));
     }
