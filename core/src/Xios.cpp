@@ -1367,7 +1367,7 @@ void Xios::createFile(const std::string fileId)
     }
     if (periodStr.length() == 0 || periodStr == "0") {
         ModelMetadata& metadata = ModelMetadata::getInstance();
-        setFileOutputFreq(fileId, metadata.stopTime() - metadata.startTime());
+        setFileOutputFreq(fileId, metadata.runLength());
     } else {
         setFileOutputFreq(fileId, Duration(periodStr));
     }
