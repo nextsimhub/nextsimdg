@@ -64,8 +64,8 @@ limitations under the License.
    model-components
    numerical-implementation
    outputs-diagnostics
-   
-   
+   xios
+
 .. toctree::
    :caption: INSTALLATION
    :maxdepth: 1
