@@ -519,14 +519,14 @@ void ParaGridIO::writeDiagnosticTime(const ModelState& state, const std::string&
     netCDF::NcVar timeVar(
         (isNew) ? ncFile.addVar(timeName, netCDF::ncDouble, timeDimVec) : ncFile.getVar(timeName));
     auto& metadata = ModelMetadata::getInstance();
-    double secondsSinceEpoch = (metadata.time() - TimePoint()).seconds();
+    double secondsSinceEpoch = (metadata.time() - TimePoint()).seconds()/60.;
 #ifdef USE_MPI
     netCDF::setVariableCollective(timeVar, ncFile);
 #endif
     timeVar.putVar({ nt }, { 1 }, &secondsSinceEpoch);
 
     if (isNew)
-        timeVar.putAtt("units", "seconds since 1970-01-01 00:00:00");
+        timeVar.putAtt("units", "minutes since 1970-01-01 00:00:00");
 
     // Write the data
     for (auto entry : state.data) {
