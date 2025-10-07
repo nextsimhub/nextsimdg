@@ -483,20 +483,28 @@ class initMaker:
         sss[:, :] = self.sss
 
         # mask data
-        # TODO: Figure out why the missing data flag doesn't work
-        # We should be able to define a missing value like this
-        # mdi = -3.282346e38  # Minus float max
-        # and then mask like this
-        # cice[:, :] = cice[:, :] * mask[:, :] + antimask * mdi
-        # cice.missing_value = mdi
-        # but the model doesn't like this
-        cice[:, :] = cice[:, :] * mask[:, :]
-        hice[:, :] = hice[:, :] * mask[:, :]
-        hsnow[:, :] = hsnow[:, :] * mask[:, :]
-        damage[:, :] = damage[:, :] * mask[:, :]
+        mdi = -3.282346e38  # Minus float max
+
+        cice[:, :] = cice[:, :] * mask[:, :] + antimask * mdi
+        cice.missing_value = mdi
+
+        hice[:, :] = hice[:, :] * mask[:, :] + antimask * mdi
+        hice.missing_value = mdi
+
+        hsnow[:, :] = hsnow[:, :] * mask[:, :] + antimask * mdi
+        hsnow.missing_value = mdi
+
+        damage[:, :] = damage[:, :] * mask[:, :] + antimask * mdi
+        damage.missing_value = mdi
+
+        # U and V must be zero on land
         u[:, :] = u[:, :] * mask[:, :]
         v[:, :] = v[:, :] * mask[:, :]
-        sss[:, :] = sss[:, :] * mask[:, :]
-        sst[:, :] = sst[:, :] * mask[:, :]
+
+        sss[:, :] = sss[:, :] * mask[:, :] + antimask * mdi
+        sss.missing_value = mdi
+
+        sst[:, :] = sst[:, :] * mask[:, :] + antimask * mdi
+        sst.missing_value = mdi
 
         self.__ncFile.close()
