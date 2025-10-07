@@ -39,6 +39,10 @@ protected:
     void rotateVectorFromGreenland(
         const ModelArray& uIn, const ModelArray& vIn, ModelArray& uOut, ModelArray& vOut) const
     {
+        // Make sure the outputs have the right size
+        uOut.resize();
+        vOut.resize();
+
         uOut = uIn * cosAngle - vIn * sinAngle;
         vOut = uIn * sinAngle + vIn * cosAngle;
     };
@@ -46,6 +50,10 @@ protected:
     void rotateVectorToGreenland(
         const ModelArray& uIn, const ModelArray& vIn, ModelArray& uOut, ModelArray& vOut) const
     {
+        // Make sure the outputs have the right size
+        uOut.resize();
+        vOut.resize();
+
         uOut = uIn * cosAngle + vIn * sinAngle;
         vOut = -uIn * sinAngle + vIn * cosAngle;
     };
@@ -63,6 +71,10 @@ protected:
      */
     void interpCURtoA(const UField& uIn, const VField& vIn, UField& uOut, VField& vOut) const
     {
+        // Make sure the outputs have the right size
+        uOut.resize();
+        vOut.resize();
+
         // First the interior
         for (size_t i = 1; i < uIn.dimensions()[0]; ++i) {
             for (size_t j = 1; j < uIn.dimensions()[1]; ++j) {
@@ -95,6 +107,10 @@ protected:
      */
     void interpAtoCUR(const UField& uIn, const VField& vIn, UField& uOut, VField& vOut) const
     {
+        // Make sure the outputs have the right size
+        uOut.resize();
+        vOut.resize();
+
         // First the interior
         for (size_t i = 1; i < uIn.dimensions()[0] - 1; ++i) {
             for (size_t j = 1; j < uIn.dimensions()[1] - 1; ++j) {
