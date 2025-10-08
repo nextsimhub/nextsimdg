@@ -1,5 +1,5 @@
-import numpy as np
 import netCDF4
+import numpy as np
 
 # Creates a restart file from one of the NH_PS grid files. (Currently hardcoded to 25 km).
 
@@ -94,7 +94,7 @@ for i in range(nx + 1):
         if ( np.abs( j-midy ) < 20) and ( np.abs( i-midx ) < 20):
             u[i,j] = .1
             v[i,j] = .1
-             
+
 
 """
 mdi =  -2.**300

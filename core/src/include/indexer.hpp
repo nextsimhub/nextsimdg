@@ -14,7 +14,7 @@ namespace Indexer {
 /*!
  * @brief Produces a one-dimensional index of an array given a multi-dimensional location.
  *
- * @detail Given the dimensions of a mulit-dimensional array and a vector of positions across those
+ * @details Given the dimensions of a mulit-dimensional array and a vector of positions across those
  * dimensions, this function returns the corresponding index of that location within the flattened,
  * one-dimensional representation of the array, as it would typically be stored in memory, or when
  * a multi-dimensional spatial array is flattened into a single logical dimension.

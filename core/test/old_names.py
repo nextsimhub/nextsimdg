@@ -1,3 +1,4 @@
+"""Generate the old_names.nc file used by core/test/ParaGrid_test.cpp."""
 import time
 
 import netCDF4
@@ -7,8 +8,8 @@ import numpy as np
 if __name__ == "__main__":
 
     # Grid dimensions. x varies fastest
-    nfirst = 1
-    nsecond = 2
+    nfirst = 9
+    nsecond = 10
     nLayers = 1
     ncg = 1
     n_dg = 1

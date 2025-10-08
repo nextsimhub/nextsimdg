@@ -91,7 +91,7 @@ y_coords = np.zeros((nx + 1, ny + 1))
 for i in range(nx + 1):
     x_coords[:, i] = coord1d
     y_coords[i, :] = coord1d
-    
+
 lat = 90 - (x_coords**2 + y_coords**2)**0.5
 lon = np.rad2deg(np.arctan2(y_coords, x_coords))
 
@@ -122,22 +122,22 @@ v = ncFile.createVariable("v", "f8", timefield_dims)
 # 12 monthly values
 for t in range(12):
     time_var[t] = 946684800 + 2592000 * t # 30 day months
-    
+
     q_swin[t, :, :] = -test_data - 100*t
     q_swin.missing_value = mdi
-    
+
     q_lwin[t, :, :] = -200 - test_data - 100*t
     q_lwin.missing_value = mdi
-    
+
     wind[t, :, :] = test_data + 100*t
     wind.missing_value = mdi
-    
+
     pmsl[t, :, :] = test_data + 1.01e5 + 1000*t
     pmsl.missing_value = mdi
-    
+
     tair[t, :, :] = 200 + test_data + 100*t
     tair.missing_value = mdi
-    
+
     tdew[t, :, :] = 100 + test_data + 100*t
     tdew.missing_value = mdi
 

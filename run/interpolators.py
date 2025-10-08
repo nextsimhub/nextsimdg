@@ -1,11 +1,13 @@
 import math
+
 import numpy as np
-from scipy import interpolate
 import pyproj
+from scipy import interpolate
+
 
 def topaz4_interpolate(target_lon, target_lat, data, data_x, data_y, proj_string):
     """
-    Returns TOPAZ data interpolated from the data grid and coordinates to the target grid and coordinates
+    Interpolate TOPAZ data onto the target grid and coordinates.
 
     :param target_lon: Longitudes of the target grid
     :param target_lat: Latitudes of the target grid
@@ -15,7 +17,6 @@ def topaz4_interpolate(target_lon, target_lat, data, data_x, data_y, proj_string
     :param proj_string: Map projection (proj4 string) of the data grid
     :return: Interpolated data on the target grid
     """
-
     # Use pyproj and the fact that the proj4 string is embedded in the TOPAZ files
     P = pyproj.Proj(proj_string)
     target_x, target_y = P(target_lon, target_lat)
@@ -35,17 +36,18 @@ def topaz4_interpolate(target_lon, target_lat, data, data_x, data_y, proj_string
     points = np.array([target_x.ravel()[nanmask], target_y.ravel()[nanmask]]).T
     xi = np.array([target_x.ravel(), target_y.ravel()]).T
 
-    return (interpolate.griddata(points, field.ravel()[nanmask], xi, method='nearest').reshape(target_lon.shape))
+    return (interpolate.griddata(points, field.ravel()[nanmask], xi, method="nearest").reshape(target_lon.shape))
 
 def bilinear(eyes, jays, data):
-    """"
-    Returns bilinearly interpolated data given an array of fractional indices. Supports periodic boundary conditions.
+    """
+    Bilinearly interpolate data given an array of fractional indices.
+
+    Supports periodic boundary conditions.
 
     :param eyes: Fractional indices along the x-axis
     :param jays: Fractional indices along the y-axis
     :param data: Data to interpolate
     """
-
     i = np.floor(eyes).astype(int)
     j = np.floor(jays).astype(int)
 
@@ -61,7 +63,7 @@ def bilinear(eyes, jays, data):
 
 def era5_interpolate(target_lons, target_lats, data, data_lons, data_lats):
     """
-    Returns ERA5 data interpolated from the data grid and coordinates to the target grid and coordinates
+    Interpolate ERA5 data onto the target grid and coordinates.
 
     :param target_lons: Longitudes of the target grid
     :param target_lats:  Latitudes of the target grid
@@ -70,7 +72,6 @@ def era5_interpolate(target_lons, target_lats, data, data_lons, data_lats):
     :param data_lats: Latitudes of the data grid
     :return: Interpolated data on the target grid
     """
-
     target_i = (target_lons - data_lons[0]) / (data_lons[1] - data_lons[0])
     # Make sure that the index is in the range of the size of the longitude array
     target_i %= len(data_lons)
@@ -82,13 +83,15 @@ def era5_interpolate(target_lons, target_lats, data, data_lons, data_lats):
 
 def heading_to_greenland(lat, lon):
     """
-    Returns the rotation angle at a given position to transform vectors from geographic pole coordinates to the Greenland displaced pole coordinate system.
+    Calculate the heading to Greenland from a given point.
+
+    That is, the rotation angle at a given position to transform vectors from geographic
+    pole coordinates to the Greenland displaced pole coordinate system.
 
     :param lat: Latitude of the location
     :param lon: Longitude of the location
     :return: The rotation of the basis vector, computed as the azimuth of the great circle path from the location to the location of the new pole.
     """
-
     # The pole lies at 75˚ N, 40˚ W = -40˚ E = 320˚ E
     pole_lat = math.radians(75.0)
     pole_lon = 320.0
@@ -103,12 +106,11 @@ def heading_to_greenland(lat, lon):
 
 def rotate_velocities(u, v, angle):
     """
-    Rotates the u and v velocity components by an angle given in radians.
+    Rotate the u and v velocity components by an angle given in radians.
 
     :param u: U-component of the velocity vector
     :param v: V-component of the velocity vector
     :param angle: The angle to rotate by, in radians
     :return: A tuple of the rotated u and v components.
     """
-
     return (u * np.cos(angle) + v * np.sin(angle), -u * np.sin(angle) + v * np.cos(angle))
