@@ -19,7 +19,7 @@ void OASISCoupledOcean::setData(const ModelState::DataMap& ms)
     IOceanBoundary::setData(ms);
 
     // Precalculate cos and sin of the azimut angle to use in the rotateVector... functions
-    ModelArray gridAzimuthAngle = ms.at(gridAzimuthName);
+    HField gridAzimuthAngle = ms.at(gridAzimuthName);
     cosAngle = gridAzimuthAngle.cos();
     sinAngle = gridAzimuthAngle.sin();
 }
@@ -108,8 +108,8 @@ void OASISCoupledOcean::updateAfter(const TimestepTime& tst)
 #ifdef USE_OASIS
     mergeFluxes(tst);
 
-    UField tauXOnCGrid, tauXRotated;
-    VField tauYOnCGrid, tauYRotated;
+    HField tauXOnCGrid, tauXRotated;
+    HField tauYOnCGrid, tauYRotated;
     rotateVectorFromGreenland(tauX, tauY, tauXRotated, tauYRotated);
     interpAtoCUR(tauXRotated, tauYRotated, tauXOnCGrid, tauYOnCGrid);
 

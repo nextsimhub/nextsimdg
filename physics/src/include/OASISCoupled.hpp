@@ -37,7 +37,7 @@ public:
 
 protected:
     void rotateVectorFromGreenland(
-        const ModelArray& uIn, const ModelArray& vIn, ModelArray& uOut, ModelArray& vOut) const
+        const HField& uIn, const HField& vIn, HField& uOut, HField& vOut) const
     {
         // Make sure the outputs have the right size
         uOut.resize();
@@ -48,7 +48,7 @@ protected:
     };
 
     void rotateVectorToGreenland(
-        const ModelArray& uIn, const ModelArray& vIn, ModelArray& uOut, ModelArray& vOut) const
+        const HField& uIn, const HField& vIn, HField& uOut, HField& vOut) const
     {
         // Make sure the outputs have the right size
         uOut.resize();
@@ -58,7 +58,7 @@ protected:
         vOut = -uIn * sinAngle + vIn * cosAngle;
     };
 
-    ModelArray cosAngle, sinAngle;
+    HField cosAngle, sinAngle;
 
     /*!
      * Interpolate fields on U and V points of a C-grid to the centre point of the grid. The U and V
@@ -69,7 +69,7 @@ protected:
      * @param uOut U field on centre point
      * @param vOut V field on centre point
      */
-    void interpCURtoA(const UField& uIn, const VField& vIn, UField& uOut, VField& vOut) const
+    void interpCURtoA(const HField& uIn, const HField& vIn, HField& uOut, HField& vOut) const
     {
         // Make sure the outputs have the right size
         uOut.resize();
@@ -105,7 +105,7 @@ protected:
      * @param uOut U field on the U-point
      * @param vOut V field on the V-point
      */
-    void interpAtoCUR(const UField& uIn, const VField& vIn, UField& uOut, VField& vOut) const
+    void interpAtoCUR(const HField& uIn, const HField& vIn, HField& uOut, HField& vOut) const
     {
         // Make sure the outputs have the right size
         uOut.resize();
