@@ -12,8 +12,8 @@ ocean_temperature = -1.54
 ocean_salinity = ocean_temperature / mu
 
 initializer.mask[:, :] = 1
-initializer.cice[:, :] = 1.0
-initializer.hice[:, :] = 2.0
+initializer.cice[:, :] = 1.
+initializer.hice[:, :] = 2.
 initializer.hsnow[:, :] = 0.3
 initializer.sss[:, :] = ocean_salinity
 initializer.sst[:, :] = ocean_temperature
