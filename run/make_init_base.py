@@ -1,6 +1,7 @@
 import netCDF4
 import numpy as np
 
+
 class initMaker:
     """
     A "plug-and-play" initialisation class for neXtSIM.
@@ -53,7 +54,6 @@ class initMaker:
         :param nFirst: The number of rows (first dimension)
         :param nSecond: The number of columns (second dimension)
         """
-
         # Set all arrays to the correct size
         self.__nFirst = nFirst
         self.__nSecond = nSecond
@@ -99,7 +99,6 @@ class initMaker:
         :param nSecond: Number of columns (seond dimension)
         :param res: Model resolution [m]
         """
-
         # Initialise the arrays and the output file
         self.__init_vars_and_file__(nFirst, nSecond)
 
@@ -142,7 +141,6 @@ class initMaker:
         :param qlat_name: Name of the latitude variable in the grid file for the grid cell upper right or lower left corner.
         :return:
         """
-
         grid = netCDF4.Dataset(f"{grid_file}", "r")
 
         # Grid dimensions. We're dealing with files written in and for FORTRAN, so y is the first dimension and x the second.
@@ -281,7 +279,6 @@ class initMaker:
         :param lon: Longitudes of the mesh
         :return: A tuple of the rotated latitudes and longitudes.
         """
-
         latr = np.deg2rad(lat)
         lonr = np.deg2rad(lon)
 
@@ -310,7 +307,6 @@ class initMaker:
         :param lon: Longitudes of the rotated mesh
         :return: A tuple of the geographical latitudes and longitudes.
         """
-
         latr = np.deg2rad(lat)
         lonr = np.deg2rad(lon)
 
@@ -352,14 +348,13 @@ class initMaker:
         :param lats: Latitudes of the grid vertices.
         :return: Angle between the grid y-axis and north.
         """
-
         n = np.shape(lons)[0] - 1
         m = np.shape(lons)[1] - 1
 
         theta = np.zeros((n, m))
 
-        for i in range(0, n):
-            for j in range(0, m):
+        for i in range(n):
+            for j in range(m):
 
                 lonVerts = lons[i:i + 2, j:j + 2]
                 latVerts = lats[i:i + 2, j:j + 2]
@@ -367,8 +362,8 @@ class initMaker:
                 # Rotate the longitude if needed
                 if (abs(lonVerts[0, 0] - lonVerts[1, 0]) > 90. or abs(lonVerts[0, 1] - lonVerts[1, 1]) > 90 or abs(
                     lonVerts[0, 0] - lonVerts[0, 1]) > 90 or abs(lonVerts[1, 0] - lonVerts[1, 1]) > 90):
-                    for ii in range(0, 2):
-                        for jj in range(0, 2):
+                    for ii in range(2):
+                        for jj in range(2):
                             if lonVerts[ii, jj] < 0:
                                 lonVerts[ii, jj] += 360
 
