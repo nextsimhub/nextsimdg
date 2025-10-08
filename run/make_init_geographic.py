@@ -1,8 +1,8 @@
-import netCDF4
-import numpy as np
 import time
 from pathlib import Path
 
+import netCDF4
+import numpy as np
 from interpolators import topaz4_interpolate
 from make_init_base import initMaker
 
@@ -118,7 +118,7 @@ if __name__ == "__main__":
     data_time = time.strptime(args.start_date, "%Y-%m-%d")
     source_file_name = topaz4_source_file_name(data_time)
     source_file = netCDF4.Dataset(source_file_name, "r")
-    proj_string = getattr(source_file["stereographic"], "proj4")
+    proj_string = source_file["stereographic"].proj4
     source_x = source_file["x"][:]
     source_y = source_file["y"][:]
 
