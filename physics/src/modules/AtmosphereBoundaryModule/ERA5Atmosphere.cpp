@@ -118,6 +118,12 @@ void ERA5Atmosphere::update(const TimestepTime& tst)
 
 void ERA5Atmosphere::setFilePath(const std::string& filePathIn) { filePath = filePathIn; }
 
+void ERA5Atmosphere::setDirectory(const std::string& dir) { fileDirectory() = dir; }
+const std::string& ERA5Atmosphere::getDirectory() { return fileDirectory(); }
+const std::string ERA5Atmosphere::addDirectory(const std::string& file)
+{
+    return getDirectory() + "/" + file;
+}
 void ERA5Atmosphere::setData(const ModelState::DataMap& ms)
 {
     IAtmosphereBoundary::setData(ms);
@@ -126,7 +132,9 @@ void ERA5Atmosphere::setData(const ModelState::DataMap& ms)
 
 std::string e5FilenameFromYear(const std::string& era5Name, size_t year)
 {
-    return "ERA5_" + era5Name + "_y" + std::to_string(year) + ".nc";
+    std::string filename = "ERA5_" + era5Name + "_y" + std::to_string(year) + ".nc";
+//    return ERA5Atmosphere::addDirectory(filename);
+    return ERA5Atmosphere::addDirectory(filename);
 }
 
 const std::string era5FromNSName(const std::string& nsName)
@@ -193,16 +201,17 @@ size_t timeIndexFromTM(const std::tm* tm)
 era5Buffer getVarTimeData(const std::string& era5Name, const TimePoint& time)
 {
     std::tm* tm1 = time.gmtime();
+    static size_t epochYear = 1900;
 
-    era5Buffer v1 = getVarIndexData(era5Name, tm1->tm_year, timeIndexFromTM(tm1));
+    era5Buffer v1 = getVarIndexData(era5Name, tm1->tm_year + epochYear, timeIndexFromTM(tm1));
     TimePoint t2 = time + Duration(3600);
     std::tm* tm2 = t2.gmtime();
-    era5Buffer v2 = getVarIndexData(era5Name, tm1->tm_year, timeIndexFromTM(tm1));
-    double f = tm1->tm_min / 60.;
+    era5Buffer v2 = getVarIndexData(era5Name, tm2->tm_year + epochYear, timeIndexFromTM(tm1));
+    double f = tm2->tm_min / 60.;
     return v2 * f + v1 * (1-f);
 }
 
-ModelArray maFromERA5Buffer(const era5Buffer& buffer)
+ModelArray maFromERA5Buffer(const era5Buffer& buffer, const ModelArray& destLon, const ModelArray& destLat)
 {
     return ModelArray(ModelArray::Type::H);
 }
@@ -218,9 +227,9 @@ const ModelArray ERA5Atmosphere::getData(const std::string& nsName, const TimePo
         era5Buffer u, v;
         u = getVarTimeData("u10", time);
         v = getVarTimeData("v10", time);
-        return maFromERA5Buffer(era5BufferHypot(u, v));
+        return maFromERA5Buffer(era5BufferHypot(u, v), modelLon, modelLat);
     } else {
-        return maFromERA5Buffer(getVarTimeData(era5FromNSName(nsName), time));
+        return maFromERA5Buffer(getVarTimeData(era5FromNSName(nsName), time), modelLon, modelLat);
     }
 }
 

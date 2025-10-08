@@ -41,6 +41,10 @@ public:
 
     void setFilePath(const std::string& filePathIn);
 
+    static void setDirectory(const std::string& dir);
+    static const std::string& getDirectory();
+    static const std::string addDirectory(const std::string& file);
+
 private:
     // Since the configuration is global, it makes sense for the file path to
     // be static.
@@ -65,6 +69,9 @@ private:
     HField sw_in;
     HField lw_in;
     HField wind;
+
+    HField modelLon;
+    HField modelLat;
 
     IFluxCalculation* fluxImpl;
 };

@@ -7,8 +7,11 @@
 
 #include "include/ERA5Atmosphere.hpp"
 
+#include "include/ModelArray.hpp"
 #include "include/Time.hpp"
 
+#include <filesystem>
+#include <cmath>
 #include <string>
 
 #include <ncDim.h>
@@ -24,7 +27,7 @@ era5Buffer getFileIndexData(const std::string& filename, size_t tIndex);
 era5Buffer getVarIndexData(const std::string& era5Name, size_t year, size_t tIndex);
 size_t timeIndexFromTM(const std::tm* tm);
 era5Buffer getVarTimeData(const std::string& era5Name, const TimePoint& time);
-ModelArray maFromERA5Buffer(const era5Buffer& buffer);
+ModelArray maFromERA5Buffer(const era5Buffer& buffer, const ModelArray& destLon, const ModelArray& destLat);
 era5Buffer era5BufferHypot(const era5Buffer& x, const era5Buffer& y);
 
 #ifndef TEST_FILES_DIR
@@ -34,12 +37,8 @@ era5Buffer era5BufferHypot(const era5Buffer& x, const era5Buffer& y);
 const std::string testFilesDir = TEST_FILES_DIR;
 
 int testFileYear = 2000;
-const std::string era5NameLat = "lat";
-const std::string latFileName = "ERA5_lat_y2000.nc";
-const std::string era5NameLon = "lon";
-const std::string lonFileName = "ERA5_lon_y2000.nc";
-const std::string era5NameTimeTest = "timet";
-const std::string timeTestFileName = "ERA5_timet_y2000.nc";
+const std::string era5NameTime = "timet";
+const std::string timeFileName = "ERA5_timet_y2000.nc";
 
 size_t nx = 1440;
 size_t ny = 265;
@@ -47,22 +46,33 @@ double dlon = 0.25;
 double lon0 = 0.0;
 double dlat = -0.25;
 double lat0 = 90.;
-size_t nt = 8760;
+size_t nt = 24;
 double t0 = 0.;
 double dt = 1.;
 
+static const double pi = 0x3.243F68885Ap0;
+double radians(double deg)
+{
+    return deg * pi / 180;
+}
+double degrees(double rad)
+{
+    return rad * 180. / pi;
+}
 // Create longitude and latitude unprojected data files.
 void createERA5TestFiles()
 {
     // Spatial interpolation test files
-    netCDF::NcFile latFile(testFilesDir + "/" + latFileName, netCDF::NcFile::replace, netCDF::NcFile::nc4);
-    netCDF::NcFile lonFile(testFilesDir + "/" + lonFileName, netCDF::NcFile::replace, netCDF::NcFile::nc4);
+//    netCDF::NcFile latFile(testFilesDir + "/" + latFileName, netCDF::NcFile::replace, netCDF::NcFile::nc4);
+//    netCDF::NcFile lonFile(testFilesDir + "/" + lonFileName, netCDF::NcFile::replace, netCDF::NcFile::nc4);
+    netCDF::NcFile timeFile(testFilesDir + "/" + timeFileName, netCDF::NcFile::replace, netCDF::NcFile::nc4);
 
     era5Buffer longitudeDim(nx, 1);
     era5Buffer latitudeDim(ny, 1);
     era5Buffer timeDim(nt, 1);
-    era5Buffer lat2d(ny*nx, 1);
-    era5Buffer lon2d(ny*nx, 1);
+//    era5Buffer lat2d(ny*nx, 1);
+//    era5Buffer lon2d(ny*nx, 1);
+    era5Buffer time2d(ny*nx, 1);
 
     for (size_t i = 0; i < nx; ++i) {
         longitudeDim(i, 0) = lon0 + dlon * i;
@@ -70,19 +80,21 @@ void createERA5TestFiles()
 
     for (size_t j = 0; j < ny; ++j) {
         latitudeDim(j, 0) = lat0 + dlat * j;
-        for (size_t i = 0; i < nx; ++i) {
-            size_t idx = i + nx*(j);
-            lon2d(idx, 0) = longitudeDim(i, 0);
-            lat2d(idx, 0) = latitudeDim(j, 0);
-        }
+//        for (size_t i = 0; i < nx; ++i) {
+//            size_t idx = i + nx*(j);
+//            lon2d(idx, 0) = longitudeDim(i, 0);
+//            lat2d(idx, 0) = latitudeDim(j, 0);
+//        }
     }
 
     for (size_t t = 0; t < nt; ++t) {
         timeDim(t, 0) = t0 + t * dt;
     }
 
-    std::vector<std::pair<netCDF::NcFile*, era5Buffer*>> fileDataPairs = {{&lonFile, &lon2d}, {&latFile, &lat2d}};
+
+    std::vector<std::pair<netCDF::NcFile*, era5Buffer*>> fileDataPairs = {/*{&lonFile, &lon2d}, {&latFile, &lat2d},*/ {&timeFile, &time2d}};
     for (std::pair<netCDF::NcFile*, era5Buffer*> fileDataPair : fileDataPairs) {
+        time2d.setZero();
         netCDF::NcFile& file = *(fileDataPair.first);
         era5Buffer& data = *(fileDataPair.second);
         netCDF::NcDim lonDim = file.addDim("longitude", nx);
@@ -92,12 +104,14 @@ void createERA5TestFiles()
         file.addVar("latitude", netCDF::ncDouble, {latDim,}).putVar({0,}, {ny,}, latitudeDim.data());
         netCDF::NcVar timeVar(file.addVar("time", netCDF::ncDouble, {timDim,}));
         timeVar.putVar({0,}, {nt,}, timeDim.data());
-        std::string timeUnits = "hours since 2010-01-01 00:00:00";
+        std::string timeUnits = "hours since 1900-01-01 00:00:00";
         timeVar.putAtt(std::string("units"), timeUnits);
+        timeVar.putAtt(std::string("calendar"), std::string("standard"));
 
         netCDF::NcVar dataVar(file.addVar("data", netCDF::ncDouble, {timDim, latDim, lonDim}));
         for (size_t t = 0; t < nt; ++t) {
             dataVar.putVar({t, 0, 0}, {1, ny, nx}, data.data());
+            time2d += 1;
         }
         file.close();
     }
@@ -112,8 +126,10 @@ TEST_CASE("e5Filename")
     size_t early = 1980;
     size_t recent = 2024;
 
-    REQUIRE(e5FilenameFromYear(t2m, early) == "ERA5_t2m_y1980.nc");
-    REQUIRE(e5FilenameFromYear(downwardLongwaveFlux, recent) == "ERA5_msdwlwrf_y2024.nc");
+    std::string testPath = "/test/path";
+    ERA5Atmosphere::setDirectory(testPath);
+    REQUIRE(e5FilenameFromYear(t2m, early) == testPath + "/" + "ERA5_t2m_y1980.nc");
+    REQUIRE(e5FilenameFromYear(downwardLongwaveFlux, recent) == testPath + "/" + "ERA5_msdwlwrf_y2024.nc");
 }
 TEST_CASE("Time index")
 {
@@ -160,8 +176,114 @@ TEST_CASE("hypot")
     }
 }
 
-TEST_CASE("Interpolation tests")
+TEST_CASE("Interpolation tests I: time index from file")
 {
-    createERA5TestFiles();
+    ERA5Atmosphere::setDirectory(testFilesDir);
+    if (!std::filesystem::exists(ERA5Atmosphere::addDirectory(timeFileName))) {
+        createERA5TestFiles();
+    }
+
+    const size_t tIdx = 4;
+    era5Buffer timeData = getFileIndexData(ERA5Atmosphere::addDirectory(timeFileName), tIdx);
+    REQUIRE(timeData(0, 0) == double(tIdx));
 }
-}TEST_SUITE_END();
+
+TEST_CASE("Interpolation tests II: variable data from year and index")
+{
+    if (!std::filesystem::exists(testFilesDir + "/" + timeFileName)) {
+        createERA5TestFiles();
+    }
+    ERA5Atmosphere::setDirectory(testFilesDir);
+    REQUIRE(ERA5Atmosphere::getDirectory() == testFilesDir);
+
+    size_t timeIdx = 5;
+    era5Buffer timeData = getVarIndexData(era5NameTime, 2000, timeIdx);
+    REQUIRE(timeData(0, 0) == double(timeIdx));
+
+    // No timet file should exist for 1999
+    timeIdx = 7;
+    REQUIRE_THROWS(timeData = getVarIndexData(era5NameTime, 1999, timeIdx));
+
+}
+
+TEST_CASE("Interpolation tests III: variable data from TimePoint")
+{
+    if (!std::filesystem::exists(testFilesDir + "/" + timeFileName)) {
+        createERA5TestFiles();
+    }
+    ERA5Atmosphere::setDirectory(testFilesDir);
+    // A quarter of the way between index 6 and index 7
+    TimePoint qpt("2000-01-01T06:15:00Z");
+    double targetValue = 6.25;
+    era5Buffer timeData = getVarTimeData(era5NameTime, qpt);
+    REQUIRE(timeData(0, 0) == targetValue);
+}
+
+TEST_CASE("Interpolation tests IV: spatial interpolation")
+{
+    using std::sqrt;
+    using std::cos;
+    using std::sin;
+    using std::atan;
+    using std::atan2;
+    using std::asin;
+
+    era5Buffer lon(nx, 1);
+    era5Buffer lat(ny, 1);
+    era5Buffer lat2d(ny*nx, 1);
+    era5Buffer lon2d(ny*nx, 1);
+
+    for (size_t i = 0; i < nx; ++i) {
+        lon(i, 0) = lon0 + dlon * i;
+    }
+
+    for (size_t j = 0; j < ny; ++j) {
+        lat(j, 0) = lat0 + dlat * j;
+        for (size_t i = 0; i < nx; ++i) {
+            size_t idx = i + nx*(j);
+            lon2d(idx, 0) = lon(i, 0);
+            lat2d(idx, 0) = lat(j, 0);
+        }
+    }
+
+    // Longitude and latitude of the target grid
+    size_t nxt = 154;
+    size_t nyt = 121;
+    double lonCentreDeg = 180.;
+    double lonC = radians(lonCentreDeg);
+    double latCentreDeg = 82.;
+    double latC = radians(latCentreDeg);
+    double dDeg = 0.25; // Resolution in degrees
+
+    ModelArray::setDimension(ModelArray::Dimension::X, nxt);
+    ModelArray::setDimension(ModelArray::Dimension::Y, nyt);
+    ModelArray lonTarg(ModelArray::Type::H);
+    ModelArray latTarg(ModelArray::Type::H);
+    lonTarg.resize();
+    latTarg.resize();
+    // Create the target longitude & latitude arrays: polar stereographic
+    int ic = nxt/2;
+    int jc = nyt/2;
+
+    for (int j = 0; j < nyt; ++j) {
+        double y = (j - jc) * radians(dDeg);
+        for (int i = 0; i < nxt; ++i) {
+            double x = (i - ic) * radians(dDeg);
+            double rho = sqrt(x*x + y*y);
+            double c = 2 * atan(rho / 2);
+            latTarg(i, j) = degrees(asin(cos(c)*sin(latC) + y*sin(c)*cos(latC)/rho));
+            lonTarg(i, j) = degrees(lonC + atan2(x*sin(c), rho*cos(latC)*cos(c) - y*sin(latC)*sin(c)));
+        }
+    }
+    ModelArray testLat(maFromERA5Buffer(lat2d, lonTarg, latTarg));
+    size_t testi = 20;
+    size_t testj = 45;
+    REQUIRE(testLat(testi, testj) == latTarg(testi, testj));
+
+    ModelArray testLon(maFromERA5Buffer(lon2d, lonTarg, latTarg));
+    testi = 45;
+    testj = 20;
+    REQUIRE(testLon(testi, testj) == lonTarg(testi, testj));
+}
+TEST_SUITE_END();
+}
