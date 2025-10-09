@@ -242,4 +242,42 @@ bool ModelMetadata::doOnce()
     return true;
 }
 
+class CoordError : public std::domain_error {
+public:
+    CoordError(const std::string& type, const std::string& coord)
+    : std::domain_error(std::string("Model is configured as " + type + ", no valid " + coord + " available"))
+    {
+    }
+};
+const ModelArray& ModelMetadata::longitude() const
+{
+    if (isCartesian)
+        throw CoordError("Cartesian", "longitude");
+    else
+        return m_coord1;
+}
+
+const ModelArray& ModelMetadata::latitude() const
+{
+    if (isCartesian)
+        throw CoordError("Cartesian", "latitude");
+    else
+        return m_coord2;
+}
+
+const ModelArray& ModelMetadata::x() const
+{
+    if (!isCartesian)
+        throw CoordError("spherical", "x");
+    else
+        return m_coord1;
+}
+
+const ModelArray& ModelMetadata::y() const
+{
+    if (!isCartesian)
+        throw CoordError("spherical", "y");
+    else
+        return m_coord2;
+}
 } /* namespace Nextsim */

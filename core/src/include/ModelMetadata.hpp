@@ -198,6 +198,11 @@ public:
     neighbourArray neighbourHaloRecvPeriodic;
 #endif
 
+    const ModelArray& latitude() const;
+    const ModelArray& longitude() const;
+    const ModelArray& x() const;
+    const ModelArray& y() const;
+
 private:
     /*!
      * @brief Read neighbour metadata from netCDF file
