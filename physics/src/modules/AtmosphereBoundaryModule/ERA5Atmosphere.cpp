@@ -216,15 +216,46 @@ ModelArray maFromERA5Buffer(const era5Buffer& buffer, const HField& destLon, con
     int nxma = destLon.dimensions()[0];
     int nyma = destLon.dimensions()[1];
 
-    int nxe5 = 360*4;
-    int nye5 = buffer.rows() / nxe5;
-
+    int nxe5 = buffer.rows();
+    int nye5 = buffer.cols();
+    double ptsPerDegree = nxe5 / 360;
     int nxsrc = nxe5 + 2;
     int nysrc = nye5 + 2;
 
     era5Buffer srcBuffer(nxsrc, nysrc);
 
-    return ModelArray(ModelArray::Type::H);
+    srcBuffer(Eigen::seq(1, Eigen::last-1), Eigen::seq(1, Eigen::last-1)) = buffer;
+    // Wrap-around columns at the x edges
+    srcBuffer(0, Eigen::seq(1, Eigen::last-1)) = buffer(Eigen::last, Eigen::all);
+    srcBuffer(Eigen::last, Eigen::seq(1, Eigen::last-1)) = buffer(0, Eigen::all);
+    // Duplicate rows at the y edges
+    srcBuffer(Eigen::all, 0) = srcBuffer(Eigen::all, 1);
+    srcBuffer(Eigen::all, Eigen::last) = srcBuffer(Eigen::all, Eigen::last - 1);
+
+    // lambdas to translate latitude and longitude to (fractional) index in
+    // srcBuffer, including wrap-around columns.
+    auto xFromLon = [ptsPerDegree](double lon) { return ptsPerDegree * lon + 1; };
+    auto yFromLat = [ptsPerDegree, nye5](double lat) { return ptsPerDegree * (90. - lat) + 1; };
+
+    ModelArray maData(ModelArray::Type::H);
+    maData.resize();
+    for (size_t j = 0; j < nyma; ++j) {
+        for (size_t i = 0; i < nxma; ++i) {
+            double iFloat = xFromLon(destLon(i, j));
+            double jFloat = yFromLat(destLat(i, j));
+            int ilo = iFloat;
+            int ihi = ilo + 1;
+            int jlo = jFloat;
+            int jhi = jlo + 1;
+            double fx = 1 - (iFloat - ilo);
+            double fy = 1 - (jFloat - jlo);
+            maData(i, j) = fx * fy * srcBuffer(ilo, jlo) +
+                    (1 - fx) * fy * srcBuffer(ihi, jlo) +
+                    fx * (1 - fy) * srcBuffer(ilo, jhi) +
+                    (1 - fx) * (1 - fy) * srcBuffer(ihi, jhi);
+        }
+    }
+    return maData;
 }
 
 era5Buffer era5BufferHypot(const era5Buffer& x, const era5Buffer& y)

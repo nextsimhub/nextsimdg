@@ -260,15 +260,19 @@ TEST_CASE("Interpolation tests IV: spatial interpolation")
             lonTarg(i, j) = degrees(lonC + atan2(x*sin(c), rho*cos(latC)*cos(c) - y*sin(latC)*sin(c)));
         }
     }
+
+    double prec = 1e-14;
     ModelArray testLat(maFromERA5Buffer(lat2d, lonTarg, latTarg));
+    ModelArray testLon(maFromERA5Buffer(lon2d, lonTarg, latTarg));
     size_t testi = 20;
     size_t testj = 45;
-    REQUIRE(testLat(testi, testj) == latTarg(testi, testj));
+    REQUIRE(testLat(testi, testj) == doctest::Approx(latTarg(testi, testj)).epsilon(prec));
+    REQUIRE(testLon(testi, testj) == doctest::Approx(lonTarg(testi, testj)).epsilon(prec));
 
-    ModelArray testLon(maFromERA5Buffer(lon2d, lonTarg, latTarg));
     testi = 45;
     testj = 20;
-    REQUIRE(testLon(testi, testj) == lonTarg(testi, testj));
+    REQUIRE(testLat(testi, testj) == doctest::Approx(latTarg(testi, testj)).epsilon(prec));
+    REQUIRE(testLon(testi, testj) == doctest::Approx(lonTarg(testi, testj)).epsilon(prec));
 }
 TEST_SUITE_END();
 }
