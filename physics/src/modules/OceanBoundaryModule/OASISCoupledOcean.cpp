@@ -38,6 +38,8 @@ void OASISCoupledOcean::setMetadata(const ModelMetadata& metadata)
         OASIS_CHECK_ERR(oasis_c_def_var(&idNumber, idString.c_str(), metadata.OASISPartitionId,
             bundleSize, OASIS_IN, OASIS_DOUBLE));
         couplingId[idString] = idNumber;
+
+        Logged::debug("OASISCoupledOcean: " + idString + " has id " + std::to_string(idNumber));
     }
 
     for (std::string idString : cplStringsOut) {
@@ -45,6 +47,8 @@ void OASISCoupledOcean::setMetadata(const ModelMetadata& metadata)
         OASIS_CHECK_ERR(oasis_c_def_var(&idNumber, idString.c_str(), metadata.OASISPartitionId,
             bundleSize, OASIS_OUT, OASIS_DOUBLE));
         couplingId[idString] = idNumber;
+
+        Logged::debug("OASISCoupledOcean: " + idString + " has id " + std::to_string(idNumber));
     }
 #else
     throw std::runtime_error(std::string(__func__) + ": " + NoOASISError);
@@ -60,29 +64,43 @@ void OASISCoupledOcean::updateBefore(const TimestepTime& tst)
     const int dimension0 = ModelArray::dimensions(ModelArray::Type::H)[0];
     const int dimension1 = ModelArray::dimensions(ModelArray::Type::H)[1];
 
+    Logged::debug("OASISCoupledOcean: Receiving " + SSTKey + " with id "
+        + std::to_string(couplingId.at(SSTKey)));
     OASIS_CHECK_ERR(oasis_c_get(couplingId.at(SSTKey), OASISTime, dimension0, dimension1,
         bundleSize, OASIS_DOUBLE, OASIS_COL_MAJOR, &sst[0], &kinfo));
 
+    Logged::debug("OASISCoupledOcean: Receiving " + SSSKey + " with id "
+        + std::to_string(couplingId.at(SSSKey)));
     OASIS_CHECK_ERR(oasis_c_get(couplingId.at(SSSKey), OASISTime, dimension0, dimension1,
         bundleSize, OASIS_DOUBLE, OASIS_COL_MAJOR, &sss[0], &kinfo));
 
     HField uOnCGrid;
     uOnCGrid.resize();
+    Logged::debug("OASISCoupledOcean: Receiving " + UOceanKey + " with id "
+        + std::to_string(couplingId.at(UOceanKey)));
     OASIS_CHECK_ERR(oasis_c_get(couplingId.at(UOceanKey), OASISTime, dimension0, dimension1,
         bundleSize, OASIS_DOUBLE, OASIS_COL_MAJOR, &uOnCGrid[0], &kinfo));
 
     HField vOnCGrid;
     vOnCGrid.resize();
+    Logged::debug("OASISCoupledOcean: Receiving " + VOceanKey + " with id "
+        + std::to_string(couplingId.at(VOceanKey)));
     OASIS_CHECK_ERR(oasis_c_get(couplingId.at(VOceanKey), OASISTime, dimension0, dimension1,
         bundleSize, OASIS_DOUBLE, OASIS_COL_MAJOR, &vOnCGrid[0], &kinfo));
 
+    Logged::debug("OASISCoupledOcean: Receiving " + SSHKey + " with id "
+        + std::to_string(couplingId.at(SSHKey)));
     OASIS_CHECK_ERR(oasis_c_get(couplingId.at(SSHKey), OASISTime, dimension0, dimension1,
         bundleSize, OASIS_DOUBLE, OASIS_COL_MAJOR, &ssh[0], &kinfo));
 
+    Logged::debug("OASISCoupledOcean: Receiving " + FracQSWKey + " with id "
+        + std::to_string(couplingId.at(FracQSWKey)));
     OASIS_CHECK_ERR(oasis_c_get(couplingId.at(FracQSWKey), OASISTime, dimension0, dimension1,
         bundleSize, OASIS_DOUBLE, OASIS_COL_MAJOR, &fracQSWAbs[0], &kinfo));
 
     if (couplingId.find(MLDKey) != couplingId.end()) {
+        Logged::debug("OASISCoupledOcean: Receiving " + MLDKey + " with id "
+            + std::to_string(couplingId.at(MLDKey)));
         OASIS_CHECK_ERR(oasis_c_get(couplingId.at(MLDKey), OASISTime, dimension0, dimension1,
             bundleSize, OASIS_DOUBLE, OASIS_COL_MAJOR, &mld[0], &kinfo));
     } else {
@@ -117,50 +135,55 @@ void OASISCoupledOcean::updateAfter(const TimestepTime& tst)
     const int dimension0 = ModelArray::dimensions(ModelArray::Type::H)[0];
     const int dimension1 = ModelArray::dimensions(ModelArray::Type::H)[1];
 
+    Logged::debug("OASISCoupledOcean: Sending " + TauXKey + " with id "
+        + std::to_string(couplingId.at(TauXKey)));
     OASIS_CHECK_ERR(oasis_c_put(couplingId.at(TauXKey), OASISTime, dimension0, dimension1, 1,
         OASIS_DOUBLE, OASIS_COL_MAJOR, &tauXOnCGrid[0], OASIS_No_Restart, &kinfo));
 
+    Logged::debug("OASISCoupledOcean: Sending " + TauYKey + " with id "
+        + std::to_string(couplingId.at(TauYKey)));
     OASIS_CHECK_ERR(oasis_c_put(couplingId.at(TauYKey), OASISTime, dimension0, dimension1, 1,
         OASIS_DOUBLE, OASIS_COL_MAJOR, &tauYOnCGrid[0], OASIS_No_Restart, &kinfo));
 
+    Logged::debug("OASISCoupledOcean: Sending " + EMPKey + " with id "
+        + std::to_string(couplingId.at(EMPKey)));
     OASIS_CHECK_ERR(oasis_c_put(couplingId.at(EMPKey), OASISTime, dimension0, dimension1, 1,
         OASIS_DOUBLE, OASIS_COL_MAJOR, &fwFlux[0], OASIS_No_Restart, &kinfo));
 
     const HField qswDown = -qswNet;
+    Logged::debug("OASISCoupledOcean: Sending " + QSWKey + " with id "
+        + std::to_string(couplingId.at(QSWKey)));
     OASIS_CHECK_ERR(oasis_c_put(couplingId.at(QSWKey), OASISTime, dimension0, dimension1, 1,
         OASIS_DOUBLE, OASIS_COL_MAJOR, &qswDown[0], OASIS_No_Restart, &kinfo));
 
     const HField qNoSunDown = -qNoSun;
+    Logged::debug("OASISCoupledOcean: Sending " + QNoSunKey + " with id "
+        + std::to_string(couplingId.at(QNoSunKey)));
     OASIS_CHECK_ERR(oasis_c_put(couplingId.at(QNoSunKey), OASISTime, dimension0, dimension1, 1,
         OASIS_DOUBLE, OASIS_COL_MAJOR, &qNoSunDown[0], OASIS_No_Restart, &kinfo));
 
+    Logged::debug("OASISCoupledOcean: Sending " + SFluxKey + " with id "
+        + std::to_string(couplingId.at(SFluxKey)));
     OASIS_CHECK_ERR(oasis_c_put(couplingId.at(SFluxKey), OASISTime, dimension0, dimension1, 1,
         OASIS_DOUBLE, OASIS_COL_MAJOR, &sFlux[0], OASIS_No_Restart, &kinfo));
 
     // NEMO wants this field, even if it can be deduced from tauX and tauY
     const HField tauMod = (tauX * tauX + tauY * tauY).sqrt();
+    Logged::debug("OASISCoupledOcean: Sending " + TauModKey + " with id "
+        + std::to_string(couplingId.at(TauModKey)));
     OASIS_CHECK_ERR(oasis_c_put(couplingId.at(TauModKey), OASISTime, dimension0, dimension1, 1,
         OASIS_DOUBLE, OASIS_COL_MAJOR, &tauMod[0], OASIS_No_Restart, &kinfo));
 
     // Implicitly copy the 0th DG component (the mean)
     const HField cice0 = cice;
+    Logged::debug("OASISCoupledOcean: Sending " + CIceKey + " with id "
+        + std::to_string(couplingId.at(CIceKey)));
     OASIS_CHECK_ERR(oasis_c_put(couplingId.at(CIceKey), OASISTime, dimension0, dimension1, 1,
         OASIS_DOUBLE, OASIS_COL_MAJOR, &cice0[0], OASIS_No_Restart, &kinfo));
 
     // Increment the "OASIS" time by the number of seconds in the time step
     updateOASISTime(tst);
 
-    /*
-    std::cout << "The OASIS output file should contain:\n";
-    std::cout << TauXKey << ": " << tauX[0] << std::endl;
-    std::cout << TauYKey << ": " << tauY[0] << std::endl;
-    std::cout << TauModKey << ": " << tauMod[0] << std::endl;
-    std::cout << EMPKey << ": " << fwFlux[0] << std::endl;
-    std::cout << QSWKey << ": " << qswDown[0] << std::endl;
-    std::cout << QNoSunKey << ": " << qNoSunDown[0] << std::endl;
-    std::cout << SFluxKey << ": " << sFlux[0] << std::endl;
-    std::cout << CIceKey << ": " << cice[0] << std::endl;
-    */
 #else
     throw std::runtime_error(std::string(__func__) + ": " + NoOASISError);
 #endif
