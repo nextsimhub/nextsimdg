@@ -211,8 +211,19 @@ era5Buffer getVarTimeData(const std::string& era5Name, const TimePoint& time)
     return v2 * f + v1 * (1-f);
 }
 
-ModelArray maFromERA5Buffer(const era5Buffer& buffer, const ModelArray& destLon, const ModelArray& destLat)
+ModelArray maFromERA5Buffer(const era5Buffer& buffer, const HField& destLon, const HField& destLat)
 {
+    int nxma = destLon.dimensions()[0];
+    int nyma = destLon.dimensions()[1];
+
+    int nxe5 = 360*4;
+    int nye5 = buffer.rows() / nxe5;
+
+    int nxsrc = nxe5 + 2;
+    int nysrc = nye5 + 2;
+
+    era5Buffer buffer(nxsrc, nysrc);
+
     return ModelArray(ModelArray::Type::H);
 }
 
