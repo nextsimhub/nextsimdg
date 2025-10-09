@@ -21,7 +21,7 @@
 
 namespace Nextsim {
 // Signatures of the helper functions
-using era5Buffer = Eigen::Array<double, Eigen::Dynamic, 1>;
+using era5Buffer = Eigen::Array<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
 std::string e5FilenameFromYear(const std::string& era5Name, size_t year);
 era5Buffer getFileIndexData(const std::string& filename, size_t tIndex);
 era5Buffer getVarIndexData(const std::string& era5Name, size_t year, size_t tIndex);
@@ -62,17 +62,13 @@ double degrees(double rad)
 // Create longitude and latitude unprojected data files.
 void createERA5TestFiles()
 {
-    // Spatial interpolation test files
-//    netCDF::NcFile latFile(testFilesDir + "/" + latFileName, netCDF::NcFile::replace, netCDF::NcFile::nc4);
-//    netCDF::NcFile lonFile(testFilesDir + "/" + lonFileName, netCDF::NcFile::replace, netCDF::NcFile::nc4);
+    // Temporal interpolation test file
     netCDF::NcFile timeFile(testFilesDir + "/" + timeFileName, netCDF::NcFile::replace, netCDF::NcFile::nc4);
 
     era5Buffer longitudeDim(nx, 1);
     era5Buffer latitudeDim(ny, 1);
     era5Buffer timeDim(nt, 1);
-//    era5Buffer lat2d(ny*nx, 1);
-//    era5Buffer lon2d(ny*nx, 1);
-    era5Buffer time2d(ny*nx, 1);
+    era5Buffer time2d(nx, ny);
 
     for (size_t i = 0; i < nx; ++i) {
         longitudeDim(i, 0) = lon0 + dlon * i;
@@ -80,10 +76,6 @@ void createERA5TestFiles()
 
     for (size_t j = 0; j < ny; ++j) {
         latitudeDim(j, 0) = lat0 + dlat * j;
-//        for (size_t i = 0; i < nx; ++i) {
-//            size_t idx = i + nx*(j);
-//            lon2d(idx, 0) = longitudeDim(i, 0);
-//            lat2d(idx, 0) = latitudeDim(j, 0);
 //        }
     }
 
@@ -91,30 +83,24 @@ void createERA5TestFiles()
         timeDim(t, 0) = t0 + t * dt;
     }
 
+    time2d.setZero();
+    netCDF::NcDim lonDim = timeFile.addDim("longitude", nx);
+    netCDF::NcDim latDim = timeFile.addDim("latitude", ny);
+    netCDF::NcDim timDim = timeFile.addDim("time", nt);
+    timeFile.addVar("longitude", netCDF::ncDouble, {lonDim,}).putVar({0,}, {nx,}, longitudeDim.data());
+    timeFile.addVar("latitude", netCDF::ncDouble, {latDim,}).putVar({0,}, {ny,}, latitudeDim.data());
+    netCDF::NcVar timeVar(timeFile.addVar("time", netCDF::ncDouble, {timDim,}));
+    timeVar.putVar({0,}, {nt,}, timeDim.data());
+    std::string timeUnits = "hours since 1900-01-01 00:00:00";
+    timeVar.putAtt(std::string("units"), timeUnits);
+    timeVar.putAtt(std::string("calendar"), std::string("standard"));
 
-    std::vector<std::pair<netCDF::NcFile*, era5Buffer*>> fileDataPairs = {/*{&lonFile, &lon2d}, {&latFile, &lat2d},*/ {&timeFile, &time2d}};
-    for (std::pair<netCDF::NcFile*, era5Buffer*> fileDataPair : fileDataPairs) {
-        time2d.setZero();
-        netCDF::NcFile& file = *(fileDataPair.first);
-        era5Buffer& data = *(fileDataPair.second);
-        netCDF::NcDim lonDim = file.addDim("longitude", nx);
-        netCDF::NcDim latDim = file.addDim("latitude", ny);
-        netCDF::NcDim timDim = file.addDim("time", nt);
-        file.addVar("longitude", netCDF::ncDouble, {lonDim,}).putVar({0,}, {nx,}, longitudeDim.data());
-        file.addVar("latitude", netCDF::ncDouble, {latDim,}).putVar({0,}, {ny,}, latitudeDim.data());
-        netCDF::NcVar timeVar(file.addVar("time", netCDF::ncDouble, {timDim,}));
-        timeVar.putVar({0,}, {nt,}, timeDim.data());
-        std::string timeUnits = "hours since 1900-01-01 00:00:00";
-        timeVar.putAtt(std::string("units"), timeUnits);
-        timeVar.putAtt(std::string("calendar"), std::string("standard"));
-
-        netCDF::NcVar dataVar(file.addVar("data", netCDF::ncDouble, {timDim, latDim, lonDim}));
-        for (size_t t = 0; t < nt; ++t) {
-            dataVar.putVar({t, 0, 0}, {1, ny, nx}, data.data());
-            time2d += 1;
-        }
-        file.close();
+    netCDF::NcVar dataVar(timeFile.addVar("data", netCDF::ncDouble, {timDim, latDim, lonDim}));
+    for (size_t t = 0; t < nt; ++t) {
+        dataVar.putVar({t, 0, 0}, {1, ny, nx}, time2d.data());
+        time2d += 1;
     }
+    timeFile.close();
 }
 
 TEST_SUITE_BEGIN("ERA5Atmosphere");
@@ -230,8 +216,8 @@ TEST_CASE("Interpolation tests IV: spatial interpolation")
 
     era5Buffer lon(nx, 1);
     era5Buffer lat(ny, 1);
-    era5Buffer lat2d(ny*nx, 1);
-    era5Buffer lon2d(ny*nx, 1);
+    era5Buffer lat2d(nx, ny);
+    era5Buffer lon2d(nx, ny);
 
     for (size_t i = 0; i < nx; ++i) {
         lon(i, 0) = lon0 + dlon * i;
@@ -240,9 +226,8 @@ TEST_CASE("Interpolation tests IV: spatial interpolation")
     for (size_t j = 0; j < ny; ++j) {
         lat(j, 0) = lat0 + dlat * j;
         for (size_t i = 0; i < nx; ++i) {
-            size_t idx = i + nx*(j);
-            lon2d(idx, 0) = lon(i, 0);
-            lat2d(idx, 0) = lat(j, 0);
+            lon2d(i, j) = lon(i, 0);
+            lat2d(i, j) = lat(j, 0);
         }
     }
 

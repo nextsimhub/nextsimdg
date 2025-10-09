@@ -149,7 +149,7 @@ const std::string era5FromNSName(const std::string& nsName)
     return era5FromNS.at(nsName);
 }
 
-using era5Buffer = Eigen::Array<double, Eigen::Dynamic, 1>;
+using era5Buffer = Eigen::Array<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
 
 era5Buffer getFileIndexData(const std::string& filename, size_t tIndex)
 {
@@ -176,7 +176,7 @@ era5Buffer getFileIndexData(const std::string& filename, size_t tIndex)
     start[0] = tIndex;
     count[0] = 1;
 
-    data.resize(nLon*nLat, 1);
+    data.resize(nLat, nLon);
 
     dataVar.getVar(start, count, data.data());
 
@@ -222,7 +222,7 @@ ModelArray maFromERA5Buffer(const era5Buffer& buffer, const HField& destLon, con
     int nxsrc = nxe5 + 2;
     int nysrc = nye5 + 2;
 
-    era5Buffer buffer(nxsrc, nysrc);
+    era5Buffer srcBuffer(nxsrc, nysrc);
 
     return ModelArray(ModelArray::Type::H);
 }
