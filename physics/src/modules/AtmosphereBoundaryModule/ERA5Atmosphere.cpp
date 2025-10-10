@@ -5,6 +5,7 @@
 #include "include/ERA5Atmosphere.hpp"
 
 #include "include/Finalizer.hpp"
+#include "include/ModelMetadata.hpp"
 #include "include/NextsimModule.hpp"
 #include "include/ParaGridIO.hpp"
 
@@ -265,6 +266,9 @@ era5Buffer era5BufferHypot(const era5Buffer& x, const era5Buffer& y)
 
 const ModelArray ERA5Atmosphere::getData(const std::string& nsName, const TimePoint& time) const
 {
+    const ModelMetadata& meta = ModelMetadata::getInstance();
+    const ModelArray& modelLon = meta.longitude();
+    const ModelArray& modelLat = meta.latitude();
     if (nsName == "wind_speed") {
         era5Buffer u, v;
         u = getVarTimeData("u10", time);
