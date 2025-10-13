@@ -118,7 +118,11 @@ void ERA5Atmosphere::update(const TimestepTime& tst)
 //    vwind = state.data.at("v");
 
     for (std::pair<std::string, ModelArray*>& entry : forcings) {
-        *entry.second = getData(entry.first, tst.start);
+        try {
+            *entry.second = getData(entry.first, tst.start);
+        } catch (const std::exception& e) {
+            throw std::runtime_error(std::string(e.what()) + "\nFailed to read ERA5 forcing " + entry.first);
+        }
     }
     snow = 0; // FIXME get snow data
     rain = 0; // FIXME get rain data
