@@ -46,11 +46,13 @@ static const std::string xOutputPfx = "XiosOutput";
 static const std::string xInputPfx = "XiosInput";
 static const std::string xForcingPfx = "XiosForcing";
 static const std::map<int, std::string> keyMap = { { Xios::ENABLED_KEY, "xios.enable" },
+    // { Xios::RESTARTPERIOD_KEY, "model.period" },
+    { Xios::INPUT_RESTARTFILE_KEY, "model.init_file" },
+    // TODO: Support format "restart%Y-%m-%dT%H:%M:%SZ.nc" (#898)
+    { Xios::OUTPUT_RESTARTFILE_KEY, "model.restart_file" },
     { Xios::OUTPUT_RESTARTPERIOD_KEY, xOutputPfx + ".period" },
-    { Xios::OUTPUT_RESTARTFILE_KEY, xOutputPfx + ".filename" },
     { Xios::OUTPUT_FIELD_NAMES_KEY, xOutputPfx + ".field_names" },
     { Xios::INPUT_RESTARTPERIOD_KEY, xInputPfx + ".period" },
-    { Xios::INPUT_RESTARTFILE_KEY, xInputPfx + ".filename" },
     { Xios::INPUT_FIELD_NAMES_KEY, xInputPfx + ".field_names" },
     { Xios::FORCING_PERIOD_KEY, xForcingPfx + ".period" },
     { Xios::FORCING_FILE_KEY, xForcingPfx + ".filename" },
@@ -133,9 +135,6 @@ Xios::HelpMap& Xios::getHelpText(HelpMap& map, bool getAll)
             "The period between restart file outputs expected in a file to be read, formatted as "
             "an ISO8601 duration (P prefix) or number of seconds. A value of zero assumes no "
             "intermediate restart files." },
-        { keyMap.at(INPUT_RESTARTFILE_KEY), ConfigType::STRING, {}, "", "",
-            // TODO: Support format "restart%Y-%m-%dT%H:%M:%SZ.nc" (#898)
-            "The file name to be used for input." },
         { keyMap.at(INPUT_FIELD_NAMES_KEY), ConfigType::STRING, {}, "", "",
             "Comma-separated list of field names to be read from the input file." },
     };
@@ -144,9 +143,6 @@ Xios::HelpMap& Xios::getHelpText(HelpMap& map, bool getAll)
             "The period between restart file outputs, formatted as an ISO8601 "
             "duration (P prefix) or number of seconds. A value of zero "
             "ensures no intermediate restart files are written." },
-        { keyMap.at(OUTPUT_RESTARTFILE_KEY), ConfigType::STRING, {}, "", "",
-            // TODO: Support format "restart%Y-%m-%dT%H:%M:%SZ.nc" (#898)
-            "The file name to be used for output." },
         { keyMap.at(OUTPUT_FIELD_NAMES_KEY), ConfigType::STRING, {}, "", "",
             "Comma-separated list of field names to be written to the output file." },
     };

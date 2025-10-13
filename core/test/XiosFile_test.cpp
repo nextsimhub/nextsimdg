@@ -38,13 +38,13 @@ MPI_TEST_CASE("TestXiosFile", 2)
     config << "start = 2023-03-17T17:11:00Z" << std::endl;
     config << "stop = 2023-03-17T18:41:00Z" << std::endl;
     config << "time_step = P0-0T01:30:00" << std::endl;
+    config << "init_file = xios_test_input.nc" << std::endl;
+    config << "restart_file = xios_test_output.nc" << std::endl;
     config << "[XiosInput]" << std::endl;
     config << "period = P0-0T03:00:00" << std::endl;
-    config << "filename = xios_test_input.nc" << std::endl;
     config << "field_names = mask" << std::endl;
     config << "[XiosOutput]" << std::endl;
     config << "period = P0-0T03:00:00" << std::endl;
-    config << "filename = xios_test_output.nc" << std::endl;
     config << "field_names = hice" << std::endl;
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
