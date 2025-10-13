@@ -203,10 +203,8 @@ std::vector<double> getVar(
 
     // Read the netCDF file directly
     netCDF::NcFile ncFile(specFile, netCDF::NcFile::read);
-    netCDF::NcGroup metaGroup(ncFile.getGroup(IStructure::metadataNodeName()));
-    netCDF::NcGroup dataGroup(ncFile.getGroup(IStructure::dataNodeName()));
 
-    const netCDF::NcVar& var = dataGroup.getVar(varName);
+    const netCDF::NcVar& var = ncFile.getVar(varName);
     std::vector<double> data(nx * ny * 24 / 3);
     var.getVar(&data[0]);
 
