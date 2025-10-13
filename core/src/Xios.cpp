@@ -1103,8 +1103,13 @@ void Xios::createField(const std::string fieldId)
         throw std::runtime_error("Xios: Failed to create field '" + fieldId + "'");
     }
 
-    // We always assume the field operation type is "instant"
-    const std::string operation = "instant";
+    // Restarts are read "once", everything else is written "instant"ly (no averaging)
+    std::string operation;
+    if (configGetInputRestartFieldNames().count(fieldId) > 0) {
+        operation = "once";
+    } else {
+        operation = "instant";
+    }
     if (cxios_is_defined_field_operation(field)) {
         Logged::warning("Xios: Overwriting operation for field '" + fieldId + "'");
     }

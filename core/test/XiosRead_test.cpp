@@ -94,9 +94,30 @@ MPI_TEST_CASE("TestXiosRead", 2)
     const size_t nx = ModelArray::size(ModelArray::Dimension::X);
     const size_t ny = ModelArray::size(ModelArray::Dimension::Y);
 
-    // Simulate 4 iterations (timesteps)
-    Duration timestep = xiosHandler.getCalendarTimestep();
+    // Read restarts from file and check they take the expected values
     metadata.setTime(xiosHandler.getCalendarStart());
+    REQUIRE(xiosHandler.getCalendarStep() == 0);
+    ModelState restarts = grid.getModelState(filename);
+    for (auto& entry : restarts.data) {
+        for (size_t j = 0; j < ny; ++j) {
+            for (size_t i = 0; i < nx; ++i) {
+                if (entry.first == maskName) {
+                    REQUIRE(entry.second(i, j) == doctest::Approx(j >= 1 ? 1.0 : 0.0));
+                } else if (entry.first == coordsName) {
+                    REQUIRE(entry.second.components({ i, j })[0] == doctest::Approx(i));
+                    REQUIRE(entry.second.components({ i, j })[1] == doctest::Approx(j));
+                } else if (entry.first == hiceName) {
+                    for (size_t d = 0; d < DG; ++d) {
+                        float expected = 1.0 * (d + DG * (i + nx * j));
+                        REQUIRE(entry.second.components({ i, j })[d] == doctest::Approx(expected));
+                    }
+                }
+            }
+        }
+    }
+
+    // Simulate 4 iterations (timesteps), reading forcing data at each
+    Duration timestep = xiosHandler.getCalendarTimestep();
     // TODO: Avoid making configGetForcingFieldNames public?
     auto forcingFieldNames = xiosHandler.configGetForcingFieldNames();
     for (int ts = 1; ts <= 4; ts++) {
@@ -112,31 +133,11 @@ MPI_TEST_CASE("TestXiosRead", 2)
             }
         }
 
-        // Read restarts from file and check they take the expected values
-        ModelState restarts = grid.getModelState(filename);
-        for (auto& entry : restarts.data) {
-            for (size_t j = 0; j < ny; ++j) {
-                for (size_t i = 0; i < nx; ++i) {
-                    if (entry.first == maskName) {
-                        REQUIRE(entry.second(i, j) == doctest::Approx(j >= 1 ? 1.0 : 0.0));
-                    } else if (entry.first == coordsName) {
-                        REQUIRE(entry.second.components({ i, j })[0] == doctest::Approx(i));
-                        REQUIRE(entry.second.components({ i, j })[1] == doctest::Approx(j));
-                    } else if (entry.first == hiceName) {
-                        for (size_t d = 0; d < DG; ++d) {
-                            float expected = 1.0 * (d + DG * (i + nx * j));
-                            REQUIRE(
-                                entry.second.components({ i, j })[d] == doctest::Approx(expected));
-                        }
-                    }
-                }
-            }
-        }
-
         // Update the current timestep and verify it's updated in XIOS
         metadata.incrementTime(timestep);
         REQUIRE(xiosHandler.getCalendarStep() == ts);
     }
+
     xiosHandler.context_finalize();
     Finalizer::finalize();
 }
