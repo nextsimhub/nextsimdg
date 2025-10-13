@@ -98,6 +98,8 @@ public:
     static TypeDimensions typeDimensions;
     //! The name and length of each dimension that is defined
     static std::map<Dimension, DimensionSpec> definedDimensions;
+    //! Default values for definedDimensions
+    static std::map<Dimension, DimensionSpec> defaultDimensions;
     //! The name of each type of ModelArray
     static const std::map<Type, std::string> typeNames;
     //! The base type of each type of ModelArray

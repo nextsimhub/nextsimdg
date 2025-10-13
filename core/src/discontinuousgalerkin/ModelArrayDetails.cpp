@@ -25,7 +25,7 @@
 
 namespace Nextsim {
 // clang-format off
-std::map<ModelArray::Dimension, ModelArray::DimensionSpec> ModelArray::definedDimensions = {
+std::map<ModelArray::Dimension, ModelArray::DimensionSpec> ModelArray::defaultDimensions = {
     // set default global size, local size and start position for each dimension
     { ModelArray::Dimension::X, { "xdim", "x", 0, 0, 0 } },
     { ModelArray::Dimension::Y, { "ydim", "y", 0, 0, 0 } },
@@ -39,6 +39,8 @@ std::map<ModelArray::Dimension, ModelArray::DimensionSpec> ModelArray::definedDi
     { ModelArray::Dimension::NCOORDS, { "ncoords", "ncoords", 2, 2, 0 } }, // It's a two dimensional model
     // clang-format on
 };
+std::map<ModelArray::Dimension, ModelArray::DimensionSpec> ModelArray::definedDimensions
+    = ModelArray::defaultDimensions;
 
 ModelArray::TypeDimensions ModelArray::typeDimensions = {
     { ModelArray::Type::H,
