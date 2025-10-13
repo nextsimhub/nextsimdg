@@ -49,6 +49,11 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
     ModelState state;
     Xios& xiosHandler = Xios::getInstance();
 
+    if (xiosHandler.inputFilename != filePath) {
+        throw std::runtime_error("ParaGridIO::getModelState: file path '" + filePath
+            + "' is inconsistent with XiosInput.filename '" + xiosHandler.inputFilename + "'");
+    }
+
     // Get all variables in the file and load them into a new ModelState
     const bool readAccess = true;
     for (std::string fieldId : xiosHandler.configGetInputRestartFieldNames()) {
@@ -94,6 +99,11 @@ ModelState ParaGridIO::readForcingTimeStatic(
     ModelState state;
     Xios& xiosHandler = Xios::getInstance();
 
+    if (xiosHandler.forcingFilename != filePath) {
+        throw std::runtime_error("ParaGridIO::readForcingTimeStatic: file path '" + filePath
+            + "' is inconsistent with XiosForcing.filename '" + xiosHandler.forcingFilename + "'");
+    }
+
     // Increment the XIOS calendar until it reaches the requested time
     while (xiosHandler.getCurrentDate() < time) {
         xiosHandler.incrementCalendar();
@@ -137,6 +147,11 @@ void ParaGridIO::dumpModelState(const ModelState& state, const std::string& file
 {
     Xios& xiosHandler = Xios::getInstance();
 
+    if (xiosHandler.outputFilename != filePath) {
+        throw std::runtime_error("ParaGridIO::dumpModelState: file path '" + filePath
+            + "' is inconsistent with XiosOutput.filename '" + xiosHandler.outputFilename + "'");
+    }
+
     // Assume that all fields in the supplied ModelState are necessary, and so write them to file.
     std::set<std::string> restartFieldIds = xiosHandler.configGetOutputRestartFieldNames();
     for (auto entry : state.data) {
@@ -156,6 +171,12 @@ void ParaGridIO::dumpModelState(const ModelState& state, const std::string& file
 void ParaGridIO::writeDiagnosticTime(const ModelState& state, const std::string& filePath)
 {
     Xios& xiosHandler = Xios::getInstance();
+
+    if (xiosHandler.diagnosticFilename != filePath) {
+        throw std::runtime_error("ParaGridIO::writeDiagnosticTime: file path '" + filePath
+            + "' is inconsistent with XiosDiagnostic.filename '" + xiosHandler.diagnosticFilename
+            + "'");
+    }
 
     // Assume that all fields in the supplied ModelState are necessary, and so write them to file.
     std::set<std::string> diagnosticFieldIds = xiosHandler.configGetDiagnosticFieldNames();

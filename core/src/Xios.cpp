@@ -86,16 +86,17 @@ Xios::Xios(const std::string contextid, const std::string calendartype)
         istringstream(
             Configured::getConfiguration(keyMap.at(OUTPUT_RESTARTFILE_KEY), std::string()))
             >> outputFilename;
-        outputFileId = ((std::filesystem::path)outputFilename).replace_extension();
+        outputFileId = ((std::filesystem::path)outputFilename).filename().replace_extension();
         istringstream(Configured::getConfiguration(keyMap.at(INPUT_RESTARTFILE_KEY), std::string()))
             >> inputFilename;
-        inputFileId = ((std::filesystem::path)inputFilename).replace_extension();
+        inputFileId = ((std::filesystem::path)inputFilename).filename().replace_extension();
         istringstream(Configured::getConfiguration(keyMap.at(DIAGNOSTIC_FILE_KEY), std::string()))
             >> diagnosticFilename;
-        diagnosticFileId = ((std::filesystem::path)diagnosticFilename).replace_extension();
+        diagnosticFileId
+            = ((std::filesystem::path)diagnosticFilename).filename().replace_extension();
         istringstream(Configured::getConfiguration(keyMap.at(FORCING_FILE_KEY), std::string()))
             >> forcingFilename;
-        forcingFileId = ((std::filesystem::path)forcingFilename).replace_extension();
+        forcingFileId = ((std::filesystem::path)forcingFilename).filename().replace_extension();
 
         for (std::string fileId : { inputFileId, outputFileId, forcingFileId, diagnosticFileId }) {
             if (fileId.length() > 0) {

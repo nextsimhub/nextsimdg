@@ -20,8 +20,7 @@
 #include <filesystem>
 
 const std::string testFilesDir = TEST_FILES_DIR;
-const std::string filename = "xios_test_input.nc";
-const std::string filepath = testFilesDir + "/" + filename;
+const std::string filename = testFilesDir + "/xios_test_input.nc";
 
 static const int DG = 3;
 
@@ -88,7 +87,7 @@ MPI_TEST_CASE("TestXiosRead", 2)
     REQUIRE(xiosHandler.getCalendarStep() == 0);
 
     // Check the input file exists
-    REQUIRE(std::filesystem::exists(filepath));
+    REQUIRE(std::filesystem::exists(filename));
 
     // Check calendar step is zero initially
     metadata.setTime(xiosHandler.getCalendarStart());
@@ -128,7 +127,7 @@ MPI_TEST_CASE("TestXiosRead", 2)
 
         // Read forcings from file and check they take the expected values
         TimePoint time = xiosHandler.getCurrentDate();
-        ModelState forcings = pio->readForcingTimeStatic(forcingFieldNames, time, filepath);
+        ModelState forcings = pio->readForcingTimeStatic(forcingFieldNames, time, filename);
         for (auto& entry : forcings.data) {
             for (size_t j = 0; j < ny; ++j) {
                 for (size_t i = 0; i < nx; ++i) {

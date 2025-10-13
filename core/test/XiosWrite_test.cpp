@@ -20,8 +20,7 @@
 #include <filesystem>
 
 const std::string testFilesDir = TEST_FILES_DIR;
-const std::string filename = "xios_test_output.nc";
-const std::string filepath = testFilesDir + "/" + filename;
+const std::string filename = testFilesDir + "/xios_test_output.nc";
 
 static const int DG = 3;
 
@@ -170,8 +169,8 @@ MPI_TEST_CASE("TestXiosWrite", 2)
             {} };
 
         // Write out diagnostics and then restarts
-        pio->writeDiagnosticTime(diagnostics, filepath);
-        grid.dumpModelState(restarts, filepath, true);
+        pio->writeDiagnosticTime(diagnostics, filename);
+        grid.dumpModelState(restarts, filename, true);
     }
 
     // Check the files have indeed been created then remove it
