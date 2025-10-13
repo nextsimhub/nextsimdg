@@ -1,5 +1,6 @@
-from make_init_base import initMaker
 from math import sin
+
+from make_init_base import initMaker
 
 # Creates initial conditions for the Mehlmann et al. (2021) benchmark case, at 2, 4, 8, and 16 km resolutions.
 

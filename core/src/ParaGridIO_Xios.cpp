@@ -10,6 +10,8 @@
 #include "include/Finalizer.hpp"
 #include "include/Logged.hpp"
 #include "include/MissingData.hpp"
+#include "include/ModelMPI.hpp"
+
 #ifdef USE_XIOS
 #include "include/Xios.hpp"
 #endif
@@ -18,7 +20,6 @@
 #include <ncDim.h>
 #include <ncException.h>
 #include <ncFile.h>
-#include <ncGroup.h>
 #include <ncVar.h>
 
 #include <algorithm>
@@ -92,117 +93,41 @@ bool ParaGridIO::doOnce()
 
 ParaGridIO::~ParaGridIO() = default;
 
-#ifdef USE_MPI
-ModelState ParaGridIO::getModelState(const std::string& filePath, ModelMetadata& metadata)
-#else
 ModelState ParaGridIO::getModelState(const std::string& filePath)
-#endif
 {
-    // TODO: XIOS implementation
     ModelState state;
+    Xios& xiosHandler = Xios::getInstance();
 
-    try {
-#ifdef USE_MPI
-        netCDF::NcFilePar ncFile(filePath, netCDF::NcFile::read, metadata.mpiComm);
-#else
-        netCDF::NcFile ncFile(filePath, netCDF::NcFile::read);
-#endif
-        netCDF::NcGroup metaGroup(ncFile.getGroup(IStructure::metadataNodeName()));
-        netCDF::NcGroup dataGroup(ncFile.getGroup(IStructure::dataNodeName()));
-
-        // Dimensions and DG components
-        std::multimap<std::string, netCDF::NcDim> dimMap = dataGroup.getDims();
-        for (auto entry : ModelArray::definedDimensions) {
-            auto dimType = entry.first;
-            if (dimCompMap.count(dimType) > 0)
-                // TODO Assertions that DG in the file equals the compile time DG in the model. See
-                // #205
-                continue;
-
-            ModelArray::DimensionSpec& dimensionSpec = entry.second;
-            // Find dimensions in the netCDF file by their name in the ModelArray details
-            netCDF::NcDim dim = dataGroup.getDim(dimensionSpec.name);
-            // Also check the old name
-            if (dim.isNull()) {
-                dim = dataGroup.getDim(dimensionSpec.altName);
-            }
-            // If we didn't find a dimension with the dimensions name or altName, throw.
-            if (dim.isNull()) {
-                throw std::out_of_range(
-                    std::string("No netCDF dimension found corresponding to the dimension named ")
-                    + dimensionSpec.name + std::string(" or ") + dimensionSpec.altName);
-            }
-#ifdef USE_MPI
-            auto dimName = dim.getName();
-            size_t localLength = 0;
-            size_t start = 0;
-            if (dimType == ModelArray::Dimension::X) {
-                localLength = metadata.localExtentX;
-                start = metadata.localCornerX;
-            } else if (dimType == ModelArray::Dimension::Y) {
-                localLength = metadata.localExtentY;
-                start = metadata.localCornerY;
-            } else if (dimType == ModelArray::Dimension::XVERTEX) {
-                localLength = metadata.localExtentX + 1;
-                start = metadata.localCornerX;
-            } else if (dimType == ModelArray::Dimension::YVERTEX) {
-                localLength = metadata.localExtentY + 1;
-                start = metadata.localCornerY;
-            } else {
-                localLength = dim.getSize();
-                start = 0;
-            }
-            ModelArray::setDimension(dimType, dim.getSize(), localLength, start);
-#else
-            ModelArray::setDimension(dimType, dim.getSize());
-#endif
+    // Get all variables in the file and load them into a new ModelState
+    const bool readAccess = true;
+    for (std::string fieldId : xiosHandler.configGetInputRestartFieldNames()) {
+        ModelArray::Type type = xiosHandler.getFieldType(fieldId);
+        if (type == ModelArray::Type::H) {
+            HField field(ModelArray::Type::H);
+            field.resize();
+            state.merge(ModelState { { { fieldId, field } }, {} });
+        } else if (type == ModelArray::Type::VERTEX) {
+            VertexField field(ModelArray::Type::VERTEX);
+            field.resize();
+            state.merge(ModelState { { { fieldId, field } }, {} });
+        } else if (type == ModelArray::Type::DG) {
+            DGField field(ModelArray::Type::DG);
+            field.resize();
+            state.merge(ModelState { { { fieldId, field } }, {} });
+        } else {
+            throw std::runtime_error(
+                "ParaGridIO::getModelState: field type for field" + fieldId + " is not supported.");
         }
+    }
 
-        // Get all vars in the data group, and load them into a new ModelState
-
-        for (auto entry : dataGroup.getVars()) {
-            const std::string& varName = entry.first;
-            netCDF::NcVar& var = entry.second;
-            // Determine the type from the dimensions
-            std::vector<netCDF::NcDim> varDims = var.getDims();
-            std::string dimKey = "";
-            for (netCDF::NcDim& dim : varDims) {
-                dimKey += dim.getName();
-            }
-            if (!dimensionKeys.count(dimKey)) {
-                throw std::out_of_range(
-                    std::string("No ModelArray::Type corresponds to the dimensional key ")
-                    + dimKey);
-            }
-            ModelArray::Type type = dimensionKeys.at(dimKey);
-            state.data[varName] = ModelArray(type);
-            ModelArray& data = state.data.at(varName);
-            data.resize();
-
-            std::vector<size_t> start;
-            std::vector<size_t> count;
-            if (ModelArray::hasDoF(type)) {
-                auto ncomps = data.nComponents();
-                start.push_back(0);
-                count.push_back(ncomps);
-            }
-            for (ModelArray::Dimension dt : ModelArray::typeDimensions.at(type)) {
-                auto dim = ModelArray::definedDimensions.at(dt);
-                start.push_back(dim.start);
-                count.push_back(dim.localLength);
-            }
-            // dims are looped in [dg], x, y, [z] order so start and count
-            // order must be reveresed to match order netcdf expects
-            std::reverse(start.begin(), start.end());
-            std::reverse(count.begin(), count.end());
-
-            var.getVar(start, count, &data[0]);
-        }
-        ncFile.close();
-    } catch (const netCDF::exceptions::NcException& nce) {
-        std::string ncWhat(nce.what());
-        ncWhat += ": " + filePath;
-        throw std::runtime_error(ncWhat);
+    // Assume that all fields in the supplied ModelState are necessary, and so read them from file.
+    for (auto& entry : state.data) {
+        const std::string fieldId = entry.first;
+        if (!xiosHandler.getFieldReadAccess(fieldId)) {
+            throw std::runtime_error("ParaGridIO::getModelState: field " + fieldId
+                + " is not configured for reading, but is being read from file.");
+        };
+        xiosHandler.read(fieldId, entry.second);
     }
     return state;
 }
@@ -210,68 +135,50 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
 ModelState ParaGridIO::readForcingTimeStatic(
     const std::set<std::string>& forcings, const TimePoint& time, const std::string& filePath)
 {
-    // TODO: XIOS implementation
-
     ModelState state;
+    Xios& xiosHandler = Xios::getInstance();
 
-    try {
-        netCDF::NcFile ncFile(filePath, netCDF::NcFile::read);
-        netCDF::NcGroup metaGroup(ncFile.getGroup(IStructure::metadataNodeName()));
-        netCDF::NcGroup dataGroup(ncFile.getGroup(IStructure::dataNodeName()));
+    // Increment the XIOS calendar until it reaches the requested time
+    while (xiosHandler.getCurrentDate() < time) {
+        xiosHandler.incrementCalendar();
+    }
+    TimePoint xiosTime = xiosHandler.getCurrentDate();
+    if (xiosTime > time) {
+        throw std::runtime_error("ParaGridIO::readForcingTimeStatic: requested time point does"
+                                 " not align with the calendar and timestep used by XIOS.");
+    }
 
-        // Read the time axis
-        netCDF::NcDim timeDim = dataGroup.getDim(timeName);
-        // Read the time variable
-        netCDF::NcVar timeVar = dataGroup.getVar(timeName);
-        // Calculate the index of the largest time value on the axis below our target
-        size_t targetTIndex;
-        // Get the time axis as a vector
-        std::vector<double> timeVec(timeDim.getSize());
-        timeVar.getVar(timeVec.data());
-        // Get the index of the largest TimePoint less than the target.
-        targetTIndex = std::find_if(std::begin(timeVec), std::end(timeVec), [time](double t) {
-            return (TimePoint() + Duration(t)) > time;
-        }) - timeVec.begin();
-        // Rather than the first that is greater than, get the last that is less
-        // than or equal to. But don't go out of bounds.
-        if (targetTIndex > 0)
-            --targetTIndex;
+    // Get all forcings and load them into a new ModelState
+    const bool readAccess = true;
+    std::set<std::string> forcingFieldIds = xiosHandler.configGetForcingFieldNames();
+    for (const std::string& fieldId : forcings) {
+        if (forcingFieldIds.count(fieldId) == 0 || !xiosHandler.getFieldReadAccess(fieldId)) {
+            throw std::runtime_error("ParaGridIO::readForcingTimeStatic: forcing " + fieldId
+                + " is not configured for reading, but is being read from file.");
+        }
         // ASSUME all forcings are HFields: finite volume fields on the same
         // grid as ice thickness
-        std::vector<size_t> indexArray = { targetTIndex };
-        std::vector<size_t> extentArray = { 1 };
+        HField field(ModelArray::Type::H);
+        field.resize();
+        state.merge(ModelState { { { fieldId, field } }, {} });
+    }
 
-        // Loop over the dimensions of H
-        const std::vector<ModelArray::Dimension>& dimensions
-            = ModelArray::typeDimensions.at(ModelArray::Type::H);
-        for (auto riter = dimensions.rbegin(); riter != dimensions.rend(); ++riter) {
-            indexArray.push_back(0);
-            extentArray.push_back(ModelArray::definedDimensions.at(*riter).localLength);
+    // Read all forcings from file
+    for (auto& entry : state.data) {
+        const std::string fieldId = entry.first;
+        if (forcings.count(fieldId)) {
+            xiosHandler.read(fieldId, entry.second);
         }
-
-        for (const std::string& varName : forcings) {
-            netCDF::NcVar var = dataGroup.getVar(varName);
-            state.data[varName] = ModelArray(ModelArray::Type::H);
-            ModelArray& data = state.data.at(varName);
-            data.resize();
-
-            var.getVar(indexArray, extentArray, &data[0]);
-        }
-        ncFile.close();
-    } catch (const netCDF::exceptions::NcException& nce) {
-        std::string ncWhat(nce.what());
-        ncWhat += ": " + filePath;
-        throw std::runtime_error(ncWhat);
     }
     return state;
 }
 
-void ParaGridIO::dumpModelState(
-    const ModelState& state, const ModelMetadata& metadata, const std::string& filePath)
+void ParaGridIO::dumpModelState(const ModelState& state, const std::string& filePath)
 {
     Xios& xiosHandler = Xios::getInstance();
 
-    // Assume that all fields in the supplied ModelState are necessary, and so write them to file.
+    // Assume that all fields in the supplied ModelState are necessary, and so write them to
+    // file.
     for (auto entry : state.data) {
         const std::string fieldId = entry.first;
         if (xiosHandler.getFieldReadAccess(fieldId)) {
@@ -282,8 +189,7 @@ void ParaGridIO::dumpModelState(
     }
 }
 
-void ParaGridIO::writeDiagnosticTime(
-    const ModelState& state, const ModelMetadata& meta, const std::string& filePath)
+void ParaGridIO::writeDiagnosticTime(const ModelState& state, const std::string& filePath)
 {
     // TODO: XIOS implementation
 
@@ -294,34 +200,21 @@ void ParaGridIO::writeDiagnosticTime(
         // Set the initial time to be zero (assigned above)
         // Piecewise construction is necessary to correctly construct the file handle/time index
         // pair
-#ifdef USE_MPI
+        auto& modelMPI = ModelMPI::getInstance();
         openFilesAndIndices.emplace(std::piecewise_construct, std::make_tuple(filePath),
             std::forward_as_tuple(std::piecewise_construct,
-                std::forward_as_tuple(filePath, netCDF::NcFile::replace, meta.mpiComm),
+                std::forward_as_tuple(filePath, netCDF::NcFile::replace, modelMPI.getComm()),
                 std::forward_as_tuple(nt)));
-#else
-        openFilesAndIndices.emplace(std::piecewise_construct, std::make_tuple(filePath),
-            std::forward_as_tuple(std::piecewise_construct,
-                std::forward_as_tuple(filePath, netCDF::NcFile::replace),
-                std::forward_as_tuple(nt)));
-#endif
     }
     // Get the file handle
     NetCDFFileType& ncFile = openFilesAndIndices.at(filePath).first;
 
-    // Get the netCDF groups, creating them if necessary
-    netCDF::NcGroup metaGroup = (isNew) ? ncFile.addGroup(IStructure::metadataNodeName())
-                                        : ncFile.getGroup(IStructure::metadataNodeName());
-    netCDF::NcGroup dataGroup = (isNew) ? ncFile.addGroup(IStructure::dataNodeName())
-                                        : ncFile.getGroup(IStructure::dataNodeName());
-
     if (isNew) {
         // Write the common structure and time metadata
-        CommonRestartMetadata::writeStructureType(ncFile, meta);
-        CommonRestartMetadata::writeRestartMetadata(metaGroup, meta);
+        CommonRestartMetadata::writeStructureType(ncFile);
     }
     // Get the unlimited time dimension, creating it if necessary
-    netCDF::NcDim timeDim = (isNew) ? dataGroup.addDim(timeName) : dataGroup.getDim(timeName);
+    netCDF::NcDim timeDim = (isNew) ? ncFile.addDim(timeName) : ncFile.getDim(timeName);
 
     // All of the dimensions defined by the data at a particular timestep.
     std::map<ModelArray::Dimension, netCDF::NcDim> ncFromMAMap;
@@ -329,8 +222,8 @@ void ParaGridIO::writeDiagnosticTime(
         ModelArray::Dimension dim = entry.first;
         size_t dimSz = (dimCompMap.count(dim)) ? ModelArray::nComponents(dimCompMap.at(dim))
                                                : dimSz = entry.second.globalLength;
-        ncFromMAMap[dim] = (isNew) ? dataGroup.addDim(entry.second.name, dimSz)
-                                   : dataGroup.getDim(entry.second.name);
+        ncFromMAMap[dim]
+            = (isNew) ? ncFile.addDim(entry.second.name, dimSz) : ncFile.getDim(entry.second.name);
     }
 
     // Also create the sets of dimensions to be connected to the data fields
@@ -399,13 +292,15 @@ void ParaGridIO::writeDiagnosticTime(
 
     // Put the time axis variable
     std::vector<netCDF::NcDim> timeDimVec = { timeDim };
-    netCDF::NcVar timeVar((isNew) ? dataGroup.addVar(timeName, netCDF::ncDouble, timeDimVec)
-                                  : dataGroup.getVar(timeName));
-    double secondsSinceEpoch = (meta.time() - TimePoint()).seconds();
-#ifdef USE_MPI
-    netCDF::setVariableCollective(timeVar, dataGroup);
-#endif
+    netCDF::NcVar timeVar(
+        (isNew) ? ncFile.addVar(timeName, netCDF::ncDouble, timeDimVec) : ncFile.getVar(timeName));
+    auto& metadata = ModelMetadata::getInstance();
+    double secondsSinceEpoch = (metadata.time() - TimePoint()).seconds();
+    netCDF::setVariableCollective(timeVar, ncFile);
     timeVar.putVar({ nt }, { 1 }, &secondsSinceEpoch);
+
+    if (isNew)
+        timeVar.putAtt("units", "seconds since 1970-01-01 00:00:00");
 
     // Write the data
     for (auto entry : state.data) {
@@ -415,23 +310,19 @@ void ParaGridIO::writeDiagnosticTime(
             continue;
         if (entry.first == maskName) {
             // Land mask in a new file (since it was skipped above in existing files)
-            netCDF::NcVar var(dataGroup.addVar(maskName, netCDF::ncDouble, maskDims));
+            netCDF::NcVar var(ncFile.addVar(maskName, netCDF::ncDouble, maskDims));
             // No missing data
-#ifdef USE_MPI
-            netCDF::setVariableCollective(var, dataGroup);
-#endif
+            netCDF::setVariableCollective(var, ncFile);
             var.putVar(maskIndexes, maskExtents, entry.second.getData());
 
         } else {
             std::vector<netCDF::NcDim>& ncDims = dimMap.at(type);
             // Get the variable object, either creating a new one or getting the existing one
-            netCDF::NcVar var((isNew) ? dataGroup.addVar(entry.first, netCDF::ncDouble, ncDims)
-                                      : dataGroup.getVar(entry.first));
+            netCDF::NcVar var((isNew) ? ncFile.addVar(entry.first, netCDF::ncDouble, ncDims)
+                                      : ncFile.getVar(entry.first));
             if (isNew)
                 var.putAtt(mdiName, netCDF::ncDouble, MissingData::value());
-#ifdef USE_MPI
-            netCDF::setVariableCollective(var, dataGroup);
-#endif
+            netCDF::setVariableCollective(var, ncFile);
             var.putVar(startMap.at(type), countMap.at(type), entry.second.getData());
         }
     }

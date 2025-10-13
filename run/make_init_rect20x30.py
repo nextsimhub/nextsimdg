@@ -2,24 +2,21 @@ import netCDF4
 
 # Currently creates the 30 x 30 rect grid files with land-sea mask. For the
 # earlier, more rudimentary version of this script, please see the git file
-# history. 
+# history.
 
 nx = 20
 ny = 30
 
-root = netCDF4.Dataset(f"init_rect{nx}x{ny}.nc", "w", format="NETCDF4")
+ncFile = netCDF4.Dataset(f"init_rect{nx}x{ny}.nc", "w", format="NETCDF4")
 
-metagrp = root.createGroup("structure")
-metagrp.type = "simple_rectangular"
+ncFile.structure_name = "simple_rectangular"
 
-datagrp = root.createGroup("data")
-
-xDim = datagrp.createDimension("xdim", nx)
-yDim = datagrp.createDimension("ydim", ny)
+xDim = ncFile.createDimension("xdim", nx)
+yDim = ncFile.createDimension("ydim", ny)
 
 hfield_dims = ("ydim", "xdim")
 
-mask = datagrp.createVariable("mask", "f8", hfield_dims)
+mask = ncFile.createVariable("mask", "f8", hfield_dims)
 mask[:,::-1] = [[0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0],
              [0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,0,0,0,0,0],
              [0,0,0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0,0,0],
@@ -51,7 +48,7 @@ mask[:,::-1] = [[0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0],
              [1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0],
              [1,1,1,0,1,1,1,1,1,1,1,1,1,1,0,0,1,0,0,0]]
 antimask = 1 - mask[:,:]
-cice = datagrp.createVariable("cice", "f8", hfield_dims)
+cice = ncFile.createVariable("cice", "f8", hfield_dims)
 cice[:,::-1] = [[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
              [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
              [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
@@ -83,11 +80,11 @@ cice[:,::-1] = [[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
              [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
              [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]]
 cice[:,:] /= 10
-hice = datagrp.createVariable("hice", "f8", hfield_dims)
+hice = ncFile.createVariable("hice", "f8", hfield_dims)
 hice[:,:] = cice[:,:] * 2
-hsnow = datagrp.createVariable("hsnow", "f8", hfield_dims)
+hsnow = ncFile.createVariable("hsnow", "f8", hfield_dims)
 hsnow[:,:] = cice[:,:] / 2
-tsurf = datagrp.createVariable("tsurf", "f8", ("ydim", "xdim"))
+tsurf = ncFile.createVariable("tsurf", "f8", ("ydim", "xdim"))
 tsurf[:,:] = -0.5 - cice[:,:]
 
 mdi = -2.**300
@@ -101,4 +98,4 @@ hsnow.missing_value = mdi
 tsurf[:,:] = tsurf[:,:] * mask[:,:] + antimask * mdi
 tsurf.missing_value = mdi
 
-root.close()
+ncFile.close()

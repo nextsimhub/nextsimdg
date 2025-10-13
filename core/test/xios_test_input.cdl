@@ -1,23 +1,47 @@
 netcdf xios_test_input {
 dimensions:
 	axis_nbounds = 2 ;
-	lon = 4 ;
-	lat = 2 ;
-	z_axis = 2 ;
+	x = 4 ;
+	y = 2 ;
+  xvertex = 5 ;
+  yvertex = 3 ;
+  x_cg = 2 ;
+  y_cg = 2 ;
+  dg_comp = 3 ;
+  dgstress_comp = 8 ;
+  ncoords = 2 ;
 	time_counter = UNLIMITED ; // (4 currently)
 variables:
-	float lat(lat) ;
-		lat:axis = "Y" ;
-		lat:standard_name = "latitude" ;
-		lat:long_name = "Latitude" ;
-		lat:units = "degrees_north" ;
-	float lon(lon) ;
-		lon:axis = "X" ;
-		lon:standard_name = "longitude" ;
-		lon:long_name = "Longitude" ;
-		lon:units = "degrees_east" ;
-	float z_axis(z_axis) ;
-		z_axis:name = "z_axis" ;
+	float x(x) ;
+		x:axis = "X" ;
+		x:standard_name = "longitude" ;
+		x:long_name = "Longitude" ;
+		x:units = "degrees_east" ;
+	float y(y) ;
+		y:axis = "Y" ;
+		y:standard_name = "latitude" ;
+		y:long_name = "Latitude" ;
+		y:units = "degrees_north" ;
+	float xvertex(xvertex) ;
+		xvertex:axis = "XVERTEX" ;
+		xvertex:standard_name = "vertex longitude" ;
+		xvertex:long_name = "Vertex longitude" ;
+		xvertex:units = "degrees_east" ;
+	float yvertex(yvertex) ;
+		yvertex:axis = "YVERTEX" ;
+		yvertex:standard_name = "vertex latitude" ;
+		yvertex:long_name = "Vertex latitude" ;
+		yvertex:units = "degrees_north" ;
+	float DGAxis(dg_comp) ;
+		DGAxis:axis = "DG" ;
+		DGAxis:standard_name = "DG DoFs" ;
+		DGAxis:long_name = "Discontinuous Galerkin number of degrees of freedom" ;
+		DGAxis:units = "-" ;
+	float VertexAxis(ncoords) ;
+		VertexAxis:axis = "DIM" ;
+		VertexAxis:standard_name = "Dimension" ;
+    VertexAxis:long_name = "Spatial dimension" ;
+		VertexAxis:units = "-" ;
 	double time_instant(time_counter) ;
 		time_instant:standard_name = "time" ;
 		time_instant:long_name = "Time axis" ;
@@ -35,31 +59,48 @@ variables:
 		time_counter:time_origin = "2020-01-23 00:08:15" ;
 		time_counter:bounds = "time_counter_bounds" ;
 	double time_counter_bounds(time_counter, axis_nbounds) ;
-	float field_1D(time_counter, z_axis) ;
-		field_1D:online_operation = "instant" ;
-		field_1D:interval_operation = "5400 s" ;
-		field_1D:interval_write = "5400 s" ;
-		field_1D:cell_methods = "time: point" ;
-		field_1D:coordinates = "time_instant" ;
-	float hice(time_counter, lat, lon) ;
+	float coords(time_counter, yvertex, xvertex, ncoords) ;
+		coords:online_operation = "instant" ;
+		coords:interval_operation = "5400 s" ;
+		coords:interval_write = "5400 s" ;
+		coords:cell_methods = "time: point" ;
+		coords:coordinates = "time_instant lat lon VertexAxis" ;
+  float hice(time_counter, y, x, dg_comp) ;
 		hice:online_operation = "instant" ;
 		hice:interval_operation = "5400 s" ;
 		hice:interval_write = "5400 s" ;
 		hice:cell_methods = "time: point" ;
-		hice:coordinates = "time_instant" ;
+		hice:coordinates = "time_instant lat lon DGAxis" ;
+	float mask(time_counter, y, x) ;
+		mask:online_operation = "instant" ;
+		mask:interval_operation = "5400 s" ;
+		mask:interval_write = "5400 s" ;
+		mask:cell_methods = "time: point" ;
+		mask:coordinates = "time_instant lat lon" ;
+
+	float u(time_counter, y, x) ;
+		u:online_operation = "instant" ;
+		u:interval_operation = "5400 s" ;
+		u:interval_write = "5400 s" ;
+		u:cell_methods = "time: point" ;
+		u:coordinates = "time_instant" ;
 
 // global attributes:
+		:structure_name = "parametric_rectangular" ;
 		:name = "xios_test_input" ;
 		:description = "Test input file for XIOS" ;
     :title = "XIOS test input" ;
 		:Conventions = "CF-1.6" ;
+
 data:
 
- lat = -1, 1 ;
+ y = -1, 0 ;
 
- lon = -1, -0.5, 0, 0.5 ;
+ x = -1, -0.5, 0, 0.5 ;
 
- z_axis = 0, 1 ;
+ yvertex = -1, 0, 1 ;
+
+ xvertex = -1, -0.5, 0, 0.5, 1 ;
 
  time_instant = 99340365, 99345765, 99351165, 99356565 ;
 
@@ -77,16 +118,119 @@ data:
   99351165, 99351165,
   99356565, 99356565 ;
 
- field_1D =
-  0, 1, 0, 1 ;
+ coords =
+  0, 0,
+  1, 0,
+  0, 0,
+  1, 0,
+  2, 0,
+  0, 1,
+  1, 1,
+  0, 1,
+  1, 1,
+  2, 1,
+  0, 2,
+  1, 2,
+  0, 2,
+  1, 2,
+  2, 2,
+  0, 0,
+  1, 0,
+  0, 0,
+  1, 0,
+  2, 0,
+  0, 1,
+  1, 1,
+  0, 1,
+  1, 1,
+  2, 1,
+  0, 2,
+  1, 2,
+  0, 2,
+  1, 2,
+  2, 2,
+  0, 0,
+  1, 0,
+  0, 0,
+  1, 0,
+  2, 0,
+  0, 1,
+  1, 1,
+  0, 1,
+  1, 1,
+  2, 1,
+  0, 2,
+  1, 2,
+  0, 2,
+  1, 2,
+  2, 2,
+  0, 0,
+  1, 0,
+  0, 0,
+  1, 0,
+  2, 0,
+  0, 1,
+  1, 1,
+  0, 1,
+  1, 1,
+  2, 1,
+  0, 2,
+  1, 2,
+  0, 2,
+  1, 2,
+  2, 2 ;
 
  hice =
-  0, 1, 0, 1,
-  2, 3, 2, 3,
-  0, 1, 0, 1,
-  2, 3, 2, 3,
-  0, 1, 0, 1,
-  2, 3, 2, 3,
-  0, 1, 0, 1,
-  2, 3, 2, 3 ;
+  0, 1, 2,
+  3, 4, 5,
+  0, 1, 2,
+  3, 4, 5,
+  6, 7, 8,
+  9, 10, 11,
+  6, 7, 8,
+  9, 10, 11,
+  0, 1, 2,
+  3, 4, 5,
+  0, 1, 2,
+  3, 4, 5,
+  6, 7, 8,
+  9, 10, 11,
+  6, 7, 8,
+  9, 10, 11,
+  0, 1, 2,
+  3, 4, 5,
+  0, 1, 2,
+  3, 4, 5,
+  6, 7, 8,
+  9, 10, 11,
+  6, 7, 8,
+  9, 10, 11,
+  0, 1, 2,
+  3, 4, 5,
+  0, 1, 2,
+  3, 4, 5,
+  6, 7, 8,
+  9, 10, 11,
+  6, 7, 8,
+  9, 10, 11 ;
+
+ mask =
+  0, 0, 0, 0,
+  1, 1, 1, 1,
+  0, 0, 0, 0,
+  1, 1, 1, 1,
+  0, 0, 0, 0,
+  1, 1, 1, 1,
+  0, 0, 0, 0,
+  1, 1, 1, 1 ;
+
+ u =
+  0, 0, 0, 0,
+  0, 0, 0, 0,
+  1, 1, 1, 1,
+  1, 1, 1, 1,
+  2, 2, 2, 2,
+  2, 2, 2, 2,
+  3, 3, 3, 3,
+  3, 3, 3, 3 ;
 }

@@ -75,6 +75,8 @@ jobs:
         python3 ThermoIntegration_test.py
         ./run_test_jan2010_integration.sh python3
         ./run_test_advection.sh python3
+        ./run_test_error_handling_test.sh python3
+        cd -
 
   test-ubuntu-mpi-noxios:
 
@@ -88,16 +90,32 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    - name: build and compile with MPI but not XIOS
+    - name: build domain_decomp
       run: |
         . /opt/spack-environment/activate.sh
+        git config --global --add safe.directory /__w/nextsimdg/nextsimdg
+        git submodule init
+        git submodule update
+        cd domain_decomp
+        cmake -G "Unix Makefiles" -Bbuild -S.
+        cmake --build build --config Release
+
+    - name: build and compile with MPI but not XIOS
+      run: |
+        # set environment variables for MPI tests to run in docker container
+        export OMPI_ALLOW_RUN_AS_ROOT=1
+        export OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1
+        export OMPI_MCA_rmaps_base_oversubscribe=1
+        . /opt/spack-environment/activate.sh
+        # provide path to domain_decomp binary
+        export PATH="${PATH}:${PWD}/domain_decomp/build"
         mkdir -p build && cd build
         cmake -DENABLE_MPI=ON -DENABLE_XIOS=OFF -DCMAKE_CXX_COMPILER="$(which mpic++)" ..
         make -j 4
 
     - name: run MPI tests
       run: |
-        # set enviornment variables for MPI tests to run in docker container
+        # set environment variables for MPI tests to run in docker container
         export OMPI_ALLOW_RUN_AS_ROOT=1
         export OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1
         export OMPI_MCA_rmaps_base_oversubscribe=1
@@ -120,16 +138,32 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    - name: build and compile with XIOS and MPI
+    - name: build domain_decomp
       run: |
         . /opt/spack-environment/activate.sh
+        git config --global --add safe.directory /__w/nextsimdg/nextsimdg
+        git submodule init
+        git submodule update
+        cd domain_decomp
+        cmake -G "Unix Makefiles" -Bbuild -S.
+        cmake --build build --config Release
+
+    - name: build and compile with XIOS and MPI
+      run: |
+        # set environment variables for MPI tests to run in docker container
+        export OMPI_ALLOW_RUN_AS_ROOT=1
+        export OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1
+        export OMPI_MCA_rmaps_base_oversubscribe=1
+        . /opt/spack-environment/activate.sh
+        # provide path to domain_decomp binary
+        export PATH="${PATH}:${PWD}/domain_decomp/build"
         mkdir -p build && cd build
         cmake -DENABLE_MPI=ON -Dxios_DIR="/xios" -DENABLE_XIOS=ON -DCMAKE_CXX_COMPILER="$(which mpic++)" ..
         make -j 4
 
     - name: run MPI tests
       run: |
-        # set enviornment variables for MPI tests to run in docker container
+        # set environment variables for MPI tests to run in docker container
         export OMPI_ALLOW_RUN_AS_ROOT=1
         export OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1
         export OMPI_MCA_rmaps_base_oversubscribe=1
@@ -154,7 +188,6 @@ jobs:
         brew unlink pkg-config
         brew install pkgconf
         brew link --overwrite pkgconf
-        brew install cmake
         brew install eigen
         brew install netcdf
         brew install netcdf-cxx
@@ -184,3 +217,5 @@ jobs:
         python ThermoIntegration_test.py
         ./run_test_jan2010_integration.sh python
         ./run_test_advection.sh python
+        ./run_test_error_handling_test.sh python
+        cd -

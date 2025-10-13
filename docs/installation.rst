@@ -7,7 +7,7 @@
 Installation
 ============
 
-First step to install neXtSIM is to download this repository :
+First step to install nextSIM-DG is to download this repository :
 
 .. code::
 
@@ -25,7 +25,7 @@ It may be easier to use either the docker file (see below), or the ``spack`` ins
 Dependencies
 ------------
 
-To compile neXtSIM, you need to install first some libraries :
+To compile nextSIM-DG, you need to install first some libraries :
 
   - `NetCDF`_
   - `Boost`_
@@ -44,10 +44,7 @@ If your package manager is `Homebrew`_ :
         brew install eigen
 
 
-**Installing dependencies on Ubuntu**
-
-Compilation on a Debian-based Linux distribution (Debian, Ubuntu, etc)
-----------------------------------------------------------------------
+**Installing dependencies on a Debian-based Linux distribution (Debian, Ubuntu, etc)**
 
 You must have root privilege :
 
@@ -110,8 +107,41 @@ To unload an environment you can use the handy (and very fun) alias of ``despack
 information on using ``spack`` environments please see `using environments
 <https://spack.readthedocs.io/en/latest/environments.html#using-environments>`_.
 
-Building the code
------------------
+Python dependencies
+-------------------
+
+To install the Python dependencies, first ensure that you have a Python
+environment set up. You can use ``conda`` or ``virtualenv`` for this purpose. Once
+you have created and activated your Python environment, you can install the
+required Python packages with
+.. code::
+
+        pip install -r requirements.txt
+
+Building domain_decomp
+----------------------
+NextSIM-DG uses the ``domain_decomp`` library for generating domain
+decompositions for MPI parallel simulations. This library is included in the
+``nextsimdg`` repository as a submodule, so you need to initialize and update
+the submodule before building it. You can do this with the following commands:
+
+.. code::
+
+        cd nextsimdg
+        git submodule init
+        git submodule update
+        cd domain_decomp
+        cmake -Bbuild -S.
+        cmake --build build --config Release
+
+The ``domain_decomp`` library is not required to build the nextSIM-DG model but
+it is required for running the tests and for generating domain decompositions
+for application case studies. See the `domain_decomp repo
+<https://github.com/nextsimhub/domain_decomp>`__ for further details on how to
+build and use the library.
+
+Building nextSIM-DG
+-------------------
 After all dependencies have been installed, we can build the code:
 
 .. code::
@@ -124,7 +154,7 @@ After all dependencies have been installed, we can build the code:
 
 Configuring the dynamics
 ------------------------
-The dynamics for nextSIM are chosen at the point of configuring CMake. This is in contrast to most of the model configuration, which is done at model run time. The dynamics are set through the configuration option ``DynamicsType``. The available options for the dynamics are
+The dynamics for nextSIM-DG are chosen at the point of configuring CMake. This is in contrast to most of the model configuration, which is done at model run time. The dynamics are set through the configuration option ``DynamicsType``. The available options for the dynamics are
 
 * ``DG1``: First order discontinuous Galerkin dynamics on a 2D rectangular grid. Advection calculations are performed with 3 DG components.
 

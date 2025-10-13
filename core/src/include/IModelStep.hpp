@@ -39,18 +39,6 @@ public:
      */
     virtual void setData(PrognosticData& data) = 0;
 
-    /*!
-     * @brief Sets the metadata object that will be used within the timesteps.
-     *
-     * @details The ModelMetadata object will contain much constant
-     * information, primarily metadata about the model set up, but also
-     * time-dependent metadata, including the current time for which the model
-     * data is valid.
-     *
-     * @param meta A ModelMetadata reference to the metadata instance
-     */
-    virtual void setMetadata(ModelMetadata& meta) = 0;
-
     // Member functions inherited from Iterant
     virtual void init() = 0;
     virtual void start(const TimePoint& startTime) = 0;

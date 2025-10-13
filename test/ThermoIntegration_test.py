@@ -1,5 +1,6 @@
 import os
 import subprocess
+import time
 import unittest
 
 import netCDF4
@@ -7,6 +8,8 @@ import numpy as np
 
 
 class SingleColumnThermo(unittest.TestCase):
+    """A test case class for a single column thermodynamics model."""
+
     # A few useful global variables for the class
     executable = "../nextsim"
 
@@ -22,12 +25,12 @@ class SingleColumnThermo(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         """
-        A set-up class which,
-          - Creates the initialisation file, using make_init_column.py
-          - Runs the model
-          - Loads the neccesary variables from the output file
-        """
+        Set up the test case before running a test.
 
+        - Creates the initialisation file, using make_init_column.py
+        - Runs the model
+        - Loads the neccesary variables from the output file.
+        """
         # Make the init column
         cls.__make_init_column()
 
@@ -38,17 +41,17 @@ class SingleColumnThermo(unittest.TestCase):
         subprocess.run(cls.executable + " --config-file " + cls.config_file, shell=True, check=True)
 
         # Load the basic variables
-        root = netCDF4.Dataset(cls.diagnostics_file, "r", format="NETCDF4")
-        cls.hice = np.squeeze(np.array(root.groups["data"].variables["hice"][:].data))
-        cls.hsnow = np.squeeze(np.array(root.groups["data"].variables["hsnow"][:].data))
-        cls.tsurf = np.array(root.groups["data"].variables["tsurf"][:].data)
-        cls.tintr = np.array(root.groups["data"].variables["tinterior"][:].data)
-        cls.tbott = np.array(root.groups["data"].variables["tbottom"][:].data)
+        ncFile = netCDF4.Dataset(cls.diagnostics_file, "r", format="NETCDF4")
+        cls.hice = np.squeeze(np.array(ncFile.variables["hice"][:].data))
+        cls.hsnow = np.squeeze(np.array(ncFile.variables["hsnow"][:].data))
+        cls.tsurf = np.array(ncFile.variables["tsurf"][:].data)
+        cls.tintr = np.array(ncFile.variables["tinterior"][:].data)
+        cls.tbott = np.array(ncFile.variables["tbottom"][:].data)
 
     @classmethod
     def __make_cfg_file(cls):
-        cfg = open(cls.config_file, "w")
-        cfg.write("""
+        with open(cls.config_file, "w") as cfg:
+            cfg.write("""
 [model]
 init_file = init_column.nc
 start = 1900-01-01T00:00:00Z
@@ -75,32 +78,21 @@ sst = -1.89
 I_0 = 0.3
 ks = 0.31
         """)
-        cfg.close()
 
     @classmethod
     def __make_init_column(cls):
-        import time
 
-        import netCDF4
-        import numpy as np
-
-        root = netCDF4.Dataset(cls.init_file, "w", format="NETCDF4")
-        metagrp = root.createGroup("structure")
+        ncFile = netCDF4.Dataset(cls.init_file, "w", format="NETCDF4")
         structure_name = "parametric_rectangular"
-        metagrp.type = structure_name
+        ncFile.structure_name = structure_name
 
-        metagrp = root.createGroup("metadata")
-        metagrp.type = structure_name
-        confgrp = metagrp.createGroup("configuration")  # But add nothing to it
-        timegrp = metagrp.createGroup("time")
-        time_var = timegrp.createVariable("time", "i8")
+        time_var = ncFile.createVariable("time_meta", "i8")
         data_time = 1263204000
         time_var[:] = data_time
         time.units = "seconds since 1970-01-01T00:00:00Z"
-        formatted = timegrp.createVariable("formatted", str)
+        formatted = ncFile.createVariable("formatted", str)
         formatted.format = "%Y-%m-%dT%H:%M:%SZ"
         formatted[0] = "2010-01-01T00:00:00Z"
-        datagrp = root.createGroup("data")
 
         nfirst = 1
         nsecond = 1
@@ -109,15 +101,15 @@ ks = 0.31
         n_dgstress = 1
         n_coords = 2
 
-        yDim = datagrp.createDimension("ydim", nfirst)
-        xDim = datagrp.createDimension("xdim", nsecond)
-        yVertexDim = datagrp.createDimension("yvertex", nfirst + 1)
-        xVertexDim = datagrp.createDimension("xvertex", nsecond + 1)
-        ycg_dim = datagrp.createDimension("y_cg", nfirst * ncg + 1)
-        xcg_dim = datagrp.createDimension("x_cg", nsecond * ncg + 1)
-        dg_comp = datagrp.createDimension("dg_comp", n_dg)
-        dgs_comp = datagrp.createDimension("dgstress_comp", n_dgstress)
-        n_coords_comp = datagrp.createDimension("ncoords", n_coords)
+        yDim = ncFile.createDimension("ydim", nfirst)
+        xDim = ncFile.createDimension("xdim", nsecond)
+        yVertexDim = ncFile.createDimension("yvertex", nfirst + 1)
+        xVertexDim = ncFile.createDimension("xvertex", nsecond + 1)
+        ycg_dim = ncFile.createDimension("y_cg", nfirst * ncg + 1)
+        xcg_dim = ncFile.createDimension("x_cg", nsecond * ncg + 1)
+        dg_comp = ncFile.createDimension("dg_comp", n_dg)
+        dgs_comp = ncFile.createDimension("dgstress_comp", n_dgstress)
+        n_coords_comp = ncFile.createDimension("ncoords", n_coords)
 
         field_dims = ("ydim", "xdim")
         coord_dims = ("yvertex", "xvertex", "ncoords")
@@ -135,47 +127,44 @@ ks = 0.31
 
         node_lat[:, :] = lat0
 
-        coords = datagrp.createVariable("coords", "f8", coord_dims)
+        coords = ncFile.createVariable("coords", "f8", coord_dims)
         coords[:, :, 0] = node_lon
         coords[:, :, 1] = node_lat
 
-        elem_lon = datagrp.createVariable("longitude", "f8", field_dims)
+        elem_lon = ncFile.createVariable("longitude", "f8", field_dims)
         elem_lon[:, :] = 0
-        elem_lat = datagrp.createVariable("latitude", "f8", field_dims)
+        elem_lat = ncFile.createVariable("latitude", "f8", field_dims)
         elem_lat[:, :] = 90
 
-        grid_azimuth = datagrp.createVariable("grid_azimuth", "f8", field_dims)
+        grid_azimuth = ncFile.createVariable("grid_azimuth", "f8", field_dims)
         grid_azimuth[:, :] = 0
 
         mu: float = -0.055  # should match Water::mu in constants.hpp
         ocean_temperature = -1.54
         ocean_salinity = ocean_temperature / mu
 
-        mask = datagrp.createVariable("mask", "f8", field_dims)
+        mask = ncFile.createVariable("mask", "f8", field_dims)
         mask[:, :] = [[1]]
-        cice = datagrp.createVariable("cice", "f8", field_dims)
+        cice = ncFile.createVariable("cice", "f8", field_dims)
         cice[:, :] = 1.
-        hice = datagrp.createVariable("hice", "f8", field_dims)
+        hice = ncFile.createVariable("hice", "f8", field_dims)
         hice[:, :] = 3.00
-        hsnow = datagrp.createVariable("hsnow", "f8", field_dims)
+        hsnow = ncFile.createVariable("hsnow", "f8", field_dims)
         hsnow[:, :] = 0.3
-        sss = datagrp.createVariable("sss", "f8", field_dims)
+        sss = ncFile.createVariable("sss", "f8", field_dims)
         sss[:, :] = ocean_salinity
-        sst = datagrp.createVariable("sst", "f8", field_dims)
+        sst = ncFile.createVariable("sst", "f8", field_dims)
         sst[:, :] = ocean_temperature
         # Ice is at rest
-        u = datagrp.createVariable("u", "f8", field_dims)
+        u = ncFile.createVariable("u", "f8", field_dims)
         u[:, :] = 0
-        v = datagrp.createVariable("v", "f8", field_dims)
+        v = ncFile.createVariable("v", "f8", field_dims)
         v[:, :] = 0
-        root.close()
+        ncFile.close()
 
     @classmethod
     def tearDownClass(cls):
-        """
-        A tear-down class that deletes the netCDF output and temporary files
-        """
-
+        """Delete the netCDF output and temporary files."""
         if os.path.isfile(cls.diagnostics_file):
             os.remove(cls.diagnostics_file)
 
@@ -186,34 +175,28 @@ ks = 0.31
             os.remove(cls.config_file)
 
     def test_iceThickness(self):
-        """
-        Test the ice thickness against standard max, min, and mean values
-        """
-
-        mean = 3.1189
-        max = 3.3419
-        min = 2.9805
+        """Test the ice thickness against standard max, min, and mean values."""
+        meanval = 3.1093
+        maxval = 3.3327
+        minval = 2.9702
         hiceDG0 = self.hice[:, 0]
-        self.assertAlmostEqual(max, hiceDG0.max(), 4, "Max ice thickness not ~= " + str(max) + " m")
-        self.assertAlmostEqual(min, hiceDG0.min(), 4, "Min ice thickness not ~= " + str(min) + " m")
-        self.assertAlmostEqual(mean, hiceDG0.mean(), 4, "Mean ice thickness not ~= " + str(mean) + " m")
+        self.assertAlmostEqual(maxval, hiceDG0.max(), 4, f"Max ice thickness not ~= {maxval} m")
+        self.assertAlmostEqual(minval, hiceDG0.min(), 4, f"Min ice thickness not ~= {minval} m")
+        self.assertAlmostEqual(meanval, hiceDG0.mean(), 4, f"Mean ice thickness not ~= {meanval} m")
 
     def test_snowThickness(self):
-        """
-        Test the snow thickness against standard max, min, and mean values
-        """
-
-        mean = 0.2474
-        max = 0.4000
-        min = 0.0000
+        """Test the snow thickness against standard max, min, and mean values."""
+        meanval = 0.2474
+        maxval = 0.4000
+        minval = 0.0000
         snowDG0 = self.hsnow[:, 0]
-        self.assertAlmostEqual(max, snowDG0.max(), 4, "Max snow thickness not ~= " + str(max) + " m")
-        self.assertAlmostEqual(min, snowDG0.min(), 4, "Min snow thickness not ~= " + str(min) + " m")
-        self.assertAlmostEqual(mean, snowDG0.mean(), 4, "Mean snow thickness not ~= " + str(mean) + " m")
+        self.assertAlmostEqual(maxval, snowDG0.max(), 4, f"Max snow thickness not ~= {maxval} m")
+        self.assertAlmostEqual(minval, snowDG0.min(), 4, f"Min snow thickness not ~= {minval} m")
+        self.assertAlmostEqual(meanval, snowDG0.mean(), 4, f"Mean snow thickness not ~= {meanval} m")
 
     def test_temperatureTest(self):
         """
-        Test the surface and internal temperatures against standard max, min, and mean values
+        Test the surface and internal temperatures against standard max, min, and mean values.
 
         NB! Here, I put the "places" argument of assertAlmostEqual to 3 for the mean and min comparison. I do this
         because I get inconsistent results on different platforms in the GitHub CI(!) The reason is that the testing
@@ -223,17 +206,14 @@ ks = 0.31
         significant digit changes between 4 and 5 for the T1 mean, so the result is either -17.6250 or -17.6249 - up
         to 4 digits. This is normal, because the output is only accurate to six significant digits anyway.
         """
-
-        mean = [-17.6250, -7.6068, -3.7998]
-        max = [0.0000, -1.1336, -1.5975]
-        min = [-33.1612, -14.8637, -6.1424]
-        #for i in range(3):
+        meanvals = [-17.6202, -7.5904, -3.7944]
+        maxvals = [0.0000, -1.1280, -1.5939]
+        minvals = [-33.1569, -14.8520, -6.1389]
         for i, t_level in enumerate((self.tsurf[:, 0, 0, 0], self.tintr[:, 0, 0, 0], self.tbott[:, 0, 0, 0])):
-            self.assertAlmostEqual(max[i], t_level.max(), 4, "Max T" + str(i) + " not ~= " + str(max[i]) + " ˚C")
-            self.assertAlmostEqual(min[i], t_level.min(), 3, "Min T" + str(i) + " not ~= " + str(min[i]) + " ˚C")
-            self.assertAlmostEqual(mean[i], t_level.mean(), 3,
-                                   "Mean T" + str(i) + " not ~= " + str(mean[i]) + " ˚C")
+            self.assertAlmostEqual(maxvals[i], t_level.max(), 4, f"Max T {i} not ~= {maxvals[i]} ˚C")
+            self.assertAlmostEqual(minvals[i], t_level.min(), 3, f"Min T {i} not ~= {minvals[i]} ˚C")
+            self.assertAlmostEqual(meanvals[i], t_level.mean(), 3, f"Mean T {i} not ~= {meanvals[i]} ˚C")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

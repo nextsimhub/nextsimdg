@@ -32,7 +32,7 @@ protected:
     {
     }
 
-    ModelArrayRef<Shared::C_ICE, RO> cice; // From prognostic data
+    ModelArrayRef<Shared::C_ICE_DG, RO> cice; // From prognostic data
     ModelArrayRef<Shared::DELTA_CICE, RO> deltaCi; // From LateralIceSpread
     ModelArrayRef<Shared::DAMAGE, RW> damage; // From prognostic data
 };

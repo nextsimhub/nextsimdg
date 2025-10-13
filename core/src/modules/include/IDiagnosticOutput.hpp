@@ -41,7 +41,7 @@ public:
      * @param state The model state to be written out.
      * @param meta The model metadata for the the given state.
      */
-    virtual void outputState(const ModelState& state, const ModelMetadata& meta, const Duration& step) = 0;
+    virtual void outputState(const ModelState& state, const Duration& step) = 0;
 
     // Define some of the ModelComponent class functions
     // No data to be set

@@ -12,8 +12,9 @@
 
 namespace Nextsim {
 
-void SimpleOutput::outputState(const ModelState& diagState, const ModelMetadata& meta, const Duration& step)
+void SimpleOutput::outputState(const ModelState& diagState, const Duration& step)
 {
+    auto& meta = ModelMetadata::getInstance();
     std::stringstream startStream;
     startStream << meta.time();
     std::string timeFileName = m_filePrefix + "." + startStream.str() + ".nc";
@@ -30,6 +31,6 @@ void SimpleOutput::outputState(const ModelState& diagState, const ModelMetadata&
         if (entry.second)
             state.data.at(entry.first) = *entry.second;
     }
-    StructureFactory::fileFromState(state, meta, timeFileName);
+    StructureFactory::fileFromState(state, timeFileName);
 }
 } /* namespace Nextsim */
