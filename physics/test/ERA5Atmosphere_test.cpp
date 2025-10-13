@@ -162,117 +162,122 @@ TEST_CASE("hypot")
     }
 }
 
-TEST_CASE("Interpolation tests I: time index from file")
+TEST_CASE("Interpolation tests")
 {
     ERA5Atmosphere::setDirectory(testFilesDir);
     if (!std::filesystem::exists(ERA5Atmosphere::addDirectory(timeFileName))) {
         createERA5TestFiles();
     }
 
-    const size_t tIdx = 4;
-    era5Buffer timeData = getFileIndexData(ERA5Atmosphere::addDirectory(timeFileName), tIdx);
-    REQUIRE(timeData(0, 0) == double(tIdx));
-}
+    SUBCASE("I: time index from file") {
+        const size_t tIdx = 4;
+        era5Buffer timeData = getFileIndexData(ERA5Atmosphere::addDirectory(timeFileName), tIdx);
+        REQUIRE(timeData(0, 0) == double(tIdx));
+    }
 
-TEST_CASE("Interpolation tests II: variable data from year and index")
-{
-    if (!std::filesystem::exists(testFilesDir + "/" + timeFileName)) {
+    SUBCASE("II: variable data from year and index")
+    {
+        if (!std::filesystem::exists(testFilesDir + "/" + timeFileName)) {
         createERA5TestFiles();
-    }
-    ERA5Atmosphere::setDirectory(testFilesDir);
-    REQUIRE(ERA5Atmosphere::getDirectory() == testFilesDir);
+        }
+        ERA5Atmosphere::setDirectory(testFilesDir);
+        REQUIRE(ERA5Atmosphere::getDirectory() == testFilesDir);
 
-    size_t timeIdx = 5;
-    era5Buffer timeData = getVarIndexData(era5NameTime, 2000, timeIdx);
-    REQUIRE(timeData(0, 0) == double(timeIdx));
+        size_t timeIdx = 5;
+        era5Buffer timeData = getVarIndexData(era5NameTime, 2000, timeIdx);
+        REQUIRE(timeData(0, 0) == double(timeIdx));
 
-    // No timet file should exist for 1999
-    timeIdx = 7;
-    REQUIRE_THROWS(timeData = getVarIndexData(era5NameTime, 1999, timeIdx));
+        // No timet file should exist for 1999
+        timeIdx = 7;
+        REQUIRE_THROWS(timeData = getVarIndexData(era5NameTime, 1999, timeIdx));
 
-}
-
-TEST_CASE("Interpolation tests III: variable data from TimePoint")
-{
-    if (!std::filesystem::exists(testFilesDir + "/" + timeFileName)) {
-        createERA5TestFiles();
-    }
-    ERA5Atmosphere::setDirectory(testFilesDir);
-    // A quarter of the way between index 6 and index 7
-    TimePoint qpt("2000-01-01T06:15:00Z");
-    double targetValue = 6.25;
-    era5Buffer timeData = getVarTimeData(era5NameTime, qpt);
-    REQUIRE(timeData(0, 0) == targetValue);
-}
-
-TEST_CASE("Interpolation tests IV: spatial interpolation")
-{
-    using std::sqrt;
-    using std::cos;
-    using std::sin;
-    using std::atan;
-    using std::atan2;
-    using std::asin;
-
-    era5Buffer lon(nx, 1);
-    era5Buffer lat(ny, 1);
-    era5Buffer lat2d(nx, ny);
-    era5Buffer lon2d(nx, ny);
-
-    for (size_t i = 0; i < nx; ++i) {
-        lon(i, 0) = lon0 + dlon * i;
     }
 
-    for (size_t j = 0; j < ny; ++j) {
-        lat(j, 0) = lat0 + dlat * j;
+    SUBCASE("III: variable data from TimePoint")
+    {
+        if (!std::filesystem::exists(testFilesDir + "/" + timeFileName)) {
+            createERA5TestFiles();
+        }
+        ERA5Atmosphere::setDirectory(testFilesDir);
+        // A quarter of the way between index 6 and index 7
+        TimePoint qpt("2000-01-01T06:15:00Z");
+        double targetValue = 6.25;
+        era5Buffer timeData = getVarTimeData(era5NameTime, qpt);
+        REQUIRE(timeData(0, 0) == targetValue);
+    }
+
+    SUBCASE("IV: spatial interpolation")
+    {
+        using std::sqrt;
+        using std::cos;
+        using std::sin;
+        using std::atan;
+        using std::atan2;
+        using std::asin;
+
+        era5Buffer lon(nx, 1);
+        era5Buffer lat(ny, 1);
+        era5Buffer lat2d(nx, ny);
+        era5Buffer lon2d(nx, ny);
+
         for (size_t i = 0; i < nx; ++i) {
-            lon2d(i, j) = lon(i, 0);
-            lat2d(i, j) = lat(j, 0);
+            lon(i, 0) = lon0 + dlon * i;
         }
-    }
 
-    // Longitude and latitude of the target grid
-    size_t nxt = 154;
-    size_t nyt = 121;
-    double lonCentreDeg = 180.;
-    double lonC = radians(lonCentreDeg);
-    double latCentreDeg = 82.;
-    double latC = radians(latCentreDeg);
-    double dDeg = 0.25; // Resolution in degrees
-
-    ModelArray::setDimension(ModelArray::Dimension::X, nxt);
-    ModelArray::setDimension(ModelArray::Dimension::Y, nyt);
-    ModelArray lonTarg(ModelArray::Type::H);
-    ModelArray latTarg(ModelArray::Type::H);
-    lonTarg.resize();
-    latTarg.resize();
-    // Create the target longitude & latitude arrays: polar stereographic
-    int ic = nxt/2;
-    int jc = nyt/2;
-
-    for (int j = 0; j < nyt; ++j) {
-        double y = (j - jc) * radians(dDeg);
-        for (int i = 0; i < nxt; ++i) {
-            double x = (i - ic) * radians(dDeg);
-            double rho = sqrt(x*x + y*y);
-            double c = 2 * atan(rho / 2);
-            latTarg(i, j) = degrees(asin(cos(c)*sin(latC) + y*sin(c)*cos(latC)/rho));
-            lonTarg(i, j) = degrees(lonC + atan2(x*sin(c), rho*cos(latC)*cos(c) - y*sin(latC)*sin(c)));
+        for (size_t j = 0; j < ny; ++j) {
+            lat(j, 0) = lat0 + dlat * j;
+            for (size_t i = 0; i < nx; ++i) {
+                lon2d(i, j) = lon(i, 0);
+                lat2d(i, j) = lat(j, 0);
+            }
         }
+
+        // Longitude and latitude of the target grid
+        size_t nxt = 154;
+        size_t nyt = 121;
+        double lonCentreDeg = 180.;
+        double lonC = radians(lonCentreDeg);
+        double latCentreDeg = 82.;
+        double latC = radians(latCentreDeg);
+        double dDeg = 0.25; // Resolution in degrees
+
+        ModelArray::setDimension(ModelArray::Dimension::X, nxt);
+        ModelArray::setDimension(ModelArray::Dimension::Y, nyt);
+        ModelArray lonTarg(ModelArray::Type::H);
+        ModelArray latTarg(ModelArray::Type::H);
+        lonTarg.resize();
+        latTarg.resize();
+        // Create the target longitude & latitude arrays: polar stereographic
+        int ic = nxt/2;
+        int jc = nyt/2;
+
+        for (int j = 0; j < nyt; ++j) {
+            double y = (j - jc) * radians(dDeg);
+            for (int i = 0; i < nxt; ++i) {
+                double x = (i - ic) * radians(dDeg);
+                double rho = sqrt(x*x + y*y);
+                double c = 2 * atan(rho / 2);
+                latTarg(i, j) = degrees(asin(cos(c)*sin(latC) + y*sin(c)*cos(latC)/rho));
+                lonTarg(i, j) = degrees(lonC + atan2(x*sin(c), rho*cos(latC)*cos(c) - y*sin(latC)*sin(c)));
+            }
+        }
+
+        double prec = 1e-14;
+        ModelArray testLat(maFromERA5Buffer(lat2d, lonTarg, latTarg));
+        ModelArray testLon(maFromERA5Buffer(lon2d, lonTarg, latTarg));
+        size_t testi = 20;
+        size_t testj = 45;
+        REQUIRE(testLat(testi, testj) == doctest::Approx(latTarg(testi, testj)).epsilon(prec));
+        REQUIRE(testLon(testi, testj) == doctest::Approx(lonTarg(testi, testj)).epsilon(prec));
+
+        testi = 45;
+        testj = 20;
+        REQUIRE(testLat(testi, testj) == doctest::Approx(latTarg(testi, testj)).epsilon(prec));
+        REQUIRE(testLon(testi, testj) == doctest::Approx(lonTarg(testi, testj)).epsilon(prec));
     }
-
-    double prec = 1e-14;
-    ModelArray testLat(maFromERA5Buffer(lat2d, lonTarg, latTarg));
-    ModelArray testLon(maFromERA5Buffer(lon2d, lonTarg, latTarg));
-    size_t testi = 20;
-    size_t testj = 45;
-    REQUIRE(testLat(testi, testj) == doctest::Approx(latTarg(testi, testj)).epsilon(prec));
-    REQUIRE(testLon(testi, testj) == doctest::Approx(lonTarg(testi, testj)).epsilon(prec));
-
-    testi = 45;
-    testj = 20;
-    REQUIRE(testLat(testi, testj) == doctest::Approx(latTarg(testi, testj)).epsilon(prec));
-    REQUIRE(testLon(testi, testj) == doctest::Approx(lonTarg(testi, testj)).epsilon(prec));
+    if (std::filesystem::exists(testFilesDir + "/" + timeFileName)) {
+        std::filesystem::remove(testFilesDir + "/" + timeFileName);
+    }
 }
 TEST_SUITE_END();
 }
