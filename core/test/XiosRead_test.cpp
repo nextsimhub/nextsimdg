@@ -119,7 +119,7 @@ MPI_TEST_CASE("TestXiosRead", 2)
     Duration timestep = xiosHandler.getCalendarTimestep();
     // TODO: Avoid making configGetForcingFieldNames public?
     auto forcingFieldNames = xiosHandler.configGetForcingFieldNames();
-    for (int ts = 1; ts <= 4; ts++) {
+    for (int ts = 0; ts <= 4; ts++) {
 
         // Read forcings from file and check they take the expected values
         TimePoint time = xiosHandler.getCurrentDate();
@@ -127,14 +127,14 @@ MPI_TEST_CASE("TestXiosRead", 2)
         for (auto& entry : forcings.data) {
             for (size_t j = 0; j < ny; ++j) {
                 for (size_t i = 0; i < nx; ++i) {
-                    REQUIRE(entry.second(i, j) == doctest::Approx(ts - 1));
+                    REQUIRE(entry.second(i, j) == doctest::Approx(ts));
                 }
             }
         }
 
         // Update the current timestep and verify it's updated in XIOS
         metadata.incrementTime(timestep);
-        REQUIRE(xiosHandler.getCalendarStep() == ts);
+        REQUIRE(xiosHandler.getCalendarStep() == ts + 1);
     }
 
     xiosHandler.context_finalize();
