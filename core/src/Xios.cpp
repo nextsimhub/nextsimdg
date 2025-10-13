@@ -90,13 +90,7 @@ Xios::Xios(const std::string contextid, const std::string calendartype)
             >> forcingFilename;
         forcingFileId = ((std::filesystem::path)forcingFilename).replace_extension();
 
-        // TODO: Account for separate restart and forcing files (#929)
-        if (forcingFilename.length() > 0 && inputFilename.length() > 0
-            && inputFilename != forcingFilename) {
-            throw std::runtime_error("Xios: Separate forcing and restart files not yet supported");
-        }
-
-        for (std::string fileId : { inputFileId, outputFileId }) {
+        for (std::string fileId : { inputFileId, outputFileId, forcingFileId }) {
             if (fileId.length() > 0) {
                 createFile(fileId);
 
@@ -633,10 +627,14 @@ void Xios::affixModelMetadata()
 {
     auto& metadata = ModelMetadata::getInstance();
     // Initial read of the NetCDF file to deduce the dimensions
-    if (inputFilename.length() > 0) {
+    for (std::string filename : { inputFilename, forcingFilename }) {
+        if (filename.length() == 0) {
+            break;
+        }
+
         try {
             auto& modelMPI = ModelMPI::getInstance();
-            netCDF::NcFilePar ncFile(inputFilename, netCDF::NcFile::read, modelMPI.getComm());
+            netCDF::NcFilePar ncFile(filename, netCDF::NcFile::read, modelMPI.getComm());
 
             // Dimensions and DG components
             std::multimap<std::string, netCDF::NcDim> dimMap = ncFile.getDims();
@@ -681,6 +679,7 @@ void Xios::affixModelMetadata()
                     localLength = dim.getSize();
                     start = 0;
                 }
+                // TODO: Don't set the dimensions if already set
                 ModelArray::setDimension(dimType, dim.getSize(), localLength, start);
             }
 
@@ -697,7 +696,12 @@ void Xios::affixModelMetadata()
             };
 
             // Determine field types
-            std::set<std::string> configFieldIds = configGetFieldNames(true);
+            std::set<std::string> configFieldIds;
+            if (filename == inputFilename) {
+                configFieldIds = configGetInputRestartFieldNames();
+            } else {
+                configFieldIds = configGetForcingFieldNames();
+            }
             for (auto entry : ncFile.getVars()) {
                 const std::string& fieldId = entry.first;
                 // Only consider fields that appear in the config
@@ -725,7 +729,7 @@ void Xios::affixModelMetadata()
             ncFile.close();
         } catch (const netCDF::exceptions::NcException& nce) {
             std::string ncWhat(nce.what());
-            ncWhat += ": " + inputFilename;
+            ncWhat += ": " + filename;
             throw std::runtime_error(ncWhat);
         }
     }
@@ -1307,13 +1311,13 @@ void Xios::createFile(const std::string fileId)
     }
 
     // Determine whether the file is configured for reading or writing
-    bool readAccess = ((inputFileId.length() > 0) && (inputFileId == fileId));
-    // TODO: Account for separate restart and forcing files (#929)
-    bool writeAccess = ((outputFileId.length() > 0) && (outputFileId == fileId));
+    bool inputRestart = ((inputFileId.length() > 0) && (inputFileId == fileId));
+    bool forcing = ((forcingFileId.length() > 0) && (forcingFileId == fileId));
+    bool outputRestart = ((outputFileId.length() > 0) && (outputFileId == fileId));
     // TODO: Account for diagnostics (#917)
 
-    // Check that the filename is not in both the XiosOutput and XiosInput config sections
-    if (readAccess && writeAccess) {
+    // Check that the filename is not used to both read and write restarts
+    if (inputRestart && outputRestart) {
         throw std::runtime_error("Xios: File '" + fileId
             + "' found in both the XiosInput and XiosOutput config sections");
         // TODO: Refactor to allow a field to be both read and written
@@ -1327,12 +1331,13 @@ void Xios::createFile(const std::string fileId)
     }
 
     // Check that the filename is in the XiosOutput or XiosInput config section
-    if (!(readAccess || writeAccess)) {
+    if (!(inputRestart || forcing || outputRestart)) {
         throw std::runtime_error("Xios: File '" + fileId
-            + "' cannot be found in the XiosInput or XiosOutput config sections");
+            + "' cannot be found in the model or XiosForcing config sections");
     }
 
     // Set the file mode and some defaults
+    bool readAccess = (inputRestart || forcing);
     if (readAccess) {
         setFileMode(fileId, "read");
     } else {
@@ -1343,10 +1348,14 @@ void Xios::createFile(const std::string fileId)
 
     // Set the input or output period based on the model configuration
     std::string periodStr;
-    istringstream(Configured::getConfiguration(keyMap.at(RESTARTPERIOD_KEY), std::string()))
-        >> periodStr;
-    // TODO: Account for forcing period being different to restart period (#929)
-    // TODO: Account for diagnostics (#917)
+    if (forcing) {
+        istringstream(Configured::getConfiguration(keyMap.at(FORCING_PERIOD_KEY), std::string()))
+            >> periodStr;
+        // TODO: Account for diagnostics (#917)
+    } else {
+        istringstream(Configured::getConfiguration(keyMap.at(RESTARTPERIOD_KEY), std::string()))
+            >> periodStr;
+    }
     if (periodStr.length() == 0 || periodStr == "0") {
         ModelMetadata& metadata = ModelMetadata::getInstance();
         setFileOutputFreq(fileId, metadata.runLength());
@@ -1357,7 +1366,15 @@ void Xios::createFile(const std::string fileId)
     // Create all fields found in the config based off the field names found in the
     // XiosInput.field_names, XiosOutput.field_names, or XiosForcing.field_names entries in the
     // config.
-    for (std::string fieldId : configGetFieldNames(readAccess)) {
+    std::set<std::string> fieldIds;
+    if (inputRestart) {
+        fieldIds = configGetInputRestartFieldNames();
+    } else if (forcing) {
+        fieldIds = configGetForcingFieldNames();
+    } else {
+        fieldIds = configGetOutputFieldNames();
+    }
+    for (std::string fieldId : fieldIds) {
         createField(fieldId);
         fileAddField(fileId, fieldId);
         setFieldReadAccess(fieldId, readAccess);

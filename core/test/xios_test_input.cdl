@@ -10,7 +10,6 @@ dimensions:
   dg_comp = 3 ;
   dgstress_comp = 8 ;
   ncoords = 2 ;
-	time_counter = UNLIMITED ; // (5 currently)
 variables:
 	float x(x) ;
 		x:axis = "X" ;
@@ -42,23 +41,6 @@ variables:
 		VertexAxis:standard_name = "Dimension" ;
     VertexAxis:long_name = "Spatial dimension" ;
 		VertexAxis:units = "-" ;
-	double time_instant(time_counter) ;
-		time_instant:standard_name = "time" ;
-		time_instant:long_name = "Time axis" ;
-		time_instant:calendar = "gregorian" ;
-		time_instant:units = "seconds since 2020-01-23 00:08:15" ;
-		time_instant:time_origin = "2020-01-23 00:08:15" ;
-		time_instant:bounds = "time_instant_bounds" ;
-	double time_instant_bounds(time_counter, axis_nbounds) ;
-	double time_counter(time_counter) ;
-		time_counter:axis = "T" ;
-		time_counter:standard_name = "time" ;
-		time_counter:long_name = "Time axis" ;
-		time_counter:calendar = "gregorian" ;
-		time_counter:units = "seconds since 2020-01-23 00:08:15" ;
-		time_counter:time_origin = "2020-01-23 00:08:15" ;
-		time_counter:bounds = "time_counter_bounds" ;
-	double time_counter_bounds(time_counter, axis_nbounds) ;
 	float coords(yvertex, xvertex, ncoords) ;
 		coords:online_operation = "once" ;
 		coords:coordinates = "lat lon VertexAxis" ;
@@ -68,12 +50,6 @@ variables:
 	float mask(y, x) ;
 		mask:online_operation = "once" ;
 		mask:coordinates = "lat lon" ;
-	float u(time_counter, y, x) ;
-		u:online_operation = "instant" ;
-		u:interval_operation = "5400 s" ;
-		u:interval_write = "5400 s" ;
-		u:cell_methods = "time: point" ;
-		u:coordinates = "time_instant" ;
 
 // global attributes:
 		:structure_name = "parametric_rectangular" ;
@@ -91,24 +67,6 @@ data:
  yvertex = -1, 0, 1 ;
 
  xvertex = -1, -0.5, 0, 0.5, 1 ;
-
- time_instant = 99334965, 99340365, 99345765, 99351165, 99356565 ;
-
- time_instant_bounds =
-  99334965, 99334965,
-  99340365, 99340365,
-  99345765, 99345765,
-  99351165, 99351165,
-  99356565, 99356565 ;
-
- time_counter = 99334965, 99340365, 99345765, 99351165, 99356565 ;
-
- time_counter_bounds =
-  99334965, 99334965,
-  99340365, 99340365,
-  99345765, 99345765,
-  99351165, 99351165,
-  99356565, 99356565 ;
 
  coords =
   0, 0,
@@ -140,16 +98,4 @@ data:
  mask =
   0, 0, 0, 0,
   1, 1, 1, 1 ;
-
- u =
-  0, 0, 0, 0,
-  0, 0, 0, 0,
-  1, 1, 1, 1,
-  1, 1, 1, 1,
-  2, 2, 2, 2,
-  2, 2, 2, 2,
-  3, 3, 3, 3,
-  3, 3, 3, 3,
-  4, 4, 4, 4,
-  4, 4, 4, 4 ;
 }
