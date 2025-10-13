@@ -28,8 +28,8 @@ build nextSIM-DG with XIOS as the I/O driver.
   [xios]
   enable = true
 
-The ``model`` section, which is used elsewhere in nextSIM-DG, contains three
-entries relevant to XIOS: ``start``, ``stop``, and ``time_step``. These are
+The ``model`` section, which is used elsewhere in nextSIM-DG, contains several
+entries relevant to XIOS. The ``start``, ``stop``, and ``time_step`` entries are
 used to configure the calendar used by XIOS. For example,
 
 .. code-block::
@@ -39,18 +39,33 @@ used to configure the calendar used by XIOS. For example,
   stop = 1970-01-01T01:00:00Z
   time_step = P0-0T01:00:00
 
-Files and fields to be read and written to files are configured via the
+The filename and period for restart files is configured in the same way as when
+building without XIOS. That is, the ``model`` section should include
+``init_file``, ``restart_file`` and ``restart_period`` entries:
+
+.. code-block::
+
+  [model]
+  init_file = my_init_file.nc
+  restart_file = my_restart_file.nc
+  restart_period = P0-0T02:00:00
+
+In the case of forcing files, the input file name is configured differently, via
+the ``filename`` entry in the ``XiosForcing`` section. For example,
+
+.. code-block::
+
+   [XiosForcing]
+   filename = my_forcing_file.nc
+
+The fields to be read from and written to files are configured via the
 ``XiosInput``, ``XiosOutput``, and ``XiosForcing`` sections, where the first two
-refer to restarts. These sections all accept the same entries for period,
-filename, and field names. For example, we could set the following values, which
-would specify two fields labelled ``field_A`` and ``field_B``, which are written
-to file ``my_output_file.nc`` every two (simulated) hours.
+refer to restarts. For example, we could specify that two fields labelled
+``field_A`` and ``field_B`` are to be written into restart files as follows:
 
 .. code-block::
 
   [XiosOutput]
-  period = P0-0T02:00:00
-  filename = my_output_file.nc
   field_names = field_A,field_B
 
 The ``field_names`` entry may contain a single field name or a comma-separated
