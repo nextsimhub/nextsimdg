@@ -656,12 +656,11 @@ void Xios::affixModelMetadata()
                 // If we didn't find a dimension with the dimensions name or altName, throw.
                 if (dim.isNull()) {
                     throw std::out_of_range(
-                        std::string(
-                            "No netCDF dimension found corresponding to the dimension named ")
-                        + dimensionSpec.name + std::string(" or ") + dimensionSpec.altName);
+                        "Xios: No netCDF dimension found corresponding to the dimension named "
+                        + dimensionSpec.name + " or " + dimensionSpec.altName);
                 }
                 auto dimName = dim.getName();
-                size_t localLength = 0;
+                size_t localLength;
                 size_t start = 0;
                 if (dimType == ModelArray::Dimension::X) {
                     localLength = metadata.getLocalExtentX();
@@ -677,10 +676,26 @@ void Xios::affixModelMetadata()
                     start = metadata.getLocalCornerY();
                 } else {
                     localLength = dim.getSize();
-                    start = 0;
                 }
-                // TODO: Don't set the dimensions if already set
-                ModelArray::setDimension(dimType, dim.getSize(), localLength, start);
+
+                if (ModelArray::definedDimensions.at(dimType)
+                    == ModelArray::defaultDimensions.at(dimType)) {
+                    // Set dimensions if they haven't been set already
+                    ModelArray::setDimension(dimType, dim.getSize(), localLength, start);
+                } else {
+                    // Otherwise, check that an attempt to modify them isn't being made
+                    if (dim.getSize() != ModelArray::definedDimensions.at(dimType).globalLength) {
+                        throw std::runtime_error(
+                            "Xios: inconsistent global dimensions for " + dimName);
+                    }
+                    if (localLength != ModelArray::size(dimType)) {
+                        throw std::runtime_error(
+                            "Xios: inconsistent local dimensions for " + dimName);
+                    }
+                    if (start != ModelArray::definedDimensions.at(dimType).start) {
+                        throw std::runtime_error("Xios: inconsistent start index for " + dimName);
+                    }
+                }
             }
 
             // Create map for field types
