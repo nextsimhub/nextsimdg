@@ -42,9 +42,9 @@ MPI_TEST_CASE("TestXiosRead", 2)
     config << "stop = 2023-03-17T23:11:00Z" << std::endl;
     config << "time_step = P0-0T01:30:00" << std::endl;
     config << "init_file = xios_test_input.nc" << std::endl;
+    config << "restart_period = P0-0T01:30:00" << std::endl;
     config << "[XiosInput]" << std::endl;
     config << "field_names = " << maskName << "," << coordsName << "," << hiceName << std::endl;
-    config << "period = P0-0T01:30:00" << std::endl;
     // TODO: Account for separate restart and forcing files (#929)
     config << "[XiosForcing]" << std::endl;
     config << "filename = xios_test_input.nc" << std::endl;

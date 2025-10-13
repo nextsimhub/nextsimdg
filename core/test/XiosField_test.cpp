@@ -36,8 +36,8 @@ MPI_TEST_CASE("TestXiosField", 3)
     config << "stop = 2023-03-17T18:11:00Z" << std::endl;
     config << "time_step = P0-0T01:00:00" << std::endl;
     config << "restart_file = xios_test_output" << std::endl;
+    config << "restart_period = P0-0T03:00:00" << std::endl;
     config << "[XiosOutput]" << std::endl;
-    config << "period = P0-0T03:00:00" << std::endl;
     config << "field_names = field_A" << std::endl;
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));

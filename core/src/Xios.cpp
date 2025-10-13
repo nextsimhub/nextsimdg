@@ -45,18 +45,16 @@ namespace Nextsim {
 static const std::string xOutputPfx = "XiosOutput";
 static const std::string xInputPfx = "XiosInput";
 static const std::string xForcingPfx = "XiosForcing";
-static const std::map<int, std::string> keyMap = { { Xios::ENABLED_KEY, "xios.enable" },
-    // { Xios::RESTARTPERIOD_KEY, "model.period" },
-    { Xios::INPUT_RESTARTFILE_KEY, "model.init_file" },
-    // TODO: Support format "restart%Y-%m-%dT%H:%M:%SZ.nc" (#898)
-    { Xios::OUTPUT_RESTARTFILE_KEY, "model.restart_file" },
-    { Xios::OUTPUT_RESTARTPERIOD_KEY, xOutputPfx + ".period" },
-    { Xios::OUTPUT_FIELD_NAMES_KEY, xOutputPfx + ".field_names" },
-    { Xios::INPUT_RESTARTPERIOD_KEY, xInputPfx + ".period" },
-    { Xios::INPUT_FIELD_NAMES_KEY, xInputPfx + ".field_names" },
-    { Xios::FORCING_PERIOD_KEY, xForcingPfx + ".period" },
-    { Xios::FORCING_FILE_KEY, xForcingPfx + ".filename" },
-    { Xios::FORCING_FIELD_NAMES_KEY, xForcingPfx + ".field_names" } };
+static const std::map<int, std::string> keyMap
+    = { { Xios::ENABLED_KEY, "xios.enable" }, { Xios::RESTARTPERIOD_KEY, "model.restart_period" },
+          { Xios::INPUT_RESTARTFILE_KEY, "model.init_file" },
+          // TODO: Support format "restart%Y-%m-%dT%H:%M:%SZ.nc" (#898)
+          { Xios::OUTPUT_RESTARTFILE_KEY, "model.restart_file" },
+          { Xios::OUTPUT_FIELD_NAMES_KEY, xOutputPfx + ".field_names" },
+          { Xios::INPUT_FIELD_NAMES_KEY, xInputPfx + ".field_names" },
+          { Xios::FORCING_PERIOD_KEY, xForcingPfx + ".period" },
+          { Xios::FORCING_FILE_KEY, xForcingPfx + ".filename" },
+          { Xios::FORCING_FIELD_NAMES_KEY, xForcingPfx + ".field_names" } };
 
 //! Enable XIOS in the 'config'
 void enableXios()
@@ -131,18 +129,10 @@ Xios::HelpMap& Xios::getHelpText(HelpMap& map, bool getAll)
             "-Dxios_DIR=/path/to/xios." },
     };
     map["XiosInput"] = {
-        { keyMap.at(INPUT_RESTARTPERIOD_KEY), ConfigType::STRING, {}, "0", "",
-            "The period between restart file outputs expected in a file to be read, formatted as "
-            "an ISO8601 duration (P prefix) or number of seconds. A value of zero assumes no "
-            "intermediate restart files." },
         { keyMap.at(INPUT_FIELD_NAMES_KEY), ConfigType::STRING, {}, "", "",
             "Comma-separated list of field names to be read from the input file." },
     };
     map["XiosOutput"] = {
-        { keyMap.at(OUTPUT_RESTARTPERIOD_KEY), ConfigType::STRING, {}, "0", "",
-            "The period between restart file outputs, formatted as an ISO8601 "
-            "duration (P prefix) or number of seconds. A value of zero "
-            "ensures no intermediate restart files are written." },
         { keyMap.at(OUTPUT_FIELD_NAMES_KEY), ConfigType::STRING, {}, "", "",
             "Comma-separated list of field names to be written to the output file." },
     };
@@ -1348,17 +1338,10 @@ void Xios::createFile(const std::string fileId)
 
     // Set the input or output period based on the model configuration
     std::string periodStr;
-    if (readAccess) {
-        istringstream(
-            Configured::getConfiguration(keyMap.at(INPUT_RESTARTPERIOD_KEY), std::string()))
-            >> periodStr;
-        // TODO: Account for forcing period being different to restart period (#929)
-    } else {
-        istringstream(
-            Configured::getConfiguration(keyMap.at(OUTPUT_RESTARTPERIOD_KEY), std::string()))
-            >> periodStr;
-        // TODO: Account for diagnostics (#917)
-    }
+    istringstream(Configured::getConfiguration(keyMap.at(RESTARTPERIOD_KEY), std::string()))
+        >> periodStr;
+    // TODO: Account for forcing period being different to restart period (#929)
+    // TODO: Account for diagnostics (#917)
     if (periodStr.length() == 0 || periodStr == "0") {
         ModelMetadata& metadata = ModelMetadata::getInstance();
         setFileOutputFreq(fileId, metadata.runLength());
