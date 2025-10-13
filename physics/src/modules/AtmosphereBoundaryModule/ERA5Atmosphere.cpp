@@ -161,10 +161,12 @@ const std::string era5FromNSName(const std::string& nsName)
 {
     static const std::map<std::string, std::string> era5FromNS = {
             {"tair", "t2m"},
-            {"tdew", "d2m"},
+            {"dew2m", "d2m"},
             {"pair", "msl"},
             {"sw_in", "msdwswrf"},
             {"lw_in", "msdwlwrf"},
+            {"u", "u10"},
+            {"v", "v10"},
     };
     return era5FromNS.at(nsName);
 }
