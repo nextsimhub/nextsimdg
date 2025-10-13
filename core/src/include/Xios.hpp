@@ -133,10 +133,6 @@ public:
 
     enum {
         ENABLED_KEY,
-        STARTTIME_KEY,
-        STOPTIME_KEY,
-        TIME_STEP_KEY,
-        READ_MODE_KEY,
         OUTPUT_RESTARTPERIOD_KEY,
         OUTPUT_RESTARTFILE_KEY,
         OUTPUT_FIELD_NAMES_KEY,

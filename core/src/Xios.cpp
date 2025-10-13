@@ -45,18 +45,16 @@ namespace Nextsim {
 static const std::string xOutputPfx = "XiosOutput";
 static const std::string xInputPfx = "XiosInput";
 static const std::string xForcingPfx = "XiosForcing";
-static const std::map<int, std::string> keyMap
-    = { { Xios::ENABLED_KEY, "xios.enable" }, { Xios::STARTTIME_KEY, "model.start" },
-          { Xios::STOPTIME_KEY, "model.stop" }, { Xios::TIME_STEP_KEY, "model.time_step" },
-          { Xios::OUTPUT_RESTARTPERIOD_KEY, xOutputPfx + ".period" },
-          { Xios::OUTPUT_RESTARTFILE_KEY, xOutputPfx + ".filename" },
-          { Xios::OUTPUT_FIELD_NAMES_KEY, xOutputPfx + ".field_names" },
-          { Xios::INPUT_RESTARTPERIOD_KEY, xInputPfx + ".period" },
-          { Xios::INPUT_RESTARTFILE_KEY, xInputPfx + ".filename" },
-          { Xios::INPUT_FIELD_NAMES_KEY, xInputPfx + ".field_names" },
-          { Xios::FORCING_PERIOD_KEY, xForcingPfx + ".period" },
-          { Xios::FORCING_FILE_KEY, xForcingPfx + ".filename" },
-          { Xios::FORCING_FIELD_NAMES_KEY, xForcingPfx + ".field_names" } };
+static const std::map<int, std::string> keyMap = { { Xios::ENABLED_KEY, "xios.enable" },
+    { Xios::OUTPUT_RESTARTPERIOD_KEY, xOutputPfx + ".period" },
+    { Xios::OUTPUT_RESTARTFILE_KEY, xOutputPfx + ".filename" },
+    { Xios::OUTPUT_FIELD_NAMES_KEY, xOutputPfx + ".field_names" },
+    { Xios::INPUT_RESTARTPERIOD_KEY, xInputPfx + ".period" },
+    { Xios::INPUT_RESTARTFILE_KEY, xInputPfx + ".filename" },
+    { Xios::INPUT_FIELD_NAMES_KEY, xInputPfx + ".field_names" },
+    { Xios::FORCING_PERIOD_KEY, xForcingPfx + ".period" },
+    { Xios::FORCING_FILE_KEY, xForcingPfx + ".filename" },
+    { Xios::FORCING_FIELD_NAMES_KEY, xForcingPfx + ".field_names" } };
 
 //! Enable XIOS in the 'config'
 void enableXios()
