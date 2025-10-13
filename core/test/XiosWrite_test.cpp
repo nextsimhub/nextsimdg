@@ -25,6 +25,7 @@ const std::string diagnosticFilename = testFilesDir + "/xios_test_diagnostic.nc"
 
 static const int DG = 3;
 static const int DGSTRESSCOMP = 8;
+static const int CGDEGREE = 2;
 
 namespace Nextsim {
 
@@ -47,7 +48,8 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     config << "restart_period = P0-0T01:30:00" << std::endl;
     config << "[XiosOutput]" << std::endl;
     config << "field_names = " << maskName << "," << coordsName << "," << hiceName << ","
-           << ticeName << std::endl;
+           << ticeName << "," << ciceName << std::endl;
+    config << "period = P0-0T01:30:00" << std::endl;
     config << "[XiosDiagnostic]" << std::endl;
     config << "filename = " << diagnosticFilename << std::endl;
     config << "field_names = " << uName << std::endl;
@@ -83,6 +85,10 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     ModelArray::setDimension(ModelArray::Dimension::Y, ny_glo, ny, 0);
     ModelArray::setDimension(ModelArray::Dimension::XVERTEX, nx_glo + 1, nx + 1, 0);
     ModelArray::setDimension(ModelArray::Dimension::YVERTEX, ny_glo + 1, ny + 1, 0);
+    ModelArray::setDimension(
+        ModelArray::Dimension::XCG, CGDEGREE * nx_glo + 1, CGDEGREE * nx + 1, 0);
+    ModelArray::setDimension(
+        ModelArray::Dimension::YCG, CGDEGREE * ny_glo + 1, CGDEGREE * ny + 1, 0);
     ModelArray::setNComponents(ModelArray::Type::DG, DG);
     ModelArray::setNComponents(ModelArray::Type::DGSTRESS, DGSTRESSCOMP);
     ModelArray::setNComponents(ModelArray::Type::VERTEX, ModelArray::nCoords);
@@ -99,6 +105,7 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     xiosHandler.setFieldType(coordsName, ModelArray::Type::VERTEX);
     xiosHandler.setFieldType(hiceName, ModelArray::Type::DG);
     xiosHandler.setFieldType(ticeName, ModelArray::Type::DGSTRESS);
+    xiosHandler.setFieldType(ciceName, ModelArray::Type::CG);
     xiosHandler.setFieldType(uName, ModelArray::Type::H);
 
     // Set file split frequency for restarts (but not diagnostics)
@@ -149,6 +156,19 @@ MPI_TEST_CASE("TestXiosWrite", 2)
             }
         }
     }
+    CGField cice(ModelArray::Type::CG);
+    cice.resize();
+    int rank;
+    MPI_Comm_rank(test_comm, &rank);
+    for (size_t j = 0; j < CGDEGREE * ny + 1; ++j) {
+        for (size_t i = 0; i < CGDEGREE * nx + 1; ++i) {
+            if (rank == 0) {
+                cice(i, j) = (double)i;
+            } else {
+                cice(i, j) = (double)(4 - i);
+            }
+        }
+    }
     HField u(ModelArray::Type::H);
     u.resize();
 
@@ -179,6 +199,7 @@ MPI_TEST_CASE("TestXiosWrite", 2)
                                     { coordsName, coordinates },
                                     { hiceName, hice },
                                     { ticeName, tice },
+                                    { ciceName, cice },
                                 },
             {} };
         ModelState diagnostics = { {
