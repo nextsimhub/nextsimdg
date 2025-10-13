@@ -10,6 +10,9 @@
 #include "include/ParaGridIO.hpp"
 
 #include <ctime>
+#include <string>
+#include <tuple>
+#include <vector>
 
 #include <ncDim.h>
 #include <ncFile.h>
@@ -93,18 +96,30 @@ ConfigMap ERA5Atmosphere::getConfiguration() const
 void ERA5Atmosphere::update(const TimestepTime& tst)
 {
     // TODO: Get more authoritative names for the forcings
-    std::set<std::string> forcings
-        = { "tair", "dew2m", "pair", "sw_in", "lw_in", "wind_speed", "u", "v" };
+    std::vector<std::pair<std::string, ModelArray*>> forcings = {
+            { "tair", &tair },
+            { "dew2m", &tdew },
+            { "pair", &pair },
+            { "sw_in", &sw_in },
+            { "lw_in", &lw_in },
+            { "wind_speed", &wind },
+            { "u", &uwind },
+            { "v", &vwind },
+    };
 
-    ModelState state = ParaGridIO::readForcingTimeStatic(forcings, tst.start, filePath);
-    tair = state.data.at("tair");
-    tdew = state.data.at("dew2m");
-    pair = state.data.at("pair");
-    sw_in = state.data.at("sw_in");
-    lw_in = state.data.at("lw_in");
-    wind = state.data.at("wind_speed");
-    uwind = state.data.at("u");
-    vwind = state.data.at("v");
+//    ModelState state = ParaGridIO::readForcingTimeStatic(forcings, tst.start, filePath);
+//    tair = state.data.at("tair");
+//    tdew = state.data.at("dew2m");
+//    pair = state.data.at("pair");
+//    sw_in = state.data.at("sw_in");
+//    lw_in = state.data.at("lw_in");
+//    wind = state.data.at("wind_speed");
+//    uwind = state.data.at("u");
+//    vwind = state.data.at("v");
+
+    for (std::pair<std::string, ModelArray*>& entry : forcings) {
+        *entry.second = getData(entry.first, tst.start);
+    }
     snow = 0; // FIXME get snow data
     rain = 0; // FIXME get rain data
 
