@@ -58,7 +58,7 @@ std::vector<std::string> writeTestFiles(const bool snapshots, const std::string&
     size_t ny = 9;
 
 #ifdef USE_MPI
-    auto& modelMPI = ModelMPI::getInstance(test_comm);
+    auto& modelMPI = ModelMPI::getInstance(MPIComm);
     auto& meta = ModelMetadata::getInstance(partition_filename);
 
     const auto localNX = meta.getLocalExtentX() + 2 * Halo::haloWidth;
