@@ -171,7 +171,7 @@ const std::string era5FromNSName(const std::string& nsName)
     return era5FromNS.at(nsName);
 }
 
-using era5Buffer = Eigen::Array<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
+using era5Buffer = Eigen::Array<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>;
 
 era5Buffer getFileIndexData(const std::string& filename, size_t tIndex)
 {
@@ -254,6 +254,8 @@ ModelArray maFromERA5Buffer(const era5Buffer& buffer, const HField& destLon, con
     srcBuffer(Eigen::all, 0) = srcBuffer(Eigen::all, 1);
     srcBuffer(Eigen::all, Eigen::last) = srcBuffer(Eigen::all, Eigen::last - 1);
 
+//    std::cout << "src:" << srcBuffer(Eigen::seq(0, 3), 0) << "; " <<  srcBuffer(0, Eigen::seq(0, 3));
+
     // lambdas to translate latitude and longitude to (fractional) index in
     // srcBuffer, including wrap-around columns.
     auto xFromLon = [ptsPerDegree](double lon) { return ptsPerDegree * lon + 1; };
@@ -277,6 +279,7 @@ ModelArray maFromERA5Buffer(const era5Buffer& buffer, const HField& destLon, con
                     (1 - fx) * (1 - fy) * srcBuffer(ihi, jhi);
         }
     }
+//    std::cout << ", snk:" << maData(95, 36) << std::endl;
     return maData;
 }
 
