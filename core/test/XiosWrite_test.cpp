@@ -24,6 +24,7 @@ const std::string restartFilename = testFilesDir + "/xios_test_output.nc";
 const std::string diagnosticFilename = testFilesDir + "/xios_test_diagnostic.nc";
 
 static const int DG = 3;
+static const int DGSTRESSCOMP = 8;
 
 namespace Nextsim {
 
@@ -82,8 +83,10 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     ModelArray::setDimension(ModelArray::Dimension::XVERTEX, nx_glo + 1, nx + 1, 0);
     ModelArray::setDimension(ModelArray::Dimension::YVERTEX, ny_glo + 1, ny + 1, 0);
     ModelArray::setNComponents(ModelArray::Type::DG, DG);
+    ModelArray::setNComponents(ModelArray::Type::DGSTRESS, DGSTRESSCOMP);
     ModelArray::setNComponents(ModelArray::Type::VERTEX, ModelArray::nCoords);
     REQUIRE(ModelArray::nComponents(ModelArray::Type::DG) == DG);
+    REQUIRE(ModelArray::nComponents(ModelArray::Type::DGSTRESS) == DGSTRESSCOMP);
     REQUIRE(ModelArray::nComponents(ModelArray::Type::VERTEX) == ModelArray::nCoords);
 
     // Affix ModelMetadata to Xios handler
@@ -94,6 +97,7 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     xiosHandler.setFieldType(maskName, ModelArray::Type::H);
     xiosHandler.setFieldType(coordsName, ModelArray::Type::VERTEX);
     xiosHandler.setFieldType(hiceName, ModelArray::Type::DG);
+    xiosHandler.setFieldType(ticeName, ModelArray::Type::DGSTRESS);
     xiosHandler.setFieldType(uName, ModelArray::Type::H);
 
     // Set file split frequency for restarts (but not diagnostics)
@@ -128,6 +132,15 @@ MPI_TEST_CASE("TestXiosWrite", 2)
             }
         }
     }
+    DGSField tice(ModelArray::Type::DGSTRESS);
+    tice.resize();
+    for (size_t j = 0; j < ny; ++j) {
+        for (size_t i = 0; i < nx; ++i) {
+            for (size_t d = 0; d < DGSTRESSCOMP; ++d) {
+                tice.components({ i, j })[d] = 2.0 * (d + DG * (i + nx * j));
+            }
+        }
+    }
     HField u(ModelArray::Type::H);
     u.resize();
 
@@ -157,6 +170,7 @@ MPI_TEST_CASE("TestXiosWrite", 2)
                                     { maskName, mask },
                                     { coordsName, coordinates },
                                     { hiceName, hice },
+                                    { ticeName, tice },
                                 },
             {} };
         ModelState diagnostics = { {
