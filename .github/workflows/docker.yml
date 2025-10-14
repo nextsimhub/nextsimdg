@@ -54,6 +54,7 @@ jobs:
         uses: docker/build-push-action@v5
         if: github.event_name == 'push' || github.event_name == 'schedule'
         with:
+          push: ${{ github.ref == 'refs/heads/main' }}
           push: true
           file: Dockerfiles/Dockerfile.devenv
           tags: ghcr.io/nextsimhub/nextsimdg-dev-env:latest
