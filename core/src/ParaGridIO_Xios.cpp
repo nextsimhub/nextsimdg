@@ -70,9 +70,13 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
             DGField field(ModelArray::Type::DG);
             field.resize();
             state.merge(ModelState { { { fieldId, field } }, {} });
+        } else if (type == ModelArray::Type::DGSTRESS) {
+            DGSField field(ModelArray::Type::DGSTRESS);
+            field.resize();
+            state.merge(ModelState { { { fieldId, field } }, {} });
         } else {
-            throw std::runtime_error(
-                "ParaGridIO::getModelState: field type for field" + fieldId + " is not supported.");
+            throw std::runtime_error("ParaGridIO::getModelState: field type for field " + fieldId
+                + " is not supported.");
         }
     }
 
