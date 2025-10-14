@@ -46,6 +46,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+      with:
+        persist-credentials: false
 
     - name: build and compile without XIOS or MPI
       run: |
@@ -91,6 +93,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+      with:
+        persist-credentials: false
 
     - name: build domain_decomp
       run: |
@@ -139,6 +143,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+      with:
+        persist-credentials: false
 
     - name: build domain_decomp
       run: |
@@ -184,6 +190,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+      with:
+        persist-credentials: false
     - name: installs
       run: |
         brew install boost
