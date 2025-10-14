@@ -5,8 +5,8 @@ dimensions:
 	y = 2 ;
   xvertex = 5 ;
   yvertex = 3 ;
-  x_cg = 2 ;
-  y_cg = 2 ;
+  x_cg = 9 ;
+  y_cg = 5 ;
   dg_comp = 3 ;
   dgstress_comp = 8 ;
   ncoords = 2 ;

@@ -5,8 +5,8 @@ dimensions:
 	y = 2 ;
   xvertex = 5 ;
   yvertex = 3 ;
-  x_cg = 2 ;
-  y_cg = 2 ;
+  x_cg = 9 ;
+  y_cg = 5 ;
   dg_comp = 3 ;
   dgstress_comp = 8 ;
   ncoords = 2 ;
@@ -31,6 +31,16 @@ variables:
 		yvertex:standard_name = "vertex latitude" ;
 		yvertex:long_name = "Vertex latitude" ;
 		yvertex:units = "degrees_north" ;
+	float x_cg(x_cg) ;
+		x_cg:axis = "XCG" ;
+		x_cg:standard_name = "CG longitude" ;
+		x_cg:long_name = "Continuous Galerkin longitude" ;
+		x_cg:units = "degrees_east" ;
+	float y_cg(y_cg) ;
+		y_cg:axis = "YCG" ;
+		y_cg:standard_name = "CG latitude" ;
+		y_cg:long_name = "Continuous Galerkin latitude" ;
+		y_cg:units = "degrees_north" ;
 	float DGAxis(dg_comp) ;
 		DGAxis:axis = "DG" ;
 		DGAxis:standard_name = "DG DoFs" ;
@@ -58,6 +68,9 @@ variables:
 	float tice(y, x, dgstress_comp) ;
 		tice:online_operation = "once" ;
 		tice:coordinates = "lat lon DGSAxis" ;
+	float cice(y_cg, x_cg) ;
+		cice:online_operation = "once" ;
+		cice:coordinates = "lat lon" ;
 
 // global attributes:
 		:structure_name = "parametric_rectangular" ;
@@ -116,4 +129,11 @@ data:
   48, 50, 52, 54, 56, 58, 60, 62,
   32, 34, 36, 38, 40, 42, 44, 46,
   48, 50, 52, 54, 56, 58, 60, 62 ;
+
+ cice =
+  1, 2, 3, 4, 5, 6, 7, 8, 9,
+  2, 4, 6, 8, 10, 12, 14, 16, 18,
+  3, 6, 9, 12, 15, 18, 21, 24, 27,
+  4, 8, 12, 16, 20, 24, 28, 32, 36,
+  5, 10, 15, 20, 25, 30, 35, 40, 45;
 }

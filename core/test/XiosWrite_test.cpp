@@ -158,14 +158,12 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     }
     CGField cice(ModelArray::Type::CG);
     cice.resize();
-    int rank;
-    MPI_Comm_rank(test_comm, &rank);
     for (size_t j = 0; j < CGDEGREE * ny + 1; ++j) {
         for (size_t i = 0; i < CGDEGREE * nx + 1; ++i) {
             if (rank == 0) {
-                cice(i, j) = (double)i;
+                cice(i, j) = (double)((i + 1) * (j + 1));
             } else {
-                cice(i, j) = (double)(4 - i);
+                cice(i, j) = (double)((i + 5) * (j + 1));
             }
         }
     }
