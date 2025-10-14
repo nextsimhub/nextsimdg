@@ -695,6 +695,12 @@ void Xios::affixModelMetadata()
                 } else if (dimType == ModelArray::Dimension::YVERTEX) {
                     localLength = metadata.getLocalExtentY() + 1;
                     start = metadata.getLocalCornerY();
+                } else if (dimType == ModelArray::Dimension::XCG) {
+                    localLength = CGDEGREE * metadata.getLocalExtentX() + 1;
+                    start = metadata.getLocalCornerX();
+                } else if (dimType == ModelArray::Dimension::YCG) {
+                    localLength = CGDEGREE * metadata.getLocalExtentY() + 1;
+                    start = metadata.getLocalCornerY();
                 } else {
                     localLength = dim.getSize();
                 }
@@ -733,7 +739,7 @@ void Xios::affixModelMetadata()
                 { "ydimxdimdg_comp", ModelArray::Type::DG },
                 { "yxdgstress_comp", ModelArray::Type::DGSTRESS },
                 { "ydimxdimdgstress_comp", ModelArray::Type::DGSTRESS },
-                { "ycgxcg", ModelArray::Type::CG },
+                { "y_cgx_cg", ModelArray::Type::CG },
                 { "yvertexxvertexncoords", ModelArray::Type::VERTEX },
             };
 
@@ -818,6 +824,9 @@ void Xios::affixModelMetadata()
                 } else if (dim == ModelArray::Dimension::XVERTEX) {
                     cxios_set_domain_ni_glo(domain, metadata.getGlobalExtentX() + 1);
                     cxios_set_domain_ni(domain, metadata.getLocalExtentX() + 1);
+                } else if (dim == ModelArray::Dimension::XCG) {
+                    cxios_set_domain_ni_glo(domain, CGDEGREE * metadata.getGlobalExtentX() + 1);
+                    cxios_set_domain_ni(domain, CGDEGREE * metadata.getLocalExtentX() + 1);
                 } else {
                     throw std::runtime_error(
                         "Xios: Could not set domain extents based on dimension '"
@@ -853,6 +862,9 @@ void Xios::affixModelMetadata()
                 } else if (dim == ModelArray::Dimension::YVERTEX) {
                     cxios_set_domain_nj_glo(domain, metadata.getGlobalExtentY() + 1);
                     cxios_set_domain_nj(domain, metadata.getLocalExtentY() + 1);
+                } else if (dim == ModelArray::Dimension::YCG) {
+                    cxios_set_domain_nj_glo(domain, CGDEGREE * metadata.getGlobalExtentY() + 1);
+                    cxios_set_domain_nj(domain, CGDEGREE * metadata.getLocalExtentY() + 1);
                 } else {
                     throw std::runtime_error(
                         "Xios: Could not set domain extents based on dimension '"
@@ -1688,7 +1700,7 @@ void Xios::write(const std::string fieldId, ModelArray& modelarray)
     }
     auto dims = modelarray.dimensions();
     auto type = modelarray.getType();
-    if (type == ModelArray::Type::H) {
+    if ((type == ModelArray::Type::H) || (type == ModelArray::Type::CG)) {
         cxios_write_data_k82(
             fieldId.c_str(), fieldId.length(), modelarray.getData(), dims[0], dims[1], -1);
     } else if (type == ModelArray::Type::VERTEX) {
@@ -1702,7 +1714,7 @@ void Xios::write(const std::string fieldId, ModelArray& modelarray)
             dims[1], ModelArray::size(ModelArray::Dimension::DGSTRESS), -1);
     } else {
         throw std::invalid_argument(
-            "Only HFields, VertexFields, DGFields, and DGStressFields are supported");
+            "Only HFields, VertexFields, DGFields, DGStressFields, and CGFields are supported");
     }
 }
 
@@ -1725,7 +1737,7 @@ void Xios::read(const std::string fieldId, ModelArray& modelarray)
     }
     auto dims = modelarray.dimensions();
     auto type = modelarray.getType();
-    if (type == ModelArray::Type::H) {
+    if ((type == ModelArray::Type::H) || (type == ModelArray::Type::CG)) {
         cxios_read_data_k82(
             fieldId.c_str(), fieldId.length(), modelarray.getData(), dims[0], dims[1]);
     } else if (type == ModelArray::Type::VERTEX) {
@@ -1739,7 +1751,7 @@ void Xios::read(const std::string fieldId, ModelArray& modelarray)
             dims[1], ModelArray::size(ModelArray::Dimension::DGSTRESS));
     } else {
         throw std::invalid_argument(
-            "Only HFields, VertexFields, DGFields, and DGStressFields are supported");
+            "Only HFields, VertexFields, DGFields, DGStressFields, and CGFields are supported");
     }
 }
 }
