@@ -36,6 +36,11 @@ variables:
 		DGAxis:standard_name = "DG DoFs" ;
 		DGAxis:long_name = "Discontinuous Galerkin number of degrees of freedom" ;
 		DGAxis:units = "-" ;
+	float DGSAxis(dgstress_comp) ;
+		DGSAxis:axis = "DGS" ;
+		DGSAxis:standard_name = "DGS DoFs" ;
+		DGSAxis:long_name = "Discontinuous Galerkin stress component number of degrees of freedom" ;
+		DGSAxis:units = "-" ;
 	float VertexAxis(ncoords) ;
 		VertexAxis:axis = "DIM" ;
 		VertexAxis:standard_name = "Dimension" ;
@@ -50,6 +55,9 @@ variables:
 	float mask(y, x) ;
 		mask:online_operation = "once" ;
 		mask:coordinates = "lat lon" ;
+	float tice(y, x, dgstress_comp) ;
+		tice:online_operation = "once" ;
+		tice:coordinates = "lat lon DGSAxis" ;
 
 // global attributes:
 		:structure_name = "parametric_rectangular" ;
@@ -98,4 +106,14 @@ data:
  mask =
   0, 0, 0, 0,
   1, 1, 1, 1 ;
+
+ tice =
+  0, 2, 4, 6, 8, 10, 12, 14,
+  6, 8, 10, 12, 14, 16, 18, 20,
+  0, 2, 4, 6, 8, 10, 12, 14,
+  6, 8, 10, 12, 14, 16, 18, 20,
+  12, 14, 16, 18, 20, 22, 24, 26,
+  18, 20, 22, 24, 26, 28, 30, 32,
+  12, 14, 16, 18, 20, 22, 24, 26,
+  18, 20, 22, 24, 26, 28, 30, 32 ;
 }

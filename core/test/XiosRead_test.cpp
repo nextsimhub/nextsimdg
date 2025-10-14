@@ -24,6 +24,7 @@ const std::string restartFilename = testFilesDir + "/xios_test_input.nc";
 const std::string forcingFilename = testFilesDir + "/xios_test_forcing.nc";
 
 static const int DG = 3;
+static const int DGSTRESSCOMP = 8;
 
 namespace Nextsim {
 
@@ -45,7 +46,8 @@ MPI_TEST_CASE("TestXiosRead", 2)
     config << "init_file = " << restartFilename << std::endl;
     config << "restart_period = P0-0T01:30:00" << std::endl;
     config << "[XiosInput]" << std::endl;
-    config << "field_names = " << maskName << "," << coordsName << "," << hiceName << std::endl;
+    config << "field_names = " << maskName << "," << coordsName << "," << hiceName << ","
+           << ticeName << std::endl;
     config << "[XiosForcing]" << std::endl;
     config << "filename = " << forcingFilename << std::endl;
     config << "field_names = " << uName << std::endl;
@@ -74,8 +76,10 @@ MPI_TEST_CASE("TestXiosRead", 2)
 
     // TODO: We could deduce this from the NetCDF file
     ModelArray::setNComponents(ModelArray::Type::DG, DG);
+    ModelArray::setNComponents(ModelArray::Type::DGSTRESS, DGSTRESSCOMP);
     ModelArray::setNComponents(ModelArray::Type::VERTEX, ModelArray::nCoords);
     REQUIRE(ModelArray::nComponents(ModelArray::Type::DG) == DG);
+    REQUIRE(ModelArray::nComponents(ModelArray::Type::DGSTRESS) == DGSTRESSCOMP);
     REQUIRE(ModelArray::nComponents(ModelArray::Type::VERTEX) == ModelArray::nCoords);
 
     // Affix ModelMetadata to Xios handler
@@ -116,6 +120,11 @@ MPI_TEST_CASE("TestXiosRead", 2)
                         float expected = 1.0 * (d + DG * (i + nx * j));
                         REQUIRE(entry.second.components({ i, j })[d] == doctest::Approx(expected));
                     }
+                } else if (entry.first == ticeName) {
+                    for (size_t d = 0; d < DGSTRESSCOMP; ++d) {
+                        REQUIRE(entry.second.components({ i, j })[d]
+                            == doctest::Approx(2.0 * (d + DG * (i + nx * j))));
+                    }
                 }
             }
         }
@@ -146,5 +155,4 @@ MPI_TEST_CASE("TestXiosRead", 2)
     xiosHandler.context_finalize();
     Finalizer::finalize();
 }
-
 }
