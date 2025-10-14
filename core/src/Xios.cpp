@@ -805,21 +805,27 @@ void Xios::affixModelMetadata()
         size_t counter = 0;
         for (ModelArray::Dimension dim : ModelArray::typeDimensions[type]) {
             const std::string domainName = ModelArray::definedDimensions[dim].name;
-            // Add 1 in the case of vertex-based field types
-            ModelArray::Base base = ModelArray::baseTypes[type];
-            size_t extension = (base == ModelArray::Base::Vertex) ? 1 : 0;
             if (counter == 0) {
-                cxios_set_domain_ni_glo(domain, (int)metadata.getGlobalExtentX() + extension);
+                if (dim == ModelArray::Dimension::X) {
+                    cxios_set_domain_ni_glo(domain, metadata.getGlobalExtentX());
+                    cxios_set_domain_ni(domain, metadata.getLocalExtentX());
+                } else if (dim == ModelArray::Dimension::XVERTEX) {
+                    cxios_set_domain_ni_glo(domain, metadata.getGlobalExtentX() + 1);
+                    cxios_set_domain_ni(domain, metadata.getLocalExtentX() + 1);
+                } else {
+                    throw std::runtime_error(
+                        "Xios: Could not set domain extents based on dimension '"
+                        + ModelArray::definedDimensions.at(dim).name + "'");
+                }
                 if (!cxios_is_defined_domain_ni_glo(domain)) {
                     throw std::runtime_error(
                         "Xios: Failed to set global x-size for domain '" + domainId + "'");
                 }
-                cxios_set_domain_ni(domain, (int)metadata.getLocalExtentX() + extension);
                 if (!cxios_is_defined_domain_ni(domain)) {
                     throw std::runtime_error(
                         "Xios: Failed to set local x-size for domain '" + domainId + "'");
                 }
-                cxios_set_domain_ibegin(domain, (int)metadata.getLocalCornerX());
+                cxios_set_domain_ibegin(domain, metadata.getLocalCornerX());
                 if (!cxios_is_defined_domain_ibegin(domain)) {
                     throw std::runtime_error(
                         "Xios: Failed to set local starting x-index for domain '" + domainId + "'");
@@ -835,17 +841,26 @@ void Xios::affixModelMetadata()
                         "Xios: Failed to set longitude name for domain '" + domainId + "'");
                 }
             } else if (counter == 1) {
-                cxios_set_domain_nj_glo(domain, (int)metadata.getGlobalExtentY() + extension);
+                if (dim == ModelArray::Dimension::Y) {
+                    cxios_set_domain_nj_glo(domain, metadata.getGlobalExtentY());
+                    cxios_set_domain_nj(domain, metadata.getLocalExtentY());
+                } else if (dim == ModelArray::Dimension::YVERTEX) {
+                    cxios_set_domain_nj_glo(domain, metadata.getGlobalExtentY() + 1);
+                    cxios_set_domain_nj(domain, metadata.getLocalExtentY() + 1);
+                } else {
+                    throw std::runtime_error(
+                        "Xios: Could not set domain extents based on dimension '"
+                        + ModelArray::definedDimensions.at(dim).name + "'");
+                }
                 if (!cxios_is_defined_domain_nj_glo(domain)) {
                     throw std::runtime_error(
                         "Xios: Failed to set global y-size for domain '" + domainId + "'");
                 }
-                cxios_set_domain_nj(domain, (int)metadata.getLocalExtentY() + extension);
                 if (!cxios_is_defined_domain_nj(domain)) {
                     throw std::runtime_error(
                         "Xios: Failed to set local y-size for domain '" + domainId + "'");
                 }
-                cxios_set_domain_jbegin(domain, (int)metadata.getLocalCornerY());
+                cxios_set_domain_jbegin(domain, metadata.getLocalCornerY());
                 if (!cxios_is_defined_domain_jbegin(domain)) {
                     throw std::runtime_error(
                         "Xios: Failed to set local starting y-index for domain '" + domainId + "'");
