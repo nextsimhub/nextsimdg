@@ -17,6 +17,8 @@ on:
   schedule:
     - cron: '0 0 1 */3 *'
 
+permissions: {}
+
 jobs:
   docker:
     name: Build Docker container

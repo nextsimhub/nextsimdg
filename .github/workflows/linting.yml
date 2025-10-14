@@ -13,6 +13,8 @@ on:
   pull_request_review:
     branches: [ main, develop ]
 
+permissions: {}
+
 jobs:
   linting:
     runs-on: ubuntu-latest
