@@ -88,6 +88,9 @@ void runMe(const bool snapshot)
         config << "snapshots = false" << std::endl;
 
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
+    /* We need to clear() the Configurator cache here, because this is called multiple times within
+     * the test suite. */
+    Configurator::clear();
     Configurator::addStream(std::move(pcstream));
 
     /* We need to set the model time step in the ModelMetadata instance, but are forced to set
