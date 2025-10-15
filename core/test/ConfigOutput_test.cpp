@@ -42,7 +42,7 @@ const std::string partition_filename = test_files_dir + "/paragrid_test_partitio
 namespace Nextsim {
 
 #ifdef USE_MPI
-void runMe(const bool snapshot, MPIComm myMPIComm)
+void runMe(const bool snapshot, MPI_Comm myMPIComm)
 #else
 void runMe(const bool snapshot)
 #endif
