@@ -8,6 +8,7 @@
 #include "include/ModelMetadata.hpp"
 #include "include/NextsimModule.hpp"
 #include "include/ParaGridIO.hpp"
+#include "include/constants.hpp"
 
 #include <ctime>
 #include <string>
@@ -127,6 +128,9 @@ void ERA5Atmosphere::update(const TimestepTime& tst)
     snow = 0; // FIXME get snow data
     rain = 0; // FIXME get rain data
 
+    // Convert temperatures from ERA5 (K) to nextSIM (˚C)
+    tair += celsius(0.);
+    tdew += celsius(0.);
     fluxImpl->update(tst);
 
     try {
