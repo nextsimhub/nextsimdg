@@ -143,7 +143,7 @@ void ConfigOutput::setModelStart(const TimePoint& modelStart)
     }
 }
 
-void ConfigOutput::outputState(const ModelState& diagState, const Duration& step)
+void ConfigOutput::outputState(const ModelState& diagState)
 {
     auto& meta = ModelMetadata::getInstance();
     const TimePoint& time = meta.time();
@@ -157,7 +157,7 @@ void ConfigOutput::outputState(const ModelState& diagState, const Duration& step
         lastFileChange = time;
     }
 
-    double averagingFactor = step.seconds() / outputPeriod.seconds();
+    double averagingFactor = meta.stepLength().seconds() / outputPeriod.seconds();
     if (resetState)
         state = { {}, diagState.config };
     auto storeData = ModelComponent::getStore().getAllData();

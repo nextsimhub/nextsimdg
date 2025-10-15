@@ -12,7 +12,7 @@
 
 namespace Nextsim {
 
-void SimpleOutput::outputState(const ModelState& diagState, const Duration& step)
+void SimpleOutput::outputState(const ModelState& diagState)
 {
     auto& meta = ModelMetadata::getInstance();
     std::stringstream startStream;

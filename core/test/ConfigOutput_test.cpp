@@ -88,6 +88,12 @@ TEST_CASE("Test periodic output")
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
 
+    /* We need to set the model time step in the ModelMetadata instance, but are forced to set
+     * starting time and duration as well, even though it's not used. */
+    const Duration timeStep = Duration(3600.);
+    auto& metadata = ModelMetadata::getInstance();
+    metadata.setTimes(TimePoint("2010-01-01"), Duration("P0-24T00:00:00"), timeStep);
+
     Module::setImplementation<IStructure>("Nextsim::ParametricGrid");
 
     HField hice(ModelArray::Type::H);
@@ -159,7 +165,6 @@ TEST_CASE("Test periodic output")
     const std::string pfx = "diag01";
     const std::string sfx = ".nc";
     const size_t hr_day = 24;
-    const Duration timeStep = Duration(3600.);
     for (size_t day = 1; day <= 20; ++day) {
         if (day > 10) {
             diagFiles.push_back(pfx + std::to_string(day) + sfx);
@@ -176,7 +181,7 @@ TEST_CASE("Test periodic output")
             hsnow += hourIncr;
             ModelState state = { { { "top_melt", topMelt } }, {} };
 
-            ido.outputState(state, timeStep);
+            ido.outputState(state);
             meta.incrementTime(timeStep);
         }
     }
