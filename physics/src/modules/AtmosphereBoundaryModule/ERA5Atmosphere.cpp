@@ -201,9 +201,21 @@ era5Buffer getFileIndexData(const std::string& filename, size_t tIndex)
     data.resize(nLon, nLat);
 
     dataVar.getVar(start, count, data.data());
-
+    static const std::string offset_name = "add_offset";
+    static const std::string scale_name = "scale_factor";
+    auto dataAtts = dataVar.getAtts();
+    double a = 1.;
+    if (dataAtts.count(scale_name)){
+        dataAtts.at(scale_name).getValues(&a);
+    }
+    double b = 0.;
+    if (dataAtts.count(offset_name)) {
+        dataAtts.at(offset_name).getValues(&b);
+    }
     ncFile.close();
 
+    data *= a;
+    data += b;
     return data;
 }
 
