@@ -377,13 +377,6 @@ TEST_CASE("Spatial interpolation from files")
         }
         era5Buffer readLon(getFileIndexData(testFilesDir + "/" + "ERA5_lonx_y2000.nc", 0));
         era5Buffer readLat(getFileIndexData(testFilesDir + "/" + "ERA5_laty_y2000.nc", 0));
-        std::vector<size_t> iv = {0, 1, 720, 1438, 1439};
-        std::vector<size_t> jv = {0, 1, 232, 263, 264};
-        for (size_t j : jv) {
-            for (size_t i : iv) {
-                std::cout << "(" << i << ", " << j << "): " << readLon(i, j) << "," << readLat(i, j) << std::endl;
-            }
-        }
         ModelArray::setDimensions(ModelArray::Type::H, {nxt, nyt});
         ModelArray testLon;
         testLon.resize();
