@@ -199,7 +199,7 @@ void ConfigOutput::outputState(const ModelState& diagState, const Duration& step
                     if (resetState)
                         state.data[key] = mask(data) * averagingFactor;
                     else
-                        state.data[key] += mask(data) * averagingFactor;
+                        state.data.at(key) += mask(data) * averagingFactor;
                 }
             }
         }
@@ -233,7 +233,7 @@ void ConfigOutput::outputState(const ModelState& diagState, const Duration& step
                     if (resetState)
                         state.data[fieldExtName] = mask(data) * averagingFactor;
                     else
-                        state.data[fieldExtName] += mask(data) * averagingFactor;
+                        state.data.at(fieldExtName) += mask(data) * averagingFactor;
                 }
             }
         }
