@@ -198,7 +198,7 @@ era5Buffer getFileIndexData(const std::string& filename, size_t tIndex)
     start[0] = tIndex;
     count[0] = 1;
 
-    data.resize(nLat, nLon);
+    data.resize(nLon, nLat);
 
     dataVar.getVar(start, count, data.data());
 
