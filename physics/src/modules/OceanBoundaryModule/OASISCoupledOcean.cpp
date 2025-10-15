@@ -74,19 +74,19 @@ void OASISCoupledOcean::updateBefore(const TimestepTime& tst)
     OASIS_CHECK_ERR(oasis_c_get(couplingId.at(SSSKey), OASISTime, dimension0, dimension1,
         bundleSize, OASIS_DOUBLE, OASIS_COL_MAJOR, &sss[0], &kinfo));
 
-    HField uOnCGrid;
-    uOnCGrid.resize();
+    HField uOnGrid;
+    uOnGrid.resize();
     Logged::debug("OASISCoupledOcean: Receiving " + UOceanKey + " with id "
         + std::to_string(couplingId.at(UOceanKey)));
     OASIS_CHECK_ERR(oasis_c_get(couplingId.at(UOceanKey), OASISTime, dimension0, dimension1,
-        bundleSize, OASIS_DOUBLE, OASIS_COL_MAJOR, &uOnCGrid[0], &kinfo));
+        bundleSize, OASIS_DOUBLE, OASIS_COL_MAJOR, &uOnGrid[0], &kinfo));
 
-    HField vOnCGrid;
-    vOnCGrid.resize();
+    HField vOnGrid;
+    vOnGrid.resize();
     Logged::debug("OASISCoupledOcean: Receiving " + VOceanKey + " with id "
         + std::to_string(couplingId.at(VOceanKey)));
     OASIS_CHECK_ERR(oasis_c_get(couplingId.at(VOceanKey), OASISTime, dimension0, dimension1,
-        bundleSize, OASIS_DOUBLE, OASIS_COL_MAJOR, &vOnCGrid[0], &kinfo));
+        bundleSize, OASIS_DOUBLE, OASIS_COL_MAJOR, &vOnGrid[0], &kinfo));
 
     Logged::debug("OASISCoupledOcean: Receiving " + SSHKey + " with id "
         + std::to_string(couplingId.at(SSHKey)));
@@ -108,9 +108,7 @@ void OASISCoupledOcean::updateBefore(const TimestepTime& tst)
     }
 
     cpml = Water::rhoOcean * Water::cp * mld;
-    HField uOnAGrid, vOnAGrid;
-    interpCURtoA(uOnCGrid, vOnCGrid, uOnAGrid, vOnAGrid);
-    rotateVectorToGreenland(uOnAGrid, vOnAGrid, u, v);
+    rotateVectorToGreenland(uOnGrid, vOnGrid, u, v);
 
     overElements([this](size_t i, const TimestepTime& tsTime) { this->updateTf(i, tsTime); }, tst);
 
@@ -126,10 +124,8 @@ void OASISCoupledOcean::updateAfter(const TimestepTime& tst)
 #ifdef USE_OASIS
     mergeFluxes(tst);
 
-    HField tauXOnCGrid, tauXRotated;
-    HField tauYOnCGrid, tauYRotated;
+    HField tauXRotated, tauYRotated;
     rotateVectorFromGreenland(tauX, tauY, tauXRotated, tauYRotated);
-    interpAtoCUR(tauXRotated, tauYRotated, tauXOnCGrid, tauYOnCGrid);
 
     int kinfo;
     const int dimension0 = ModelArray::dimensions(ModelArray::Type::H)[0];
@@ -138,12 +134,12 @@ void OASISCoupledOcean::updateAfter(const TimestepTime& tst)
     Logged::debug("OASISCoupledOcean: Sending " + TauXKey + " with id "
         + std::to_string(couplingId.at(TauXKey)));
     OASIS_CHECK_ERR(oasis_c_put(couplingId.at(TauXKey), OASISTime, dimension0, dimension1, 1,
-        OASIS_DOUBLE, OASIS_COL_MAJOR, &tauXOnCGrid[0], OASIS_No_Restart, &kinfo));
+        OASIS_DOUBLE, OASIS_COL_MAJOR, &tauXRotated[0], OASIS_No_Restart, &kinfo));
 
     Logged::debug("OASISCoupledOcean: Sending " + TauYKey + " with id "
         + std::to_string(couplingId.at(TauYKey)));
     OASIS_CHECK_ERR(oasis_c_put(couplingId.at(TauYKey), OASISTime, dimension0, dimension1, 1,
-        OASIS_DOUBLE, OASIS_COL_MAJOR, &tauYOnCGrid[0], OASIS_No_Restart, &kinfo));
+        OASIS_DOUBLE, OASIS_COL_MAJOR, &tauYRotated[0], OASIS_No_Restart, &kinfo));
 
     Logged::debug("OASISCoupledOcean: Sending " + EMPKey + " with id "
         + std::to_string(couplingId.at(EMPKey)));
