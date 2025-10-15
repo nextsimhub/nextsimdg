@@ -346,7 +346,61 @@ TEST_CASE("Spatial interpolation from files")
     }
 
     SUBCASE("Lon and lat") {
+        // Create the coordinates of the target grid
+        size_t nxt = 154;
+        size_t nyt = 121;
+        double lonCentreDeg = 180.;
+        double lonC = radians(lonCentreDeg);
+        double latCentreDeg = 82.;
+        double latC = radians(latCentreDeg);
+        double dDeg = 0.25; // Resolution in degrees
 
+        ModelArray::setDimension(ModelArray::Dimension::X, nxt);
+        ModelArray::setDimension(ModelArray::Dimension::Y, nyt);
+        ModelArray lonTarg(ModelArray::Type::H);
+        ModelArray latTarg(ModelArray::Type::H);
+        lonTarg.resize();
+        latTarg.resize();
+        // Create the target longitude & latitude arrays: polar stereographic
+        int ic = nxt/2;
+        int jc = nyt/2;
+
+        for (int j = 0; j < nyt; ++j) {
+            double y = (j - jc) * radians(dDeg);
+            for (int i = 0; i < nxt; ++i) {
+                double x = (i - ic) * radians(dDeg);
+                double rho = sqrt(x*x + y*y);
+                double c = 2 * atan(rho / 2);
+                latTarg(i, j) = degrees(asin(cos(c)*sin(latC) + y*sin(c)*cos(latC)/rho));
+                lonTarg(i, j) = degrees(lonC + atan2(x*sin(c), rho*cos(latC)*cos(c) - y*sin(latC)*sin(c)));
+            }
+        }
+        era5Buffer readLon(getFileIndexData(testFilesDir + "/" + "ERA5_lonx_y2000.nc", 0));
+        era5Buffer readLat(getFileIndexData(testFilesDir + "/" + "ERA5_laty_y2000.nc", 0));
+        std::vector<size_t> iv = {0, 1, 720, 1438, 1439};
+        std::vector<size_t> jv = {0, 1, 232, 263, 264};
+        for (size_t j : jv) {
+            for (size_t i : iv) {
+                std::cout << "(" << i << ", " << j << "): " << readLon(i, j) << "," << readLat(i, j) << std::endl;
+            }
+        }
+        ModelArray::setDimensions(ModelArray::Type::H, {nxt, nyt});
+        ModelArray testLon;
+        testLon.resize();
+        testLon = maFromERA5Buffer(readLon, lonTarg, latTarg);
+        ModelArray testLat;
+        testLat.resize();
+        testLat = maFromERA5Buffer(readLat, lonTarg, latTarg);
+        std::vector<size_t> test_i = {0, 1, 95, 152, 153};
+        std::vector<size_t> test_j = {0, 1, 36, 119, 120};
+
+        double prec = 1e-14;
+        for (size_t j : test_j) {
+            for (size_t i : test_i) {
+                REQUIRE(testLon(i, j) == doctest::Approx(lonTarg(i, j)).epsilon(prec));
+                REQUIRE(testLat(i, j) == doctest::Approx(latTarg(i, j)).epsilon(prec));
+            }
+        }
     }
     if (std::filesystem::exists(testFilesDir + "/" + lonFileName)) {
         std::filesystem::remove(testFilesDir + "/" + lonFileName);
