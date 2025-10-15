@@ -41,18 +41,17 @@ const std::string partition_filename = test_files_dir + "/paragrid_test_partitio
 
 namespace Nextsim {
 
-TEST_SUITE_BEGIN("ConfigOutput");
 #ifdef USE_MPI
-MPI_TEST_CASE("Test periodic output", 2)
+void runMe(const bool snapshot, MPIComm myMPIComm)
 #else
-TEST_CASE("Test periodic output")
+void runMe(const bool snapshot)
 #endif
 {
     size_t nx = 10;
     size_t ny = 9;
 
 #ifdef USE_MPI
-    auto& modelMPI = ModelMPI::getInstance(test_comm);
+    auto& modelMPI = ModelMPI::getInstance(myMPIComm);
     auto& meta = ModelMetadata::getInstance(partition_filename);
 
     const auto localNX = meta.getLocalExtentX() + 2 * Halo::haloWidth;
@@ -83,7 +82,10 @@ TEST_CASE("Test periodic output")
            << "top_melt" << std::endl;
     config << "filename = diag%m%d.nc" << std::endl;
     config << "file_period = 86400" << std::endl; // Files every day
-    config << "snapshots = false" << std::endl;
+    if (snapshot)
+        config << "snapshots = true" << std::endl;
+    else
+        config << "snapshots = false" << std::endl;
 
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
@@ -227,12 +229,14 @@ TEST_CASE("Test periodic output")
     constexpr int i = 3;
     constexpr int j = 4;
     // 100 per day, 1 per hour, 0.1 per variable, 0.01 per grid point
-    // First value in the average is three hours before the output and one day increment after
     const double coordComponent = 0.1 + 0.01 * (j * nx + (i + offsetX));
-    double expectedValue = (100 + 24) * (day - 2) + 123 + coordComponent;
-    expectedValue += (100 + 24) * (day - 1) + coordComponent;
-    expectedValue += (100 + 24) * (day - 1) + 101 + coordComponent;
-    expectedValue /= 3; // Average over three outputs
+    double expectedValue = (100 + 24) * (day - 1) + 101 + coordComponent;
+    if (!snapshot) {
+        // First value in the average is three hours before the output and one day increment after
+        expectedValue += (100 + 24) * (day - 2) + 123 + coordComponent;
+        expectedValue += (100 + 24) * (day - 1) + coordComponent;
+        expectedValue /= 3; // Average over three outputs
+    }
     REQUIRE(conc[j * nx + i + offsetX] == doctest::Approx(expectedValue));
 
     ncFile.close();
@@ -244,5 +248,19 @@ TEST_CASE("Test periodic output")
 
     Finalizer::finalize();
 }
+
+TEST_SUITE_BEGIN("ConfigOutput");
+#ifdef USE_MPI
+MPI_TEST_CASE("Test averaged output", 2) { runMe(false, test_comm); }
+#else
+TEST_CASE("Test averaged output") { runMe(false); }
+#endif
+
+#ifdef USE_MPI
+MPI_TEST_CASE("Test snapshot output", 2) { runMe(true, test_comm); }
+#else
+TEST_CASE("Test snapshot output") { runMe(true); }
+#endif
+
 TEST_SUITE_END();
 }
