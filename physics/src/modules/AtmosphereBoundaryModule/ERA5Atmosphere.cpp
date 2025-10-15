@@ -108,16 +108,6 @@ void ERA5Atmosphere::update(const TimestepTime& tst)
             { "v", &vwind },
     };
 
-//    ModelState state = ParaGridIO::readForcingTimeStatic(forcings, tst.start, filePath);
-//    tair = state.data.at("tair");
-//    tdew = state.data.at("dew2m");
-//    pair = state.data.at("pair");
-//    sw_in = state.data.at("sw_in");
-//    lw_in = state.data.at("lw_in");
-//    wind = state.data.at("wind_speed");
-//    uwind = state.data.at("u");
-//    vwind = state.data.at("v");
-
     for (std::pair<std::string, ModelArray*>& entry : forcings) {
         try {
             *entry.second = getData(entry.first, tst.start);
@@ -157,7 +147,6 @@ void ERA5Atmosphere::setData(const ModelState::DataMap& ms)
 std::string e5FilenameFromYear(const std::string& era5Name, size_t year)
 {
     std::string filename = "ERA5_" + era5Name + "_y" + std::to_string(year) + ".nc";
-//    return ERA5Atmosphere::addDirectory(filename);
     return ERA5Atmosphere::addDirectory(filename);
 }
 
@@ -270,8 +259,6 @@ ModelArray maFromERA5Buffer(const era5Buffer& buffer, const HField& destLon, con
     srcBuffer(Eigen::all, 0) = srcBuffer(Eigen::all, 1);
     srcBuffer(Eigen::all, Eigen::last) = srcBuffer(Eigen::all, Eigen::last - 1);
 
-//    std::cout << "src:" << srcBuffer(Eigen::seq(0, 3), 0) << "; " <<  srcBuffer(0, Eigen::seq(0, 3));
-
     // lambdas to translate latitude and longitude to (fractional) index in
     // srcBuffer, including wrap-around columns.
     auto xFromLon = [ptsPerDegree](double lon) { return ptsPerDegree * lon + 1; };
@@ -295,7 +282,6 @@ ModelArray maFromERA5Buffer(const era5Buffer& buffer, const HField& destLon, con
                     (1 - fx) * (1 - fy) * srcBuffer(ihi, jhi);
         }
     }
-//    std::cout << ", snk:" << maData(95, 36) << std::endl;
     return maData;
 }
 
