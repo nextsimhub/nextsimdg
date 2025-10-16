@@ -23,7 +23,6 @@ public:
     ~ERA5Atmosphere() = default;
 
     enum {
-        FILEPATH_KEY,
         DIRPATH_KEY,
         CHECKOVERRIDE_KEY,
     };
@@ -39,16 +38,11 @@ public:
     //! Calculates the fluxes from the given values
     void update(const TimestepTime&) override;
 
-    void setFilePath(const std::string& filePathIn);
-
     static void setDirectory(const std::string& dir);
     static const std::string& getDirectory();
     static const std::string addDirectory(const std::string& file);
 
 private:
-    // Since the configuration is global, it makes sense for the file path to
-    // be static.
-    static std::string filePath;
     // Location of the ERA5 files
     static std::string& fileDirectory()
     {

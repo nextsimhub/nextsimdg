@@ -14,11 +14,6 @@ if(NOT ENABLE_MPI)
 
     include_directories(${COMMON_INCLUDE_DIRS})
 
-    add_executable(testERA5Atm "ERA5Atm_test.cpp")
-    target_compile_definitions(testERA5Atm PRIVATE TEST_FILES_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}\")
-    target_include_directories(testERA5Atm PRIVATE "${ModulesRoot}/AtmosphereBoundaryModule")
-    target_link_libraries(testERA5Atm PRIVATE nextsimlib doctest::doctest)
-
     add_executable(testERA5Atmosphere
         "ERA5Atmosphere_test.cpp"
         "${ModulesRoot}/AtmosphereBoundaryModule/ERA5Atmosphere.cpp"
@@ -91,7 +86,7 @@ if(NOT ENABLE_MPI)
     target_link_libraries(testDamageHealing PRIVATE nextsimlib doctest::doctest)
 
     set(TEST_EXECUTABLES
-        testERA5Atm
+        testERA5Atmosphere
         testTOPAZOcn
         testIceGrowth
         testThermoWinton

@@ -21,15 +21,11 @@
 
 namespace Nextsim {
 
-std::string ERA5Atmosphere::filePath;
-
 static const std::string pfx = "ERA5Atmosphere";
-static const std::string fileKey = pfx + ".file";
 static const std::string dirKey = pfx + ".directory";
 static const std::string checkOverrideKey = pfx + ".ignore_missing";
 
 static const std::map<int, std::string> keyMap = {
-    { ERA5Atmosphere::FILEPATH_KEY, fileKey },
     { ERA5Atmosphere::DIRPATH_KEY, dirKey },
     { ERA5Atmosphere::CHECKOVERRIDE_KEY, checkOverrideKey },
 };
@@ -54,8 +50,6 @@ ERA5Atmosphere::ERA5Atmosphere()
 ConfigurationHelp::HelpMap& ERA5Atmosphere::getHelpRecursive(HelpMap& map, bool getAll)
 {
     map[pfx] = {
-        { fileKey, ConfigType::STRING, {}, "", "",
-            "Path to the processed NetCDF file providing the ERA5 forcings." },
         { dirKey, ConfigType::STRING, {}, "", "",
             "Path to the directory containing the ERA5 NetCDF files." },
         { dirKey, ConfigType::BOOLEAN, {"true", "false"}, "false", "",
@@ -70,7 +64,6 @@ void ERA5Atmosphere::configure()
 {
     Finalizer::registerUnique(Module::finalize<IFluxCalculation>);
 
-    filePath = Configured::getConfiguration(keyMap.at(FILEPATH_KEY), std::string());
     fileDirectory() = Configured::getConfiguration(keyMap.at(DIRPATH_KEY), fileDirectory());
     checkOverride() = Configured::getConfiguration(keyMap.at(CHECKOVERRIDE_KEY), false);
 
@@ -90,7 +83,8 @@ void ERA5Atmosphere::configure()
 ConfigMap ERA5Atmosphere::getConfiguration() const
 {
     return {
-        { keyMap.at(FILEPATH_KEY), filePath },
+        { keyMap.at(DIRPATH_KEY), fileDirectory() },
+        { keyMap.at(CHECKOVERRIDE_KEY), checkOverride() },
     };
 }
 
@@ -129,8 +123,6 @@ void ERA5Atmosphere::update(const TimestepTime& tst)
         throw std::runtime_error("ERA5Atmosphere:update: " + std::string(e.what()));
     }
 }
-
-void ERA5Atmosphere::setFilePath(const std::string& filePathIn) { filePath = filePathIn; }
 
 void ERA5Atmosphere::setDirectory(const std::string& dir) { fileDirectory() = dir; }
 const std::string& ERA5Atmosphere::getDirectory() { return fileDirectory(); }
