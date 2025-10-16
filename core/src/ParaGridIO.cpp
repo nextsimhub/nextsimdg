@@ -570,6 +570,9 @@ void ParaGridIO::writeDiagnosticTime(const ModelState& state, const std::string&
 #endif
         }
     }
+
+    // Flush buffer to disc for monitoring and diagnostic purposes.
+    ncFile.sync();
 }
 
 void ParaGridIO::close(const std::string& filePath)
