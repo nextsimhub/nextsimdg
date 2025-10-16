@@ -35,6 +35,7 @@ size_t timeIndexFromTM(const std::tm* tm);
 era5Buffer getVarTimeData(const std::string& era5Name, const TimePoint& time);
 ModelArray maFromERA5Buffer(const era5Buffer& buffer, const ModelArray& destLon, const ModelArray& destLat);
 era5Buffer era5BufferHypot(const era5Buffer& x, const era5Buffer& y);
+std::pair<double, double> getLatitudeCoeffs(const std::string& filename);
 
 #ifndef TEST_FILES_DIR
 #define TEST_FILES_DIR "."
@@ -287,10 +288,11 @@ TEST_CASE("Spatial interpolation from field")
 
 TEST_CASE("Spatial interpolation from files")
 {
+    ERA5Atmosphere::setDirectory(testFilesDir);
     std::string lonFileName = "ERA5_lonx_y2000.nc";
-    netCDF::NcFile lonFile(testFilesDir + "/" + lonFileName, netCDF::NcFile::replace, netCDF::NcFile::nc4);
+    netCDF::NcFile lonFile(ERA5Atmosphere::addDirectory(lonFileName), netCDF::NcFile::replace, netCDF::NcFile::nc4);
     std::string latFileName = "ERA5_laty_y2000.nc";
-    netCDF::NcFile latFile(testFilesDir + "/" + latFileName, netCDF::NcFile::replace, netCDF::NcFile::nc4);
+    netCDF::NcFile latFile(ERA5Atmosphere::addDirectory(latFileName), netCDF::NcFile::replace, netCDF::NcFile::nc4);
 
     size_t nt = 1;
     era5Buffer longitudeDim(nx, 1);
@@ -345,7 +347,12 @@ TEST_CASE("Spatial interpolation from files")
         file.close();
     }
 
-    SUBCASE("Lon and lat") {
+    SUBCASE("Lon and lat dimensions") {
+        auto [dlat, lat0] = getLatitudeCoeffs(ERA5Atmosphere::addDirectory(lonFileName));
+        REQUIRE(lat0 == 90.);
+        REQUIRE(dlat == -0.25);
+    }
+    SUBCASE("Interpolation") {
         // Create the coordinates of the target grid
         size_t nxt = 154;
         size_t nyt = 121;
@@ -375,8 +382,8 @@ TEST_CASE("Spatial interpolation from files")
                 lonTarg(i, j) = degrees(lonC + atan2(x*sin(c), rho*cos(latC)*cos(c) - y*sin(latC)*sin(c)));
             }
         }
-        era5Buffer readLon(getFileIndexData(testFilesDir + "/" + "ERA5_lonx_y2000.nc", 0));
-        era5Buffer readLat(getFileIndexData(testFilesDir + "/" + "ERA5_laty_y2000.nc", 0));
+        era5Buffer readLon(getFileIndexData(ERA5Atmosphere::addDirectory("ERA5_lonx_y2000.nc"), 0));
+        era5Buffer readLat(getFileIndexData(ERA5Atmosphere::addDirectory("ERA5_laty_y2000.nc"), 0));
         ModelArray::setDimensions(ModelArray::Type::H, {nxt, nyt});
         ModelArray testLon;
         testLon.resize();
@@ -395,11 +402,11 @@ TEST_CASE("Spatial interpolation from files")
             }
         }
     }
-    if (std::filesystem::exists(testFilesDir + "/" + lonFileName)) {
-        std::filesystem::remove(testFilesDir + "/" + lonFileName);
+    if (std::filesystem::exists(ERA5Atmosphere::addDirectory(lonFileName))) {
+        std::filesystem::remove(ERA5Atmosphere::addDirectory(lonFileName));
     }
-    if (std::filesystem::exists(testFilesDir + "/" + latFileName)) {
-        std::filesystem::remove(testFilesDir + "/" + latFileName);
+    if (std::filesystem::exists(ERA5Atmosphere::addDirectory(latFileName))) {
+        std::filesystem::remove(ERA5Atmosphere::addDirectory(latFileName));
     }
 
 }

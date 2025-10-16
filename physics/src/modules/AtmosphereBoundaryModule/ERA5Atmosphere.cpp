@@ -204,6 +204,17 @@ era5Buffer getFileIndexData(const std::string& filename, size_t tIndex)
     return data;
 }
 
+std::pair<double, double> getLatitudeCoeffs(const std::string& filename)
+{
+    netCDF::NcFile ncFile(filename, netCDF::NcFile::read, netCDF::NcFile::nc4);
+    netCDF::NcVar latitudeVar(ncFile.getVar("latitude"));
+    size_t nLat = latitudeVar.getDim(0).getSize();
+    era5Buffer latitudeBuff(nLat, 1);
+    latitudeVar.getVar({0,}, {nLat,}, latitudeBuff.data());
+    ncFile.close();
+    return {latitudeBuff(1, 0) - latitudeBuff(0, 0), latitudeBuff(0, 0)};
+}
+
 era5Buffer getVarIndexData(const std::string& era5Name, size_t year, size_t tIndex)
 {
     return getFileIndexData(e5FilenameFromYear(era5Name, year), tIndex);
@@ -251,10 +262,13 @@ ModelArray maFromERA5Buffer(const era5Buffer& buffer, const HField& destLon, con
     srcBuffer(Eigen::all, 0) = srcBuffer(Eigen::all, 1);
     srcBuffer(Eigen::all, Eigen::last) = srcBuffer(Eigen::all, Eigen::last - 1);
 
+    // Should eventually use getLatitudeCoeffs()
+    double dlat = -0.25;
+    double lat0 = 90.;
     // lambdas to translate latitude and longitude to (fractional) index in
     // srcBuffer, including wrap-around columns.
     auto xFromLon = [ptsPerDegree](double lon) { return ptsPerDegree * lon + 1; };
-    auto yFromLat = [ptsPerDegree, nye5](double lat) { return ptsPerDegree * (90. - lat) + 1; };
+    auto yFromLat = [lat0, dlat](double lat) { return (lat - lat0) / dlat + 1; };
 
     ModelArray maData(ModelArray::Type::H);
     maData.resize();
