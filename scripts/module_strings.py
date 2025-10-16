@@ -24,6 +24,7 @@ true_str = "true"
 class_name = "class_name"
 module_class_name = "module_class_name"
 
+
 def get_config_with_defaults():
     config = configparser.ConfigParser()
     config.read(module_file_str)
@@ -45,6 +46,7 @@ def get_config_with_defaults():
 
     return config
 
+
 def check_config_errors(config):
     # Error reporting if the module section is invalid
     if name_str not in config[module_section_str]:
@@ -52,20 +54,26 @@ def check_config_errors(config):
         return 1
 
     if file_prefix_str not in config[module_section_str]:
-        print(f"The main '{module_section_str}' section lacks a file prefix for the source files for the module.")
+        print(
+            f"The main '{module_section_str}' section lacks a file prefix for the source files for the module."
+        )
         return 2
 
     return 0
 
+
 def common_strings(config):
-    module_name = config[module_section_str][file_prefix_str]+"Module"
+    module_name = config[module_section_str][file_prefix_str] + "Module"
     header_file_name = module_name + "." + header_suffix
     return {
-        interface_prefix_str : config[module_section_str][interface_prefix_str],
-        file_prefix_str : config[module_section_str][file_prefix_str],
-        class_name : config[module_section_str][name_str],
-        module_class_name : module_name,
-        header_file_name_str : header_file_name,
-        header_file_path_str : os.path.join(config[module_section_str][header_dir_path_str], module_name + "." + header_suffix),
-        internal_header_dir : config[module_section_str][internal_header_dir],
+        interface_prefix_str: config[module_section_str][interface_prefix_str],
+        file_prefix_str: config[module_section_str][file_prefix_str],
+        class_name: config[module_section_str][name_str],
+        module_class_name: module_name,
+        header_file_name_str: header_file_name,
+        header_file_path_str: os.path.join(
+            config[module_section_str][header_dir_path_str],
+            module_name + "." + header_suffix,
+        ),
+        internal_header_dir: config[module_section_str][internal_header_dir],
     }

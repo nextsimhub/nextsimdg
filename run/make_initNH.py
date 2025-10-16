@@ -8,19 +8,44 @@ from numpy import ma
 
 topaz_mdi = -32767
 
+
 # Returns the file name that holds the TOPAZ data for a given field at a given time
 def topaz4_source_file_name(unix_time):
     unix_tm = time.gmtime(unix_time)
     return f"{topaz_path}/{unix_tm.tm_year}/topaz_rean_{unix_tm.tm_year}{unix_tm.tm_mon:02}.nc"
 
+
 # Creates a 128 x 128 ParaGrid restart file filled with data from TOPAZ on 2010-01-01
 if __name__ == "__main__":
     import argparse
-    parser = argparse.ArgumentParser(description = "Generate an initial state file from TOPAZ4 data")
-    parser.add_argument("--grid-file", dest = "grid_file", default="25km_NH.nc", help = "Path of the NH grid file.")
-    parser.add_argument("--topaz-path", dest = "topaz_path", default=".", help = "Path containing the TOPAZ4 files.")
-    parser.add_argument("--boundary", dest = "boundary", default="open", help='One of "open" (default) or "closed"')
-    parser.add_argument("--out-suffix", dest = "out_suffix", default="", help='Added to the name of the output file before the ending"')
+
+    parser = argparse.ArgumentParser(
+        description="Generate an initial state file from TOPAZ4 data"
+    )
+    parser.add_argument(
+        "--grid-file",
+        dest="grid_file",
+        default="25km_NH.nc",
+        help="Path of the NH grid file.",
+    )
+    parser.add_argument(
+        "--topaz-path",
+        dest="topaz_path",
+        default=".",
+        help="Path containing the TOPAZ4 files.",
+    )
+    parser.add_argument(
+        "--boundary",
+        dest="boundary",
+        default="open",
+        help='One of "open" (default) or "closed"',
+    )
+    parser.add_argument(
+        "--out-suffix",
+        dest="out_suffix",
+        default="",
+        help='Added to the name of the output file before the ending"',
+    )
 
     args = parser.parse_args()
     grid_file = args.grid_file
@@ -59,7 +84,7 @@ if __name__ == "__main__":
     yDim = ncFile.createDimension("ydim", nfirst)
     xDim = ncFile.createDimension("xdim", nsecond)
     yVertexDim = ncFile.createDimension("yvertex", nfirst + 1)
-    xVertexDim = ncFile.createDimension("xvertex", nsecond+ 1)
+    xVertexDim = ncFile.createDimension("xvertex", nsecond + 1)
     ycg_dim = ncFile.createDimension("y_cg", nfirst * ncg + 1)
     xcg_dim = ncFile.createDimension("x_cg", nsecond * ncg + 1)
     dg_comp = ncFile.createDimension("dg_comp", n_dg)
@@ -84,8 +109,8 @@ if __name__ == "__main__":
     node_lat[-1, 0:-1] = grid["lat_corners"][-1, :, 3]
 
     coords = ncFile.createVariable("coords", "f8", coord_dims)
-    coords[:,:,0] = node_lon
-    coords[:,:,1] = node_lat
+    coords[:, :, 0] = node_lon
+    coords[:, :, 1] = node_lat
 
     elem_lon = ncFile.createVariable("longitude", "f8", field_dims)
     elem_lon[:, :] = grid["plon"][:, :]
@@ -96,7 +121,7 @@ if __name__ == "__main__":
     # Return the grid azimuth to the range -180˚ to 180˚
     grid_azimuth_data = grid["plon"][:, :] + np.degrees(grid["ptheta"][:, :])
     grid_azimuth_data += 180
-    grid_azimuth_data %= 360.
+    grid_azimuth_data %= 360.0
     grid_azimuth_data -= 180
     grid_azimuth[:, :] = grid_azimuth_data
 
@@ -114,35 +139,47 @@ if __name__ == "__main__":
     # All fields are stored in one file, already opened as source_file
     # Sea-land mask
     mask = ncFile.createVariable("mask", "f8", field_dims)
-    mask[:,:] = grid["mask"][:,:]
+    mask[:, :] = grid["mask"][:, :]
 
     land_ratio = np.count_nonzero(mask) / mask.size
     print(f"ratio of sea (active) cells to total: {land_ratio}")
     if boundary in ["closed"]:
-        mask[:,0] = 0.0
-        mask[:,-1] = 0.0
-        mask[0,:] = 0.0
-        mask[-1,:] = 0.0
+        mask[:, 0] = 0.0
+        mask[:, -1] = 0.0
+        mask[0, :] = 0.0
+        mask[-1, :] = 0.0
         land_ratio = np.count_nonzero(mask) / mask.size
         print(f"ratio after adjustment: {land_ratio}")
 
-    nanmask = np.where(mask[:,:] == 0, np.nan, 1)
+    nanmask = np.where(mask[:, :] == 0, np.nan, 1)
 
     # Ice concentration and thickness
-    cice_data = topaz4_interpolate(element_lon, element_lat, source_file["siconc"][0, :, :].squeeze(), source_x,
-                                   source_y, proj_string)
-    hice_data = topaz4_interpolate(element_lon, element_lat, source_file["sithick"][0, :, :].squeeze(), source_x,
-                                   source_y, proj_string)
+    cice_data = topaz4_interpolate(
+        element_lon,
+        element_lat,
+        source_file["siconc"][0, :, :].squeeze(),
+        source_x,
+        source_y,
+        proj_string,
+    )
+    hice_data = topaz4_interpolate(
+        element_lon,
+        element_lat,
+        source_file["sithick"][0, :, :].squeeze(),
+        source_x,
+        source_y,
+        proj_string,
+    )
 
     cice_min = 1e-12
-    hice_min = 0.01 # m
+    hice_min = 0.01  # m
 
     noice = np.logical_or(cice_data < cice_min, hice_data < hice_min)
     isice = 1 - noice
     cice_data *= isice
 
     hice_data *= isice
-    hice_data *= cice_data # Convert from ice averaged to grid averaged
+    hice_data *= cice_data  # Convert from ice averaged to grid averaged
 
     cice = ncFile.createVariable("cice", "f8", field_dims)
     hice = ncFile.createVariable("hice", "f8", field_dims)
@@ -151,24 +188,42 @@ if __name__ == "__main__":
 
     # Snow thickness
     hsnow = ncFile.createVariable("hsnow", "f8", field_dims)
-    hsnow_data = topaz4_interpolate(element_lon, element_lat, source_file["sisnthick"][0, :, :].squeeze(), source_x,
-                                    source_y, proj_string)
+    hsnow_data = topaz4_interpolate(
+        element_lon,
+        element_lat,
+        source_file["sisnthick"][0, :, :].squeeze(),
+        source_x,
+        source_y,
+        proj_string,
+    )
     hsnow_data *= noice
     hsnow_data *= cice_data
     hsnow[:, :] = nanmask * hsnow_data
 
     # SSS
     sss = ncFile.createVariable("sss", "f8", field_dims)
-    sss_data = topaz4_interpolate(element_lon, element_lat, source_file["so"][0, :, :].squeeze(), source_x, source_y,
-                                  proj_string)
+    sss_data = topaz4_interpolate(
+        element_lon,
+        element_lat,
+        source_file["so"][0, :, :].squeeze(),
+        source_x,
+        source_y,
+        proj_string,
+    )
     sss[:, :] = nanmask * sss_data
 
     mu = -0.055
 
     # SST
     sst = ncFile.createVariable("sst", "f8", field_dims)
-    sst_data = topaz4_interpolate(element_lon, element_lat, source_file["thetao"][0, :, :].squeeze(), source_x,
-                                  source_y, proj_string)
+    sst_data = topaz4_interpolate(
+        element_lon,
+        element_lat,
+        source_file["thetao"][0, :, :].squeeze(),
+        source_x,
+        source_y,
+        proj_string,
+    )
     sst[:, :] = nanmask * sst_data * noice + mu * sss_data * isice
 
     # Ice starts at rest

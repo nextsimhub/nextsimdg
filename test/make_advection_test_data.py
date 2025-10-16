@@ -11,6 +11,7 @@ snow_offset = 4
 snow_hw = 4
 ice_stop = ice_start + ice_dim + 1
 
+
 def get_data(name):
     nxNH = 154
     nyNH = 121
@@ -19,11 +20,10 @@ def get_data(name):
     x0 = 30
     y0 = 30
 
-    lon0 = 0.
+    lon0 = 0.0
     dlon = 0.25
     lat0 = -2.5
     dlat = 0.25
-
 
     ncoords = 2
     if name == "nx":
@@ -59,21 +59,22 @@ def get_data(name):
         return mask_data
     elif name == "cice":
         cice = np.ones((ny, nx))
-        cice[:ice_start, :] = 0.
-        cice[:, :ice_start] = 0.
-        cice[ice_start + ice_dim + 1:, :] = 0.
-        cice[:, ice_start + ice_dim + 1:] = 0.
+        cice[:ice_start, :] = 0.0
+        cice[:, :ice_start] = 0.0
+        cice[ice_start + ice_dim + 1 :, :] = 0.0
+        cice[:, ice_start + ice_dim + 1 :] = 0.0
         return cice
-    elif name =="hice":
+    elif name == "hice":
         return get_data("cice")
     elif name == "sss":
         return np.ones((ny, nx)) * 35
-    elif name =="sst":
+    elif name == "sst":
         return np.ones((ny, nx)) * 35 * -0.0555
     elif name == "tsurf":
         return get_data("cice") * -1.5
-if __name__ == "__main__":
 
+
+if __name__ == "__main__":
     # Grid dimensions
     nx = get_data("nx")
     ny = get_data("ny")
@@ -112,7 +113,9 @@ if __name__ == "__main__":
     ncFile.createVariable("longitude", "f8", field_dims)[:] = get_data("longitude")
     ncFile.createVariable("latitude", "f8", field_dims)[:] = get_data("latitude")
 
-    ncFile.createVariable("grid_azimuth", "f8", field_dims)[:] = get_data("grid_azimuth")
+    ncFile.createVariable("grid_azimuth", "f8", field_dims)[:] = get_data(
+        "grid_azimuth"
+    )
 
     ncFile.createVariable("mask", "f8", field_dims)[:, :] = get_data("mask")
 

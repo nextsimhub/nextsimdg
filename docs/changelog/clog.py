@@ -1,4 +1,5 @@
 """Script for generating a changelog file."""
+
 import os
 import re
 import string
@@ -18,10 +19,7 @@ if __name__ == "__main__":
     for line in data:
         if re.search(r"v\d[\.\w]*", line):
             matched = re.findall(r"v\d[\.\w]*", line)[0]
-            tags_title_annotation[matched] = {
-                "title": "",
-                "annotation": []
-            }
+            tags_title_annotation[matched] = {"title": "", "annotation": []}
             title = line.replace(matched, "").strip()
             title = title[0].upper() + title[1:]
             tags_title_annotation[matched]["title"] = title
@@ -38,18 +36,16 @@ if __name__ == "__main__":
         if re.search(r"## \[v\d[\.\w]*\]", line):
             matched = re.findall(r"v\d[\.\w]*", line)[0]
 
-            insert_data = [
-                "**Description:**",
-                tags_title_annotation[matched]["title"]
-            ]
-            values = "\n" + \
-                "\n".join(insert_data) + \
-                "\n" + \
-                "\n".join(tags_title_annotation[matched]["annotation"]) + \
+            insert_data = ["**Description:**", tags_title_annotation[matched]["title"]]
+            values = (
                 "\n"
+                + "\n".join(insert_data)
+                + "\n"
+                + "\n".join(tags_title_annotation[matched]["annotation"])
+                + "\n"
+            )
             data_w.insert(index + 1, values)
 
     with open("CHANGELOG.md", "w") as fin:
         fin.writelines(data_w)
         fin.close()
-

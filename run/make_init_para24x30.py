@@ -5,7 +5,6 @@ import numpy as np
 
 # Creates a 24x30 ParaGrid restart file filled with data from TOPAZ on 2010-01-01
 if __name__ == "__main__":
-
     # Grid dimensions. x varies fastest
     nfirst = 24
     nsecond = 30

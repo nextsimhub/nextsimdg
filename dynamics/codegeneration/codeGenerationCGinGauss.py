@@ -15,27 +15,30 @@ import numpy as np
 #
 # PHI1d
 def cgbasisfunctions_in_gausspoints_1d(cg, gp):
-
     # print header
     print("template<> struct PHI1dImpl< {0}, {1} >{{".format(cg, gp))
-    if gp>1:
-        print("static inline const Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor> value = (Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor>() <<".format(cg+1,gp))
+    if gp > 1:
+        print(
+            "static inline const Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor> value = (Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor>() <<".format(
+                cg + 1, gp
+            )
+        )
     else:
-        print("static inline const Eigen::Matrix<double, {0}, {1}> value = (Eigen::Matrix<double, {0}, {1}>() <<".format(cg+1,gp))
-    print("\t",end=" ")
+        print(
+            "static inline const Eigen::Matrix<double, {0}, {1}> value = (Eigen::Matrix<double, {0}, {1}>() <<".format(
+                cg + 1, gp
+            )
+        )
+    print("\t", end=" ")
 
-    for dp in range(cg+1):
+    for dp in range(cg + 1):
         for g in range(gp):
-            print(bf.CGbasis1d(cg, dp, gq.gausspoints[gp-1,g]),end="")
+            print(bf.CGbasis1d(cg, dp, gq.gausspoints[gp - 1, g]), end="")
 
-            if (g<gp-1 or dp<cg):
-                print(", ",end="")
+            if g < gp - 1 or dp < cg:
+                print(", ", end="")
             else:
                 print(").finished();};")
-
-
-
-
 
 
 # evaluate cg basis functions in the quadrature points on
@@ -46,61 +49,99 @@ def cgbasisfunctions_in_gausspoints_1d(cg, gp):
 #
 # PHI
 def cgbasisfunctions_in_gausspoints(cg, gp):
-
     # print header
     print("template<> struct PHIImpl< {0}, {1} >{{".format(cg, gp))
-    if gp>1:
-        print("static inline const Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor> value = (Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor>() <<".format(bf.cgdofs(cg),gp*gp))
+    if gp > 1:
+        print(
+            "static inline const Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor> value = (Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor>() <<".format(
+                bf.cgdofs(cg), gp * gp
+            )
+        )
     else:
-        print("static inline const Eigen::Matrix<double, {0}, {1}> value = (Eigen::Matrix<double, {0}, {1}>() <<".format(bf.cgdofs(cg),gp*gp))
-    print("\t",end=" ")
+        print(
+            "static inline const Eigen::Matrix<double, {0}, {1}> value = (Eigen::Matrix<double, {0}, {1}>() <<".format(
+                bf.cgdofs(cg), gp * gp
+            )
+        )
+    print("\t", end=" ")
 
     for dp in range(bf.cgdofs(cg)):
         for gy in range(gp):
             for gx in range(gp):
-                print(bf.CGbasisfunction(cg, dp, gq.gausspoints[gp-1,gx], gq.gausspoints[gp-1,gy]),end="")
+                print(
+                    bf.CGbasisfunction(
+                        cg, dp, gq.gausspoints[gp - 1, gx], gq.gausspoints[gp - 1, gy]
+                    ),
+                    end="",
+                )
 
-                if (gx<gp-1 or gy<gp-1 or dp<bf.cgdofs(cg)-1):
-                    print(", ",end="")
+                if gx < gp - 1 or gy < gp - 1 or dp < bf.cgdofs(cg) - 1:
+                    print(", ", end="")
                 else:
                     print(").finished();};")
-
 
 
 def cg_dx_basisfunctions_in_gausspoints(cg, gp):
     # print header
     print("template<> struct PHIxImpl< {0}, {1} >{{".format(cg, gp))
-    if gp>1:
-        print("static inline const Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor> value = (Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor>() <<".format(bf.cgdofs(cg),gp*gp))
+    if gp > 1:
+        print(
+            "static inline const Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor> value = (Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor>() <<".format(
+                bf.cgdofs(cg), gp * gp
+            )
+        )
     else:
-        print("static inline const Eigen::Matrix<double, {0}, {1}> value = (Eigen::Matrix<double, {0}, {1}>() <<".format(bf.cgdofs(cg),gp*gp))
-    print("\t",end=" ")
+        print(
+            "static inline const Eigen::Matrix<double, {0}, {1}> value = (Eigen::Matrix<double, {0}, {1}>() <<".format(
+                bf.cgdofs(cg), gp * gp
+            )
+        )
+    print("\t", end=" ")
     for dp in range(bf.cgdofs(cg)):
         for gy in range(gp):
             for gx in range(gp):
-                print(bf.CGbasisfunction_dX(cg, dp, gq.gausspoints[gp-1,gx], gq.gausspoints[gp-1,gy]),end="")
+                print(
+                    bf.CGbasisfunction_dX(
+                        cg, dp, gq.gausspoints[gp - 1, gx], gq.gausspoints[gp - 1, gy]
+                    ),
+                    end="",
+                )
 
-                if (gx<gp-1 or gy<gp-1 or dp<bf.cgdofs(cg)-1):
-                    print(", ",end="")
+                if gx < gp - 1 or gy < gp - 1 or dp < bf.cgdofs(cg) - 1:
+                    print(", ", end="")
                 else:
                     print(").finished();};")
+
 
 def cg_dy_basisfunctions_in_gausspoints(cg, gp):
     # print header
     print("template<> struct PHIyImpl< {0}, {1} >{{".format(cg, gp))
-    if gp>1:
-        print("static inline const Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor> value = (Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor>() <<".format(bf.cgdofs(cg),gp*gp))
+    if gp > 1:
+        print(
+            "static inline const Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor> value = (Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor>() <<".format(
+                bf.cgdofs(cg), gp * gp
+            )
+        )
     else:
-        print("static inline const Eigen::Matrix<double, {0}, {1}> value = (Eigen::Matrix<double, {0}, {1}>() <<".format(bf.cgdofs(cg),gp*gp))
-    print("\t",end=" ")
+        print(
+            "static inline const Eigen::Matrix<double, {0}, {1}> value = (Eigen::Matrix<double, {0}, {1}>() <<".format(
+                bf.cgdofs(cg), gp * gp
+            )
+        )
+    print("\t", end=" ")
 
     for dp in range(bf.cgdofs(cg)):
         for gy in range(gp):
             for gx in range(gp):
-                print(bf.CGbasisfunction_dY(cg, dp, gq.gausspoints[gp-1,gx], gq.gausspoints[gp-1,gy]),end="")
+                print(
+                    bf.CGbasisfunction_dY(
+                        cg, dp, gq.gausspoints[gp - 1, gx], gq.gausspoints[gp - 1, gy]
+                    ),
+                    end="",
+                )
 
-                if (gx<gp-1 or gy<gp-1 or dp<bf.cgdofs(cg)-1):
-                    print(", ",end="")
+                if gx < gp - 1 or gy < gp - 1 or dp < bf.cgdofs(cg) - 1:
+                    print(", ", end="")
                 else:
                     print(").finished();};")
 
@@ -110,23 +151,38 @@ def cg_dy_basisfunctions_in_gausspoints(cg, gp):
 # gp  : Gauss points in each direction (2,3). lower left to upper right, y/x
 # matrix of size cgdofs x gausspoints (2d)
 def cgfunction_in_gausspoints(cg, gp):
-
     # print header
-    if gp>1:
-        print("static const Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor> CG_CG{2}FUNC_in_GAUSS{3} =".format(gp*gp,bf.cgdofs(cg),cg,gp))
-        print("\t(Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor>() <<".format(gp*gp,bf.cgdofs(cg)))
+    if gp > 1:
+        print(
+            "static const Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor> CG_CG{2}FUNC_in_GAUSS{3} =".format(
+                gp * gp, bf.cgdofs(cg), cg, gp
+            )
+        )
+        print(
+            "\t(Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor>() <<".format(
+                gp * gp, bf.cgdofs(cg)
+            )
+        )
     else:
-        print("static const Eigen::Matrix<double, {0}, {1}> CG_CG{2}FUNC_in_GAUSS{3} =".format(gp*gp,bf.cgdofs(cg), cg, gp))
-        print("\t(Eigen::Matrix<double, {0}, {1}>() <<".format(gp*gp,bf.cgdofs(cg)))
-    print("\t",end=" ")
+        print(
+            "static const Eigen::Matrix<double, {0}, {1}> CG_CG{2}FUNC_in_GAUSS{3} =".format(
+                gp * gp, bf.cgdofs(cg), cg, gp
+            )
+        )
+        print("\t(Eigen::Matrix<double, {0}, {1}>() <<".format(gp * gp, bf.cgdofs(cg)))
+    print("\t", end=" ")
     for gy in range(gp):
         for gx in range(gp):
             for dp in range(bf.cgdofs(cg)):
+                print(
+                    bf.CGbasisfunction(
+                        cg, dp, gq.gausspoints[gp - 1, gx], gq.gausspoints[gp - 1, gy]
+                    ),
+                    end="",
+                )
 
-                print(bf.CGbasisfunction(cg, dp, gq.gausspoints[gp-1,gx], gq.gausspoints[gp-1,gy]),end="")
-
-                if (gx<gp-1 or gy<gp-1 or dp<bf.cgdofs(cg)-1):
-                    print(", ",end="")
+                if gx < gp - 1 or gy < gp - 1 or dp < bf.cgdofs(cg) - 1:
+                    print(", ", end="")
                 else:
                     print(").finished();")
 
@@ -136,51 +192,81 @@ def cgfunction_in_gausspoints(cg, gp):
 # gp  : Gauss points in each direction (2,3). lower left to upper right, y/x
 # matrix of size cgdofs x gausspoints (2d)
 def cgfunction_dx_in_gausspoints(cg, gp):
-
     # print header
-    if gp>1:
-        print("static const Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor> CG_CG{2}FUNC_DX_in_GAUSS{3} =".format(gp*gp,bf.cgdofs(cg),cg,gp))
-        print("\t(Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor>() <<".format(gp*gp,bf.cgdofs(cg)))
+    if gp > 1:
+        print(
+            "static const Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor> CG_CG{2}FUNC_DX_in_GAUSS{3} =".format(
+                gp * gp, bf.cgdofs(cg), cg, gp
+            )
+        )
+        print(
+            "\t(Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor>() <<".format(
+                gp * gp, bf.cgdofs(cg)
+            )
+        )
     else:
-        print("static const Eigen::Matrix<double, {0}, {1}> CG_CG{2}FUNC_DX_in_GAUSS{3} =".format(gp*gp,bf.cgdofs(cg), cg, gp))
-        print("\t(Eigen::Matrix<double, {0}, {1}>() <<".format(gp*gp,bf.cgdofs(cg)))
-    print("\t",end=" ")
+        print(
+            "static const Eigen::Matrix<double, {0}, {1}> CG_CG{2}FUNC_DX_in_GAUSS{3} =".format(
+                gp * gp, bf.cgdofs(cg), cg, gp
+            )
+        )
+        print("\t(Eigen::Matrix<double, {0}, {1}>() <<".format(gp * gp, bf.cgdofs(cg)))
+    print("\t", end=" ")
     for gy in range(gp):
         for gx in range(gp):
             for dp in range(bf.cgdofs(cg)):
+                print(
+                    bf.CGbasisfunction_dX(
+                        cg, dp, gq.gausspoints[gp - 1, gx], gq.gausspoints[gp - 1, gy]
+                    ),
+                    end="",
+                )
 
-                print(bf.CGbasisfunction_dX(cg, dp, gq.gausspoints[gp-1,gx], gq.gausspoints[gp-1,gy]),end="")
-
-                if (gx<gp-1 or gy<gp-1 or dp<bf.cgdofs(cg)-1):
-                    print(", ",end="")
+                if gx < gp - 1 or gy < gp - 1 or dp < bf.cgdofs(cg) - 1:
+                    print(", ", end="")
                 else:
                     print(").finished();")
+
 
 # evaluate the derivative of a cg function in the quadrature points
 # cg  : cg degree (1 or 2)
 # gp  : Gauss points in each direction (2,3). lower left to upper right, y/x
 # matrix of size cgdofs x gausspoints (2d)
 def cgfunction_dy_in_gausspoints(cg, gp):
-
     # print header
-    if gp>1:
-        print("static const Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor> CG_CG{2}FUNC_DY_in_GAUSS{3} =".format(gp*gp,bf.cgdofs(cg),cg,gp))
-        print("\t(Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor>() <<".format(gp*gp,bf.cgdofs(cg)))
+    if gp > 1:
+        print(
+            "static const Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor> CG_CG{2}FUNC_DY_in_GAUSS{3} =".format(
+                gp * gp, bf.cgdofs(cg), cg, gp
+            )
+        )
+        print(
+            "\t(Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor>() <<".format(
+                gp * gp, bf.cgdofs(cg)
+            )
+        )
     else:
-        print("static const Eigen::Matrix<double, {0}, {1}> CG_CG{2}FUNC_DY_in_GAUSS{3} =".format(gp*gp,bf.cgdofs(cg), cg, gp))
-        print("\t(Eigen::Matrix<double, {0}, {1}>() <<".format(gp*gp,bf.cgdofs(cg)))
-    print("\t",end=" ")
+        print(
+            "static const Eigen::Matrix<double, {0}, {1}> CG_CG{2}FUNC_DY_in_GAUSS{3} =".format(
+                gp * gp, bf.cgdofs(cg), cg, gp
+            )
+        )
+        print("\t(Eigen::Matrix<double, {0}, {1}>() <<".format(gp * gp, bf.cgdofs(cg)))
+    print("\t", end=" ")
     for gy in range(gp):
         for gx in range(gp):
             for dp in range(bf.cgdofs(cg)):
+                print(
+                    bf.CGbasisfunction_dY(
+                        cg, dp, gq.gausspoints[gp - 1, gx], gq.gausspoints[gp - 1, gy]
+                    ),
+                    end="",
+                )
 
-                print(bf.CGbasisfunction_dY(cg, dp, gq.gausspoints[gp-1,gx], gq.gausspoints[gp-1,gy]),end="")
-
-                if (gx<gp-1 or gy<gp-1 or dp<bf.cgdofs(cg)-1):
-                    print(", ",end="")
+                if gx < gp - 1 or gy < gp - 1 or dp < bf.cgdofs(cg) - 1:
+                    print(", ", end="")
                 else:
                     print(").finished();")
-
 
 
 ### Main
@@ -213,50 +299,56 @@ print("template<int CG, int GP>")
 print("struct PHIxImpl;")
 print("template<int CG, int GP>")
 print("struct PHIyImpl;")
-for cg in [1,2]:
-    for gp in [1,2,3,4]:
-        cgbasisfunctions_in_gausspoints(cg,gp)
+for cg in [1, 2]:
+    for gp in [1, 2, 3, 4]:
+        cgbasisfunctions_in_gausspoints(cg, gp)
 
-        cg_dx_basisfunctions_in_gausspoints(cg,gp)
+        cg_dx_basisfunctions_in_gausspoints(cg, gp)
 
-        cg_dy_basisfunctions_in_gausspoints(cg,gp)
+        cg_dy_basisfunctions_in_gausspoints(cg, gp)
 print("template<int CG, int GP>")
-print("const Eigen::Matrix<double, CGDOFS(CG), GP*GP, (GP>1)?Eigen::RowMajor:Eigen::ColMajor> PHI = PHIImpl<CG, GP>::value;")
+print(
+    "const Eigen::Matrix<double, CGDOFS(CG), GP*GP, (GP>1)?Eigen::RowMajor:Eigen::ColMajor> PHI = PHIImpl<CG, GP>::value;"
+)
 print("template<int CG, int GP>")
-print("const Eigen::Matrix<double, CGDOFS(CG), GP*GP, (GP>1)?Eigen::RowMajor:Eigen::ColMajor> PHIx = PHIxImpl<CG, GP>::value;")
+print(
+    "const Eigen::Matrix<double, CGDOFS(CG), GP*GP, (GP>1)?Eigen::RowMajor:Eigen::ColMajor> PHIx = PHIxImpl<CG, GP>::value;"
+)
 print("template<int CG, int GP>")
-print("const Eigen::Matrix<double, CGDOFS(CG), GP*GP, (GP>1)?Eigen::RowMajor:Eigen::ColMajor> PHIy = PHIyImpl<CG, GP>::value;")
+print(
+    "const Eigen::Matrix<double, CGDOFS(CG), GP*GP, (GP>1)?Eigen::RowMajor:Eigen::ColMajor> PHIy = PHIyImpl<CG, GP>::value;"
+)
 print("")
-
 
 
 #   in 1d
 print("template<int CG, int GP>")
 print("struct PHI1dImpl;")
-for cg in [1,2]:
-    for gp in [1,2,3,4]:
-        cgbasisfunctions_in_gausspoints_1d(cg,gp)
+for cg in [1, 2]:
+    for gp in [1, 2, 3, 4]:
+        cgbasisfunctions_in_gausspoints_1d(cg, gp)
 print("template<int CG, int GP>")
-print("const Eigen::Matrix<double, CG+1, GP, (GP>1)?Eigen::RowMajor:Eigen::ColMajor> PHI1d = PHI1dImpl<CG, GP>::value;")
+print(
+    "const Eigen::Matrix<double, CG+1, GP, (GP>1)?Eigen::RowMajor:Eigen::ColMajor> PHI1d = PHI1dImpl<CG, GP>::value;"
+)
 print("")
-
 
 
 print("")
 print("\n\n//------------------------------ CG_CG[1/2]FUNC_in_GAUSS[1/2/3]\n")
 # generate arrays that evaluates a cg function in the gauss points
-for cg in [1,2]:
-    for gp in [1,2,3]:
-        cgfunction_in_gausspoints(cg,gp)
+for cg in [1, 2]:
+    for gp in [1, 2, 3]:
+        cgfunction_in_gausspoints(cg, gp)
 
 
 print("")
 print("\n\n//------------------------------ CG_CG[1/2]FUNC_in_GAUSS[1/2/3]\n")
 # generate arrays that evaluates the derivatives of a cg functions in the gauss points
-for cg in [1,2]:
-    for gp in [1,2,3]:
-        cgfunction_dx_in_gausspoints(cg,gp)
-        cgfunction_dy_in_gausspoints(cg,gp)
+for cg in [1, 2]:
+    for gp in [1, 2, 3]:
+        cgfunction_dx_in_gausspoints(cg, gp)
+        cgfunction_dy_in_gausspoints(cg, gp)
 
 # Some output
 print("#endif /* __BASISFUNCTIONSGUASSPOINTS_HPP */")
