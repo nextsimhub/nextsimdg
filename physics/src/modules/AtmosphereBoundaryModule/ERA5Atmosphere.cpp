@@ -180,7 +180,7 @@ era5Buffer getFileIndexData(const std::string& filename, size_t tIndex)
             nLon = entry.second.getDim(0).getSize();
         } else if (entry.first == "latitude") {
             nLat = entry.second.getDim(0).getSize();
-        } else if (entry.first == "time") {
+        } else if (entry.first == "time" || entry.first == "valid_time") {
         } else {
             dataVar = entry.second;
         }
