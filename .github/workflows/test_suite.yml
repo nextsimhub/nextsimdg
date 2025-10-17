@@ -34,6 +34,16 @@ on:
   # Trigger the workflow when an open PR receives a review
   pull_request_review:
     branches: [ main, develop ]
+    paths-ignore:
+      - '.github/workflows/test_suite.yml'
+      - '**.cdl'
+      - '**.cfg'
+      - '**.cpp'
+      - '**.hpp'
+      - '**.py'
+      - '**.sh'
+      - '**.xml'
+      - '**CMakeLists.txt'
 
 # Restrict default permissions
 permissions: {}
