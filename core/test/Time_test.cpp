@@ -49,23 +49,6 @@ TEST_CASE("TimePoint parsing and formating")
     REQUIRE(tq.format() == rightNow);
 }
 
-TEST_CASE("Julian-Gregorian shifts")
-{
-    // In the 1500s, the inital 10 day shift.
-    REQUIRE(julianGregorianShiftDays(1582) == -10);
-    // In the 1600s, 1600 had been a leap year, as expected, so still 10 days.
-    REQUIRE(julianGregorianShiftDays(1688) == -10);
-    // In 1700, the different leap day had not yet been reached.
-    REQUIRE(julianGregorianShiftDays(1700) == -10);
-    // By 1701, there had been one extra skipped Gregorian leap day.
-    REQUIRE(julianGregorianShiftDays(1701) == -11);
-    // By 1970, there had been 3 further fewer Gregorian leap days (1700, 1800, 1900).
-    REQUIRE(julianGregorianShiftDays(1970) == -13);
-    // In 2525, if man is still alive, there will have been 7 further fewer
-    // Gregorian leap days (1700, 1800, 1900, 2100, 2200, 2300, 2500).
-    REQUIRE(julianGregorianShiftDays(2525) == -17);
-}
-
 TEST_CASE("tmDoy")
 {
     const char* iso = TimePoint::ymdhmsFormat.c_str();

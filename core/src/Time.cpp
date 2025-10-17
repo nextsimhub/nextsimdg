@@ -144,15 +144,6 @@ std::time_t mkgmtime(std::tm* tm, bool recalculateDoy)
     return sum;
 }
 
-//int julianGregorianShiftDays(int year)
-//{
-//    // Note the subtraction of 1 year, as xx00 behaves like (xx-1)99 and not
-//    // necessarily like xx01
-//    int centurySinceGreg = (year - 1) / 100 - 15;
-//    int leaps = (3 * centurySinceGreg) / 4 + 10;
-//    return -leaps;
-//}
-
 bool isYMDFormat(const std::string& iso)
 {
     const std::regex ymd("^\\d+-\\d+-\\d+($|T)"); // Search for the month
