@@ -14,15 +14,18 @@
 BEFORE=$(mktemp)
 git diff >${BEFORE}
 
-# Apply clang-format for linting
+# Apply clang-format for C++ linting
 for FILE in $(git diff --cached --name-only | grep -iE '\.(cpp|cc|h|hpp)$'); do
   clang-format -i ${FILE} --verbose
 done
 
-# Apply cmake-lint for linting
+# Apply cmake-lint for CMake linting
 for FILE in $(git diff --cached --name-only | grep -i 'CMakeLists.txt'); do
   cmake-lint ${FILE} -c .cmake-lint-config.py
 done
+
+# Apply ruff format for Python linting
+ruff format
 
 # Abort commit if formatting was applied
 AFTER=$(mktemp)
