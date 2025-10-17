@@ -36,7 +36,6 @@ TEST_CASE("TimePoint parsing and formating")
 
     TimePoint tp;
     tp.parse(is);
-
     std::stringstream os;
     tp.format(os);
 

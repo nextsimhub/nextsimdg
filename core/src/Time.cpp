@@ -125,20 +125,12 @@ std::time_t mkgmtime(std::tm* tm, bool recalculateDoy)
     sum += tm->tm_hour * hourSeconds;
     sum += tm->tm_yday * daySeconds;
     const int year = tmEpochYear + tm->tm_year;
-    // Start of the Gregorian cycle containing the 20th century
-    static const int gCycleStart = 1600;
-    static const int gCycleLenYr = 400;
-    static const int jCycleLenYr = 4;
-    static const int jCycleLenDy = 365 * jCycleLenYr + 1;
-    static const int gCycleLenDy = gCycleLenYr / jCycleLenYr * jCycleLenDy - 3;
-    const int gregorianCycle = year / gCycleLenYr - gCycleStart / gCycleLenYr;
-    const int gCycleYear = year - gCycleStart;
-    const int deltaDay = gCycleYear / 100;
-    const int startJCycleDays = gCycleYear / jCycleLenYr * jCycleLenDy - deltaDay;
-    const int jCycleYear = gCycleYear % jCycleLenYr;
-    // (i + 2)/3, when trucated, gets the correct extra day 0->0, 1->1, 2->1, 3->1
-    const int startYearDays = startJCycleDays + jCycleYear * 365 + (jCycleYear + 2) / 3;
-    static const int epochDays = 135140;
+
+    static const size_t yOffset = 399;
+    static const size_t oEpochYear = unixEpochYear + yOffset;
+    static const size_t epochDays = unixEpochYear * 365 + oEpochYear/4 - oEpochYear/100 + oEpochYear/400;
+    const size_t oYear = year + yOffset; // Offset the year to make the leap years tick over correctyl
+    const size_t startYearDays = year * 365 + oYear / 4 - oYear / 100 + oYear / 400;
     sum += (startYearDays  - epochDays) * daySeconds;
 
     return sum;
@@ -250,7 +242,7 @@ Duration durationFromISO(const std::string& iso, int sign = +1)
     sum += tm.tm_min * minuteSeconds;
     sum += tm.tm_hour * hourSeconds;
     if (isDOY) {
-        sum += tm.tm_yday * daySeconds;
+        sum += (tm.tm_yday + 1) * daySeconds;
     } else {
         // 30 day months until real calendar intervals are implemented
         sum += tm.tm_mon * 30 * daySeconds;
