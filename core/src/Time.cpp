@@ -144,14 +144,14 @@ std::time_t mkgmtime(std::tm* tm, bool recalculateDoy)
     return sum;
 }
 
-int julianGregorianShiftDays(int year)
-{
-    // Note the subtraction of 1 year, as xx00 behaves like (xx-1)99 and not
-    // necessarily like xx01
-    int centurySinceGreg = (year - 1) / 100 - 15;
-    int leaps = (3 * centurySinceGreg) / 4 + 10;
-    return -leaps;
-}
+//int julianGregorianShiftDays(int year)
+//{
+//    // Note the subtraction of 1 year, as xx00 behaves like (xx-1)99 and not
+//    // necessarily like xx01
+//    int centurySinceGreg = (year - 1) / 100 - 15;
+//    int leaps = (3 * centurySinceGreg) / 4 + 10;
+//    return -leaps;
+//}
 
 bool isYMDFormat(const std::string& iso)
 {
@@ -225,7 +225,7 @@ std::tm getTimTime(const std::string& in, bool isDOY)
         // Parse the date portion by splitting on the (lone) hyphen
         std::vector<std::string> yearDoy = splitString(dateTime[0], '-');
         tm.tm_year = std::stoi(yearDoy[0]) - tmEpochYear;
-        tm.tm_yday = std::stoi(yearDoy[1]);
+        tm.tm_yday = std::stoi(yearDoy[1]) - 1;
     } else {
         std::stringstream(iso) >> std::get_time(&tm, TimePoint::ymdhmsFormat.c_str());
     }
