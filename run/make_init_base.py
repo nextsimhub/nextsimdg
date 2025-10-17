@@ -72,7 +72,7 @@ class initMaker:
         # ... except for the damage array, which is all ones.
         self.damage = np.ones((nFirst, nSecond))
 
-        #Open the netCDF file for writing and create the dimensions and basic structure.
+        # Open the netCDF file for writing and create the dimensions and basic structure.
         self._ncFile = netCDF4.Dataset(self._fname, "w", format="NETCDF4")
 
         structure_name = "parametric_rectangular"
@@ -126,10 +126,20 @@ class initMaker:
         elem_y = self._ncFile.createVariable("y", "f8", self._field_dims)
         elem_y[:, :] = py
 
-        grid_azimuth = self._ncFile.createVariable("grid_azimuth", "f8", self._field_dims)
-        grid_azimuth[:, :] = 0.
+        grid_azimuth = self._ncFile.createVariable(
+            "grid_azimuth", "f8", self._field_dims
+        )
+        grid_azimuth[:, :] = 0.0
 
-    def make_geographic_grid(self, grid_file, pos, plon_name="plon", plat_name="plat", qlon_name="qlon", qlat_name="qlat"):
+    def make_geographic_grid(
+        self,
+        grid_file,
+        pos,
+        plon_name="plon",
+        plat_name="plat",
+        qlon_name="qlon",
+        qlat_name="qlat",
+    ):
         """
         Create a geographic grid from a file containing coordinates.
 
@@ -173,16 +183,20 @@ class initMaker:
             # making up the locations of the first few points.
 
             # Extrapolate to get the lower left corner
-            node_lon[0, 0] = qlon[0, 0] - (qlon[1, 0]-qlon[0, 0]) - (qlon[0, 1]-qlon[0, 0])
-            node_lat[0, 0] = qlat[0, 0] - (qlat[1, 0]-qlat[0, 0]) - (qlat[0, 1]-qlat[0, 0])
+            node_lon[0, 0] = (
+                qlon[0, 0] - (qlon[1, 0] - qlon[0, 0]) - (qlon[0, 1] - qlon[0, 0])
+            )
+            node_lat[0, 0] = (
+                qlat[0, 0] - (qlat[1, 0] - qlat[0, 0]) - (qlat[0, 1] - qlat[0, 0])
+            )
 
             # Extrapolate to get the rest of the bottom row
-            node_lon[0, 1:] = qlon[0, :] - (qlon[1, :]-qlon[0, :])
-            node_lat[0, 1:] = qlat[0, :] - (qlat[1, :]-qlat[0, :])
+            node_lon[0, 1:] = qlon[0, :] - (qlon[1, :] - qlon[0, :])
+            node_lat[0, 1:] = qlat[0, :] - (qlat[1, :] - qlat[0, :])
 
             # Extrapolate to get the first column
-            node_lon[1:, 0] = qlon[:, 0] - (qlon[:, 1]-qlon[:, 0])
-            node_lat[1:, 0] = qlat[:, 0] - (qlat[:, 1]-qlat[:, 0])
+            node_lon[1:, 0] = qlon[:, 0] - (qlon[:, 1] - qlon[:, 0])
+            node_lat[1:, 0] = qlat[:, 0] - (qlat[:, 1] - qlat[:, 0])
 
             # Fill the rest with the values provided on the upper right corner
             node_lon[1:, 1:] = qlon[:, :]
@@ -214,32 +228,32 @@ class initMaker:
 
             # The corners
             # lower left
-            node_lon[0,0] = rlon[0,0] - dlon_dx[0,0] - dlon_dy[0,0]
-            node_lat[0,0] = rlat[0,0] - dlat_dx[0,0] - dlat_dy[0,0]
+            node_lon[0, 0] = rlon[0, 0] - dlon_dx[0, 0] - dlon_dy[0, 0]
+            node_lat[0, 0] = rlat[0, 0] - dlat_dx[0, 0] - dlat_dy[0, 0]
             # upper left
-            node_lon[0,-1] = rlon[0,-1] - dlon_dx[0,-1] + dlon_dy[0,-1]
-            node_lat[0,-1] = rlat[0,-1] - dlat_dx[0,-1] + dlat_dy[0,-1]
+            node_lon[0, -1] = rlon[0, -1] - dlon_dx[0, -1] + dlon_dy[0, -1]
+            node_lat[0, -1] = rlat[0, -1] - dlat_dx[0, -1] + dlat_dy[0, -1]
 
             # upper right
-            node_lon[-1,-1] = rlon[-1,-1] + dlon_dx[-1,-1] + dlon_dy[-1,-1]
-            node_lat[-1,-1] = rlat[-1,-1] + dlat_dx[-1,-1] + dlat_dy[-1,-1]
+            node_lon[-1, -1] = rlon[-1, -1] + dlon_dx[-1, -1] + dlon_dy[-1, -1]
+            node_lat[-1, -1] = rlat[-1, -1] + dlat_dx[-1, -1] + dlat_dy[-1, -1]
             # lower right
-            node_lon[-1,0] = rlon[-1,0] + dlon_dx[-1,0] - dlon_dy[-1,0]
-            node_lat[-1,0] = rlat[-1,0] + dlat_dx[-1,0] - dlat_dy[-1,0]
+            node_lon[-1, 0] = rlon[-1, 0] + dlon_dx[-1, 0] - dlon_dy[-1, 0]
+            node_lat[-1, 0] = rlat[-1, 0] + dlat_dx[-1, 0] - dlat_dy[-1, 0]
 
             # Columns and rows
             # first column
-            node_lon[0,1:-1] = rlon[0,:-1] - dlon_dx[0,:-1] + dlon_dy[0,:]
-            node_lat[0,1:-1] = rlat[0,:-1] - dlat_dx[0,:-1] + dlat_dy[0,:]
+            node_lon[0, 1:-1] = rlon[0, :-1] - dlon_dx[0, :-1] + dlon_dy[0, :]
+            node_lat[0, 1:-1] = rlat[0, :-1] - dlat_dx[0, :-1] + dlat_dy[0, :]
             # top row
-            node_lon[1:-1,-1] = rlon[:-1,-1] + dlon_dx[:,-1] + dlon_dy[:-1,-1]
-            node_lat[1:-1,-1] = rlat[:-1,-1] + dlat_dx[:,-1] + dlat_dy[:-1,-1]
+            node_lon[1:-1, -1] = rlon[:-1, -1] + dlon_dx[:, -1] + dlon_dy[:-1, -1]
+            node_lat[1:-1, -1] = rlat[:-1, -1] + dlat_dx[:, -1] + dlat_dy[:-1, -1]
             # last column
-            node_lon[-1,1:-1] = rlon[-1,:-1] + dlon_dx[-1,:-1] + dlon_dy[-1,:]
-            node_lat[-1,1:-1] = rlat[-1,:-1] + dlat_dx[-1,:-1] + dlat_dy[-1,:]
+            node_lon[-1, 1:-1] = rlon[-1, :-1] + dlon_dx[-1, :-1] + dlon_dy[-1, :]
+            node_lat[-1, 1:-1] = rlat[-1, :-1] + dlat_dx[-1, :-1] + dlat_dy[-1, :]
             # bottom row
-            node_lon[1:-1,0] = rlon[:-1,0] + dlon_dx[:,0] - dlon_dy[:-1,0]
-            node_lat[1:-1,0] = rlat[:-1,0] + dlat_dx[:,0] - dlat_dy[:-1,0]
+            node_lon[1:-1, 0] = rlon[:-1, 0] + dlon_dx[:, 0] - dlon_dy[:-1, 0]
+            node_lat[1:-1, 0] = rlat[:-1, 0] + dlat_dx[:, 0] - dlat_dy[:-1, 0]
 
             # Fill the innermost points
             # The upper right corner is centre coordinate, plus half the grid spacing in each direction
@@ -250,7 +264,9 @@ class initMaker:
             node_lon = self._wrap_to_180(node_lon)
 
         else:
-            raise ValueError(f"Position {pos} not yet implemented (expected 'ur', 'll', or 'p').")
+            raise ValueError(
+                f"Position {pos} not yet implemented (expected 'ur', 'll', or 'p')."
+            )
 
         coords = self._ncFile.createVariable("coords", "f8", self._coord_dims)
         coords[:, :, 0] = node_lon
@@ -261,7 +277,9 @@ class initMaker:
         elem_lat = self._ncFile.createVariable("latitude", "f8", self._field_dims)
         elem_lat[:, :] = self._plat
 
-        grid_azimuth = self._ncFile.createVariable("grid_azimuth", "f8", self._field_dims)
+        grid_azimuth = self._ncFile.createVariable(
+            "grid_azimuth", "f8", self._field_dims
+        )
 
         # Rotate the pole to Greenland
         (rlat, rlon) = self._rotate_pole_to_greenland(node_lat, node_lon)
@@ -335,9 +353,9 @@ class initMaker:
         :return: Output longitudes in the range [-180, 180].
         """
         x = x_in
-        x += 180.
-        x %= 360.
-        x -= 180.
+        x += 180.0
+        x %= 360.0
+        x -= 180.0
         return x
 
     def _grid_angle(self, lons, lats):
@@ -355,13 +373,16 @@ class initMaker:
 
         for i in range(n):
             for j in range(m):
-
-                lonVerts = lons[i:i + 2, j:j + 2]
-                latVerts = lats[i:i + 2, j:j + 2]
+                lonVerts = lons[i : i + 2, j : j + 2]
+                latVerts = lats[i : i + 2, j : j + 2]
 
                 # Rotate the longitude if needed
-                if (abs(lonVerts[0, 0] - lonVerts[1, 0]) > 90. or abs(lonVerts[0, 1] - lonVerts[1, 1]) > 90 or abs(
-                    lonVerts[0, 0] - lonVerts[0, 1]) > 90 or abs(lonVerts[1, 0] - lonVerts[1, 1]) > 90):
+                if (
+                    abs(lonVerts[0, 0] - lonVerts[1, 0]) > 90.0
+                    or abs(lonVerts[0, 1] - lonVerts[1, 1]) > 90
+                    or abs(lonVerts[0, 0] - lonVerts[0, 1]) > 90
+                    or abs(lonVerts[1, 0] - lonVerts[1, 1]) > 90
+                ):
                     for ii in range(2):
                         for jj in range(2):
                             if lonVerts[ii, jj] < 0:
@@ -415,18 +436,43 @@ class initMaker:
         shape is wrong.
         """
         if (self.mask == 0).all():
-            print("Error: 'mask' is not set (all values are zero, meaning land everywhere)")
+            print(
+                "Error: 'mask' is not set (all values are zero, meaning land everywhere)"
+            )
             runtime_err = "'mask' is not set"
             raise RuntimeError(runtime_err)
 
-        for (field, allZero, wrongShape) in [["cice", (self.cice == 0).all(), self.cice.shape == (self._nFirst, self._nSecond)],
-                      ["hice", (self.hice == 0).all(), self.hice.shape == (self._nFirst, self._nSecond)],
-                      ["hsnow", (self.hsnow == 0).all(), self.hsnow.shape == (self._nFirst, self._nSecond)],
-                      ["sss", (self.sss == 0).all(), self.sss.shape == (self._nFirst, self._nSecond)],
-                      ["sst", (self.sst == 0).all(), self.sst.shape == (self._nFirst, self._nSecond)]]:
-
+        for field, allZero, wrongShape in [
+            [
+                "cice",
+                (self.cice == 0).all(),
+                self.cice.shape == (self._nFirst, self._nSecond),
+            ],
+            [
+                "hice",
+                (self.hice == 0).all(),
+                self.hice.shape == (self._nFirst, self._nSecond),
+            ],
+            [
+                "hsnow",
+                (self.hsnow == 0).all(),
+                self.hsnow.shape == (self._nFirst, self._nSecond),
+            ],
+            [
+                "sss",
+                (self.sss == 0).all(),
+                self.sss.shape == (self._nFirst, self._nSecond),
+            ],
+            [
+                "sst",
+                (self.sst == 0).all(),
+                self.sst.shape == (self._nFirst, self._nSecond),
+            ],
+        ]:
             if self._checkZeros and allZero:
-                print(f"Warning: '{field}' is all zeros (this may be ok, if that's what you want).")
+                print(
+                    f"Warning: '{field}' is all zeros (this may be ok, if that's what you want)."
+                )
 
             if not wrongShape:
                 print(f"Error: '{field}' is the wrong shape")

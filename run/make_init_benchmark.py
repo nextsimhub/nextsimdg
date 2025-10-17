@@ -7,25 +7,24 @@ from make_init_base import initMaker
 # Domain size [km]
 L = 512
 for res in [2, 4, 8, 16]:
-
     nfirst = int(L / res)
     nsecond = int(L / res)
 
     fname = f"init_benchmark_{nfirst}x{nsecond}.nc"
 
     initializer = initMaker(fname, checkZeros=False)
-    initializer.make_cartesian_grid(nfirst, nsecond, res*1e3)
+    initializer.make_cartesian_grid(nfirst, nsecond, res * 1e3)
     # The model expects everything in metres, while the benchmark problem in Mehlman et al. (2021) is defined in km.
 
     # Ice everywhere and all boundaries closed
-    initializer.mask[:, :] = 1.
-    initializer.mask[0, :] = 0.
-    initializer.mask[-1, :] = 0.
-    initializer.mask[:, 0] = 0.
-    initializer.mask[:, -1] = 0.
+    initializer.mask[:, :] = 1.0
+    initializer.mask[0, :] = 0.0
+    initializer.mask[-1, :] = 0.0
+    initializer.mask[:, 0] = 0.0
+    initializer.mask[:, -1] = 0.0
 
     # Uniform concentration of 100%
-    initializer.cice[:, :] = 1.
+    initializer.cice[:, :] = 1.0
 
     # Loop over ice thickness to construct the initial conditions. This should be a pattern of undulating ice.
     for ix in range(nfirst):
@@ -34,7 +33,7 @@ for res in [2, 4, 8, 16]:
             y = iy * res
             initializer.hice[ix, iy] = 0.3 + 0.005 * (sin(60e-3 * x) + sin(30e-3 * y))
 
-    initializer.damage[:, :] = 1.
+    initializer.damage[:, :] = 1.0
 
     # All other variables are zero or not needed
 
