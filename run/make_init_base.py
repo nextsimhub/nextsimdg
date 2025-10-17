@@ -35,18 +35,18 @@ class initMaker:
         :param fname: Name of the file to write the output into
         """
         # Set the file name
-        self.__fname = fname
+        self._fname = fname
 
         # Set basic coordinate sizes
-        self.__nCg = nCg
-        self.__nDg = nDg
-        self.__nDgStress = nDgStress
-        self.__nCoords = nCoords
+        self._nCg = nCg
+        self._nDg = nDg
+        self._nDgStress = nDgStress
+        self._nCoords = nCoords
 
         # Do we check for zeros?
-        self.__checkZeros = checkZeros
+        self._checkZeros = checkZeros
 
-    def __init_vars_and_file__(self, nFirst, nSecond):
+    def _init_vars_and_file(self, nFirst, nSecond):
         """
         Initialise the arrays. Open the netCDF file for writing and create the dimensions and basic structure. This must
         be called from inside make_cartesian_grid or make_geographic_grid.
@@ -73,60 +73,60 @@ class initMaker:
         self.damage = np.ones((nFirst, nSecond))
 
         #Open the netCDF file for writing and create the dimensions and basic structure.
-        self.__ncFile = netCDF4.Dataset(self.__fname, "w", format="NETCDF4")
+        self._ncFile = netCDF4.Dataset(self._fname, "w", format="NETCDF4")
 
         structure_name = "parametric_rectangular"
-        self.__ncFile.structure_name = structure_name
+        self._ncFile.structure_name = structure_name
 
-        self.__ncFile.createDimension("ydim", self.__nFirst)
-        self.__ncFile.createDimension("xdim", self.__nSecond)
-        self.__ncFile.createDimension("yvertex", self.__nFirst + 1)
-        self.__ncFile.createDimension("xvertex", self.__nSecond + 1)
-        self.__ncFile.createDimension("y_cg", self.__nFirst * self.__nCg + 1)
-        self.__ncFile.createDimension("x_cg", self.__nSecond * self.__nCg + 1)
-        self.__ncFile.createDimension("dg_comp", self.__nDg)
-        self.__ncFile.createDimension("dgstress_comp", self.__nDgStress)
-        self.__ncFile.createDimension("ncoords", self.__nCoords)
+        self._ncFile.createDimension("ydim", nFirst)
+        self._ncFile.createDimension("xdim", nSecond)
+        self._ncFile.createDimension("yvertex", nFirst + 1)
+        self._ncFile.createDimension("xvertex", nSecond + 1)
+        self._ncFile.createDimension("y_cg", nFirst * self._nCg + 1)
+        self._ncFile.createDimension("x_cg", nSecond * self._nCg + 1)
+        self._ncFile.createDimension("dg_comp", self._nDg)
+        self._ncFile.createDimension("dgstress_comp", self._nDgStress)
+        self._ncFile.createDimension("ncoords", self._nCoords)
 
-        self.__field_dims = ("ydim", "xdim")
-        self.__coord_dims = ("yvertex", "xvertex", "ncoords")
+        self._field_dims = ("ydim", "xdim")
+        self._coord_dims = ("yvertex", "xvertex", "ncoords")
 
     def make_cartesian_grid(self, nFirst, nSecond, res):
         """
         Create a cartesian grid with regular spacing at a given resolution.
 
         :param nFirst: Number of rows (first dimension)
-        :param nSecond: Number of columns (seond dimension)
+        :param nSecond: Number of columns (second dimension)
         :param res: Model resolution [m]
         """
         # Initialise the arrays and the output file
-        self.__init_vars_and_file__(nFirst, nSecond)
+        self._init_vars_and_file(nFirst, nSecond)
 
         # Array coordinates
-        x = np.zeros((self.__nFirst + 1, self.__nSecond + 1))
-        y = np.zeros((self.__nFirst + 1, self.__nSecond + 1))
-        for j in range(self.__nFirst + 1):
-            for i in range(self.__nSecond + 1):
+        x = np.zeros((nFirst + 1, nSecond + 1))
+        y = np.zeros((nFirst + 1, nSecond + 1))
+        for j in range(nFirst + 1):
+            for i in range(nSecond + 1):
                 x[j, i] = i * res
                 y[j, i] = j * res
 
-        coords = self.__ncFile.createVariable("coords", "f8", self.__coord_dims)
+        coords = self._ncFile.createVariable("coords", "f8", self._coord_dims)
         coords[:, :, 0] = x
         coords[:, :, 1] = y
 
-        px = np.zeros((self.__nFirst, self.__nSecond))
-        py = np.zeros((self.__nFirst, self.__nSecond))
-        for j in range(self.__nFirst):
-            for i in range(self.__nSecond):
+        px = np.zeros((nFirst, nSecond))
+        py = np.zeros((nFirst, nSecond))
+        for j in range(nFirst):
+            for i in range(nSecond):
                 px[j, i] = (j + 0.5) * res
                 py[j, i] = (i + 0.5) * res
 
-        elem_x = self.__ncFile.createVariable("x", "f8", self.__field_dims)
+        elem_x = self._ncFile.createVariable("x", "f8", self._field_dims)
         elem_x[:, :] = px
-        elem_y = self.__ncFile.createVariable("y", "f8", self.__field_dims)
+        elem_y = self._ncFile.createVariable("y", "f8", self._field_dims)
         elem_y[:, :] = py
 
-        grid_azimuth = self.__ncFile.createVariable("grid_azimuth", "f8", self.__field_dims)
+        grid_azimuth = self._ncFile.createVariable("grid_azimuth", "f8", self._field_dims)
         grid_azimuth[:, :] = 0.
 
     def make_geographic_grid(self, grid_file, pos, plon_name="plon", plat_name="plat", qlon_name="qlon", qlat_name="qlat"):
@@ -148,7 +148,7 @@ class initMaker:
         nsecond = grid.dimensions["x"].size
 
         # Initialise the arrays and the output file
-        self.__init_vars_and_file__(nfirst, nsecond)
+        self._init_vars_and_file(nfirst, nsecond)
 
         # Array coordinates
         node_lon = np.zeros((nfirst + 1, nsecond + 1))
@@ -161,13 +161,13 @@ class initMaker:
             corner; typical for an ocean model C-grid. The NEMO/ORCA grid is one of those.
             That means making up the locations of the first few points.
             """
-            self.__plon = grid.variables[plon_name][:, :]
-            self.__plat = grid.variables[plat_name][:, :]
+            self._plon = grid.variables[plon_name][:, :]
+            self._plat = grid.variables[plat_name][:, :]
             qlon = grid.variables[qlon_name][:, :]
             qlat = grid.variables[qlat_name][:, :]
 
             # Stay in the [-180, 180] range
-            self.__plon = self.__wrap_to_180__(self.__plon)
+            self._plon = self._wrap_to_180(self._plon)
 
             # We proceed through the grid from the lower left corner in a row-major order. For the UR grid, that means
             # making up the locations of the first few points.
@@ -193,24 +193,24 @@ class initMaker:
             This is for grids with plon and plat at the centre of the grid cell.
             That means making up the locations of the grid nodes/vertices.
             """
-            self.__plon = grid.variables[plon_name][:, :]
-            self.__plat = grid.variables[plat_name][:, :]
+            self._plon = grid.variables[plon_name][:, :]
+            self._plat = grid.variables[plat_name][:, :]
 
             # Stay in the [-180, 180] range
-            self.__plon = self.__wrap_to_180__(self.__plon)
+            self._plon = self._wrap_to_180(self._plon)
 
             # First, we project the grid centers to Greenland
-            (rlat, rlon) = self.__rotate_pole_to_greenland__(self.__plat, self.__plon)
+            (rlat, rlon) = self._rotate_pole_to_greenland(self._plat, self._plon)
 
             # Then, we create the grid nodes/vertices
 
             # Differences in longitude and latitude
             dlat_dx = 0.5 * np.diff(rlat, axis=0)
-            dlon_dx = 0.5 * self.__wrap_to_180__(np.diff(rlon, axis=0))
+            dlon_dx = 0.5 * self._wrap_to_180(np.diff(rlon, axis=0))
 
             # A minus here, because the array is effectively flipped upside down.
             dlat_dy = -0.5 * np.diff(rlat, axis=1)
-            dlon_dy = -0.5 * self.__wrap_to_180__(np.diff(rlon, axis=1))
+            dlon_dy = -0.5 * self._wrap_to_180(np.diff(rlon, axis=1))
 
             # The corners
             # lower left
@@ -246,31 +246,31 @@ class initMaker:
             node_lon[1:-1, 1:-1] = rlon[:-1, :-1] + dlon_dx[:, 1:] + dlon_dy[1:, :]
             node_lat[1:-1, 1:-1] = rlat[:-1, :-1] + dlat_dx[:, 1:] + dlat_dy[1:, :]
 
-            (node_lat, node_lon) = self.__rotate_pole_from_greenland__(node_lat, node_lon)
-            node_lon = self.__wrap_to_180__(node_lon)
+            (node_lat, node_lon) = self._rotate_pole_from_greenland(node_lat, node_lon)
+            node_lon = self._wrap_to_180(node_lon)
 
         else:
             raise ValueError(f"Position {pos} not yet implemented (expected 'ur', 'll', or 'p').")
 
-        coords = self.__ncFile.createVariable("coords", "f8", self.__coord_dims)
+        coords = self._ncFile.createVariable("coords", "f8", self._coord_dims)
         coords[:, :, 0] = node_lon
         coords[:, :, 1] = node_lat
 
-        elem_lon = self.__ncFile.createVariable("longitude", "f8", self.__field_dims)
-        elem_lon[:, :] = self.__plon
-        elem_lat = self.__ncFile.createVariable("latitude", "f8", self.__field_dims)
-        elem_lat[:, :] = self.__plat
+        elem_lon = self._ncFile.createVariable("longitude", "f8", self._field_dims)
+        elem_lon[:, :] = self._plon
+        elem_lat = self._ncFile.createVariable("latitude", "f8", self._field_dims)
+        elem_lat[:, :] = self._plat
 
-        grid_azimuth = self.__ncFile.createVariable("grid_azimuth", "f8", self.__field_dims)
+        grid_azimuth = self._ncFile.createVariable("grid_azimuth", "f8", self._field_dims)
 
         # Rotate the pole to Greenland
-        (rlat, rlon) = self.__rotate_pole_to_greenland__(node_lat, node_lon)
+        (rlat, rlon) = self._rotate_pole_to_greenland(node_lat, node_lon)
         # Return the grid azimuth
-        grid_azimuth[:, :] = self.__grid_angle__(rlon, rlat)
+        grid_azimuth[:, :] = self._grid_angle(rlon, rlat)
 
         grid.close()
 
-    def __rotate_pole_to_greenland__(self, lat, lon):
+    def _rotate_pole_to_greenland(self, lat, lon):
         """
         Rotates the mesh such that the singularities are in Greenland / Antarctica at 75°N / 40°W and 75°S / 140°E
         This is a copy of ParametricMesh::RotatePoleToGreenland in dynamics/src/include/ParametricMesh.hpp.
@@ -298,7 +298,7 @@ class initMaker:
 
         return (np.rad2deg(np.arcsin(z2)), np.rad2deg(np.arctan2(y2, x2)))
 
-    def __rotate_pole_from_greenland__(self, lat, lon):
+    def _rotate_pole_from_greenland(self, lat, lon):
         """
         Rotates back the mesh from having the singularities in Greenland / Antarctica at 75°N / 40°W and 75°S / 140°E to the original coordinates.
         This is a copy of ParametricMesh::RotatePoleFromGreenland in dynamics/src/include/ParametricMesh.hpp.
@@ -327,7 +327,7 @@ class initMaker:
 
         return (np.rad2deg(np.arcsin(z2)), np.rad2deg(np.arctan2(y2, x2)))
 
-    def __wrap_to_180__(self, x_in):
+    def _wrap_to_180(self, x_in):
         """
         Wrap the input array to the range [-180, 180].
 
@@ -340,7 +340,7 @@ class initMaker:
         x -= 180.
         return x
 
-    def __grid_angle__(self, lons, lats):
+    def _grid_angle(self, lons, lats):
         """
         Calculate the angle between the grid y-axis and north.
 
@@ -397,7 +397,7 @@ class initMaker:
 
         :return: Longitude of the grid cell centre.
         """
-        return self.__plon
+        return self._plon
 
     def get_element_latitude(self):
         """
@@ -405,9 +405,9 @@ class initMaker:
 
         :return: Latitude of the grid cell centre.
         """
-        return self.__plat
+        return self._plat
 
-    def __testFields__(self):
+    def _testFields(self):
         """
         Check if arrays are non-zero and the right size.
 
@@ -419,13 +419,13 @@ class initMaker:
             runtime_err = "'mask' is not set"
             raise RuntimeError(runtime_err)
 
-        for (field, allZero, wrongShape) in [["cice", (self.cice == 0).all(), self.cice.shape == (self.__nFirst, self.__nSecond)],
-                      ["hice", (self.hice == 0).all(), self.hice.shape == (self.__nFirst, self.__nSecond)],
-                      ["hsnow", (self.hsnow == 0).all(), self.hsnow.shape == (self.__nFirst, self.__nSecond)],
-                      ["sss", (self.sss == 0).all(), self.sss.shape == (self.__nFirst, self.__nSecond)],
-                      ["sst", (self.sst == 0).all(), self.sst.shape == (self.__nFirst, self.__nSecond)]]:
+        for (field, allZero, wrongShape) in [["cice", (self.cice == 0).all(), self.cice.shape == (self._nFirst, self._nSecond)],
+                      ["hice", (self.hice == 0).all(), self.hice.shape == (self._nFirst, self._nSecond)],
+                      ["hsnow", (self.hsnow == 0).all(), self.hsnow.shape == (self._nFirst, self._nSecond)],
+                      ["sss", (self.sss == 0).all(), self.sss.shape == (self._nFirst, self._nSecond)],
+                      ["sst", (self.sst == 0).all(), self.sst.shape == (self._nFirst, self._nSecond)]]:
 
-            if self.__checkZeros and allZero:
+            if self._checkZeros and allZero:
                 print(f"Warning: '{field}' is all zeros (this may be ok, if that's what you want).")
 
             if not wrongShape:
@@ -435,45 +435,45 @@ class initMaker:
 
     def __del__(self):
         """Destructor that writes the file when the object goes out of scope."""
-        self.__writeFile__()
+        self._writeFile()
 
-    def __writeFile__(self):
+    def _writeFile(self):
         """Write everything to a file. This is called by the destructor."""
-        print("Producing file", self.__fname)
+        print("Producing file", self._fname)
 
-        self.__testFields__()
+        self._testFields()
 
         # Set the mask
-        mask = self.__ncFile.createVariable("mask", "f8", self.__field_dims)
+        mask = self._ncFile.createVariable("mask", "f8", self._field_dims)
         mask[:, :] = self.mask
         antimask = 1 - mask[:, :]
 
         # Set the concentration
-        cice = self.__ncFile.createVariable("cice", "f8", self.__field_dims)
+        cice = self._ncFile.createVariable("cice", "f8", self._field_dims)
         cice[:, :] = self.cice
 
         # Set the thickness
-        hice = self.__ncFile.createVariable("hice", "f8", self.__field_dims)
+        hice = self._ncFile.createVariable("hice", "f8", self._field_dims)
         hice[:, :] = self.hice
 
         # Set snow thickness
-        hsnow = self.__ncFile.createVariable("hsnow", "f8", self.__field_dims)
+        hsnow = self._ncFile.createVariable("hsnow", "f8", self._field_dims)
         hsnow[:, :] = self.hsnow
 
         # Set snow thickness
-        damage = self.__ncFile.createVariable("damage", "f8", self.__field_dims)
+        damage = self._ncFile.createVariable("damage", "f8", self._field_dims)
         damage[:, :] = self.damage
 
         # Set ice velocity
-        u = self.__ncFile.createVariable("u", "f8", self.__field_dims)
+        u = self._ncFile.createVariable("u", "f8", self._field_dims)
         u[:, :] = self.uice
-        v = self.__ncFile.createVariable("v", "f8", self.__field_dims)
+        v = self._ncFile.createVariable("v", "f8", self._field_dims)
         v[:, :] = self.vice
 
         # Set ocean state
-        sst = self.__ncFile.createVariable("sst", "f8", self.__field_dims)
+        sst = self._ncFile.createVariable("sst", "f8", self._field_dims)
         sst[:, :] = self.sst
-        sss = self.__ncFile.createVariable("sss", "f8", self.__field_dims)
+        sss = self._ncFile.createVariable("sss", "f8", self._field_dims)
         sss[:, :] = self.sss
 
         # mask data
@@ -501,4 +501,4 @@ class initMaker:
         sst[:, :] = sst[:, :] * mask[:, :] + antimask * mdi
         sst.missing_value = mdi
 
-        self.__ncFile.close()
+        self._ncFile.close()
