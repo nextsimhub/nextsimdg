@@ -16,13 +16,13 @@
 #include "include/Configurator.hpp"
 #include "include/ConfiguredModule.hpp"
 #include "include/Model.hpp"
+#include "include/ModelMPI.hpp"
 #include "include/NetcdfMetadataConfiguration.hpp"
 
 int main(int argc, char* argv[])
 {
 #ifdef USE_MPI
     MPI_Init(&argc, &argv);
-    MPI_Comm modelCommunicator = MPI_COMM_WORLD;
 #endif // USE_MPI
 
     int return_code = 0;
@@ -51,18 +51,17 @@ int main(int argc, char* argv[])
     } else {
         // Construct the Model
 #ifdef USE_MPI
+        Nextsim::ModelMPI& modelMPI = Nextsim::ModelMPI::getInstance(MPI_COMM_WORLD);
 #ifdef USE_OASIS
         /* We must call these oasis routines before any MPI communication takes place, to make sure
          * we have the right communicator, i.e. modelCommunictor and not MPI_COMM_WORLD. */
         int compID; // Not actually used. Only useful for debugging
         const std::string compName = "nextsim"; // Not useful for any setups we have in mind
         OASIS_CHECK_ERR(oasis_c_init_comp(&compID, compName.c_str(), OASIS_COUPLED));
-        OASIS_CHECK_ERR(oasis_c_get_localcomm(&modelCommunicator));
+        OASIS_CHECK_ERR(oasis_c_get_localcomm(&modelMPI));
 #endif // USE_OASIS
-        Nextsim::Model model(modelCommunicator);
-#else
-        Nextsim::Model model;
 #endif
+        Nextsim::Model model;
         // Apply the model configuration
         model.configure();
         // Run the Model

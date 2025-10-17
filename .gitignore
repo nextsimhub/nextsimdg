@@ -7,6 +7,18 @@
 /docs/html/
 /docs/latex/
 /docs/xml/
+/docs/_build/
+
+# ignore all files in docs/api except for manually maintained rst files
+/docs/api/*
+!/docs/api/class.rst
+!/docs/api/counttimercpp.rst
+!/docs/api/function.rst
+!/docs/api/index.rst
+!/docs/api/num.rst
+!/docs/api/structure.rst
+!/docs/api/typedef.rst
+
 /.project
 __pycache__/
 /.pydevproject
@@ -24,6 +36,10 @@ __pycache__/
 *.sif
 *.smesh
 .*sw?
+/run/*.cdl
+.cache/
+.clangd
+compile_commands.json
 *.vtk
 
 # Specific files

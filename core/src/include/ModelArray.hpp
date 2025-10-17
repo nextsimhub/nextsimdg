@@ -6,6 +6,8 @@
 #define MODELARRAY_HPP
 
 #include <Eigen/Core>
+#include <algorithm>
+#include <array>
 #include <cstddef>
 #include <map>
 #include <string>
@@ -16,11 +18,13 @@
 
 namespace ArraySlicer {
 class Slice;
+// class SliceIter;
 }
 
 namespace Nextsim {
 
 class ModelArraySlice;
+class Halo;
 class ConstModelArraySlice;
 /*
  * Set the storage order to row major. This matches with DGVector when there is
@@ -54,9 +58,11 @@ using Indexer::indexer;
 class ModelArray {
 public:
     using Slice = ArraySlicer::Slice;
+    // using SliceIter = ArraySlicer::SliceIter;
     // Forward defines make Eclipse less red and squiggly
     enum class Type;
     enum class Dimension;
+    enum class Base;
 
 #include "include/ModelArrayDetails.hpp"
 
@@ -94,6 +100,8 @@ public:
     static std::map<Dimension, DimensionSpec> definedDimensions;
     //! The name of each type of ModelArray
     static const std::map<Type, std::string> typeNames;
+    //! The base type of each type of ModelArray
+    static std::map<Type, Base> baseTypes;
     // The dimension that defines the components of each ModelArray type, if any
     static const std::map<Type, Dimension> componentMap;
 
@@ -306,6 +314,7 @@ public:
     const MultiDim& dimensions() const { return dimensions(type); }
     //! Returns a vector<size_t> of the size of each dimension of the specified type of ModelArray.
     static const MultiDim& dimensions(Type type) { return m_dims.at(type); }
+
     //! Returns the total number of elements of this type of ModelArray.
     size_t size() const { return size(type); }
     //! Returns the total number of elements of the specified type of ModelArray.
@@ -317,6 +326,9 @@ public:
 
     //! Returns a read-only pointer to the underlying data buffer.
     const double* getData() const { return m_data.data(); }
+
+    //! Returns a reference to the underlying ModelArray::DataType object.
+    ModelArray::DataType& getDataRef() { return m_data; }
 
     //! Returns a const reference to the Eigen data
     const DataType& data() const { return m_data; }
@@ -684,8 +696,9 @@ private:
     static DimensionMap m_dims;
     DataType m_data;
 
-    // ModelArraySlice needs access to the internals for fast slcing
+    // ModelArraySlice needs access to the internals for fast slicing
     friend ModelArraySlice;
+    friend Halo;
 };
 
 #include "include/ModelArrayTypedefs.hpp"

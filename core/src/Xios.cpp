@@ -8,32 +8,18 @@
  * Implementation of XIOS interface
  *
  * This C++ interface is designed to implement core functionality of XIOS so
- * that it can be used in nextSIM-DG.
- *
- * To enable XIOS in nextSIM-DG add the following lines to the config file.
- *   [xios]
- *   enable = true
- *
- * The start time, timestep, and output period will also be read from the
- * following config file entries. (Values shown below are the defaults, while
- * ellipses imply that no default is set.)
- *   [model]
- *   start = 1970-01-01T00:00:00Z
- *   time_step = P0-0T01:00:00
- *   [XiosInput]
- *   period = ...
- *   filename = ...
- *   field_names = ...
- *   [XiosOutput]
- *   period = ...
- *   filename = ...
- *   field_names = ...
+ * that it can be used in nextSIM-DG. Run
+ * ```sh
+ * ./nextsimdg --help-config
+ * ```
+ * to see the configuration options available for XIOS.
  */
 #include <boost/date_time/posix_time/time_parsers.hpp>
 #if USE_XIOS
 
 #include "StructureModule/include/ParametricGrid.hpp"
 #include "include/Finalizer.hpp"
+#include "include/ModelMPI.hpp"
 #include "include/ModelMetadata.hpp"
 #include "include/ParallelNetcdfFile.hpp"
 #include "include/Xios.hpp"
@@ -58,14 +44,19 @@ namespace Nextsim {
 
 static const std::string xOutputPfx = "XiosOutput";
 static const std::string xInputPfx = "XiosInput";
-static const std::map<int, std::string> keyMap = { { Xios::ENABLED_KEY, "xios.enable" },
-    { Xios::START_TIME_KEY, "model.start" }, { Xios::TIME_STEP_KEY, "model.time_step" },
-    { Xios::OUTPUT_PERIOD_KEY, xOutputPfx + ".period" },
-    { Xios::OUTPUT_FILENAME_KEY, xOutputPfx + ".filename" },
-    { Xios::OUTPUT_FIELD_NAMES_KEY, xOutputPfx + ".field_names" },
-    { Xios::INPUT_PERIOD_KEY, xInputPfx + ".period" },
-    { Xios::INPUT_FILENAME_KEY, xInputPfx + ".filename" },
-    { Xios::INPUT_FIELD_NAMES_KEY, xInputPfx + ".field_names" } };
+static const std::string xForcingPfx = "XiosForcing";
+static const std::map<int, std::string> keyMap
+    = { { Xios::ENABLED_KEY, "xios.enable" }, { Xios::STARTTIME_KEY, "model.start" },
+          { Xios::STOPTIME_KEY, "model.stop" }, { Xios::TIME_STEP_KEY, "model.time_step" },
+          { Xios::OUTPUT_RESTARTPERIOD_KEY, xOutputPfx + ".period" },
+          { Xios::OUTPUT_RESTARTFILE_KEY, xOutputPfx + ".filename" },
+          { Xios::OUTPUT_FIELD_NAMES_KEY, xOutputPfx + ".field_names" },
+          { Xios::INPUT_RESTARTPERIOD_KEY, xInputPfx + ".period" },
+          { Xios::INPUT_RESTARTFILE_KEY, xInputPfx + ".filename" },
+          { Xios::INPUT_FIELD_NAMES_KEY, xInputPfx + ".field_names" },
+          { Xios::FORCING_PERIOD_KEY, xForcingPfx + ".period" },
+          { Xios::FORCING_FILE_KEY, xForcingPfx + ".filename" },
+          { Xios::FORCING_FIELD_NAMES_KEY, xForcingPfx + ".field_names" } };
 
 //! Enable XIOS in the 'config'
 void enableXios()
@@ -90,15 +81,21 @@ Xios::Xios(const std::string contextid, const std::string calendartype)
 
     // Create the input and output files (if found in the config)
     if (firstTime) {
-        istringstream(Configured::getConfiguration(keyMap.at(INPUT_FILENAME_KEY), std::string()))
+        istringstream(Configured::getConfiguration(keyMap.at(INPUT_RESTARTFILE_KEY), std::string()))
             >> inputFilename;
-        if (inputFilename.length() > 0) {
-            inputFileId = ((std::filesystem::path)inputFilename).replace_extension();
-        }
-        istringstream(Configured::getConfiguration(keyMap.at(OUTPUT_FILENAME_KEY), std::string()))
+        inputFileId = ((std::filesystem::path)inputFilename).replace_extension();
+        istringstream(
+            Configured::getConfiguration(keyMap.at(OUTPUT_RESTARTFILE_KEY), std::string()))
             >> outputFilename;
-        if (outputFilename.length() > 0) {
-            outputFileId = ((std::filesystem::path)outputFilename).replace_extension();
+        outputFileId = ((std::filesystem::path)outputFilename).replace_extension();
+        istringstream(Configured::getConfiguration(keyMap.at(FORCING_FILE_KEY), std::string()))
+            >> forcingFilename;
+        forcingFileId = ((std::filesystem::path)forcingFilename).replace_extension();
+
+        // TODO: Account for separate restart and forcing files (#929)
+        if (forcingFilename.length() > 0 && inputFilename.length() > 0
+            && inputFilename != forcingFilename) {
+            throw std::runtime_error("Xios: Separate forcing and restart files not yet supported");
         }
 
         for (std::string fileId : { inputFileId, outputFileId }) {
@@ -122,6 +119,59 @@ bool Xios::doOnce()
     // Register the finalization function here
     Finalizer::registerUnique(finalize);
     return true;
+}
+
+Xios::HelpMap& Xios::getHelpText(HelpMap& map, bool getAll)
+{
+    map["Xios"] = {
+        { keyMap.at(ENABLED_KEY), ConfigType::BOOLEAN, {}, "", "",
+            "Boolean option to toggle whether XIOS is enabled in the build. This should not need "
+            "to be modifed by the user. Build nextSIM-DG with XIOS support with the CMake argument "
+            "-DENABLE_XIOS=ON, passing the path to your XIOS installation with "
+            "-Dxios_DIR=/path/to/xios." },
+    };
+    map["XiosInput"] = {
+        { keyMap.at(INPUT_RESTARTPERIOD_KEY), ConfigType::STRING, {}, "0", "",
+            "The period between restart file outputs expected in a file to be read, formatted as "
+            "an ISO8601 duration (P prefix) or number of seconds. A value of zero assumes no "
+            "intermediate restart files." },
+        { keyMap.at(INPUT_RESTARTFILE_KEY), ConfigType::STRING, {}, "", "",
+            // TODO: Support format "restart%Y-%m-%dT%H:%M:%SZ.nc" (#898)
+            "The file name to be used for input." },
+        { keyMap.at(INPUT_FIELD_NAMES_KEY), ConfigType::STRING, {}, "", "",
+            "Comma-separated list of field names to be read from the input file." },
+    };
+    map["XiosOutput"] = {
+        { keyMap.at(OUTPUT_RESTARTPERIOD_KEY), ConfigType::STRING, {}, "0", "",
+            "The period between restart file outputs, formatted as an ISO8601 "
+            "duration (P prefix) or number of seconds. A value of zero "
+            "ensures no intermediate restart files are written." },
+        { keyMap.at(OUTPUT_RESTARTFILE_KEY), ConfigType::STRING, {}, "", "",
+            // TODO: Support format "restart%Y-%m-%dT%H:%M:%SZ.nc" (#898)
+            "The file name to be used for output." },
+        { keyMap.at(OUTPUT_FIELD_NAMES_KEY), ConfigType::STRING, {}, "", "",
+            "Comma-separated list of field names to be written to the output file." },
+    };
+    map["XiosForcing"] = {
+        { keyMap.at(FORCING_PERIOD_KEY), ConfigType::STRING, {}, "0", "",
+            "The period between forcing file outputs expected in a file to be "
+            "read, formatted as an ISO8601 duration (P prefix) or number of "
+            "seconds. A value of zero assumes no intermediate restart files." },
+        { keyMap.at(FORCING_FILE_KEY), ConfigType::STRING, {}, "", "",
+            // TODO: Support format "restart%Y-%m-%dT%H:%M:%SZ.nc" (#898)
+            "The file name to be used for forcings." },
+        { keyMap.at(FORCING_FIELD_NAMES_KEY), ConfigType::STRING, {}, "", "",
+            "Comma-separated list of field names to be read from the forcings "
+            "file." },
+    };
+
+    return map;
+}
+
+Xios::HelpMap& Xios::getHelpRecursive(HelpMap& map, bool getAll)
+{
+    getHelpText(map, getAll);
+    return map;
 }
 
 //! Destructor
@@ -164,26 +214,6 @@ void Xios::configure()
     istringstream(Configured::getConfiguration(keyMap.at(ENABLED_KEY), std::string()))
         >> std::boolalpha >> isEnabled;
 
-    // Extract the start time from the model configuration
-    std::string startTimeStr;
-    istringstream(Configured::getConfiguration(keyMap.at(START_TIME_KEY), std::string()))
-        >> startTimeStr;
-    if (startTimeStr.length() == 0) {
-        Logged::warning("Xios: Setting default start: 1970-01-01T00:00:00Z");
-        startTimeStr = "1970-01-01T00:00:00Z";
-    }
-    startTime = TimePoint(startTimeStr);
-
-    // Extract the timestep from the model configuration
-    std::string timeStepStr;
-    istringstream(Configured::getConfiguration(keyMap.at(TIME_STEP_KEY), std::string()))
-        >> timeStepStr;
-    if (timeStepStr.length() == 0) {
-        Logged::warning("Xios: Setting default time_step: P0-0T01:00:00");
-        timeStepStr = "P0-0T01:00:00";
-    }
-    timestep = Duration(timeStepStr);
-
     if (isEnabled) {
         configureServer();
     }
@@ -208,7 +238,9 @@ void Xios::configureServer()
     // Initialize calendar wrapper for 'nextSIM-DG' context
     cxios_get_current_calendar_wrapper(&clientCalendar);
     cxios_set_calendar_wrapper_type(clientCalendar, calendarType.c_str(), calendarType.length());
-    cxios_set_calendar_wrapper_timestep(clientCalendar, convertDurationToXios(timestep));
+    ModelMetadata& metadata = ModelMetadata::getInstance();
+    cxios_set_calendar_wrapper_timestep(
+        clientCalendar, convertDurationToXios(metadata.stepLength()));
     cxios_create_calendar(clientCalendar);
     cxios_update_calendar_timestep(clientCalendar);
 
@@ -216,7 +248,7 @@ void Xios::configureServer()
     setCalendarOrigin(TimePoint("1970-01-01T00:00:00Z")); // Unix epoch
 
     // Set start time from configuration file
-    setCalendarStart(TimePoint(startTime));
+    setCalendarStart(metadata.startTime());
 }
 
 /*!
@@ -347,17 +379,6 @@ void Xios::setCalendarStart(const TimePoint start)
 }
 
 /*!
- * Set calendar timestep
- *
- * @param timestep
- */
-void Xios::setCalendarTimestep(const Duration timestep)
-{
-    cxios_set_calendar_wrapper_timestep(clientCalendar, convertDurationToXios(timestep));
-    cxios_update_calendar_timestep(clientCalendar);
-}
-
-/*!
  * Update XIOS calendar iteration/step number to some value
  *
  * @param Step number to update to
@@ -438,11 +459,11 @@ int Xios::getCalendarStep() { return clientCalendar->getCalendar()->getStep(); }
  *
  * @return current calendar date
  */
-std::string Xios::getCurrentDate(const bool isoFormat)
+TimePoint Xios::getCurrentDate()
 {
     cxios_date xiosDate;
     cxios_get_current_date(&xiosDate);
-    return convertXiosDatetimeToString(xiosDate, isoFormat);
+    return TimePoint(convertXiosDatetimeToString(xiosDate, true));
 }
 
 /*!
@@ -606,7 +627,7 @@ xios::CDomainGroup* Xios::getDomainGroup()
  *
  * @return a pointer to the XIOS CDomain object
  */
-xios::CDomain* Xios::getDomain()
+xios::CDomain* Xios::getDomain(const std::string domainId)
 {
     bool exists;
     cxios_domain_valid_id(&exists, domainId.c_str(), domainId.length());
@@ -622,19 +643,16 @@ xios::CDomain* Xios::getDomain()
 }
 
 /*!
- * Create a domain with some ID based off the provided metadata.
- *
- * If the domain ID is 'xy_domain' then a grid called 'grid_2D' will automatically be created with
- * this domain.
- *
- * @param metadata ModelMetadata object containing the partition metadata
+ * Create axes, domains, and grids based off the provided metadata.
  */
-void Xios::affixModelMetadata(ModelMetadata& metadata)
+void Xios::affixModelMetadata()
 {
+    auto& metadata = ModelMetadata::getInstance();
     // Initial read of the NetCDF file to deduce the dimensions
     if (inputFilename.length() > 0) {
         try {
-            netCDF::NcFilePar ncFile(inputFilename, netCDF::NcFile::read, metadata.mpiComm);
+            auto& modelMPI = ModelMPI::getInstance();
+            netCDF::NcFilePar ncFile(inputFilename, netCDF::NcFile::read, modelMPI.getComm());
 
             // Dimensions and DG components
             std::multimap<std::string, netCDF::NcDim> dimMap = ncFile.getDims();
@@ -664,22 +682,61 @@ void Xios::affixModelMetadata(ModelMetadata& metadata)
                 size_t localLength = 0;
                 size_t start = 0;
                 if (dimType == ModelArray::Dimension::X) {
-                    localLength = metadata.localExtentX;
-                    start = metadata.localCornerX;
+                    localLength = metadata.getLocalExtentX();
+                    start = metadata.getLocalCornerX();
                 } else if (dimType == ModelArray::Dimension::Y) {
-                    localLength = metadata.localExtentY;
-                    start = metadata.localCornerY;
+                    localLength = metadata.getLocalExtentY();
+                    start = metadata.getLocalCornerY();
                 } else if (dimType == ModelArray::Dimension::XVERTEX) {
-                    localLength = metadata.localExtentX + 1;
-                    start = metadata.localCornerX;
+                    localLength = metadata.getLocalExtentX() + 1;
+                    start = metadata.getLocalCornerX();
                 } else if (dimType == ModelArray::Dimension::YVERTEX) {
-                    localLength = metadata.localExtentY + 1;
-                    start = metadata.localCornerY;
+                    localLength = metadata.getLocalExtentY() + 1;
+                    start = metadata.getLocalCornerY();
                 } else {
                     localLength = dim.getSize();
                     start = 0;
                 }
                 ModelArray::setDimension(dimType, dim.getSize(), localLength, start);
+            }
+
+            // Create map for field types
+            const std::map<std::string, ModelArray::Type> dimensionKeys = {
+                { "yx", ModelArray::Type::H },
+                { "ydimxdim", ModelArray::Type::H },
+                { "yxdg_comp", ModelArray::Type::DG },
+                { "ydimxdimdg_comp", ModelArray::Type::DG },
+                { "yxdgstress_comp", ModelArray::Type::DGSTRESS },
+                { "ydimxdimdgstress_comp", ModelArray::Type::DGSTRESS },
+                { "ycgxcg", ModelArray::Type::CG },
+                { "yvertexxvertexncoords", ModelArray::Type::VERTEX },
+            };
+
+            // Determine field types
+            std::set<std::string> configFieldIds = configGetFieldNames(true);
+            for (auto entry : ncFile.getVars()) {
+                const std::string& fieldId = entry.first;
+                // Only consider fields that appear in the config
+                if (configFieldIds.count(fieldId) == 0) {
+                    continue;
+                }
+                netCDF::NcVar& var = entry.second;
+                // Determine the type from the dimensions
+                std::vector<netCDF::NcDim> varDims = var.getDims();
+                std::string dimKey = "";
+                for (netCDF::NcDim& dim : varDims) {
+                    const std::string name = dim.getName();
+                    // Skip the time_counter dim as it's handled differently
+                    if (name != "time_counter") {
+                        dimKey += dim.getName();
+                    }
+                }
+                // Skip invalid dimension keys
+                if (!dimensionKeys.count(dimKey)) {
+                    continue;
+                }
+                ModelArray::Type type = dimensionKeys.at(dimKey);
+                setFieldType(fieldId, type);
             }
             ncFile.close();
         } catch (const netCDF::exceptions::NcException& nce) {
@@ -689,68 +746,136 @@ void Xios::affixModelMetadata(ModelMetadata& metadata)
         }
     }
 
-    // Create the XIOS domain 'xy_domain'
-    bool exists;
-    cxios_domain_valid_id(&exists, domainId.c_str(), domainId.length());
-    if (exists) {
-        throw std::runtime_error("Xios: Domain '" + domainId + "' already exists");
-    }
-    xios::CDomain* domain = NULL;
-    cxios_xml_tree_add_domain(getDomainGroup(), &domain, domainId.c_str(), domainId.length());
-    if (!domain) {
-        throw std::runtime_error("Xios: Null pointer for domain '" + domainId + "'");
-    }
-    cxios_domain_valid_id(&exists, domainId.c_str(), domainId.length());
-    if (!exists) {
-        throw std::runtime_error("Xios: Failed to create domain '" + domainId + "'");
+    // Create XIOS domains associated with each ModelArray type
+    for (auto entry : domainIds) {
+        ModelArray::Type type = entry.first;
+        const std::string domainId = entry.second;
+        bool exists;
+        cxios_domain_valid_id(&exists, domainId.c_str(), domainId.length());
+        if (exists) {
+            continue;
+        }
+
+        // Create the domain
+        xios::CDomain* domain = NULL;
+        cxios_xml_tree_add_domain(getDomainGroup(), &domain, domainId.c_str(), domainId.length());
+        if (!domain) {
+            throw std::runtime_error("Xios: Null pointer for domain '" + domainId + "'");
+        }
+        cxios_domain_valid_id(&exists, domainId.c_str(), domainId.length());
+        if (!exists) {
+            throw std::runtime_error("Xios: Failed to create domain '" + domainId + "'");
+        }
+
+        // Set domain type
+        const std::string domainType = "rectilinear";
+        if (cxios_is_defined_domain_type(domain)) {
+            Logged::warning("Xios: Overwriting type for domain '" + domainId + "'");
+        }
+        cxios_set_domain_type(domain, domainType.c_str(), domainType.length());
+        if (!cxios_is_defined_domain_type(domain)) {
+            throw std::runtime_error("Xios: Failed to set type for domain '" + domainId + "'");
+        }
+
+        // Set domain extents based on model metadata
+        size_t counter = 0;
+        for (ModelArray::Dimension dim : ModelArray::typeDimensions[type]) {
+            const std::string domainName = ModelArray::definedDimensions[dim].name;
+            // Add 1 in the case of vertex-based field types
+            ModelArray::Base base = ModelArray::baseTypes[type];
+            size_t extension = (base == ModelArray::Base::Vertex) ? 1 : 0;
+            if (counter == 0) {
+                cxios_set_domain_ni_glo(domain, (int)metadata.getGlobalExtentX() + extension);
+                if (!cxios_is_defined_domain_ni_glo(domain)) {
+                    throw std::runtime_error(
+                        "Xios: Failed to set global x-size for domain '" + domainId + "'");
+                }
+                cxios_set_domain_ni(domain, (int)metadata.getLocalExtentX() + extension);
+                if (!cxios_is_defined_domain_ni(domain)) {
+                    throw std::runtime_error(
+                        "Xios: Failed to set local x-size for domain '" + domainId + "'");
+                }
+                cxios_set_domain_ibegin(domain, (int)metadata.getLocalCornerX());
+                if (!cxios_is_defined_domain_ibegin(domain)) {
+                    throw std::runtime_error(
+                        "Xios: Failed to set local starting x-index for domain '" + domainId + "'");
+                }
+                cxios_set_domain_dim_i_name(domain, domainName.c_str(), domainName.length());
+                if (!cxios_is_defined_domain_dim_i_name(domain)) {
+                    throw std::runtime_error(
+                        "Xios: Failed to set x-coordinate name for domain '" + domainId + "'");
+                }
+                cxios_set_domain_lon_name(domain, domainName.c_str(), domainName.length());
+                if (!cxios_is_defined_domain_lon_name(domain)) {
+                    throw std::runtime_error(
+                        "Xios: Failed to set longitude name for domain '" + domainId + "'");
+                }
+            } else if (counter == 1) {
+                cxios_set_domain_nj_glo(domain, (int)metadata.getGlobalExtentY() + extension);
+                if (!cxios_is_defined_domain_nj_glo(domain)) {
+                    throw std::runtime_error(
+                        "Xios: Failed to set global y-size for domain '" + domainId + "'");
+                }
+                cxios_set_domain_nj(domain, (int)metadata.getLocalExtentY() + extension);
+                if (!cxios_is_defined_domain_nj(domain)) {
+                    throw std::runtime_error(
+                        "Xios: Failed to set local y-size for domain '" + domainId + "'");
+                }
+                cxios_set_domain_jbegin(domain, (int)metadata.getLocalCornerY());
+                if (!cxios_is_defined_domain_jbegin(domain)) {
+                    throw std::runtime_error(
+                        "Xios: Failed to set local starting y-index for domain '" + domainId + "'");
+                }
+                cxios_set_domain_dim_j_name(domain, domainName.c_str(), domainName.length());
+                if (!cxios_is_defined_domain_dim_j_name(domain)) {
+                    throw std::runtime_error(
+                        "Xios: Failed to set y-coordinate name for domain '" + domainId + "'");
+                }
+                cxios_set_domain_lat_name(domain, domainName.c_str(), domainName.length());
+                if (!cxios_is_defined_domain_lat_name(domain)) {
+                    throw std::runtime_error(
+                        "Xios: Failed to set latitude name for domain '" + domainId + "'");
+                }
+            } else {
+                throw std::runtime_error(
+                    "Xios: More than 2 dimensions were associated with a domain.");
+            }
+            counter++;
+        }
     }
 
-    // Create XIOS grid 'grid_2D' associated with the domain
-    const std::string gridId = "grid_2D";
-    createGrid(gridId);
-    xios::CGrid* grid = getGrid(gridId);
-    cxios_xml_tree_add_domaintogrid(grid, &domain, domainId.c_str(), domainId.length());
-
-    // Set domain type
-    const std::string domainType = "rectilinear";
-    if (cxios_is_defined_domain_type(domain)) {
-        Logged::warning("Xios: Overwriting type for domain '" + domainId + "'");
-    }
-    cxios_set_domain_type(domain, domainType.c_str(), domainType.length());
-    if (!cxios_is_defined_domain_type(domain)) {
-        throw std::runtime_error("Xios: Failed to set type for domain '" + domainId + "'");
-    }
-
-    // Set global sizes
-    cxios_set_domain_ni_glo(domain, (int)metadata.globalExtentX);
-    if (!cxios_is_defined_domain_ni_glo(domain)) {
-        throw std::runtime_error("Xios: Failed to set global x-size for domain '" + domainId + "'");
-    }
-    cxios_set_domain_nj_glo(domain, (int)metadata.globalExtentY);
-    if (!cxios_is_defined_domain_nj_glo(domain)) {
-        throw std::runtime_error("Xios: Failed to set global y-size for domain '" + domainId + "'");
+    // Create XIOS axes for each ModelArray type
+    for (auto entry : ModelArray::componentMap) {
+        ModelArray::Type type = entry.first;
+        ModelArray::Dimension dim = entry.second;
+        if (axisIds.count(type) == 0) {
+            continue;
+        }
+        const std::string axisId = axisIds[type];
+        createAxis(axisId);
+        setAxisSize(axisId, ModelArray::size(dim));
+        xios::CAxis* axis = getAxis(axisId);
+        const std::string axisName = axisNames[axisId];
+        cxios_set_axis_dim_name(axis, axisName.c_str(), axisName.length());
+        if (!cxios_is_defined_axis_dim_name(axis)) {
+            throw std::runtime_error("Xios: Failed to set name for axis '" + axisId + "'");
+        }
     }
 
-    // Set local starts
-    cxios_set_domain_ibegin(domain, (int)metadata.localCornerX);
-    if (!cxios_is_defined_domain_ibegin(domain)) {
-        throw std::runtime_error(
-            "Xios: Failed to set local starting x-index for domain '" + domainId + "'");
-    }
-    cxios_set_domain_jbegin(domain, (int)metadata.localCornerY);
-    if (!cxios_is_defined_domain_jbegin(domain)) {
-        throw std::runtime_error(
-            "Xios: Failed to set local starting y-index for domain '" + domainId + "'");
-    }
-
-    // Set local sizes
-    cxios_set_domain_ni(domain, (int)metadata.localExtentX);
-    if (!cxios_is_defined_domain_ni(domain)) {
-        throw std::runtime_error("Xios: Failed to set local x-size for domain '" + domainId + "'");
-    }
-    cxios_set_domain_nj(domain, (int)metadata.localExtentY);
-    if (!cxios_is_defined_domain_nj(domain)) {
-        throw std::runtime_error("Xios: Failed to set local y-size for domain '" + domainId + "'");
+    // Create XIOS grid associated with domain and possibly axis
+    for (auto entry : gridIds) {
+        ModelArray::Type type = entry.first;
+        const std::string gridId = entry.second;
+        createGrid(gridId);
+        xios::CGrid* grid = getGrid(gridId);
+        if (axisIds.count(type) > 0) {
+            const std::string axisId = axisIds[type];
+            xios::CAxis* axis = getAxis(axisId);
+            cxios_xml_tree_add_axistogrid(grid, &axis, axisId.c_str(), axisId.length());
+        }
+        const std::string domainId = domainIds[type];
+        xios::CDomain* domain = getDomain(domainId);
+        cxios_xml_tree_add_domaintogrid(grid, &domain, domainId.c_str(), domainId.length());
     }
 }
 
@@ -878,35 +1003,79 @@ xios::CField* Xios::getField(const std::string fieldId)
     return field;
 }
 
-// Extract the field_names entry from the XiosInput or XiosOutput section of the config
-std::set<std::string> Xios::configGetFieldNames(const bool reading)
+// Split a string into a set by some delimiter.
+std::set<std::string> str2set(std::string asStr, const char delim = ',')
 {
-    std::string fieldsStr;
-    if (reading) {
-        istringstream(Configured::getConfiguration(keyMap.at(INPUT_FIELD_NAMES_KEY), std::string()))
-            >> fieldsStr;
-    } else {
-        istringstream(
-            Configured::getConfiguration(keyMap.at(OUTPUT_FIELD_NAMES_KEY), std::string()))
-            >> fieldsStr;
-    }
-    std::set<std::string> fieldNames;
-    if (fieldsStr.length() > 0) {
+    std::set<std::string> asSet;
+    if (asStr.length() > 0) {
         const char delim = ',';
-        std::istringstream iss(fieldsStr);
+        std::istringstream iss(asStr);
         std::string item;
         while (std::getline(iss, item, delim)) {
-            fieldNames.insert(item);
+            asSet.insert(item);
         }
     }
-    return fieldNames;
+    return asSet;
+}
+
+// Extract the field_names entry from the XiosInput section of the config.
+std::set<std::string> Xios::configGetInputRestartFieldNames()
+{
+    std::string fieldsStr;
+    istringstream(Configured::getConfiguration(keyMap.at(INPUT_FIELD_NAMES_KEY), std::string()))
+        >> fieldsStr;
+    return str2set(fieldsStr);
+}
+
+/*!
+ * Extract the field_names entry from the XiosForcing section of the config.
+ */
+std::set<std::string> Xios::configGetForcingFieldNames()
+{
+    std::string fieldsStr;
+    istringstream(Configured::getConfiguration(keyMap.at(FORCING_FIELD_NAMES_KEY), std::string()))
+        >> fieldsStr;
+    return str2set(fieldsStr);
+}
+
+// Extract the field_names entry from the XiosInput and XiosForcing sections of the config.
+std::set<std::string> Xios::configGetInputFieldNames()
+{
+    std::set<std::string> restartFieldNames = configGetInputRestartFieldNames();
+    std::set<std::string> forcingFieldNames = configGetForcingFieldNames();
+    restartFieldNames.insert(forcingFieldNames.begin(), forcingFieldNames.end());
+    return restartFieldNames;
+}
+
+// Extract the field_names entry from the XiosOutput section of the config.
+std::set<std::string> Xios::configGetOutputFieldNames()
+{
+    // TODO: Account for diagnostics (#917)
+    std::string fieldsStr;
+    istringstream(Configured::getConfiguration(keyMap.at(OUTPUT_FIELD_NAMES_KEY), std::string()))
+        >> fieldsStr;
+    return str2set(fieldsStr);
+}
+
+/*!
+ * Extract the field_names entry from the XIOS config.
+ *
+ * @param readAccess true if the fields are to be read, false if written
+ */
+std::set<std::string> Xios::configGetFieldNames(const bool readAccess)
+{
+    if (readAccess) {
+        return configGetInputFieldNames();
+    } else {
+        return configGetOutputFieldNames();
+    }
 }
 
 // Check whether a fieldId exists in a string of field names separated by commas, as determined by
 // the map key
-bool Xios::configCheckField(const std::string fieldId, const bool reading)
+bool Xios::configCheckField(const std::string fieldId, const bool readAccess)
 {
-    std::set<std::string> fieldNames = configGetFieldNames(reading);
+    std::set<std::string> fieldNames = configGetFieldNames(readAccess);
     return fieldNames.find(fieldId) != fieldNames.end();
 }
 
@@ -949,17 +1118,9 @@ void Xios::createField(const std::string fieldId)
     if (!exists) {
         throw std::runtime_error("Xios: Failed to create field '" + fieldId + "'");
     }
-}
 
-/*!
- * Set the operation for a field with a given ID
- *
- * @param the field ID
- * @param operation to set
- */
-void Xios::setFieldOperation(const std::string fieldId, const std::string operation)
-{
-    xios::CField* field = getField(fieldId);
+    // We always assume the field operation type is "instant"
+    const std::string operation = "instant";
     if (cxios_is_defined_field_operation(field)) {
         Logged::warning("Xios: Overwriting operation for field '" + fieldId + "'");
     }
@@ -1025,23 +1186,6 @@ void Xios::setFieldFreqOffset(const std::string fieldId, const Duration freqOffs
 }
 
 /*!
- * Get the operation associated with a field with a given ID
- *
- * @param the field ID
- * @return operation used for the corresponding field
- */
-std::string Xios::getFieldOperation(const std::string fieldId)
-{
-    xios::CField* field = getField(fieldId);
-    if (!cxios_is_defined_field_operation(field)) {
-        throw std::runtime_error("Xios: Undefined operation for field '" + fieldId + "'");
-    }
-    char cStr[cStrLen];
-    cxios_get_field_operation(field, cStr, cStrLen);
-    return convertCStrToCppStr(cStr, cStrLen);
-}
-
-/*!
  * Get the grid reference associated with a field with a given ID
  *
  * @param the field ID
@@ -1092,6 +1236,26 @@ Duration Xios::getFieldFreqOffset(const std::string fieldId)
     char cStr[cStrLen];
     cxios_duration_convert_to_string(duration, cStr, cStrLen);
     return convertDurationFromXios(duration);
+}
+
+/*!
+ * Get the field type associated with a field with a given ID
+ *
+ * @param the field ID
+ * @return ModelArray::Type used for the corresponding field
+ */
+ModelArray::Type Xios::getFieldType(const std::string fieldId) { return fieldTypes[fieldId]; }
+
+/*!
+ * Set the field type associated with a field with a given ID
+ *
+ * @param the field ID
+ * @param ModelArray::Type used for the corresponding field
+ */
+void Xios::setFieldType(const std::string fieldId, ModelArray::Type type)
+{
+    fieldTypes[fieldId] = type;
+    setFieldGridRef(fieldId, gridIds[type]);
 }
 
 /*!
@@ -1155,7 +1319,9 @@ void Xios::createFile(const std::string fileId)
 
     // Determine whether the file is configured for reading or writing
     bool readAccess = ((inputFileId.length() > 0) && (inputFileId == fileId));
+    // TODO: Account for separate restart and forcing files (#929)
     bool writeAccess = ((outputFileId.length() > 0) && (outputFileId == fileId));
+    // TODO: Account for diagnostics (#917)
 
     // Check that the filename is not in both the XiosOutput and XiosInput config sections
     if (readAccess && writeAccess) {
@@ -1189,18 +1355,26 @@ void Xios::createFile(const std::string fileId)
     // Set the input or output period based on the model configuration
     std::string periodStr;
     if (readAccess) {
-        istringstream(Configured::getConfiguration(keyMap.at(INPUT_PERIOD_KEY), std::string()))
+        istringstream(
+            Configured::getConfiguration(keyMap.at(INPUT_RESTARTPERIOD_KEY), std::string()))
             >> periodStr;
+        // TODO: Account for forcing period being different to restart period (#929)
     } else {
-        istringstream(Configured::getConfiguration(keyMap.at(OUTPUT_PERIOD_KEY), std::string()))
+        istringstream(
+            Configured::getConfiguration(keyMap.at(OUTPUT_RESTARTPERIOD_KEY), std::string()))
             >> periodStr;
+        // TODO: Account for diagnostics (#917)
     }
-    if (periodStr.length() > 0) {
+    if (periodStr.length() == 0 || periodStr == "0") {
+        ModelMetadata& metadata = ModelMetadata::getInstance();
+        setFileOutputFreq(fileId, metadata.runLength());
+    } else {
         setFileOutputFreq(fileId, Duration(periodStr));
     }
 
     // Create all fields found in the config based off the field names found in the
-    // XiosInput.field_names or XiosOutput.field_names entries in the config.
+    // XiosInput.field_names, XiosOutput.field_names, or XiosForcing.field_names entries in the
+    // config.
     for (std::string fieldId : configGetFieldNames(readAccess)) {
         createField(fieldId);
         fileAddField(fileId, fieldId);
@@ -1436,13 +1610,22 @@ void Xios::write(const std::string fieldId, ModelArray& modelarray)
         throw std::runtime_error(
             "Xios::write: field " + fieldId + " has not been configured for writing with XIOS.");
     }
-    auto ndim = modelarray.nDimensions();
+    if (modelarray.nDimensions() != 2) {
+        throw std::invalid_argument("Only ModelArrays of dimension 2 are supported");
+    }
     auto dims = modelarray.dimensions();
-    if (ndim == 2) {
+    auto type = modelarray.getType();
+    if (type == ModelArray::Type::H) {
         cxios_write_data_k82(
             fieldId.c_str(), fieldId.length(), modelarray.getData(), dims[0], dims[1], -1);
+    } else if (type == ModelArray::Type::VERTEX) {
+        cxios_write_data_k83(fieldId.c_str(), fieldId.length(), modelarray.getData(), dims[0],
+            dims[1], ModelArray::size(ModelArray::Dimension::NCOORDS), -1);
+    } else if (type == ModelArray::Type::DG) {
+        cxios_write_data_k83(fieldId.c_str(), fieldId.length(), modelarray.getData(), dims[0],
+            dims[1], ModelArray::size(ModelArray::Dimension::DG), -1);
     } else {
-        throw std::invalid_argument("Only ModelArrays of dimension 2 are supported");
+        throw std::invalid_argument("Only HFields, VertexFields, and DGFields are supported");
     }
 }
 
@@ -1460,13 +1643,22 @@ void Xios::read(const std::string fieldId, ModelArray& modelarray)
         throw std::runtime_error(
             "Xios::read: field " + fieldId + " has not been configured for reading with XIOS.");
     }
-    auto ndim = modelarray.nDimensions();
+    if (modelarray.nDimensions() != 2) {
+        throw std::invalid_argument("Only ModelArrays of dimension 2 are supported");
+    }
     auto dims = modelarray.dimensions();
-    if (ndim == 2) {
+    auto type = modelarray.getType();
+    if (type == ModelArray::Type::H) {
         cxios_read_data_k82(
             fieldId.c_str(), fieldId.length(), modelarray.getData(), dims[0], dims[1]);
+    } else if (type == ModelArray::Type::VERTEX) {
+        cxios_read_data_k83(fieldId.c_str(), fieldId.length(), modelarray.getData(), dims[0],
+            dims[1], ModelArray::size(ModelArray::Dimension::NCOORDS));
+    } else if (type == ModelArray::Type::DG) {
+        cxios_read_data_k83(fieldId.c_str(), fieldId.length(), modelarray.getData(), dims[0],
+            dims[1], ModelArray::size(ModelArray::Dimension::DG));
     } else {
-        throw std::invalid_argument("Only ModelArrays of dimension 2 are supported");
+        throw std::invalid_argument("Only HFields, VertexFields, and DGFields are supported");
     }
 }
 }

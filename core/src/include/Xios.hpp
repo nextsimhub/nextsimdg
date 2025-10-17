@@ -4,9 +4,7 @@
  * @author  Adeleke Bankole <ab3191@cam.ac.uk>
  * @brief   XIOS interface header
  * @details
- *
  * Header file for XIOS interface
- *
  */
 #ifndef SRC_INCLUDE_XIOS_HPP
 #define SRC_INCLUDE_XIOS_HPP
@@ -14,10 +12,10 @@
 #include "date.hpp"
 #if USE_XIOS
 
-#include "Configured.hpp"
-#include "Logged.hpp"
-#include "ModelArray.hpp"
-#include "Time.hpp"
+#include "include/Configured.hpp"
+#include "include/Logged.hpp"
+#include "include/ModelArray.hpp"
+#include "include/Time.hpp"
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/format.hpp>
 #include <boost/format/group.hpp>
@@ -27,7 +25,6 @@
 namespace Nextsim {
 
 // Forward declarations to avoid circular dependencies
-class ModelMetadata;
 class ParaGridIO;
 
 void enableXios();
@@ -58,6 +55,10 @@ public:
         return instance;
     };
 
+    /* Help config */
+    static HelpMap& getHelpText(HelpMap& map, bool getAll);
+    static HelpMap& getHelpRecursive(HelpMap& map, bool getAll);
+
     /* Initialization and finalization */
     void close_context_definition();
     void context_finalize();
@@ -76,7 +77,6 @@ public:
     void setCalendarType(const std::string type);
     void setCalendarOrigin(const TimePoint origin);
     void setCalendarStart(const TimePoint start);
-    void setCalendarTimestep(const Duration timestep);
     void setCalendarStep(const int stepNumber);
     void incrementCalendar();
     std::string getCalendarType();
@@ -84,7 +84,7 @@ public:
     TimePoint getCalendarStart();
     Duration getCalendarTimestep();
     int getCalendarStep();
-    std::string getCurrentDate(const bool isoFormat = true);
+    TimePoint getCurrentDate();
 
     /* Axis */
     void createAxis(const std::string axisId);
@@ -94,7 +94,7 @@ public:
     std::vector<double> getAxisValues(const std::string axisId);
 
     /* Domain */
-    void affixModelMetadata(ModelMetadata& metadata);
+    void affixModelMetadata();
 
     /* Grid */
     void createGrid(const std::string gridId);
@@ -110,6 +110,9 @@ public:
     std::string getFieldGridRef(const std::string fieldId);
     bool getFieldReadAccess(const std::string fieldId);
     Duration getFieldFreqOffset(const std::string fieldId);
+    std::set<std::string> configGetForcingFieldNames();
+    ModelArray::Type getFieldType(const std::string fieldId);
+    void setFieldType(const std::string fieldId, ModelArray::Type type);
 
     /* File */
     void createFile(const std::string fileId);
@@ -130,15 +133,19 @@ public:
 
     enum {
         ENABLED_KEY,
-        START_TIME_KEY,
+        STARTTIME_KEY,
+        STOPTIME_KEY,
         TIME_STEP_KEY,
         READ_MODE_KEY,
-        OUTPUT_PERIOD_KEY,
-        OUTPUT_FILENAME_KEY,
+        OUTPUT_RESTARTPERIOD_KEY,
+        OUTPUT_RESTARTFILE_KEY,
         OUTPUT_FIELD_NAMES_KEY,
-        INPUT_PERIOD_KEY,
-        INPUT_FILENAME_KEY,
+        INPUT_RESTARTPERIOD_KEY,
+        INPUT_RESTARTFILE_KEY,
         INPUT_FIELD_NAMES_KEY,
+        FORCING_PERIOD_KEY,
+        FORCING_FILE_KEY,
+        FORCING_FIELD_NAMES_KEY,
     };
 
     /* Length of C-strings passed to XIOS */
@@ -159,8 +166,6 @@ private:
 
     /* Calendar, date and duration */
     std::string calendarType;
-    Duration timestep;
-    TimePoint startTime;
     xios::CCalendarWrapper* clientCalendar;
     std::string convertXiosDatetimeToString(const cxios_date datetime, const bool isoFormat = true);
     cxios_date convertStringToXiosDatetime(const std::string datetime, const bool isoFormat = true);
@@ -169,24 +174,45 @@ private:
     cxios_duration convertDurationToXios(const Duration duration);
 
     /* Axis */
+    std::map<ModelArray::Type, std::string> axisIds = {
+        { ModelArray::Type::VERTEX, "VertexAxis" },
+        { ModelArray::Type::DG, "DGAxis" },
+    };
+    std::map<std::string, std::string> axisNames = {
+        { "VertexAxis", "ncoords" },
+        { "DGAxis", "dg_comp" },
+    };
     xios::CAxisGroup* getAxisGroup();
     xios::CAxis* getAxis(const std::string axisId);
 
     /* Domain */
-    const std::string domainId = "xy_domain";
+    std::map<ModelArray::Type, std::string> domainIds = {
+        { ModelArray::Type::H, "HDomain" },
+        { ModelArray::Type::VERTEX, "VertexDomain" },
+        { ModelArray::Type::DG, "HDomain" },
+    };
     xios::CDomainGroup* getDomainGroup();
-    xios::CDomain* getDomain();
+    xios::CDomain* getDomain(std::string domainId);
 
     /* Field */
     xios::CFieldGroup* getFieldGroup();
     xios::CField* getField(const std::string fieldId);
     void setFieldReadAccess(const std::string fieldId, const bool readAccess);
-    std::set<std::string> configGetFieldNames(const bool reading);
-    bool configCheckField(const std::string fieldId, const bool reading);
+    std::set<std::string> configGetInputRestartFieldNames();
+    std::set<std::string> configGetInputFieldNames();
+    std::set<std::string> configGetOutputFieldNames();
+    std::set<std::string> configGetFieldNames(const bool readAccess);
+    bool configCheckField(const std::string fieldId, const bool readAccess);
+    std::map<std::string, ModelArray::Type> fieldTypes;
 
     /* Grid */
     xios::CGridGroup* getGridGroup();
     xios::CGrid* getGrid(const std::string gridId);
+    std::map<ModelArray::Type, std::string> gridIds = {
+        { ModelArray::Type::H, "HGrid" },
+        { ModelArray::Type::VERTEX, "VertexGrid" },
+        { ModelArray::Type::DG, "DGGrid" },
+    };
 
     /* File */
     xios::CFileGroup* getFileGroup();
@@ -196,6 +222,8 @@ private:
     std::string inputFileId;
     std::string outputFilename;
     std::string outputFileId;
+    std::string forcingFilename;
+    std::string forcingFileId;
 
     /* I/O */
     void write(const std::string fieldId, ModelArray& modelarray);

@@ -1,17 +1,25 @@
 /*!
  * @author  Tim Spain <timothy.spain@nersc.no>
+ * @author  Tom Meltzer <tdm39@cam.ac.uk>
  */
 
 #include "include/ModelMetadata.hpp"
 
+#include "include/Finalizer.hpp"
 #include "include/IStructure.hpp"
+#include "include/ModelMPI.hpp"
 #include "include/NextsimModule.hpp"
 #ifdef USE_XIOS
 #include "include/Xios.hpp"
 #endif
 #include "include/gridNames.hpp"
+#include <array>
+#include <cstddef>
+#include <functional>
+#include <vector>
 
 #ifdef USE_MPI
+#include "mpi.h"
 #include <ncDim.h>
 #include <ncFile.h>
 #include <ncGroup.h>
@@ -29,25 +37,86 @@ const std::string& ModelMetadata::structureName() const
 }
 
 #ifdef USE_MPI
-ModelMetadata::ModelMetadata(std::string partitionFile, MPI_Comm comm)
+ModelMetadata::ModelMetadata(std::string partitionFile)
 {
-    setMpiMetadata(comm);
+    if (partitionFile.empty()) {
+        throw std::runtime_error(
+            "ModelMetadata :: getInstance() called without partition file in MPI build.");
+    }
     getPartitionMetadata(partitionFile);
+    static bool doneOnce = doOnce();
+    isInitialized = true;
 }
 
-void ModelMetadata::setMpiMetadata(MPI_Comm comm)
+void ModelMetadata::readNeighbourData(netCDF::NcFile& ncFile)
 {
-    mpiComm = comm;
-    MPI_Comm_size(mpiComm, &mpiSize);
-    MPI_Comm_rank(mpiComm, &mpiMyRank);
+    netCDF::NcGroup neighbourGroup(ncFile.getGroup(neighbourName));
+    std::string varName {};
+    auto& modelMPI = ModelMPI::getInstance();
+    auto mpiSize = modelMPI.getSize();
+    auto mpiMyRank = modelMPI.getRank();
+    enum BoundaryType { nonPeriodic, periodic };
+    for (BoundaryType btype : { nonPeriodic, periodic }) {
+        // Use btype as needed
+        std::array<std::string, 4> suffixes = { "_neighbour_ids", "_neighbour_halos",
+            "_neighbour_halo_send", "_neighbour_halo_recv" };
+        if (btype == periodic) {
+            for (auto& suffix : suffixes) {
+                suffix += "_periodic";
+            }
+        }
+        for (auto edge : edges) {
+            size_t nStart = 0; // start point in metadata arrays
+            size_t count = 0; // number of elements to read from metadata arrays
+            std::vector<int> numNeighbours = std::vector<int>(mpiSize, 0);
+            std::vector<int> offsets = std::vector<int>(mpiSize, 0);
+            std::vector<std::reference_wrapper<std::vector<int>>> arrays;
+
+            if (btype == nonPeriodic) {
+                arrays = { neighbourRanks[edge], neighbourExtents[edge], neighbourHaloSend[edge],
+                    neighbourHaloRecv[edge] };
+            } else if (btype == periodic) {
+                arrays = { neighbourRanksPeriodic[edge], neighbourExtentsPeriodic[edge],
+                    neighbourHaloSendPeriodic[edge], neighbourHaloRecvPeriodic[edge] };
+            }
+
+            varName = edgeNames[edge] + "_neighbours";
+            if (btype == periodic) {
+                varName += "_periodic";
+            }
+            neighbourGroup.getVar(varName).getVar(
+                { 0 }, { static_cast<size_t>(mpiSize) }, numNeighbours.data());
+
+            // compute start index for each process
+            MPI_Exscan(&numNeighbours[mpiMyRank], &nStart, 1, MPI_INT, MPI_SUM, modelMPI.getComm());
+            if (mpiMyRank == 0) {
+                // MPI_Exscan is undefined on the first rank. So to be safe we manually set nStart
+                // to 0. (see e.g., https://www.open-mpi.org/doc/v4.1/man3/MPI_Exscan.3.php)
+                nStart = 0;
+            }
+            // how many elements to read for each process
+            count = numNeighbours[mpiMyRank];
+
+            if (count) {
+                // initialize neighbour info to zero
+                for (size_t i = 0; i < arrays.size(); ++i) {
+                    arrays[i].get().resize(count, 0);
+                    varName = edgeNames[edge] + suffixes[i];
+                    neighbourGroup.getVar(varName).getVar(
+                        { nStart }, { count }, arrays[i].get().data());
+                }
+            }
+        }
+    }
 }
 
 void ModelMetadata::getPartitionMetadata(std::string partitionFile)
 {
-    // TODO: Move the reading of the partition file to its own class
     netCDF::NcFile ncFile(partitionFile, netCDF::NcFile::read);
     int sizes = ncFile.getDim("L").getSize();
     int nBoxes = ncFile.getDim("P").getSize();
+    auto& modelMPI = ModelMPI::getInstance();
+    auto mpiSize = modelMPI.getSize();
     if (nBoxes != mpiSize) {
         std::string errorMsg = "Number of MPI ranks " + std::to_string(mpiSize) + " <> "
             + std::to_string(nBoxes) + "\n";
@@ -56,12 +125,30 @@ void ModelMetadata::getPartitionMetadata(std::string partitionFile)
     globalExtentX = ncFile.getDim("NX").getSize();
     globalExtentY = ncFile.getDim("NY").getSize();
     netCDF::NcGroup bboxGroup(ncFile.getGroup(bboxName));
-    std::vector<size_t> index(1, mpiMyRank);
-    bboxGroup.getVar("domain_x").getVar(index, &localCornerX);
-    bboxGroup.getVar("domain_y").getVar(index, &localCornerY);
-    bboxGroup.getVar("domain_extent_x").getVar(index, &localExtentX);
-    bboxGroup.getVar("domain_extent_y").getVar(index, &localExtentY);
+
+    std::vector<size_t> rank(1, modelMPI.getRank());
+    bboxGroup.getVar("domain_x").getVar(rank, &localCornerX);
+    bboxGroup.getVar("domain_y").getVar(rank, &localCornerY);
+    bboxGroup.getVar("domain_extent_x").getVar(rank, &localExtentX);
+    bboxGroup.getVar("domain_extent_y").getVar(rank, &localExtentY);
+
+    readNeighbourData(ncFile);
+
     ncFile.close();
+}
+
+int ModelMetadata::getLocalCornerX() const { return localCornerX; }
+int ModelMetadata::getLocalCornerY() const { return localCornerY; }
+int ModelMetadata::getLocalExtentX() const { return localExtentX; }
+int ModelMetadata::getLocalExtentY() const { return localExtentY; }
+int ModelMetadata::getGlobalExtentX() const { return globalExtentX; }
+int ModelMetadata::getGlobalExtentY() const { return globalExtentY; }
+#else
+
+ModelMetadata::ModelMetadata()
+{
+    isInitialized = true;
+    static bool doneOnce = doOnce();
 }
 
 #endif
@@ -172,6 +259,24 @@ void ModelMetadata::initOasis(const bool writeOasisGrid)
 }
 #endif
 
+void ModelMetadata::setTimes(const TimePoint& start, const TimePoint& stop, const Duration& step)
+{
+    this->start = start;
+    this->stop = stop;
+    this->step = step;
+    this->run = stop - start;
+    setTime(start);
+}
+
+void ModelMetadata::setTimes(const TimePoint& start, const Duration& runLen, const Duration& step)
+{
+    this->start = start;
+    this->stop = start + runLen;
+    this->step = step;
+    this->run = runLen;
+    setTime(start);
+}
+
 void ModelMetadata::setTime(const TimePoint& time)
 {
     m_time = time;
@@ -194,6 +299,15 @@ void ModelMetadata::incrementTime(const Duration& step)
     }
     xiosHandler.incrementCalendar();
 #endif
+}
+
+void ModelMetadata::finalize() { }
+
+bool ModelMetadata::doOnce()
+{
+    // Register the finalization function here
+    Finalizer::registerUnique(finalize);
+    return true;
 }
 
 } /* namespace Nextsim */

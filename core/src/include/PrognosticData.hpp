@@ -50,7 +50,7 @@ public:
      * Writes a restart file to the specified file path.
      * @param filePath the file path to write the restart file to.
      */
-    void writeRestartFile(const std::string& filePath, const ModelMetadata& metadata) const;
+    void writeRestartFile(const std::string& filePath) const;
 
     enum { CHECKFIELDS_KEY, CHECKFIELDSFAST_KEY };
 
