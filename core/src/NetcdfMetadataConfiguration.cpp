@@ -1,15 +1,11 @@
 /*!
- * @file NetcdfMetadataConfiguration.cpp
- *
- * @date Aug 29, 2022
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #include "include/NetcdfMetadataConfiguration.hpp"
 
 #include <map>
 #include <ncFile.h>
-#include <ncGroup.h>
 #include <ncVar.h>
 
 namespace Nextsim {
@@ -23,18 +19,14 @@ std::stringstream NetcdfMetadataConfiguration::read(const std::string& source)
     std::string fileName = Configurator::parse(opt)[source].as<std::string>();
 
     netCDF::NcFile ncFile(fileName, netCDF::NcFile::read);
-    // Get the configuration group, allowing for it to not exist. In which
-    // case, do nothing
-    netCDF::NcGroup metadataGroup(ncFile.getGroup("metadata"));
-    if (metadataGroup.isNull()) {
-        return std::stringstream();
-    }
-    netCDF::NcGroup configurationGroup(metadataGroup.getGroup("configuration"));
 
     std::stringstream config;
 
-    std::multimap<std::string, netCDF::NcVar> configs = configurationGroup.getVars();
+    std::multimap<std::string, netCDF::NcVar> configs = ncFile.getVars();
     for (auto entry : configs) {
+        if (entry.second.getDimCount() > 1) {
+            continue; // Skip arrays
+        }
         config << entry.first << " = ";
         if (entry.second.getType() == netCDF::ncDouble) {
             double value;

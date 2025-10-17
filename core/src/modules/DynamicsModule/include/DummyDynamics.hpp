@@ -1,8 +1,6 @@
 /*!
- * @file DummyDynamics.hpp
  *
- * @date 24 Sep 2024
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #ifndef DUMMYDYNAMICS_HPP
@@ -20,6 +18,15 @@ public:
 
     std::string getName() const override { return "DummyDynamics"; }
     void update(const TimestepTime& tst) override {};
+    void prepareAdvection() override { }
+    void setData(const ModelState::DataMap& state) override
+    {
+        IDynamics::setData(state);
+
+        // Set the ice velocity to zero so that we don't trip the PrognosticData field checks.
+        uice = 0.;
+        vice = 0.;
+    }
 };
 }
 

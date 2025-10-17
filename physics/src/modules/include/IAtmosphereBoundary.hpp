@@ -1,12 +1,10 @@
 /*!
- * @file IAtmosphereBoundary.hpp
  *
- * @date 23 May 2025
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
+#include "include/CheckingModelComponent.hpp"
 #include "include/ModelArrayRef.hpp"
-#include "include/ModelComponent.hpp"
 #include "include/Time.hpp"
 
 #ifndef IATMOSPHEREBOUNDARY_HPP
@@ -15,21 +13,21 @@
 namespace Nextsim {
 
 //! An interface class for the atmospheric inputs into the ice physics.
-class IAtmosphereBoundary : public ModelComponent {
+class IAtmosphereBoundary : public CheckingModelComponent {
 public:
     IAtmosphereBoundary()
-        : qia(ModelArray::Type::H)
+        : qia(ModelArray::Type::H, { -1e4, 1e4 })
         , dqia_dt(ModelArray::Type::H)
-        , qow(ModelArray::Type::H)
+        , qow(ModelArray::Type::H, { -1e4, 1e4 })
         , subl(ModelArray::Type::H)
-        , snow(ModelArray::Type::H)
-        , rain(ModelArray::Type::H)
-        , evap(ModelArray::Type::H)
-        , uwind(ModelArray::Type::U)
-        , vwind(ModelArray::Type::V)
+        , snow(ModelArray::Type::H, { 0, 1e-3 })
+        , rain(ModelArray::Type::H, { 0, 1e-3 })
+        , evap(ModelArray::Type::H, { -1e-3, 1e-3 })
+        , uwind(ModelArray::Type::U, { -100, 100 })
+        , vwind(ModelArray::Type::V, { -100, 100 })
         , penSW(ModelArray::Type::H)
-        , tauXOW(ModelArray::Type::H)
-        , tauYOW(ModelArray::Type::H)
+        , tauXOW(ModelArray::Type::H, { -10, 10 })
+        , tauYOW(ModelArray::Type::H, { -10, 10 })
     {
         m_couplingArrays.registerArray(CouplingFields::SUBL, &subl, RW);
         m_couplingArrays.registerArray(CouplingFields::SNOW, &snow, RW);
@@ -68,6 +66,18 @@ public:
         penSW.resize();
         tauXOW.resize();
         tauYOW.resize();
+
+        addChecks({
+            { "qia", &qia },
+            { "qow", &qow },
+            { "snow", &snow },
+            { "rain", &rain },
+            { "evap", &evap },
+            { "uwind", &uwind },
+            { "vwind", &vwind },
+            { "tauXOW", &tauXOW },
+            { "tauYOW", &tauYOW },
+        });
     }
     virtual void update(const TimestepTime& tst) { }
 

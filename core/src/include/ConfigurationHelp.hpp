@@ -1,8 +1,5 @@
 /*!
- * @file ConfigurationHelp.hpp
- *
- * @date 20 Nov 2024
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #ifndef CONFIGURATIONHELP_HPP
@@ -35,7 +32,7 @@ public:
     template <typename T> static std::string toString(const T input, const int n = 6)
     {
         std::ostringstream output;
-        output << std::setprecision(n) << input;
+        output << std::boolalpha << std::setprecision(n) << input;
         return output.str();
     }
 };

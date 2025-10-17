@@ -1,13 +1,10 @@
 /*!
- * @file    XiosCalendar_test.cpp
  * @author  Joe Wallwork <jw2423@cam.ac.uk>
  * @author  Adeleke Bankole <ab3191@cam.ac.uk>
- * @date    06 May 2025
  * @brief   Tests for XIOS calendars
  * @details
  * This test is designed to test calendar functionality of the C++ interface
  * for XIOS.
- *
  */
 #include <doctest/extensions/doctest_mpi.h>
 #undef INFO
@@ -15,6 +12,8 @@
 #include "StructureModule/include/ParametricGrid.hpp"
 #include "include/Configurator.hpp"
 #include "include/Finalizer.hpp"
+#include "include/Model.hpp"
+#include "include/ModelMPI.hpp"
 #include "include/Xios.hpp"
 
 namespace Nextsim {
@@ -35,9 +34,18 @@ MPI_TEST_CASE("TestXiosCalendar", 1)
     std::stringstream config;
     config << "[model]" << std::endl;
     config << "start = 2023-03-17T17:11:00Z" << std::endl;
+    config << "stop = 2023-03-17T18:11:00Z" << std::endl;
     config << "time_step = P0-0T01:00:00" << std::endl;
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
+
+    // Create ModelMetadata instance based off a partition metadata file
+    auto& modelMPI = ModelMPI::getInstance(test_comm);
+    auto& metadata = ModelMetadata::getInstance("xios_test_partition_metadata_1.nc");
+
+    // Create a Model and configure it so that time options are parsed
+    Model model;
+    model.configureTime();
 
     // Get the Xios singleton instance and check it's initialized
     Xios& xiosHandler = Xios::getInstance();
@@ -60,22 +68,18 @@ MPI_TEST_CASE("TestXiosCalendar", 1)
     REQUIRE(start == xiosHandler.getCalendarStart());
     REQUIRE(start.format() == "2023-03-17T17:11:00Z");
     // Timestep
-    REQUIRE(xiosHandler.getCalendarTimestep().seconds() == 3600.0); // Default
-    Duration timestep("P0-0T01:30:00");
-    REQUIRE(timestep.seconds() == 5400.0);
-    xiosHandler.setCalendarTimestep(timestep);
-    REQUIRE(xiosHandler.getCalendarTimestep().seconds() == 5400.0);
+    REQUIRE(xiosHandler.getCalendarTimestep().seconds() == 3600.0); // Read from config
 
     xiosHandler.close_context_definition();
 
     // --- Tests for getCurrentDate method
     REQUIRE(xiosHandler.getCalendarStep() == 0);
-    REQUIRE(xiosHandler.getCurrentDate() == "2023-03-17T17:11:00Z");
-    REQUIRE(xiosHandler.getCurrentDate(false) == "2023-03-17 17:11:00");
+    REQUIRE(xiosHandler.getCurrentDate().format() == "2023-03-17T17:11:00Z");
 
     // -- Tests that the timestep is set up correctly
     xiosHandler.setCalendarStep(1);
-    REQUIRE(xiosHandler.getCurrentDate() == "2023-03-17T18:41:00Z");
+    REQUIRE(xiosHandler.getCalendarStep() == 1);
+    REQUIRE(xiosHandler.getCurrentDate().format() == "2023-03-17T18:11:00Z");
 
     xiosHandler.context_finalize();
     Finalizer::finalize();

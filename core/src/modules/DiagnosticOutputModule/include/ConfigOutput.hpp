@@ -1,8 +1,6 @@
 /*!
- * @file ConfigOutput.hpp
  *
- * @date 24 Sep 2024
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #ifndef CONFIGOUTPUT_HPP
@@ -38,7 +36,7 @@ public:
     // IDiagnosticOutput overrides
     void setFilenamePrefix(const std::string& filePrefix) override { m_filePrefix = filePrefix; }
     void setModelStart(const TimePoint& modelStart) override;
-    void outputState(const ModelState& state, const ModelMetadata& meta) override;
+    void outputState(const ModelState& state) override;
 
     // ModelComponent overrides
     inline std::string getName() const override { return "ConfigOutput"; };

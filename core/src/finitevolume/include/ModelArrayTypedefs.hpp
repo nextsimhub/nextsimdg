@@ -1,8 +1,5 @@
 /*!
- * @file ModelArrayTypedefs.hpp
- *
- * @date Oct 19, 2022
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 // An inclusion file of ModelArray typedefs for finite volume models.

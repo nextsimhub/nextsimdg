@@ -1,8 +1,5 @@
 /*!
- * @file   ModelArray.cpp
- *
- * @date   Feb 24, 2022
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #include "include/ModelArray.hpp"
@@ -10,8 +7,6 @@
 #include "include/ModelArraySlice.hpp"
 
 #include <algorithm>
-#include <cstdarg>
-#include <iterator>
 #include <set>
 #include <string>
 #include <utility>
@@ -22,11 +17,12 @@ ModelArray::SizeMap ModelArray::m_sz;
 ModelArray::DimensionMap ModelArray::m_dims;
 bool ModelArray::areMapsInvalid = true;
 
-ModelArray::ModelArray(const Type type)
+ModelArray::ModelArray(const Type type, const std::pair<double, double>& bounds)
     : type(type)
 {
     m_data.resize(std::max(std::size_t { 0 }, m_sz.at(type)), nComponents());
     validateMaps();
+    setLimits(bounds.first, bounds.second);
 }
 
 ModelArray::ModelArray(const ModelArray& orig)
@@ -37,8 +33,12 @@ ModelArray::ModelArray(const ModelArray& orig)
 
 ModelArray& ModelArray::operator=(const ModelArray& orig)
 {
-    type = orig.type;
-    setData(orig.m_data);
+    if (orig.nComponents() == 1 && nComponents() != 1) {
+        component(0) = orig.data();
+    } else {
+        type = orig.type;
+        setData(orig.m_data);
+    }
 
     return *this;
 }
@@ -274,6 +274,54 @@ ModelArray::MultiDim ModelArray::locationFromIndex(Type type, size_t index)
         index /= theDim;
     }
     return loc;
+}
+
+void ModelArray::setLimits(const double lower, const double upper)
+{
+    lowerPhysicalLimit = lower;
+    upperPhysicalLimit = upper;
+    fillValue = (lowerPhysicalLimit + upperPhysicalLimit) * 0.5;
+}
+
+void ModelArray::checkLimits(const ModelArray& mask) const
+{
+    // Mask the data with the land mask
+    const auto masked = (mask.data() == 1).select(m_data.col(0), fillValue);
+
+    // Check first for NaNs. The code is different for the bounds check, because Eigen doesn't
+    // return an index for NaN-checking.
+    if (masked.isNaN().any())
+        throw std::runtime_error("Field contains NaN.");
+
+    /* Now we check the bounds and set the array index (i) and value if we're out of bounds.
+     * Here, we need to check if the values are _outside_ the bounds, and if they are, then we ask
+     * Eigen to find the offending value and its location. We then proceed to throw an error.
+     * This also means that using '<' and '>' in the checks here is consistent with checking if the
+     * value is in min <= value <= max.
+     */
+    size_t i;
+    double value;
+    if (masked.minCoeff() < lowerPhysicalLimit) {
+        value = masked.col(0).minCoeff(&i);
+    } else if (masked.maxCoeff() > upperPhysicalLimit) {
+        value = masked.col(0).maxCoeff(&i);
+    } else {
+        return;
+    }
+
+    /* If we haven't returned (or thrown an exception) by now, we have an error in the field, and
+     * Eigen has found that this is at index i.
+     */
+    const std::vector<size_t> loc = locationFromIndex(type, i);
+    std::string locStr = "[";
+    for (const size_t& l : loc)
+        locStr += std::to_string(l) + ",";
+    locStr.pop_back();
+    locStr.push_back(']');
+
+    throw std::runtime_error("Field contains out-of-bounds value(s), " + std::to_string(value)
+        + " not in [" + std::to_string(lowerPhysicalLimit) + ","
+        + std::to_string(upperPhysicalLimit) + "]. Error at index " + locStr + ".");
 }
 
 void ModelArray::validateMaps()

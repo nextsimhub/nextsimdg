@@ -44,7 +44,6 @@ public:
     // expose additional fields
     void setData(const std::string& name, const ModelArray& data) override;
     ModelArray getDG0Data(const std::string& name) const override;
-    ModelArray getDGData(const std::string& name) const override;
 
     static void updateMomentumDevice(const DeviceViewCG& uDevice, const DeviceViewCG& vDevice,
         const DeviceViewCG& avgUDevice, const DeviceViewCG& avgVDevice,

@@ -1,8 +1,5 @@
 /*!
- * @file ConfigOutput.cpp
- *
- * @date 02 May 2025
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #include "include/ConfigOutput.hpp"
@@ -140,8 +137,9 @@ void ConfigOutput::setModelStart(const TimePoint& modelStart)
     }
 }
 
-void ConfigOutput::outputState(const ModelState& diagState, const ModelMetadata& meta)
+void ConfigOutput::outputState(const ModelState& diagState)
 {
+    auto& meta = ModelMetadata::getInstance();
     const TimePoint& time = meta.time();
     if (currentFileName == "" || (lastFileChange + fileChangePeriod <= time)) {
         std::string newFileName = time.format(m_filePrefix) + ".nc";
@@ -153,7 +151,7 @@ void ConfigOutput::outputState(const ModelState& diagState, const ModelMetadata&
         lastFileChange = time;
     }
 
-    ModelState state { { }, diagState.config };
+    ModelState state { {}, diagState.config };
     auto storeData = ModelComponent::getStore().getAllData();
     if (outputAllTheFields) {
         // If the internal to external name lookup table is still empty, fill it
@@ -186,7 +184,8 @@ void ConfigOutput::outputState(const ModelState& diagState, const ModelMetadata&
             }
         }
 
-        // Get data from the data store for any named fields that have an external name that matches.
+        // Get data from the data store for any named fields that have an external name that
+        // matches.
         for (const auto& fieldExtName : fieldsForOutput) {
             if (externalNames.count(fieldExtName) && storeData.count(externalNames.at(fieldExtName))
                 && storeData.at(externalNames.at(fieldExtName))) {
@@ -207,7 +206,7 @@ void ConfigOutput::outputState(const ModelState& diagState, const ModelMetadata&
         Logged::info("ConfigOutput: Outputting " + std::to_string(state.data.size()) + " fields to "
             + currentFileName + " at " + meta.time().format() + "\n");
         meta.affixCoordinates(state);
-        StructureFactory::fileFromState(state, meta, currentFileName, false);
+        StructureFactory::fileFromState(state, currentFileName, false);
         lastOutput = meta.time();
     }
 }

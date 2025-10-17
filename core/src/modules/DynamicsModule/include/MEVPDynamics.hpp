@@ -1,10 +1,8 @@
 /*!
- * @file MEVPDynamics.hpp
  *
- * @date 27 Mar 2025
- * @author Tim Spain <timothy.spain@nersc.no>
- * @author Piotr Minakowski <piotr.minakowski@ovgu.de>
- * @author Einar Ólason <einar.olason@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
+ * @author  Piotr Minakowski <piotr.minakowski@ovgu.de>
+ * @author  Einar Ólason <einar.olason@nersc.no>
  */
 
 #ifndef MEVPDYNAMICS_HPP
@@ -32,7 +30,12 @@ public:
     MEVPDynamics();
 
     std::string getName() const override { return "MEVPDynamics"; }
+    void prepareAdvection() override;
     void update(const TimestepTime& tst) override;
+
+    void advectField(double timestep, ModelArray& field,
+        double lowerLimit = -std::numeric_limits<double>::infinity(),
+        double upperLimit = std::numeric_limits<double>::infinity()) override;
 
     void setData(const ModelState::DataMap&) override;
     void configure() override;

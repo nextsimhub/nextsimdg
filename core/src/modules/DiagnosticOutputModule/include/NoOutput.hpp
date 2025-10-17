@@ -1,8 +1,6 @@
 /*!
- * @file NoOutput.hpp
  *
- * @date 23 Oct 2024
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #ifndef NOOUTPUT_HPP
@@ -18,7 +16,7 @@ public:
 
     void setFilenamePrefix(const std::string& filePrefix) override {};
 
-    void outputState(const ModelState& state, const ModelMetadata& meta) override {};
+    void outputState(const ModelState& state) override {};
 
     // ModelComponent functions
     std::string getName() const override { return "NoOutput"; }

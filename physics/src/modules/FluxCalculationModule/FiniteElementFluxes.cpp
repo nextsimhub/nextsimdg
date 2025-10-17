@@ -1,8 +1,5 @@
 /*!
- * @file FiniteElementFluxes.cpp
- *
- * @date 23 May 2025
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #include "include/FiniteElementFluxes.hpp"
@@ -178,8 +175,8 @@ void FiniteElementFluxes::calculateIce(size_t i, const TimestepTime& tst)
 
     // Shortwave flux
     double albedoValue, i0;
-    std::tie(albedoValue, i0)
-        = iIceAlbedoImpl->surfaceShortWaveBalance(tsurf[i], h_snow_true[i], m_I0);
+    const double hs = cice[i] > 0 ? hsnow[i] / cice[i] : 0.;
+    std::tie(albedoValue, i0) = iIceAlbedoImpl->surfaceShortWaveBalance(tsurf[i], hs, m_I0);
     Q_sw_ia[i] = -sw_in[i] * (1. - albedoValue) * (1. - i0);
     const double extinction = 0.; // TODO: Replace with de Beer's law or a module
     penSW[i] = sw_in[i] * (1. - albedoValue) * i0 * (1. - extinction);

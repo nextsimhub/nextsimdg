@@ -1,8 +1,5 @@
 /*!
- * @file ModelArrayDetails.hpp
- *
- * @date Oct 19, 2022
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #ifndef MODELARRAYDETAILS_HPP
@@ -25,6 +22,8 @@ enum class Type {
     DGSTRESS,
     CG,
 };
+
+enum class Base { Cell, Vertex };
 
 static const Type AdvectionType = Type::DG;
 

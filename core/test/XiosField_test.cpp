@@ -1,19 +1,18 @@
 /*!
- * @file    XiosField_test.cpp
  * @author  Joe Wallwork <jw2423@cam.ac.uk>
  * @author  Adeleke Bankole <ab3191@cam.ac.uk>
- * @date    19 May 2025
  * @brief   Tests for XIOS fields
  * @details
  * This test is designed to test field functionality of the C++ interface
  * for XIOS.
- *
  */
 #include <doctest/extensions/doctest_mpi.h>
 #undef INFO
 
 #include "StructureModule/include/ParametricGrid.hpp"
 #include "include/Finalizer.hpp"
+#include "include/Model.hpp"
+#include "include/ModelMPI.hpp"
 #include "include/Xios.hpp"
 
 namespace Nextsim {
@@ -32,6 +31,10 @@ MPI_TEST_CASE("TestXiosField", 3)
     // Enable XIOS in the 'config' and provide parameters to configure it
     enableXios();
     std::stringstream config;
+    config << "[model]" << std::endl;
+    config << "start = 2023-03-17T17:11:00Z" << std::endl;
+    config << "stop = 2023-03-17T18:11:00Z" << std::endl;
+    config << "time_step = P0-0T01:00:00" << std::endl;
     config << "[XiosOutput]" << std::endl;
     config << "period = P0-0T03:00:00" << std::endl;
     config << "filename = xios_test_output" << std::endl;
@@ -39,12 +42,18 @@ MPI_TEST_CASE("TestXiosField", 3)
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
 
+    // Create ModelMetadata instance based off a partition metadata file
+    auto& modelMPI = ModelMPI::getInstance(test_comm);
+    auto& metadata = ModelMetadata::getInstance("xios_test_partition_metadata_3.nc");
+
+    // Create a Model and configure it so that time options are parsed
+    Model model;
+    model.configureTime();
+
     // Get the Xios singleton instance and check it's initialized
     Xios& xiosHandler = Xios::getInstance();
     REQUIRE(xiosHandler.isInitialized());
-    const size_t size = xiosHandler.getClientMPISize();
-    REQUIRE(size == 3);
-    const size_t rank = xiosHandler.getClientMPIRank();
+    REQUIRE(xiosHandler.getClientMPISize() == 3);
 
     // Create an axis with two points
     xiosHandler.createAxis("axis_A");
@@ -64,12 +73,6 @@ MPI_TEST_CASE("TestXiosField", 3)
     // Disallow creation of fields that aren't in either config section
     REQUIRE_THROWS_WITH(xiosHandler.createField("field_B"),
         "Xios: Field 'field_B' cannot be found in the XiosInput or XiosOutput config sections");
-    // Operation
-    REQUIRE_THROWS_WITH(
-        xiosHandler.getFieldOperation(fieldId), "Xios: Undefined operation for field 'field_A'");
-    const std::string operation = "instant";
-    xiosHandler.setFieldOperation(fieldId, operation);
-    REQUIRE(xiosHandler.getFieldOperation(fieldId) == operation);
     // Grid reference
     REQUIRE_THROWS_WITH(
         xiosHandler.getFieldGridRef(fieldId), "Xios: Undefined grid reference for field 'field_A'");

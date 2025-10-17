@@ -202,17 +202,6 @@ ModelArray KokkosBrittleCGDynamicsKernel<DGadvection>::getDG0Data(const std::str
 }
 
 template <int DGadvection>
-ModelArray KokkosBrittleCGDynamicsKernel<DGadvection>::getDGData(const std::string& name) const
-{
-    if (name == damageName) {
-        ModelArray data(ModelArray::Type::DG);
-        return DGModelArray::dg2ma(damage, data);
-    } else {
-        return CGDynamicsKernel<DGadvection>::getDGData(name);
-    }
-}
-
-template <int DGadvection>
 void KokkosBrittleCGDynamicsKernel<DGadvection>::updateMomentumDevice(const DeviceViewCG& uDevice,
     const DeviceViewCG& vDevice, const DeviceViewCG& avgUDevice, const DeviceViewCG& avgVDevice,
     const ConstDeviceViewCG& cgHDevice, const ConstDeviceViewCG& cgADevice,

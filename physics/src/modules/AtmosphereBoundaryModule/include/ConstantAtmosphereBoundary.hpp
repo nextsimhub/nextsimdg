@@ -1,8 +1,6 @@
 /*!
- * @file ConstantAtmosphereBoundary.hpp
  *
- * @date Sep 22, 2022
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #ifndef CONSTANTATMOSPHEREBOUNDARY_HPP

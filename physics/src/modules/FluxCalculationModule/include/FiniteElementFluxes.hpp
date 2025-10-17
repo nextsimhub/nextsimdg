@@ -1,8 +1,6 @@
 /*!
- * @file FiniteElementFluxes.hpp
  *
- * @date 23 May 2025
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #ifndef FINITEELEMENTFLUXES_HPP
@@ -43,8 +41,7 @@ public:
         , windSpeed(getStore())
         , u_air(getStore())
         , v_air(getStore())
-        , h_snow(getStore())
-        , h_snow_true(getStore())
+        , hsnow(getStore())
         , cice(getStore())
         , tsurf(getStore())
         , sw_in(getStore())
@@ -109,9 +106,8 @@ private:
     ModelArrayRef<Protected::WIND_SPEED> windSpeed;
     ModelArrayRef<Protected::WIND_U> u_air;
     ModelArrayRef<Protected::WIND_V> v_air;
-    ModelArrayRef<Protected::H_SNOW> h_snow; // cell-averaged value
-    ModelArrayRef<Protected::HTRUE_SNOW> h_snow_true; // cell-averaged value
-    ModelArrayRef<Protected::C_ICE> cice;
+    ModelArrayRef<Shared::H_SNOW_DG> hsnow; // cell-averaged value
+    ModelArrayRef<Shared::C_ICE_DG> cice;
     ModelArrayRef<Protected::T_SURF> tsurf;
     ModelArrayRef<Protected::SW_IN> sw_in;
     ModelArrayRef<Protected::LW_IN> lw_in;

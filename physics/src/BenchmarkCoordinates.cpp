@@ -1,8 +1,5 @@
 /*!
- * @file BenchmarkCoordinates.cpp
- *
- * @date 26 Sept 2023
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #include "include/BenchmarkCoordinates.hpp"

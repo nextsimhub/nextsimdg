@@ -1,9 +1,6 @@
 /*!
- * @file VPCGDynamicsKernel.hpp
- *
- * @date 30 Apr 2025
- * @author Tim Spain <timothy.spain@nersc.no>
- * @author Robert Jendersie <robert.jendersie@ovgu.de>
+ * @author  Tim Spain <timothy.spain@nersc.no>
+ * @author  Robert Jendersie <robert.jendersie@ovgu.de>
  */
 
 #ifndef VPCGDYNAMICSKERNEL_HPP
@@ -35,6 +32,7 @@ protected:
     using DynamicsKernel<DGadvection, DGstressComp>::deltaT;
     using DynamicsKernel<DGadvection, DGstressComp>::stressDivergence;
     using DynamicsKernel<DGadvection, DGstressComp>::applyBoundaries;
+    using DynamicsKernel<DGadvection, DGstressComp>::advectDynamicsFields;
 
     using CGDynamicsKernel<DGadvection>::u;
     using CGDynamicsKernel<DGadvection>::v;
@@ -71,8 +69,7 @@ public:
         static KokkosTimer<true> timerPrepIt("prepIt");
 
         timerAdvection.start();
-        // Let DynamicsKernel handle the advection step
-        DynamicsKernel<DGadvection, DGstressComp>::advectionAndLimits(tst);
+        advectDynamicsFields(tst.step.seconds());
         timerAdvection.stop();
 
         timerPrepIt.start();

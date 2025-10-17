@@ -1,8 +1,6 @@
 /*
- * @file IIceOceanHeatFlux.hpp
  *
- * @date 24 Sep 2024
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #ifndef IICEOCEANHEATFLUX_HPP
@@ -41,7 +39,7 @@ public:
 protected:
     ModelArrayRef<Protected::SST> sst;
     ModelArrayRef<Protected::TF> tf;
-    ModelArrayRef<Protected::C_ICE> cice;
+    ModelArrayRef<Shared::C_ICE_DG> cice;
 
     ModelArrayRef<Shared::Q_IO, RW> qio;
 };

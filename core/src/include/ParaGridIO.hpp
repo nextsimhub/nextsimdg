@@ -1,8 +1,5 @@
 /*!
- * @file ParaGridIO.hpp
- *
- * @date Oct 24, 2022
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #ifndef PARAGRIDIO_HPP
@@ -39,23 +36,17 @@ public:
      * Retrieves the ModelState from a restart file of the parametric_grid type.
      * @param filePath The file path containing the file to be read.
      */
-#ifdef USE_MPI
-    ModelState getModelState(const std::string& filePath, ModelMetadata& metadata) override;
-#else
     ModelState getModelState(const std::string& filePath) override;
-#endif
 
     /*!
      * @brief Writes the ModelState to a given file location from the provided
-     * model data and metadata.
+     * model data.
      *
      * @params state The model state and configuration object.
-     * @params metadata The model metadata (principally the initial file
      * creation model time).
      * @params filePath The path for the restart file.
      */
-    void dumpModelState(
-        const ModelState& state, const ModelMetadata& meta, const std::string& filePath) override;
+    void dumpModelState(const ModelState& state, const std::string& filePath) override;
 
     /*!
      * @brief Reads forcings from a ParameticGrid flavoured file.
@@ -74,11 +65,9 @@ public:
      * @brief Writes diagnostic data to a file.
      *
      * @param state The state to write to the file.
-     * @param time The time of the passed data.
      * @param filePath Path of the file to write to.
      */
-    void writeDiagnosticTime(
-        const ModelState& state, const ModelMetadata& meta, const std::string& filePath) override;
+    void writeDiagnosticTime(const ModelState& state, const std::string& filePath) override;
 
     /*!
      * Closes an open diagnostic file. Does nothing when provided with a

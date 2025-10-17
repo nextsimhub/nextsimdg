@@ -1,10 +1,7 @@
 /*!
- * @file BrittleCGDynamicsKernel.hpp
- *
- * @date 27 Mar 2025
- * @author Tim Spain <timothy.spain@nersc.no>
- * @author Einar Ólason <einar.olason@nersc.no>
- * @author Robert Jendersie <robert.jendersie@ovgu.de>
+ * @author  Tim Spain <timothy.spain@nersc.no>
+ * @author  Einar Ólason <einar.olason@nersc.no>
+ * @author  Robert Jendersie <robert.jendersie@ovgu.de>
  */
 
 #ifndef BRITTLECGDYNAMICSKERNEL_HPP
@@ -36,8 +33,8 @@ protected:
     using DynamicsKernel<DGadvection, DGstressComp>::deltaT;
     using DynamicsKernel<DGadvection, DGstressComp>::stressDivergence;
     using DynamicsKernel<DGadvection, DGstressComp>::applyBoundaries;
-    using DynamicsKernel<DGadvection, DGstressComp>::advectionAndLimits;
     using DynamicsKernel<DGadvection, DGstressComp>::dgtransport;
+    using DynamicsKernel<DGadvection, DGstressComp>::advectDGVField;
 
     using CGDynamicsKernel<DGadvection>::u;
     using CGDynamicsKernel<DGadvection>::v;
@@ -60,6 +57,8 @@ protected:
     using CGDynamicsKernel<DGadvection>::sinOceanAngle;
 
 public:
+    using CGDynamicsKernel<DGadvection>::advectField;
+
     BrittleCGDynamicsKernel(
         StressUpdateStep<DGadvection, DGstressComp>& stressStepIn, const BBMParameters& paramsIn)
         : CGDynamicsKernel<DGadvection>(paramsIn)
@@ -78,18 +77,41 @@ public:
         stresstransport = std::make_unique<Nextsim::DGTransport<DGstressComp>>(*smesh);
         stresstransport->settimesteppingscheme("rk2");
 
-        damage.resize_by_mesh(*smesh);
         avgU.resize_by_mesh(*smesh);
         avgV.resize_by_mesh(*smesh);
 
         // Set the fields to zero. Prognostic fields will be filled from the restart file.
-        damage.zero();
         avgU.zero();
         avgV.zero();
     }
 
     // The brittle rheologies use avgU and avgV to do the advection, not u and v, like mEVP
     void prepareAdvection() override { dgtransport->prepareAdvection(avgU, avgV); }
+
+    /*!
+     * Advection function for stress. Stress components have no limits.
+     *
+     * @param timestep Advection timestep length in seconds
+     * @param stessComp Stress component to advect
+     */
+    DGVector<DGstressComp>& advectStress(double advectionTS, DGVector<DGstressComp>& stressComp)
+    {
+        stresstransport->step(advectionTS, stressComp);
+        return stressComp;
+    }
+
+    void advectDynamicsFields(double timestep) override
+    {
+        // Let DynamicsKernel handle the advection of the ice.
+        DynamicsKernel<DGadvection, DGstressComp>::advectDynamicsFields(timestep);
+        advectDGVField(timestep, damage, 1e-12, 1.0);
+
+        //! Perform transport step for stress
+        stresstransport->prepareAdvection(avgU, avgV);
+        advectStress(timestep, s11);
+        advectStress(timestep, s12);
+        advectStress(timestep, s22);
+    }
 
     void update(const TimestepTime& tst) override
     {
@@ -98,19 +120,7 @@ public:
         static KokkosTimer<true> timerPrepIt("prepIt");
 
         timerAdvection.start();
-        // Let DynamicsKernel handle the advection step
-        advectionAndLimits(tst);
-
-        //! Perform transport step for stress
-        stresstransport->prepareAdvection(avgU, avgV);
-        stresstransport->step(tst.step.seconds(), s11);
-        stresstransport->step(tst.step.seconds(), s12);
-        stresstransport->step(tst.step.seconds(), s22);
-
-        // Transport and limits for damage
-        dgtransport->step(tst.step.seconds(), damage);
-        Nextsim::LimitMax(damage, 1.0);
-        Nextsim::LimitMin(damage, 1e-12);
+        advectDynamicsFields(tst.step.seconds());
         timerAdvection.stop();
 
         timerPrepIt.start();
@@ -146,6 +156,10 @@ public:
 
         updateIceOceanStress(avgU, avgV);
 
+        // TODO: It's annoying to have to limit damage again. We need to find a better solution.
+        Nextsim::LimitMax(damage, 1.0);
+        Nextsim::LimitMin(damage, 1e-12);
+
         // Finally, do the base class update
         DynamicsKernel<DGadvection, DGstressComp>::update(tst);
     }
@@ -153,30 +167,18 @@ public:
     void setData(const std::string& name, const ModelArray& data) override
     {
         if (name == damageName) {
-            DGModelArray::ma2dg(data, damage);
+            throw std::runtime_error(std::string("Use setDGArray() to set the data for ") + name);
         } else {
             CGDynamicsKernel<DGadvection>::setData(name, data);
         }
     }
 
-    ModelArray getDG0Data(const std::string& name) const override
-    {
-
-        if (name == damageName) {
-            ModelArray data(ModelArray::Type::H);
-            return DGModelArray::dg2ma(damage, data);
-        } else {
-            return CGDynamicsKernel<DGadvection>::getDG0Data(name);
-        }
-    }
-
-    ModelArray getDGData(const std::string& name) const override
+    void setDGArray(const std::string& name, ModelArray::DataType& dgData) override
     {
         if (name == damageName) {
-            ModelArray data(ModelArray::Type::DG);
-            return DGModelArray::dg2ma(damage, data);
+            damage = DGVectorHolder<DGadvection>(dgData);
         } else {
-            return CGDynamicsKernel<DGadvection>::getDGData(name);
+            CGDynamicsKernel<DGadvection>::setDGArray(name, dgData);
         }
     }
 
@@ -189,7 +191,7 @@ protected:
 
     std::unique_ptr<DGTransport<DGstressComp>> stresstransport;
 
-    DGVector<DGadvection> damage;
+    DGVectorHolder<DGadvection> damage;
 
     // Common brittle parts of the momentum solver.
     void updateMomentum(const TimestepTime& tst) override

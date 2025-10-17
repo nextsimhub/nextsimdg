@@ -1,24 +1,51 @@
-/build*
+# .gitignore
+
+# Directories
 */build
-Results
+/build*
 /.cproject
+/docs/html/
+/docs/latex/
+/docs/xml/
+/docs/_build/
+
+# ignore all files in docs/api except for manually maintained rst files
+/docs/api/*
+!/docs/api/class.rst
+!/docs/api/counttimercpp.rst
+!/docs/api/function.rst
+!/docs/api/index.rst
+!/docs/api/num.rst
+!/docs/api/structure.rst
+!/docs/api/typedef.rst
+
 /.project
+__pycache__/
 /.pydevproject
-/.settings/*
-/*/src/modules/include/*Module.hpp
-/*/src/modules/*/module.cpp
-/run/*.nc
-/run/nextsim
+/run/applications/*
 /run/.DS_Store
 /run/*.log
-/run/applications/*
-*.vtk
-*.smesh
+/run/*.nc
+/run/nextsim
+/.settings/*
+
+# File types
 *.DS_Store
+*.log
 *.nc
 /.vscode
 *__pycache__*
 lib/kokkos
 *.sif
+*.smesh
 .*sw?
 /run/*.cdl
+.cache/
+.clangd
+compile_commands.json
+*.vtk
+
+# Specific files
+Results
+/*/src/modules/include/*Module.hpp
+/*/src/modules/*/module.cpp

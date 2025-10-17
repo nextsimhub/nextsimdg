@@ -1,9 +1,7 @@
 /*!
- * @file ILateralIceSpread.hpp
  *
- * @date 04 Jun 2025
- * @author Tim Spain <timothy.spain@nersc.no>
- * @author Einar Ólason <einar.olason@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
+ * @author  Einar Ólason <einar.olason@nersc.no>
  */
 
 #ifndef ILATERALICESPREAD_HPP
@@ -63,10 +61,10 @@ protected:
     HField newice; // New ice over open water this timestep, m
     HField snowMelt; // Ocean to snow transfer of freshwater kg m⁻²
 
-    ModelArrayRef<Shared::C_ICE, RW> cice; // From IceGrowth
+    ModelArrayRef<Shared::C_ICE_DG, RW> cice; // From IceGrowth
     ModelArrayRef<Shared::DELTA_HICE, RO> deltaHi; // From Vertical Ice Growth
-    ModelArrayRef<Shared::H_ICE, RW> hice; // From IceGrowth
-    ModelArrayRef<Shared::H_SNOW, RW> hsnow; // From Ice Growth?
+    ModelArrayRef<Shared::H_ICE_DG, RW> hice; // From IceGrowth
+    ModelArrayRef<Shared::H_SNOW_DG, RW> hsnow; // From Ice Growth?
     ModelArrayRef<Shared::Q_OW, RW> qow; // From FluxCalculation
 };
 

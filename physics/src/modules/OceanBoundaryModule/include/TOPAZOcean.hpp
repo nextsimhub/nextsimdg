@@ -1,16 +1,15 @@
 /*!
- * @file TOPAZOcean.hpp
  *
- * @date 03 Jun 2025
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #ifndef TOPAZOCEAN_HPP
 #define TOPAZOCEAN_HPP
 
-#include "include/IOceanBoundary.hpp"
-
 #include "include/Configured.hpp"
+#include "include/IFreezingPoint.hpp"
+#include "include/IIceOceanHeatFlux.hpp"
+#include "include/IOceanBoundary.hpp"
 #include "include/SlabOcean.hpp"
 
 namespace Nextsim {
@@ -54,6 +53,9 @@ private:
     HField sssExt;
 
     SlabOcean slabOcean;
+
+    std::unique_ptr<IIceOceanHeatFlux> pIOHeatFlux;
+    std::unique_ptr<IFreezingPoint> pFreezingPoint;
 };
 
 } /* namespace Nextsim */

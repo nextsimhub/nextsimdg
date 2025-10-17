@@ -1,9 +1,6 @@
 /*!
- * @file BBMStressUpdateStep.hpp
- *
- * @date 27 May 2025
- * @author Tim Spain <timothy.spain@nersc.no>
- * @author Tim Williams <timothy.williams@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Williams <timothy.williams@nersc.no>
  */
 
 #ifndef BBMSTRESSUPDATESTEP_HPP
@@ -55,6 +52,9 @@ public:
 //! Stress and Damage Update
 #pragma omp parallel for
         for (size_t i = 0; i < smesh.nelements; ++i) {
+
+            if (!smesh.landmask[i])
+                continue;
 
             //! Evaluate values in Gauss points (3 point Gauss rule in 2d => 9 points)
             const EdgeVec hGauss = (h.row(i) * PSI<DGadvection, NGP>).array().max(0.0).matrix();

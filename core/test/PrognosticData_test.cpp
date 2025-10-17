@@ -1,8 +1,5 @@
 /*!
- * @file PrognosticData_test.cpp
- *
- * @date 7 Sep 2023
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
@@ -16,14 +13,14 @@
 #include "include/UnescoFreezing.hpp"
 #include "include/constants.hpp"
 
-#include <sstream>
 #include <iostream>
+#include <sstream>
 
 extern template class Module::Module<Nextsim::IOceanBoundary>;
 
 namespace Nextsim {
 
-void PrognosticData::writeRestartFile(const std::string& filePath, const ModelMetadata&) const { }
+void PrognosticData::writeRestartFile(const std::string& filePath) const { }
 
 TEST_SUITE_BEGIN("PrognosticData");
 TEST_CASE("PrognosticData call order test")
@@ -40,7 +37,8 @@ TEST_CASE("PrognosticData call order test")
     config << "lw_in = 330" << std::endl;
     config << "snow = 0" << std::endl;
     config << "rainfall = 0" << std::endl;
-    config << "wind_speed = 5" << std::endl;
+    config << "wind_u = 3" << std::endl;
+    config << "wind_v = 4" << std::endl;
 
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));

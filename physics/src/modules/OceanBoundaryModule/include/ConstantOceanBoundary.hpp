@@ -1,8 +1,6 @@
 /*!
- * @file ConstantOceanBoundary.hpp
  *
- * @date Sep 26, 2022
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #ifndef CONSTANTOCEANBOUNDARY_HPP

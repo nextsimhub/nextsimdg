@@ -1,8 +1,5 @@
 /*!
- * @file BasicIceOceanFlux_test.cpp
- *
- * @date Sep 29, 2022
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 // Does this class need testing? Not really, but it got removed from
@@ -38,12 +35,9 @@ TEST_CASE("Melting conditions")
     public:
         ProgData()
         {
-            getStore().registerArray(Shared::H_ICE, &hice, RW);
-            getStore().registerArray(Shared::C_ICE, &cice, RW);
-            getStore().registerArray(Shared::H_SNOW, &hsnow, RW);
-            getStore().registerArray(Protected::C_ICE, &cice, RO);
-            getStore().registerArray(Protected::HTRUE_ICE, &hice0, RO);
-            getStore().registerArray(Protected::HTRUE_SNOW, &hsnow0, RO);
+            getStore().registerArray(Shared::H_ICE_DG, &hice, RW);
+            getStore().registerArray(Shared::C_ICE_DG, &cice, RW);
+            getStore().registerArray(Shared::H_SNOW_DG, &hsnow, RW);
         }
         std::string getName() const override { return "ProgData"; }
 
@@ -53,16 +47,11 @@ TEST_CASE("Melting conditions")
             cice[0] = 0.5;
             hice[0] = 0.1; // Here we are using the cell-averaged thicknesses
             hsnow[0] = 0.01;
-
-            hice0[0] = hice[0] / cice[0];
-            hsnow0[0] = hsnow[0] / cice[0];
         }
 
         HField hice;
         HField cice;
         HField hsnow;
-        HField hice0; // ice averaged ice thickness
-        HField hsnow0; // ice averaged snow thickness
     } iceState;
     iceState.setData(ModelState().data);
 
@@ -91,12 +80,9 @@ TEST_CASE("Freezing conditions")
     public:
         ProgData()
         {
-            getStore().registerArray(Protected::H_ICE, &hice, RO);
-            getStore().registerArray(Protected::C_ICE, &cice, RO);
-            getStore().registerArray(Protected::H_SNOW, &hsnow, RO);
-            getStore().registerArray(Protected::C_ICE, &cice, RO);
-            getStore().registerArray(Protected::HTRUE_ICE, &hice0, RO);
-            getStore().registerArray(Protected::HTRUE_SNOW, &hsnow0, RO);
+            getStore().registerArray(Shared::H_ICE_DG, &hice, RO);
+            getStore().registerArray(Shared::C_ICE_DG, &cice, RO);
+            getStore().registerArray(Shared::H_SNOW_DG, &hsnow, RO);
         }
         std::string getName() const override { return "ProgData"; }
 
@@ -106,16 +92,11 @@ TEST_CASE("Freezing conditions")
             cice[0] = 0.5;
             hice[0] = 0.1; // Here we are using the cell-averaged thicknesses
             hsnow[0] = 0.01;
-
-            hice0[0] = hice[0] / cice[0];
-            hsnow0[0] = hsnow[0] / cice[0];
         }
 
         HField hice;
         HField cice;
         HField hsnow;
-        HField hice0; // ice averaged ice thickness
-        HField hsnow0; // ice averaged snow thickness
     } iceState;
     iceState.setData(ModelState().data);
 

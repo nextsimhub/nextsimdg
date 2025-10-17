@@ -1,24 +1,28 @@
 /*!
- * @file    XiosRead_test.cpp
  * @author  Joe Wallwork <jw2423@cam.ac.uk>
- * @date    19 May 2025
  * @brief   Tests for XIOS read functionality
  * @details
  * This test is designed to test the file reading functionality of the C++
  * interface for XIOS.
- *
  */
 #include <doctest/extensions/doctest_mpi.h>
 #undef INFO
 
 #include "StructureModule/include/ParametricGrid.hpp"
 #include "include/Finalizer.hpp"
-#include "include/ModelMetadata.hpp"
+#include "include/Model.hpp"
+#include "include/ModelMPI.hpp"
 #include "include/NextsimModule.hpp"
 #include "include/ParaGridIO.hpp"
 #include "include/Xios.hpp"
+#include "include/gridNames.hpp"
 
 #include <filesystem>
+
+const std::string testFilesDir = TEST_FILES_DIR;
+const std::string filename = testFilesDir + "/xios_test_input.nc";
+
+static const int DG = 3;
 
 namespace Nextsim {
 
@@ -35,13 +39,27 @@ MPI_TEST_CASE("TestXiosRead", 2)
     std::stringstream config;
     config << "[model]" << std::endl;
     config << "start = 2023-03-17T17:11:00Z" << std::endl;
+    config << "stop = 2023-03-17T23:11:00Z" << std::endl;
     config << "time_step = P0-0T01:30:00" << std::endl;
     config << "[XiosInput]" << std::endl;
+    config << "filename = xios_test_input.nc" << std::endl;
+    config << "field_names = " << maskName << "," << coordsName << "," << hiceName << std::endl;
     config << "period = P0-0T01:30:00" << std::endl;
-    config << "filename = xios_test_input" << std::endl;
-    config << "field_names = field_2D" << std::endl;
+    // TODO: Account for separate restart and forcing files (#929)
+    config << "[XiosForcing]" << std::endl;
+    config << "filename = xios_test_input.nc" << std::endl;
+    config << "field_names = " << uName << std::endl;
+    config << "period = P0-0T01:30:00" << std::endl;
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
+
+    // Create ModelMetadata instance based off a partition metadata file
+    auto& modelMPI = ModelMPI::getInstance(test_comm);
+    auto& metadata = ModelMetadata::getInstance("xios_test_partition_metadata_2.nc");
+
+    // Create a Model and configure it so that time options are parsed
+    Model model;
+    model.configureTime(); // TODO: Use Model.configure to parse restart files this way, too?
 
     // Create ParametricGrid and ParaGridIO instances
     Module::setImplementation<IStructure>("Nextsim::ParametricGrid");
@@ -49,59 +67,75 @@ MPI_TEST_CASE("TestXiosRead", 2)
     ParaGridIO* pio = new ParaGridIO(grid);
     grid.setIO(pio);
 
-    // Create Xios singleton instance and check it's initialized
+    // Get the Xios singleton instance and check it's initialized
     Xios& xiosHandler = Xios::getInstance();
     REQUIRE(xiosHandler.isInitialized());
-    const size_t size = xiosHandler.getClientMPISize();
-    REQUIRE(size == 2);
-    const size_t rank = xiosHandler.getClientMPIRank();
+    REQUIRE(xiosHandler.getClientMPISize() == 2);
 
-    // Set ModelArray dimensions
-    const size_t nx_glo = 4;
-    const size_t ny_glo = 2;
-    const size_t nx = 2;
-    const size_t ny = 2;
-    const size_t nz = 2;
-    ModelArray::setDimension(ModelArray::Dimension::X, nx_glo, nx, 0);
-    ModelArray::setDimension(ModelArray::Dimension::Y, ny_glo, ny, 0);
+    // TODO: We could deduce this from the NetCDF file
+    ModelArray::setNComponents(ModelArray::Type::DG, DG);
+    ModelArray::setNComponents(ModelArray::Type::VERTEX, ModelArray::nCoords);
+    REQUIRE(ModelArray::nComponents(ModelArray::Type::DG) == DG);
+    REQUIRE(ModelArray::nComponents(ModelArray::Type::VERTEX) == ModelArray::nCoords);
 
-    // Create ModelMetadata instance, which will create the domain
-    ModelMetadata metadata("xios_test_partition_metadata_2.nc", test_comm);
-
-    // Create fields on the two grids
-    // NOTE: Fields are created when the XIOS handler is constructed
-    // NOTE: The 2D grid is created along with the 2D domain
-    xiosHandler.setFieldOperation("field_2D", "instant");
-    xiosHandler.setFieldGridRef("field_2D", "grid_2D");
-    Duration timestep = xiosHandler.getCalendarTimestep();
-    xiosHandler.setFieldFreqOffset("field_2D", timestep);
+    // Affix ModelMetadata to Xios handler
+    // TODO: Automate this - can't be inlined in Xios::getInstance because need set field types
+    xiosHandler.affixModelMetadata();
 
     xiosHandler.close_context_definition();
-
-    // Create HField and ZField instances to read the data into
-    HField field_2D(ModelArray::Type::H);
-    field_2D.resize();
 
     // Check calendar step is zero initially
     REQUIRE(xiosHandler.getCalendarStep() == 0);
 
     // Check the input file exists
-    REQUIRE(std::filesystem::exists("xios_test_input.nc"));
+    REQUIRE(std::filesystem::exists(filename));
+
+    // Deduce the local lengths of the two dimensions
+    const size_t nx = ModelArray::size(ModelArray::Dimension::X);
+    const size_t ny = ModelArray::size(ModelArray::Dimension::Y);
 
     // Simulate 4 iterations (timesteps)
+    Duration timestep = xiosHandler.getCalendarTimestep();
     metadata.setTime(xiosHandler.getCalendarStart());
+    // TODO: Avoid making configGetForcingFieldNames public?
+    auto forcingFieldNames = xiosHandler.configGetForcingFieldNames();
     for (int ts = 1; ts <= 4; ts++) {
+
+        // Read forcings from file and check they take the expected values
+        TimePoint time = xiosHandler.getCurrentDate();
+        ModelState forcings = pio->readForcingTimeStatic(forcingFieldNames, time, filename);
+        for (auto& entry : forcings.data) {
+            for (size_t j = 0; j < ny; ++j) {
+                for (size_t i = 0; i < nx; ++i) {
+                    REQUIRE(entry.second(i, j) == doctest::Approx(ts - 1));
+                }
+            }
+        }
+
+        // Read restarts from file and check they take the expected values
+        ModelState restarts = grid.getModelState(filename);
+        for (auto& entry : restarts.data) {
+            for (size_t j = 0; j < ny; ++j) {
+                for (size_t i = 0; i < nx; ++i) {
+                    if (entry.first == maskName) {
+                        REQUIRE(entry.second(i, j) == doctest::Approx(j >= 1 ? 1.0 : 0.0));
+                    } else if (entry.first == coordsName) {
+                        REQUIRE(entry.second.components({ i, j })[0] == doctest::Approx(i));
+                        REQUIRE(entry.second.components({ i, j })[1] == doctest::Approx(j));
+                    } else if (entry.first == hiceName) {
+                        for (size_t d = 0; d < DG; ++d) {
+                            float expected = 1.0 * (d + DG * (i + nx * j));
+                            REQUIRE(
+                                entry.second.components({ i, j })[d] == doctest::Approx(expected));
+                        }
+                    }
+                }
+            }
+        }
+
         // Update the current timestep and verify it's updated in XIOS
         metadata.incrementTime(timestep);
         REQUIRE(xiosHandler.getCalendarStep() == ts);
-        // Receive data from XIOS that is read from disk
-        xiosHandler.read("field_2D", field_2D);
-    }
-
-    for (size_t j = 0; j < ny; ++j) {
-        for (size_t i = 0; i < nx; ++i) {
-            REQUIRE(field_2D(i, j) == doctest::Approx(i + nx * j));
-        }
     }
     xiosHandler.context_finalize();
     Finalizer::finalize();

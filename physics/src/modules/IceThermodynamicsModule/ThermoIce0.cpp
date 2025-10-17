@@ -1,8 +1,5 @@
 /*!
- * @file ThermoIce0.cpp
- *
- * @date 02 May 2025
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #include "include/ThermoIce0.hpp"
@@ -26,12 +23,12 @@ ThermoIce0::ThermoIce0()
     , topMelt(ModelArray::Type::H)
     , botMelt(ModelArray::Type::H)
     , qic(ModelArray::Type::H)
-    , oldHi(getStore())
 {
 }
 
 void ThermoIce0::update(const TimestepTime& tsTime)
 {
+    IIceThermodynamics::update(tsTime);
     overElements(
         [this](size_t i, const TimestepTime& tst) { this->calculateElement(i, tst); }, tsTime);
 }
@@ -45,21 +42,17 @@ void ThermoIce0::configure()
     kappa_s = Configured::getConfiguration(keyMap.at(KS_KEY), k_sDefault);
 }
 
-ConfigMap ThermoIce0::getConfiguration() const
-{
-    return { { keyMap.at(KS_KEY), kappa_s } };
-}
+ConfigMap ThermoIce0::getConfiguration() const { return { { keyMap.at(KS_KEY), kappa_s } }; }
 
 ModelState ThermoIce0::getStateDiagnostic() const
 {
     ModelState state = { {
-        { "snow_melt", snowMelt },
-        { "top_melt", topMelt },
-        { "bottom_melt", botMelt },
-        { "Q_ic", qic },
-    },
-            getConfiguration()
-    };
+                             { "snow_melt", snowMelt },
+                             { "top_melt", topMelt },
+                             { "bottom_melt", botMelt },
+                             { "Q_ic", qic },
+                         },
+        getConfiguration() };
 
     return state.merge(IIceThermodynamics::getStateDiagnostic());
 }
@@ -95,75 +88,87 @@ void ThermoIce0::setData(const ModelState::DataMap& ms)
 
 void ThermoIce0::calculateElement(size_t i, const TimestepTime& tst)
 {
+    static const double bulkLHFusionSnow = Water::Lf * Ice::rhoSnow;
+    static const double bulkLHFusionIce = Water::Lf * Ice::rho;
+
     // If there is too little ice, do nothing and zero out the computed arrays
-    if (hice[i] == 0. || cice[i] == 0.) {
+    if (hice[i] <= IceMinima::h() || cice[i] <= IceMinima::c()) {
         deltaHi[i] = 0.;
         snowToIce[i] = 0.;
+        snowMelt[i] = 0.;
+        qswBase[i] = 0.;
+
         tsurf[i] = freezingPointIce;
+
+        // Add to open water flux, since cice will be set to zero
+        qow[i] += (hice[i] * bulkLHFusionIce + hsnow[i] * bulkLHFusionSnow) / tst.step;
+        cice[i] = 0.;
+        hice[i] = 0.;
+        hsnow[i] = 0.;
 
         return;
     }
-
-    static const double bulkLHFusionSnow = Water::Lf * Ice::rhoSnow;
-    static const double bulkLHFusionIce = Water::Lf * Ice::rho;
 
     // Semtner's fudge factors for the zero-layer model
     constexpr double beta = 0.4;
     constexpr double gamma = 1.065;
 
+    double hi = hice[i] / cice[i];
+    const double oldHi = hi;
+    double hs = hsnow[i] / cice[i];
     // Create a reference to the local updated Tice value here to avoid having
     // to write the array access expression out in full every time
     double& tice_i = tsurf[i];
     double tice0 = tsurf[i];
-    double k_lSlab = kappa_s * Ice::kappa / (kappa_s * hice[i] + Ice::kappa * hsnow[i]) * gamma;
+    double k_lSlab = kappa_s * Ice::kappa / (kappa_s * hi + Ice::kappa * hs) * gamma;
     qic[i] = k_lSlab * (tf[i] - tice0);
     double remainingFlux = qic[i] - (qia[i] + (1. - beta) * penSw[i]);
     tice_i = tice0 + remainingFlux / (k_lSlab + dQia_dt[i]);
 
     // Clamp the temperature of the ice to a maximum of the melting point
     // of ice or snow
-    double meltingLimit = (hsnow[i] > 0) ? 0 : freezingPointIce;
+    double meltingLimit = (hs > 0) ? 0 : freezingPointIce;
     tice_i = std::min(meltingLimit, tice_i);
 
     // Top melt. Melting rate is non-positive.
     double snowMeltRate = std::min(-remainingFlux, 0.) / bulkLHFusionSnow;
     snowMelt[i] = snowMeltRate * tst.step;
     double snowSublRate = sublim[i] / Ice::rhoSnow;
-    double nowSnow = hsnow[i] + (snowMeltRate - snowSublRate) * tst.step;
+    double nowSnow = hs + (snowMeltRate - snowSublRate) * tst.step;
     // Use excess flux to melt ice. Non-positive value
     double excessIceMelt = std::min(nowSnow, 0.) * bulkLHFusionSnow / bulkLHFusionIce;
     // With the excess flux noted, clamp the snow thickness to a minimum of zero.
-    hsnow[i] = std::max(nowSnow, 0.);
+    hs = std::max(nowSnow, 0.);
 
     // Bottom melt or growth
     double iceBottomChange = (qic[i] - qio[i]) * tst.step / bulkLHFusionIce;
     // Total thickness change
     deltaHi[i] = excessIceMelt + iceBottomChange;
-    hice[i] += deltaHi[i];
+    hi += deltaHi[i];
 
     // Then add snowfall back on top if there's still ice
-    if (hice[i] > 0.)
-        hsnow[i] += snowfall[i] * tst.step / Ice::rhoSnow;
+    if (hi > 0.)
+        hs += snowfall[i] * tst.step / Ice::rhoSnow;
 
     // Amount of melting (only) at the top and bottom of the ice
     topMelt[i] = std::min(excessIceMelt, 0.);
     botMelt[i] = std::min(iceBottomChange, 0.);
     // Snow to ice conversion
-    double iceDraught = (hice[i] * Ice::rho + hsnow[i] * Ice::rhoSnow) / Water::rhoOcean;
+    double iceDraught = (hi * Ice::rho + hs * Ice::rhoSnow) / Water::rhoOcean;
 
-    if (doFlooding && iceDraught > hice[i]) {
-        double snowDraught = iceDraught - hice[i];
+    if (doFlooding && iceDraught > hi) {
+        double snowDraught = iceDraught - hi;
         snowToIce[i] = snowDraught;
-        hsnow[i] -= snowDraught * Ice::rho / Ice::rhoSnow;
-        hice[i] = iceDraught;
+        hs -= snowDraught * Ice::rho / Ice::rhoSnow;
+        hi = iceDraught;
     } else {
         snowToIce[i] = 0;
     }
 
     // Melt all ice if it is below minimum threshold
-    if (hice[i] < IceMinima::h()) {
+    if (hi < IceMinima::h()) {
         if (deltaHi[i] < 0) {
-            double scaling = oldHi[i] / deltaHi[i];
+            double scaling = oldHi / deltaHi[i];
             topMelt[i] *= scaling;
             botMelt[i] *= scaling;
         }
@@ -172,16 +177,21 @@ void ThermoIce0::calculateElement(size_t i, const TimestepTime& tst)
         snowToIce[i] = 0.;
 
         // Change in thickness is all of the old thickness
-        deltaHi[i] = -oldHi[i];
+        deltaHi[i] = -oldHi;
 
-        // The ice-ocean flux includes all the latent heat
-        qio[i] += hice[i] * bulkLHFusionIce / tst.step + hsnow[i] * bulkLHFusionSnow / tst.step;
+        // Add the melt flux to open water flux, since cice will be set to zero
+        qow[i] += cice[i] * (hi * bulkLHFusionIce + hs * bulkLHFusionSnow) / tst.step;
 
         // No ice, no snow and the surface temperature is the melting point of ice
         cice[i] = 0.;
         hice[i] = 0.;
         hsnow[i] = 0.;
         tsurf[i] = celsius(Ice::Tm);
+    } else {
+        // If there is still ice, we need to update the DG ice and snow thicknesses with the new
+        // values
+        hice[i] = hi * cice[i];
+        hsnow[i] = hs * cice[i];
     }
 }
 

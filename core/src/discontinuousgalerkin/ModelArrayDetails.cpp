@@ -1,8 +1,6 @@
 /*!
- * @file ModelArrayDetails.cpp
  *
- * @date 24 Sep 2024
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #include "include/ModelArray.hpp"
@@ -88,6 +86,14 @@ const std::map<ModelArray::Type, std::string> ModelArray::typeNames = {
     { ModelArray::Type::DG, "DGField" },
     { ModelArray::Type::DGSTRESS, "DGStressField" },
     { ModelArray::Type::CG, "CGField" },
+};
+
+std::map<ModelArray::Type, ModelArray::Base> ModelArray::baseTypes = {
+    { ModelArray::Type::H, ModelArray::Base::Cell },
+    { ModelArray::Type::VERTEX, ModelArray::Base::Vertex },
+    { ModelArray::Type::DG, ModelArray::Base::Cell },
+    { ModelArray::Type::DGSTRESS, ModelArray::Base::Cell },
+    { ModelArray::Type::CG, ModelArray::Base::Vertex },
 };
 
 ModelArray::ModelArray()

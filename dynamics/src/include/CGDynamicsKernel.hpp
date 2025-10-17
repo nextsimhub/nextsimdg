@@ -1,9 +1,6 @@
 /*!
- * @file CGDynamicsKernel.hpp
- *
- * @date 27 Mar 2025
- * @author Tim Spain <timothy.spain@nersc.no>
- * @author Robert Jendersie <robert.jendersie@ovgu.de>
+ * @author  Tim Spain <timothy.spain@nersc.no>
+ * @author  Robert Jendersie <robert.jendersie@ovgu.de>
  */
 
 #ifndef CGDYNAMICSKERNEL_HPP
@@ -11,6 +8,9 @@
 
 #include "DynamicsKernel.hpp"
 #include "DynamicsParameters.hpp"
+#include "SlopeLimiter.hpp"
+
+#include <limits>
 
 #ifndef CGDEGREE
 #define CGDEGREE 2
@@ -50,6 +50,10 @@ public:
     void stressDivergence() override;
     void applyBoundaries() override;
     void prepareAdvection() override;
+
+    DGVector<DGadvection>& advectDGVField(double timestep, DGVector<DGadvection>& field,
+        double lowerLimit = -std::numeric_limits<double>::infinity(),
+        double upperLimit = std::numeric_limits<double>::infinity()) override;
 
 protected:
     void addStressTensorCell(const size_t eid, const size_t cx, const size_t cy);

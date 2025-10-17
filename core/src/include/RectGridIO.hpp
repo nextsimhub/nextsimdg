@@ -1,9 +1,6 @@
 /*!
- * @file RectGridIO.hpp
- *
- * @date Feb 8, 2022
- * @author Tim Spain <timothy.spain@nersc.no>
- * @author Kacper Kornet <kk562@cam.ac.uk>
+ * @author  Tim Spain <timothy.spain@nersc.no>
+ * @author  Kacper Kornet <kk562@cam.ac.uk>
  */
 
 #ifndef RECTGRIDIO_HPP
@@ -23,14 +20,10 @@ public:
 
     typedef RectangularGrid::GridDimensions GridDimensions;
 
-#ifdef USE_MPI
-    ModelState getModelState(const std::string& filePath, ModelMetadata& metadata) override;
-#else
     ModelState getModelState(const std::string& filePath) override;
-#endif
 
-    void dumpModelState(const ModelState& state, const ModelMetadata& metadata,
-        const std::string& filePath, bool isRestart) const override;
+    void dumpModelState(
+        const ModelState& state, const std::string& filePath, bool isRestart) const override;
 
 private:
     RectGridIO() = default;

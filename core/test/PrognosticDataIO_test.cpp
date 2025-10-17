@@ -1,8 +1,5 @@
 /*!
- * @file PrognosticData_test.cpp
- *
- * @date 24 Sep 2024
- * @author Tim Spain <timothy.spain@nersc.no>
+ * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
@@ -121,11 +118,11 @@ TEST_CASE("PrognosticData write test, including DG components")
     PrognosticData pData;
     pData.configure();
     pData.setData(inData);
-    ModelMetadata meta;
+    auto& meta = ModelMetadata::getInstance();
     meta.setTime(TimePoint("2010-01-01T00:00:00Z"));
     meta.extractCoordinates(state);
     // Do the write
-    pData.writeRestartFile(filename, meta);
+    pData.writeRestartFile(filename);
 
     // Read the data back
     ModelState readState = StructureFactory::stateFromFile(filename);
