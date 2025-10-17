@@ -49,10 +49,6 @@ jobs:
       run: |
         pip install cmakelang
         cmake-lint $(find . -name CMakeLists.txt) -c .cmake-lint-config.py
-        # NOTE: We ignore C0103, which would enforce that variables are all-caps
-        # NOTE: We ignore C0113, which would enforce that comments are used
-        # NOTE: We set the tab size to 4
-        # NOTE: We set the maximum line length to 100
 
   # Apply GitHub Actions linter, zizmor
   zizmor:
