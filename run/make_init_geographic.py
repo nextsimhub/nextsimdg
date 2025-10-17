@@ -6,8 +6,6 @@ import numpy as np
 from interpolators import topaz4_interpolate
 from make_init_base import initMaker
 
-topaz_mdi = -32767
-
 # Returns the file name that holds the TOPAZ data for a given field at a given time
 def topaz4_source_file_name(time_struct):
     return f"{topaz_path}/{time_struct.tm_year}/topaz_rean_{time_struct.tm_year}{time_struct.tm_mon:02}.nc"
