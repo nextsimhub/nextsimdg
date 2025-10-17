@@ -24,7 +24,9 @@ for FILE in $(git diff --cached --name-only | grep -iE '\.(cpp|cc|h|hpp)$'); do
 done
 
 # Apply ruff format for Python linting
-ruff format
+for FILE in $(git diff --cached --name-only | grep -iE '\.py$'); do
+    ruff format ${FILE}
+done
 
 # Apply cmake-lint for CMake linting
 for FILE in $(git diff --cached --name-only | grep -i 'CMakeLists.txt'); do
