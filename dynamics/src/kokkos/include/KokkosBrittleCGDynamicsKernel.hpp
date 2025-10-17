@@ -33,12 +33,6 @@ public:
 
     void initialise(const ModelArray& coords, bool isSpherical, const ModelArray& mask) override;
 
-    // not used, see KokkosCGDynamicsKernel::advectAndLimit
-    void prepareAdvection() override
-    {
-        throw std::logic_error("prepareAdvection is not used in the Kokkos kernel.");
-    }
-
     void update(const TimestepTime& tst) override;
 
     // expose additional fields

@@ -58,11 +58,9 @@ void KokkosBBMDynamicsKernel<DGadvection>::updateStressHighOrderDevice(
 
     Kokkos::parallel_for(
         "updateStressHighOrder", s11Device.extent(0), KOKKOS_LAMBDA(const DeviceIndex i) {
-#ifdef ENABLE_OPTIONAL_LAND_CHECKS
             if (!landMaskDevice.test(i)) {
                 return;
             }
-#endif
 
             auto s11 = makeEigenMap(s11Device);
             auto s12 = makeEigenMap(s12Device);

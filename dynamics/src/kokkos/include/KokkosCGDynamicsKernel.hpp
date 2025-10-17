@@ -61,9 +61,9 @@ public:
 
     ModelArray getDG0Data(const std::string& name) const override;
 
-    void advectAndLimit(const FloatType dt,
-        const ConstKokkosDeviceView<CGVector<CGdegree>>& cgUDevice,
-        const ConstKokkosDeviceView<CGVector<CGdegree>>& cgVDevice);
+    void prepareAdvection() override;
+
+    void advectAndLimit(const FloatType dt);
 
     void updateGradientOfSeaSurfaceHeight();
 

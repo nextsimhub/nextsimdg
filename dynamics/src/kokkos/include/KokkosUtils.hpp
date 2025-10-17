@@ -29,7 +29,7 @@ template <> constexpr inline bool IS_GPU_EXEC_SPACE<Kokkos::HIP> = true;
 #endif
 
 // Land checks currently only improve performance on GPU. On CPU they lead to a slowdown so checks
-// should only be introduced when necessary.
+// should only be introduced when necessary. Currently there are no optional land checks.
 #if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP)
 // We can't directly use if constexpr(IS_GPU_EXEC_SPACE) in kernels because lambda capture for
 // values only appearing in constexpr branches is not supported in CUDA.

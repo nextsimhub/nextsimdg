@@ -75,7 +75,7 @@ void KokkosMEVPDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
     timerUpload.stop();
 
     timerAdvection.start();
-    this->advectAndLimit(tst.step.seconds(), this->uDevice, this->vDevice);
+    this->advectAndLimit(tst.step.seconds());
     timerAdvection.stop();
 
     timerPrepIt.start();
@@ -157,11 +157,9 @@ void KokkosMEVPDynamicsKernel<DGadvection>::updateStressHighOrderDevice(
     const DeviceIndex n = s11Device.extent(0);
     Kokkos::parallel_for(
         "updateStressHighOrder", n, KOKKOS_LAMBDA(const DeviceIndex i) {
-#ifdef ENABLE_OPTIONAL_LAND_CHECKS
             if (!landMaskDevice.test(i)) {
                 return;
             }
-#endif
 
             auto s11 = makeEigenMap(s11Device);
             auto s12 = makeEigenMap(s12Device);

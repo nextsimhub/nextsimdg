@@ -142,12 +142,16 @@ ModelArray KokkosCGDynamicsKernel<DGadvection>::getDG0Data(const std::string& na
 
 /*************************************************************/
 template <int DGadvection>
-void KokkosCGDynamicsKernel<DGadvection>::advectAndLimit(const FloatType dt,
-    const ConstKokkosDeviceView<CGVector<CGdegree>>& cgUDevice,
-    const ConstKokkosDeviceView<CGVector<CGdegree>>& cgVDevice)
+void KokkosCGDynamicsKernel<DGadvection>::prepareAdvection()
 {
-    dGTransportDevice->prepareAdvection(cgUDevice, cgVDevice);
+    CGDynamicsKernel<DGadvection>::prepareAdvection();
+}
 
+/*************************************************************/
+template <int DGadvection>
+void KokkosCGDynamicsKernel<DGadvection>::advectAndLimit(const FloatType dt)
+{
+    dGTransportDevice->prepareAdvection(uDevice, vDevice);
     //! Perform transport step
     dGTransportDevice->step(dt, ciceDevice);
     dGTransportDevice->step(dt, hiceDevice);
