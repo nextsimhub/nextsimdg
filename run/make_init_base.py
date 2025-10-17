@@ -63,8 +63,8 @@ class initMaker:
         :param nSecond: The number of columns (second dimension)
         """
         # Set all arrays to the correct size
-        self.__nFirst = nFirst
-        self.__nSecond = nSecond
+        self._nFirst = nFirst
+        self._nSecond = nSecond
 
         # Set all arrays to zero ...
         self.mask = np.zeros((nFirst, nSecond))
