@@ -419,17 +419,17 @@ class initMaker:
             runtime_err = "'mask' is not set"
             raise RuntimeError(runtime_err)
 
-        for check in [["cice", (self.cice == 0).all(), self.cice.shape == (self.__nFirst, self.__nSecond)],
+        for (field, allZero, wrongShape) in [["cice", (self.cice == 0).all(), self.cice.shape == (self.__nFirst, self.__nSecond)],
                       ["hice", (self.hice == 0).all(), self.hice.shape == (self.__nFirst, self.__nSecond)],
                       ["hsnow", (self.hsnow == 0).all(), self.hsnow.shape == (self.__nFirst, self.__nSecond)],
                       ["sss", (self.sss == 0).all(), self.sss.shape == (self.__nFirst, self.__nSecond)],
                       ["sst", (self.sst == 0).all(), self.sst.shape == (self.__nFirst, self.__nSecond)]]:
 
-            if self.__checkZeros and check[1]:
-                print("Warning: '" + check[0] + "' is all zeros (this may be ok, if that's what you want).")
+            if self.__checkZeros and allZero:
+                print(f"Warning: '{field}' is all zeros (this may be ok, if that's what you want).")
 
-            if not check[2]:
-                print("Error: '" + check[0] + "' is the wrong shape")
+            if not wrongShape:
+                print(f"Error: '{field}' is the wrong shape")
                 runtime_err = "Incorrect array shape"
                 raise RuntimeError(runtime_err)
 
