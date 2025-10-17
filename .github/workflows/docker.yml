@@ -21,6 +21,11 @@ on:
 # Restrict default permissions
 permissions: {}
 
+# Cancel running jobs if new commits are pushed
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
 
   # Build Docker container on latest Ubuntu OS
