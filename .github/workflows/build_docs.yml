@@ -49,7 +49,7 @@ jobs:
     #   uses: mxschmitt/action-tmate@v3
 
   # Build and deploy the docs on the latest Ubuntu OS
-  deploy:
+  build-and-deploy:
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/docs'
     runs-on: ubuntu-latest
     timeout-minutes: 5
