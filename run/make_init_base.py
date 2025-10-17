@@ -28,7 +28,9 @@ class initMaker:
      4. The init file is written when the initialiser object goes out of scope (e.g. when the program ends or at the end of a loop).
     """
 
-    def __init__(self, fname,
+    def __init__(
+        self,
+        fname,
         nCg=1,
         nDg=1,
         nDgStress=3,
