@@ -351,7 +351,7 @@ TEST_CASE("TimePoint date components")
     REQUIRE(illegalDay.hour() == 0);
     REQUIRE(illegalDay.minute() == 0);
     REQUIRE(illegalDay.second() == 0);
-    // We dare not venture further into 1900
+    testTimePointTime(1900, 3, 1, 0, 0, 0);
     testTimePointTime(1901, 1, 1, 0, 0, 0);
     testTimePointTime(1901, 3, 1, 0, 0, 0);
     testTimePointTime(1904, 2, 28, 23, 59, 59);
