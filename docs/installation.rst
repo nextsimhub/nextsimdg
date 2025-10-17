@@ -274,3 +274,38 @@ If you want to run a subset of tests, you can use the `-R` option with a regular
     ctest -R Xios
 
 For more information on `ctest` options, you can refer to the official `ctest` documentation.
+
+Building the Documentation (Locally)
+------------------------------------
+
+If you would like to build the documentation locally, follow the instructions below.
+
+A Dockerfile is provided in the ``Dockerfiles`` directory to build the documentation i.e., ``Dockerfile.sphinx``.
+
+To build the docker image run the following command from the root of the repository:
+
+.. code-block:: console
+
+    docker build --file Dockerfiles/Dockerfile.sphinx . -t nextsim-docs:latest
+
+This should create a local docker image called ``nextsim-docs:latest``.
+
+To build the documentation, run the following command from the root of the repository:
+
+.. code-block:: console
+
+    docker run --rm -v $PWD:/docs nextsim-docs:latest
+
+Optionally, you can specify the number of jobs to use for building the documentation. For example, to use 4 jobs, run:
+
+.. code-block:: console
+
+    docker run --rm -v $PWD:/docs nextsim-docs:latest 4
+
+Finally, to view the built documentation, open the file ``docs/_build/html/index.html`` in your web browser e.g.,
+
+.. code-block:: console
+
+    xdg-open docs/_build/html/index.html  # Linux
+    open docs/_build/html/index.html      # MacOS
+    start docs\_build\html\index.html     # Windows

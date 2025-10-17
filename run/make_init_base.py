@@ -28,7 +28,13 @@ class initMaker:
      4. The init file is written when the initialiser object goes out of scope (e.g. when the program ends or at the end of a loop).
     """
 
-    def __init__(self, fname, nCg=1, nDg=1, nDgStress=3, nCoords=2, checkZeros=True):
+    def __init__(self, fname,
+        nCg=1,
+        nDg=1,
+        nDgStress=3,
+        nCoords=2,
+        checkZeros=True,
+    ):
         """
         Initialise basic internal variables, but we must call make_cartesian_grid or make_geographic_grid before continuing.
 
