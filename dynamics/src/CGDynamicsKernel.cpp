@@ -17,6 +17,7 @@
 #include "include/VectorManipulations.hpp"
 #include "include/cgVector.hpp"
 
+#include <cmath>
 #include <limits>
 
 namespace Nextsim {
@@ -448,6 +449,9 @@ void CGDynamicsKernel<DGadvection>::updateIceOceanStress(
 
 #pragma omp parallel for
     for (int i = 0; i < uIceOceanStress.rows(); ++i) {
+        if (pmap->cglandmask(i) == 0)
+            continue;
+
         const FloatType uOceanRel = uOcean(i) - uIce(i);
         const FloatType vOceanRel = vOcean(i) - vIce(i);
         const FloatType cPrime = FOcean * std::hypot(uOceanRel, vOceanRel);
