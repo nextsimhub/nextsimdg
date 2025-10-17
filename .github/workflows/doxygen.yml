@@ -42,7 +42,7 @@ jobs:
           done
 
     - name: Doxygen Action
-      uses: mattnotmitt/doxygen-action@v1.1.0
+      uses: mattnotmitt/doxygen-action@b84fe17600245bb5db3d6c247cc274ea98c15a3b  # v1.12.0
       with:
         # Path to Doxyfile
         doxyfile-path: "./Doxyfile" # default is ./Doxyfile
@@ -83,7 +83,7 @@ jobs:
           done
 
     - name: Doxygen Action
-      uses: mattnotmitt/doxygen-action@v1.1.0
+      uses: mattnotmitt/doxygen-action@b84fe17600245bb5db3d6c247cc274ea98c15a3b  # v1.12.0
       with:
         # Path to Doxyfile
         doxyfile-path: "./Doxyfile" # default is ./Doxyfile
@@ -92,7 +92,7 @@ jobs:
 
     - name: Deploy to GitHub Pages
       if: success() && (github.ref == 'refs/heads/main')
-      uses: crazy-max/ghaction-github-pages@v2
+      uses: crazy-max/ghaction-github-pages@df5cc2bfa78282ded844b354faee141f06b41865  # v4
       with:
         target_branch: gh-pages
         build_dir: docs/html
