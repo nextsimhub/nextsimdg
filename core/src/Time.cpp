@@ -78,60 +78,51 @@ std::string TimePoint::format(std::string formatStr) const
 
 std::tm& tmDoy(std::tm& tm)
 {
+    // Arrays for the day of the tm_yday value for the 0th day of each month.
     int common0th[] = { -1, 30, 58, 89, 119, 150, 180, 211, 242, 272, 303, 333 };
-    int leap0th[] =   { -1, 30, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334 };
+    int leap0th[] = { -001, 30, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334 };
     int trueYear = tm.tm_year + tmEpochYear;
     bool isLeap = ((trueYear % 4 == 0) && (trueYear % 100 != 0)) || (trueYear % 400 == 0);
+    // Select the set of yday offsets for the given year
     int* zerothArray = isLeap ? leap0th : common0th;
+    // Set yday, days since 1st January [0–365]
     tm.tm_yday = zerothArray[tm.tm_mon] + tm.tm_mday;
     return tm;
 }
 
-const int TimePoint::year() const
-{
-    return gmtime()->tm_year + tmEpochYear;
-}
-const size_t TimePoint::month() const
-{
-    return gmtime()->tm_mon + 1;
-}
-const size_t TimePoint::day() const
-{
-    return gmtime()->tm_mday;
-}
-const size_t TimePoint::doy() const
-{
-    return gmtime()->tm_yday + 1;
-}
-const size_t TimePoint::hour() const
-{
-    return gmtime()->tm_hour;
-}
-const size_t TimePoint::minute() const
-{
-    return gmtime()->tm_min;
-}
-const double TimePoint::second() const
-{
-    return gmtime()->tm_sec;
-}
+const int TimePoint::year() const { return gmtime()->tm_year + tmEpochYear; }
+const size_t TimePoint::month() const { return gmtime()->tm_mon + 1; }
+const size_t TimePoint::day() const { return gmtime()->tm_mday; }
+const size_t TimePoint::doy() const { return gmtime()->tm_yday + 1; }
+const size_t TimePoint::hour() const { return gmtime()->tm_hour; }
+const size_t TimePoint::minute() const { return gmtime()->tm_min; }
+const double TimePoint::second() const { return gmtime()->tm_sec; }
 
 std::time_t mkgmtime(std::tm* tm, bool recalculateDoy)
 {
     if (recalculateDoy)
         tmDoy(*tm);
+    // Sub-day part of the time, seconds since midnight
     std::time_t sum = tm->tm_sec;
     sum += tm->tm_min * minuteSeconds;
     sum += tm->tm_hour * hourSeconds;
     sum += tm->tm_yday * daySeconds;
     const int year = tmEpochYear + tm->tm_year;
 
-    static const size_t yOffset = 399;
+    // Days since epoch, via days since 0-01-01 as a proleptic Gregorian calendar.
+    // Need to off set year by -1, use 400-1 to avoid integers
+    static const size_t julianYears = 4;
+    static const size_t centuryYears = 100;
+    static const size_t gregorianYears = 400;
+    static const size_t yOffset = gregorianYears - 1;
     static const size_t oEpochYear = unixEpochYear + yOffset;
-    static const size_t epochDays = unixEpochYear * 365 + oEpochYear/4 - oEpochYear/100 + oEpochYear/400;
-    const size_t oYear = year + yOffset; // Offset the year to make the leap years tick over correctyl
-    const size_t startYearDays = year * 365 + oYear / 4 - oYear / 100 + oYear / 400;
-    sum += (startYearDays  - epochDays) * daySeconds;
+    static const size_t epochDays = unixEpochYear * 365 + oEpochYear / julianYears
+        - oEpochYear / centuryYears + oEpochYear / gregorianYears;
+    const size_t oYear
+        = year + yOffset; // Offset the year to make the leap years tick over correctly
+    const size_t startYearDays
+        = year * 365 + oYear / julianYears - oYear / centuryYears + oYear / gregorianYears;
+    sum += (startYearDays - epochDays) * daySeconds;
 
     return sum;
 }
