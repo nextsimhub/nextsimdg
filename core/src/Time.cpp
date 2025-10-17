@@ -24,13 +24,96 @@ static const int yearSeconds = daySeconds * 365;
 static const int tmEpochYear = 1900;
 static const int unixEpochYear = 1970;
 
+Duration TimePoint::operator-(const TimePoint& a) const { return Duration(m_t - a.m_t); }
+TimePoint& TimePoint::operator+=(const Duration& d)
+{
+    m_t += d.m_d;
+    return *this;
+}
+TimePoint& TimePoint::operator-=(const Duration& d)
+{
+    m_t -= d.m_d;
+    return *this;
+}
+TimePoint TimePoint::operator+(const Duration& d) const
+{
+    TimePoint t2(*this);
+    return t2 += d;
+}
+bool TimePoint::operator<=(const TimePoint& a) const { return m_t <= a.m_t; }
+bool TimePoint::operator<(const TimePoint& a) const { return m_t < a.m_t; }
+bool TimePoint::operator>=(const TimePoint& a) const { return m_t >= a.m_t; }
+bool TimePoint::operator>(const TimePoint& a) const { return m_t > a.m_t; }
+bool TimePoint::operator==(const TimePoint& a) const { return m_t == a.m_t; }
+bool TimePoint::operator!=(const TimePoint& a) const { return m_t != a.m_t; }
+
+std::istream& TimePoint::parse(std::istream& is)
+{
+    auto fromTime = Clock::from_time_t(timeFromISO(is));
+    m_t = fromTime;
+    return is;
+}
+
+TimePoint& TimePoint::parse(const std::string& str)
+{
+    std::stringstream is(str);
+    parse(is);
+    return *this;
+}
+
+std::ostream& TimePoint::format(std::ostream& os, std::string formatStr) const
+{
+    // Temporary conversion from int to system_clock
+    auto tt = Clock::to_time_t(m_t);
+    os << std::put_time(std::gmtime(&tt), formatStr.c_str());
+    return os;
+}
+
+std::string TimePoint::format(std::string formatStr) const
+{
+    std::stringstream ss;
+    format(ss, formatStr);
+    return ss.str();
+}
+
 std::tm& tmDoy(std::tm& tm)
 {
-    int month0th[] = { 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334 };
-    bool isLeap = ((tm.tm_year % 4 == 0) && (tm.tm_year % 100 != 0)) || (tm.tm_year % 400 == 0);
-    int bissextile = (isLeap && tm.tm_mon >= 2) ? 1 : 0;
-    tm.tm_yday = month0th[tm.tm_mon] + tm.tm_mday + bissextile;
+    int common0th[] = { -1, 30, 58, 89, 119, 150, 180, 211, 242, 272, 303, 333 };
+    int leap0th[] =   { -1, 30, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334 };
+    int trueYear = tm.tm_year + tmEpochYear;
+    bool isLeap = ((trueYear % 4 == 0) && (trueYear % 100 != 0)) || (trueYear % 400 == 0);
+    int* zerothArray = isLeap ? leap0th : common0th;
+    tm.tm_yday = zerothArray[tm.tm_mon] + tm.tm_mday;
     return tm;
+}
+
+const int TimePoint::year() const
+{
+    return gmtime()->tm_year + tmEpochYear;
+}
+const size_t TimePoint::month() const
+{
+    return gmtime()->tm_mon + 1;
+}
+const size_t TimePoint::day() const
+{
+    return gmtime()->tm_mday;
+}
+const size_t TimePoint::doy() const
+{
+    return gmtime()->tm_yday + 1;
+}
+const size_t TimePoint::hour() const
+{
+    return gmtime()->tm_hour;
+}
+const size_t TimePoint::minute() const
+{
+    return gmtime()->tm_min;
+}
+const double TimePoint::second() const
+{
+    return gmtime()->tm_sec;
 }
 
 std::time_t mkgmtime(std::tm* tm, bool recalculateDoy)
@@ -40,16 +123,23 @@ std::time_t mkgmtime(std::tm* tm, bool recalculateDoy)
     std::time_t sum = tm->tm_sec;
     sum += tm->tm_min * minuteSeconds;
     sum += tm->tm_hour * hourSeconds;
-    sum += (tm->tm_yday - 1) * daySeconds;
-    int year = tmEpochYear + tm->tm_year;
-    std::time_t unixYear = year - unixEpochYear;
-    sum += unixYear * yearSeconds;
-
-    // Handle the effect of leap days on the first day of the year. Proleptic Gregorian.
-    int julianLeapDays = (year - 1) / 4 - (unixEpochYear - 1) / 4;
-    sum += julianLeapDays * daySeconds;
-    // Skipped Gregorian leap days
-    sum += (julianGregorianShiftDays(year) - julianGregorianShiftDays(unixEpochYear)) * daySeconds;
+    sum += tm->tm_yday * daySeconds;
+    const int year = tmEpochYear + tm->tm_year;
+    // Start of the Gregorian cycle containing the 20th century
+    static const int gCycleStart = 1600;
+    static const int gCycleLenYr = 400;
+    static const int jCycleLenYr = 4;
+    static const int jCycleLenDy = 365 * jCycleLenYr + 1;
+    static const int gCycleLenDy = gCycleLenYr / jCycleLenYr * jCycleLenDy - 3;
+    const int gregorianCycle = year / gCycleLenYr - gCycleStart / gCycleLenYr;
+    const int gCycleYear = year - gCycleStart;
+    const int deltaDay = gCycleYear / 100;
+    const int startJCycleDays = gCycleYear / jCycleLenYr * jCycleLenDy - deltaDay;
+    const int jCycleYear = gCycleYear % jCycleLenYr;
+    // (i + 2)/3, when trucated, gets the correct extra day 0->0, 1->1, 2->1, 3->1
+    const int startYearDays = startJCycleDays + jCycleYear * 365 + (jCycleYear + 2) / 3;
+    static const int epochDays = 135140;
+    sum += (startYearDays  - epochDays) * daySeconds;
 
     return sum;
 }

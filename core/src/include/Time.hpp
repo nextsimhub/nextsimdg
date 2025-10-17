@@ -180,69 +180,43 @@ public:
     TimePoint(const TimePoint&, const Duration&);
 
     //! Calculate the Duration between two TimePoints.
-    Duration operator-(const TimePoint& a) const { return Duration(m_t - a.m_t); }
+    Duration operator-(const TimePoint& a) const;
     //! Add-assign a Duration to this TimePoint (now + 7 days = next week).
-    TimePoint& operator+=(const Duration& d)
-    {
-        m_t += d.m_d;
-        return *this;
-    }
+    TimePoint& operator+=(const Duration& d);
     //! Subtract-assign a Duration from this TimePoint (now - 7 days = last week).
-    TimePoint& operator-=(const Duration& d)
-    {
-        m_t -= d.m_d;
-        return *this;
-    }
+    TimePoint& operator-=(const Duration& d);
     //! Add a Duration to a TimePoint and return the new TimePoint.
-    TimePoint operator+(const Duration& d) const
-    {
-        TimePoint t2(*this);
-        return t2 += d;
-    }
+    TimePoint operator+(const Duration& d) const;
 
     // Compare TimePoints.
-    bool operator<=(const TimePoint& a) const { return m_t <= a.m_t; }
-    bool operator<(const TimePoint& a) const { return m_t < a.m_t; }
-    bool operator>=(const TimePoint& a) const { return m_t >= a.m_t; }
-    bool operator>(const TimePoint& a) const { return m_t > a.m_t; }
-    bool operator==(const TimePoint& a) const { return m_t == a.m_t; }
-    bool operator!=(const TimePoint& a) const { return m_t != a.m_t; }
+    bool operator<=(const TimePoint& a) const;
+    bool operator<(const TimePoint& a) const;
+    bool operator>=(const TimePoint& a) const;
+    bool operator>(const TimePoint& a) const;
+    bool operator==(const TimePoint& a) const;
+    bool operator!=(const TimePoint& a) const;
 
     //! Set this TimePoint by parsing the characters in an istream as an ISO 8601 date.
-    std::istream& parse(std::istream& is)
-    {
-        auto fromTime = Clock::from_time_t(timeFromISO(is));
-        m_t = fromTime;
-        return is;
-    }
+    std::istream& parse(std::istream& is);
 
     //! Set this TimePoint by parsing a string as an ISO 8601 date.
-    TimePoint& parse(const std::string& str)
-    {
-        std::stringstream is(str);
-        parse(is);
-        return *this;
-    }
+    TimePoint& parse(const std::string& str);
 
     //! Print this TimePoint as a formatted date to an ostream.
-    std::ostream& format(std::ostream& os, std::string formatStr = ymdhmsFormat) const
-    {
-        // Temporary conversion from int to system_clock
-        auto tt = Clock::to_time_t(m_t);
-        os << std::put_time(std::gmtime(&tt), formatStr.c_str());
-        return os;
-    }
+    std::ostream& format(std::ostream& os, std::string formatStr = ymdhmsFormat) const;
 
     //! Return the formatted string representation of this TimePoint.
-    std::string format(std::string formatStr = ymdhmsFormat) const
-    {
-        std::stringstream ss;
-        format(ss, formatStr);
-        return ss.str();
-    }
+    std::string format(std::string formatStr = ymdhmsFormat) const;
 
     std::tm* gmtime() const;
 
+    const int year() const; // Common era year
+    const size_t month() const; // Month of the year, with January = 1
+    const size_t day() const; // Day of the month
+    const size_t doy() const; // Day of the year, with 1st January = 1, 1st March = 59 or 60
+    const size_t hour() const; // Hour part of the time of day
+    const size_t minute() const; // Minute part of the time of day
+    const double second() const; // Second part of the time of day
     static const std::string ymdFormat;
     static const std::string doyFormat;
     static const std::string ymdhmsFormat;
