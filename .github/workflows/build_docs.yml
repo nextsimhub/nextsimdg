@@ -38,7 +38,8 @@ jobs:
 
     - name: Build the docs
       run: |
-          ./scripts/build-docs.sh
+          cp scripts/build-docs.sh .
+          ./build-docs.sh
 
     # tmate can be used to get an interactive ssh session to the GitHub runner
     # for debugging actions. See
@@ -65,7 +66,8 @@ jobs:
 
     - name: Build the docs
       run: |
-          ./scripts/build-docs.sh
+          cp scripts/build-docs.sh .
+          ./build-docs.sh
 
     - name: Deploy to GitHub Pages
       if: success() && (github.ref == 'refs/heads/main')
