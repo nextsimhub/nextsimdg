@@ -30,7 +30,6 @@ jobs:
 
   # Build Docker container on latest Ubuntu OS
   docker:
-    name: Build Docker container
     runs-on: ubuntu-latest
     timeout-minutes: 120
     permissions:

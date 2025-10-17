@@ -67,7 +67,6 @@ jobs:
 
   # Apply GitHub Actions linter, zizmor
   zizmor:
-    name: zizmor
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
