@@ -1,31 +1,39 @@
+# Workflow for checking the formatting of various file types
 name: Check formatting
 
 on:
+  # Trigger the workflow upon merging into main or develop
   push:
     branches: [ main, develop ]
+
+  # Trigger the workflow whenever commits are pushed to an open PR that changes one of the file types listed
   pull_request:
     paths:
-      - '.github/workflows/linting.yml'
+      - '.github/workflows/*.yml'
       - '**.cpp'
       - '**.hpp'
       - '**.py'
       - '**CMakeLists.txt'
+
+  # Trigger the workflow when an open PR receives a review
   pull_request_review:
     branches: [ main, develop ]
 
+# Restrict default permissions
 permissions: {}
 
 jobs:
+
+  # Linting for C++, Python, and CMake
   linting:
     runs-on: ubuntu-latest
-
     timeout-minutes: 5
-
     steps:
     - uses: actions/checkout@v2
       with:
         persist-credentials: false
 
+    # Apply C++ formatter, clang-format
     - name: clang-format
       run: |
         sudo apt update
@@ -37,6 +45,7 @@ jobs:
           cd -
         done
 
+    # Apply Python formatter, Ruff
     - name: ruff
       if: always()
       run: |
@@ -45,6 +54,7 @@ jobs:
         ruff format --diff ./
         ruff check --diff ./
 
+    # Apply CMake linter, cmake-lint
     - name: cmake-lint
       run: |
         pip install cmakelang
@@ -54,6 +64,7 @@ jobs:
   zizmor:
     name: zizmor
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     permissions:
       security-events: write
     steps:

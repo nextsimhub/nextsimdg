@@ -1,4 +1,5 @@
-name: compile code and tests
+# Workflow for compiling nextSIM-DG and running the tests under various configurations
+name: Test suite
 
 on:
   # if you wish to skip running CI please don't change this section, instead
@@ -12,38 +13,39 @@ on:
   # Note: You will not be able to merge into develop or main without running CI. To run CI either:
   # - edit the last commit message using `git commit --amend` and remove the tag "[skip ci]" or,
   # - create a new commit without a "[skip ci]" tag
+
+  # Trigger the workflow upon merging into main or develop
   push:
     branches: [ main, develop ]
+
+  # Trigger the workflow whenever commits are pushed to an open PR that changes one of the file types listed
   pull_request:
     paths:
       - '.github/workflows/test_suite.yml'
-      - 'core/*.sh'
-      - 'dynamics/*.sh'
-      - 'run/*.sh'
-      - 'test/*.sh'
       - '**.cdl'
       - '**.cfg'
       - '**.cpp'
       - '**.hpp'
       - '**.py'
+      - '**.sh'
       - '**.xml'
       - '**CMakeLists.txt'
+
+  # Trigger the workflow when an open PR receives a review
   pull_request_review:
     branches: [ main, develop ]
 
+# Restrict default permissions
 permissions: {}
 
 jobs:
 
+  # Serial tests on latest Ubuntu OS
   test-ubuntu-serial:
-
     runs-on: ubuntu-latest
-
     timeout-minutes: 10
-
     container:
       image: ghcr.io/nextsimhub/nextsimdg-dev-env:latest
-
     steps:
     - uses: actions/checkout@v2
       with:
@@ -82,15 +84,12 @@ jobs:
         ./run_test_error_handling_test.sh python3
         cd -
 
+  # MPI tests on latest Ubuntu OS without XIOS support
   test-ubuntu-mpi-noxios:
-
     runs-on: ubuntu-latest
-
     timeout-minutes: 10
-
     container:
       image: ghcr.io/nextsimhub/nextsimdg-dev-env:latest
-
     steps:
     - uses: actions/checkout@v2
       with:
@@ -132,15 +131,12 @@ jobs:
         (cd core/test && wget "ftp://ftp.nersc.no/nextsim/netCDF/partition_metadata_1.nc")
         ctest -V
 
+  # MPI tests on latest Ubuntu OS with XIOS support
   test-ubuntu-mpi-xios:
-
     runs-on: ubuntu-latest
-
     timeout-minutes: 10
-
     container:
       image: ghcr.io/nextsimhub/nextsimdg-dev-env:latest
-
     steps:
     - uses: actions/checkout@v2
       with:
@@ -182,16 +178,15 @@ jobs:
         (cd core/test && wget "ftp://ftp.nersc.no/nextsim/netCDF/partition_metadata_1.nc")
         ctest -V
 
+  # Serial tests on latest Mac OS
   test-mac-serial:
-
     runs-on: macos-latest
-
     timeout-minutes: 10
-
     steps:
     - uses: actions/checkout@v2
       with:
         persist-credentials: false
+
     - name: installs
       run: |
         brew install boost
@@ -221,6 +216,7 @@ jobs:
         # added Python_ROOT_DIR to help cmake find correct Python in the mac VM
         cmake -DCMAKE_BUILD_TYPE=Release -DENABLE_MPI=OFF -DENABLE_XIOS=OFF -DPython_ROOT_DIR=/Library/Frameworks/Python.framework/Versions/Current/bin ..
         make -j 4
+
     - name: run serial tests
       run: |
         . $HOME/nextsim/bin/activate
