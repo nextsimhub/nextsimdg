@@ -18,8 +18,8 @@ template <int DG> class KokkosSlopeLimiter;
 template <int DG> class KokkosDGTransport;
 
 namespace Interpolations {
-template <int DG, int CG> class KokkosCG2DGInterpolator;
-template <int CG, int DG> class KokkosDG2CGInterpolator;
+    template <int DG, int CG> class KokkosCG2DGInterpolator;
+    template <int CG, int DG> class KokkosDG2CGInterpolator;
 }
 
 template <int DG> constexpr int NGP_DG = ((DG == 8) || (DG == 6)) ? 3 : (DG == 3 ? 2 : -1);
@@ -73,6 +73,9 @@ public:
 
     void prepareAdvection() override;
     void advectDynamicsFields(double timestep) override;
+    DGVector<DGadvection>& advectDGVField(double timestep, DGVector<DGadvection>& field,
+        double lowerLimit = -std::numeric_limits<double>::infinity(),
+        double upperLimit = std::numeric_limits<double>::infinity()) override;
     void advectDGVFieldDevice(FloatType timestep, const DeviceViewAdvect& field,
         FloatType lowerLimit = -std::numeric_limits<FloatType>::infinity(),
         FloatType upperLimit = std::numeric_limits<FloatType>::infinity());
@@ -80,7 +83,7 @@ public:
     void updateGradientOfSeaSurfaceHeight();
 
     // cuda requires these functions to be public but they should only be needed by the concrete
-    // dynamics (like protected)
+    // dynamics kernel (like protected)
     static void prepareIterationDevice(const DeviceViewCG& cgHDevice, const DeviceViewCG& cgADevice,
         const ConstDeviceViewAdvect& hiceDevice, const ConstDeviceViewAdvect& ciceDevice,
         const Interpolations::KokkosDG2CGInterpolator<CGdegree, DGadvection>& dG2CGInterpolator);

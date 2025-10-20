@@ -156,8 +156,11 @@ ModelArray KokkosCGDynamicsKernel<DGadvection>::getDG0Data(const std::string& na
 /*************************************************************/
 template <int DGadvection> void KokkosCGDynamicsKernel<DGadvection>::prepareAdvection()
 {
-    CGDynamicsKernel<DGadvection>::prepareAdvection();
+    static KokkosTimer<DETAILED_MEASUREMENTS> timerPrepAdvection("prepareAdvection");
+    //CGDynamicsKernel<DGadvection>::prepareAdvection();
+    timerPrepAdvection.start();
     dGTransportDevice->prepareAdvection(uDevice, vDevice);
+    timerPrepAdvection.stop();
 }
 
 /*************************************************************/
@@ -171,8 +174,25 @@ void KokkosCGDynamicsKernel<DGadvection>::advectDynamicsFields(double timestep)
 
 /*************************************************************/
 template <int DGadvection>
+DGVector<DGadvection>& KokkosCGDynamicsKernel<DGadvection>::advectDGVField(
+    double timestep, DGVector<DGadvection>& field, double lowerLimit, double upperLimit)
+{
+    static KokkosTimer<DETAILED_MEASUREMENTS> timer("advectExternalGPU");
+
+    timer.start();
+    auto fieldViewHost = makeKokkosHostView(field);
+    Kokkos::deep_copy(this->tempDataAdvectDevice, fieldViewHost);
+    advectDGVFieldDevice(timestep, this->tempDataAdvectDevice, lowerLimit, upperLimit);
+    Kokkos::deep_copy(fieldViewHost, this->tempDataAdvectDevice);
+    timer.stop();
+
+    return field;
+}
+
+/*************************************************************/
+template <int DGadvection>
 void KokkosCGDynamicsKernel<DGadvection>::advectDGVFieldDevice(
-    double timestep, const DeviceViewAdvect& field, double lowerLimit, double upperLimit)
+    double timestep, const DeviceViewAdvect& field, FloatType lowerLimit, FloatType upperLimit)
 {
     dGTransportDevice->step(timestep, field);
 
@@ -180,11 +200,11 @@ void KokkosCGDynamicsKernel<DGadvection>::advectDGVFieldDevice(
     bool limitSlope = false;
 
     // First, limit minimum and/or maximum of the average component
-    if (lowerLimit > -std::numeric_limits<double>::infinity()) {
+    if (lowerLimit > -std::numeric_limits<FloatType>::infinity()) {
         slopeLimiterDevice->limitMin(field, lowerLimit);
         limitSlope = true;
     }
-    if (upperLimit < std::numeric_limits<double>::infinity()) {
+    if (upperLimit < std::numeric_limits<FloatType>::infinity()) {
         slopeLimiterDevice->limitMax(field, upperLimit);
         limitSlope = true;
     }
