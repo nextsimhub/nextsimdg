@@ -1,3 +1,7 @@
+/*!
+ * @author  Robert Jendersie <robert.jendersie@ovgu.de>
+ */
+
 #include "include/KokkosSlopeLimiter.hpp"
 
 namespace Nextsim {
@@ -30,12 +34,13 @@ KokkosSlopeLimiter<DG>::KokkosSlopeLimiter(
     }
 }
 
+/*************************************************************/
 template <int DG>
 void KokkosSlopeLimiter<DG>::initMinMax(DeviceViewCG1& minV, DeviceViewCG1& maxV,
     const ConstDeviceViewDG& phi, DeviceIndex nx, DeviceIndex ny, DeviceIndex comp)
 {
     // relative indices of the four vertices in minV/maxV
-    const std::array<DeviceIndex, 4> cgIndices = { 0, 1, nx + 1, nx + 2 };
+    const Kokkos::Array<DeviceIndex, 4> cgIndices = { 0, 1, nx + 1, nx + 2 };
 
     // CPU version uses +-1.e9 but it should probably be min/max
     Kokkos::deep_copy(minV, std::numeric_limits<FloatType>::max());
@@ -56,6 +61,7 @@ void KokkosSlopeLimiter<DG>::initMinMax(DeviceViewCG1& minV, DeviceViewCG1& maxV
         });
 }
 
+/*************************************************************/
 // truncates the averages by min or max value
 template <int DG> void KokkosSlopeLimiter<DG>::limitMax(const DeviceViewDG& phi, FloatType max)
 {
@@ -72,9 +78,10 @@ template <int DG> void KokkosSlopeLimiter<DG>::limitMin(const DeviceViewDG& phi,
         KOKKOS_LAMBDA(const DeviceIndex c) { phi(c, 0) = Kokkos::max(min, phi(c, 0)); });
 }
 
+/*************************************************************/
 using ConstDeviceViewCG1 = ConstKokkosDeviceView<CGVector<1>>;
 
-KOKKOS_IMPL_FUNCTION inline FloatType computeLimit(FloatType midValue,
+KOKKOS_IMPL_FUNCTION static FloatType computeLimit(FloatType midValue,
     const Kokkos::Array<FloatType, 4>& vertexValues, const ConstDeviceViewCG1& _min,
     const ConstDeviceViewCG1& _max, const Kokkos::Array<DeviceIndex, 4>& cgIndices, DeviceIndex cgi)
 {
@@ -96,7 +103,7 @@ KOKKOS_IMPL_FUNCTION inline FloatType computeLimit(FloatType midValue,
 }
 
 template <int DG>
-void KokkosSlopeLimiter<DG>::computeAlphas(const DeviceViewDG& alpha, const ConstDeviceViewDG& phi,
+void KokkosSlopeLimiter<DG>::computeAlphas(const DeviceViewDG1& alpha, const ConstDeviceViewDG& phi,
     const ConstDeviceViewCG1& _min, const ConstDeviceViewCG1& _max, DeviceIndex nx, DeviceIndex ny)
 {
     // relative indices of the four vertices in minV/maxV
@@ -206,7 +213,7 @@ void KokkosSlopeLimiter<DG>::limitHigherOrder(
         });
 }
 
-template <int DG> void KokkosSlopeLimiter<DG>::limit(DeviceViewDG& phi)
+template <int DG> void KokkosSlopeLimiter<DG>::limit(const DeviceViewDG& phi)
 {
     if constexpr (DG == 1) // no limiting for dG0
         return;
@@ -226,5 +233,7 @@ template <int DG> void KokkosSlopeLimiter<DG>::limit(DeviceViewDG& phi)
 
 	limitHigherOrder(phi, alpha, alphaX);
 }
+
+template class KokkosSlopeLimiter<DGCOMP>;
 
 }

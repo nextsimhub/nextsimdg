@@ -2,8 +2,8 @@
  * @author  Robert Jendersie <robert.jendersie@ovgu.de>
  */
 
-#ifndef __SLOPELIMITER_HPP
-#define __SLOPELIMITER_HPP
+#ifndef __KOKKOSSLOPELIMITER_HPP
+#define __KOKKOSSLOPELIMITER_HPP
 
 #include "KokkosMesh.hpp"
 #include "KokkosUtils.hpp"
@@ -34,10 +34,13 @@ template <int DG> class KokkosSlopeLimiter {
     DeviceViewDG1 alpha, alphaX, alphaY;
 
 public:
-    KokkosSlopeLimiter<DG>(const ParametricMesh& _mesh, const KokkosMesh& kokkosMesh);
+    KokkosSlopeLimiter(const ParametricMesh& _mesh, const KokkosMesh& kokkosMesh);
 
     // performs the vertex-based limiting
-    void limit(DeviceViewDG& phi);
+    void limit(const DeviceViewDG& phi);
+
+    static void limitMax(const DeviceViewDG& phi, FloatType max);
+    static void limitMin(const DeviceViewDG& phi, FloatType min);
 
     // ************************************************************* //
     // implementation (treat as protected)
@@ -45,10 +48,7 @@ public:
     static void initMinMax(DeviceViewCG1& minV, DeviceViewCG1& maxV, const ConstDeviceViewDG& phi,
         DeviceIndex nx, DeviceIndex ny, DeviceIndex comp = 0);
 
-    static void limitMax(const DeviceViewDG& phi, FloatType max);
-    static void limitMin(const DeviceViewDG& phi, FloatType min);
-
-    static void computeAlphas(const DeviceViewDG& alpha, const ConstDeviceViewDG& phi,
+    static void computeAlphas(const DeviceViewDG1& alpha, const ConstDeviceViewDG& phi,
         const ConstDeviceViewCG1& _min, const ConstDeviceViewCG1& _max, DeviceIndex nx,
         DeviceIndex ny);
 

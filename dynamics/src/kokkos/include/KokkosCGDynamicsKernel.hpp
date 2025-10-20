@@ -8,11 +8,19 @@
 #define KOKKOSCGDYNAMICSKERNEL_HPP
 
 #include "../../include/CGDynamicsKernel.hpp"
-#include "KokkosDGTransport.hpp"
-#include "KokkosInterpolations.hpp"
-#include "KokkosMesh.hpp"
+#include "KokkosUtils.hpp"
 
 namespace Nextsim {
+
+// predeclarations for pimpl
+class KokkosMesh;
+template <int DG> class KokkosSlopeLimiter;
+template <int DG> class KokkosDGTransport;
+
+namespace Interpolations {
+template <int DG, int CG> class KokkosCG2DGInterpolator;
+template <int CG, int DG> class KokkosDG2CGInterpolator;
+}
 
 template <int DG> constexpr int NGP_DG = ((DG == 8) || (DG == 6)) ? 3 : (DG == 3 ? 2 : -1);
 
@@ -56,14 +64,18 @@ public:
         typename ParametricMomentumMap<CGdegree, DGadvection>::GaussMapAdvectMatrix>;
 
     KokkosCGDynamicsKernel(const DynamicsParameters& params);
+    // still defaulted but explicitly defined in the source file to allow for pimpl with unique_ptr
+    ~KokkosCGDynamicsKernel() override;
 
     void initialise(const ModelArray& coords, bool isSpherical, const ModelArray& mask) override;
 
     ModelArray getDG0Data(const std::string& name) const override;
 
     void prepareAdvection() override;
-
-    void advectAndLimit(const FloatType dt);
+    virtual void advectDynamicsFields(double timestep) override;
+    void advectDGVFieldDevice(FloatType timestep, const DeviceViewAdvect& field,
+        FloatType lowerLimit = -std::numeric_limits<FloatType>::infinity(),
+        FloatType upperLimit = std::numeric_limits<FloatType>::infinity());
 
     void updateGradientOfSeaSurfaceHeight();
 
@@ -208,6 +220,7 @@ protected:
     std::unique_ptr<Interpolations::KokkosDG2CGInterpolator<CGdegree, DGadvection>>
         dG2CGAdvectInterpolator;
     std::unique_ptr<KokkosDGTransport<DGadvection>> dGTransportDevice;
+    std::unique_ptr<KokkosSlopeLimiter<DGadvection>> slopeLimiterDevice;
 };
 
 }

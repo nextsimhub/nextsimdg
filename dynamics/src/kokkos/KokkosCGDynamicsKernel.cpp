@@ -5,7 +5,11 @@
  */
 
 #include "include/KokkosCGDynamicsKernel.hpp"
+#include "include/KokkosDGTransport.hpp"
+#include "include/KokkosInterpolations.hpp"
+#include "include/KokkosMesh.hpp"
 #include "include/KokkosDGLimit.hpp"
+#include "include/KokkosSlopeLimiter.hpp"
 #include "include/KokkosTimer.hpp"
 
 namespace Nextsim {
@@ -15,6 +19,10 @@ KokkosCGDynamicsKernel<DGadvection>::KokkosCGDynamicsKernel(const DynamicsParame
     : CGDynamicsKernel<DGadvection>(params)
 {
 }
+
+// defined explicitly to enable pimpl with unique ptr
+template <int DGadvection>
+KokkosCGDynamicsKernel<DGadvection>::~KokkosCGDynamicsKernel() = default;
 
 /*************************************************************/
 template <int DGadvection>
@@ -111,6 +119,8 @@ void KokkosCGDynamicsKernel<DGadvection>::initialise(
             *this->smesh);
     dGTransportDevice = std::make_unique<KokkosDGTransport<DGadvection>>(
         *this->smesh, *this->meshData, *cG2DGAdvectInterpolator);
+    slopeLimiterDevice
+        = std::make_unique<KokkosSlopeLimiter<DGadvection>>(*this->smesh, *this->meshData);
 }
 
 /*************************************************************/
@@ -141,25 +151,44 @@ ModelArray KokkosCGDynamicsKernel<DGadvection>::getDG0Data(const std::string& na
 }
 
 /*************************************************************/
-template <int DGadvection>
-void KokkosCGDynamicsKernel<DGadvection>::prepareAdvection()
+template <int DGadvection> void KokkosCGDynamicsKernel<DGadvection>::prepareAdvection()
 {
     CGDynamicsKernel<DGadvection>::prepareAdvection();
+    dGTransportDevice->prepareAdvection(uDevice, vDevice);
 }
 
 /*************************************************************/
 template <int DGadvection>
-void KokkosCGDynamicsKernel<DGadvection>::advectAndLimit(const FloatType dt)
+void KokkosCGDynamicsKernel<DGadvection>::advectDynamicsFields(double timestep)
 {
-    dGTransportDevice->prepareAdvection(uDevice, vDevice);
-    //! Perform transport step
-    dGTransportDevice->step(dt, ciceDevice);
-    dGTransportDevice->step(dt, hiceDevice);
+    advectDGVFieldDevice(timestep, hiceDevice, 0.0);
+    advectDGVFieldDevice(timestep, ciceDevice, 0.0, 1.0);
+    //    advectDGVField(timestep, hsnow, 0.0);
+}
 
-    //! Gauss-point limiting
-    limitMax(ciceDevice, 1.0);
-    limitMin(ciceDevice, 0.0);
-    limitMin(hiceDevice, 0.0);
+/*************************************************************/
+template <int DGadvection>
+void KokkosCGDynamicsKernel<DGadvection>::advectDGVFieldDevice(
+    double timestep, const DeviceViewAdvect& field, double lowerLimit, double upperLimit)
+{
+    dGTransportDevice->step(timestep, field);
+
+    //! Slope Limiting
+    bool limitSlope = false;
+
+    // First, limit minimum and/or maximum of the average component
+    if (lowerLimit > -std::numeric_limits<double>::infinity()) {
+        slopeLimiterDevice->limitMin(field, lowerLimit);
+        limitSlope = true;
+    }
+    if (upperLimit < std::numeric_limits<double>::infinity()) {
+        slopeLimiterDevice->limitMax(field, upperLimit);
+        limitSlope = true;
+    }
+
+    // Then prevent new local minima and maxima
+    if (limitSlope)
+        slopeLimiterDevice->limit(field);
 }
 
 /*************************************************************/

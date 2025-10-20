@@ -91,7 +91,7 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
 
     const FloatType dt = tst.step.seconds();
     timerAdvection.start();
-    this->advectAndLimit(dt);
+    this->advectDynamicsFields(dt);
 
     // Transport and limits for damage
     this->dGTransportDevice->step(dt, damageDevice);

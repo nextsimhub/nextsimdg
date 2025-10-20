@@ -6,6 +6,7 @@
  */
 
 #include "include/KokkosMEVPDynamicsKernel.hpp"
+#include "include/KokkosMesh.hpp"
 #include "include/KokkosTimer.hpp"
 #include <include/constants.hpp>
 
@@ -75,7 +76,7 @@ void KokkosMEVPDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
     timerUpload.stop();
 
     timerAdvection.start();
-    this->advectAndLimit(tst.step.seconds());
+    this->advectDynamicsFields(tst.step.seconds());
     timerAdvection.stop();
 
     timerPrepIt.start();
