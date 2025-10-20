@@ -201,6 +201,8 @@ protected:
     HostViewAdvect hiceHost;
     DeviceViewAdvect ciceDevice;
     HostViewAdvect ciceHost;
+    DeviceViewAdvect hsnowDevice;
+    HostViewAdvect hsnowHost;
 
     // constant matrices also need to be available on the GPU
     PSIAdvectView PSIAdvectDevice;

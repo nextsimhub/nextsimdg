@@ -86,6 +86,9 @@ void KokkosCGDynamicsKernel<DGadvection>::initialise(
         = makeKokkosDualView("hice", static_cast<DGVector<DGadvection>&>(this->hice));
     std::tie(ciceHost, ciceDevice)
         = makeKokkosDualView("cice", static_cast<DGVector<DGadvection>&>(this->cice));
+    std::tie(hsnowHost, hsnowDevice)
+        = makeKokkosDualView("hsnow", static_cast<DGVector<DGadvection>&>(this->hsnow));
+
 
     PSIAdvectDevice = makeKokkosDeviceView(
         "PSI<DGadvection, NGP>", PSI<DGadvection, NGP>, MakeViewOptions::DEVICE_COPY);
@@ -163,7 +166,7 @@ void KokkosCGDynamicsKernel<DGadvection>::advectDynamicsFields(double timestep)
 {
     advectDGVFieldDevice(timestep, hiceDevice, 0.0);
     advectDGVFieldDevice(timestep, ciceDevice, 0.0, 1.0);
-    //    advectDGVField(timestep, hsnow, 0.0);
+    advectDGVFieldDevice(timestep, hsnowDevice, 0.0);
 }
 
 /*************************************************************/

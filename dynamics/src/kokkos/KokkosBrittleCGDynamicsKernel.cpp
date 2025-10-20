@@ -85,6 +85,7 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
 
     Kokkos::deep_copy(execSpace, this->hiceDevice, this->hiceHost);
     Kokkos::deep_copy(execSpace, this->ciceDevice, this->ciceHost);
+    Kokkos::deep_copy(execSpace, this->hsnowDevice, this->hsnowHost);
 
     Kokkos::deep_copy(execSpace, this->damageDevice, this->damageHost);
     timerUpload.stop();
@@ -169,6 +170,7 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
 
     Kokkos::deep_copy(execSpace, this->hiceHost, this->hiceDevice);
     Kokkos::deep_copy(execSpace, this->ciceHost, this->ciceDevice);
+    Kokkos::deep_copy(execSpace, this->hsnowHost, this->hsnowDevice);
     Kokkos::deep_copy(execSpace, this->damageHost, this->damageDevice);
     /*    Kokkos::deep_copy(execSpace, this->s11Host, this->s11Device);
         Kokkos::deep_copy(execSpace, this->s12Host, this->s12Device);
