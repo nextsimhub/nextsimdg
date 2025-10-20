@@ -72,7 +72,7 @@ public:
     ModelArray getDG0Data(const std::string& name) const override;
 
     void prepareAdvection() override;
-    virtual void advectDynamicsFields(double timestep) override;
+    void advectDynamicsFields(double timestep) override;
     void advectDGVFieldDevice(FloatType timestep, const DeviceViewAdvect& field,
         FloatType lowerLimit = -std::numeric_limits<FloatType>::infinity(),
         FloatType upperLimit = std::numeric_limits<FloatType>::infinity());

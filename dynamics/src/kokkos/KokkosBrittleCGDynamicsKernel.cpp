@@ -34,19 +34,39 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::initialise(
         *this->smesh, *this->meshData, *cG2DGStressInterpolator);
     stressTransportDevice->setTimeSteppingScheme(TimeSteppingScheme::RK2);
 
-    damage.resize_by_mesh(*this->smesh);
     avgU.resize_by_mesh(*this->smesh);
     avgV.resize_by_mesh(*this->smesh);
-    damage.zero();
+
+    // Set the fields to zero. Prognostic fields will be filled from the restart file.
     avgU.zero();
     avgV.zero();
 
     std::tie(avgUHost, avgUDevice) = makeKokkosDualView("avgU", this->avgU);
     std::tie(avgVHost, avgVDevice) = makeKokkosDualView("avgV", this->avgV);
 
-    std::tie(damageHost, damageDevice) = makeKokkosDualView("damage", this->damage);
+    std::tie(damageHost, damageDevice)
+        = makeKokkosDualView("damage", static_cast<DGVector<DGadvection>&>(this->damage));
 }
 
+/*************************************************************/
+template <int DGadvection>
+void KokkosBrittleCGDynamicsKernel<DGadvection>::advectDynamicsFields(double timestep)
+{
+    static KokkosTimer<DETAILED_MEASUREMENTS> timerAdvectStress("advectStressGPU");
+
+    Base::advectDynamicsFields(timestep);
+    Base::advectDGVFieldDevice(timestep, damageDevice, 1e-12, 1.0);
+
+    //! Perform transport step for stress
+    timerAdvectStress.start();
+    stressTransportDevice->prepareAdvection(avgUDevice, avgVDevice);
+    stressTransportDevice->step(timestep, this->s11Device);
+    stressTransportDevice->step(timestep, this->s12Device);
+    stressTransportDevice->step(timestep, this->s22Device);
+    timerAdvectStress.stop();
+}
+
+/*************************************************************/
 template <typename Mat> void compare(const std::string& name, const Mat& m1, const Mat& m2)
 {
     FloatType normRef = m1.norm();
@@ -66,7 +86,6 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
     static KokkosTimer<DETAILED_MEASUREMENTS> timerBoundary("bcGPU");
     static KokkosTimer<true> timerUpload("uploadGPU");
     static KokkosTimer<true> timerDownload("downloadGPU");
-    static KokkosTimer<DETAILED_MEASUREMENTS> timerAdvectStress("advectStressGPU");
     static KokkosTimer<true> timerAdvection("advectionGPU");
     static KokkosTimer<true> timerPrepIt("prepItGPU");
 
@@ -93,19 +112,6 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
     const FloatType dt = tst.step.seconds();
     timerAdvection.start();
     this->advectDynamicsFields(dt);
-
-    // Transport and limits for damage
-    this->dGTransportDevice->step(dt, damageDevice);
-    limitMax(damageDevice, 1.0);
-    limitMin(damageDevice, 1e-12);
-
-    //! Perform transport step for stress
-    timerAdvectStress.start();
-    stressTransportDevice->prepareAdvection(avgUDevice, avgVDevice);
-    stressTransportDevice->step(dt, this->s11Device);
-    stressTransportDevice->step(dt, this->s12Device);
-    stressTransportDevice->step(dt, this->s22Device);
-    timerAdvectStress.stop();
     timerAdvection.stop();
 
     timerPrepIt.start();
@@ -186,20 +192,20 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::setData(
     const std::string& name, const ModelArray& data)
 {
     if (name == damageName) {
-        DGModelArray::ma2dg(data, damage);
+        throw std::runtime_error(std::string("Use setDGArray() to set the data for ") + name);
     } else {
         CGDynamicsKernel<DGadvection>::setData(name, data);
     }
 }
 
 template <int DGadvection>
-ModelArray KokkosBrittleCGDynamicsKernel<DGadvection>::getDG0Data(const std::string& name) const
+void KokkosBrittleCGDynamicsKernel<DGadvection>::setDGArray(
+    const std::string& name, ModelArray::DataType& dgData)
 {
     if (name == damageName) {
-        ModelArray data(ModelArray::Type::H);
-        return DGModelArray::dg2ma(damage, data);
+        damage = DGVectorHolder<DGadvection>(dgData);
     } else {
-        return KokkosCGDynamicsKernel<DGadvection>::getDG0Data(name);
+        CGDynamicsKernel<DGadvection>::setDGArray(name, dgData);
     }
 }
 

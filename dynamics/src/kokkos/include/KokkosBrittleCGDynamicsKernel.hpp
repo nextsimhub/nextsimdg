@@ -33,11 +33,13 @@ public:
 
     void initialise(const ModelArray& coords, bool isSpherical, const ModelArray& mask) override;
 
+    void advectDynamicsFields(double timestep) override;
+
     void update(const TimestepTime& tst) override;
 
     // expose additional fields
     void setData(const std::string& name, const ModelArray& data) override;
-    ModelArray getDG0Data(const std::string& name) const override;
+    void setDGArray(const std::string& name, ModelArray::DataType& dgData) override;
 
     static void updateMomentumDevice(const DeviceViewCG& uDevice, const DeviceViewCG& vDevice,
         const DeviceViewCG& avgUDevice, const DeviceViewCG& avgVDevice,
@@ -65,7 +67,7 @@ protected:
     CGVector<CGdegree> avgU;
     CGVector<CGdegree> avgV;
 
-    DGVector<DGadvection> damage;
+    DGVectorHolder<DGadvection> damage;
 
     const BBMParameters& params;
 
