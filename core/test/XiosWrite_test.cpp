@@ -138,7 +138,7 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     for (size_t j = 0; j < ny; ++j) {
         for (size_t i = 0; i < nx; ++i) {
             for (size_t d = 0; d < DGSTRESSCOMP; ++d) {
-                tice.components({ i, j })[d] = 2.0 * (d + DG * (i + nx * j));
+                tice.components({ i, j })[d] = 2.0 * (d + DGSTRESSCOMP * (i + nx * j));
             }
         }
     }

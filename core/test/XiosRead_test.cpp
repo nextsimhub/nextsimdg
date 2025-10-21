@@ -123,7 +123,7 @@ MPI_TEST_CASE("TestXiosRead", 2)
                 } else if (entry.first == ticeName) {
                     for (size_t d = 0; d < DGSTRESSCOMP; ++d) {
                         REQUIRE(entry.second.components({ i, j })[d]
-                            == doctest::Approx(2.0 * (d + DG * (i + nx * j))));
+                            == doctest::Approx(2.0 * (d + DGSTRESSCOMP * (i + nx * j))));
                     }
                 }
             }
