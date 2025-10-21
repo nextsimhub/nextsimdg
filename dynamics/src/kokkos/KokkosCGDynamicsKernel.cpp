@@ -128,24 +128,47 @@ void KokkosCGDynamicsKernel<DGadvection>::initialise(
 template <int DGadvection>
 ModelArray KokkosCGDynamicsKernel<DGadvection>::getDG0Data(const std::string& name) const
 {
-    HField data(ModelArray::Type::H);
     if (name == shearName) {
         computeShearDevice(tempDataAdvectDevice, e11Device, e12Device, e22Device, PSIStressDevice,
             meshData->landMaskDevice, iMJwPSIAdvectDevice);
         Kokkos::deep_copy(this->tempDataAdvectHost, this->tempDataAdvectDevice);
+        HField data(ModelArray::Type::H);
         return DGModelArray::dg2ma(tempDataAdvect, data);
     } else if (name == divergenceName) {
         computeTensorInvariantIDevice(tempDataDevice, e11Device, e12Device, e22Device);
         Kokkos::deep_copy(this->tempDataHost, this->tempDataDevice);
+        HField data(ModelArray::Type::H);
         return DGModelArray::dg2ma(tempData, data);
     } else if (name == sigmaIName) {
         computeTensorInvariantIDevice(tempDataDevice, s11Device, s12Device, s22Device);
         Kokkos::deep_copy(this->tempDataHost, this->tempDataDevice);
+        HField data(ModelArray::Type::H);
         return DGModelArray::dg2ma(tempData, data);
     } else if (name == sigmaIIName) {
         computeTensorInvariantIIDevice(tempDataDevice, s11Device, s12Device, s22Device);
         Kokkos::deep_copy(this->tempDataHost, this->tempDataDevice);
+        HField data(ModelArray::Type::H);
         return DGModelArray::dg2ma(tempData, data);
+    } else if (name == uName) {
+        (*cG2DGAdvectInterpolator)(tempDataAdvectDevice, uDevice);
+        Kokkos::deep_copy(tempDataAdvectHost, tempDataAdvectDevice);
+        ModelArray data(ModelArray::Type::U);
+        return DGModelArray::dg2ma(tempDataAdvect, data);
+    } else if (name == vName) {
+        (*cG2DGAdvectInterpolator)(tempDataAdvectDevice, vDevice);
+        Kokkos::deep_copy(tempDataAdvectHost, tempDataAdvectDevice);
+        ModelArray data(ModelArray::Type::V);
+        return DGModelArray::dg2ma(tempDataAdvect, data);
+    } else if (name == uIOStressName) {
+        (*cG2DGAdvectInterpolator)(tempDataAdvectDevice, uIceOceanStressDevice);
+        Kokkos::deep_copy(tempDataAdvectHost, tempDataAdvectDevice);
+        ModelArray data(ModelArray::Type::U);
+        return DGModelArray::dg2ma(tempDataAdvect, data);
+    } else if (name == vIOStressName) {
+        (*cG2DGAdvectInterpolator)(tempDataAdvectDevice, vIceOceanStressDevice);
+        Kokkos::deep_copy(tempDataAdvectHost, tempDataAdvectDevice);
+        ModelArray data(ModelArray::Type::V);
+        return DGModelArray::dg2ma(tempDataAdvect, data);
     } else {
         return CGDynamicsKernel<DGadvection>::getDG0Data(name);
     }

@@ -20,7 +20,7 @@ namespace Interpolations {
     public:
         KokkosCG2DGInterpolator(const ParametricMesh& smesh);
 
-        void operator()(KokkosDeviceView<DGVector<DG>>& dgDevice,
+        void operator()(const KokkosDeviceView<DGVector<DG>>& dgDevice,
             const ConstKokkosDeviceView<CGVector<CG>>& cgDevice) const;
 
     private:

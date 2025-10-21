@@ -45,7 +45,7 @@ namespace Interpolations {
     }
 
     template <int DG, int CG>
-    void KokkosCG2DGInterpolator<DG, CG>::operator()(KokkosDeviceView<DGVector<DG>>& dgDevice,
+    void KokkosCG2DGInterpolator<DG, CG>::operator()(const KokkosDeviceView<DGVector<DG>>& dgDevice,
         const ConstKokkosDeviceView<CGVector<CG>>& cgDevice) const
     {
         assert((CG * nx + 1) * (CG * ny + 1) == cgDevice.extent(0));
