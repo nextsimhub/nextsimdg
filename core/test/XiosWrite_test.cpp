@@ -81,14 +81,22 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     const size_t ny_glo = 2;
     const size_t nx = 2;
     const size_t ny = 2;
-    ModelArray::setDimension(ModelArray::Dimension::X, nx_glo, nx, 0);
-    ModelArray::setDimension(ModelArray::Dimension::Y, ny_glo, ny, 0);
-    ModelArray::setDimension(ModelArray::Dimension::XVERTEX, nx_glo + 1, nx + 1, 0);
-    ModelArray::setDimension(ModelArray::Dimension::YVERTEX, ny_glo + 1, ny + 1, 0);
+    size_t nx_start;
+    const size_t ny_start = 0;
+    const int rank = xiosHandler.getClientMPIRank();
+    if (rank == 0) {
+        nx_start = 0;
+    } else {
+        nx_start = nx_glo - nx;
+    }
+    ModelArray::setDimension(ModelArray::Dimension::X, nx_glo, nx, nx_start);
+    ModelArray::setDimension(ModelArray::Dimension::XVERTEX, nx_glo + 1, nx + 1, nx_start);
     ModelArray::setDimension(
-        ModelArray::Dimension::XCG, CGDEGREE * nx_glo + 1, CGDEGREE * nx + 1, 0);
+        ModelArray::Dimension::XCG, CGDEGREE * nx_glo + 1, CGDEGREE * nx + 1, CGDEGREE * nx_start);
+    ModelArray::setDimension(ModelArray::Dimension::Y, ny_glo, ny, ny_start);
+    ModelArray::setDimension(ModelArray::Dimension::YVERTEX, ny_glo + 1, ny + 1, ny_start);
     ModelArray::setDimension(
-        ModelArray::Dimension::YCG, CGDEGREE * ny_glo + 1, CGDEGREE * ny + 1, 0);
+        ModelArray::Dimension::YCG, CGDEGREE * ny_glo + 1, CGDEGREE * ny + 1, ny_start);
     ModelArray::setNComponents(ModelArray::Type::DG, DG);
     ModelArray::setNComponents(ModelArray::Type::DGSTRESS, DGSTRESSCOMP);
     ModelArray::setNComponents(ModelArray::Type::VERTEX, ModelArray::nCoords);
@@ -125,8 +133,6 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     }
     VertexField coordinates(ModelArray::Type::VERTEX);
     coordinates.resize();
-    int rank;
-    MPI_Comm_rank(test_comm, &rank);
     for (size_t j = 0; j < ny + 1; ++j) {
         for (size_t i = 0; i < nx + 1; ++i) {
             if (rank == 0) {
@@ -214,7 +220,7 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     REQUIRE(std::filesystem::exists("xios_test_output_20230317171100-20230317201059.nc"));
     REQUIRE(std::filesystem::exists("xios_test_output_20230317201100-20230317231059.nc"));
     REQUIRE(std::filesystem::exists("xios_test_diagnostic.nc"));
-    if (xiosHandler.getClientMPIRank() == 0) {
+    if (rank == 0) {
         std::filesystem::remove("xios_test_output_20230317171100-20230317201059.nc");
         std::filesystem::remove("xios_test_output_20230317201100-20230317231059.nc");
         std::filesystem::remove("xios_test_diagnostic.nc");

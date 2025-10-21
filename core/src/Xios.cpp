@@ -682,7 +682,7 @@ void Xios::affixModelMetadata()
                 }
                 auto dimName = dim.getName();
                 size_t localLength;
-                size_t start = 0;
+                size_t start;
                 if (dimType == ModelArray::Dimension::X) {
                     localLength = metadata.getLocalExtentX();
                     start = metadata.getLocalCornerX();
@@ -697,12 +697,13 @@ void Xios::affixModelMetadata()
                     start = metadata.getLocalCornerY();
                 } else if (dimType == ModelArray::Dimension::XCG) {
                     localLength = CGDEGREE * metadata.getLocalExtentX() + 1;
-                    start = metadata.getLocalCornerX();
+                    start = CGDEGREE * metadata.getLocalCornerX();
                 } else if (dimType == ModelArray::Dimension::YCG) {
                     localLength = CGDEGREE * metadata.getLocalExtentY() + 1;
-                    start = metadata.getLocalCornerY();
+                    start = CGDEGREE * metadata.getLocalCornerY();
                 } else {
                     localLength = dim.getSize();
+                    start = 0;
                 }
 
                 if (ModelArray::definedDimensions.at(dimType)
@@ -821,12 +822,15 @@ void Xios::affixModelMetadata()
                 if (dim == ModelArray::Dimension::X) {
                     cxios_set_domain_ni_glo(domain, metadata.getGlobalExtentX());
                     cxios_set_domain_ni(domain, metadata.getLocalExtentX());
+                    cxios_set_domain_ibegin(domain, metadata.getLocalCornerX());
                 } else if (dim == ModelArray::Dimension::XVERTEX) {
                     cxios_set_domain_ni_glo(domain, metadata.getGlobalExtentX() + 1);
                     cxios_set_domain_ni(domain, metadata.getLocalExtentX() + 1);
+                    cxios_set_domain_ibegin(domain, metadata.getLocalCornerX());
                 } else if (dim == ModelArray::Dimension::XCG) {
                     cxios_set_domain_ni_glo(domain, CGDEGREE * metadata.getGlobalExtentX() + 1);
                     cxios_set_domain_ni(domain, CGDEGREE * metadata.getLocalExtentX() + 1);
+                    cxios_set_domain_ibegin(domain, CGDEGREE * metadata.getLocalCornerX());
                 } else {
                     throw std::runtime_error(
                         "Xios: Could not set domain extents based on dimension '"
@@ -840,7 +844,6 @@ void Xios::affixModelMetadata()
                     throw std::runtime_error(
                         "Xios: Failed to set local x-size for domain '" + domainId + "'");
                 }
-                cxios_set_domain_ibegin(domain, metadata.getLocalCornerX());
                 if (!cxios_is_defined_domain_ibegin(domain)) {
                     throw std::runtime_error(
                         "Xios: Failed to set local starting x-index for domain '" + domainId + "'");
@@ -859,12 +862,15 @@ void Xios::affixModelMetadata()
                 if (dim == ModelArray::Dimension::Y) {
                     cxios_set_domain_nj_glo(domain, metadata.getGlobalExtentY());
                     cxios_set_domain_nj(domain, metadata.getLocalExtentY());
+                    cxios_set_domain_jbegin(domain, metadata.getLocalCornerY());
                 } else if (dim == ModelArray::Dimension::YVERTEX) {
                     cxios_set_domain_nj_glo(domain, metadata.getGlobalExtentY() + 1);
                     cxios_set_domain_nj(domain, metadata.getLocalExtentY() + 1);
+                    cxios_set_domain_jbegin(domain, metadata.getLocalCornerY());
                 } else if (dim == ModelArray::Dimension::YCG) {
                     cxios_set_domain_nj_glo(domain, CGDEGREE * metadata.getGlobalExtentY() + 1);
                     cxios_set_domain_nj(domain, CGDEGREE * metadata.getLocalExtentY() + 1);
+                    cxios_set_domain_jbegin(domain, CGDEGREE * metadata.getLocalCornerY());
                 } else {
                     throw std::runtime_error(
                         "Xios: Could not set domain extents based on dimension '"
@@ -878,7 +884,6 @@ void Xios::affixModelMetadata()
                     throw std::runtime_error(
                         "Xios: Failed to set local y-size for domain '" + domainId + "'");
                 }
-                cxios_set_domain_jbegin(domain, metadata.getLocalCornerY());
                 if (!cxios_is_defined_domain_jbegin(domain)) {
                     throw std::runtime_error(
                         "Xios: Failed to set local starting y-index for domain '" + domainId + "'");

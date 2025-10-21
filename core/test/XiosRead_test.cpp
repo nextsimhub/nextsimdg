@@ -108,8 +108,7 @@ MPI_TEST_CASE("TestXiosRead", 2)
     metadata.setTime(xiosHandler.getCalendarStart());
     REQUIRE(xiosHandler.getCalendarStep() == 0);
     ModelState restarts = grid.getModelState(restartFilename);
-    int rank;
-    MPI_Comm_rank(test_comm, &rank);
+    const int rank = xiosHandler.getClientMPIRank();
     for (auto& entry : restarts.data) {
         if (entry.first == maskName) {
             for (size_t j = 0; j < ny; ++j) {
