@@ -23,7 +23,7 @@ const std::string testFilesDir = TEST_FILES_DIR;
 const std::string restartFilename = testFilesDir + "/xios_test_output.nc";
 const std::string diagnosticFilename = testFilesDir + "/xios_test_diagnostic.nc";
 
-static const int DG = 3;
+static const int DGCOMP = 6;
 static const int DGSTRESSCOMP = 8;
 static const int CGDEGREE = 2;
 
@@ -89,10 +89,7 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     ModelArray::setDimension(ModelArray::Dimension::YVERTEX, ny_glo + 1, ny + 1, ny_start);
     ModelArray::setDimension(
         ModelArray::Dimension::YCG, CGDEGREE * ny_glo + 1, CGDEGREE * ny + 1, ny_start);
-    ModelArray::setNComponents(ModelArray::Type::DG, DG);
-    ModelArray::setNComponents(ModelArray::Type::DGSTRESS, DGSTRESSCOMP);
-    REQUIRE(ModelArray::nComponents(ModelArray::Type::DG) == DG);
-    REQUIRE(ModelArray::nComponents(ModelArray::Type::DGSTRESS) == DGSTRESSCOMP);
+    REQUIRE(ModelArray::nComponents(ModelArray::Type::DG) == DGCOMP);
 
     // Create ParametricGrid and ParaGridIO instances
     // NOTE: XIOS axes, domains, and grids are created by the ParaGridIO constructor
@@ -141,8 +138,8 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     hice.resize();
     for (size_t j = 0; j < ny; ++j) {
         for (size_t i = 0; i < nx; ++i) {
-            for (size_t d = 0; d < DG; ++d) {
-                hice.components({ i, j })[d] = 1.0 * (d + DG * (i + nx * j));
+            for (size_t d = 0; d < DGCOMP; ++d) {
+                hice.components({ i, j })[d] = 1.0 * (d + DGCOMP * (i + nx * j));
             }
         }
     }

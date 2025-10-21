@@ -23,7 +23,7 @@ const std::string testFilesDir = TEST_FILES_DIR;
 const std::string restartFilename = testFilesDir + "/xios_test_input.nc";
 const std::string forcingFilename = testFilesDir + "/xios_test_forcing.nc";
 
-static const int DG = 3;
+static const int DGCOMP = 6;
 static const int DGSTRESSCOMP = 8;
 static const int CGDEGREE = 2;
 
@@ -66,12 +66,6 @@ MPI_TEST_CASE("TestXiosRead", 2)
     // NOTE: The singleton is created during configureTime
     Xios& xiosHandler = Xios::getInstance();
 
-    // TODO: We could deduce this from the NetCDF file
-    ModelArray::setNComponents(ModelArray::Type::DG, DG);
-    ModelArray::setNComponents(ModelArray::Type::DGSTRESS, DGSTRESSCOMP);
-    REQUIRE(ModelArray::nComponents(ModelArray::Type::DG) == DG);
-    REQUIRE(ModelArray::nComponents(ModelArray::Type::DGSTRESS) == DGSTRESSCOMP);
-
     // Create ParametricGrid and ParaGridIO instances
     // NOTE: XIOS axes, domains, and grids are created by the ParaGridIO constructor
     Module::setImplementation<IStructure>("Nextsim::ParametricGrid");
@@ -91,6 +85,8 @@ MPI_TEST_CASE("TestXiosRead", 2)
     // Deduce the local lengths of the two dimensions
     const size_t nx = ModelArray::size(ModelArray::Dimension::X);
     const size_t ny = ModelArray::size(ModelArray::Dimension::Y);
+    REQUIRE(ModelArray::nComponents(ModelArray::Type::DG) == DGCOMP);
+    REQUIRE(ModelArray::size(ModelArray::Dimension::DG) == DGCOMP);
 
     // Read restarts from file and check they take the expected values
     ModelState restarts = grid.getModelState(restartFilename);
@@ -117,8 +113,8 @@ MPI_TEST_CASE("TestXiosRead", 2)
         } else if (entry.first == hiceName) {
             for (size_t j = 0; j < ny; ++j) {
                 for (size_t i = 0; i < nx; ++i) {
-                    for (size_t d = 0; d < DG; ++d) {
-                        float expected = 1.0 * (d + DG * (i + nx * j));
+                    for (size_t d = 0; d < DGCOMP; ++d) {
+                        float expected = 1.0 * (d + DGCOMP * (i + nx * j));
                         REQUIRE(entry.second.components({ i, j })[d] == doctest::Approx(expected));
                     }
                 }
@@ -127,8 +123,8 @@ MPI_TEST_CASE("TestXiosRead", 2)
             for (size_t j = 0; j < ny; ++j) {
                 for (size_t i = 0; i < nx; ++i) {
                     for (size_t d = 0; d < DGSTRESSCOMP; ++d) {
-                        REQUIRE(entry.second.components({ i, j })[d]
-                            == doctest::Approx(2.0 * (d + DGSTRESSCOMP * (i + nx * j))));
+                        float expected = 2.0 * (d + DGSTRESSCOMP * (i + nx * j));
+                        REQUIRE(entry.second.components({ i, j })[d] == doctest::Approx(expected));
                     }
                 }
             }

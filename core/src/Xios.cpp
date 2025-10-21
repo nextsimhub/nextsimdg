@@ -40,6 +40,16 @@
 #include <regex>
 #include <string>
 
+#ifndef DGCOMP
+#define DGCOMP 6 // Define to prevent errors from static analysis tools
+#error "Number of DG components (DGCOMP) not defined" // But throw an error anyway
+#endif
+
+#ifndef DGSTRESSCOMP
+#define DGSTRESSCOMP 8 // Define to prevent errors from static analysis tools
+#error "Number of DG stress components (DGSTRESSCOMP) not defined" // But throw an error anyway
+#endif
+
 #ifndef CGDEGREE
 #define CGDEGREE 2 // Define to prevent errors from static analysis tools
 #error "CG degree (CGDEGREE) not defined" // But throw an error anyway
@@ -575,8 +585,6 @@ void Xios::parseInputFiles()
 {
     auto& metadata = ModelMetadata::getInstance();
 
-    ModelArray::setNComponents(ModelArray::Type::VERTEX, ModelArray::nCoords);
-
     // Initial read of the NetCDF file to deduce the dimensions
     for (std::string filename : { inputFilename, forcingFilename }) {
         if (filename.length() == 0) {
@@ -721,6 +729,9 @@ void Xios::setupDomains()
 {
     auto& metadata = ModelMetadata::getInstance();
 
+    ModelArray::setNComponents(ModelArray::Type::VERTEX, ModelArray::nCoords);
+    ModelArray::setNComponents(ModelArray::Type::DG, DGCOMP);
+    ModelArray::setNComponents(ModelArray::Type::DGSTRESS, DGSTRESSCOMP);
     for (auto entry : domainIds) {
         ModelArray::Type type = entry.first;
         const std::string domainId = entry.second;
