@@ -15,16 +15,8 @@ on:
       - '**.py'
       - '**CMakeLists.txt'
 
-  # Trigger the workflow when an open PR receives a review
-  pull_request_review:
-    branches: [ main, develop ]
-    types: [ submitted ]
-    paths-ignore:
-      - '.github/workflows/*.yml'
-      - '**.cpp'
-      - '**.hpp'
-      - '**.py'
-      - '**CMakeLists.txt'
+  # Enable running this workflow manually from the Actions tab
+  workflow_dispatch:
 
 # Restrict default permissions
 permissions: {}
