@@ -69,10 +69,6 @@ public:
     void configure() override;
     void configureServer();
 
-    /* MPI decomposition */
-    int getClientMPISize();
-    int getClientMPIRank();
-
     /* Calendar, date and duration */
     void setCalendarType(const std::string type);
     void setCalendarOrigin(const TimePoint origin);

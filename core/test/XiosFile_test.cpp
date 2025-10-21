@@ -59,7 +59,6 @@ MPI_TEST_CASE("TestXiosFile", 2)
     // Get the Xios singleton instance and check it's initialized
     Xios& xiosHandler = Xios::getInstance();
     REQUIRE(xiosHandler.isInitialized());
-    REQUIRE(xiosHandler.getClientMPISize() == 2);
 
     // Associate fields with grids
     // NOTE: fields are automatically created along with files

@@ -49,7 +49,6 @@ MPI_TEST_CASE("TestXiosAxis", 3)
     // Get the Xios singleton instance and check it's initialized
     Xios& xiosHandler = Xios::getInstance();
     REQUIRE(xiosHandler.isInitialized());
-    REQUIRE(xiosHandler.getClientMPISize() == 3);
 
     // --- Tests for axis API
     const std::string axisId = { "axis_A" };

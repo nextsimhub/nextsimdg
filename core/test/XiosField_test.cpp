@@ -53,7 +53,6 @@ MPI_TEST_CASE("TestXiosField", 3)
     // Get the Xios singleton instance and check it's initialized
     Xios& xiosHandler = Xios::getInstance();
     REQUIRE(xiosHandler.isInitialized());
-    REQUIRE(xiosHandler.getClientMPISize() == 3);
 
     // Create an axis with two points
     xiosHandler.createAxis("axis_A");

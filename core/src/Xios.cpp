@@ -251,16 +251,6 @@ void Xios::configureServer()
 }
 
 /*!
- * @return size of the client MPI communicator
- */
-int Xios::getClientMPISize() { return mpi_size; }
-
-/*!
- * @return rank of the client MPI communicator
- */
-int Xios::getClientMPIRank() { return mpi_rank; }
-
-/*!
  * Verify XIOS server is initialized
  *
  * @return true when XIOS server is initialized

@@ -81,7 +81,6 @@ MPI_TEST_CASE("TestXiosRead", 2)
     // Get the Xios singleton instance and check it's initialized
     Xios& xiosHandler = Xios::getInstance();
     REQUIRE(xiosHandler.isInitialized());
-    REQUIRE(xiosHandler.getClientMPISize() == 2);
 
     // Affix ModelMetadata to Xios handler
     // TODO: Automate this - can't be inlined in Xios::getInstance because need set field types
@@ -108,7 +107,8 @@ MPI_TEST_CASE("TestXiosRead", 2)
     metadata.setTime(xiosHandler.getCalendarStart());
     REQUIRE(xiosHandler.getCalendarStep() == 0);
     ModelState restarts = grid.getModelState(restartFilename);
-    const int rank = xiosHandler.getClientMPIRank();
+    int rank;
+    MPI_Comm_rank(test_comm, &rank);
     for (auto& entry : restarts.data) {
         if (entry.first == maskName) {
             for (size_t j = 0; j < ny; ++j) {

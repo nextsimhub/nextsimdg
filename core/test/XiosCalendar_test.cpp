@@ -50,7 +50,6 @@ MPI_TEST_CASE("TestXiosCalendar", 1)
     // Get the Xios singleton instance and check it's initialized
     Xios& xiosHandler = Xios::getInstance();
     REQUIRE(xiosHandler.isInitialized());
-    REQUIRE(xiosHandler.getClientMPISize() == 1);
 
     // --- Tests for calendar API
     // Calendar type
