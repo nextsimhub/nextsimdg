@@ -1,0 +1,15 @@
+netcdf xios_test_mask {
+dimensions:
+	x = 4 ;
+	y = 2 ;
+variables:
+	int mask(x, y) ;
+
+data:
+
+ mask =
+  1, 1,
+  1, 1,
+  1, 1,
+  1, 1;
+}

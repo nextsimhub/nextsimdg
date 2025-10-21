@@ -24,31 +24,43 @@ The ``xios`` section contains a single entry, which determines whether or not to
 build nextSIM-DG with XIOS as the I/O driver.
 
 .. code-block::
+
   [xios]
   enable = true
 
-The ``model`` section, which is used elsewhere in nextSIM-DG, contains two
-entries relevant to XIOS: ``start`` and ``time_step``. These are used to
-configure the calendar used by XIOS and take the following default values.
+The ``model`` section, which is used elsewhere in nextSIM-DG, contains three
+entries relevant to XIOS: ``start``, ``stop``, and ``time_step``. These are
+used to configure the calendar used by XIOS. For example,
 
 .. code-block::
+
   [model]
   start = 1970-01-01T00:00:00Z
+  stop = 1970-01-01T01:00:00Z
   time_step = P0-0T01:00:00
 
-Files and fields to be read and written to files are configured via
-``XiosInput`` and ``XiosOutput`` sections, which accept the same entries. For
-example, we could set the following values, which would specify two fields
-labelled ``field_A`` and ``field_B``, which are written to file
-``my_output_file.nc`` every two (simulated) hours.
+Files and fields to be read and written to files are configured via the
+``XiosInput``, ``XiosOutput``, and ``XiosForcing`` sections, where the first two
+refer to restarts. These sections all accept the same entries for period,
+filename, and field names. For example, we could set the following values, which
+would specify two fields labelled ``field_A`` and ``field_B``, which are written
+to file ``my_output_file.nc`` every two (simulated) hours.
 
 .. code-block::
+
   [XiosOutput]
   period = P0-0T02:00:00
   filename = my_output_file.nc
-  fields = field_A,field_B
+  field_names = field_A,field_B
 
-Note that both the ``XiosInput`` and ``XiosOutput`` sections are optional.
+The ``field_names`` entry may contain a single field name or a comma-separated
+list. Note that all of the ``XiosInput``, ``XiosOutput``, and ``XiosForcing``
+sections are optional.
+
+As elsewhere in the model, these configuration values are parsed by calling the
+``Model.configure`` member function. Since building with XIOS implies also
+building with MPI, you will need to pass the MPI communicator to this member
+function when calling it.
 
 Developer notes
 ^^^^^^^^^^^^^^^

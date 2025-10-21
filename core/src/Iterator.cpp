@@ -15,26 +15,6 @@ void Iterator::setStartStopStep(TimePoint startTime, TimePoint stopTime, Duratio
     this->timestep = timestep;
 }
 
-TimePoint Iterator::parseAndSet(const std::string& startTimeStr, const std::string& stopTimeStr,
-    const std::string& durationStr, const std::string& stepStr)
-{
-    std::stringstream ss(startTimeStr);
-    ss >> startTime;
-    ss = std::stringstream(stepStr);
-    ss >> timestep;
-    if (!durationStr.empty()) {
-        ss = std::stringstream(durationStr);
-        Duration duration;
-        ss >> duration;
-        stopTime = startTime + duration;
-    } else {
-        ss = std::stringstream(stopTimeStr);
-        ss >> stopTime;
-    }
-
-    return startTime;
-}
-
 void Iterator::run()
 {
     iterant.start(startTime);

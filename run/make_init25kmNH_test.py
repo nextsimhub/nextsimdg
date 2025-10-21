@@ -1,5 +1,5 @@
-import numpy as np
 import netCDF4
+import numpy as np
 
 # Creates a restart file from one of the NH_PS grid files. (Currently hardcoded to 25 km).
 
@@ -37,8 +37,8 @@ n_coords_comp = ncFile.createDimension("ncoords", n_coords)
 grid_mask = grid["mask"]
 
 mask = ncFile.createVariable("mask", "f8", ("xdim", "ydim"))
-mask[:,:] = grid_mask[:,:]
-antimask = 1 - mask[:,:]
+mask[:, :] = grid_mask[:, :]
+antimask = 1 - mask[:, :]
 
 node_lon = np.zeros((nx + 1, ny + 1))
 node_lat = np.zeros((nx + 1, ny + 1))
@@ -54,47 +54,110 @@ node_lat[-1, -1] = grid["lat_corners"][-1, -1, 2]
 node_lat[-1, 0:-1] = grid["lat_corners"][-1, :, 3]
 
 coords = ncFile.createVariable("coords", "f8", ("xvertex", "yvertex", "ncoords"))
-coords[:,:,0] = node_lon
-coords[:,:,1] = node_lat
+coords[:, :, 0] = node_lon
+coords[:, :, 1] = node_lat
 
-elem_lon = ncFile.createVariable("longitude", "f8", ("xdim", "ydim",))
+elem_lon = ncFile.createVariable(
+    "longitude",
+    "f8",
+    (
+        "xdim",
+        "ydim",
+    ),
+)
 elem_lon[:, :] = grid["plon"][:, :]
-elem_lat = ncFile.createVariable("latitude", "f8", ("xdim", "ydim",))
+elem_lat = ncFile.createVariable(
+    "latitude",
+    "f8",
+    (
+        "xdim",
+        "ydim",
+    ),
+)
 elem_lat[:, :] = grid["plat"][:, :]
 
 
-cice = ncFile.createVariable("cice", "f8", ("xdim", "ydim",))
-cice[:,:] = mask[:, :] * 0.95
-hice = ncFile.createVariable("hice", "f8", ("xdim", "ydim",))
-hice[:,:] = cice[:,:] * 2
-hsnow = ncFile.createVariable("hsnow", "f8", ("xdim", "ydim",))
-hsnow[:,:] = cice[:,:] / 2
+cice = ncFile.createVariable(
+    "cice",
+    "f8",
+    (
+        "xdim",
+        "ydim",
+    ),
+)
+cice[:, :] = mask[:, :] * 0.95
+hice = ncFile.createVariable(
+    "hice",
+    "f8",
+    (
+        "xdim",
+        "ydim",
+    ),
+)
+hice[:, :] = cice[:, :] * 2
+hsnow = ncFile.createVariable(
+    "hsnow",
+    "f8",
+    (
+        "xdim",
+        "ydim",
+    ),
+)
+hsnow[:, :] = cice[:, :] / 2
 tsurf = ncFile.createVariable("tsurf", "f8", ("xdim", "ydim"))
-tsurf[:,:] = -0.5 - cice[:,:]
+tsurf[:, :] = -0.5 - cice[:, :]
 tbott = ncFile.createVariable("tbottom", "f8", ("xdim", "ydim"))
-tbott[:,:] = -1.8
+tbott[:, :] = -1.8
 tintr = ncFile.createVariable("tinterior", "f8", ("xdim", "ydim"))
-tintr[:,:] = 0.5 * (tsurf[:,:] + tbott[:,:])
+tintr[:, :] = 0.5 * (tsurf[:, :] + tbott[:, :])
 
-sst = ncFile.createVariable("sst", "f8", ("xdim", "ydim",))
-sst[:,:] = -cice[:,:]
-sss = ncFile.createVariable("sss", "f8", ("xdim", "ydim",))
-sss[:,:] = cice[:,:] * 33.68
-u = ncFile.createVariable("u", "f8", ("xdim", "ydim",))
-u[:,:] = 0.
-v = ncFile.createVariable("v", "f8", ("xdim", "ydim",))
-v[:,:] = 0.
+sst = ncFile.createVariable(
+    "sst",
+    "f8",
+    (
+        "xdim",
+        "ydim",
+    ),
+)
+sst[:, :] = -cice[:, :]
+sss = ncFile.createVariable(
+    "sss",
+    "f8",
+    (
+        "xdim",
+        "ydim",
+    ),
+)
+sss[:, :] = cice[:, :] * 33.68
+u = ncFile.createVariable(
+    "u",
+    "f8",
+    (
+        "xdim",
+        "ydim",
+    ),
+)
+u[:, :] = 0.0
+v = ncFile.createVariable(
+    "v",
+    "f8",
+    (
+        "xdim",
+        "ydim",
+    ),
+)
+v[:, :] = 0.0
 
-#velocity in the middle of the domain
-midx = (nx + 1)//2
-midy = (nx + 1)//2
+# velocity in the middle of the domain
+midx = (nx + 1) // 2
+midy = (nx + 1) // 2
 
 for i in range(nx + 1):
     for j in range(ny + 1):
-        if ( np.abs( j-midy ) < 20) and ( np.abs( i-midx ) < 20):
-            u[i,j] = .1
-            v[i,j] = .1
-             
+        if (np.abs(j - midy) < 20) and (np.abs(i - midx) < 20):
+            u[i, j] = 0.1
+            v[i, j] = 0.1
+
 
 """
 mdi =  -2.**300

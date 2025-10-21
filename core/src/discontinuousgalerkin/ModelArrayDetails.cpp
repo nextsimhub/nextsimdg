@@ -76,6 +76,14 @@ const std::map<ModelArray::Type, std::string> ModelArray::typeNames = {
     { ModelArray::Type::CG, "CGField" },
 };
 
+std::map<ModelArray::Type, ModelArray::Base> ModelArray::baseTypes = {
+    { ModelArray::Type::H, ModelArray::Base::Cell },
+    { ModelArray::Type::VERTEX, ModelArray::Base::Vertex },
+    { ModelArray::Type::DG, ModelArray::Base::Cell },
+    { ModelArray::Type::DGSTRESS, ModelArray::Base::Cell },
+    { ModelArray::Type::CG, ModelArray::Base::Vertex },
+};
+
 ModelArray::ModelArray()
     : ModelArray(Type::H)
 {
@@ -87,8 +95,8 @@ bool ModelArray::hasDoF(const Type type)
 }
 
 ModelArray::SizeMap::SizeMap()
-        : m_sizes( { { Type::H, 0 }, { Type::VERTEX, 1 }, { Type::DG, 0 }, { Type::DGSTRESS, 0 }, {
-                Type::CG, 1 } })
+    : m_sizes({ { Type::H, 0 }, { Type::VERTEX, 1 }, { Type::DG, 0 }, { Type::DGSTRESS, 0 },
+          { Type::CG, 1 } })
 {
 }
 

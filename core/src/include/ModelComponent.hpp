@@ -187,6 +187,7 @@ public:
 protected:
     inline static void overElements(IteratedFn fn, const TimestepTime& tst)
     {
+#pragma omp parallel for
         for (size_t i = 0; i < nOcean; ++i) {
             fn(oceanIndex[i], tst);
         }

@@ -90,16 +90,32 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    - name: build and compile with MPI but not XIOS
+    - name: build domain_decomp
       run: |
         . /opt/spack-environment/activate.sh
+        git config --global --add safe.directory /__w/nextsimdg/nextsimdg
+        git submodule init
+        git submodule update
+        cd domain_decomp
+        cmake -G "Unix Makefiles" -Bbuild -S.
+        cmake --build build --config Release
+
+    - name: build and compile with MPI but not XIOS
+      run: |
+        # set environment variables for MPI tests to run in docker container
+        export OMPI_ALLOW_RUN_AS_ROOT=1
+        export OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1
+        export OMPI_MCA_rmaps_base_oversubscribe=1
+        . /opt/spack-environment/activate.sh
+        # provide path to domain_decomp binary
+        export PATH="${PATH}:${PWD}/domain_decomp/build"
         mkdir -p build && cd build
         cmake -DENABLE_MPI=ON -DENABLE_XIOS=OFF -DCMAKE_CXX_COMPILER="$(which mpic++)" ..
         make -j 4
 
     - name: run MPI tests
       run: |
-        # set enviornment variables for MPI tests to run in docker container
+        # set environment variables for MPI tests to run in docker container
         export OMPI_ALLOW_RUN_AS_ROOT=1
         export OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1
         export OMPI_MCA_rmaps_base_oversubscribe=1
@@ -122,16 +138,32 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    - name: build and compile with XIOS and MPI
+    - name: build domain_decomp
       run: |
         . /opt/spack-environment/activate.sh
+        git config --global --add safe.directory /__w/nextsimdg/nextsimdg
+        git submodule init
+        git submodule update
+        cd domain_decomp
+        cmake -G "Unix Makefiles" -Bbuild -S.
+        cmake --build build --config Release
+
+    - name: build and compile with XIOS and MPI
+      run: |
+        # set environment variables for MPI tests to run in docker container
+        export OMPI_ALLOW_RUN_AS_ROOT=1
+        export OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1
+        export OMPI_MCA_rmaps_base_oversubscribe=1
+        . /opt/spack-environment/activate.sh
+        # provide path to domain_decomp binary
+        export PATH="${PATH}:${PWD}/domain_decomp/build"
         mkdir -p build && cd build
         cmake -DENABLE_MPI=ON -Dxios_DIR="/xios" -DENABLE_XIOS=ON -DCMAKE_CXX_COMPILER="$(which mpic++)" ..
         make -j 4
 
     - name: run MPI tests
       run: |
-        # set enviornment variables for MPI tests to run in docker container
+        # set environment variables for MPI tests to run in docker container
         export OMPI_ALLOW_RUN_AS_ROOT=1
         export OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1
         export OMPI_MCA_rmaps_base_oversubscribe=1
@@ -159,6 +191,8 @@ jobs:
         brew install eigen
         brew install netcdf
         brew install netcdf-cxx
+        python3 -m venv ~/nextsim
+        . $HOME/nextsim/bin/activate
         pip install netCDF4
         pip install numpy
 
@@ -171,6 +205,7 @@ jobs:
 
     - name: make
       run: |
+        . $HOME/nextsim/bin/activate
         mkdir -p build
         cd build
         # added Python_ROOT_DIR to help cmake find correct Python in the mac VM
@@ -178,6 +213,7 @@ jobs:
         make -j 4
     - name: run serial tests
       run: |
+        . $HOME/nextsim/bin/activate
         cd build
         ctest -V
         mv ../test .

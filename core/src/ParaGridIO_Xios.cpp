@@ -10,6 +10,8 @@
 #include "include/Finalizer.hpp"
 #include "include/Logged.hpp"
 #include "include/MissingData.hpp"
+#include "include/ModelMPI.hpp"
+
 #ifdef USE_XIOS
 #include "include/Xios.hpp"
 #endif
@@ -91,18 +93,33 @@ bool ParaGridIO::doOnce()
 
 ParaGridIO::~ParaGridIO() = default;
 
-ModelState ParaGridIO::getModelState(const std::string& filePath, ModelMetadata& metadata)
+ModelState ParaGridIO::getModelState(const std::string& filePath)
 {
     ModelState state;
     Xios& xiosHandler = Xios::getInstance();
 
-    // Get all vars in the data group, and load them into a new ModelState
+    // Get all variables in the file and load them into a new ModelState
     const bool readAccess = true;
-    for (std::string fieldId : xiosHandler.configGetFieldNames(readAccess)) {
-        HField field(ModelArray::Type::H); // TODO: Support other dimTypes
-        field.resize();
-        state.merge(ModelState { { { fieldId, field } }, {} });
+    for (std::string fieldId : xiosHandler.configGetInputRestartFieldNames()) {
+        ModelArray::Type type = xiosHandler.getFieldType(fieldId);
+        if (type == ModelArray::Type::H) {
+            HField field(ModelArray::Type::H);
+            field.resize();
+            state.merge(ModelState { { { fieldId, field } }, {} });
+        } else if (type == ModelArray::Type::VERTEX) {
+            VertexField field(ModelArray::Type::VERTEX);
+            field.resize();
+            state.merge(ModelState { { { fieldId, field } }, {} });
+        } else if (type == ModelArray::Type::DG) {
+            DGField field(ModelArray::Type::DG);
+            field.resize();
+            state.merge(ModelState { { { fieldId, field } }, {} });
+        } else {
+            throw std::runtime_error(
+                "ParaGridIO::getModelState: field type for field" + fieldId + " is not supported.");
+        }
     }
+
     // Assume that all fields in the supplied ModelState are necessary, and so read them from file.
     for (auto& entry : state.data) {
         const std::string fieldId = entry.first;
@@ -118,62 +135,45 @@ ModelState ParaGridIO::getModelState(const std::string& filePath, ModelMetadata&
 ModelState ParaGridIO::readForcingTimeStatic(
     const std::set<std::string>& forcings, const TimePoint& time, const std::string& filePath)
 {
-    // TODO: XIOS implementation
-
     ModelState state;
+    Xios& xiosHandler = Xios::getInstance();
 
-    try {
-        netCDF::NcFile ncFile(filePath, netCDF::NcFile::read);
+    // Increment the XIOS calendar until it reaches the requested time
+    while (xiosHandler.getCurrentDate() < time) {
+        xiosHandler.incrementCalendar();
+    }
+    TimePoint xiosTime = xiosHandler.getCurrentDate();
+    if (xiosTime > time) {
+        throw std::runtime_error("ParaGridIO::readForcingTimeStatic: requested time point does"
+                                 " not align with the calendar and timestep used by XIOS.");
+    }
 
-        // Read the time axis
-        netCDF::NcDim timeDim = ncFile.getDim(timeName);
-        // Read the time variable
-        netCDF::NcVar timeVar = ncFile.getVar(timeName);
-        // Calculate the index of the largest time value on the axis below our target
-        size_t targetTIndex;
-        // Get the time axis as a vector
-        std::vector<double> timeVec(timeDim.getSize());
-        timeVar.getVar(timeVec.data());
-        // Get the index of the largest TimePoint less than the target.
-        targetTIndex = std::find_if(std::begin(timeVec), std::end(timeVec), [time](double t) {
-            return (TimePoint() + Duration(t)) > time;
-        }) - timeVec.begin();
-        // Rather than the first that is greater than, get the last that is less
-        // than or equal to. But don't go out of bounds.
-        if (targetTIndex > 0)
-            --targetTIndex;
+    // Get all forcings and load them into a new ModelState
+    const bool readAccess = true;
+    std::set<std::string> forcingFieldIds = xiosHandler.configGetForcingFieldNames();
+    for (const std::string& fieldId : forcings) {
+        if (forcingFieldIds.count(fieldId) == 0 || !xiosHandler.getFieldReadAccess(fieldId)) {
+            throw std::runtime_error("ParaGridIO::readForcingTimeStatic: forcing " + fieldId
+                + " is not configured for reading, but is being read from file.");
+        }
         // ASSUME all forcings are HFields: finite volume fields on the same
         // grid as ice thickness
-        std::vector<size_t> indexArray = { targetTIndex };
-        std::vector<size_t> extentArray = { 1 };
+        HField field(ModelArray::Type::H);
+        field.resize();
+        state.merge(ModelState { { { fieldId, field } }, {} });
+    }
 
-        // Loop over the dimensions of H
-        const std::vector<ModelArray::Dimension>& dimensions
-            = ModelArray::typeDimensions.at(ModelArray::Type::H);
-        for (auto riter = dimensions.rbegin(); riter != dimensions.rend(); ++riter) {
-            indexArray.push_back(0);
-            extentArray.push_back(ModelArray::definedDimensions.at(*riter).localLength);
+    // Read all forcings from file
+    for (auto& entry : state.data) {
+        const std::string fieldId = entry.first;
+        if (forcings.count(fieldId)) {
+            xiosHandler.read(fieldId, entry.second);
         }
-
-        for (const std::string& varName : forcings) {
-            netCDF::NcVar var = ncFile.getVar(varName);
-            state.data[varName] = ModelArray(ModelArray::Type::H);
-            ModelArray& data = state.data.at(varName);
-            data.resize();
-
-            var.getVar(indexArray, extentArray, &data[0]);
-        }
-        ncFile.close();
-    } catch (const netCDF::exceptions::NcException& nce) {
-        std::string ncWhat(nce.what());
-        ncWhat += ": " + filePath;
-        throw std::runtime_error(ncWhat);
     }
     return state;
 }
 
-void ParaGridIO::dumpModelState(
-    const ModelState& state, const ModelMetadata& metadata, const std::string& filePath)
+void ParaGridIO::dumpModelState(const ModelState& state, const std::string& filePath)
 {
     Xios& xiosHandler = Xios::getInstance();
 
@@ -189,8 +189,7 @@ void ParaGridIO::dumpModelState(
     }
 }
 
-void ParaGridIO::writeDiagnosticTime(
-    const ModelState& state, const ModelMetadata& meta, const std::string& filePath)
+void ParaGridIO::writeDiagnosticTime(const ModelState& state, const std::string& filePath)
 {
     // TODO: XIOS implementation
 
@@ -201,9 +200,10 @@ void ParaGridIO::writeDiagnosticTime(
         // Set the initial time to be zero (assigned above)
         // Piecewise construction is necessary to correctly construct the file handle/time index
         // pair
+        auto& modelMPI = ModelMPI::getInstance();
         openFilesAndIndices.emplace(std::piecewise_construct, std::make_tuple(filePath),
             std::forward_as_tuple(std::piecewise_construct,
-                std::forward_as_tuple(filePath, netCDF::NcFile::replace, meta.mpiComm),
+                std::forward_as_tuple(filePath, netCDF::NcFile::replace, modelMPI.getComm()),
                 std::forward_as_tuple(nt)));
     }
     // Get the file handle
@@ -211,7 +211,7 @@ void ParaGridIO::writeDiagnosticTime(
 
     if (isNew) {
         // Write the common structure and time metadata
-        CommonRestartMetadata::writeStructureType(ncFile, meta);
+        CommonRestartMetadata::writeStructureType(ncFile);
     }
     // Get the unlimited time dimension, creating it if necessary
     netCDF::NcDim timeDim = (isNew) ? ncFile.addDim(timeName) : ncFile.getDim(timeName);
@@ -294,7 +294,8 @@ void ParaGridIO::writeDiagnosticTime(
     std::vector<netCDF::NcDim> timeDimVec = { timeDim };
     netCDF::NcVar timeVar(
         (isNew) ? ncFile.addVar(timeName, netCDF::ncDouble, timeDimVec) : ncFile.getVar(timeName));
-    double secondsSinceEpoch = (meta.time() - TimePoint()).seconds();
+    auto& metadata = ModelMetadata::getInstance();
+    double secondsSinceEpoch = (metadata.time() - TimePoint()).seconds();
     netCDF::setVariableCollective(timeVar, ncFile);
     timeVar.putVar({ nt }, { 1 }, &secondsSinceEpoch);
 

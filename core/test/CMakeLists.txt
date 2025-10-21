@@ -3,6 +3,7 @@ set(COMMON_INCLUDE_DIRS
     "../../core/src"
     "../../core/src/modules"
     "../../core/src/include"
+    "../../dynamics/src"
 )
 
 set(PHYSICS_INCLUDE_DIRS "../../physics/src" "../../physics/src/modules")
@@ -46,6 +47,67 @@ if(ENABLE_MPI)
         endforeach()
     endfunction()
 
+    # Generate mask files needed for MPI test from respective cdl files
+    add_custom_command(
+        OUTPUT rectgrid_test_mask.nc
+        COMMAND
+            ncgen -b -o rectgrid_test_mask.nc ${CMAKE_CURRENT_SOURCE_DIR}/rectgrid_test_mask.cdl
+        DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/rectgrid_test_mask.cdl
+    )
+    add_custom_command(
+        OUTPUT paragrid_test_mask.nc
+        COMMAND
+            ncgen -b -o paragrid_test_mask.nc ${CMAKE_CURRENT_SOURCE_DIR}/paragrid_test_mask.cdl
+        DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/paragrid_test_mask.cdl
+    )
+    add_custom_target(
+        generate_masks
+        ALL
+        DEPENDS rectgrid_test_mask.nc paragrid_test_mask.nc
+    )
+
+    # Generate partition files using domain_decomp
+    add_custom_command(
+        OUTPUT rectgrid_test_partition_metadata_3.nc
+        COMMAND
+            ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} 3 decomp -m mask -o xy
+                -g rectgrid_test_mask.nc --output-prefix rectgrid_test
+        DEPENDS rectgrid_test_mask.nc
+    )
+    add_custom_command(
+        OUTPUT paragrid_test_partition_metadata_2.nc
+        COMMAND
+            ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} 2 decomp -m mask -o xy
+                -g paragrid_test_mask.nc --output-prefix paragrid_test
+        DEPENDS paragrid_test_mask.nc
+    )
+    add_custom_target(
+        generate_partition_files
+        ALL
+        DEPENDS rectgrid_test_partition_metadata_3.nc paragrid_test_partition_metadata_2.nc
+    )
+
+    # Generate partition files needed for MPI test from respective cdl files
+    add_custom_command(
+        OUTPUT partition_metadata_3_cb.nc partition_metadata_3_pb.nc
+        COMMAND
+        ncgen -b -o partition_metadata_3_cb.nc
+        ${CMAKE_CURRENT_SOURCE_DIR}/partition_metadata_3_cb.cdl
+        COMMAND
+        ncgen -b -o partition_metadata_3_pb.nc
+        ${CMAKE_CURRENT_SOURCE_DIR}/partition_metadata_3_pb.cdl
+        DEPENDS
+        ${CMAKE_CURRENT_SOURCE_DIR}/partition_metadata_3_cb.cdl
+        ${CMAKE_CURRENT_SOURCE_DIR}/partition_metadata_3_pb.cdl
+    )
+    add_custom_target(
+        generate_partition_files_b
+        ALL
+        DEPENDS
+        partition_metadata_3_cb.nc
+        partition_metadata_3_pb.nc
+    )
+
     if(ENABLE_XIOS)
         set(XIOS_INCLUDE_LIST
             "${xios_INCLUDES}"
@@ -69,21 +131,48 @@ if(ENABLE_MPI)
         )
         add_custom_target(generate_xios_input_file ALL DEPENDS xios_test_input.nc)
         add_custom_command(
+            OUTPUT xios_test_mask.nc
+            COMMAND ncgen -b -o xios_test_mask.nc ${CMAKE_CURRENT_SOURCE_DIR}/xios_test_mask.cdl
+            DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/xios_test_mask.cdl
+        )
+        add_custom_target(generate_xios_masks ALL DEPENDS xios_test_mask.nc)
+        add_custom_command(
+            OUTPUT xios_test_partition_metadata_1.nc
+            COMMAND
+                ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} 1 decomp -m mask -o xy
+                    -g xios_test_mask.nc --output-prefix xios_test
+            DEPENDS xios_test_mask.nc
+        )
+        add_custom_command(
             OUTPUT xios_test_partition_metadata_2.nc
             COMMAND
-                ncgen -b -o xios_test_partition_metadata_2.nc
-                ${CMAKE_CURRENT_SOURCE_DIR}/xios_test_partition_metadata_2.cdl
-            DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/xios_test_partition_metadata_2.cdl
+                ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} 2 decomp -m mask -o xy
+                    -g xios_test_mask.nc --output-prefix xios_test
+            DEPENDS xios_test_mask.nc
         )
-        add_custom_target(generate_xios_partition_metadata_2 ALL
-            DEPENDS xios_test_partition_metadata_2.nc
+        add_custom_command(
+            OUTPUT xios_test_partition_metadata_3.nc
+            COMMAND
+                ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} 3 decomp -m mask -o xy
+                    -g xios_test_mask.nc --output-prefix xios_test
+            DEPENDS xios_test_mask.nc
+        )
+        add_custom_target(generate_xios_partition_metadata ALL
+            DEPENDS
+                xios_test_partition_metadata_1.nc
+                xios_test_partition_metadata_2.nc
+                xios_test_partition_metadata_3.nc
         )
 
         add_executable(testXiosCalendar_MPI1 "XiosCalendar_test.cpp" "MainMPI.cpp")
         target_compile_definitions(testXiosCalendar_MPI1 PRIVATE USE_XIOS)
         target_include_directories(
             testXiosCalendar_MPI1
-            PRIVATE "${MODEL_INCLUDE_DIR}" "${XIOS_INCLUDE_LIST}" "${ModulesRoot}/StructureModule"
+            PRIVATE
+                ${PHYSICS_INCLUDE_DIRS}
+                "${MODEL_INCLUDE_DIR}"
+                "${XIOS_INCLUDE_LIST}"
+                "${ModulesRoot}/StructureModule"
         )
         target_link_libraries(testXiosCalendar_MPI1 PRIVATE nextsimlib doctest::doctest)
 
@@ -91,7 +180,11 @@ if(ENABLE_MPI)
         target_compile_definitions(testXiosAxis_MPI3 PRIVATE USE_XIOS)
         target_include_directories(
             testXiosAxis_MPI3
-            PRIVATE "${MODEL_INCLUDE_DIR}" "${XIOS_INCLUDE_LIST}" "${ModulesRoot}/StructureModule"
+            PRIVATE
+                ${PHYSICS_INCLUDE_DIRS}
+                "${MODEL_INCLUDE_DIR}"
+                "${XIOS_INCLUDE_LIST}"
+                "${ModulesRoot}/StructureModule"
         )
         target_link_libraries(testXiosAxis_MPI3 PRIVATE nextsimlib doctest::doctest)
 
@@ -99,7 +192,11 @@ if(ENABLE_MPI)
         target_compile_definitions(testXiosGrid_MPI2 PRIVATE USE_XIOS)
         target_include_directories(
             testXiosGrid_MPI2
-            PRIVATE "${MODEL_INCLUDE_DIR}" "${XIOS_INCLUDE_LIST}" "${ModulesRoot}/StructureModule"
+            PRIVATE
+                ${PHYSICS_INCLUDE_DIRS}
+                "${MODEL_INCLUDE_DIR}"
+                "${XIOS_INCLUDE_LIST}"
+                "${ModulesRoot}/StructureModule"
         )
         target_link_libraries(testXiosGrid_MPI2 PRIVATE nextsimlib doctest::doctest)
 
@@ -107,7 +204,11 @@ if(ENABLE_MPI)
         target_compile_definitions(testXiosField_MPI3 PRIVATE USE_XIOS)
         target_include_directories(
             testXiosField_MPI3
-            PRIVATE "${MODEL_INCLUDE_DIR}" "${XIOS_INCLUDE_LIST}" "${ModulesRoot}/StructureModule"
+            PRIVATE
+                ${PHYSICS_INCLUDE_DIRS}
+                "${MODEL_INCLUDE_DIR}"
+                "${XIOS_INCLUDE_LIST}"
+                "${ModulesRoot}/StructureModule"
         )
         target_link_libraries(testXiosField_MPI3 PRIVATE nextsimlib doctest::doctest)
 
@@ -115,7 +216,11 @@ if(ENABLE_MPI)
         target_compile_definitions(testXiosFile_MPI2 PRIVATE USE_XIOS)
         target_include_directories(
             testXiosFile_MPI2
-            PRIVATE "${MODEL_INCLUDE_DIR}" "${XIOS_INCLUDE_LIST}" "${ModulesRoot}/StructureModule"
+            PRIVATE
+                ${PHYSICS_INCLUDE_DIRS}
+                "${MODEL_INCLUDE_DIR}"
+                "${XIOS_INCLUDE_LIST}"
+                "${ModulesRoot}/StructureModule"
         )
         target_link_libraries(testXiosFile_MPI2 PRIVATE nextsimlib doctest::doctest)
 
@@ -127,7 +232,11 @@ if(ENABLE_MPI)
         )
         target_include_directories(
             testXiosRead_MPI2
-            PRIVATE "${MODEL_INCLUDE_DIR}" "${XIOS_INCLUDE_LIST}" "${ModulesRoot}/StructureModule"
+            PRIVATE
+                ${PHYSICS_INCLUDE_DIRS}
+                "${MODEL_INCLUDE_DIR}"
+                "${XIOS_INCLUDE_LIST}"
+                "${ModulesRoot}/StructureModule"
         )
         target_link_libraries(testXiosRead_MPI2 PRIVATE nextsimlib doctest::doctest)
 
@@ -135,7 +244,11 @@ if(ENABLE_MPI)
         target_compile_definitions(testXiosWrite_MPI2 PRIVATE USE_XIOS)
         target_include_directories(
             testXiosWrite_MPI2
-            PRIVATE "${MODEL_INCLUDE_DIR}" "${XIOS_INCLUDE_LIST}" "${ModulesRoot}/StructureModule"
+            PRIVATE
+                ${PHYSICS_INCLUDE_DIRS}
+                "${MODEL_INCLUDE_DIR}"
+                "${XIOS_INCLUDE_LIST}"
+                "${ModulesRoot}/StructureModule"
         )
         target_link_libraries(testXiosWrite_MPI2 PRIVATE nextsimlib doctest::doctest)
 
@@ -151,6 +264,58 @@ if(ENABLE_MPI)
 
         add_mpi_test("${XIOS_TESTS}")
     else()
+        add_executable(testHaloExchangeCB_MPI3
+            "HaloExchangeCB_test.cpp"
+            "MainMPI.cpp"
+            "../src/ModelArray.cpp"
+            "../src/ModelArraySlice.cpp"
+        )
+        target_compile_definitions(testHaloExchangeCB_MPI3 PRIVATE USE_MPI
+          TEST_FILES_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\")
+        target_include_directories(
+            testHaloExchangeCB_MPI3 PRIVATE
+            ${MODEL_INCLUDE_DIR}
+            "${ModulesRoot}/StructureModule"
+            "../src"
+            "../../dynamics/src"
+            "../../dynamics/src/include"
+        )
+        target_link_libraries(testHaloExchangeCB_MPI3 PRIVATE nextsimlib doctest::doctest)
+
+        add_executable(testHaloExchangePB_MPI3
+            "HaloExchangePB_test.cpp"
+            "MainMPI.cpp"
+            "../src/ModelArray.cpp"
+            "../src/ModelArraySlice.cpp"
+        )
+        target_compile_definitions(testHaloExchangePB_MPI3 PRIVATE USE_MPI
+          TEST_FILES_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\")
+        target_include_directories(
+            testHaloExchangePB_MPI3 PRIVATE
+            ${MODEL_INCLUDE_DIR}
+            "${ModulesRoot}/StructureModule"
+            "../src"
+            "../../dynamics/src"
+            "../../dynamics/src/include"
+        )
+        target_link_libraries(testHaloExchangePB_MPI3 PRIVATE nextsimlib doctest::doctest)
+
+        add_executable(testParaGrid_MPI2 "ParaGrid_test.cpp" "MainMPI.cpp")
+        target_compile_definitions(
+            testParaGrid_MPI2
+            PRIVATE
+            USE_MPI
+            TEST_FILES_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\"
+            TEST_FILE_SOURCE=\"${CMAKE_CURRENT_SOURCE_DIR}\"
+        )
+        target_include_directories(
+            testParaGrid_MPI2 PRIVATE
+            ${MODEL_INCLUDE_DIR}
+            "${ModulesRoot}/StructureModule"
+            "../../dynamics/src/include"
+        )
+        target_link_libraries(testParaGrid_MPI2 PRIVATE nextsimlib doctest::doctest)
+
         add_executable(testRectGrid_MPI3 "RectGrid_test.cpp" "MainMPI.cpp")
         target_compile_definitions(
             testRectGrid_MPI3
@@ -162,52 +327,53 @@ if(ENABLE_MPI)
         )
         target_link_libraries(testRectGrid_MPI3 PRIVATE nextsimlib doctest::doctest)
 
+        add_executable(testModelMetadataCB_MPI3 "ModelMetadataCB_test.cpp" "MainMPI.cpp")
+        target_compile_definitions(
+            testModelMetadataCB_MPI3
+            PRIVATE
+            USE_MPI
+            TEST_FILES_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\"
+            TEST_FILE_SOURCE=\"${CMAKE_CURRENT_SOURCE_DIR}\"
+        )
+        target_include_directories(
+            testModelMetadataCB_MPI3
+            PRIVATE ${MODEL_INCLUDE_DIR} "${ModulesRoot}/StructureModule"
+        )
+        target_link_libraries(testModelMetadataCB_MPI3 PRIVATE nextsimlib doctest::doctest)
+
+        add_executable(testModelMetadataPB_MPI3 "ModelMetadataPB_test.cpp" "MainMPI.cpp")
+        target_compile_definitions(
+            testModelMetadataPB_MPI3
+            PRIVATE
+            USE_MPI
+            TEST_FILES_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\"
+            TEST_FILE_SOURCE=\"${CMAKE_CURRENT_SOURCE_DIR}\"
+        )
+        target_include_directories(
+            testModelMetadataPB_MPI3
+            PRIVATE ${MODEL_INCLUDE_DIR} "${ModulesRoot}/StructureModule"
+        )
+        target_link_libraries(testModelMetadataPB_MPI3 PRIVATE nextsimlib doctest::doctest)
+
         add_executable(testConfigOutput_MPI2 "ConfigOutput_test.cpp" "MainMPI.cpp")
         target_compile_definitions(
             testConfigOutput_MPI2
             PRIVATE USE_MPI TEST_FILES_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\"
         )
-        target_include_directories(testConfigOutput_MPI2 PRIVATE ${MODEL_INCLUDE_DIR})
+        target_include_directories(
+          testConfigOutput_MPI2 PRIVATE
+          ${MODEL_INCLUDE_DIR}
+          "../../dynamics/src/include"
+        )
         target_link_libraries(testConfigOutput_MPI2 PRIVATE nextsimlib doctest::doctest)
 
-        # Generate partition files needed for MPI test from respective cdl files
-        add_custom_command(
-            OUTPUT partition_metadata_3.nc
-            COMMAND
-                ncgen -b -o partition_metadata_3.nc
-                ${CMAKE_CURRENT_SOURCE_DIR}/partition_metadata_3.cdl
-            DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/partition_metadata_3.cdl
-        )
-        add_custom_command(
-            OUTPUT partition_metadata_2.nc
-            COMMAND
-                ncgen -b -o partition_metadata_2.nc
-                ${CMAKE_CURRENT_SOURCE_DIR}/partition_metadata_2.cdl
-            DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/partition_metadata_2.cdl
-        )
-        add_custom_target(
-            generate_partition_files
-            ALL
-            DEPENDS partition_metadata_3.nc partition_metadata_2.nc
-        )
-
-        add_executable(testParaGrid_MPI2 "ParaGrid_test.cpp" "MainMPI.cpp")
-        target_compile_definitions(
-            testParaGrid_MPI2
-            PRIVATE
-                USE_MPI
-                TEST_FILES_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\"
-                TEST_FILE_SOURCE=\"${CMAKE_CURRENT_SOURCE_DIR}\"
-        )
-        target_include_directories(
-            testParaGrid_MPI2
-            PRIVATE ${MODEL_INCLUDE_DIR} "${ModulesRoot}/StructureModule"
-        )
-        target_link_libraries(testParaGrid_MPI2 PRIVATE nextsimlib doctest::doctest)
-
         set(MPI_TESTS
-            testRectGrid_MPI3
+            testHaloExchangeCB_MPI3
+            testHaloExchangePB_MPI3
             testParaGrid_MPI2
+            testRectGrid_MPI3
+            testModelMetadataCB_MPI3
+            testModelMetadataPB_MPI3
             testConfigOutput_MPI2
         )
         add_mpi_test("${MPI_TESTS}")
