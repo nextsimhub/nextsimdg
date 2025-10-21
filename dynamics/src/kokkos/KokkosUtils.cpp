@@ -1,7 +1,4 @@
 /*!
- * @file KokkosUtils.cpp
- *
- * @date Aug 26, 2024
  * @author Robert Jendersie <robert.jendersie@ovgu.de>
  */
 

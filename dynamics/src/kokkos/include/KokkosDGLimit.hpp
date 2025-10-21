@@ -1,6 +1,4 @@
 /*!
- * @file dgLimit.hpp
- * @date 27 September 2024
  * @author Robert Jendersie <robert.jendersie@ovgu.de>
  */
 

@@ -1,7 +1,4 @@
 /*!
- * @file KokkosMEVPDynamicsKernel.hpp
- *
- * @date 16 Apr 2025
  * @author Robert Jendersie <robert.jendersie@ovgu.de>
  */
 

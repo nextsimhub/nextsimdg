@@ -1,6 +1,4 @@
 /*!
- * @file    KokkosDGTransport.hpp
- * @date    September 12 2024
  * @author  Robert Jendersie <robert.jendersie@ovgu.de>
  */
 

@@ -1,6 +1,4 @@
 /*!
- * @file KokkosBrittleCGDynamicsKernel.cpp
- * @date August 28, 2024
  * @author Robert Jendersie <robert.jendersie@ovgu.de>
  */
 

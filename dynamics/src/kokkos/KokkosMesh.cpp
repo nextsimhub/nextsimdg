@@ -1,6 +1,4 @@
 /*!
- * @file KokkosMesh.cpp
- * @date August 22, 2024
  * @author Robert Jendersie <robert.jendersie@ovgu.de>
  */
 
