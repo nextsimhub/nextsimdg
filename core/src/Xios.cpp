@@ -1698,7 +1698,7 @@ void Xios::write(const std::string fieldId, ModelArray& modelarray)
     std::set<std::string> fieldNames = configGetFieldNames(readAccess);
     if (fieldNames.find(fieldId) == fieldNames.end()) {
         throw std::runtime_error(
-            "Xios::write: field " + fieldId + " has not been configured for writing with XIOS.");
+            "Xios::write: field '" + fieldId + "' has not been configured for writing with XIOS.");
     }
     if (modelarray.nDimensions() != 2) {
         throw std::invalid_argument("Only ModelArrays of dimension 2 are supported");
@@ -1735,7 +1735,7 @@ void Xios::read(const std::string fieldId, ModelArray& modelarray)
     std::set<std::string> fieldNames = configGetFieldNames(readAccess);
     if (fieldNames.find(fieldId) == fieldNames.end()) {
         throw std::runtime_error(
-            "Xios::read: field " + fieldId + " has not been configured for reading with XIOS.");
+            "Xios::read: field '" + fieldId + "' has not been configured for reading with XIOS.");
     }
     if (modelarray.nDimensions() != 2) {
         throw std::invalid_argument("Only ModelArrays of dimension 2 are supported");
