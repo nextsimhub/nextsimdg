@@ -107,20 +107,42 @@ MPI_TEST_CASE("TestXiosRead", 2)
     metadata.setTime(xiosHandler.getCalendarStart());
     REQUIRE(xiosHandler.getCalendarStep() == 0);
     ModelState restarts = grid.getModelState(restartFilename);
+    int rank;
+    MPI_Comm_rank(test_comm, &rank);
     for (auto& entry : restarts.data) {
-        for (size_t j = 0; j < ny; ++j) {
-            for (size_t i = 0; i < nx; ++i) {
-                if (entry.first == maskName) {
+        if (entry.first == maskName) {
+            for (size_t j = 0; j < ny; ++j) {
+                for (size_t i = 0; i < nx; ++i) {
                     REQUIRE(entry.second(i, j) == doctest::Approx(j >= 1 ? 1.0 : 0.0));
-                } else if (entry.first == coordsName) {
-                    REQUIRE(entry.second.components({ i, j })[0] == doctest::Approx(i));
-                    REQUIRE(entry.second.components({ i, j })[1] == doctest::Approx(j));
-                } else if (entry.first == hiceName) {
+                }
+            }
+        } else if (entry.first == coordsName) {
+            for (size_t j = 0; j < ny + 1; ++j) {
+                if (rank == 0) {
+                    for (size_t i = 0; i < nx + 1; ++i) {
+                        REQUIRE(entry.second.components({ i, j })[0] == doctest::Approx(i));
+                        REQUIRE(entry.second.components({ i, j })[1] == doctest::Approx(j));
+                    }
+                } else {
+                    // TODO: Account for halo
+                    for (size_t i = 0; i < nx; ++i) {
+                        REQUIRE(entry.second.components({ i, j })[0] == doctest::Approx(i + 2));
+                        REQUIRE(entry.second.components({ i, j })[1] == doctest::Approx(j));
+                    }
+                }
+            }
+        } else if (entry.first == hiceName) {
+            for (size_t j = 0; j < ny; ++j) {
+                for (size_t i = 0; i < nx; ++i) {
                     for (size_t d = 0; d < DG; ++d) {
                         float expected = 1.0 * (d + DG * (i + nx * j));
                         REQUIRE(entry.second.components({ i, j })[d] == doctest::Approx(expected));
                     }
-                } else if (entry.first == ticeName) {
+                }
+            }
+        } else if (entry.first == ticeName) {
+            for (size_t j = 0; j < ny; ++j) {
+                for (size_t i = 0; i < nx; ++i) {
                     for (size_t d = 0; d < DGSTRESSCOMP; ++d) {
                         REQUIRE(entry.second.components({ i, j })[d]
                             == doctest::Approx(2.0 * (d + DGSTRESSCOMP * (i + nx * j))));

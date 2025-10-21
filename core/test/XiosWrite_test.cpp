@@ -118,10 +118,17 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     }
     VertexField coordinates(ModelArray::Type::VERTEX);
     coordinates.resize();
+    int rank;
+    MPI_Comm_rank(test_comm, &rank);
     for (size_t j = 0; j < ny + 1; ++j) {
         for (size_t i = 0; i < nx + 1; ++i) {
-            coordinates.components({ i, j })[0] = (double)i;
-            coordinates.components({ i, j })[1] = (double)j;
+            if (rank == 0) {
+                coordinates.components({ i, j })[0] = (double)i;
+                coordinates.components({ i, j })[1] = (double)j;
+            } else {
+                coordinates.components({ i, j })[0] = (double)(i + 2);
+                coordinates.components({ i, j })[1] = (double)j;
+            }
         }
     }
     DGField hice(ModelArray::Type::DG);
