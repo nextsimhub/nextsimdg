@@ -18,6 +18,7 @@ on:
   # Trigger the workflow when an open PR receives a review
   pull_request_review:
     branches: [ main, develop ]
+    types: [ submitted ]
     paths-ignore:
       - '.github/workflows/*.yml'
       - '**.cpp'
