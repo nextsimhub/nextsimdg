@@ -71,11 +71,6 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     ParaGridIO* pio = new ParaGridIO(grid);
     grid.setIO(pio);
 
-    // Get the Xios singleton instance and check it's initialized
-    Xios& xiosHandler = Xios::getInstance();
-    REQUIRE(xiosHandler.isInitialized());
-    REQUIRE(xiosHandler.getClientMPISize() == 2);
-
     // Set ModelArray dimensions
     const size_t nx_glo = 4;
     const size_t ny_glo = 2;
@@ -83,7 +78,8 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     const size_t ny = 2;
     size_t nx_start;
     const size_t ny_start = 0;
-    const int rank = xiosHandler.getClientMPIRank();
+    int rank;
+    MPI_Comm_rank(test_comm, &rank);
     if (rank == 0) {
         nx_start = 0;
     } else {
@@ -103,6 +99,11 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     REQUIRE(ModelArray::nComponents(ModelArray::Type::DG) == DG);
     REQUIRE(ModelArray::nComponents(ModelArray::Type::DGSTRESS) == DGSTRESSCOMP);
     REQUIRE(ModelArray::nComponents(ModelArray::Type::VERTEX) == ModelArray::nCoords);
+
+    // Get the Xios singleton instance and check it's initialized
+    Xios& xiosHandler = Xios::getInstance();
+    REQUIRE(xiosHandler.isInitialized());
+    REQUIRE(xiosHandler.getClientMPISize() == 2);
 
     // Affix ModelMetadata to Xios handler
     // TODO: Automate this - can't be inlined in Xios::getInstance because need set field types

@@ -70,11 +70,6 @@ MPI_TEST_CASE("TestXiosRead", 2)
     ParaGridIO* pio = new ParaGridIO(grid);
     grid.setIO(pio);
 
-    // Get the Xios singleton instance and check it's initialized
-    Xios& xiosHandler = Xios::getInstance();
-    REQUIRE(xiosHandler.isInitialized());
-    REQUIRE(xiosHandler.getClientMPISize() == 2);
-
     // TODO: We could deduce this from the NetCDF file
     ModelArray::setNComponents(ModelArray::Type::DG, DG);
     ModelArray::setNComponents(ModelArray::Type::DGSTRESS, DGSTRESSCOMP);
@@ -82,6 +77,11 @@ MPI_TEST_CASE("TestXiosRead", 2)
     REQUIRE(ModelArray::nComponents(ModelArray::Type::DG) == DG);
     REQUIRE(ModelArray::nComponents(ModelArray::Type::DGSTRESS) == DGSTRESSCOMP);
     REQUIRE(ModelArray::nComponents(ModelArray::Type::VERTEX) == ModelArray::nCoords);
+
+    // Get the Xios singleton instance and check it's initialized
+    Xios& xiosHandler = Xios::getInstance();
+    REQUIRE(xiosHandler.isInitialized());
+    REQUIRE(xiosHandler.getClientMPISize() == 2);
 
     // Affix ModelMetadata to Xios handler
     // TODO: Automate this - can't be inlined in Xios::getInstance because need set field types
