@@ -706,15 +706,21 @@ void Xios::affixModelMetadata()
                 } else {
                     // Otherwise, check that an attempt to modify them isn't being made
                     if (dim.getSize() != ModelArray::definedDimensions.at(dimType).globalLength) {
-                        throw std::runtime_error(
-                            "Xios: inconsistent global dimensions for " + dimName);
+                        throw std::runtime_error("Xios: inconsistent global dimensions for "
+                            + dimName + ": " + std::to_string(dim.getSize()) + " vs. "
+                            + std::to_string(
+                                ModelArray::definedDimensions.at(dimType).globalLength));
                     }
-                    if (localLength != ModelArray::size(dimType)) {
-                        throw std::runtime_error(
-                            "Xios: inconsistent local dimensions for " + dimName);
+                    if (localLength != ModelArray::definedDimensions.at(dimType).localLength) {
+                        throw std::runtime_error("Xios: inconsistent local dimensions for "
+                            + dimName + ": " + std::to_string(localLength) + " vs. "
+                            + std::to_string(
+                                ModelArray::definedDimensions.at(dimType).localLength));
                     }
                     if (start != ModelArray::definedDimensions.at(dimType).start) {
-                        throw std::runtime_error("Xios: inconsistent start index for " + dimName);
+                        throw std::runtime_error("Xios: inconsistent start index for " + dimName
+                            + ": " + std::to_string(start) + " vs. "
+                            + std::to_string(ModelArray::definedDimensions.at(dimType).start));
                     }
                 }
             }
