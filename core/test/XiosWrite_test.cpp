@@ -46,7 +46,8 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     config << "restart_file = " << restartFilename << std::endl;
     config << "restart_period = P0-0T01:30:00" << std::endl;
     config << "[XiosOutput]" << std::endl;
-    config << "field_names = " << maskName << "," << coordsName << "," << hiceName << std::endl;
+    config << "field_names = " << maskName << "," << coordsName << "," << hiceName << ","
+           << ticeName << std::endl;
     config << "[XiosDiagnostic]" << std::endl;
     config << "filename = " << diagnosticFilename << std::endl;
     config << "field_names = " << uName << std::endl;
