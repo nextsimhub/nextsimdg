@@ -40,6 +40,11 @@
 #include <regex>
 #include <string>
 
+#ifndef CGDEGREE
+#define CGDEGREE 2 // Define to prevent errors from static analysis tools
+#error "CG degree (CGDEGREE) not defined" // But throw an error anyway
+#endif
+
 namespace Nextsim {
 
 static const std::string xOutputPfx = "XiosOutput";
@@ -570,6 +575,9 @@ void Xios::parseInputFiles()
 {
     auto& metadata = ModelMetadata::getInstance();
 
+    ModelArray::setNComponents(ModelArray::Type::VERTEX, ModelArray::nCoords);
+
+    // Initial read of the NetCDF file to deduce the dimensions
     for (std::string filename : { inputFilename, forcingFilename }) {
         if (filename.length() == 0) {
             break;
@@ -603,8 +611,8 @@ void Xios::parseInputFiles()
                         + dimensionSpec.name + " or " + dimensionSpec.altName);
                 }
                 auto dimName = dim.getName();
-                size_t localLength;
-                size_t start;
+                size_t localLength = dim.getSize();
+                size_t start = 0;
                 if (dimType == ModelArray::Dimension::X) {
                     localLength = metadata.getLocalExtentX();
                     start = metadata.getLocalCornerX();
@@ -623,9 +631,6 @@ void Xios::parseInputFiles()
                 } else if (dimType == ModelArray::Dimension::YCG) {
                     localLength = CGDEGREE * metadata.getLocalExtentY() + 1;
                     start = CGDEGREE * metadata.getLocalCornerY();
-                } else {
-                    localLength = dim.getSize();
-                    start = 0;
                 }
 
                 if (ModelArray::definedDimensions.at(dimType)

@@ -91,10 +91,8 @@ MPI_TEST_CASE("TestXiosWrite", 2)
         ModelArray::Dimension::YCG, CGDEGREE * ny_glo + 1, CGDEGREE * ny + 1, ny_start);
     ModelArray::setNComponents(ModelArray::Type::DG, DG);
     ModelArray::setNComponents(ModelArray::Type::DGSTRESS, DGSTRESSCOMP);
-    ModelArray::setNComponents(ModelArray::Type::VERTEX, ModelArray::nCoords);
     REQUIRE(ModelArray::nComponents(ModelArray::Type::DG) == DG);
     REQUIRE(ModelArray::nComponents(ModelArray::Type::DGSTRESS) == DGSTRESSCOMP);
-    REQUIRE(ModelArray::nComponents(ModelArray::Type::VERTEX) == ModelArray::nCoords);
 
     // Create ParametricGrid and ParaGridIO instances
     // NOTE: XIOS axes, domains, and grids are created by the ParaGridIO constructor
