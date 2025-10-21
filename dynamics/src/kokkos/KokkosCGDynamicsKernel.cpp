@@ -159,6 +159,9 @@ template <int DGadvection> void KokkosCGDynamicsKernel<DGadvection>::prepareAdve
     static KokkosTimer<DETAILED_MEASUREMENTS> timerPrepAdvection("prepareAdvection");
     //CGDynamicsKernel<DGadvection>::prepareAdvection();
     timerPrepAdvection.start();
+    auto execSpace = Kokkos::DefaultExecutionSpace();
+    Kokkos::deep_copy(execSpace, this->uDevice, this->uHost);
+    Kokkos::deep_copy(execSpace, this->vDevice, this->vHost);
     dGTransportDevice->prepareAdvection(uDevice, vDevice);
     timerPrepAdvection.stop();
 }

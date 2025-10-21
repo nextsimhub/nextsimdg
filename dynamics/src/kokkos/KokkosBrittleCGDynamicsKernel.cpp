@@ -92,10 +92,7 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
     timerUpload.start();
     // explicit execution space enables asynchronous execution
     auto execSpace = Kokkos::DefaultExecutionSpace();
-
-    Kokkos::deep_copy(execSpace, this->uDevice, this->uHost);
-    Kokkos::deep_copy(execSpace, this->vDevice, this->vHost);
-
+    // uDevice, vDevice are already copied to the device in KokkosCGDynamicsKernel::prepareAdvection
     Kokkos::deep_copy(execSpace, this->uOceanDevice, this->uOceanHost);
     Kokkos::deep_copy(execSpace, this->vOceanDevice, this->vOceanHost);
 

@@ -62,6 +62,7 @@ void KokkosMEVPDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
     auto execSpace = Kokkos::DefaultExecutionSpace();
     Kokkos::deep_copy(execSpace, this->uDevice, this->uHost);
     Kokkos::deep_copy(execSpace, this->vDevice, this->vHost);
+    // uDevice, vDevice are already copied to the device in KokkosCGDynamicsKernel::prepareAdvection
     Kokkos::deep_copy(execSpace, this->u0DeviceMut, this->uDevice);
     Kokkos::deep_copy(execSpace, this->v0DeviceMut, this->vDevice);
 
