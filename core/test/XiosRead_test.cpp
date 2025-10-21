@@ -20,7 +20,8 @@
 #include <filesystem>
 
 const std::string testFilesDir = TEST_FILES_DIR;
-const std::string filename = testFilesDir + "/xios_test_input.nc";
+const std::string restartFilename = testFilesDir + "/xios_test_input.nc";
+const std::string forcingFilename = testFilesDir + "/xios_test_forcing.nc";
 
 static const int DG = 3;
 
@@ -41,12 +42,12 @@ MPI_TEST_CASE("TestXiosRead", 2)
     config << "start = 2023-03-17T17:11:00Z" << std::endl;
     config << "stop = 2023-03-17T23:11:00Z" << std::endl;
     config << "time_step = P0-0T01:30:00" << std::endl;
-    config << "init_file = " << filename << std::endl;
+    config << "init_file = " << restartFilename << std::endl;
     config << "restart_period = P0-0T01:30:00" << std::endl;
     config << "[XiosInput]" << std::endl;
     config << "field_names = " << maskName << "," << coordsName << "," << hiceName << std::endl;
     config << "[XiosForcing]" << std::endl;
-    config << "filename = xios_test_forcing.nc" << std::endl;
+    config << "filename = " << forcingFilename << std::endl;
     config << "field_names = " << uName << std::endl;
     config << "period = P0-0T01:30:00" << std::endl;
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
@@ -86,8 +87,9 @@ MPI_TEST_CASE("TestXiosRead", 2)
     // Check calendar step is zero initially
     REQUIRE(xiosHandler.getCalendarStep() == 0);
 
-    // Check the input file exists
-    REQUIRE(std::filesystem::exists(filename));
+    // Check the input files exists
+    REQUIRE(std::filesystem::exists(restartFilename));
+    REQUIRE(std::filesystem::exists(forcingFilename));
 
     // Check calendar step is zero initially
     metadata.setTime(xiosHandler.getCalendarStart());
@@ -100,7 +102,7 @@ MPI_TEST_CASE("TestXiosRead", 2)
     // Read restarts from file and check they take the expected values
     metadata.setTime(xiosHandler.getCalendarStart());
     REQUIRE(xiosHandler.getCalendarStep() == 0);
-    ModelState restarts = grid.getModelState(filename);
+    ModelState restarts = grid.getModelState(restartFilename);
     for (auto& entry : restarts.data) {
         for (size_t j = 0; j < ny; ++j) {
             for (size_t i = 0; i < nx; ++i) {
@@ -127,7 +129,7 @@ MPI_TEST_CASE("TestXiosRead", 2)
 
         // Read forcings from file and check they take the expected values
         TimePoint time = xiosHandler.getCurrentDate();
-        ModelState forcings = pio->readForcingTimeStatic(forcingFieldNames, time, filename);
+        ModelState forcings = pio->readForcingTimeStatic(forcingFieldNames, time, forcingFilename);
         for (auto& entry : forcings.data) {
             for (size_t j = 0; j < ny; ++j) {
                 for (size_t i = 0; i < nx; ++i) {

@@ -20,7 +20,8 @@
 #include <filesystem>
 
 const std::string testFilesDir = TEST_FILES_DIR;
-const std::string filename = testFilesDir + "/xios_test_output.nc";
+const std::string restartFilename = testFilesDir + "/xios_test_output.nc";
+const std::string diagnosticFilename = testFilesDir + "/xios_test_diagnostic.nc";
 
 static const int DG = 3;
 
@@ -41,12 +42,12 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     config << "start = 2023-03-17T17:11:00Z" << std::endl;
     config << "stop = 2023-03-17T23:11:00Z" << std::endl;
     config << "time_step = P0-0T01:30:00" << std::endl;
-    config << "restart_file = " << filename << std::endl;
+    config << "restart_file = " << restartFilename << std::endl;
     config << "restart_period = P0-0T01:30:00" << std::endl;
     config << "[XiosOutput]" << std::endl;
     config << "field_names = " << maskName << "," << coordsName << "," << hiceName << std::endl;
     config << "[XiosDiagnostic]" << std::endl;
-    config << "filename = xios_test_diagnostic.nc" << std::endl;
+    config << "filename = " << diagnosticFilename << std::endl;
     config << "field_names = " << uName << std::endl;
     config << "period = P0-0T01:30:00" << std::endl;
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
@@ -95,10 +96,9 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     xiosHandler.setFieldType(hiceName, ModelArray::Type::DG);
     xiosHandler.setFieldType(uName, ModelArray::Type::H);
 
-    // Set file split frequency for restarts
+    // Set file split frequency for restarts (but not diagnostics)
     // NOTE: Files are created when the XIOS handler is constructed
     const std::string fileId = "xios_test_output";
-    // TODO: Account for separate restart and diagnostics files (#929)
     xiosHandler.setFileSplitFreq(fileId, Duration("P0-0T03:00:00"));
 
     xiosHandler.close_context_definition();
@@ -131,8 +131,9 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     HField u(ModelArray::Type::H);
     u.resize();
 
-    // Check a file with the expected name doesn't exist yet
+    // Check files with the expected names don't exist yet
     REQUIRE_FALSE(std::filesystem::exists("xios_test_output*.nc"));
+    REQUIRE_FALSE(std::filesystem::exists("xios_test_diagnostic*.nc"));
 
     // Simulate 4 iterations (timesteps)
     Duration timestep = xiosHandler.getCalendarTimestep();
@@ -164,20 +165,18 @@ MPI_TEST_CASE("TestXiosWrite", 2)
             {} };
 
         // Write out diagnostics and then restarts
-        pio->writeDiagnosticTime(diagnostics, filename);
-        grid.dumpModelState(restarts, filename, true);
+        pio->writeDiagnosticTime(diagnostics, diagnosticFilename);
+        grid.dumpModelState(restarts, restartFilename, true);
     }
 
     // Check the files have indeed been created then remove it
     REQUIRE(std::filesystem::exists("xios_test_output_20230317171100-20230317201059.nc"));
     REQUIRE(std::filesystem::exists("xios_test_output_20230317201100-20230317231059.nc"));
-    REQUIRE(std::filesystem::exists("xios_test_diagnostic_20230317171100-20230317201059.nc"));
-    REQUIRE(std::filesystem::exists("xios_test_diagnostic_20230317201100-20230317231059.nc"));
+    REQUIRE(std::filesystem::exists("xios_test_diagnostic.nc"));
     if (xiosHandler.getClientMPIRank() == 0) {
         std::filesystem::remove("xios_test_output_20230317171100-20230317201059.nc");
         std::filesystem::remove("xios_test_output_20230317201100-20230317231059.nc");
-        std::filesystem::remove("xios_test_diagnostic_20230317171100-20230317201059.nc");
-        std::filesystem::remove("xios_test_diagnostic_20230317201100-20230317231059.nc");
+        std::filesystem::remove("xios_test_diagnostic.nc");
     }
 
     xiosHandler.context_finalize();
