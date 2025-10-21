@@ -115,7 +115,7 @@ public:
     void setFieldType(const std::string fieldId, ModelArray::Type type);
 
     /* File */
-    void createFile(const std::string fileId);
+    void createFile(const std::string fileId, const int fieldType);
     void setFileType(const std::string fileId, const std::string fileType);
     void setFileOutputFreq(const std::string fileId, const Duration outputFreq);
     void setFileSplitFreq(const std::string fileId, const Duration splitFreq);
@@ -146,8 +146,13 @@ public:
         FORCING_FIELD_NAMES_KEY,
     };
 
-    /* Length of C-strings passed to XIOS */
-    int cStrLen { 20 };
+    // TODO: Make the following enum private
+    enum {
+        OUTPUT_RESTART,
+        INPUT_RESTART,
+        DIAGNOSTIC,
+        FORCING,
+    };
 
 protected:
     bool isConfigured;
@@ -161,6 +166,9 @@ private:
     MPI_Fint nullComm_F;
     int mpi_rank { 0 };
     int mpi_size { 0 };
+
+    /* Length of C-strings passed to XIOS */
+    int cStrLen { 20 };
 
     /* Calendar, date and duration */
     std::string calendarType;
@@ -226,6 +234,12 @@ private:
     std::string diagnosticFileId;
     std::string forcingFilename;
     std::string forcingFileId;
+    const std::map<int, std::string&> fileMap = {
+        { OUTPUT_RESTART, outputFileId },
+        { INPUT_RESTART, inputFileId },
+        { DIAGNOSTIC, diagnosticFileId },
+        { FORCING, forcingFileId },
+    };
 
     /* I/O */
     void write(const std::string fieldId, ModelArray& modelarray);
@@ -233,7 +247,6 @@ private:
     /* Declare any classes that need to access private members */
     friend ParaGridIO;
 };
-
 }
 
 #endif // USE_XIOS

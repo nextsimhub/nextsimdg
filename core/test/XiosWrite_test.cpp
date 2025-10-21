@@ -46,9 +46,7 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     config << "[XiosOutput]" << std::endl;
     config << "field_names = " << maskName << "," << coordsName << "," << hiceName << std::endl;
     config << "[XiosDiagnostic]" << std::endl;
-    // TODO: Account for separate restart and diagnostics files (#929)
-    config << "[XiosDiagnostic]" << std::endl;
-    config << "filename = " << filename << std::endl;
+    config << "filename = xios_test_diagnostic.nc" << std::endl;
     config << "field_names = " << uName << std::endl;
     config << "period = P0-0T01:30:00" << std::endl;
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
@@ -140,9 +138,6 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     Duration timestep = xiosHandler.getCalendarTimestep();
     metadata.setTime(xiosHandler.getCalendarStart());
     REQUIRE(xiosHandler.getCalendarStep() == 0);
-
-    // Simulate 4 iterations (timesteps)
-    Duration timestep = xiosHandler.getCalendarTimestep();
     for (int ts = 1; ts <= 4; ts++) {
 
         // Update the current timestep and verify it's updated in XIOS
@@ -176,9 +171,13 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     // Check the files have indeed been created then remove it
     REQUIRE(std::filesystem::exists("xios_test_output_20230317171100-20230317201059.nc"));
     REQUIRE(std::filesystem::exists("xios_test_output_20230317201100-20230317231059.nc"));
+    REQUIRE(std::filesystem::exists("xios_test_diagnostic_20230317171100-20230317201059.nc"));
+    REQUIRE(std::filesystem::exists("xios_test_diagnostic_20230317201100-20230317231059.nc"));
     if (xiosHandler.getClientMPIRank() == 0) {
         std::filesystem::remove("xios_test_output_20230317171100-20230317201059.nc");
         std::filesystem::remove("xios_test_output_20230317201100-20230317231059.nc");
+        std::filesystem::remove("xios_test_diagnostic_20230317171100-20230317201059.nc");
+        std::filesystem::remove("xios_test_diagnostic_20230317201100-20230317231059.nc");
     }
 
     xiosHandler.context_finalize();

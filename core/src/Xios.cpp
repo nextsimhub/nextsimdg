@@ -98,9 +98,10 @@ Xios::Xios(const std::string contextid, const std::string calendartype)
             >> forcingFilename;
         forcingFileId = ((std::filesystem::path)forcingFilename).filename().replace_extension();
 
-        for (std::string fileId : { inputFileId, outputFileId, forcingFileId, diagnosticFileId }) {
+        for (auto entry : fileMap) {
+            const std::string fileId = entry.second;
             if (fileId.length() > 0) {
-                createFile(fileId);
+                createFile(fileId, entry.first);
 
                 // Set file name
                 xios::CFile* file = getFile(fileId);
@@ -1345,8 +1346,9 @@ xios::CFile* Xios::getFile(const std::string fileId)
  * Create a file with some ID
  *
  * @param the file ID
+ * @param enum indicating field type
  */
-void Xios::createFile(const std::string fileId)
+void Xios::createFile(const std::string fileId, const int fieldType)
 {
     xios::CFile* file = NULL;
     bool exists;
@@ -1364,17 +1366,13 @@ void Xios::createFile(const std::string fileId)
     }
 
     // Determine whether the file is configured for reading or writing
-    bool inputRestart = ((inputFileId.length() > 0) && (inputFileId == fileId));
-    bool forcing = ((forcingFileId.length() > 0) && (forcingFileId == fileId));
-    bool outputRestart = ((outputFileId.length() > 0) && (outputFileId == fileId));
-    bool diagnostic = ((diagnosticFileId.length() > 0) && (diagnosticFileId == fileId));
-    bool readAccess = (inputRestart || forcing);
-    bool writeAccess = (outputRestart || diagnostic);
+    bool readAccess = (fieldType == INPUT_RESTART || fieldType == FORCING);
+    bool writeAccess = (fieldType == OUTPUT_RESTART || fieldType == DIAGNOSTIC);
 
     // Check that the filename is not used for both reading and writing
     if (readAccess && writeAccess) {
         throw std::runtime_error("Xios: File '" + fileId + "' configured for both reading and"
-            + " writing. This is not yet supported in the XIOS I/O implementation.")
+            + " writing. This is not yet supported in the XIOS I/O implementation.");
         // TODO: Refactor to allow a field to be both read and written
     }
 
@@ -1386,7 +1384,7 @@ void Xios::createFile(const std::string fileId)
     }
 
     // Check that the filename is in the XiosOutput or XiosInput config section
-    if (!(diagnostic || forcing || inputRestart || outputRestart)) {
+    if (!(readAccess || writeAccess)) {
         throw std::runtime_error("Xios: File '" + fileId
             + "' cannot be found in the model, XiosDiagnostic, or XiosForcing config sections");
     }
@@ -1402,15 +1400,23 @@ void Xios::createFile(const std::string fileId)
 
     // Set the input or output period based on the model configuration
     std::string periodStr;
-    if (forcing) {
+    std::set<std::string> fieldIds;
+    if (fieldType == FORCING) {
         istringstream(Configured::getConfiguration(keyMap.at(FORCING_PERIOD_KEY), std::string()))
             >> periodStr;
-    } else if (diagnostic) {
+        fieldIds = configGetForcingFieldNames();
+    } else if (fieldType == DIAGNOSTIC) {
         istringstream(Configured::getConfiguration(keyMap.at(DIAGNOSTIC_PERIOD_KEY), std::string()))
             >> periodStr;
+        fieldIds = configGetDiagnosticFieldNames();
     } else {
         istringstream(Configured::getConfiguration(keyMap.at(RESTARTPERIOD_KEY), std::string()))
             >> periodStr;
+        if (fieldType == INPUT_RESTART) {
+            fieldIds = configGetInputRestartFieldNames();
+        } else {
+            fieldIds = configGetOutputRestartFieldNames();
+        }
     }
     if (periodStr.length() == 0 || periodStr == "0") {
         ModelMetadata& metadata = ModelMetadata::getInstance();
@@ -1421,12 +1427,6 @@ void Xios::createFile(const std::string fileId)
 
     // XiosOutput.field_names, XiosInput.field_names, XiosDiagnostic.field_names, or
     // XiosForcing.field_names entries in the config.
-    std::set<std::string> fieldIds;
-    if (readAccess) {
-        fieldIds = configGetInputFieldNames();
-    } else {
-        fieldIds = configGetOutputFieldNames();
-    }
     for (std::string fieldId : fieldIds) {
         createField(fieldId);
         fileAddField(fileId, fieldId);
