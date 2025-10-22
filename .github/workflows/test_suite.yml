@@ -191,6 +191,8 @@ jobs:
         brew install eigen
         brew install netcdf
         brew install netcdf-cxx
+        python3 -m venv ~/nextsim
+        . $HOME/nextsim/bin/activate
         pip install netCDF4
         pip install numpy
 
@@ -203,6 +205,7 @@ jobs:
 
     - name: make
       run: |
+        . $HOME/nextsim/bin/activate
         mkdir -p build
         cd build
         # added Python_ROOT_DIR to help cmake find correct Python in the mac VM
@@ -210,6 +213,7 @@ jobs:
         make -j 4
     - name: run serial tests
       run: |
+        . $HOME/nextsim/bin/activate
         cd build
         ctest -V
         mv ../test .
