@@ -17,7 +17,6 @@
 #include "include/VectorManipulations.hpp"
 #include "include/cgVector.hpp"
 
-#include <cmath>
 #include <limits>
 
 namespace Nextsim {
