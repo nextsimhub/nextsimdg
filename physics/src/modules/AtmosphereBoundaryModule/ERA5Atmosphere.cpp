@@ -6,6 +6,7 @@
 
 #include "include/Finalizer.hpp"
 #include "include/ModelMetadata.hpp"
+#include "include/NetCDFForcings.hpp"
 #include "include/NextsimModule.hpp"
 #include "include/ParaGridIO.hpp"
 #include "include/constants.hpp"
@@ -158,52 +159,6 @@ const std::string era5FromNSName(const std::string& nsName)
 
 using era5Buffer = Eigen::Array<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>;
 
-era5Buffer getFileIndexData(const std::string& filename, size_t tIndex)
-{
-    era5Buffer data;
-    netCDF::NcFile ncFile(filename, netCDF::NcFile::read, netCDF::NcFile::nc4);
-    netCDF::NcVar dataVar;
-
-    size_t nLat;
-    size_t nLon;
-    // There should be 4 vars, longitude, latitude, time and the data variable
-    for (auto entry : ncFile.getVars()) {
-        if (entry.first == "longitude") {
-            nLon = entry.second.getDim(0).getSize();
-        } else if (entry.first == "latitude") {
-            nLat = entry.second.getDim(0).getSize();
-        } else if (entry.first == "time" || entry.first == "valid_time") {
-        } else {
-            dataVar = entry.second;
-        }
-    }
-    std::vector<size_t> start = {tIndex, 0, 0};
-    std::vector<size_t> count = {1, nLat, nLon};
-    // Time dimension
-    start[0] = tIndex;
-    count[0] = 1;
-
-    data.resize(nLon, nLat);
-
-    dataVar.getVar(start, count, data.data());
-    static const std::string offset_name = "add_offset";
-    static const std::string scale_name = "scale_factor";
-    auto dataAtts = dataVar.getAtts();
-    double a = 1.;
-    if (dataAtts.count(scale_name)){
-        dataAtts.at(scale_name).getValues(&a);
-    }
-    double b = 0.;
-    if (dataAtts.count(offset_name)) {
-        dataAtts.at(offset_name).getValues(&b);
-    }
-    ncFile.close();
-
-    data *= a;
-    data += b;
-    return data;
-}
-
 std::pair<double, double> getLatitudeCoeffs(const std::string& filename)
 {
     netCDF::NcFile ncFile(filename, netCDF::NcFile::read, netCDF::NcFile::nc4);
@@ -217,7 +172,7 @@ std::pair<double, double> getLatitudeCoeffs(const std::string& filename)
 
 era5Buffer getVarIndexData(const std::string& era5Name, size_t year, size_t tIndex)
 {
-    return getFileIndexData(e5FilenameFromYear(era5Name, year), tIndex);
+    return NetCDFForcings::getFileIndexData(e5FilenameFromYear(era5Name, year), tIndex);
 }
 
 // time index from a TimePoint

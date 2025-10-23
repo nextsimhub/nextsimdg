@@ -7,6 +7,7 @@
 
 #include "include/ERA5Atmosphere.hpp"
 
+#include "include/NetCDFForcings.hpp"
 #include "include/ModelArray.hpp"
 #include "include/Time.hpp"
 
@@ -29,7 +30,6 @@ using era5Buffer = Eigen::Array<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::C
 using era5ShortBuffer = Eigen::Array<std::int16_t, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>;
 
 std::string e5FilenameFromYear(const std::string& era5Name, size_t year);
-era5Buffer getFileIndexData(const std::string& filename, size_t tIndex);
 era5Buffer getVarIndexData(const std::string& era5Name, size_t year, size_t tIndex);
 size_t timeIndex(const TimePoint& tm);
 era5Buffer getVarTimeData(const std::string& era5Name, const TimePoint& time);
@@ -162,7 +162,7 @@ TEST_CASE("Time interpolation tests")
 
     SUBCASE("I: time index from file") {
         const size_t tIdx = 4;
-        era5Buffer timeData = getFileIndexData(ERA5Atmosphere::addDirectory(timeFileName), tIdx);
+        era5Buffer timeData = NetCDFForcings::getFileIndexData(ERA5Atmosphere::addDirectory(timeFileName), tIdx);
         REQUIRE(timeData(0, 0) == double(tIdx));
     }
 
@@ -367,8 +367,8 @@ TEST_CASE("Spatial interpolation from files")
                 lonTarg(i, j) = degrees(lonC + atan2(x*sin(c), rho*cos(latC)*cos(c) - y*sin(latC)*sin(c)));
             }
         }
-        era5Buffer readLon(getFileIndexData(ERA5Atmosphere::addDirectory("ERA5_lonx_y2000.nc"), 0));
-        era5Buffer readLat(getFileIndexData(ERA5Atmosphere::addDirectory("ERA5_laty_y2000.nc"), 0));
+        era5Buffer readLon(NetCDFForcings::getFileIndexData(ERA5Atmosphere::addDirectory("ERA5_lonx_y2000.nc"), 0));
+        era5Buffer readLat(NetCDFForcings::getFileIndexData(ERA5Atmosphere::addDirectory("ERA5_laty_y2000.nc"), 0));
         ModelArray::setDimensions(ModelArray::Type::H, {nxt, nyt});
         ModelArray testLon;
         testLon.resize();
