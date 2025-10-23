@@ -49,15 +49,15 @@ public:
     void configure() override;
 
 private:
-    std::string m_filePrefix {};
+    std::string m_filePrefix;
     Duration outputPeriod;
-    bool firstOutput = true;
-    bool everyTS = false;
-    bool outputAllTheFields = false;
+    bool firstOutput;
+    bool everyTS;
+    bool outputAllTheFields;
     TimePoint lastOutput;
-    std::set<std::string> fieldsForOutput {};
-    std::string currentFileName {};
-    std::set<std::string> internalFieldsForOutput {};
+    std::set<std::string> fieldsForOutput;
+    std::string currentFileName;
+    std::set<std::string> internalFieldsForOutput;
 
     TimePoint lastFileChange;
     Duration fileChangePeriod;
@@ -65,12 +65,12 @@ private:
     static const std::string all;
     static const std::string defaultLastOutput;
 
-    std::map<std::string, std::string> reverseExternalNames {};
+    std::map<std::string, std::string> reverseExternalNames;
 
-    ModelState state {};
+    ModelState state;
 
-    bool snapshots = false;
-    bool resetState = true;
+    bool snapshots;
+    bool resetState;
 };
 
 } /* namespace Nextsim */

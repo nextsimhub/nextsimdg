@@ -48,6 +48,8 @@ ConfigOutput::ConfigOutput()
     , lastOutput(defaultLastOutput)
     , fieldsForOutput()
     , currentFileName()
+    , snapshots(false)
+    , resetState(true)
 {
 }
 
