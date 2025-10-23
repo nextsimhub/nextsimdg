@@ -220,24 +220,19 @@ era5Buffer getVarIndexData(const std::string& era5Name, size_t year, size_t tInd
     return getFileIndexData(e5FilenameFromYear(era5Name, year), tIndex);
 }
 
-// time index from the C tm struct
-size_t timeIndexFromTM(const std::tm* tm)
+// time index from a TimePoint
+size_t timeIndex(const TimePoint& time)
 {
-    return tm->tm_yday * 24 + tm->tm_hour;
+    return (time.doy() - 1) * 24 + time.hour();
 }
-
 
 // Time interpolation happens here
 era5Buffer getVarTimeData(const std::string& era5Name, const TimePoint& time)
 {
-    std::tm* tm1 = time.gmtime();
-    static size_t epochYear = 1900;
-
-    era5Buffer v1 = getVarIndexData(era5Name, tm1->tm_year + epochYear, timeIndexFromTM(tm1));
+    era5Buffer v1 = getVarIndexData(era5Name, time.year(), timeIndex(time));
     TimePoint t2 = time + Duration(3600);
-    std::tm* tm2 = t2.gmtime();
-    era5Buffer v2 = getVarIndexData(era5Name, tm2->tm_year + epochYear, timeIndexFromTM(tm1));
-    double f = tm2->tm_min / 60.;
+    era5Buffer v2 = getVarIndexData(era5Name, t2.year(), timeIndex(t2));
+    double f = t2.minute() / 60.;
     return v2 * f + v1 * (1-f);
 }
 

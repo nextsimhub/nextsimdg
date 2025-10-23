@@ -31,7 +31,7 @@ using era5ShortBuffer = Eigen::Array<std::int16_t, Eigen::Dynamic, Eigen::Dynami
 std::string e5FilenameFromYear(const std::string& era5Name, size_t year);
 era5Buffer getFileIndexData(const std::string& filename, size_t tIndex);
 era5Buffer getVarIndexData(const std::string& era5Name, size_t year, size_t tIndex);
-size_t timeIndexFromTM(const std::tm* tm);
+size_t timeIndex(const TimePoint& tm);
 era5Buffer getVarTimeData(const std::string& era5Name, const TimePoint& time);
 ModelArray maFromERA5Buffer(const era5Buffer& buffer, const ModelArray& destLon, const ModelArray& destLat);
 era5Buffer era5BufferHypot(const era5Buffer& x, const era5Buffer& y);
@@ -125,30 +125,15 @@ TEST_CASE("e5Filename")
 }
 TEST_CASE("Time index")
 {
-    std::tm tm1{};
-    // 00:00 1st January 2010
-    tm1.tm_year = 2010 - 1900;
-    tm1.tm_mon = 0; // Month is 0 based
-    tm1.tm_yday = 0; // Day of the month is 1-based
-    tm1.tm_hour = 0;
-    tm1.tm_min = 0;
-    tm1.tm_sec = 0;
+    TimePoint time("2010-01-01T00:00:00");
 
-    REQUIRE(timeIndexFromTM(&tm1) == 0);
-    ++tm1.tm_sec;
-    REQUIRE(timeIndexFromTM(&tm1) == 0);
-    ++tm1.tm_min;
-    --tm1.tm_sec;
-    REQUIRE(timeIndexFromTM(&tm1) == 0);
-    ++tm1.tm_hour;
-    --tm1.tm_min;
-    REQUIRE(timeIndexFromTM(&tm1) == 1);
-    ++tm1.tm_yday;
-    --tm1.tm_hour;
-    REQUIRE(timeIndexFromTM(&tm1) == 24);
-    --tm1.tm_yday;
-    ++tm1.tm_year;
-    REQUIRE(timeIndexFromTM(&tm1) == 0);
+    REQUIRE(timeIndex(time) == 0);
+    REQUIRE(timeIndex(time + Duration(1)) == 0);
+    REQUIRE(timeIndex(time + Duration(60)) == 0);
+    REQUIRE(timeIndex(time + Duration(3600)) == 1);
+    REQUIRE(timeIndex(time + Duration(86400)) == 24);
+    REQUIRE(timeIndex(time + Duration("P0-1")) == 24);
+    REQUIRE(timeIndex(time + Duration("P1-0")) == 0);
 }
 TEST_CASE("hypot")
 {
