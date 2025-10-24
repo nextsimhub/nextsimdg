@@ -117,9 +117,6 @@ public:
     void fileAddField(const std::string fileId, const std::string fieldId);
     std::vector<std::string> fileGetFieldIds(const std::string fileId);
 
-    /* I/O */
-    void read(const std::string fieldId, ModelArray& modelarray);
-
     enum {
         ENABLED_KEY,
         RESTARTPERIOD_KEY,
@@ -241,6 +238,7 @@ private:
     };
 
     /* I/O */
+    void read(const std::string fieldId, ModelArray& modelarray);
     void write(const std::string fieldId, ModelArray& modelarray);
 
     /* Declare any classes that need to access private members */
