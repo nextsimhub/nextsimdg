@@ -251,6 +251,9 @@ void Xios::configureServer()
         clientCalendar, convertDurationToXios(metadata.stepLength()));
     cxios_create_calendar(clientCalendar);
     cxios_update_calendar_timestep(clientCalendar);
+    if (!cxios_is_defined_calendar_wrapper_timestep(clientCalendar)) {
+        throw std::runtime_error("Xios: Calendar timestep has not been set");
+    }
 
     // Set default calendar origin
     setCalendarOrigin(TimePoint("1970-01-01T00:00:00Z")); // Unix epoch
@@ -416,21 +419,6 @@ TimePoint Xios::getCalendarStart()
     cxios_date calendar_start;
     cxios_get_calendar_wrapper_date_start_date(clientCalendar, &calendar_start);
     return TimePoint(convertXiosDatetimeToString(calendar_start, true));
-}
-
-/*!
- * Get calendar timestep
- *
- * @return calendar timestep
- */
-Duration Xios::getCalendarTimestep()
-{
-    if (!cxios_is_defined_calendar_wrapper_timestep(clientCalendar)) {
-        throw std::runtime_error("Xios: Calendar timestep has not been set");
-    }
-    cxios_duration calendar_timestep;
-    cxios_get_calendar_wrapper_timestep(clientCalendar, &calendar_timestep);
-    return convertDurationFromXios(calendar_timestep);
 }
 
 /*!

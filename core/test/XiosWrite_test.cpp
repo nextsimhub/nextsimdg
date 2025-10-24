@@ -179,7 +179,7 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     REQUIRE(xiosHandler.getCalendarStep() == 0);
 
     // Simulate 4 iterations (timesteps)
-    Duration timestep = xiosHandler.getCalendarTimestep(); // TODO: Get from pio
+    Duration timestep = metadata.stepLength();
     for (int ts = 1; ts <= 4; ts++) {
 
         // Update the current timestep and verify it's updated in XIOS

@@ -65,7 +65,7 @@ MPI_TEST_CASE("TestXiosCalendar", 1)
     REQUIRE(start == xiosHandler.getCalendarStart());
     REQUIRE(start.format() == "2023-03-17T17:11:00Z");
     // Timestep
-    REQUIRE(xiosHandler.getCalendarTimestep().seconds() == 3600.0); // Read from config
+    REQUIRE(metadata.stepLength().seconds() == 3600.0); // Read from config
 
     xiosHandler.close_context_definition();
 

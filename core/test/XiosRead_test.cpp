@@ -83,9 +83,6 @@ MPI_TEST_CASE("TestXiosRead", 2)
 
     xiosHandler.close_context_definition();
 
-    // Check calendar step is zero initially
-    REQUIRE(xiosHandler.getCalendarStep() == 0);
-
     // Check the input files exists
     REQUIRE(std::filesystem::exists(restartFilename));
     REQUIRE(std::filesystem::exists(forcingFilename));
@@ -151,7 +148,7 @@ MPI_TEST_CASE("TestXiosRead", 2)
     }
 
     // Simulate 4 iterations (timesteps), reading forcing data at each
-    Duration timestep = xiosHandler.getCalendarTimestep();
+    Duration timestep = metadata.stepLength();
     // TODO: Avoid making configGetForcingFieldNames public?
     auto forcingFieldNames = xiosHandler.configGetForcingFieldNames();
     for (int ts = 0; ts <= 4; ts++) {

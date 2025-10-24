@@ -62,8 +62,6 @@ void cxios_update_calendar(int step);
 // timestep methods
 void cxios_set_calendar_wrapper_timestep(
     xios::CCalendarWrapper* calendar_wrapper_hdl, cxios_duration timestep_c);
-void cxios_get_calendar_wrapper_timestep(
-    xios::CCalendarWrapper* calendar_wrapper_hdl, cxios_duration* timestep_c);
 bool cxios_is_defined_calendar_wrapper_timestep(xios::CCalendarWrapper* calendar_wrapper_hdl);
 void cxios_update_calendar_timestep(xios::CCalendarWrapper* calendarWrapper_hdl);
 

@@ -76,7 +76,6 @@ public:
     std::string getCalendarType();
     TimePoint getCalendarOrigin();
     TimePoint getCalendarStart();
-    Duration getCalendarTimestep();
     int getCalendarStep();
     TimePoint getCurrentDate();
 
