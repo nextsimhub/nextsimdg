@@ -28,6 +28,10 @@ build nextSIM-DG with XIOS as the I/O driver.
   [xios]
   enable = true
 
+However, there is no need to explicitly add this to the configuration because it
+will be added automatically during the ``Model`` configuration step provided
+nextSIM-DG has been built with XIOS support.
+
 The ``model`` section, which is used elsewhere in nextSIM-DG, contains several
 entries relevant to XIOS. The ``start``, ``stop``, and ``time_step`` entries are
 used to configure the calendar used by XIOS. For example,
