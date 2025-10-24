@@ -736,13 +736,15 @@ void Xios::parseInputFiles()
 }
 
 /*!
- * Create axes, domains, and grids based off the provided metadata.
+ * @brief   Create XIOS domains associated with each ModelArray type
+ *
+ * @details This function sets up the XIOS domains for each field type based on the configuration
+ *          in the domainIds map and in the ModelMetadata class.
  */
-void Xios::affixModelMetadata()
+void Xios::setupDomains()
 {
     auto& metadata = ModelMetadata::getInstance();
 
-    // Create XIOS domains associated with each ModelArray type
     for (auto entry : domainIds) {
         ModelArray::Type type = entry.first;
         const std::string domainId = entry.second;
@@ -864,15 +866,20 @@ void Xios::affixModelMetadata()
             counter++;
         }
     }
+}
 
-    // Create XIOS axes for each ModelArray type
-    for (auto entry : ModelArray::componentMap) {
+/*!
+ * @brief   Create XIOS axes for each ModelArray type
+ *
+ * @details This function sets up the XIOS axes for each field type based on the configuration
+ *          in the axisIds map and in the ModelArray class.
+ */
+void Xios::setupAxes()
+{
+    for (auto entry : axisIds) {
         ModelArray::Type type = entry.first;
-        ModelArray::Dimension dim = entry.second;
-        if (axisIds.count(type) == 0) {
-            continue;
-        }
-        const std::string axisId = axisIds[type];
+        const std::string axisId = entry.second;
+        ModelArray::Dimension dim = ModelArray::componentMap.at(type);
         createAxis(axisId);
         setAxisSize(axisId, ModelArray::size(dim));
         xios::CAxis* axis = getAxis(axisId);
@@ -882,7 +889,16 @@ void Xios::affixModelMetadata()
             throw std::runtime_error("Xios: Failed to set name for axis '" + axisId + "'");
         }
     }
+}
 
+/*!
+ * @brief   Create XIOS grids for each ModelArray type
+ *
+ * @details This function sets up the XIOS grids for each field type based on the configuration
+ *          in the gridIds, axisIds, and domainIds maps.
+ */
+void Xios::setupGrids()
+{
     // Create XIOS grid associated with domain and possibly axis
     for (auto entry : gridIds) {
         ModelArray::Type type = entry.first;

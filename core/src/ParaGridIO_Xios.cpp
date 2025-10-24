@@ -34,12 +34,9 @@ ParaGridIO::ParaGridIO(ParametricGrid& grid)
     : IParaGridIO(grid)
 {
     Xios& xiosHandler = Xios::getInstance();
-    // NOTE: getInstance will call the constructor for the Xios handler class the first time it is
-    // called. This will automatically:
-    // * Create XIOS input and output files if the XiosInput.filename and XiosOutput.filename
-    //   entries are set in the config.
-    // * Create all fields found in the config based off the field names found in the
-    //   XiosInput.field_names and XiosOutput.field_names entries in the config.
+    xiosHandler.setupDomains();
+    xiosHandler.setupAxes();
+    xiosHandler.setupGrids();
 }
 
 ParaGridIO::~ParaGridIO() = default;

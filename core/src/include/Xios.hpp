@@ -87,9 +87,6 @@ public:
     void setAxisSize(const std::string axisId, const size_t size);
     size_t getAxisSize(const std::string axisId);
 
-    /* Domain */
-    void affixModelMetadata();
-
     /* Grid */
     void createGrid(const std::string gridId);
     void gridAddAxis(std::string axisId, const std::string gridId);
@@ -160,9 +157,7 @@ private:
     MPI_Fint nullComm_F;
     int mpi_rank { 0 };
     int mpi_size { 0 };
-
-    /* Length of C-strings passed to XIOS */
-    int cStrLen { 20 };
+    int cStrLen { 20 }; // Length of C-strings passed to XIOS
 
     /* Configuration */
     void parseInputFiles();
@@ -189,6 +184,7 @@ private:
     };
     xios::CAxisGroup* getAxisGroup();
     xios::CAxis* getAxis(const std::string axisId);
+    void setupAxes();
 
     /* Domain */
     std::map<ModelArray::Type, std::string> domainIds = {
@@ -200,7 +196,19 @@ private:
     };
     xios::CDomainGroup* getDomainGroup();
     xios::CDomain* getDomain(std::string domainId);
-    void parseInputFile();
+    void setupDomains();
+
+    /* Grid */
+    xios::CGridGroup* getGridGroup();
+    xios::CGrid* getGrid(const std::string gridId);
+    std::map<ModelArray::Type, std::string> gridIds = {
+        { ModelArray::Type::H, "HGrid" },
+        { ModelArray::Type::VERTEX, "VertexGrid" },
+        { ModelArray::Type::DG, "DGGrid" },
+        { ModelArray::Type::DGSTRESS, "DGSGrid" },
+        { ModelArray::Type::CG, "CGGrid" },
+    };
+    void setupGrids();
 
     /* Field */
     xios::CFieldGroup* getFieldGroup();
@@ -214,17 +222,6 @@ private:
     std::set<std::string> configGetFieldNames(const bool readAccess);
     bool configCheckField(const std::string fieldId, const bool readAccess);
     std::map<std::string, ModelArray::Type> fieldTypes;
-
-    /* Grid */
-    xios::CGridGroup* getGridGroup();
-    xios::CGrid* getGrid(const std::string gridId);
-    std::map<ModelArray::Type, std::string> gridIds = {
-        { ModelArray::Type::H, "HGrid" },
-        { ModelArray::Type::VERTEX, "VertexGrid" },
-        { ModelArray::Type::DG, "DGGrid" },
-        { ModelArray::Type::DGSTRESS, "DGSGrid" },
-        { ModelArray::Type::CG, "CGGrid" },
-    };
 
     /* File */
     xios::CFileGroup* getFileGroup();

@@ -64,11 +64,10 @@ MPI_TEST_CASE("TestXiosRead", 2)
     Model model;
     model.configureTime(); // TODO: Use Model.configure to parse restart files this way, too?
 
-    // Create ParametricGrid and ParaGridIO instances
-    Module::setImplementation<IStructure>("Nextsim::ParametricGrid");
-    ParametricGrid grid;
-    ParaGridIO* pio = new ParaGridIO(grid);
-    grid.setIO(pio);
+    // Get the Xios singleton instance and check it's initialized
+    // NOTE: The singleton is created during configureTime
+    Xios& xiosHandler = Xios::getInstance();
+    REQUIRE(xiosHandler.isInitialized());
 
     // TODO: We could deduce this from the NetCDF file
     ModelArray::setNComponents(ModelArray::Type::DG, DG);
@@ -78,13 +77,12 @@ MPI_TEST_CASE("TestXiosRead", 2)
     REQUIRE(ModelArray::nComponents(ModelArray::Type::DGSTRESS) == DGSTRESSCOMP);
     REQUIRE(ModelArray::nComponents(ModelArray::Type::VERTEX) == ModelArray::nCoords);
 
-    // Get the Xios singleton instance and check it's initialized
-    Xios& xiosHandler = Xios::getInstance();
-    REQUIRE(xiosHandler.isInitialized());
-
-    // Affix ModelMetadata to Xios handler
-    // TODO: Automate this - can't be inlined in Xios::getInstance because need set field types
-    xiosHandler.affixModelMetadata();
+    // Create ParametricGrid and ParaGridIO instances
+    // NOTE: XIOS axes, domains, and grids are created by the ParaGridIO constructor
+    Module::setImplementation<IStructure>("Nextsim::ParametricGrid");
+    ParametricGrid grid;
+    ParaGridIO* pio = new ParaGridIO(grid);
+    grid.setIO(pio);
 
     xiosHandler.close_context_definition();
 

@@ -9,9 +9,12 @@
 #include <doctest/extensions/doctest_mpi.h>
 #undef INFO
 
+#include "StructureModule/include/ParametricGrid.hpp"
 #include "include/Finalizer.hpp"
 #include "include/Model.hpp"
 #include "include/ModelMPI.hpp"
+#include "include/NextsimModule.hpp"
+#include "include/ParaGridIO.hpp"
 #include "include/Xios.hpp"
 
 namespace Nextsim {
@@ -46,12 +49,16 @@ MPI_TEST_CASE("TestXiosGrid", 2)
     model.configureTime();
 
     // Get the Xios singleton instance and check it's initialized
+    // NOTE: The singleton is created during configureTime
     Xios& xiosHandler = Xios::getInstance();
     REQUIRE(xiosHandler.isInitialized());
 
-    // Affix ModelMetadata to Xios handler
-    // TODO: Automate this - can't be inlined in Xios::getInstance because need set field types
-    xiosHandler.affixModelMetadata();
+    // Create ParametricGrid and ParaGridIO instances
+    // NOTE: XIOS axes, domains, and grids are created by the ParaGridIO constructor
+    Module::setImplementation<IStructure>("Nextsim::ParametricGrid");
+    ParametricGrid grid;
+    ParaGridIO* pio = new ParaGridIO(grid);
+    grid.setIO(pio);
 
     const std::string gridId = "HGrid";
     REQUIRE_THROWS_WITH(xiosHandler.createGrid(gridId), "Xios: Grid 'HGrid' already exists");

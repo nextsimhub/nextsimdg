@@ -14,6 +14,8 @@
 #include "include/Finalizer.hpp"
 #include "include/Model.hpp"
 #include "include/ModelMPI.hpp"
+#include "include/NextsimModule.hpp"
+#include "include/ParaGridIO.hpp"
 #include "include/Xios.hpp"
 
 using namespace doctest;
@@ -57,17 +59,21 @@ MPI_TEST_CASE("TestXiosFile", 2)
     model.configureTime(); // TODO: Use Model.configure to parse restart files this way, too?
 
     // Get the Xios singleton instance and check it's initialized
+    // NOTE: The singleton is created during configureTime
     Xios& xiosHandler = Xios::getInstance();
     REQUIRE(xiosHandler.isInitialized());
+
+    // Create ParametricGrid and ParaGridIO instances
+    // NOTE: XIOS axes, domains, and grids are created by the ParaGridIO constructor
+    Module::setImplementation<IStructure>("Nextsim::ParametricGrid");
+    ParametricGrid grid;
+    ParaGridIO* pio = new ParaGridIO(grid);
+    grid.setIO(pio);
 
     // Associate fields with grids
     // NOTE: fields are automatically created along with files
     xiosHandler.setFieldType("mask", ModelArray::Type::H);
     xiosHandler.setFieldType("hice", ModelArray::Type::DG);
-
-    // Affix ModelMetadata to Xios handler
-    // TODO: Automate this - can't be inlined in Xios::getInstance because need set field types
-    xiosHandler.affixModelMetadata();
 
     // --- Tests for file API
     const std::string inFileId = "xios_test_input";
