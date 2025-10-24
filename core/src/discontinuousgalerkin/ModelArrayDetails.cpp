@@ -6,7 +6,7 @@
 #include "include/ModelArray.hpp"
 
 #ifndef DGCOMP
-#define DGCOMP 3
+#define DGCOMP 6
 #endif
 
 #ifndef DGSTRESSCOMP
