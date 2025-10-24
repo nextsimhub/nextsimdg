@@ -191,7 +191,7 @@ void ConfigOutput::outputState(const ModelState& diagState)
                     /* Averaging the DG components doesn't make sense, so we only take the mean
                      * component. This does require an extra copy, though. The DG components are not
                      * masked ether, so we apply the mask to the copy. */
-                    ModelArray data {};
+                    ModelArray data;
                     if (entry.second->getType() == ModelArray::Type::DG) {
                         data = ModelArray(ModelArray::Type::H);
                         data.setData(entry.second->component(0));
@@ -225,7 +225,7 @@ void ConfigOutput::outputState(const ModelState& diagState)
                      * component. This does require an extra copy, though. The DG components are not
                      * masked ether, so we apply the mask to the copy. */
                     const std::string& key = externalNames.at(fieldExtName);
-                    ModelArray data {};
+                    ModelArray data;
                     if (storeData.at(key)->getType() == ModelArray::Type::DG) {
                         data = ModelArray(ModelArray::Type::H);
                         data.setData(storeData.at(key)->component(0));
