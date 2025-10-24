@@ -59,7 +59,7 @@ MPI_TEST_CASE("TestXiosGrid", 2)
     // Add a vertical axis, too
     const std::string axisId = "z_axis";
     xiosHandler.createAxis(axisId);
-    xiosHandler.setAxisValues(axisId, { 0.0, 1.0 });
+    xiosHandler.setAxisSize(axisId, 2);
     xiosHandler.gridAddAxis("HGrid", axisId);
     std::vector<std::string> axisIds = xiosHandler.getGridAxisIds(gridId);
     REQUIRE(axisIds.size() == 1);

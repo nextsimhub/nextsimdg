@@ -56,7 +56,7 @@ MPI_TEST_CASE("TestXiosField", 3)
 
     // Create an axis with two points
     xiosHandler.createAxis("axis_A");
-    xiosHandler.setAxisValues("axis_A", { 0.0, 1.0 });
+    xiosHandler.setAxisSize("axis_A", 2);
 
     // Create a 1D grid comprised of the single axis
     xiosHandler.createGrid("grid_1D");

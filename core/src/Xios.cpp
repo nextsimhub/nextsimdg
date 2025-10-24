@@ -534,31 +534,6 @@ void Xios::setAxisSize(const std::string axisId, const size_t size)
 }
 
 /*!
- * Set the values associated with a given axis
- *
- * @param the axis ID
- * @param the values to set
- */
-void Xios::setAxisValues(const std::string axisId, std::vector<double> values)
-{
-    xios::CAxis* axis = getAxis(axisId);
-    if (cxios_is_defined_axis_value(axis)) {
-        Logged::warning("Xios: Values already set for axis '" + axisId + "'");
-    }
-    if (!cxios_is_defined_axis_n_glo(axis)) {
-        setAxisSize(axisId, values.size());
-    }
-    int size = getAxisSize(axisId);
-    if (size != values.size()) {
-        throw std::runtime_error("Xios: Size incompatible with values for axis '" + axisId + "'");
-    }
-    cxios_set_axis_value(axis, values.data(), &size);
-    if (!cxios_is_defined_axis_value(axis)) {
-        throw std::runtime_error("Xios: Failed to set values for axis '" + axisId + "'");
-    }
-}
-
-/*!
  * Get the size of a given axis (the number of global points)
  *
  * @param the axis ID
@@ -573,26 +548,6 @@ size_t Xios::getAxisSize(const std::string axisId)
     int size;
     cxios_get_axis_n_glo(axis, &size);
     return (size_t)size;
-}
-
-/*!
- * Get the values associated with a given axis
- *
- * @param the axis ID
- * @return the corresponding values
- */
-std::vector<double> Xios::getAxisValues(const std::string axisId)
-{
-    xios::CAxis* axis = getAxis(axisId);
-    if (!cxios_is_defined_axis_value(axis)) {
-        throw std::runtime_error("Xios: Undefined values for axis '" + axisId + "'");
-    }
-    int size = getAxisSize(axisId);
-    double* values = new double[size];
-    cxios_get_axis_value(axis, values, &size);
-    std::vector<double> vec(values, values + size);
-    delete[] values;
-    return vec;
 }
 
 /*!

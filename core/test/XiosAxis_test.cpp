@@ -53,7 +53,6 @@ MPI_TEST_CASE("TestXiosAxis", 3)
     // --- Tests for axis API
     const std::string axisId = { "axis_A" };
     REQUIRE_THROWS_WITH(xiosHandler.getAxisSize(axisId), "Xios: Undefined axis 'axis_A'");
-    REQUIRE_THROWS_WITH(xiosHandler.getAxisValues(axisId), "Xios: Undefined axis 'axis_A'");
     xiosHandler.createAxis(axisId);
     REQUIRE_THROWS_WITH(xiosHandler.createAxis(axisId), "Xios: Axis 'axis_A' already exists");
     // Axis size
@@ -61,16 +60,6 @@ MPI_TEST_CASE("TestXiosAxis", 3)
     const size_t axisSize { 2 };
     xiosHandler.setAxisSize(axisId, axisSize);
     REQUIRE(xiosHandler.getAxisSize(axisId) == axisSize);
-    // Axis values
-    REQUIRE_THROWS_WITH(
-        xiosHandler.getAxisValues(axisId), "Xios: Undefined values for axis 'axis_A'");
-    REQUIRE_THROWS_WITH(xiosHandler.setAxisValues(axisId, { 0.0, 1.0, 2.0 }),
-        "Xios: Size incompatible with values for axis 'axis_A'");
-    std::vector<double> axisValues { 0.0, 1.0 };
-    xiosHandler.setAxisValues(axisId, axisValues);
-    std::vector<double> axis_A = xiosHandler.getAxisValues(axisId);
-    REQUIRE(axis_A[0] == doctest::Approx(0.0));
-    REQUIRE(axis_A[1] == doctest::Approx(1.0));
 
     xiosHandler.close_context_definition();
     xiosHandler.context_finalize();
