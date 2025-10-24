@@ -96,7 +96,6 @@ MPI_TEST_CASE("TestXiosRead", 2)
     REQUIRE(std::filesystem::exists(forcingFilename));
 
     // Check calendar step is zero initially
-    metadata.setTime(xiosHandler.getCalendarStart());
     REQUIRE(xiosHandler.getCalendarStep() == 0);
 
     // Deduce the local lengths of the two dimensions
@@ -104,8 +103,6 @@ MPI_TEST_CASE("TestXiosRead", 2)
     const size_t ny = ModelArray::size(ModelArray::Dimension::Y);
 
     // Read restarts from file and check they take the expected values
-    metadata.setTime(xiosHandler.getCalendarStart());
-    REQUIRE(xiosHandler.getCalendarStep() == 0);
     ModelState restarts = grid.getModelState(restartFilename);
     int rank;
     MPI_Comm_rank(test_comm, &rank);
