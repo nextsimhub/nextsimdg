@@ -164,6 +164,9 @@ private:
     /* Length of C-strings passed to XIOS */
     int cStrLen { 20 };
 
+    /* Configuration */
+    void parseInputFiles();
+
     /* Calendar, date and duration */
     std::string calendarType;
     xios::CCalendarWrapper* clientCalendar;
@@ -197,6 +200,7 @@ private:
     };
     xios::CDomainGroup* getDomainGroup();
     xios::CDomain* getDomain(std::string domainId);
+    void parseInputFile();
 
     /* Field */
     xios::CFieldGroup* getFieldGroup();

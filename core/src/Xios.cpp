@@ -111,6 +111,8 @@ Xios::Xios(const std::string contextid, const std::string calendartype)
                 }
             }
         }
+
+        parseInputFiles();
     }
     firstTime = false;
 }
@@ -587,12 +589,16 @@ xios::CDomain* Xios::getDomain(const std::string domainId)
 }
 
 /*!
- * Create axes, domains, and grids based off the provided metadata.
+ * @brief   Do an initial read of input files to deduce field dimensions.
+ *
+ * @details This function will read the dimension information from any NetCDF input files (restarts
+ *          and/or forcings) and set dimensions appropriately. It will then set the field type of
+ *          each input field.
  */
-void Xios::affixModelMetadata()
+void Xios::parseInputFiles()
 {
     auto& metadata = ModelMetadata::getInstance();
-    // Initial read of the NetCDF file to deduce the dimensions
+
     for (std::string filename : { inputFilename, forcingFilename }) {
         if (filename.length() == 0) {
             break;
@@ -727,6 +733,14 @@ void Xios::affixModelMetadata()
             throw std::runtime_error(ncWhat);
         }
     }
+}
+
+/*!
+ * Create axes, domains, and grids based off the provided metadata.
+ */
+void Xios::affixModelMetadata()
+{
+    auto& metadata = ModelMetadata::getInstance();
 
     // Create XIOS domains associated with each ModelArray type
     for (auto entry : domainIds) {
