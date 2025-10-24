@@ -9,6 +9,7 @@
 #include "include/FieldAdvection.hpp"
 #include "include/ModelArray.hpp"
 #include "include/ModelArrayRef.hpp"
+#include "include/ModelArrayAccessor.hpp"
 #include "include/ModelArraySlice.hpp"
 #include "include/ModelComponent.hpp"
 #include "include/Slice.hpp"
@@ -66,7 +67,12 @@ public:
      */
     virtual void update(const TimestepTime& tsTime)
     {
-        FieldAdvection::advectField(tsurf, tsTime, minT, 0.);
+   /*     const ConstDeviceView& hiceDeviceRO = hiceAccessor.getDeviceRO();
+        const DeviceView& tsurfDeviceRW = tsurfAccessor.getDeviceRW();
+        const ConstDeviceView& tsurfDeviceRO = tsurfAccessor.getDeviceRO();
+        const ModelArray& hiceHostRO = hiceAccessor.getHostRO();*/
+        ModelArray& tsurfHostRW = tsurfAccessor.getHostRW();
+        FieldAdvection::advectField(tsurfHostRW, tsTime, minT, 0.);
     }
 
     inline static std::string getKappaSConfigKey() { return "nextsim_thermo.ks"; }
@@ -90,6 +96,11 @@ protected:
         , snowfall(getStore())
         , sss(getStore())
         , qswBase(getStore())
+        // proposed interface
+        , hiceAccessor(getStore())
+        , qiaAccessor(getStore())
+        , deltaHiAccessor(getStore(), RW, ModelArray::Type::H)
+        , tsurfAccessor(getStore(), RO, ModelArray::Type::H)
     {
         getStore().registerArray(Shared::DELTA_HICE, &deltaHi, RW);
         getStore().registerArray(Protected::T_SURF, &tsurf, RO);
@@ -115,6 +126,12 @@ protected:
     HField deltaHi;
     // Owned, Module-private arrays
     HField snowToIce;
+
+    // proposed interface
+    ModelArrayAccessor<Shared::H_ICE_DG, RW> hiceAccessor;
+    ModelArrayAccessor<Shared::Q_IA, RO> qiaAccessor;
+    ModelArrayAccessor<Shared::DELTA_HICE, RW> deltaHiAccessor;
+    ModelArrayAccessor<Shared::T_SURF, RW> tsurfAccessor;
 
     constexpr static double minT = -90.0;
 };

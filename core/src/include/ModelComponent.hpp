@@ -9,7 +9,7 @@
 #include "include/Logged.hpp"
 #include "include/MissingData.hpp"
 #include "include/ModelArrayRef.hpp"
-#include "include/ModelArrayReferenceStore.hpp"
+#include "include/ModelArrayStore.hpp"
 #include "include/ModelState.hpp"
 #include "include/OutputSpec.hpp"
 #include "include/TextTag.hpp"
@@ -182,7 +182,7 @@ public:
     /*!
      * @brief Returns the ModelArrayRef backing store for column physics fields.
      */
-    static ModelArrayReferenceStore& getStore() { return columnPhysicsStore(); }
+    static ModelArrayStore& getStore() { return columnPhysicsStore(); }
 
 protected:
     inline static void overElements(IteratedFn fn, const TimestepTime& tst)
@@ -231,9 +231,9 @@ protected:
     }
 
 private:
-    static ModelArrayReferenceStore& columnPhysicsStore()
+    static ModelArrayStore& columnPhysicsStore()
     {
-        static ModelArrayReferenceStore store;
+        static ModelArrayStore store;
         return store;
     }
 
