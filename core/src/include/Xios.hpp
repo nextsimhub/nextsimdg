@@ -27,8 +27,6 @@ namespace Nextsim {
 // Forward declarations to avoid circular dependencies
 class ParaGridIO;
 
-void enableXios();
-
 class Xios : public Configured<Xios> {
 private:
     //! Private constructor

@@ -54,6 +54,13 @@ void Model::configureTime()
 {
     ModelMetadata& metadata = ModelMetadata::getInstance();
 
+#ifdef USE_XIOS
+    // Enable XIOS in the config
+    std::stringstream config;
+    config << "[xios]" << std::endl << "enable = true" << std::endl;
+    Configurator::addStream(std::unique_ptr<std::istream>(new std::stringstream(config.str())));
+#endif
+
     // Start/stop times. Run length will override stop time, if present.
     std::string startTimeStr
         = Configured::getConfiguration(keyMap.at(STARTTIME_KEY), std::string());

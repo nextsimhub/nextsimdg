@@ -33,8 +33,6 @@ namespace Nextsim {
  */
 MPI_TEST_CASE("TestXiosFile", 2)
 {
-    // Enable XIOS in the 'config' and provide parameters to configure it
-    enableXios();
     std::stringstream config;
     config << "[model]" << std::endl;
     config << "start = 2023-03-17T17:11:00Z" << std::endl;
