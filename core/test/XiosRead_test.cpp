@@ -65,7 +65,6 @@ MPI_TEST_CASE("TestXiosRead", 2)
     // Get the Xios singleton instance and check it's initialized
     // NOTE: The singleton is created during configureTime
     Xios& xiosHandler = Xios::getInstance();
-    REQUIRE(xiosHandler.isInitialized());
 
     // TODO: We could deduce this from the NetCDF file
     ModelArray::setNComponents(ModelArray::Type::DG, DG);

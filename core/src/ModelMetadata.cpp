@@ -214,9 +214,6 @@ void ModelMetadata::setTime(const TimePoint& time)
     m_time = time;
 #ifdef USE_XIOS
     Xios& xiosHandler = Xios::getInstance();
-    if (!xiosHandler.isInitialized()) {
-        throw std::runtime_error("ModelMetadata: Xios handler has not been initialized");
-    }
     xiosHandler.setCalendarStart(time);
 #endif
 }
@@ -226,9 +223,6 @@ void ModelMetadata::incrementTime(const Duration& step)
     m_time += step;
 #ifdef USE_XIOS
     Xios& xiosHandler = Xios::getInstance();
-    if (!xiosHandler.isInitialized()) {
-        throw std::runtime_error("ModelMetadata: Xios handler has not been initialized");
-    }
     xiosHandler.incrementCalendar();
 #endif
 }

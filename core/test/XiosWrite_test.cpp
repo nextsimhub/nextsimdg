@@ -66,7 +66,6 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     // Get the Xios singleton instance and check it's initialized
     // NOTE: The singleton is created during configureTime
     Xios& xiosHandler = Xios::getInstance();
-    REQUIRE(xiosHandler.isInitialized());
 
     // Set ModelArray dimensions
     const size_t nx_glo = 4;

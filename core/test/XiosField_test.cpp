@@ -51,7 +51,6 @@ MPI_TEST_CASE("TestXiosField", 3)
     // Get the Xios singleton instance and check it's initialized
     // NOTE: The singleton is created during configureTime
     Xios& xiosHandler = Xios::getInstance();
-    REQUIRE(xiosHandler.isInitialized());
 
     // Create an axis with two points
     xiosHandler.createAxis("axis_A");

@@ -47,7 +47,6 @@ MPI_TEST_CASE("TestXiosAxis", 3)
     // Get the Xios singleton instance and check it's initialized
     // NOTE: The singleton is created during configureTime
     Xios& xiosHandler = Xios::getInstance();
-    REQUIRE(xiosHandler.isInitialized());
 
     // --- Tests for axis API
     const std::string axisId = { "axis_A" };

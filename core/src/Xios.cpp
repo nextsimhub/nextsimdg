@@ -112,6 +112,13 @@ Xios::Xios(const std::string contextid, const std::string calendartype)
             }
         }
 
+        // Verify the XIOS context has been initialized properly
+        bool init;
+        cxios_context_is_initialized(contextId.c_str(), contextId.length(), &init);
+        if (!init) {
+            throw std::runtime_error("Xios: context '" + contextId + "' not initialized");
+        }
+
         parseInputFiles();
     }
     firstTime = false;
@@ -250,18 +257,6 @@ void Xios::configureServer()
 
     // Set start time from configuration file
     setCalendarStart(metadata.startTime());
-}
-
-/*!
- * Verify XIOS server is initialized
- *
- * @return true when XIOS server is initialized
- */
-bool Xios::isInitialized()
-{
-    bool init = false;
-    cxios_context_is_initialized(contextId.c_str(), contextId.length(), &init);
-    return init;
 }
 
 /*!
