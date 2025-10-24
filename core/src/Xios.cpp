@@ -380,18 +380,6 @@ void Xios::setCalendarStep(const int stepNumber) { cxios_update_calendar(stepNum
 void Xios::incrementCalendar() { setCalendarStep(getCalendarStep() + 1); }
 
 /*!
- * Get calendar type
- *
- * @return calendar type
- */
-std::string Xios::getCalendarType()
-{
-    char cStr[cStrLen];
-    cxios_get_calendar_wrapper_type(clientCalendar, cStr, cStrLen);
-    return convertCStrToCppStr(cStr, cStrLen);
-}
-
-/*!
  * Get calendar origin
  *
  * @return calendar origin

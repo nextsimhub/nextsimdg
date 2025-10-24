@@ -73,7 +73,6 @@ public:
     void setCalendarStart(const TimePoint start);
     void setCalendarStep(const int stepNumber);
     void incrementCalendar();
-    std::string getCalendarType();
     TimePoint getCalendarOrigin();
     TimePoint getCalendarStart();
     int getCalendarStep();
