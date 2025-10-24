@@ -48,10 +48,10 @@ MPI_TEST_CASE("TestXiosRead", 2)
     config << "restart_period = P0-0T01:30:00" << std::endl;
     config << "[XiosInput]" << std::endl;
     config << "field_names = " << maskName << "," << coordsName << "," << hiceName << ","
-           << ticeName << "," << ciceName << std::endl;
+           << ticeName << "," << uName << std::endl;
     config << "[XiosForcing]" << std::endl;
     config << "filename = " << forcingFilename << std::endl;
-    config << "field_names = " << uName << std::endl;
+    config << "field_names = " << hsnowName << std::endl;
     config << "period = P0-0T01:30:00" << std::endl;
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
@@ -145,7 +145,7 @@ MPI_TEST_CASE("TestXiosRead", 2)
                     }
                 }
             }
-        } else if (entry.first == ciceName) {
+        } else if (entry.first == uName) {
             for (size_t j = 0; j < CGDEGREE * ny + 1; ++j) {
                 for (size_t i = 0; i < CGDEGREE * nx + 1; ++i) {
                     if (rank == 0) {
@@ -168,9 +168,10 @@ MPI_TEST_CASE("TestXiosRead", 2)
         TimePoint time = xiosHandler.getCurrentDate();
         ModelState forcings = pio->readForcingTimeStatic(forcingFieldNames, time, forcingFilename);
         for (auto& entry : forcings.data) {
+            REQUIRE(entry.first == hsnowName);
             for (size_t j = 0; j < ny; ++j) {
                 for (size_t i = 0; i < nx; ++i) {
-                    REQUIRE(entry.second(i, j) == doctest::Approx(ts));
+                    REQUIRE(entry.second(i, j) == doctest::Approx(0.1 * ts));
                 }
             }
         }

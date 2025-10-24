@@ -39,12 +39,12 @@ variables:
 		time_counter:time_origin = "2020-01-23 00:08:15" ;
 		time_counter:bounds = "time_counter_bounds" ;
 	double time_counter_bounds(time_counter, axis_nbounds) ;
-	float u(time_counter, y, x) ;
-		u:online_operation = "instant" ;
-		u:interval_operation = "5400 s" ;
-		u:interval_write = "5400 s" ;
-		u:cell_methods = "time: point" ;
-		u:coordinates = "time_instant" ;
+	float hsnow(time_counter, y, x) ;
+		hsnow:online_operation = "instant" ;
+		hsnow:interval_operation = "5400 s" ;
+		hsnow:interval_write = "5400 s" ;
+		hsnow:cell_methods = "time: point" ;
+		hsnow:coordinates = "time_instant" ;
 
 // global attributes:
 		:structure_name = "parametric_rectangular" ;
@@ -77,15 +77,15 @@ data:
   99351165, 99351165,
   99356565, 99356565 ;
 
- u =
-  0, 0, 0, 0,
-  0, 0, 0, 0,
-  1, 1, 1, 1,
-  1, 1, 1, 1,
-  2, 2, 2, 2,
-  2, 2, 2, 2,
-  3, 3, 3, 3,
-  3, 3, 3, 3,
-  4, 4, 4, 4,
-  4, 4, 4, 4 ;
+ hsnow =
+  0.0, 0.0, 0.0, 0.0,
+  0.0, 0.0, 0.0, 0.0,
+  0.1, 0.1, 0.1, 0.1,
+  0.1, 0.1, 0.1, 0.1,
+  0.2, 0.2, 0.2, 0.2,
+  0.2, 0.2, 0.2, 0.2,
+  0.3, 0.3, 0.3, 0.3,
+  0.3, 0.3, 0.3, 0.3,
+  0.4, 0.4, 0.4, 0.4,
+  0.4, 0.4, 0.4, 0.4 ;
 }

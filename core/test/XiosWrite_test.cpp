@@ -48,11 +48,11 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     config << "restart_period = P0-0T01:30:00" << std::endl;
     config << "[XiosOutput]" << std::endl;
     config << "field_names = " << maskName << "," << coordsName << "," << hiceName << ","
-           << ticeName << "," << ciceName << std::endl;
+           << ticeName << "," << uName << std::endl;
     config << "period = P0-0T01:30:00" << std::endl;
     config << "[XiosDiagnostic]" << std::endl;
     config << "filename = " << diagnosticFilename << std::endl;
-    config << "field_names = " << uName << std::endl;
+    config << "field_names = " << hsnowName << std::endl;
     config << "period = P0-0T01:30:00" << std::endl;
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
@@ -113,8 +113,8 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     xiosHandler.setFieldType(coordsName, ModelArray::Type::VERTEX);
     xiosHandler.setFieldType(hiceName, ModelArray::Type::DG);
     xiosHandler.setFieldType(ticeName, ModelArray::Type::DGSTRESS);
-    xiosHandler.setFieldType(ciceName, ModelArray::Type::CG);
-    xiosHandler.setFieldType(uName, ModelArray::Type::H);
+    xiosHandler.setFieldType(uName, ModelArray::Type::CG);
+    xiosHandler.setFieldType(hsnowName, ModelArray::Type::H);
 
     // Set file split frequency for restarts (but not diagnostics)
     // NOTE: Files are created when the XIOS handler is constructed
@@ -162,19 +162,19 @@ MPI_TEST_CASE("TestXiosWrite", 2)
             }
         }
     }
-    CGField cice(ModelArray::Type::CG);
-    cice.resize();
+    CGField uice(ModelArray::Type::CG);
+    uice.resize();
     for (size_t j = 0; j < CGDEGREE * ny + 1; ++j) {
         for (size_t i = 0; i < CGDEGREE * nx + 1; ++i) {
             if (rank == 0) {
-                cice(i, j) = (double)((i + 1) * (j + 1));
+                uice(i, j) = (double)((i + 1) * (j + 1));
             } else {
-                cice(i, j) = (double)((i + 5) * (j + 1));
+                uice(i, j) = (double)((i + 5) * (j + 1));
             }
         }
     }
-    HField u(ModelArray::Type::H);
-    u.resize();
+    HField hsnow(ModelArray::Type::H);
+    hsnow.resize();
 
     // Check files with the expected names don't exist yet
     REQUIRE_FALSE(std::filesystem::exists("xios_test_output*.nc"));
@@ -193,7 +193,7 @@ MPI_TEST_CASE("TestXiosWrite", 2)
         // Update diagnostics
         for (size_t j = 0; j < ny; ++j) {
             for (size_t i = 0; i < nx; ++i) {
-                u(i, j) = ts;
+                hsnow(i, j) = 0.1 * ts;
             }
         }
 
@@ -203,11 +203,11 @@ MPI_TEST_CASE("TestXiosWrite", 2)
                                     { coordsName, coordinates },
                                     { hiceName, hice },
                                     { ticeName, tice },
-                                    { ciceName, cice },
+                                    { uName, uice },
                                 },
             {} };
         ModelState diagnostics = { {
-                                       { uName, u },
+                                       { hsnowName, hsnow },
                                    },
             {} };
 
