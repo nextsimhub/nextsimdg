@@ -191,12 +191,24 @@ void ModelArray::setData(const DataType& from) { m_data = from; } // setData(fro
 
 void ModelArray::setData(const ModelArray& from) { setData(from.m_data.data()); }
 
-void ModelArray::setDimensions(Type type, const MultiDim& newDims)
+#ifdef USE_MPI
+void ModelArray::setDimensions(Type type, const MultiDim& globalDims, const MultiDim& localDims)
 {
     std::vector<Dimension>& dimSpecs = typeDimensions.at(type);
     for (size_t i = 0; i < dimSpecs.size(); ++i) {
-        definedDimensions.at(dimSpecs[i]).localLength = newDims[i];
+        definedDimensions.at(dimSpecs[i]).globalLength = globalDims[i];
+        definedDimensions.at(dimSpecs[i]).localLength = localDims[i];
     }
+#else
+void ModelArray::setDimensions(Type type, const MultiDim& globalDims)
+{
+    std::vector<Dimension>& dimSpecs = typeDimensions.at(type);
+    for (size_t i = 0; i < dimSpecs.size(); ++i) {
+        // for serial code (non-MPI) global and local dims are the same.
+        definedDimensions.at(dimSpecs[i]).globalLength = globalDims[i];
+        definedDimensions.at(dimSpecs[i]).localLength = globalDims[i];
+    }
+#endif
     validateMaps();
 }
 

@@ -330,7 +330,12 @@ public:
      * @param type The type of array the dimensions are to be specified for.
      * @param dim The per-dimension size to be set.
      */
+#ifdef USE_MPI
+    static void setDimensions(Type, const MultiDim&, const MultiDim&);
+#else
     static void setDimensions(Type, const MultiDim&);
+#endif
+
     /*!
      * @brief Sets the number and size of the dimensions of this type of ModelArray.
      *
@@ -340,9 +345,17 @@ public:
      *
      * @param dim The per-dimension size to be set.
      */
-    void setDimensions(const MultiDim& dims)
+#ifdef USE_MPI
+    void setDimensions(const MultiDim& globalDims, const MultiDim& localDims)
+#else
+    void setDimensions(const MultiDim& globalDims)
+#endif
     {
-        setDimensions(type, dims);
+#ifdef USE_MPI
+        setDimensions(type, globalDims, localDims);
+#else
+        setDimensions(type, globalDims);
+#endif
         resize();
     }
 
