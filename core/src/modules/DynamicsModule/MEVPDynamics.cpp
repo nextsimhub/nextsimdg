@@ -5,6 +5,8 @@
  */
 
 #include "include/MEVPDynamics.hpp"
+#include "include/ModelArray.hpp"
+#include "include/ModelMetadata.hpp"
 #include "include/constants.hpp"
 #include "include/gridNames.hpp"
 
@@ -98,17 +100,27 @@ void MEVPDynamics::setData(const ModelState::DataMap& ms)
     if (uice.getType() == ModelArray::Type::CG && uice.dimensions()[0] != cgDims[0]) {
         // CG degree of the read data
         const unsigned int fileCGdegree = (ModelArray::dimensions(ModelArray::Type::CG)[0] - 1)
-                / ModelArray::dimensions(ModelArray::Type::H)[0];
-        const unsigned int modelCGdegree = (cgDims[0] - 1)
-                / ModelArray::dimensions(ModelArray::Type::H)[0];
+            / ModelArray::dimensions(ModelArray::Type::H)[0];
+        const unsigned int modelCGdegree
+            = (cgDims[0] - 1) / ModelArray::dimensions(ModelArray::Type::H)[0];
 
         throw std::runtime_error(
-                "Differing CG degrees between input data and model are not supported. File CG degree = "
-                        + std::to_string(fileCGdegree) + ", model CG degree = "
-                        + std::to_string(modelCGdegree) + ".");
+            "Differing CG degrees between input data and model are not supported. File CG degree = "
+            + std::to_string(fileCGdegree) + ", model CG degree = " + std::to_string(modelCGdegree)
+            + ".");
     }
     // Set the dimensions of CG arrays
+#ifdef USE_MPI
+    auto& metadata = ModelMetadata::getInstance();
+    ModelArray::MultiDim globalDims, localDims;
+    globalDims[0] = metadata.getGlobalExtentX();
+    globalDims[1] = metadata.getGlobalExtentY();
+    localDims[0] = metadata.getLocalExtentX();
+    localDims[1] = metadata.getLocalExtentY();
+    ModelArray::setDimensions(ModelArray::Type::CG, globalDims, localDims);
+#else
     ModelArray::setDimensions(ModelArray::Type::CG, cgDims);
+#endif
 
     // Set the data in the kernel arrays.
     for (const auto& fieldName : namedFields) {
@@ -155,9 +167,10 @@ void MEVPDynamics::advectField(
 ModelState MEVPDynamics::getStatePrognostic() const
 {
     return { {
-        { uName, kernel.getCGData(uName) },
-        { vName, kernel.getCGData(vName) },
-    }, { getConfiguration() } };
+                 { uName, kernel.getCGData(uName) },
+                 { vName, kernel.getCGData(vName) },
+             },
+        { getConfiguration() } };
 }
 
 MEVPDynamics::HelpMap& MEVPDynamics::getHelpText(HelpMap& map, bool getAll)

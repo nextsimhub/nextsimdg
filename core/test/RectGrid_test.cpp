@@ -146,7 +146,11 @@ TEST_CASE("Write and read a ModelState-based RectGrid restart file")
 
     // Reset dimensions so it is possible to check if they
     // are read correctly from refeence file
+#ifdef USE_MPI
+    ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 }, { 1, 1 });
+#else
     ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
+#endif
     REQUIRE(ModelArray::dimensions(ModelArray::Type::H)[0] == 1);
     RectangularGrid gridIn;
     size_t targetX = 1;

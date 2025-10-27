@@ -318,7 +318,7 @@ void ParaGridIO::dumpModelState(const ModelState& state, const std::string& file
     for (auto entry : ModelArray::definedDimensions) {
         ModelArray::Dimension dim = entry.first;
         size_t dimSz = (dimCompMap.count(dim)) ? ModelArray::nComponents(dimCompMap.at(dim))
-                                               : dimSz = entry.second.localLength;
+                                               : dimSz = entry.second.globalLength;
         ncFromMAMap[dim] = ncFile.addDim(entry.second.name, dimSz);
         // TODO Do I need to add data, even if it is just integers 0...n-1?
     }

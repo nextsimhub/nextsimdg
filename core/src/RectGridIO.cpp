@@ -35,18 +35,16 @@ void dimensionSetter(
     const netCDF::NcFile& ncFile, const std::string& fieldName, ModelArray::Type type)
 {
     size_t nDims = ncFile.getVar(fieldName).getDimCount();
-    ModelArray::MultiDim dims;
-    dims.resize(nDims);
-    for (size_t d = 0; d < nDims; ++d) {
-        dims[d] = ncFile.getVar(fieldName).getDim(d).getSize();
-    }
-    // The dimensions in the netCDF are in the reverse order compared to ModelArray
-    std::reverse(dims.begin(), dims.end());
-    // Replace X, Y dimensions with local extends
+    ModelArray::MultiDim globalDims;
+    ModelArray::MultiDim localDims;
+    globalDims.resize(nDims);
+    localDims.resize(nDims);
     auto& metadata = ModelMetadata::getInstance();
-    dims[0] = metadata.getLocalExtentX();
-    dims[1] = metadata.getLocalExtentY();
-    ModelArray::setDimensions(type, dims);
+    globalDims[0] = metadata.getGlobalExtentX();
+    globalDims[1] = metadata.getGlobalExtentY();
+    localDims[0] = metadata.getLocalExtentX();
+    localDims[1] = metadata.getLocalExtentY();
+    ModelArray::setDimensions(type, globalDims, localDims);
 }
 #else
 void dimensionSetter(
@@ -77,10 +75,6 @@ ModelState RectGridIO::getModelState(const std::string& filePath)
     // Get the sizes of the three types of field
     // HField from hice
     dimensionSetter(ncFile, hiceName, ModelArray::Type::H);
-    // UField from hice
-    dimensionSetter(ncFile, hiceName, ModelArray::Type::U);
-    // VField from hice
-    dimensionSetter(ncFile, hiceName, ModelArray::Type::V);
 
 #ifdef USE_MPI
     // Set the origins and extensions for reading 2D data based
