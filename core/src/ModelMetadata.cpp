@@ -131,6 +131,12 @@ void ModelMetadata::getPartitionMetadata(std::string partitionFile)
 
     readNeighbourData(ncFile);
 
+    // gather rank extents in X & Y direction for all processes
+    rankExtentsX.resize(modelMPI.getSize(), 0);
+    rankExtentsY.resize(modelMPI.getSize(), 0);
+    MPI_Allgather(&localExtentX, 1, MPI_INT, rankExtentsX.data(), 1, MPI_INT, modelMPI.getComm());
+    MPI_Allgather(&localExtentY, 1, MPI_INT, rankExtentsY.data(), 1, MPI_INT, modelMPI.getComm());
+
     ncFile.close();
 }
 
@@ -140,6 +146,8 @@ int ModelMetadata::getLocalExtentX() const { return localExtentX; }
 int ModelMetadata::getLocalExtentY() const { return localExtentY; }
 int ModelMetadata::getGlobalExtentX() const { return globalExtentX; }
 int ModelMetadata::getGlobalExtentY() const { return globalExtentY; }
+std::vector<int> ModelMetadata::getRankExtentsX() const { return rankExtentsX; }
+std::vector<int> ModelMetadata::getRankExtentsY() const { return rankExtentsY; }
 #else
 
 ModelMetadata::ModelMetadata()

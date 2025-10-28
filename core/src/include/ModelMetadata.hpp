@@ -181,6 +181,16 @@ public:
      * @return The total number of grid points in Y for the global domain.
      */
     int getGlobalExtentY() const;
+    /*!
+     * @brief Gets the extents of the grid in the X direction for all ranks.
+     * @return A vector containing the number of grid points in X for each rank.
+     */
+    std::vector<int> getRankExtentsX() const;
+    /*!
+     * @brief Gets the extents of the grid in the Y direction for all ranks.
+     * @return A vector containing the number of grid points in Y for each rank.
+     */
+    std::vector<int> getRankExtentsY() const;
 
     enum Edge { BOTTOM, RIGHT, TOP, LEFT, N_EDGE };
     // An array to allow the edges to be accessed in the correct order.
@@ -235,6 +245,8 @@ private:
     int localCornerX, localCornerY;
     int localExtentX, localExtentY;
     int globalExtentX, globalExtentY;
+    std::vector<int> rankExtentsX; // vector containing domain extents for each rank x-direction
+    std::vector<int> rankExtentsY; // vector containing domain extents for each rank y-direction
     const std::string bboxName = "bounding_boxes";
     const std::string neighbourName = "connectivity";
 #endif
