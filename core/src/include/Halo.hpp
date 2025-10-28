@@ -18,6 +18,7 @@
 #include <cstddef>
 #include <iostream>
 #include <numeric>
+#include <ostream>
 #include <vector>
 
 #include "Slice.hpp"
@@ -57,7 +58,6 @@ public:
     template <int N> Halo(DGVector<N>& dgv)
     {
         m_numComps = N;
-        isVertex = false;
         setSpatialDims();
         intializeHaloMetadata();
     }
@@ -70,7 +70,7 @@ public:
         m_numComps = 1;
         isCG = true;
         CGdegree = N;
-        isVertex = false;
+        nCells = CGdegree;
         setSpatialDims();
         intializeHaloMetadata();
     }
@@ -90,20 +90,26 @@ public:
         m_innerNx = metadata.getLocalExtentX();
         m_innerNy = metadata.getLocalExtentY();
 
-        // extend dimensions for CGVectors
-        if (isCG) {
-            m_innerNy = m_innerNy * CGdegree + 1;
-            m_innerNx = m_innerNx * CGdegree + 1;
-        }
         // extend dimensions by 1 for vertex fields
         if (isVertex) {
             m_innerNx += 1;
             m_innerNy += 1;
         }
+        // extend dimensions for CGVectors
+        if (isCG) {
+            m_innerNy = m_innerNy * CGdegree + 1;
+            m_innerNx = m_innerNx * CGdegree + 1;
+        }
 
         // inner dimension of domain excluding the halo cells
         m_Nx = m_innerNx + 2 * haloWidth;
         m_Ny = m_innerNy + 2 * haloWidth;
+
+        // each additional halo cell add CGdegree more points
+        if (isCG) {
+            m_Nx = m_innerNx + 2 * haloWidth * CGdegree;
+            m_Ny = m_innerNy + 2 * haloWidth * CGdegree;
+        }
     }
 
     /**
@@ -120,7 +126,12 @@ public:
     void intializeHaloMetadata()
     {
         // number of halo cells (should be general for any halo width)
-        m_numHaloCells = 2 * haloWidth * (m_innerNx + m_innerNy + 2 * haloWidth);
+        if (not isCG) {
+            m_numHaloCells = 2 * haloWidth * (m_innerNx + m_innerNy + 2 * haloWidth);
+        } else {
+            m_numHaloCells
+                = 2 * haloWidth * CGdegree * (m_innerNx + m_innerNy + 2 * haloWidth * CGdegree);
+        }
 
         // need send / recv buffers for each component (e.g., each DGCOMP)
         send.resize(m_numComps);
@@ -133,28 +144,6 @@ public:
 
         // order is Bottom, Right, Top, Left
         m_edgeLengths = { m_innerNx, m_innerNy, m_innerNx, m_innerNy };
-
-        m_outerSlices = {
-            { Edge::BOTTOM, VBounds({ { 1, m_innerNx + haloWidth }, { 0 } }) },
-            { Edge::RIGHT, VBounds({ { -1 }, { 1, m_innerNy + haloWidth } }) },
-            { Edge::TOP, VBounds({ { 1, m_innerNx + haloWidth }, { -1 } }) },
-            { Edge::LEFT, VBounds({ { 0 }, { 1, m_innerNy + haloWidth } }) },
-        };
-        if (isVertex) {
-            m_innerSlices = {
-                { Edge::BOTTOM, VBounds({ { 1, m_innerNx + haloWidth }, { 2 } }) },
-                { Edge::RIGHT, VBounds({ { -3 }, { 1, m_innerNy + haloWidth } }) },
-                { Edge::TOP, VBounds({ { 1, m_innerNx + haloWidth }, { -3 } }) },
-                { Edge::LEFT, VBounds({ { 2 }, { 1, m_innerNy + haloWidth } }) },
-            };
-        } else {
-            m_innerSlices = {
-                { Edge::BOTTOM, VBounds({ { 1, m_innerNx + haloWidth }, { 1 } }) },
-                { Edge::RIGHT, VBounds({ { -2 }, { 1, m_innerNy + haloWidth } }) },
-                { Edge::TOP, VBounds({ { 1, m_innerNx + haloWidth }, { -2 } }) },
-                { Edge::LEFT, VBounds({ { 1 }, { 1, m_innerNy + haloWidth } }) },
-            };
-        }
     }
 
     static const size_t haloWidth = HALOWIDTH; // how many cells wide is the halo region
@@ -174,11 +163,11 @@ private:
     size_t m_innerNy; // local extent in y-direction
     size_t m_numHaloCells; // number of halo cells
     size_t m_numComps; // number of DG components
+    int nCells = 1; // this is the number of points to grab per cell, per direction (1 for
+                    // everything except CG Fields)
 
     std::array<size_t, Edge::N_EDGE> m_edgeLengths; // array containing length of each edge
     std::array<Edge, Edge::N_EDGE> edges = ModelMetadata::edges; // array of edge enums
-    std::map<Edge, Slice> m_outerSlices;
-    std::map<Edge, Slice> m_innerSlices;
     std::map<Edge, Edge> oppositeEdge = {
         { Edge::LEFT, Edge::RIGHT },
         { Edge::RIGHT, Edge::LEFT },
@@ -212,7 +201,7 @@ private:
 
     bool isVertex = false; // some ModelArrays can be of type VERTEX
     bool isCG = false; // is layout CGVector
-    int CGdegree = 0;
+    size_t CGdegree = 0;
 
     std::vector<std::vector<double>>
         send; // buffer to store halo region that will be read by other ranks
@@ -255,35 +244,66 @@ private:
      */
     template <typename S> void populateSendBuffers(S& source)
     {
-        tempBuffer.resize(m_numHaloCells, m_numComps);
-        tempBuffer = 0.;
-
-        for (auto edge : edges) {
-            size_t beg = std::accumulate(m_edgeLengths.begin(), m_edgeLengths.begin() + edge, 0);
-            size_t num = m_edgeLengths.at(edge);
-
-            Slice sourceSlice = m_innerSlices.at(edge);
-            SliceIter sourceIter(sourceSlice, { m_Nx, m_Ny });
-
-            if (isVertical(edge)) {
-                Slice tempBufferSlice = { { {}, { beg, beg + num } } };
-                // spatial dims are flattened into 1-D.
-                SliceIter tempBufferIter(tempBufferSlice, { 1, m_numHaloCells });
-                ModelArraySlice::copySliceWithIters(source, sourceIter, tempBuffer, tempBufferIter);
-            } else {
-                Slice tempBufferSlice = { { { beg, beg + num }, {} } };
-                // spatial dims are flattened into 1-D.
-                SliceIter tempBufferIter(tempBufferSlice, { m_numHaloCells, 1 });
-                ModelArraySlice::copySliceWithIters(source, sourceIter, tempBuffer, tempBufferIter);
-            }
+        size_t buffer_len = m_numHaloCells;
+        if (isCG) {
+            buffer_len = m_numHaloCells / CGdegree;
         }
-        // we need to copy into std vector send buffer because MPI doesn't work with Eigen
-        // Arrays
-        for (size_t i = 0; i < m_numComps; i++) {
-            typedef Eigen::Map<ModelArray::DataType> MapType;
-            MapType map(send[i].data(), m_numHaloCells, 1);
-            // map is connected with the send buffer so the following line sets the data in send
-            map = tempBuffer.col(i);
+        for (size_t comp = 0; comp < m_numComps; ++comp) {
+            Eigen::Map<Eigen::ArrayXXd, 0, Eigen::InnerStride<Eigen::Dynamic>> source_map(
+                source.col(comp).data(), m_Nx, m_Ny, Eigen::InnerStride<>(m_numComps));
+            std::cout << "source_map = \n" << source_map.transpose() << std::endl;
+            Eigen::Map<Eigen::ArrayXXd> buffer_map(send[comp].data(), buffer_len, nCells);
+            for (auto edge : edges) {
+                sourceToSendBuffer(edge, buffer_map, source_map);
+            }
+            std::cout << "buffer_map = \n" << buffer_map.transpose() << std::endl;
+        }
+    }
+
+    /**
+     * @brief Calculate recv buffer positions and offsets for halo transfer
+     *
+     * @param[in,out] count The count of elements to be communicated, increased by haloWidth
+     * @param[in,out] disp The displacement value, adjusted based on opposite edge
+     * @param[in,out] recvOffset The receive offset, adjusted based on edge
+     * @param[in] edge The edge along which communication occurs
+     */
+    void recvPositions(int& fromRank, size_t& count, size_t& disp, size_t& recvOffset, Edge edge,
+        const size_t neighbourIndex, const size_t cell, bool isPeriodic)
+    {
+        auto& metadata = ModelMetadata::getInstance();
+        if (isPeriodic) {
+            fromRank = metadata.neighbourRanksPeriodic[edge][neighbourIndex];
+            count = metadata.neighbourExtentsPeriodic[edge][neighbourIndex];
+            disp = metadata.neighbourHaloSendPeriodic[edge][neighbourIndex];
+            recvOffset = metadata.neighbourHaloRecvPeriodic[edge][neighbourIndex];
+        } else {
+            fromRank = metadata.neighbourRanks[edge][neighbourIndex];
+            count = metadata.neighbourExtents[edge][neighbourIndex];
+            disp = metadata.neighbourHaloSend[edge][neighbourIndex];
+            recvOffset = metadata.neighbourHaloRecv[edge][neighbourIndex];
+        }
+        if (isVertex) {
+            count = count + 1;
+            disp = disp + oppositeEdge.at(edge);
+            recvOffset = recvOffset + edge;
+        }
+        if (isCG) {
+            count = CGdegree * count + 1;
+            disp = (disp > 0) ? CGdegree * disp + oppositeEdge.at(edge) : 0;
+            recvOffset = (recvOffset > 0) ? CGdegree * recvOffset + edge : 0;
+
+            // recvOffset is the offset in the recv buffer and this belongs to the current rank
+            recvOffset = recvOffset + m_numHaloCells / nCells * cell;
+
+            // disp is the offset in the "sending" buffer which belongs to rank "fromRank"
+            // Therefore we need to compute how many halo cells that rank has to work out the offset
+            // for each cell
+            auto extentX = CGdegree * metadata.getRankExtentsX()[fromRank] + 1;
+            auto extentY = CGdegree * metadata.getRankExtentsY()[fromRank] + 1;
+            auto fromRank_numHaloCells
+                = 2 * haloWidth * CGdegree * (extentX + extentY + 2 * haloWidth * CGdegree);
+            disp = disp + fromRank_numHaloCells / nCells * cell;
         }
     }
 
@@ -294,48 +314,39 @@ private:
     void populateRecvBuffers()
     {
 
+        int fromRank;
+        size_t count, disp, recvOffset;
         // do halo exchange for each component
         for (size_t comp = 0; comp < m_numComps; comp++) {
             // open memory window to send buffer on other ranks
             openMemoryWindow(comp);
             auto& metadata = ModelMetadata::getInstance();
-
             // get non-periodic neighbours and populate recv buffer (if the exist)
             for (auto edge : edges) {
+
+                // get neighbours (if they exist)
                 auto numNeighbours = metadata.neighbourRanks[edge].size();
                 if (numNeighbours) {
                     // get data for each neighbour that exists along a given edge
                     for (size_t i = 0; i < numNeighbours; ++i) {
-                        int fromRank = metadata.neighbourRanks[edge][i];
-                        size_t count = metadata.neighbourExtents[edge][i];
-                        size_t disp = metadata.neighbourHaloSend[edge][i];
-                        size_t recvOffset = metadata.neighbourHaloRecv[edge][i];
-                        if (isVertex) {
-                            vertexAdjustedPositions(
-                                count = count, disp = disp, recvOffset = recvOffset, edge = edge);
+                        for (size_t cell = 0; cell < nCells; ++cell) {
+                            recvPositions(fromRank, count, disp, recvOffset, edge, i, cell, false);
+                            MPI_Get(&recv[comp][recvOffset], count, MPI_DOUBLE, fromRank, disp,
+                                count, MPI_DOUBLE, m_win);
                         }
-                        MPI_Get(&recv[comp][recvOffset], count, MPI_DOUBLE, fromRank, disp, count,
-                            MPI_DOUBLE, m_win);
                     }
                 }
-            }
 
-            // get periodic neighbours and populate recv buffer (if they exist)
-            for (auto edge : edges) {
-                auto numNeighbours = metadata.neighbourRanksPeriodic[edge].size();
+                // get periodic neighbours (if they exist)
+                numNeighbours = metadata.neighbourRanksPeriodic[edge].size();
                 if (numNeighbours) {
                     // get data for each neighbour that exists along a given edge
                     for (size_t i = 0; i < numNeighbours; ++i) {
-                        int fromRank = metadata.neighbourRanksPeriodic[edge][i];
-                        size_t count = metadata.neighbourExtentsPeriodic[edge][i];
-                        size_t disp = metadata.neighbourHaloSendPeriodic[edge][i];
-                        size_t recvOffset = metadata.neighbourHaloRecvPeriodic[edge][i];
-                        if (isVertex) {
-                            vertexAdjustedPositions(
-                                count = count, disp = disp, recvOffset = recvOffset, edge = edge);
+                        for (size_t cell = 0; cell < nCells; ++cell) {
+                            recvPositions(fromRank, count, disp, recvOffset, edge, i, cell, true);
+                            MPI_Get(&recv[comp][recvOffset], count, MPI_DOUBLE, fromRank, disp,
+                                count, MPI_DOUBLE, m_win);
                         }
-                        MPI_Get(&recv[comp][recvOffset], count, MPI_DOUBLE, fromRank, disp, count,
-                            MPI_DOUBLE, m_win);
                     }
                 }
             }
@@ -344,33 +355,6 @@ private:
             // moving on)
             closeMemoryWindow();
         }
-
-        // copy from the recv std vector into an eigen array
-        for (size_t i = 0; i < m_numComps; i++) {
-            typedef Eigen::Map<ModelArray::DataType> MapType;
-            MapType map(recv[i].data(), m_numHaloCells, 1);
-            // map is connected with the recv buffer so the following line copies the data into
-            // tempBuffer
-            tempBuffer.col(i) = map;
-        }
-    }
-
-    /**
-     * @brief Adjusts positions and offsets for vertex communications in the halo region
-     *
-     * Updates the count, displacement and receive offset values for vertex communications
-     * across halo boundaries according to the halo width and specified edge.
-     *
-     * @param[in,out] count The count of elements to be communicated, increased by haloWidth
-     * @param[in,out] disp The displacement value, adjusted based on opposite edge
-     * @param[in,out] recvOffset The receive offset, adjusted based on edge
-     * @param[in] edge The edge along which communication occurs
-     */
-    void vertexAdjustedPositions(size_t& count, size_t& disp, size_t& recvOffset, const Edge& edge)
-    {
-        count = count + haloWidth;
-        disp = disp + oppositeEdge.at(edge) * haloWidth;
-        recvOffset = recvOffset + edge * haloWidth;
     }
 
 public:
@@ -393,6 +377,108 @@ public:
      * @brief Returns size of the inner flattened array
      */
     size_t getInnerSize() { return m_innerNx * m_innerNy; }
+
+    void sendBufferPositions(int& idx_a, int& idx_b, int& offset, const Edge edge)
+    {
+        int vertexOffset = 0;
+        if (isVertex || isCG) {
+            vertexOffset = 1;
+        }
+        offset = std::accumulate(m_edgeLengths.begin(), m_edgeLengths.begin() + edge, 0);
+        switch (edge) {
+        case Edge::LEFT:
+            idx_a = nCells + vertexOffset;
+            idx_b = 2 * nCells - 1 + vertexOffset;
+            break;
+        case Edge::RIGHT:
+            idx_a = m_Nx - 2 * nCells - vertexOffset;
+            idx_b = m_Nx - nCells - 1 - vertexOffset;
+            break;
+        case Edge::BOTTOM:
+            idx_a = nCells + vertexOffset;
+            idx_b = 2 * nCells - 1 + vertexOffset;
+            break;
+        case Edge::TOP:
+            idx_a = m_Ny - 2 * nCells - vertexOffset;
+            idx_b = m_Ny - nCells - 1 - vertexOffset;
+            break;
+        default:
+            throw std::runtime_error("Unrecognised edge type");
+        }
+    }
+
+    template <typename S, typename T>
+    void sourceToSendBuffer(const Edge edge, Eigen::Map<T>& buffer_map,
+        Eigen::Map<S, 0, Eigen::InnerStride<Eigen::Dynamic>>& source_map)
+    {
+        int idx_a, idx_b, offset;
+        sendBufferPositions(idx_a, idx_b, offset, edge);
+        if (isVertical(edge)) {
+            buffer_map.transpose()(Eigen::all, Eigen::seq(offset, offset + m_innerNy - 1))
+                = source_map(Eigen::seq(idx_a, idx_b), Eigen::seq(nCells, Eigen::last - nCells));
+        } else {
+            buffer_map(Eigen::seq(offset, offset + m_innerNx - 1), Eigen::all)
+                = source_map(Eigen::seq(nCells, Eigen::last - nCells), Eigen::seq(idx_a, idx_b));
+        }
+    }
+
+    void recvBufferPositions(int& idx_a, int& idx_b, int& offset, const Edge edge)
+    {
+        offset = std::accumulate(m_edgeLengths.begin(), m_edgeLengths.begin() + edge, 0);
+        switch (edge) {
+        case Edge::LEFT:
+            idx_a = 0;
+            idx_b = nCells - 1;
+            break;
+        case Edge::RIGHT:
+            idx_a = m_Nx - nCells;
+            idx_b = m_Nx - 1;
+            break;
+        case Edge::BOTTOM:
+            idx_a = 0;
+            idx_b = nCells - 1;
+            break;
+        case Edge::TOP:
+            idx_a = m_Ny - nCells;
+            idx_b = m_Ny - 1;
+            break;
+        default:
+            throw std::runtime_error("Unrecognised edge type");
+        }
+    }
+
+    template <typename S, typename T>
+    void recvBufferToTarget(const Edge edge, Eigen::Map<T>& buffer_map,
+        Eigen::Map<S, 0, Eigen::InnerStride<Eigen::Dynamic>>& target_map)
+    {
+        int idx_a, idx_b, offset;
+        recvBufferPositions(idx_a, idx_b, offset, edge);
+        if (isVertical(edge)) {
+            target_map(Eigen::seq(idx_a, idx_b), Eigen::seq(nCells, Eigen::last - nCells))
+                = buffer_map.transpose()(Eigen::all, Eigen::seq(offset, offset + m_innerNy - 1));
+        } else {
+            target_map(Eigen::seq(nCells, Eigen::last - nCells), Eigen::seq(idx_a, idx_b))
+                = buffer_map(Eigen::seq(offset, offset + m_innerNx - 1), Eigen::all);
+        }
+    }
+
+    template <typename T> void populateTarget(T& target)
+    {
+        size_t buffer_len = m_numHaloCells;
+        if (isCG) {
+            buffer_len = m_numHaloCells / CGdegree;
+        }
+        for (size_t comp = 0; comp < m_numComps; ++comp) {
+            Eigen::Map<Eigen::ArrayXXd, 0, Eigen::InnerStride<Eigen::Dynamic>> target_map(
+                target.col(comp).data(), m_Nx, m_Ny, Eigen::InnerStride<>(m_numComps));
+            Eigen::Map<Eigen::ArrayXXd> buffer_map(recv[comp].data(), buffer_len, nCells);
+            std::cout << "buffer_map = \n" << buffer_map.transpose() << std::endl;
+            for (auto edge : edges) {
+                recvBufferToTarget(edge, buffer_map, target_map);
+            }
+            std::cout << "target_map = \n" << target_map.transpose() << std::endl;
+        }
+    }
 
     /*!
      * @brief Get inner block of ModelArray from tempData
@@ -423,47 +509,11 @@ public:
         ModelArraySlice::copySliceWithIters(source, sourceIter, target, targetIter);
     }
 
-    /*!
-     * @brief Update a ModelArray with data from
-     *
-     * @params dgvec DGVector which we intend to update across MPI ranks based on halo cells
-     * note that the start index is offset by 1 and the loop limit is size() - 2 because
-     * the edge of each domain is 2 less than the length of the expanded halo region
-     * (see diagram below - the empty cells are skipped by going from i+1 to size()-2)
-     * ┌─┬─┬─┬─┐
-     * │ │x│x│ │
-     * ├─┼─┼─┼─┤
-     * │x│o│o│x│
-     * ├─┼─┼─┼─┤
-     * │x│o│o│x│       o = original data
-     * ├─┼─┼─┼─┤       x = mpi halo data (from recv)
-     * │ │x│x│ │ (empty) = unused data in DGVector
-     * └─┴─┴─┴─┘
-     */
     template <typename T> void exchangeHalos(T& target)
     {
         populateSendBuffers(target);
         populateRecvBuffers();
-
-        for (auto edge : edges) {
-            size_t beg = std::accumulate(m_edgeLengths.begin(), m_edgeLengths.begin() + edge, 0);
-            size_t num = m_edgeLengths.at(edge);
-
-            Slice targetSlice = m_outerSlices.at(edge);
-            SliceIter targetIter(targetSlice, { m_Nx, m_Ny });
-
-            if (isVertical(edge)) {
-                Slice tempBufferSlice = { { {}, { beg, beg + num } } };
-                // spatial dims are flattened into 1-D.
-                SliceIter tempBufferIter(tempBufferSlice, { 1, m_numHaloCells });
-                ModelArraySlice::copySliceWithIters(tempBuffer, tempBufferIter, target, targetIter);
-            } else {
-                Slice tempBufferSlice = { { { beg, beg + num }, {} } };
-                // spatial dims are flattened into 1-D.
-                SliceIter tempBufferIter(tempBufferSlice, { m_numHaloCells, 1 });
-                ModelArraySlice::copySliceWithIters(tempBuffer, tempBufferIter, target, targetIter);
-            }
-        }
+        populateTarget(target);
     }
 };
 } // end of nextsim namespace
