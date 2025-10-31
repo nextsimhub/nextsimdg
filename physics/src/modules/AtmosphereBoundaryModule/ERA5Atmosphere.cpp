@@ -170,9 +170,37 @@ std::pair<double, double> getLatitudeCoeffs(const std::string& filename)
     return {latitudeBuff(1, 0) - latitudeBuff(0, 0), latitudeBuff(0, 0)};
 }
 
-era5Buffer getVarIndexData(const std::string& era5Name, size_t year, size_t tIndex)
+std::pair<double, double> latitudeCoeffs(const std::string& key)
 {
-    return NetCDFForcings::getFileIndexData(e5FilenameFromYear(era5Name, year), tIndex);
+    static std::map<std::string, std::pair<double, double>> coeffMap;
+    if (!coeffMap.count(key)) {
+        coeffMap[key] = getLatitudeCoeffs(key);
+    }
+    return coeffMap.at(key);
+}
+
+ModelArray getVarIndexData(const std::string& era5Name, size_t year, size_t tIndex, const ModelArray& modelLon, const ModelArray& modelLat)
+{
+    std::string filePath = e5FilenameFromYear(era5Name, year);
+    era5Buffer e5data = NetCDFForcings::getFileIndexData(filePath, tIndex);
+
+    // x and y positions in the source grid for each point on the target grid
+    auto [dlat, lat0] = latitudeCoeffs(filePath);
+    double dlon = std::fabs(dlat);
+    ModelArray iFrac;
+    ModelArray jFrac;
+    iFrac.resize();
+    jFrac.resize();
+    const ModelArray::MultiDim dims = iFrac.dimensions();
+    size_t nx = dims[0];
+    size_t ny = dims[1];
+    for (size_t j = 0; j < ny; ++j) {
+        for (size_t i = 0; i < nx; ++i) {
+            iFrac(i, j) = modelLon(i, j) / dlon;
+            jFrac(i, j) = (modelLat(i, j) - lat0) / dlat;
+        }
+    }
+    return NetCDFForcings::maFromBuffer(e5data, iFrac, jFrac);
 }
 
 // time index from a TimePoint
@@ -182,68 +210,24 @@ size_t timeIndex(const TimePoint& time)
 }
 
 // Time interpolation happens here
-era5Buffer getVarTimeData(const std::string& era5Name, const TimePoint& time)
+ModelArray getVarTimeData(const std::string& era5Name, const TimePoint& time, const ModelArray& modelLon, const ModelArray& modelLat)
 {
-    era5Buffer v1 = getVarIndexData(era5Name, time.year(), timeIndex(time));
+    ModelArray v1 = getVarIndexData(era5Name, time.year(), timeIndex(time), modelLon, modelLat);
     TimePoint t2 = time + Duration(3600);
-    era5Buffer v2 = getVarIndexData(era5Name, t2.year(), timeIndex(t2));
+    ModelArray v2 = getVarIndexData(era5Name, t2.year(), timeIndex(t2), modelLon, modelLat);
     double f = t2.minute() / 60.;
     return v2 * f + v1 * (1-f);
 }
 
-ModelArray maFromERA5Buffer(const era5Buffer& buffer, const HField& destLon, const HField& destLat)
+ModelArray ERA5Atmosphere::maHypot(const ModelArray& x, const ModelArray& y) const
 {
-    int nxma = destLon.dimensions()[0];
-    int nyma = destLon.dimensions()[1];
-
-    int nxe5 = buffer.rows();
-    int nye5 = buffer.cols();
-    double ptsPerDegree = nxe5 / 360;
-    int nxsrc = nxe5 + 2;
-    int nysrc = nye5 + 2;
-
-    era5Buffer srcBuffer(nxsrc, nysrc);
-
-    srcBuffer(Eigen::seq(1, Eigen::last-1), Eigen::seq(1, Eigen::last-1)) = buffer;
-    // Wrap-around columns at the x edges
-    srcBuffer(0, Eigen::seq(1, Eigen::last-1)) = buffer(Eigen::last, Eigen::all);
-    srcBuffer(Eigen::last, Eigen::seq(1, Eigen::last-1)) = buffer(0, Eigen::all);
-    // Duplicate rows at the y edges
-    srcBuffer(Eigen::all, 0) = srcBuffer(Eigen::all, 1);
-    srcBuffer(Eigen::all, Eigen::last) = srcBuffer(Eigen::all, Eigen::last - 1);
-
-    // Should eventually use getLatitudeCoeffs()
-    double dlat = -0.25;
-    double lat0 = 90.;
-    // lambdas to translate latitude and longitude to (fractional) index in
-    // srcBuffer, including wrap-around columns.
-    auto xFromLon = [ptsPerDegree](double lon) { return ptsPerDegree * lon + 1; };
-    auto yFromLat = [lat0, dlat](double lat) { return (lat - lat0) / dlat + 1; };
-
-    ModelArray maData(ModelArray::Type::H);
-    maData.resize();
-    for (size_t j = 0; j < nyma; ++j) {
-        for (size_t i = 0; i < nxma; ++i) {
-            double iFloat = xFromLon(destLon(i, j));
-            double jFloat = yFromLat(destLat(i, j));
-            int ilo = iFloat;
-            int ihi = ilo + 1;
-            int jlo = jFloat;
-            int jhi = jlo + 1;
-            double fx = 1 - (iFloat - ilo);
-            double fy = 1 - (jFloat - jlo);
-            maData(i, j) = fx * fy * srcBuffer(ilo, jlo) +
-                    (1 - fx) * fy * srcBuffer(ihi, jlo) +
-                    fx * (1 - fy) * srcBuffer(ilo, jhi) +
-                    (1 - fx) * (1 - fy) * srcBuffer(ihi, jhi);
-        }
+    if (x.trueSize() != y.trueSize()) {
+        throw std::runtime_error("maHypot: Cannot operate on differently sized ModelArrays.");
     }
-    return maData;
-}
-
-era5Buffer era5BufferHypot(const era5Buffer& x, const era5Buffer& y)
-{
-    return (x.square() + y.square()).sqrt();
+    ModelArray wind = 0*x;
+    ModelArray* pWind = &wind;
+    ModelComponent::overElements([x, y, pWind](size_t i, const TimestepTime& tst) { (*pWind)[i] = std::sqrt(x[i]*x[i] + y[i]*y[i]);}, TimestepTime());
+    return wind;
 }
 
 const ModelArray ERA5Atmosphere::getData(const std::string& nsName, const TimePoint& time) const
@@ -252,12 +236,12 @@ const ModelArray ERA5Atmosphere::getData(const std::string& nsName, const TimePo
     const ModelArray& modelLon = meta.longitude();
     const ModelArray& modelLat = meta.latitude();
     if (nsName == "wind_speed") {
-        era5Buffer u, v;
-        u = getVarTimeData("u10", time);
-        v = getVarTimeData("v10", time);
-        return maFromERA5Buffer(era5BufferHypot(u, v), modelLon, modelLat);
+        ModelArray u, v;
+        u = getVarTimeData("u10", time, modelLon, modelLat);
+        v = getVarTimeData("v10", time, modelLon, modelLat);
+        return maHypot(u, v);
     } else {
-        return maFromERA5Buffer(getVarTimeData(era5FromNSName(nsName), time), modelLon, modelLat);
+        return getVarTimeData(era5FromNSName(nsName), time, modelLon, modelLat);
     }
 }
 

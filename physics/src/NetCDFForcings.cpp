@@ -87,10 +87,10 @@ NetCDFForcings::Buffer NetCDFForcings::getFileIndexData(const std::string& filen
 {
     return getFileIndexData(filename, "", tIndex);
 }
-ModelArray NetCDFForcings::maFromBuffer(const Buffer& buffer)
+ModelArray NetCDFForcings::maFromBuffer(const Buffer& buffer, const ModelArray& fracI, const ModelArray& fracJ)
 {
-    int nxma = targetLon.dimensions()[0];
-    int nyma = targetLon.dimensions()[1];
+    int nxma = fracI.dimensions()[0];
+    int nyma = fracI.dimensions()[1];
 
     int nxe5 = buffer.rows();
     int nye5 = buffer.cols();
@@ -112,7 +112,9 @@ ModelArray NetCDFForcings::maFromBuffer(const Buffer& buffer)
     maData.resize();
     for (size_t j = 0; j < nyma; ++j) {
         for (size_t i = 0; i < nxma; ++i) {
-            auto [iFloat, jFloat] = indicesFromLonLat(targetLon(i, j), targetLat(i, j));
+            // Add 1 to account for the halo added above
+            double iFloat = fracI(i, j) + 1;
+            double jFloat = fracJ(i, j) + 1;
             int ilo = iFloat;
             int ihi = ilo + 1;
             int jlo = jFloat;

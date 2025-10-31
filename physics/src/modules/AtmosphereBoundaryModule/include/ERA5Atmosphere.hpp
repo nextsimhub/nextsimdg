@@ -54,6 +54,8 @@ private:
         static bool ignore = false;
         return ignore;
     }
+    // Wind speed from wind components
+    ModelArray maHypot(const ModelArray& x, const ModelArray& y) const;
 
     const ModelArray getData(const std::string& nsName, const TimePoint& time) const;
 
