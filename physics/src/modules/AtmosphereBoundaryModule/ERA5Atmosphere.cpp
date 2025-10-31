@@ -187,19 +187,8 @@ ModelArray getVarIndexData(const std::string& era5Name, size_t year, size_t tInd
     // x and y positions in the source grid for each point on the target grid
     auto [dlat, lat0] = latitudeCoeffs(filePath);
     double dlon = std::fabs(dlat);
-    ModelArray iFrac;
-    ModelArray jFrac;
-    iFrac.resize();
-    jFrac.resize();
-    const ModelArray::MultiDim dims = iFrac.dimensions();
-    size_t nx = dims[0];
-    size_t ny = dims[1];
-    for (size_t j = 0; j < ny; ++j) {
-        for (size_t i = 0; i < nx; ++i) {
-            iFrac(i, j) = modelLon(i, j) / dlon;
-            jFrac(i, j) = (modelLat(i, j) - lat0) / dlat;
-        }
-    }
+    ModelArray iFrac = modelLon / dlon;
+    ModelArray jFrac = (modelLat - lat0) / dlat;
     return NetCDFForcings::maFromBuffer(e5data, iFrac, jFrac);
 }
 
