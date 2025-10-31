@@ -5,6 +5,7 @@ if(NOT ENABLE_MPI)
     set(ModulesRoot "../src/modules")
     set(CoreModulesRoot "../../core/src/modules")
     set(CoreSrc "../../core/src")
+    set(PhysSrc "../src")
 
     # Generate the boundary test data files
     execute_process(COMMAND "${Python_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/era5_test_data.py"
@@ -13,6 +14,13 @@ if(NOT ENABLE_MPI)
                     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}")
 
     include_directories(${COMMON_INCLUDE_DIRS})
+
+    add_executable(testNetCDFForcings
+        "NetCDFForcings_test.cpp"
+        "${CoreSrc}/ModelArray.cpp"
+        "${PhysSrc}/NetCDFForcings.cpp"
+        )
+    target_link_libraries(testNetCDFForcings PRIVATE nextsimlib doctest::doctest)
 
     add_executable(testERA5Atmosphere
         "ERA5Atmosphere_test.cpp"
