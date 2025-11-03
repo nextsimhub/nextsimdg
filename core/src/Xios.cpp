@@ -1421,7 +1421,15 @@ void Xios::createFile(const std::string fileId, const int fieldType)
                 >> splitStr;
         }
         if (!splitStr.empty()) {
-            setFileSplitFreq(fileId, Duration(splitStr));
+            xios::CFile* file = getFile(fileId);
+            if (cxios_is_defined_file_split_freq(file)) {
+                Logged::warning("Xios: Split frequency already set for file '" + fileId + "'");
+            }
+            cxios_set_file_split_freq(file, convertDurationToXios(Duration(splitStr)));
+            if (!cxios_is_defined_file_split_freq(file)) {
+                throw std::runtime_error(
+                    "Xios: Failed to set split frequency for file '" + fileId + "'");
+            }
         }
     }
 
@@ -1474,24 +1482,6 @@ void Xios::setFileOutputFreq(const std::string fileId, const Duration freq)
     cxios_set_file_output_freq(file, convertDurationToXios(freq));
     if (!cxios_is_defined_file_output_freq(file)) {
         throw std::runtime_error("Xios: Failed to set output frequency for file '" + fileId + "'");
-    }
-}
-
-/*!
- * Set the split frequency of a file with a given ID
- *
- * @param the file ID
- * @param split frequency to set
- */
-void Xios::setFileSplitFreq(const std::string fileId, const Duration freq)
-{
-    xios::CFile* file = getFile(fileId);
-    if (cxios_is_defined_file_split_freq(file)) {
-        Logged::warning("Xios: Split frequency already set for file '" + fileId + "'");
-    }
-    cxios_set_file_split_freq(file, convertDurationToXios(freq));
-    if (!cxios_is_defined_file_split_freq(file)) {
-        throw std::runtime_error("Xios: Failed to set split frequency for file '" + fileId + "'");
     }
 }
 
@@ -1562,23 +1552,6 @@ Duration Xios::getFileOutputFreq(const std::string fileId)
     }
     cxios_duration duration;
     cxios_get_file_output_freq(file, &duration);
-    return convertDurationFromXios(duration);
-}
-
-/*!
- * Get the split frequency of a file with a given ID
- *
- * @param the file ID
- * @return split frequency of the corresponding file
- */
-Duration Xios::getFileSplitFreq(const std::string fileId)
-{
-    xios::CFile* file = getFile(fileId);
-    if (!cxios_is_defined_file_split_freq(file)) {
-        throw std::runtime_error("Xios: Undefined split frequency for file '" + fileId + "'");
-    }
-    cxios_duration duration;
-    cxios_get_file_split_freq(file, &duration);
     return convertDurationFromXios(duration);
 }
 

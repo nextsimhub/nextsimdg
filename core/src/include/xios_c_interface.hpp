@@ -164,7 +164,6 @@ void cxios_set_file_mode(xios::CFile* file_hdl, const char* mode, int mode_size)
 void cxios_set_file_par_access(xios::CFile* file_hdl, const char* par_access, int par_access_size);
 void cxios_get_file_type(xios::CFile* file_hdl, char* type, int type_size);
 void cxios_get_file_output_freq(xios::CFile* file_hdl, cxios_duration* output_freq_c);
-void cxios_get_file_split_freq(xios::CFile* file_hdl, cxios_duration* split_freq_c);
 void cxios_get_file_mode(xios::CFile* file_hdl, char* mode, int mode_size);
 void cxios_get_file_par_access(xios::CFile* file_hdl, char* par_access, int par_access_size);
 bool cxios_is_defined_file_name(xios::CFile* file_hdl);

@@ -90,12 +90,6 @@ MPI_TEST_CASE("TestXiosFile", 2)
     // NOTE: This is set based off the XiosInput.period and XiosOutput.period entries when a file
     // is created
     REQUIRE(xiosHandler.getFileOutputFreq(outFileId).seconds() == 3.0 * 60 * 60);
-    // Split frequency
-    REQUIRE_THROWS_WITH(xiosHandler.getFileSplitFreq(outFileId),
-        "Xios: Undefined split frequency for file 'xios_test_output'");
-    ModelMetadata& metadata = ModelMetadata::getInstance();
-    xiosHandler.setFileSplitFreq(outFileId, metadata.stepLength());
-    REQUIRE(xiosHandler.getFileSplitFreq(outFileId).seconds() == 1.5 * 60 * 60);
     // File mode
     // NOTE: setFileMode is set based off the XiosInput.filename and XiosOutput.filename entries
     // when a file is created
@@ -115,7 +109,7 @@ MPI_TEST_CASE("TestXiosFile", 2)
     REQUIRE(outputIds[0] == "hice");
 
     // Create a new file for each time unit to check more thoroughly that XIOS interprets output
-    // frequency and split frequency correctly.
+    // frequency correctly.
     // (If we reused the same file then the XIOS interface would raise warnings.)
     const std::string prefix = "unittest";
     const std::string yearId = prefix + "_year";
@@ -125,29 +119,19 @@ MPI_TEST_CASE("TestXiosFile", 2)
     const std::string secondId = prefix + "_second";
     xiosHandler.createFile(yearId, xiosHandler.OUTPUT_RESTART);
     xiosHandler.setFileOutputFreq(yearId, Duration("P1-0T00:00:00"));
-    xiosHandler.setFileSplitFreq(yearId, Duration("P2-0T00:00:00"));
     REQUIRE(xiosHandler.getFileOutputFreq(yearId).seconds() == 365 * 24 * 60 * 60);
-    REQUIRE(xiosHandler.getFileSplitFreq(yearId).seconds() == 2 * 365 * 24 * 60 * 60);
     xiosHandler.createFile(dayId, xiosHandler.OUTPUT_RESTART);
     xiosHandler.setFileOutputFreq(dayId, Duration("P0-1T00:00:00"));
-    xiosHandler.setFileSplitFreq(dayId, Duration("P0-2T00:00:00"));
     REQUIRE(xiosHandler.getFileOutputFreq(dayId).seconds() == 24 * 60 * 60);
-    REQUIRE(xiosHandler.getFileSplitFreq(dayId).seconds() == 2 * 24 * 60 * 60);
     xiosHandler.createFile(hourId, xiosHandler.OUTPUT_RESTART);
     xiosHandler.setFileOutputFreq(hourId, Duration("P0-0T01:00:00"));
-    xiosHandler.setFileSplitFreq(hourId, Duration("P0-0T02:00:00"));
     REQUIRE(xiosHandler.getFileOutputFreq(hourId).seconds() == 60 * 60);
-    REQUIRE(xiosHandler.getFileSplitFreq(hourId).seconds() == 2 * 60 * 60);
     xiosHandler.createFile(minuteId, xiosHandler.OUTPUT_RESTART);
     xiosHandler.setFileOutputFreq(minuteId, Duration("P0-0T00:01:00"));
-    xiosHandler.setFileSplitFreq(minuteId, Duration("P0-0T00:02:00"));
     REQUIRE(xiosHandler.getFileOutputFreq(minuteId).seconds() == 60);
-    REQUIRE(xiosHandler.getFileSplitFreq(minuteId).seconds() == 2 * 60);
     xiosHandler.createFile(secondId, xiosHandler.OUTPUT_RESTART);
     xiosHandler.setFileOutputFreq(secondId, Duration("P0-0T00:00:01"));
-    xiosHandler.setFileSplitFreq(secondId, Duration("P0-0T00:00:02"));
     REQUIRE(xiosHandler.getFileOutputFreq(secondId).seconds() == 1);
-    REQUIRE(xiosHandler.getFileSplitFreq(secondId).seconds() == 2);
 
     xiosHandler.close_context_definition();
     xiosHandler.context_finalize();
