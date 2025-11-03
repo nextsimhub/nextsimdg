@@ -217,8 +217,7 @@ jobs:
         . $HOME/nextsim/bin/activate
         mkdir -p build
         cd build
-        # added Python_ROOT_DIR to help cmake find correct Python in the mac VM
-        cmake -DCMAKE_BUILD_TYPE=Release -DENABLE_MPI=OFF -DENABLE_XIOS=OFF -DPython_ROOT_DIR=/Library/Frameworks/Python.framework/Versions/Current/bin ..
+        cmake -DCMAKE_BUILD_TYPE=Release -DENABLE_MPI=OFF -DENABLE_XIOS=OFF ..
         make -j 4
 
     - name: run serial tests
