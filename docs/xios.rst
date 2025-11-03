@@ -88,8 +88,30 @@ type will be deduced from its dimension. When writing to file, the field type
 should be set using the ``setFieldType`` member function of the ``Xios`` handler
 class.
 
+Order of operations for XIOS setup
+----------------------------------
+
+The required order of operations to set everything up correctly for reading and
+writing files using XIOS is demonstrated in the ``core/test/XiosRead_test.cpp``
+and ``core/test/XiosWrite_test.cpp`` worked examples and is elaborated in the
+following:
+
+1. Set configuration options as for other parts of the model. (See section above
+   for options.)
+2. Configure the ``Model`` by constructing it and calling its ``configure``
+   member function.
+3. Construct a ``ParametricGrid`` and a new ``ParaGridIO`` pointer.
+4. Associate the ``ParaGridIO`` pointer with the ``ParametricGrid`` instance
+   using the latter's ``setIO`` member function.
+5. Get the ``Xios`` handler singleton using ``Xios::getInstance``.
+6. For each field to be written to file with XIOS, call the ``setFieldType``
+   member function of ``Xios``, providing the field name as the first argument
+   and the ``ModelArray::Type::<TYPE>`` enum as the second argument (replacing
+   ``<TYPE>>`` as appropriate).
+7. Call the ``close_context_definition`` member function of ``Xios``.
+
 Developer notes
-^^^^^^^^^^^^^^^
+---------------
 
 The integration of XIOS into nextSIM-DG's is built around a static ``Xios``
 handler class, which provides a C++ API for the various XIOS functions. When the
