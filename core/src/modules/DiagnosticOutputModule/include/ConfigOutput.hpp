@@ -28,6 +28,7 @@ public:
     enum {
         PERIOD_KEY,
         START_KEY,
+        SNAPSHOT_KEY,
         FIELDNAMES_KEY,
         FILENAME_KEY,
         FILEPERIOD_KEY,
@@ -50,9 +51,9 @@ public:
 private:
     std::string m_filePrefix;
     Duration outputPeriod;
-    bool firstOutput = true;
-    bool everyTS = false;
-    bool outputAllTheFields = false;
+    bool firstOutput;
+    bool everyTS;
+    bool outputAllTheFields;
     TimePoint lastOutput;
     std::set<std::string> fieldsForOutput;
     std::string currentFileName;
@@ -65,6 +66,11 @@ private:
     static const std::string defaultLastOutput;
 
     std::map<std::string, std::string> reverseExternalNames;
+
+    ModelState state;
+
+    bool snapshots;
+    bool resetState;
 };
 
 } /* namespace Nextsim */
