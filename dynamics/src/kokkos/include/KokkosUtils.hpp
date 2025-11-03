@@ -84,6 +84,12 @@ using KokkosHostView =
                               EigenMat::RowsAtCompileTime, EigenMat::ColsAtCompileTime>::Type,
         typename Details::ToKokkosLayout<EigenMat::Options>::Type, Kokkos::HostSpace,
         Kokkos::MemoryTraits<Kokkos::Unmanaged>>;
+template <typename EigenMat>
+using ConstKokkosHostView =
+    typename Kokkos::View<typename Details::ToKokkosArrayDec<const typename EigenMat::Scalar,
+                              EigenMat::RowsAtCompileTime, EigenMat::ColsAtCompileTime>::Type,
+        typename Details::ToKokkosLayout<EigenMat::Options>::Type, Kokkos::HostSpace,
+        Kokkos::MemoryTraits<Kokkos::Unmanaged>>;
 
 /*!
  * @brief Creates a host view compatible with an Eigen matrix.

@@ -30,6 +30,7 @@ set(BaseSources
     "StructureFactory.cpp"
     "ModelArray.cpp"
     "ModelArraySlice.cpp"
+    "ModelArrayStore.cpp"
     "ModelComponent.cpp"
     "ModelMetadata.cpp"
     "NetcdfMetadataConfiguration.cpp"

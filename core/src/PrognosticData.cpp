@@ -82,7 +82,8 @@ void copyMeanComponent(const ModelArray& source, ModelArray& sink)
 
 void PrognosticData::setData(const ModelState::DataMap& ms)
 {
-
+    getStore().resize_arrays();
+    
     if (ms.count(maskName)) {
         setOceanMask(ms.at(maskName));
     } else {

@@ -20,7 +20,7 @@ public:
     const ModelArray& getHostRO()
     {
         if (syncState == SyncState::DEVICE_CHANGED) {
-            Kokkos::deep_copy(target.hostView, target.deviceView);
+            Kokkos::deep_copy(target.hostView(), target.deviceView);
             syncState = SyncState::SYNCED;
         }
         return target.modelArray;
@@ -30,7 +30,7 @@ public:
     ConstDeviceView getDeviceRO()
     {
         if (syncState == SyncState::HOST_CHANGED) {
-            Kokkos::deep_copy(target.deviceView, target.hostView);
+            Kokkos::deep_copy(target.deviceView, target.hostView());
             syncState = SyncState::SYNCED;
         }
 
@@ -62,7 +62,7 @@ public:
     const ModelArray& getHostRO()
     {
         if (syncState == SyncState::DEVICE_CHANGED) {
-            Kokkos::deep_copy(target.hostView, target.deviceView);
+            Kokkos::deep_copy(target.hostView(), target.deviceView);
             syncState = SyncState::SYNCED;
         }
         return target.modelArray;
@@ -71,7 +71,7 @@ public:
     ModelArray& getHostRW()
     {
         if (syncState == SyncState::DEVICE_CHANGED) {
-            Kokkos::deep_copy(target.hostView, target.deviceView);
+            Kokkos::deep_copy(target.hostView(), target.deviceView);
         }
         syncState = SyncState::HOST_CHANGED;
 
@@ -82,7 +82,7 @@ public:
     ConstDeviceView getDeviceRO()
     {
         if (syncState == SyncState::HOST_CHANGED) {
-            Kokkos::deep_copy(target.deviceView, target.hostView);
+            Kokkos::deep_copy(target.deviceView, target.hostView());
             syncState = SyncState::SYNCED;
         }
 
@@ -92,16 +92,13 @@ public:
     const DeviceView& getDeviceRW()
     {
         if (syncState == SyncState::HOST_CHANGED)
-            Kokkos::deep_copy(target.deviceView, target.hostView);
+            Kokkos::deep_copy(target.deviceView, target.hostView());
         syncState = SyncState::DEVICE_CHANGED;
 
         return target.deviceView;
     }
 
 private:
-    // mirrors DeviceView for data transfers but is not part of the interface
-    using HostView = KokkosHostView<ModelArray::DataType>;
-
     SyncState syncState;
 
     // lifetime and persistent address are enforced by ModelArrayStore
