@@ -9,8 +9,13 @@
 #include "include/IStructure.hpp"
 #include "include/ModelMPI.hpp"
 #include "include/NextsimModule.hpp"
+#ifdef USE_MPI
+#include "include/ParallelNetcdfFile.hpp"
 #ifdef USE_XIOS
 #include "include/Xios.hpp"
+#else
+#include "include/Halo.hpp"
+#endif
 #endif
 #include "include/gridNames.hpp"
 #include <array>
@@ -43,6 +48,81 @@ ModelMetadata::ModelMetadata(std::string partitionFile)
     getPartitionMetadata(partitionFile);
     static bool doneOnce = doOnce();
     isInitialized = true;
+}
+
+void ModelMetadata::setDimensionsFromFile(const std::string filename)
+{
+    if (filename.empty()) {
+        throw std::runtime_error(
+            "ModelMetadata :: setDimensionsFromFile() called without input file.");
+    }
+    try {
+#ifdef USE_MPI
+        auto& modelMPI = ModelMPI::getInstance();
+        netCDF::NcFilePar ncFile(filename, netCDF::NcFile::read, modelMPI.getComm());
+#else
+        netCDF::NcFile ncFile(filename, netCDF::NcFile::read);
+#endif
+
+        // Dimensions and DG components
+        std::multimap<std::string, netCDF::NcDim> dimMap = ncFile.getDims();
+        for (auto entry : ModelArray::definedDimensions) {
+            auto dimType = entry.first;
+            // TODO: Assertions that DG in the file equals the compile time DG in the model (#205)
+
+            ModelArray::DimensionSpec& dimensionSpec = entry.second;
+            // Find dimensions in the netCDF file by their name in the ModelArray details
+            netCDF::NcDim dim = ncFile.getDim(dimensionSpec.name);
+            // Also check the old name
+            if (dim.isNull()) {
+                dim = ncFile.getDim(dimensionSpec.altName);
+            }
+            // If we didn't find a dimension with the dimensions name or altName, throw.
+            if (dim.isNull()) {
+                throw std::out_of_range(
+                    "ModelMetadata: No netCDF dimension found corresponding to the dimension named "
+                    + dimensionSpec.name + " or " + dimensionSpec.altName);
+            }
+#ifdef USE_MPI
+            size_t localLength;
+            size_t start;
+            if (dimType == ModelArray::Dimension::X) {
+                localLength = getLocalExtentX();
+                start = getLocalCornerX();
+            } else if (dimType == ModelArray::Dimension::Y) {
+                localLength = getLocalExtentY();
+                start = getLocalCornerY();
+            } else if (dimType == ModelArray::Dimension::XVERTEX) {
+                localLength = getLocalExtentX() + 1;
+                start = getLocalCornerX();
+            } else if (dimType == ModelArray::Dimension::YVERTEX) {
+                localLength = getLocalExtentY() + 1;
+                start = getLocalCornerY();
+            } else if (dimType == ModelArray::Dimension::XCG) {
+                localLength = CGDEGREE * getLocalExtentX() + 1;
+                start = CGDEGREE * getLocalCornerX();
+            } else if (dimType == ModelArray::Dimension::YCG) {
+                localLength = CGDEGREE * getLocalExtentY() + 1;
+                start = CGDEGREE * getLocalCornerY();
+            } else {
+                localLength = dim.getSize();
+                start = 0;
+            }
+#if USE_XIOS
+            ModelArray::setDimension(dimType, dim.getSize(), localLength, start);
+#else
+            ModelArray::setDimension(
+                dimType, dim.getSize(), localLength + 2 * Halo::haloWidth, start);
+#endif
+#else
+            ModelArray::setDimension(dimType, dim.getSize());
+#endif
+        }
+    } catch (const netCDF::exceptions::NcException& nce) {
+        std::string ncWhat(nce.what());
+        ncWhat += ": " + filename;
+        throw std::runtime_error(ncWhat);
+    }
 }
 
 void ModelMetadata::readNeighbourData(netCDF::NcFile& ncFile)

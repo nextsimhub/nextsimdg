@@ -584,83 +584,34 @@ void Xios::parseInputFiles()
 
     // Initial read of the NetCDF file to deduce the dimensions
     for (std::string filename : { inputFilename, forcingFilename }) {
-        if (filename.length() == 0) {
+        if (filename.empty()) {
             break;
         }
+        metadata.setDimensionsFromFile(filename);
 
+        // Create map for field types
+        const std::map<std::string, ModelArray::Type> dimensionKeys = {
+            { "yx", ModelArray::Type::H },
+            { "ydimxdim", ModelArray::Type::H },
+            { "yxdg_comp", ModelArray::Type::DG },
+            { "ydimxdimdg_comp", ModelArray::Type::DG },
+            { "yxdgstress_comp", ModelArray::Type::DGSTRESS },
+            { "ydimxdimdgstress_comp", ModelArray::Type::DGSTRESS },
+            { "y_cgx_cg", ModelArray::Type::CG },
+            { "yvertexxvertexncoords", ModelArray::Type::VERTEX },
+        };
+
+        // Determine field types
+        std::set<std::string> configFieldIds;
+        if (filename == inputFilename) {
+            configFieldIds = configGetInputRestartFieldNames();
+        } else {
+            configFieldIds = configGetForcingFieldNames();
+        }
         try {
             auto& modelMPI = ModelMPI::getInstance();
             netCDF::NcFilePar ncFile(filename, netCDF::NcFile::read, modelMPI.getComm());
 
-            // Dimensions and DG components
-            std::multimap<std::string, netCDF::NcDim> dimMap = ncFile.getDims();
-            for (auto entry : ModelArray::definedDimensions) {
-                auto dimType = entry.first;
-                ModelArray::DimensionSpec& dimensionSpec = entry.second;
-                // TODO: Assert that DG in the file equals the compile time DG in the model (#205)
-
-                // Find dimensions in the netCDF file by their name in the ModelArray details
-                netCDF::NcDim dim = ncFile.getDim(dimensionSpec.name);
-
-                // Also check the old name
-                if (dim.isNull()) {
-                    dim = ncFile.getDim(dimensionSpec.altName);
-                }
-
-                // If we didn't find a dimension with the dimensions name or altName, throw.
-                if (dim.isNull()) {
-                    throw std::out_of_range(
-                        "Xios: No netCDF dimension found corresponding to the dimension named "
-                        + dimensionSpec.name + " or " + dimensionSpec.altName);
-                }
-
-                // Set corresponding dimensions
-                size_t localLength;
-                size_t start;
-                if (dimType == ModelArray::Dimension::X) {
-                    localLength = metadata.getLocalExtentX();
-                    start = metadata.getLocalCornerX();
-                } else if (dimType == ModelArray::Dimension::Y) {
-                    localLength = metadata.getLocalExtentY();
-                    start = metadata.getLocalCornerY();
-                } else if (dimType == ModelArray::Dimension::XVERTEX) {
-                    localLength = metadata.getLocalExtentX() + 1;
-                    start = metadata.getLocalCornerX();
-                } else if (dimType == ModelArray::Dimension::YVERTEX) {
-                    localLength = metadata.getLocalExtentY() + 1;
-                    start = metadata.getLocalCornerY();
-                } else if (dimType == ModelArray::Dimension::XCG) {
-                    localLength = CGDEGREE * metadata.getLocalExtentX() + 1;
-                    start = CGDEGREE * metadata.getLocalCornerX();
-                } else if (dimType == ModelArray::Dimension::YCG) {
-                    localLength = CGDEGREE * metadata.getLocalExtentY() + 1;
-                    start = CGDEGREE * metadata.getLocalCornerY();
-                } else {
-                    localLength = dim.getSize();
-                    start = 0;
-                }
-                ModelArray::setDimension(dimType, dim.getSize(), localLength, start);
-            }
-
-            // Create map for field types
-            const std::map<std::string, ModelArray::Type> dimensionKeys = {
-                { "yx", ModelArray::Type::H },
-                { "ydimxdim", ModelArray::Type::H },
-                { "yxdg_comp", ModelArray::Type::DG },
-                { "ydimxdimdg_comp", ModelArray::Type::DG },
-                { "yxdgstress_comp", ModelArray::Type::DGSTRESS },
-                { "ydimxdimdgstress_comp", ModelArray::Type::DGSTRESS },
-                { "y_cgx_cg", ModelArray::Type::CG },
-                { "yvertexxvertexncoords", ModelArray::Type::VERTEX },
-            };
-
-            // Determine field types
-            std::set<std::string> configFieldIds;
-            if (filename == inputFilename) {
-                configFieldIds = configGetInputRestartFieldNames();
-            } else {
-                configFieldIds = configGetForcingFieldNames();
-            }
             for (auto entry : ncFile.getVars()) {
                 const std::string& fieldId = entry.first;
                 // Only consider fields that appear in the config
@@ -697,8 +648,8 @@ void Xios::parseInputFiles()
 /*!
  * @brief   Create XIOS domains associated with each ModelArray type
  *
- * @details This function sets up the XIOS domains for each field type based on the configuration
- *          in the domainIds map and in the ModelMetadata class.
+ * @details This function sets up the XIOS domains for each field type based on the
+ *          configuration in the domainIds map and in the ModelMetadata class.
  */
 void Xios::setupDomains()
 {

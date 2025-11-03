@@ -71,6 +71,16 @@ public:
     }
 #endif
 
+    /*!
+     * @brief   Set dimensions information based on the contents of an input file.
+     *
+     * @param   filename the name of the file
+     * @details If an input file hasn't been read yet, the dimensions are read from the file and
+     *          set. Otherwise, a consistency check is made against the dimensions read from file
+     *          and already set.
+     */
+    void setDimensionsFromFile(const std::string filename);
+
     // finalize ModelMetadata
     static void finalize();
 
@@ -242,6 +252,8 @@ private:
     int globalExtentX, globalExtentY;
     const std::string bboxName = "bounding_boxes";
     const std::string neighbourName = "connectivity";
+#else
+    int extentX, extentY;
 #endif
 };
 
