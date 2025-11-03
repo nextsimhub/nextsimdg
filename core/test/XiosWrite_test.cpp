@@ -49,6 +49,7 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     config << "field_names = " << maskName << "," << coordsName << "," << hiceName << ","
            << ticeName << "," << uName << std::endl;
     config << "period = P0-0T01:30:00" << std::endl;
+    config << "split_period = P0-0T03:00:00" << std::endl;
     config << "[XiosDiagnostic]" << std::endl;
     config << "filename = " << diagnosticFilename << std::endl;
     config << "field_names = " << hsnowName << std::endl;
@@ -107,11 +108,6 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     xiosHandler.setFieldType(ticeName, ModelArray::Type::DGSTRESS);
     xiosHandler.setFieldType(uName, ModelArray::Type::CG);
     xiosHandler.setFieldType(hsnowName, ModelArray::Type::H);
-
-    // Set file split frequency for restarts (but not diagnostics)
-    // NOTE: Files are created when the XIOS handler is constructed
-    const std::string fileId = "xios_test_output";
-    xiosHandler.setFileSplitFreq(fileId, Duration("P0-0T03:00:00"));
 
     xiosHandler.close_context_definition();
 

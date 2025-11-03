@@ -59,14 +59,15 @@ namespace Nextsim {
 
 static const std::string xOutputPfx = "XiosOutput";
 static const std::string xInputPfx = "XiosInput";
-static const std::string xDiagonsticPfx = "XiosDiagnostic";
+static const std::string xDiagnosticPfx = "XiosDiagnostic";
 static const std::string xForcingPfx = "XiosForcing";
 static const std::map<int, std::string> keyMap = { { Xios::ENABLED_KEY, "xios.enable" },
     { Xios::OUTPUT_FIELD_NAMES_KEY, xOutputPfx + ".field_names" },
     { Xios::INPUT_FIELD_NAMES_KEY, xInputPfx + ".field_names" },
-    { Xios::DIAGNOSTIC_PERIOD_KEY, xDiagonsticPfx + ".period" },
-    { Xios::DIAGNOSTIC_FILE_KEY, xDiagonsticPfx + ".filename" },
-    { Xios::DIAGNOSTIC_FIELD_NAMES_KEY, xDiagonsticPfx + ".field_names" },
+    { Xios::DIAGNOSTIC_PERIOD_KEY, xPfx + ".period" },
+    { Xios::DIAGNOSTIC_FILE_KEY, xPfx + ".filename" },
+    { Xios::DIAGNOSTIC_FIELD_NAMES_KEY, xPfx + ".field_names" },
+    { Xios::DIAGNOSTIC_SPLITFREQ_KEY, xDiagnosticPfx + ".split_period" },
     { Xios::FORCING_PERIOD_KEY, xForcingPfx + ".period" },
     { Xios::FORCING_FILE_KEY, xForcingPfx + ".filename" },
     { Xios::FORCING_FIELD_NAMES_KEY, xForcingPfx + ".field_names" } };
@@ -1371,33 +1372,56 @@ void Xios::createFile(const std::string fileId, const int fieldType)
     setFileType(fileId, "one_file");
     setFileParAccess(fileId, "collective");
 
-    // Set the input or output period based on the model configuration
+    // Get the fieldIds
     std::set<std::string> fieldIds;
+    if (fieldType == INPUT_RESTART) {
+        fieldIds = configGetInputRestartFieldNames();
+    } else if (fieldType == OUTPUT_RESTART) {
+        fieldIds = configGetOutputRestartFieldNames();
+    } else if (fieldType == FORCING) {
+        fieldIds = configGetForcingFieldNames();
+    } else if (fieldType == DIAGNOSTIC) {
+        fieldIds = configGetDiagnosticFieldNames();
+    }
+
+    // Set the file output frequency
     ModelMetadata& metadata = ModelMetadata::getInstance();
     if (fieldType == INPUT_RESTART || fieldType == OUTPUT_RESTART) {
         setFileOutputFreq(fileId, metadata.restartPeriod());
-        if (fieldType == INPUT_RESTART) {
-            fieldIds = configGetInputRestartFieldNames();
-        } else {
-            fieldIds = configGetOutputRestartFieldNames();
-        }
+        istringstream(Configured::getConfiguration(keyMap.at(RESTARTPERIOD_KEY), std::string()))
+            >> periodStr;
     } else {
         std::string periodStr;
         if (fieldType == FORCING) {
             istringstream(
                 Configured::getConfiguration(keyMap.at(FORCING_PERIOD_KEY), std::string()))
                 >> periodStr;
-            fieldIds = configGetForcingFieldNames();
         } else {
             istringstream(
                 Configured::getConfiguration(keyMap.at(DIAGNOSTIC_PERIOD_KEY), std::string()))
                 >> periodStr;
-            fieldIds = configGetDiagnosticFieldNames();
         }
         if (periodStr.empty() || periodStr == "0") {
             setFileOutputFreq(fileId, metadata.runLength());
         } else {
             setFileOutputFreq(fileId, Duration(periodStr));
+        }
+    }
+
+    // Set the output file splitting frequency
+    if (fieldType == OUTPUT_RESTART || fieldType == DIAGNOSTIC) {
+        std::string splitStr;
+        if (fieldType == OUTPUT_RESTART) {
+            istringstream(
+                Configured::getConfiguration(keyMap.at(OUTPUT_SPLITFREQ_KEY), std::string()))
+                >> splitStr;
+        } else if (fieldType == DIAGNOSTIC) {
+            istringstream(
+                Configured::getConfiguration(keyMap.at(DIAGNOSTIC_SPLITFREQ_KEY), std::string()))
+                >> splitStr;
+        }
+        if (!splitStr.empty()) {
+            setFileSplitFreq(fileId, Duration(splitStr));
         }
     }
 

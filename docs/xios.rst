@@ -77,10 +77,18 @@ The ``field_names`` entry may contain a single field name or a comma-separated
 list. Note that all of the ``XiosOutput``, ``XiosInput``, ``XiosDiagnostic``,
 and ``XiosForcing`` sections are optional.
 
-As elsewhere in the model, these configuration values are parsed by calling the
-``Model.configure`` member function. Since building with XIOS implies also
-building with MPI, you will need to pass the MPI communicator to this member
-function when calling it.
+When writing out files, the ``split_period`` option can be included in either of
+the ``XiosOutput`` or ``XiosDiagnostic`` sections, which instructs XIOS to
+create a separate output file for each such period. For a given period, a file
+will be written with a name of the form
+``<FILENAME>_<START_TIME>-<END_TIME>.nc``, where ``<FILENAME>`` is the
+user-provided file name and ``<START_TIME>`` and ``<END_TIME>`` are the start
+and end of the associated period.
+
+As elsewhere in the model, the configuration values above are all parsed by
+calling the ``Model.configure`` member function. Since building with XIOS
+implies also building with MPI, you will need to pass the MPI communicator to
+this member function when calling it.
 
 The XIOS I/O implementation supports fields of ``HField``, ``VertexField``,
 ``DGField``, ``DGSField``, and ``CGField``. When reading from file, the field
