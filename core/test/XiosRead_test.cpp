@@ -57,8 +57,10 @@ MPI_TEST_CASE("TestXiosRead", 2)
     auto& metadata = ModelMetadata::getInstance("xios_test_partition_metadata_2.nc");
 
     // Create a Model and configure it so that time options are parsed
+    // TODO: Use Model.configure for consistency with the rest of the model
     Model model;
-    model.configureTime(); // TODO: Use Model.configure to parse restart files this way, too?
+    model.configureRestarts();
+    model.configureTime();
 
     // Create ParametricGrid and ParaGridIO instances
     Module::setImplementation<IStructure>("Nextsim::ParametricGrid");
