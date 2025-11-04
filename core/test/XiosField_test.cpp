@@ -37,14 +37,14 @@ MPI_TEST_CASE("TestXiosField", 3)
     config << "time_step = P0-0T01:00:00" << std::endl;
     config << "restart_file = xios_test_output.nc" << std::endl;
     config << "restart_period = P0-0T03:00:00" << std::endl;
+    config << "partition_file = xios_test_partition_metadata_3.nc" << std::endl;
     config << "[XiosOutput]" << std::endl;
     config << "field_names = field_A" << std::endl;
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
 
-    // Create ModelMetadata instance based off a partition metadata file
+    // Create ModelMPI instance based off the test communicator
     auto& modelMPI = ModelMPI::getInstance(test_comm);
-    auto& metadata = ModelMetadata::getInstance("xios_test_partition_metadata_3.nc");
 
     // Create a Model and configure it so that time options are parsed
     Model model;
