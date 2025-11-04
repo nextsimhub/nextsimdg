@@ -54,6 +54,7 @@ MPI_TEST_CASE("TestXiosFile", 2)
 
     // Create a Model and configure it so that time options are parsed
     Model model;
+    model.configureRestarts();
     model.configureTime(); // TODO: Use Model.configure to parse restart files this way, too?
 
     // Get the Xios singleton instance and check it's initialized

@@ -45,16 +45,12 @@ namespace Nextsim {
 static const std::string xOutputPfx = "XiosOutput";
 static const std::string xInputPfx = "XiosInput";
 static const std::string xForcingPfx = "XiosForcing";
-static const std::map<int, std::string> keyMap
-    = { { Xios::ENABLED_KEY, "xios.enable" }, { Xios::RESTARTPERIOD_KEY, "model.restart_period" },
-          { Xios::INPUT_RESTARTFILE_KEY, "model.init_file" },
-          // TODO: Support format "restart%Y-%m-%dT%H:%M:%SZ.nc" (#898)
-          { Xios::OUTPUT_RESTARTFILE_KEY, "model.restart_file" },
-          { Xios::OUTPUT_FIELD_NAMES_KEY, xOutputPfx + ".field_names" },
-          { Xios::INPUT_FIELD_NAMES_KEY, xInputPfx + ".field_names" },
-          { Xios::FORCING_PERIOD_KEY, xForcingPfx + ".period" },
-          { Xios::FORCING_FILE_KEY, xForcingPfx + ".filename" },
-          { Xios::FORCING_FIELD_NAMES_KEY, xForcingPfx + ".field_names" } };
+static const std::map<int, std::string> keyMap = { { Xios::ENABLED_KEY, "xios.enable" },
+    { Xios::OUTPUT_FIELD_NAMES_KEY, xOutputPfx + ".field_names" },
+    { Xios::INPUT_FIELD_NAMES_KEY, xInputPfx + ".field_names" },
+    { Xios::FORCING_PERIOD_KEY, xForcingPfx + ".period" },
+    { Xios::FORCING_FILE_KEY, xForcingPfx + ".filename" },
+    { Xios::FORCING_FIELD_NAMES_KEY, xForcingPfx + ".field_names" } };
 
 //! Enable XIOS in the 'config'
 void enableXios()
@@ -79,12 +75,11 @@ Xios::Xios(const std::string contextid, const std::string calendartype)
 
     // Create the input and output files (if found in the config)
     if (firstTime) {
-        istringstream(Configured::getConfiguration(keyMap.at(INPUT_RESTARTFILE_KEY), std::string()))
-            >> inputFilename;
+        ModelMetadata& metadata = ModelMetadata::getInstance();
+        inputFilename = metadata.initialFileName();
         inputFileId = ((std::filesystem::path)inputFilename).replace_extension();
-        istringstream(
-            Configured::getConfiguration(keyMap.at(OUTPUT_RESTARTFILE_KEY), std::string()))
-            >> outputFilename;
+        outputFilename = metadata.finalFileName();
+        // TODO: Properly support format "restart%Y-%m-%dT%H:%M:%SZ.nc" (#898)
         outputFileId = ((std::filesystem::path)outputFilename).replace_extension();
         istringstream(Configured::getConfiguration(keyMap.at(FORCING_FILE_KEY), std::string()))
             >> forcingFilename;
@@ -1344,19 +1339,18 @@ void Xios::createFile(const std::string fileId)
 
     // Set the input or output period based on the model configuration
     std::string periodStr;
+    ModelMetadata& metadata = ModelMetadata::getInstance();
     if (forcing) {
         istringstream(Configured::getConfiguration(keyMap.at(FORCING_PERIOD_KEY), std::string()))
             >> periodStr;
         // TODO: Account for diagnostics (#917)
+        if (periodStr.empty() || periodStr == "0") {
+            setFileOutputFreq(fileId, metadata.runLength());
+        } else {
+            setFileOutputFreq(fileId, Duration(periodStr));
+        }
     } else {
-        istringstream(Configured::getConfiguration(keyMap.at(RESTARTPERIOD_KEY), std::string()))
-            >> periodStr;
-    }
-    if (periodStr.length() == 0 || periodStr == "0") {
-        ModelMetadata& metadata = ModelMetadata::getInstance();
-        setFileOutputFreq(fileId, metadata.runLength());
-    } else {
-        setFileOutputFreq(fileId, Duration(periodStr));
+        setFileOutputFreq(fileId, metadata.restartPeriod());
     }
 
     // Create all fields found in the config based off the field names found in the
