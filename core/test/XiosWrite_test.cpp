@@ -74,6 +74,7 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     Xios& xiosHandler = Xios::getInstance();
 
     // Set ModelArray dimensions
+    ModelMetadata& metadata = ModelMetadata::getInstance();
     metadata.setDimensionsFromFile(restartFilename);
     const size_t nx = ModelArray::size(ModelArray::Dimension::X);
     const size_t ny = ModelArray::size(ModelArray::Dimension::Y);
@@ -160,7 +161,6 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     REQUIRE(xiosHandler.getCalendarStep() == 0);
 
     // Simulate 4 iterations (timesteps)
-    ModelMetadata& metadata = ModelMetadata::getInstance();
     Duration timestep = metadata.stepLength();
     for (int ts = 1; ts <= 4; ts++) {
 
