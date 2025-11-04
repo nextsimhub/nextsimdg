@@ -661,26 +661,25 @@ void Xios::affixModelMetadata()
             std::multimap<std::string, netCDF::NcDim> dimMap = ncFile.getDims();
             for (auto entry : ModelArray::definedDimensions) {
                 auto dimType = entry.first;
-                // TODO: Account for DG
-                // if (dimCompMap.count(dimType) > 0)
-                //     // TODO Assertions that DG in the file equals the compile time DG in the
-                //     // model. See #205
-                //     continue;
-
                 ModelArray::DimensionSpec& dimensionSpec = entry.second;
+                // TODO: Assert that DG in the file equals the compile time DG in the model (#205)
+
                 // Find dimensions in the netCDF file by their name in the ModelArray details
                 netCDF::NcDim dim = ncFile.getDim(dimensionSpec.name);
+
                 // Also check the old name
                 if (dim.isNull()) {
                     dim = ncFile.getDim(dimensionSpec.altName);
                 }
+
                 // If we didn't find a dimension with the dimensions name or altName, throw.
                 if (dim.isNull()) {
                     throw std::out_of_range(
                         "Xios: No netCDF dimension found corresponding to the dimension named "
                         + dimensionSpec.name + " or " + dimensionSpec.altName);
                 }
-                auto dimName = dim.getName();
+
+                // Set corresponding dimensions
                 size_t localLength;
                 size_t start;
                 if (dimType == ModelArray::Dimension::X) {
@@ -705,31 +704,7 @@ void Xios::affixModelMetadata()
                     localLength = dim.getSize();
                     start = 0;
                 }
-
-                if (ModelArray::definedDimensions.at(dimType)
-                    == ModelArray::defaultDimensions.at(dimType)) {
-                    // Set dimensions if they haven't been set already
-                    ModelArray::setDimension(dimType, dim.getSize(), localLength, start);
-                } else {
-                    // Otherwise, check that an attempt to modify them isn't being made
-                    if (dim.getSize() != ModelArray::definedDimensions.at(dimType).globalLength) {
-                        throw std::runtime_error("Xios: inconsistent global dimensions for "
-                            + dimName + ": " + std::to_string(dim.getSize()) + " vs. "
-                            + std::to_string(
-                                ModelArray::definedDimensions.at(dimType).globalLength));
-                    }
-                    if (localLength != ModelArray::definedDimensions.at(dimType).localLength) {
-                        throw std::runtime_error("Xios: inconsistent local dimensions for "
-                            + dimName + ": " + std::to_string(localLength) + " vs. "
-                            + std::to_string(
-                                ModelArray::definedDimensions.at(dimType).localLength));
-                    }
-                    if (start != ModelArray::definedDimensions.at(dimType).start) {
-                        throw std::runtime_error("Xios: inconsistent start index for " + dimName
-                            + ": " + std::to_string(start) + " vs. "
-                            + std::to_string(ModelArray::definedDimensions.at(dimType).start));
-                    }
-                }
+                ModelArray::setDimension(dimType, dim.getSize(), localLength, start);
             }
 
             // Create map for field types
@@ -1719,7 +1694,7 @@ void Xios::write(const std::string fieldId, ModelArray& modelarray)
             dims[1], ModelArray::size(ModelArray::Dimension::DGSTRESS), -1);
     } else {
         throw std::invalid_argument(
-            "Only HFields, VertexFields, DGFields, DGStressFields, and CGFields are supported");
+            "Only HFields, VertexFields, DGFields, DGSFields, and CGFields are supported");
     }
 }
 
@@ -1756,7 +1731,7 @@ void Xios::read(const std::string fieldId, ModelArray& modelarray)
             dims[1], ModelArray::size(ModelArray::Dimension::DGSTRESS));
     } else {
         throw std::invalid_argument(
-            "Only HFields, VertexFields, DGFields, DGStressFields, and CGFields are supported");
+            "Only HFields, VertexFields, DGFields, DGSFields, and CGFields are supported");
     }
 }
 }
