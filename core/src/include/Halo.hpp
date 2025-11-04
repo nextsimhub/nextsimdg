@@ -28,6 +28,7 @@
 #include "include/ModelArraySlice.hpp"
 #include "include/ModelMPI.hpp"
 #include "include/ModelMetadata.hpp"
+#include "include/dgVectorHolder.hpp"
 #include "mpi.h"
 
 #ifndef HALOWIDTH
@@ -48,6 +49,16 @@ public:
     {
         m_numComps = ma.nComponents();
         isVertex = ma.getType() == ModelArray::Type::VERTEX;
+        setSpatialDims();
+        intializeHaloMetadata();
+    }
+
+    /*!
+     * @brief Constructs a halo object from DGVector
+     */
+    template <int N> Halo(DGVectorHolder<N>& dgvh)
+    {
+        m_numComps = N;
         setSpatialDims();
         intializeHaloMetadata();
     }
