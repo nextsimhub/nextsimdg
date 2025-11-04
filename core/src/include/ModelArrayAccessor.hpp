@@ -6,9 +6,7 @@
 
 namespace Nextsim {
 
-enum struct SyncState { HOST_CHANGED, DEVICE_CHANGED, SYNCED };
-
-template <const TextTag& fieldName, bool isReadWrite> class ModelArrayAccessor;
+template <const TextTag& fieldName, bool isReadWrite = RO> class ModelArrayAccessor;
 
 template <const TextTag& fieldName> class ModelArrayAccessor<fieldName, RO> {
 public:
@@ -19,32 +17,30 @@ public:
 
     const ModelArray& getHostRO()
     {
-        if (syncState == SyncState::DEVICE_CHANGED) {
-            Kokkos::deep_copy(target.hostView(), target.deviceView);
-            syncState = SyncState::SYNCED;
+        if (target.syncState == SyncState::DEVICE_CHANGED) {
+            Kokkos::deep_copy(target.hostView(), target.deviceView());
+            target.syncState = SyncState::SYNCED;
         }
         return target.modelArray;
     }
 
+#ifdef USE_KOKKOS
     // returns a copy because target.deviceView has mutable data
     ConstDeviceView getDeviceRO()
     {
-        if (syncState == SyncState::HOST_CHANGED) {
-            Kokkos::deep_copy(target.deviceView, target.hostView());
-            syncState = SyncState::SYNCED;
+        DeviceView deviceView = target.deviceView();
+        if (target.syncState == SyncState::HOST_CHANGED) {
+            Kokkos::deep_copy(deviceView, target.hostView());
+            target.syncState = SyncState::SYNCED;
         }
 
-        return target.deviceView;
+        return deviceView;
     }
+#endif
 
 private:
-    // mirrors DeviceView for data transfers but is not part of the interface
-    using HostView = KokkosHostView<ModelArray::DataType>;
-
-    SyncState syncState;
-
     // lifetime and persistent address are enforced by ModelArrayStore
-    const ModelArrayStore::ExtModelArray& target;
+    ModelArrayStore::ExtModelArray& target;
 };
 
 template <const TextTag& fieldName> class ModelArrayAccessor<fieldName, RW> {
@@ -56,51 +52,58 @@ public:
 
     template <typename... Args>
     ModelArrayAccessor(ModelArrayStore& store, bool isReadWriteExternal, Args&&... args)
-    : target(store._registerArray(fieldName, isReadWriteExternal, std::forward<Args>(args)...))
-    {}
+        : target(store._registerArray(fieldName, isReadWriteExternal, std::forward<Args>(args)...))
+    {
+    }
 
     const ModelArray& getHostRO()
     {
-        if (syncState == SyncState::DEVICE_CHANGED) {
-            Kokkos::deep_copy(target.hostView(), target.deviceView);
-            syncState = SyncState::SYNCED;
+#ifdef USE_KOKKOS
+        if (target.syncState == SyncState::DEVICE_CHANGED) {
+            Kokkos::deep_copy(target.hostView(), target.deviceView());
+            target.syncState = SyncState::SYNCED;
         }
+#endif
         return target.modelArray;
     }
 
     ModelArray& getHostRW()
     {
-        if (syncState == SyncState::DEVICE_CHANGED) {
-            Kokkos::deep_copy(target.hostView(), target.deviceView);
+#ifdef USE_KOKKOS
+        if (target.syncState == SyncState::DEVICE_CHANGED) {
+            Kokkos::deep_copy(target.hostView(), target.deviceView());
         }
-        syncState = SyncState::HOST_CHANGED;
+        target.syncState = SyncState::HOST_CHANGED;
+#endif
 
         return target.modelArray;
     }
 
+#ifdef USE_KOKKOS
     // returns a copy because target.deviceView has mutable data
     ConstDeviceView getDeviceRO()
     {
-        if (syncState == SyncState::HOST_CHANGED) {
-            Kokkos::deep_copy(target.deviceView, target.hostView());
-            syncState = SyncState::SYNCED;
+        DeviceView deviceView = target.deviceView();
+        if (target.syncState == SyncState::HOST_CHANGED) {
+            Kokkos::deep_copy(deviceView, target.hostView());
+            target.syncState = SyncState::SYNCED;
         }
 
-        return target.deviceView;
+        return deviceView;
     }
 
     const DeviceView& getDeviceRW()
     {
-        if (syncState == SyncState::HOST_CHANGED)
-            Kokkos::deep_copy(target.deviceView, target.hostView());
-        syncState = SyncState::DEVICE_CHANGED;
+        DeviceView deviceView = target.deviceView();
+        if (target.syncState == SyncState::HOST_CHANGED)
+            Kokkos::deep_copy(deviceView, target.hostView());
+        target.syncState = SyncState::DEVICE_CHANGED;
 
-        return target.deviceView;
+        return deviceView;
     }
+#endif
 
 private:
-    SyncState syncState;
-
     // lifetime and persistent address are enforced by ModelArrayStore
     ModelArrayStore::ExtModelArray& target;
 };

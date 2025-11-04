@@ -99,7 +99,7 @@ protected:
         // proposed interface
         , hiceAccessor(getStore())
         , qiaAccessor(getStore())
-        // formally owned arrays are initialized by special constructor
+        // formerly owned arrays are initialized by special constructor
         , deltaHiAccessor(getStore(), RW, ModelArray::Type::H)
         , tsurfAccessor(getStore(), RO, ModelArray::Type::H)
     {

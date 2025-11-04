@@ -17,11 +17,15 @@ struct TextTag;
 
 namespace Nextsim {
 
+#ifdef USE_KOKKOS
 // kokkos views compatible with ModelArray
 using DeviceView = KokkosDeviceView<ModelArray::DataType>;
 using ConstDeviceView = ConstKokkosDeviceView<ModelArray::DataType>;
 using HostView = KokkosHostView<ModelArray::DataType>;
 using ConstHostView = ConstKokkosHostView<ModelArray::DataType>;
+
+enum struct SyncState { SYNCED, HOST_CHANGED, DEVICE_CHANGED };
+#endif
 
 // Inherit from ModelArrayReferenceStore only for demonstration purposes so we can replace
 // ModelArrayReferenceStore with ModelArrayStore without changing everything.
@@ -34,28 +38,30 @@ public:
 
 private:
     struct ExtModelArray {
+        std::string name;
         ModelArray modelArray;
-        DeviceView deviceView;
 
+#ifdef USE_KOKKOS
+        SyncState syncState = SyncState::SYNCED;
         // not a simple data member because the host buffer owned by ModelArray can be overwritten
         HostView hostView();
-        ConstHostView hostView() const;
-        // HostView hostView;
+        // handles lazy initialization for the device buffer
+        DeviceView deviceView();
+
+    private:
+        DeviceView m_deviceView;
+#endif
     };
 
     struct ExtModelArrayFlagged {
-        ExtModelArrayFlagged(bool _isReadWrite, bool _isRegistered)
-            : isReadWrite(_isReadWrite)
-            , isRegistered(_isRegistered)
-        {
-        }
+        ExtModelArrayFlagged(const std::string& name, bool _isReadWrite, bool _isRegistered);
 
         bool isReadWrite;
         bool isRegistered;
         ExtModelArray extModelArray;
     };
 
-    // underscore in name is just to prevent name conflict with ModelArrayRefStore for now
+    // underscore in name is just to prevent name conflict with ModelArrayReferenceStore for now
     template <typename... Args>
     ExtModelArray& _registerArray(const std::string& field, bool isReadWrite, Args&&... args)
     {
@@ -82,7 +88,7 @@ private:
         } else {
             // Regular emplace would be fine here since we know that it does not exist but
             // try_emplace has a more ergonomic signature.
-            it = store.try_emplace(field, isReadWrite, true).first;
+            it = store.try_emplace(field, field, isReadWrite, true).first;
         }
 
         ExtModelArray& extArr = it->second.extModelArray;
@@ -95,7 +101,7 @@ private:
     }
 
     ExtModelArray& getRW(const std::string& field);
-    const ExtModelArray& getRO(const std::string& field);
+    ExtModelArray& getRO(const std::string& field);
 
     std::unordered_map<std::string, ExtModelArrayFlagged> store;
     bool was_resized = false;

@@ -6,15 +6,31 @@
 
 namespace Nextsim {
 
+#ifdef USE_KOKKOS
+
 HostView ModelArrayStore::ExtModelArray::hostView()
 {
     return makeKokkosHostView(modelArray.getDataRef());
 }
 
-ConstHostView ModelArrayStore::ExtModelArray::hostView() const
+DeviceView ModelArrayStore::ExtModelArray::deviceView()
 {
-    return makeKokkosHostView(modelArray.data());
+    if (!m_deviceView.is_allocated()) {
+        m_deviceView = makeKokkosDeviceView(name, modelArray.getDataRef());
+    }
+
+    return m_deviceView;
 }
+
+ModelArrayStore::ExtModelArrayFlagged::ExtModelArrayFlagged(
+    const std::string& name, bool _isReadWrite, bool _isRegistered)
+    : isReadWrite(_isReadWrite)
+    , isRegistered(_isRegistered)
+{
+    extModelArray.name = name;
+}
+
+#endif
 
 void ModelArrayStore::resize_arrays()
 {
@@ -23,8 +39,6 @@ void ModelArrayStore::resize_arrays()
     for (auto& [name, extArrFlagged] : store) {
         ExtModelArray& extArr = extArrFlagged.extModelArray;
         extArr.modelArray.resize();
-
-        extArr.deviceView = makeKokkosDeviceView(name, extArr.modelArray.getDataRef());
     }
 }
 
@@ -46,11 +60,11 @@ ModelArrayStore::ExtModelArray& ModelArrayStore::getRW(const std::string& field)
 
     // Regular emplace would be fine here since we know that it does not exist but try_emplace
     // has a more ergonomic signature.
-    return store.try_emplace(field, RW, false).first->second.extModelArray;
+    return store.try_emplace(field, field, RW, false).first->second.extModelArray;
 }
 
-const ModelArrayStore::ExtModelArray& ModelArrayStore::getRO(const std::string& field)
+ModelArrayStore::ExtModelArray& ModelArrayStore::getRO(const std::string& field)
 {
-    return store.try_emplace(field, RO, false).first->second.extModelArray;
+    return store.try_emplace(field, field, RO, false).first->second.extModelArray;
 }
 }

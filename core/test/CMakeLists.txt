@@ -432,6 +432,10 @@ else()
     target_include_directories(testModelArrayRef PRIVATE ${MODEL_INCLUDE_DIR})
     target_link_libraries(testModelArrayRef PRIVATE nextsimlib doctest::doctest)
 
+    add_executable(testModelArrayAccessor "ModelArrayAccessor_test.cpp")
+    target_include_directories(testModelArrayAccessor PRIVATE ${MODEL_INCLUDE_DIR})
+    target_link_libraries(testModelArrayAccessor PRIVATE nextsimlib doctest::doctest)
+
     # PrognosticData (and hopefully that alone) requires code from the physics tree
     add_executable(testPrognosticData "PrognosticData_test.cpp" "DynamicsModuleForPDtest.cpp")
     target_include_directories(
