@@ -5,6 +5,7 @@
 #include "include/TOPAZOcean.hpp"
 
 #include "include/Finalizer.hpp"
+#include "include/NetCDFForcings.hpp"
 #include "include/NextsimModule.hpp"
 #include "include/ParaGridIO.hpp"
 #include "include/constants.hpp"
@@ -109,6 +110,13 @@ ModelState TOPAZOcean::getStateDiagnostic() const
 
 void TOPAZOcean::setFilePath(const std::string& filePathIn) { filePath = filePathIn; }
 
+void TOPAZOcean::setDirectory(const std::string& dir) { fileDirectory() = dir; }
+const std::string& TOPAZOcean::getDirectory() { return fileDirectory(); }
+const std::string TOPAZOcean::addDirectory(const std::string& file)
+{
+    return getDirectory() + "/" + file;
+}
+
 void TOPAZOcean::setData(const ModelState::DataMap& ms)
 {
     IOceanBoundary::setData(ms);
@@ -126,4 +134,68 @@ void TOPAZOcean::setData(const ModelState::DataMap& ms)
 
 void TOPAZOcean::updateTf(size_t i, const TimestepTime& tst) { tf[i] = (*pFreezingPoint)(sss[i]); }
 
+const std::string topazFromNSName(const std::string& nsName)
+{
+    static const std::map<std::string, std::string> topazFromNS = {
+            {"sst", "temperature"},
+            {"sss", "salinity"},
+            {"mld", "mlp"},
+            {"u", "u"},
+            {"v", "v"},
+    };
+    return topazFromNS.at(nsName);
+}
+
+std::string topazFilenameFromYearMonth(const std::string& topazName, size_t year, size_t month)
+{
+    static const std::vector<std::string> months = {
+            "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"};
+    std::string depthString = (topazName == "u" || topazName == "v") ? "30m" : "3m";
+    std::string filename = "TP4DAILY_" + std::to_string(year) + months[month-1] + "_" + depthString + ".nc";
+    return TOPAZOcean::addDirectory(filename);
+}
+
+ModelArray getTOPAZVarIndexData(const std::string& topazName, size_t year, size_t month, size_t day, const ModelArray& modelLon, const ModelArray& modelLat)
+{
+    std::string filePath = topazFilenameFromYearMonth(topazName, year, month);
+    NetCDFForcings::Buffer tdata = NetCDFForcings::getFileIndexData(filePath, topazName, day-1);
+
+    // x and y positions in the source grid for each point on the target grid
+    double dRad = radians(0.09);
+    double lat0 = radians(90);
+    double lon0 = radians(0.);
+    double topazNx = 761;
+    double topazNy = 1101;
+
+    ModelArray iFrac;
+    ModelArray jFrac;
+    ModelArray::MultiDim dim = modelLon.dimensions();
+    for (int j = 0; j < dim[1]; ++j) {
+        for (int i = 0; i < dim[0]; ++i) {
+            double cosLat = cos(radians(modelLat(i, j)));
+            // Uses cos(lat0) = 0. and lon0 = 0.
+            double k = 2/dRad/(1+sin(radians(modelLat(i, j))));
+            iFrac(i, j) = k * cosLat * sin(radians(modelLon(i, j)) + lon0) + topazNx/2;
+            jFrac(i, j) = -k * cosLat * cos(radians(modelLon(i, j)) + lon0) + topazNy/2;
+        }
+    }
+    return NetCDFForcings::maFromBuffer(tdata, iFrac, jFrac);
+}
+
+// Time interpolation happens here
+ModelArray getTOPAZVarTimeData(const std::string& topazName, const TimePoint& time, const ModelArray& modelLon, const ModelArray& modelLat)
+{
+    ModelArray v1 = getTOPAZVarIndexData(topazName, time.year(), time.month(), time.day(), modelLon, modelLat);
+    TimePoint t2 = time + Duration(3600);
+    ModelArray v2 = getTOPAZVarIndexData(topazName, t2.year(), t2.month(), t2.day(), modelLon, modelLat);
+    double f = t2.minute() / 60.;
+    return v2 * f + v1 * (1-f);
+}
+
+
+const ModelArray TOPAZOcean::getData(const std::string& nsName, const TimePoint& time) const
+{
+    const ModelMetadata& meta = ModelMetadata::getInstance();
+    return getTOPAZVarTimeData(topazFromNSName(nsName), time, meta.longitude(), meta.latitude());
+}
 } /* namespace Nextsim */

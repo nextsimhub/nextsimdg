@@ -42,7 +42,18 @@ public:
 
     void setFilePath(const std::string& filePathIn);
 
+    const ModelArray getData(const std::string& nsName, const TimePoint& time) const;
+
+    static void setDirectory(const std::string& dir);
+    static const std::string& getDirectory();
+    static const std::string addDirectory(const std::string& file);
 private:
+    // Location of the TOPAZ files
+    static std::string& fileDirectory()
+    {
+        static std::string dir = ".";
+        return dir;
+    }
     // Updates the freezing point of an element
     void updateTf(size_t i, const TimestepTime& tst);
     // Since the configuration is global, it makes sense for the file path to

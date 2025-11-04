@@ -22,13 +22,15 @@ if(NOT ENABLE_MPI)
         )
     target_link_libraries(testNetCDFForcings PRIVATE nextsimlib doctest::doctest)
 
-    add_executable(testERA5Atmosphere
-        "ERA5Atmosphere_test.cpp"
-        "${ModulesRoot}/AtmosphereBoundaryModule/ERA5Atmosphere.cpp"
-        )
+    add_executable(testERA5Atmosphere "ERA5Atmosphere_test.cpp")
     target_compile_definitions(testERA5Atmosphere PRIVATE TEST_FILES_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}\")
     target_include_directories(testERA5Atmosphere PRIVATE "${ModulesRoot}/AtmosphereBoundaryModule")
     target_link_libraries(testERA5Atmosphere PRIVATE nextsimlib doctest::doctest)
+
+    add_executable(testTOPAZOcean "TOPAZOcean_test.cpp")
+    target_compile_definitions(testTOPAZOcean PRIVATE TEST_FILES_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}\")
+    target_include_directories(testTOPAZOcean PRIVATE "${ModulesRoot}/OceanBoundaryModule")
+    target_link_libraries(testTOPAZOcean PRIVATE nextsimlib doctest::doctest)
 
     add_executable(testTOPAZOcn "TOPAZOcn_test.cpp")
     target_include_directories(testTOPAZOcn PRIVATE "${ModulesRoot}/OceanBoundaryModule")
