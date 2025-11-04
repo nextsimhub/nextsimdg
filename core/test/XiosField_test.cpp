@@ -82,6 +82,7 @@ MPI_TEST_CASE("TestXiosField", 3)
     // setFieldReadAccess (see above note)
     REQUIRE(!xiosHandler.getFieldReadAccess(fieldId));
     // Frequency offset
+    ModelMetadata& metadata = ModelMetadata::getInstance();
     Duration freqOffset = metadata.stepLength();
     xiosHandler.setFieldFreqOffset(fieldId, freqOffset);
     // TODO: Overload == for Duration

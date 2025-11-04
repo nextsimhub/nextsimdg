@@ -93,6 +93,7 @@ MPI_TEST_CASE("TestXiosFile", 2)
     // Split frequency
     REQUIRE_THROWS_WITH(xiosHandler.getFileSplitFreq(outFileId),
         "Xios: Undefined split frequency for file 'xios_test_output'");
+    ModelMetadata& metadata = ModelMetadata::getInstance();
     xiosHandler.setFileSplitFreq(outFileId, metadata.stepLength());
     REQUIRE(xiosHandler.getFileSplitFreq(outFileId).seconds() == 1.5 * 60 * 60);
     // File mode
