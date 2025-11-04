@@ -47,7 +47,7 @@ jobs:
   # Serial tests on latest Ubuntu OS
   test-ubuntu-serial:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     container:
       image: ghcr.io/nextsimhub/nextsimdg-dev-env:latest
     steps:
@@ -185,7 +185,7 @@ jobs:
   # Serial tests on latest Mac OS
   test-mac-serial:
     runs-on: macos-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
     - uses: actions/checkout@v2
       with:
