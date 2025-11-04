@@ -94,6 +94,7 @@ MPI_TEST_CASE("TestXiosRead", 2)
     REQUIRE(std::filesystem::exists(forcingFilename));
 
     // Check calendar step is zero initially
+    ModelMetadata& metadata = ModelMetadata::getInstance();
     metadata.setTime(xiosHandler.getCalendarStart());
     REQUIRE(xiosHandler.getCalendarStep() == 0);
 
@@ -102,7 +103,6 @@ MPI_TEST_CASE("TestXiosRead", 2)
     const size_t ny = ModelArray::size(ModelArray::Dimension::Y);
 
     // Read restarts from file and check they take the expected values
-    ModelMetadata& metadata = ModelMetadata::getInstance();
     metadata.setTime(xiosHandler.getCalendarStart());
     REQUIRE(xiosHandler.getCalendarStep() == 0);
     ModelState restarts = grid.getModelState(restartFilename);

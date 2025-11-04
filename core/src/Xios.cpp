@@ -81,10 +81,10 @@ Xios::Xios(const std::string contextid, const std::string calendartype)
     if (firstTime) {
         ModelMetadata& metadata = ModelMetadata::getInstance();
         inputFilename = metadata.initialFileName();
-        inputFileId = ((std::filesystem::path)inputFilename).replace_extension();
+        inputFileId = ((std::filesystem::path)inputFilename).filename().replace_extension();
         outputFilename = metadata.finalFileName();
         // TODO: Properly support format "restart%Y-%m-%dT%H:%M:%SZ.nc" (#898)
-        outputFileId = ((std::filesystem::path)outputFilename).replace_extension();
+        outputFileId = ((std::filesystem::path)outputFilename).filename().replace_extension();
         istringstream(Configured::getConfiguration(keyMap.at(FORCING_FILE_KEY), std::string()))
             >> forcingFilename;
         forcingFileId = ((std::filesystem::path)forcingFilename).filename().replace_extension();
