@@ -124,8 +124,18 @@ void ModelMetadata::getPartitionMetadata(std::string partitionFile)
             + std::to_string(nBoxes) + "\n";
         throw std::runtime_error(errorMsg);
     }
-    globalExtentX = ncFile.getDim("NX").getSize();
-    globalExtentY = ncFile.getDim("NY").getSize();
+    if (!globalExtentX) {
+        globalExtentX = ncFile.getDim("NX").getSize();
+    } else if (globalExtentX != ncFile.getDim("NX").getSize()) {
+        throw std::runtime_error("ModelMetadata: Inconsistent global x-extent between "
+                                 "partition and input files.");
+    }
+    if (!globalExtentY) {
+        globalExtentY = ncFile.getDim("NY").getSize();
+    } else if (globalExtentX != ncFile.getDim("NY").getSize()) {
+        throw std::runtime_error("ModelMetadata: Inconsistent global y-extent between "
+                                 "partition and input files.");
+    }
     netCDF::NcGroup bboxGroup(ncFile.getGroup(bboxName));
 
     std::vector<size_t> rank(1, modelMPI.getRank());
