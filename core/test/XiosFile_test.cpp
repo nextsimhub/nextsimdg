@@ -41,6 +41,7 @@ MPI_TEST_CASE("TestXiosFile", 2)
     config << "init_file = xios_test_input.nc" << std::endl;
     config << "restart_file = xios_test_output.nc" << std::endl;
     config << "restart_period = P0-0T03:00:00" << std::endl;
+    config << "partition_file = xios_test_partition_metadata_2.nc" << std::endl;
     config << "[XiosInput]" << std::endl;
     config << "field_names = mask" << std::endl;
     config << "[XiosOutput]" << std::endl;
@@ -48,12 +49,12 @@ MPI_TEST_CASE("TestXiosFile", 2)
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
 
-    // Create ModelMetadata instance based off a partition metadata file
+    // Create ModelMPI instance based off the test communicator
     auto& modelMPI = ModelMPI::getInstance(test_comm);
-    auto& metadata = ModelMetadata::getInstance("xios_test_partition_metadata_2.nc");
 
     // Create a Model and configure it so that time options are parsed
     Model model;
+    model.configureRestarts();
     model.configureTime(); // TODO: Use Model.configure to parse restart files this way, too?
 
     // Get the Xios singleton instance and check it's initialized

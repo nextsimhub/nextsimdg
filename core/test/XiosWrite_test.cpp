@@ -43,6 +43,7 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     config << "stop = 2023-03-17T23:11:00Z" << std::endl;
     config << "time_step = P0-0T01:30:00" << std::endl;
     config << "restart_file = " << restartFilename << std::endl;
+    config << "partition_file = xios_test_partition_metadata_2.nc" << std::endl;
     config << "restart_period = P0-0T01:30:00" << std::endl;
     config << "[XiosOutput]" << std::endl;
     config << "field_names = " << maskName << "," << coordsName << "," << hiceName << std::endl;
@@ -53,13 +54,14 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
 
-    // Create ModelMetadata instance based off a partition metadata file
+    // Create ModelMPI instance based off the test communicator
     auto& modelMPI = ModelMPI::getInstance(test_comm);
-    auto& metadata = ModelMetadata::getInstance("xios_test_partition_metadata_2.nc");
 
     // Create a Model and configure it so that time options are parsed
+    // TODO: Use Model.configure for consistency with the rest of the model
     Model model;
-    model.configureTime(); // TODO: Use Model.configure to parse restart files this way, too?
+    model.configureRestarts();
+    model.configureTime();
 
     // Create ParametricGrid and ParaGridIO instances
     Module::setImplementation<IStructure>("Nextsim::ParametricGrid");
@@ -137,6 +139,7 @@ MPI_TEST_CASE("TestXiosWrite", 2)
 
     // Simulate 4 iterations (timesteps)
     Duration timestep = xiosHandler.getCalendarTimestep();
+    ModelMetadata& metadata = ModelMetadata::getInstance();
     metadata.setTime(xiosHandler.getCalendarStart());
     REQUIRE(xiosHandler.getCalendarStep() == 0);
     for (int ts = 1; ts <= 4; ts++) {
