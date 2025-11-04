@@ -5,6 +5,9 @@
  */
 
 #include "include/MEVPDynamics.hpp"
+#ifdef USE_MPI
+#include "include/ModelMPI.hpp"
+#endif
 #include "include/constants.hpp"
 #include "include/gridNames.hpp"
 
@@ -102,7 +105,14 @@ void MEVPDynamics::setData(const ModelState::DataMap& ms)
 
 void MEVPDynamics::update(const TimestepTime& tst)
 {
+#ifdef USE_MPI
+    auto& modelMPI = ModelMPI::getInstance();
+    if (modelMPI.getRank() == 0) {
+        std::cout << tst.start << std::endl;
+    }
+#else
     std::cout << tst.start << std::endl;
+#endif
 
     // set the forcing velocities
     kernel.setData(uWindName, uwind);
