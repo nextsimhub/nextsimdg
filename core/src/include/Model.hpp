@@ -26,6 +26,7 @@ public:
              // environment and configuration to the model
     ~Model(); // Finalize the model. Collect data and so on.
 
+    void configureRestarts();
     void configureTime();
     void configure() override;
 
@@ -64,11 +65,6 @@ private:
     Iterator iterator;
     DevStep modelStep; // Change the model step calculation here
     PrognosticData pData;
-
-    std::string initialFileName;
-    std::string finalFileName;
-    // Period between restart file outputs
-    Duration restartPeriod;
 };
 
 } /* namespace Nextsim */
