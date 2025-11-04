@@ -251,12 +251,10 @@ private:
         for (size_t comp = 0; comp < m_numComps; ++comp) {
             Eigen::Map<Eigen::ArrayXXd, 0, Eigen::InnerStride<Eigen::Dynamic>> source_map(
                 source.col(comp).data(), m_Nx, m_Ny, Eigen::InnerStride<>(m_numComps));
-            std::cout << "source_map = \n" << source_map.transpose() << std::endl;
             Eigen::Map<Eigen::ArrayXXd> buffer_map(send[comp].data(), buffer_len, nCells);
             for (auto edge : edges) {
                 sourceToSendBuffer(edge, buffer_map, source_map);
             }
-            std::cout << "buffer_map = \n" << buffer_map.transpose() << std::endl;
         }
     }
 
@@ -472,11 +470,9 @@ public:
             Eigen::Map<Eigen::ArrayXXd, 0, Eigen::InnerStride<Eigen::Dynamic>> target_map(
                 target.col(comp).data(), m_Nx, m_Ny, Eigen::InnerStride<>(m_numComps));
             Eigen::Map<Eigen::ArrayXXd> buffer_map(recv[comp].data(), buffer_len, nCells);
-            std::cout << "buffer_map = \n" << buffer_map.transpose() << std::endl;
             for (auto edge : edges) {
                 recvBufferToTarget(edge, buffer_map, target_map);
             }
-            std::cout << "target_map = \n" << target_map.transpose() << std::endl;
         }
     }
 
