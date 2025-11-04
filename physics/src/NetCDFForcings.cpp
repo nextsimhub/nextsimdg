@@ -44,25 +44,29 @@ NetCDFForcings::Buffer NetCDFForcings::getFileIndexData(const std::string& filen
     Buffer data;
     netCDF::NcFile ncFile(filename, netCDF::NcFile::read, netCDF::NcFile::nc4);
     netCDF::NcVar dataVar;
-    size_t nLon;
-    size_t nLat;
+    size_t nx = 0;
+    size_t ny = 0;
+    // Names of coordinates that should be ignored
+    static const std::set<std::string> ignoredFields = {
+            "longitude",
+            "latitude",
+            "time",
+            "valid_time",
+    };
     for (auto entry : ncFile.getVars()) {
-        if (entry.first == "longitude") {
-            nLon = entry.second.getDim(0).getSize();
-        } else if (entry.first == "latitude") {
-            nLat = entry.second.getDim(0).getSize();
-        } else if (entry.first == "time" || entry.first == "valid_time") {
-        } else if (fieldName.size() == 0 || entry.first == fieldName){
+        if (ignoredFields.count(entry.first) == 0 && (fieldName.size() == 0 || entry.first == fieldName)) {
             dataVar = entry.second;
+            nx = dataVar.getDim(2).getSize();
+            ny = dataVar.getDim(1).getSize();
         }
     }
     std::vector<size_t> start = {tIndex, 0, 0};
-    std::vector<size_t> count = {1, nLat, nLon};
+    std::vector<size_t> count = {1, ny, nx};
     // Time dimension
     start[0] = tIndex;
     count[0] = 1;
 
-    data.resize(nLon, nLat);
+    data.resize(nx, ny);
 
     dataVar.getVar(start, count, data.data());
     static const std::string offset_name = "add_offset";
