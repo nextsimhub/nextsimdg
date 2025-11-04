@@ -179,7 +179,7 @@ std::pair<double, double> latitudeCoeffs(const std::string& key)
     return coeffMap.at(key);
 }
 
-ModelArray getVarIndexData(const std::string& era5Name, size_t year, size_t tIndex, const ModelArray& modelLon, const ModelArray& modelLat)
+ModelArray getERA5VarIndexData(const std::string& era5Name, size_t year, size_t tIndex, const ModelArray& modelLon, const ModelArray& modelLat)
 {
     std::string filePath = e5FilenameFromYear(era5Name, year);
     era5Buffer e5data = NetCDFForcings::getFileIndexData(filePath, tIndex);
@@ -199,11 +199,11 @@ size_t timeIndex(const TimePoint& time)
 }
 
 // Time interpolation happens here
-ModelArray getVarTimeData(const std::string& era5Name, const TimePoint& time, const ModelArray& modelLon, const ModelArray& modelLat)
+ModelArray getERA5VarTimeData(const std::string& era5Name, const TimePoint& time, const ModelArray& modelLon, const ModelArray& modelLat)
 {
-    ModelArray v1 = getVarIndexData(era5Name, time.year(), timeIndex(time), modelLon, modelLat);
+    ModelArray v1 = getERA5VarIndexData(era5Name, time.year(), timeIndex(time), modelLon, modelLat);
     TimePoint t2 = time + Duration(3600);
-    ModelArray v2 = getVarIndexData(era5Name, t2.year(), timeIndex(t2), modelLon, modelLat);
+    ModelArray v2 = getERA5VarIndexData(era5Name, t2.year(), timeIndex(t2), modelLon, modelLat);
     double f = t2.minute() / 60.;
     return v2 * f + v1 * (1-f);
 }
@@ -226,11 +226,11 @@ const ModelArray ERA5Atmosphere::getData(const std::string& nsName, const TimePo
     const ModelArray& modelLat = meta.latitude();
     if (nsName == "wind_speed") {
         ModelArray u, v;
-        u = getVarTimeData("u10", time, modelLon, modelLat);
-        v = getVarTimeData("v10", time, modelLon, modelLat);
+        u = getERA5VarTimeData("u10", time, modelLon, modelLat);
+        v = getERA5VarTimeData("v10", time, modelLon, modelLat);
         return maHypot(u, v);
     } else {
-        return getVarTimeData(era5FromNSName(nsName), time, modelLon, modelLat);
+        return getERA5VarTimeData(era5FromNSName(nsName), time, modelLon, modelLat);
     }
 }
 

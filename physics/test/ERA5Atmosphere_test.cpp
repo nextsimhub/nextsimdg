@@ -30,7 +30,7 @@ using era5Buffer = Eigen::Array<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::C
 using era5ShortBuffer = Eigen::Array<std::int16_t, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>;
 
 std::string e5FilenameFromYear(const std::string& era5Name, size_t year);
-ModelArray getVarIndexData(const std::string& era5Name, size_t year, size_t tIndex, const ModelArray& modelLon, const ModelArray& modelLat);
+ModelArray getERA5VarIndexData(const std::string& era5Name, size_t year, size_t tIndex, const ModelArray& modelLon, const ModelArray& modelLat);
 size_t timeIndex(const TimePoint& tm);
 std::pair<double, double> getLatitudeCoeffs(const std::string& filename);
 
@@ -247,11 +247,11 @@ TEST_CASE("Spatial interpolation from files")
         ModelArray testLon;
         testLon.resize();
         //testLon = maFromERA5Buffer(readLon, lonTarg, latTarg);
-        testLon = getVarIndexData("lonx", 2000, 0, lonTarg, latTarg);
+        testLon = getERA5VarIndexData("lonx", 2000, 0, lonTarg, latTarg);
         ModelArray testLat;
         testLat.resize();
 //        testLat = maFromERA5Buffer(readLat, lonTarg, latTarg);
-        testLat = getVarIndexData("laty", 2000, 0, lonTarg, latTarg);
+        testLat = getERA5VarIndexData("laty", 2000, 0, lonTarg, latTarg);
         std::vector<size_t> test_i = {0, 1, 95, 152, 153};
         std::vector<size_t> test_j = {0, 1, 36, 119, 120};
 
