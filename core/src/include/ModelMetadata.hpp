@@ -104,6 +104,27 @@ public:
      */
     void incrementTime(const Duration& step);
 
+    /*!
+     * @brief Sets the model initial restart file name
+     *
+     * @param filename the name of the initial restart file
+     */
+    void setInitialFileName(const std::string filename);
+
+    /*!
+     * @brief Sets the model final restart file name
+     *
+     * @param filename the name of the final restart file
+     */
+    void setFinalFileName(const std::string filename);
+
+    /*!
+     * @brief Sets the model restart period
+     *
+     * @param period the Duration for the model restart period
+     */
+    void setRestartPeriod(const Duration period);
+
     //! Returns the current model time.
     inline const TimePoint& time() const { return m_time; }
 
@@ -115,6 +136,13 @@ public:
     inline const Duration& stepLength() const { return step; }
     //! Returns the model run length
     inline const Duration& runLength() const { return run; }
+
+    //! Returns the model initial restart file name
+    inline const std::string& initialFileName() const { return initFile; }
+    //! Returns the model final restart file name
+    inline const std::string& finalFileName() const { return finalFile; }
+    //! Returns the model restart period
+    inline const Duration& restartPeriod() const { return period; }
 
     //! Returns the string description of the model grid structure.
     const std::string& structureName() const;
@@ -217,6 +245,11 @@ private:
     TimePoint stop;
     Duration step;
     Duration run;
+
+    std::string initFile;
+    std::string finalFile;
+    // Period between restart file outputs
+    Duration period;
 
     // position coordinates on vertices
     ModelArray m_vertexCoords;
