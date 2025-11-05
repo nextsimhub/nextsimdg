@@ -115,7 +115,7 @@ public:
     void setFieldType(const std::string fieldId, ModelArray::Type type);
 
     /* File */
-    void createFile(const std::string fileId);
+    void createFile(const std::string fileId, const int fieldType);
     void setFileType(const std::string fileId, const std::string fileType);
     void setFileOutputFreq(const std::string fileId, const Duration outputFreq);
     void setFileSplitFreq(const std::string fileId, const Duration splitFreq);
@@ -135,13 +135,21 @@ public:
         ENABLED_KEY,
         OUTPUT_FIELD_NAMES_KEY,
         INPUT_FIELD_NAMES_KEY,
+        DIAGNOSTIC_PERIOD_KEY,
+        DIAGNOSTIC_FILE_KEY,
+        DIAGNOSTIC_FIELD_NAMES_KEY,
         FORCING_PERIOD_KEY,
         FORCING_FILE_KEY,
         FORCING_FIELD_NAMES_KEY,
     };
 
-    /* Length of C-strings passed to XIOS */
-    int cStrLen { 20 };
+    // TODO: Make the following enum private
+    enum {
+        OUTPUT_RESTART,
+        INPUT_RESTART,
+        DIAGNOSTIC,
+        FORCING,
+    };
 
 protected:
     bool isConfigured;
@@ -155,6 +163,9 @@ private:
     MPI_Fint nullComm_F;
     int mpi_rank { 0 };
     int mpi_size { 0 };
+
+    /* Length of C-strings passed to XIOS */
+    int cStrLen { 20 };
 
     /* Calendar, date and duration */
     std::string calendarType;
@@ -190,9 +201,11 @@ private:
     xios::CFieldGroup* getFieldGroup();
     xios::CField* getField(const std::string fieldId);
     void setFieldReadAccess(const std::string fieldId, const bool readAccess);
+    std::set<std::string> configGetOutputRestartFieldNames();
     std::set<std::string> configGetInputRestartFieldNames();
-    std::set<std::string> configGetInputFieldNames();
+    std::set<std::string> configGetDiagnosticFieldNames();
     std::set<std::string> configGetOutputFieldNames();
+    std::set<std::string> configGetInputFieldNames();
     std::set<std::string> configGetFieldNames(const bool readAccess);
     bool configCheckField(const std::string fieldId, const bool readAccess);
     std::map<std::string, ModelArray::Type> fieldTypes;
@@ -210,12 +223,20 @@ private:
     xios::CFileGroup* getFileGroup();
     xios::CFile* getFile(const std::string fileId);
     void setFileMode(const std::string fileId, const std::string mode);
-    std::string inputFilename;
-    std::string inputFileId;
     std::string outputFilename;
     std::string outputFileId;
+    std::string inputFilename;
+    std::string inputFileId;
+    std::string diagnosticFilename;
+    std::string diagnosticFileId;
     std::string forcingFilename;
     std::string forcingFileId;
+    const std::map<int, std::string&> fileMap = {
+        { OUTPUT_RESTART, outputFileId },
+        { INPUT_RESTART, inputFileId },
+        { DIAGNOSTIC, diagnosticFileId },
+        { FORCING, forcingFileId },
+    };
 
     /* I/O */
     void write(const std::string fieldId, ModelArray& modelarray);
@@ -223,7 +244,6 @@ private:
     /* Declare any classes that need to access private members */
     friend ParaGridIO;
 };
-
 }
 
 #endif // USE_XIOS
