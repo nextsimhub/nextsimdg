@@ -38,23 +38,23 @@ MPI_TEST_CASE("TestXiosFile", 2)
     config << "start = 2023-03-17T17:11:00Z" << std::endl;
     config << "stop = 2023-03-17T18:41:00Z" << std::endl;
     config << "time_step = P0-0T01:30:00" << std::endl;
+    config << "init_file = xios_test_input.nc" << std::endl;
+    config << "restart_file = xios_test_output.nc" << std::endl;
+    config << "restart_period = P0-0T03:00:00" << std::endl;
+    config << "partition_file = xios_test_partition_metadata_2.nc" << std::endl;
     config << "[XiosInput]" << std::endl;
-    config << "period = P0-0T03:00:00" << std::endl;
-    config << "filename = xios_test_input.nc" << std::endl;
     config << "field_names = mask" << std::endl;
     config << "[XiosOutput]" << std::endl;
-    config << "period = P0-0T03:00:00" << std::endl;
-    config << "filename = xios_test_output.nc" << std::endl;
     config << "field_names = hice" << std::endl;
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
 
-    // Create ModelMetadata instance based off a partition metadata file
+    // Create ModelMPI instance based off the test communicator
     auto& modelMPI = ModelMPI::getInstance(test_comm);
-    auto& metadata = ModelMetadata::getInstance("xios_test_partition_metadata_2.nc");
 
     // Create a Model and configure it so that time options are parsed
     Model model;
+    model.configureRestarts();
     model.configureTime(); // TODO: Use Model.configure to parse restart files this way, too?
 
     // Get the Xios singleton instance and check it's initialized
@@ -79,8 +79,8 @@ MPI_TEST_CASE("TestXiosFile", 2)
     // File creation
     // NOTE: This is called based on the XiosInput.filename and XiosOutput.filename entries upon
     // initialization
-    REQUIRE_THROWS_WITH(
-        xiosHandler.createFile(outFileId), "Xios: File 'xios_test_output' already exists");
+    REQUIRE_THROWS_WITH(xiosHandler.createFile(outFileId, xiosHandler.OUTPUT_RESTART),
+        "Xios: File 'xios_test_output' already exists");
     // File type
     // NOTE: This is to "one_file" when createFile is called
     REQUIRE(xiosHandler.getFileType(outFileId) == "one_file");
@@ -120,27 +120,27 @@ MPI_TEST_CASE("TestXiosFile", 2)
     const std::string hourId = prefix + "_hour";
     const std::string minuteId = prefix + "_minute";
     const std::string secondId = prefix + "_second";
-    xiosHandler.createFile(yearId);
+    xiosHandler.createFile(yearId, xiosHandler.OUTPUT_RESTART);
     xiosHandler.setFileOutputFreq(yearId, Duration("P1-0T00:00:00"));
     xiosHandler.setFileSplitFreq(yearId, Duration("P2-0T00:00:00"));
     REQUIRE(xiosHandler.getFileOutputFreq(yearId).seconds() == 365 * 24 * 60 * 60);
     REQUIRE(xiosHandler.getFileSplitFreq(yearId).seconds() == 2 * 365 * 24 * 60 * 60);
-    xiosHandler.createFile(dayId);
+    xiosHandler.createFile(dayId, xiosHandler.OUTPUT_RESTART);
     xiosHandler.setFileOutputFreq(dayId, Duration("P0-1T00:00:00"));
     xiosHandler.setFileSplitFreq(dayId, Duration("P0-2T00:00:00"));
     REQUIRE(xiosHandler.getFileOutputFreq(dayId).seconds() == 24 * 60 * 60);
     REQUIRE(xiosHandler.getFileSplitFreq(dayId).seconds() == 2 * 24 * 60 * 60);
-    xiosHandler.createFile(hourId);
+    xiosHandler.createFile(hourId, xiosHandler.OUTPUT_RESTART);
     xiosHandler.setFileOutputFreq(hourId, Duration("P0-0T01:00:00"));
     xiosHandler.setFileSplitFreq(hourId, Duration("P0-0T02:00:00"));
     REQUIRE(xiosHandler.getFileOutputFreq(hourId).seconds() == 60 * 60);
     REQUIRE(xiosHandler.getFileSplitFreq(hourId).seconds() == 2 * 60 * 60);
-    xiosHandler.createFile(minuteId);
+    xiosHandler.createFile(minuteId, xiosHandler.OUTPUT_RESTART);
     xiosHandler.setFileOutputFreq(minuteId, Duration("P0-0T00:01:00"));
     xiosHandler.setFileSplitFreq(minuteId, Duration("P0-0T00:02:00"));
     REQUIRE(xiosHandler.getFileOutputFreq(minuteId).seconds() == 60);
     REQUIRE(xiosHandler.getFileSplitFreq(minuteId).seconds() == 2 * 60);
-    xiosHandler.createFile(secondId);
+    xiosHandler.createFile(secondId, xiosHandler.OUTPUT_RESTART);
     xiosHandler.setFileOutputFreq(secondId, Duration("P0-0T00:00:01"));
     xiosHandler.setFileSplitFreq(secondId, Duration("P0-0T00:00:02"));
     REQUIRE(xiosHandler.getFileOutputFreq(secondId).seconds() == 1);

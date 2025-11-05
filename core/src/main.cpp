@@ -51,14 +51,17 @@ int main(int argc, char* argv[])
     } else {
         // Construct the Model
 #ifdef USE_MPI
-        Nextsim::ModelMPI& modelMPI = Nextsim::ModelMPI::getInstance(MPI_COMM_WORLD);
 #ifdef USE_OASIS
         /* We must call these oasis routines before any MPI communication takes place, to make sure
          * we have the right communicator, i.e. modelCommunictor and not MPI_COMM_WORLD. */
         int compID; // Not actually used. Only useful for debugging
         const std::string compName = "nextsim"; // Not useful for any setups we have in mind
         OASIS_CHECK_ERR(oasis_c_init_comp(&compID, compName.c_str(), OASIS_COUPLED));
-        OASIS_CHECK_ERR(oasis_c_get_localcomm(&modelMPI));
+        MPI_Comm modelCommunicator;
+        OASIS_CHECK_ERR(oasis_c_get_localcomm(&modelCommunicator));
+        Nextsim::ModelMPI& modelMPI = Nextsim::ModelMPI::getInstance(modelCommunicator);
+#else
+        Nextsim::ModelMPI& modelMPI = Nextsim::ModelMPI::getInstance(MPI_COMM_WORLD);
 #endif // USE_OASIS
 #endif
         Nextsim::Model model;

@@ -131,6 +131,13 @@ if(ENABLE_MPI)
         )
         add_custom_target(generate_xios_input_file ALL DEPENDS xios_test_input.nc)
         add_custom_command(
+            OUTPUT xios_test_forcing.nc
+            COMMAND ncgen -k netCDF-4 -o xios_test_forcing.nc
+                    ${CMAKE_CURRENT_SOURCE_DIR}/xios_test_forcing.cdl
+            DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/xios_test_forcing.cdl
+        )
+        add_custom_target(generate_xios_forcing_file ALL DEPENDS xios_test_forcing.nc)
+        add_custom_command(
             OUTPUT xios_test_mask.nc
             COMMAND ncgen -b -o xios_test_mask.nc ${CMAKE_CURRENT_SOURCE_DIR}/xios_test_mask.cdl
             DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/xios_test_mask.cdl
@@ -241,7 +248,11 @@ if(ENABLE_MPI)
         target_link_libraries(testXiosRead_MPI2 PRIVATE nextsimlib doctest::doctest)
 
         add_executable(testXiosWrite_MPI2 "XiosWrite_test.cpp" "MainMPI.cpp")
-        target_compile_definitions(testXiosWrite_MPI2 PRIVATE USE_XIOS)
+        target_compile_definitions(testXiosWrite_MPI2
+            PRIVATE
+                USE_XIOS
+                TEST_FILES_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\"
+        )
         target_include_directories(
             testXiosWrite_MPI2
             PRIVATE

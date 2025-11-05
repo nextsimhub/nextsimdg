@@ -20,7 +20,8 @@
 #include <filesystem>
 
 const std::string testFilesDir = TEST_FILES_DIR;
-const std::string filename = testFilesDir + "/xios_test_input.nc";
+const std::string restartFilename = testFilesDir + "/xios_test_input.nc";
+const std::string forcingFilename = testFilesDir + "/xios_test_forcing.nc";
 
 static const int DG = 3;
 
@@ -41,25 +42,26 @@ MPI_TEST_CASE("TestXiosRead", 2)
     config << "start = 2023-03-17T17:11:00Z" << std::endl;
     config << "stop = 2023-03-17T23:11:00Z" << std::endl;
     config << "time_step = P0-0T01:30:00" << std::endl;
+    config << "init_file = " << restartFilename << std::endl;
+    config << "restart_period = P0-0T01:30:00" << std::endl;
+    config << "partition_file = xios_test_partition_metadata_2.nc" << std::endl;
     config << "[XiosInput]" << std::endl;
-    config << "filename = xios_test_input.nc" << std::endl;
     config << "field_names = " << maskName << "," << coordsName << "," << hiceName << std::endl;
-    config << "period = P0-0T01:30:00" << std::endl;
-    // TODO: Account for separate restart and forcing files (#929)
     config << "[XiosForcing]" << std::endl;
-    config << "filename = xios_test_input.nc" << std::endl;
+    config << "filename = " << forcingFilename << std::endl;
     config << "field_names = " << uName << std::endl;
     config << "period = P0-0T01:30:00" << std::endl;
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
 
-    // Create ModelMetadata instance based off a partition metadata file
+    // Create ModelMPI instance based off the test communicator
     auto& modelMPI = ModelMPI::getInstance(test_comm);
-    auto& metadata = ModelMetadata::getInstance("xios_test_partition_metadata_2.nc");
 
     // Create a Model and configure it so that time options are parsed
+    // TODO: Use Model.configure for consistency with the rest of the model
     Model model;
-    model.configureTime(); // TODO: Use Model.configure to parse restart files this way, too?
+    model.configureRestarts();
+    model.configureTime();
 
     // Create ParametricGrid and ParaGridIO instances
     Module::setImplementation<IStructure>("Nextsim::ParametricGrid");
@@ -87,56 +89,63 @@ MPI_TEST_CASE("TestXiosRead", 2)
     // Check calendar step is zero initially
     REQUIRE(xiosHandler.getCalendarStep() == 0);
 
-    // Check the input file exists
-    REQUIRE(std::filesystem::exists(filename));
+    // Check the input files exists
+    REQUIRE(std::filesystem::exists(restartFilename));
+    REQUIRE(std::filesystem::exists(forcingFilename));
+
+    // Check calendar step is zero initially
+    ModelMetadata& metadata = ModelMetadata::getInstance();
+    metadata.setTime(xiosHandler.getCalendarStart());
+    REQUIRE(xiosHandler.getCalendarStep() == 0);
 
     // Deduce the local lengths of the two dimensions
     const size_t nx = ModelArray::size(ModelArray::Dimension::X);
     const size_t ny = ModelArray::size(ModelArray::Dimension::Y);
 
-    // Simulate 4 iterations (timesteps)
-    Duration timestep = xiosHandler.getCalendarTimestep();
+    // Read restarts from file and check they take the expected values
     metadata.setTime(xiosHandler.getCalendarStart());
-    // TODO: Avoid making configGetForcingFieldNames public?
-    auto forcingFieldNames = xiosHandler.configGetForcingFieldNames();
-    for (int ts = 1; ts <= 4; ts++) {
-
-        // Read forcings from file and check they take the expected values
-        TimePoint time = xiosHandler.getCurrentDate();
-        ModelState forcings = pio->readForcingTimeStatic(forcingFieldNames, time, filename);
-        for (auto& entry : forcings.data) {
-            for (size_t j = 0; j < ny; ++j) {
-                for (size_t i = 0; i < nx; ++i) {
-                    REQUIRE(entry.second(i, j) == doctest::Approx(ts - 1));
+    REQUIRE(xiosHandler.getCalendarStep() == 0);
+    ModelState restarts = grid.getModelState(restartFilename);
+    for (auto& entry : restarts.data) {
+        for (size_t j = 0; j < ny; ++j) {
+            for (size_t i = 0; i < nx; ++i) {
+                if (entry.first == maskName) {
+                    REQUIRE(entry.second(i, j) == doctest::Approx(j >= 1 ? 1.0 : 0.0));
+                } else if (entry.first == coordsName) {
+                    REQUIRE(entry.second.components({ i, j })[0] == doctest::Approx(i));
+                    REQUIRE(entry.second.components({ i, j })[1] == doctest::Approx(j));
+                } else if (entry.first == hiceName) {
+                    for (size_t d = 0; d < DG; ++d) {
+                        float expected = 1.0 * (d + DG * (i + nx * j));
+                        REQUIRE(entry.second.components({ i, j })[d] == doctest::Approx(expected));
+                    }
                 }
             }
         }
+    }
 
-        // Read restarts from file and check they take the expected values
-        ModelState restarts = grid.getModelState(filename);
-        for (auto& entry : restarts.data) {
+    // Simulate 4 iterations (timesteps), reading forcing data at each
+    Duration timestep = xiosHandler.getCalendarTimestep();
+    // TODO: Avoid making configGetForcingFieldNames public?
+    auto forcingFieldNames = xiosHandler.configGetForcingFieldNames();
+    for (int ts = 0; ts <= 4; ts++) {
+
+        // Read forcings from file and check they take the expected values
+        TimePoint time = xiosHandler.getCurrentDate();
+        ModelState forcings = pio->readForcingTimeStatic(forcingFieldNames, time, forcingFilename);
+        for (auto& entry : forcings.data) {
             for (size_t j = 0; j < ny; ++j) {
                 for (size_t i = 0; i < nx; ++i) {
-                    if (entry.first == maskName) {
-                        REQUIRE(entry.second(i, j) == doctest::Approx(j >= 1 ? 1.0 : 0.0));
-                    } else if (entry.first == coordsName) {
-                        REQUIRE(entry.second.components({ i, j })[0] == doctest::Approx(i));
-                        REQUIRE(entry.second.components({ i, j })[1] == doctest::Approx(j));
-                    } else if (entry.first == hiceName) {
-                        for (size_t d = 0; d < DG; ++d) {
-                            float expected = 1.0 * (d + DG * (i + nx * j));
-                            REQUIRE(
-                                entry.second.components({ i, j })[d] == doctest::Approx(expected));
-                        }
-                    }
+                    REQUIRE(entry.second(i, j) == doctest::Approx(ts));
                 }
             }
         }
 
         // Update the current timestep and verify it's updated in XIOS
         metadata.incrementTime(timestep);
-        REQUIRE(xiosHandler.getCalendarStep() == ts);
+        REQUIRE(xiosHandler.getCalendarStep() == ts + 1);
     }
+
     xiosHandler.context_finalize();
     Finalizer::finalize();
 }

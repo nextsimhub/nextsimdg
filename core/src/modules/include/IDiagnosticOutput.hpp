@@ -23,7 +23,7 @@ public:
      */
 #include "include/ProtectedArrayNames.ipp"
 #include "include/SharedArrayNames.ipp"
-          })
+        })
     {
     }
     virtual ~IDiagnosticOutput() = default;
@@ -39,7 +39,6 @@ public:
      * @brief Outputs the passed ModelState.
      *
      * @param state The model state to be written out.
-     * @param meta The model metadata for the the given state.
      */
     virtual void outputState(const ModelState& state) = 0;
 
