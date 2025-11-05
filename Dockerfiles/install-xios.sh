@@ -78,7 +78,6 @@ EOF
 # Clean up files not needed
 rm -r \
   /xios/arch \
-  /xios/bin/generic_testcase.exe \
   /xios/doc \
   /xios/done \
   /xios/flags \
@@ -86,5 +85,6 @@ rm -r \
   /xios/inputs \
   /xios/obj \
   /xios/ppsrc \
-  /xios/src /xios/tools \
+  /xios/src \
+  /xios/tools \
   /xios/xios_test_suite
