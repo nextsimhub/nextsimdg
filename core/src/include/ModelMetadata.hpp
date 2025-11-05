@@ -198,6 +198,11 @@ public:
     neighbourArray neighbourHaloRecvPeriodic;
 #endif
 
+    std::string initialFileName;
+    std::string finalFileName;
+    // Period between restart file outputs
+    Duration restartPeriod;
+
 private:
     /*!
      * @brief Read neighbour metadata from netCDF file

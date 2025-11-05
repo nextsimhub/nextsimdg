@@ -45,10 +45,33 @@ static const std::map<int, std::string> keyMap = {
 Model::Model()
     : iterator(modelStep)
 {
-    finalFileName = std::string("restart") + TimePoint::ymdhmsFormat + ".nc";
+#ifdef USE_MPI
+    std::string partitionFile
+        = Configured::getConfiguration(keyMap.at(PARTITIONFILE_KEY), std::string("partition.nc"));
+    auto& metadata = ModelMetadata::getInstance(partitionFile);
+#else
+    auto& metadata = ModelMetadata::getInstance();
+#endif
+    metadata.finalFileName = "restart" + TimePoint::ymdhmsFormat + ".nc";
 }
 
 Model::~Model() { }
+
+void Model::configureRestarts()
+{
+    ModelMetadata& metadata = ModelMetadata::getInstance();
+
+    // Parse the initial restart file name and the pattern for output restart files
+    metadata.initialFileName
+        = Configured::getConfiguration(keyMap.at(RESTARTFILE_KEY), std::string());
+    metadata.finalFileName
+        = Configured::getConfiguration(keyMap.at(RESTARTOUTFILE_KEY), metadata.finalFileName);
+
+    // The period with which to write restart files.
+    std::string restartPeriodStr
+        = Configured::getConfiguration(keyMap.at(RESTARTPERIOD_KEY), std::string("0"));
+    metadata.restartPeriod = Duration(restartPeriodStr);
+}
 
 void Model::configureTime()
 {
@@ -84,37 +107,23 @@ void Model::configure()
     MissingData::setValue(
         Configured::getConfiguration(keyMap.at(MISSINGVALUE_KEY), MissingData::defaultValue));
 
-    // Parse the initial restart file name and the pattern for output restart files
-    initialFileName = Configured::getConfiguration(keyMap.at(RESTARTFILE_KEY), std::string());
-    finalFileName = Configured::getConfiguration(keyMap.at(RESTARTOUTFILE_KEY), finalFileName);
+    configureRestarts();
 
     pData.configure();
 
-    modelStep.init();
-    modelStep.setInitFile(initialFileName);
-
-#ifdef USE_MPI
-    std::string partitionFile
-        = Configured::getConfiguration(keyMap.at(PARTITIONFILE_KEY), std::string("partition.nc"));
-    auto& metadata = ModelMetadata::getInstance(partitionFile);
-#else
     auto& metadata = ModelMetadata::getInstance();
-#endif
+    modelStep.init();
+    modelStep.setInitFile(metadata.initialFileName);
 
     configureTime();
 
-    ModelState initialState(StructureFactory::stateFromFile(initialFileName));
-
-    // The period with which to write restart files.
-    std::string restartPeriodStr
-        = Configured::getConfiguration(keyMap.at(RESTARTPERIOD_KEY), std::string("0"));
-    restartPeriod = Duration(restartPeriodStr);
+    ModelState initialState(StructureFactory::stateFromFile(metadata.initialFileName));
 
     // Get the coordinates from the ModelState for persistence
     metadata.extractCoordinates(initialState);
 
     modelStep.setData(pData);
-    modelStep.setRestartDetails(restartPeriod, finalFileName);
+    modelStep.setRestartDetails(metadata.restartPeriod, metadata.finalFileName);
     pData.setData(initialState.data);
 }
 
@@ -185,7 +194,7 @@ void Model::run()
 void Model::writeRestartFile()
 {
     auto& metadata = ModelMetadata::getInstance();
-    std::string formattedFileName = metadata.time().format(finalFileName);
+    std::string formattedFileName = metadata.time().format(metadata.finalFileName);
     pData.writeRestartFile(formattedFileName);
 }
 

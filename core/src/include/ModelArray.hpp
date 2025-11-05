@@ -90,6 +90,12 @@ public:
             this->start = 0;
         }
 #endif
+        bool operator==(const DimensionSpec& other)
+        {
+            return ((name == other.name) && (altName == other.altName)
+                && (globalLength == other.globalLength) && (localLength == other.localLength)
+                && (start == other.start));
+        }
     };
 
     using TypeDimensions = std::map<Type, std::vector<Dimension>>;

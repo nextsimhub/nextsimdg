@@ -10,7 +10,6 @@ dimensions:
   dg_comp = 3 ;
   dgstress_comp = 8 ;
   ncoords = 2 ;
-	time_counter = UNLIMITED ; // (4 currently)
 variables:
 	float x(x) ;
 		x:axis = "X" ;
@@ -42,48 +41,15 @@ variables:
 		VertexAxis:standard_name = "Dimension" ;
     VertexAxis:long_name = "Spatial dimension" ;
 		VertexAxis:units = "-" ;
-	double time_instant(time_counter) ;
-		time_instant:standard_name = "time" ;
-		time_instant:long_name = "Time axis" ;
-		time_instant:calendar = "gregorian" ;
-		time_instant:units = "seconds since 2020-01-23 00:08:15" ;
-		time_instant:time_origin = "2020-01-23 00:08:15" ;
-		time_instant:bounds = "time_instant_bounds" ;
-	double time_instant_bounds(time_counter, axis_nbounds) ;
-	double time_counter(time_counter) ;
-		time_counter:axis = "T" ;
-		time_counter:standard_name = "time" ;
-		time_counter:long_name = "Time axis" ;
-		time_counter:calendar = "gregorian" ;
-		time_counter:units = "seconds since 2020-01-23 00:08:15" ;
-		time_counter:time_origin = "2020-01-23 00:08:15" ;
-		time_counter:bounds = "time_counter_bounds" ;
-	double time_counter_bounds(time_counter, axis_nbounds) ;
-	float coords(time_counter, yvertex, xvertex, ncoords) ;
-		coords:online_operation = "instant" ;
-		coords:interval_operation = "5400 s" ;
-		coords:interval_write = "5400 s" ;
-		coords:cell_methods = "time: point" ;
-		coords:coordinates = "time_instant lat lon VertexAxis" ;
-  float hice(time_counter, y, x, dg_comp) ;
-		hice:online_operation = "instant" ;
-		hice:interval_operation = "5400 s" ;
-		hice:interval_write = "5400 s" ;
-		hice:cell_methods = "time: point" ;
-		hice:coordinates = "time_instant lat lon DGAxis" ;
-	float mask(time_counter, y, x) ;
-		mask:online_operation = "instant" ;
-		mask:interval_operation = "5400 s" ;
-		mask:interval_write = "5400 s" ;
-		mask:cell_methods = "time: point" ;
-		mask:coordinates = "time_instant lat lon" ;
-
-	float u(time_counter, y, x) ;
-		u:online_operation = "instant" ;
-		u:interval_operation = "5400 s" ;
-		u:interval_write = "5400 s" ;
-		u:cell_methods = "time: point" ;
-		u:coordinates = "time_instant" ;
+	float coords(yvertex, xvertex, ncoords) ;
+		coords:online_operation = "once" ;
+		coords:coordinates = "lat lon VertexAxis" ;
+  float hice(y, x, dg_comp) ;
+		hice:online_operation = "once" ;
+		hice:coordinates = "lat lon DGAxis" ;
+	float mask(y, x) ;
+		mask:online_operation = "once" ;
+		mask:coordinates = "lat lon" ;
 
 // global attributes:
 		:structure_name = "parametric_rectangular" ;
@@ -102,68 +68,7 @@ data:
 
  xvertex = -1, -0.5, 0, 0.5, 1 ;
 
- time_instant = 99340365, 99345765, 99351165, 99356565 ;
-
- time_instant_bounds =
-  99340365, 99340365,
-  99345765, 99345765,
-  99351165, 99351165,
-  99356565, 99356565 ;
-
- time_counter = 99340365, 99345765, 99351165, 99356565 ;
-
- time_counter_bounds =
-  99340365, 99340365,
-  99345765, 99345765,
-  99351165, 99351165,
-  99356565, 99356565 ;
-
  coords =
-  0, 0,
-  1, 0,
-  0, 0,
-  1, 0,
-  2, 0,
-  0, 1,
-  1, 1,
-  0, 1,
-  1, 1,
-  2, 1,
-  0, 2,
-  1, 2,
-  0, 2,
-  1, 2,
-  2, 2,
-  0, 0,
-  1, 0,
-  0, 0,
-  1, 0,
-  2, 0,
-  0, 1,
-  1, 1,
-  0, 1,
-  1, 1,
-  2, 1,
-  0, 2,
-  1, 2,
-  0, 2,
-  1, 2,
-  2, 2,
-  0, 0,
-  1, 0,
-  0, 0,
-  1, 0,
-  2, 0,
-  0, 1,
-  1, 1,
-  0, 1,
-  1, 1,
-  2, 1,
-  0, 2,
-  1, 2,
-  0, 2,
-  1, 2,
-  2, 2,
   0, 0,
   1, 0,
   0, 0,
@@ -188,49 +93,9 @@ data:
   6, 7, 8,
   9, 10, 11,
   6, 7, 8,
-  9, 10, 11,
-  0, 1, 2,
-  3, 4, 5,
-  0, 1, 2,
-  3, 4, 5,
-  6, 7, 8,
-  9, 10, 11,
-  6, 7, 8,
-  9, 10, 11,
-  0, 1, 2,
-  3, 4, 5,
-  0, 1, 2,
-  3, 4, 5,
-  6, 7, 8,
-  9, 10, 11,
-  6, 7, 8,
-  9, 10, 11,
-  0, 1, 2,
-  3, 4, 5,
-  0, 1, 2,
-  3, 4, 5,
-  6, 7, 8,
-  9, 10, 11,
-  6, 7, 8,
   9, 10, 11 ;
 
  mask =
   0, 0, 0, 0,
-  1, 1, 1, 1,
-  0, 0, 0, 0,
-  1, 1, 1, 1,
-  0, 0, 0, 0,
-  1, 1, 1, 1,
-  0, 0, 0, 0,
   1, 1, 1, 1 ;
-
- u =
-  0, 0, 0, 0,
-  0, 0, 0, 0,
-  1, 1, 1, 1,
-  1, 1, 1, 1,
-  2, 2, 2, 2,
-  2, 2, 2, 2,
-  3, 3, 3, 3,
-  3, 3, 3, 3 ;
 }
