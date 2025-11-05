@@ -13,7 +13,7 @@ HostView ModelArrayStore::ExtModelArray::hostView()
     return makeKokkosHostView(modelArray.getDataRef());
 }
 
-DeviceView ModelArrayStore::ExtModelArray::deviceView()
+const DeviceView& ModelArrayStore::ExtModelArray::deviceView()
 {
     if (!m_deviceView.is_allocated()) {
         m_deviceView = makeKokkosDeviceView(name, modelArray.getDataRef());
@@ -31,16 +31,6 @@ ModelArrayStore::ExtModelArrayFlagged::ExtModelArrayFlagged(
 }
 
 #endif
-
-void ModelArrayStore::resize_arrays()
-{
-    was_resized = true;
-
-    for (auto& [name, extArrFlagged] : store) {
-        ExtModelArray& extArr = extArrFlagged.extModelArray;
-        extArr.modelArray.resize();
-    }
-}
 
 ModelArrayStore::ExtModelArray& ModelArrayStore::getRW(const std::string& field)
 {

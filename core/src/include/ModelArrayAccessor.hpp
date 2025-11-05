@@ -94,7 +94,7 @@ public:
 
     const DeviceView& getDeviceRW()
     {
-        DeviceView deviceView = target.deviceView();
+        const DeviceView& deviceView = target.deviceView();
         if (target.syncState == SyncState::HOST_CHANGED)
             Kokkos::deep_copy(deviceView, target.hostView());
         target.syncState = SyncState::DEVICE_CHANGED;

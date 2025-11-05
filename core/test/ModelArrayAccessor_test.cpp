@@ -87,7 +87,7 @@ private:
     IceThermo thermo;
 };
 
-TEST_SUITE_BEGIN("[ModelArrayRef]");
+TEST_SUITE_BEGIN("[ModelArrayAccessor]");
 TEST_CASE("Accessing the data")
 {
     // create store on stack so that test cases do not influence each other
@@ -111,29 +111,21 @@ TEST_CASE("Accessing the data")
     REQUIRE(hicef == doctest::Approx(target).epsilon(1e-8));
 }
 
-/*
- * Uncommenting this test case should result in a compile time error, as an RO ref should not be
- * writable.
- */
-// TEST_CASE("(Not) writing to protected arrays", "[ModelArrayRef]")
-//{
-//     ModelArrayRef<H_ICE0> hice0(MiniModelComponent::getStore());
-//     hice0[0] = 3.141592;
-// }
+TEST_CASE("(Not) getting write access to a read only field")
+{
+    ModelArrayStore store;
+    ModelArrayAccessor<MiniModelComponent::H_ICE0, RW> hice0SrcAccessor(store, RO);
+    HField& hice0Src = hice0SrcAccessor.getHostRW();
+    hice0Src.resize();
+    hice0Src[0] = 1.0;
+    REQUIRE_THROWS_AS(
+        (ModelArrayAccessor<MiniModelComponent::H_ICE0, RW>(store)), std::logic_error);
 
-/*
- * Uncommenting this test should result in a run time error, specifically a segmentation violation,
- * as the H_ICE0 array is never available as a RW array.
- */
-// TEST_CASE("(Not) writing to protected arrays", "[ModelArrayRef]")
-//{
-//     HField hice0Src;
-//     hice0Src.resize();
-//     hice0Src[0] = 1.0;
-//     MiniModelComponent::getStore().registerArray(MiniModelComponent::H_ICE0, &hice0Src);
-//     ModelArrayRef<H_ICE0, RW> hice0(MiniModelComponent::getStore());
-//     REQUIRE(hice0[0] != 3.141592);
-// }
+    // inverted initialization order: register after accessor was created
+    ModelArrayAccessor<MiniModelComponent::H_ICE, RW> hiceAccessor(store);
+    REQUIRE_THROWS_AS(
+        (ModelArrayAccessor<MiniModelComponent::H_ICE, RW>(store, RO)), std::logic_error);
+}
 
 static const double targetFlux = 320;
 // "inline" here prevents warning from -Wsubobject-linkage
@@ -206,14 +198,14 @@ TEST_CASE("Accessing the data two ways")
 // TEST_CASE("Test component 0-only operations")
 // {
 //     ModelArrayStore store;
-// 
+//
 //     static constexpr TextTag DG_SRC = { "DG_SRC" };
 //     ModelArray::setDimension(ModelArray::Dimension::DG, 2);
 //     ModelArrayAccessor<DG_SRC, RW> dgSrcAccessor(store, RO, ModelArray::Type::DG);
 //     ModelArray& dgSrc = dgSrcAccessor.getHostRW();
 //     dgSrc.resize();
 //     dgSrc = 5.;
-// 
+//
 //     ModelArrayAccessor<DG_SRC> dgRefAccessor(store);
 //     const ModelArray& dgRef = dgRefAccessor.getHostRO();
 //     ModelArray argument(ModelArray::Type::H);
@@ -222,36 +214,36 @@ TEST_CASE("Accessing the data two ways")
 //     ModelArray sum = dgRef + argument;
 //     REQUIRE(sum.getType() == ModelArray::Type::H);
 //     REQUIRE(sum(0, 0) == 5. + 3.);
-// 
+//
 //     ModelArray difference = dgRef - argument;
 //     REQUIRE(difference.getType() == ModelArray::Type::H);
 //     REQUIRE(difference(0, 0) == 5. - 3.);
-// 
+//
 //     ModelArray product = dgRef * argument;
 //     REQUIRE(product.getType() == ModelArray::Type::H);
 //     REQUIRE(product(0, 0) == 5. * 3.);
-// 
+//
 //     ModelArray ratio = dgRef / argument;
 //     REQUIRE(ratio.getType() == ModelArray::Type::H);
 //     REQUIRE(ratio(0, 0) == 5. / 3.);
-// 
+//
 //     double scalar = 3.;
 //     ModelArray sumScalar = dgRef + scalar;
 //     REQUIRE(sumScalar.getType() == ModelArray::Type::H);
 //     REQUIRE(sumScalar(0, 0) == 5. + 3.);
-// 
+//
 //     ModelArray differenceScalar = dgRef - scalar;
 //     REQUIRE(differenceScalar.getType() == ModelArray::Type::H);
 //     REQUIRE(differenceScalar(0, 0) == 5. - 3.);
-// 
+//
 //     ModelArray productScalar = dgRef * scalar;
 //     REQUIRE(productScalar.getType() == ModelArray::Type::H);
 //     REQUIRE(productScalar(0, 0) == 5. * 3.);
-// 
+//
 //     ModelArray ratioScalar = dgRef / scalar;
 //     REQUIRE(ratioScalar.getType() == ModelArray::Type::H);
 //     REQUIRE(ratioScalar(0, 0) == 5. / 3.);
-// 
+//
 //     static constexpr TextTag RW_SRC = { "RW_SRC" };
 //     ModelArrayAccessor<RW_SRC, RW> rwRefAccessor(store, RW);
 //     const ModelArray& rwRef = rwRefAccessor.getHostRW();
@@ -259,32 +251,32 @@ TEST_CASE("Accessing the data two ways")
 //     ModelArray sumRW = rwRef + argument;
 //     REQUIRE(sumRW.getType() == ModelArray::Type::H);
 //     REQUIRE(sumRW(0, 0) == 5. + 7.);
-// 
+//
 //     ModelArray differenceRW = rwRef - argument;
 //     REQUIRE(differenceRW.getType() == ModelArray::Type::H);
 //     REQUIRE(differenceRW(0, 0) == 5. - 7.);
-// 
+//
 //     ModelArray productRW = rwRef * argument;
 //     REQUIRE(productRW.getType() == ModelArray::Type::H);
 //     REQUIRE(productRW(0, 0) == 5. * 7.);
-// 
+//
 //     ModelArray ratioRW = rwRef / argument;
 //     REQUIRE(ratioRW.getType() == ModelArray::Type::H);
 //     REQUIRE(ratioRW(0, 0) == 5. / 7.);
-// 
+//
 //     scalar = 7.;
 //     ModelArray sumRWScalar = rwRef + scalar;
 //     REQUIRE(sumRWScalar.getType() == ModelArray::Type::H);
 //     REQUIRE(sumRWScalar(0, 0) == 5. + 7.);
-// 
+//
 //     ModelArray differenceRWScalar = rwRef - scalar;
 //     REQUIRE(differenceRWScalar.getType() == ModelArray::Type::H);
 //     REQUIRE(differenceRWScalar(0, 0) == 5. - 7.);
-// 
+//
 //     ModelArray productRWScalar = rwRef * scalar;
 //     REQUIRE(productRWScalar.getType() == ModelArray::Type::H);
 //     REQUIRE(productRWScalar(0, 0) == 5. * 7.);
-// 
+//
 //     ModelArray ratioRWScalar = rwRef / scalar;
 //     REQUIRE(ratioRWScalar.getType() == ModelArray::Type::H);
 //     REQUIRE(ratioRWScalar(0, 0) == 5. / 7.);
@@ -311,6 +303,52 @@ TEST_CASE("Full component access")
     REQUIRE(eArray.rows() == nx * ny);
     REQUIRE(eArray.cols() == nDG);
 }
+
+#ifdef USE_KOKKOS
+TEST_CASE("Host device data syncing")
+{
+    Kokkos::initialize(Kokkos::InitializationSettings {});
+    // scope to limit the lifetime of the ModelArrayStore
+    {
+        ModelArrayStore store;
+
+        ModelArray::setDimensions(ModelArray::Type::H, { 2, 3 });
+
+        constexpr int IDX = 5;
+
+        // init on host
+        ModelArrayAccessor<MiniModelComponent::H_ICE, RW> hiceSrcAccessor(store, RW);
+        {
+            ModelArray& hice = hiceSrcAccessor.getHostRW();
+            hice.resize();
+            hice = 2.0;
+            hice[IDX] = 5.0;
+        }
+        // do work on device
+        ModelArrayAccessor<MiniModelComponent::H_ICE, RW> hiceDstAccessor(store);
+        {
+            const DeviceView& hiceDevice = hiceDstAccessor.getDeviceRW();
+            Kokkos::parallel_for(
+                "updateDevice", hiceDevice.extent(0),
+                KOKKOS_LAMBDA(const DeviceIndex i) { hiceDevice(i, 0) += i == IDX ? -1.0 : 1.0; });
+        }
+        // check results on host
+        {
+            const ModelArray& hice = hiceSrcAccessor.getHostRO();
+            for (size_t i = 0; i < hice.size(); ++i) {
+                if (i == IDX) {
+                    CHECK(hice[i] == 4.0);
+                } else {
+                    CHECK(hice[i] == 3.0);
+                }
+            }
+        }
+    }
+
+    Kokkos::finalize();
+}
+#endif
+
 TEST_SUITE_END();
 
 };

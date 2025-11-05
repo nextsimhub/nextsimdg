@@ -31,11 +31,6 @@ enum struct SyncState { SYNCED, HOST_CHANGED, DEVICE_CHANGED };
 // ModelArrayReferenceStore with ModelArrayStore without changing everything.
 class ModelArrayStore : public ModelArrayReferenceStore {
 public:
-    // Resizes all arrays and allocates device buffers.
-    // Needs to be done after the ModelArray::m_sz was properly initialized and should be done only
-    // once after all arrays have been registered.
-    void resize_arrays();
-
 private:
     struct ExtModelArray {
         std::string name;
@@ -46,7 +41,7 @@ private:
         // not a simple data member because the host buffer owned by ModelArray can be overwritten
         HostView hostView();
         // handles lazy initialization for the device buffer
-        DeviceView deviceView();
+        const DeviceView& deviceView();
 
     private:
         DeviceView m_deviceView;
@@ -65,11 +60,6 @@ private:
     template <typename... Args>
     ExtModelArray& _registerArray(const std::string& field, bool isReadWrite, Args&&... args)
     {
-        if (was_resized) {
-            throw std::logic_error(
-                "Registering ModelArray \"" + field + "\" after resize_arrays() was called.");
-        }
-
         auto it = store.find(field);
         if (it != store.end()) {
             ExtModelArrayFlagged& extArrFlagged = it->second;
@@ -104,7 +94,6 @@ private:
     ExtModelArray& getRO(const std::string& field);
 
     std::unordered_map<std::string, ExtModelArrayFlagged> store;
-    bool was_resized = false;
 
     template <const TextTag& fieldName, bool isReadWrite> friend class ModelArrayAccessor;
 };
