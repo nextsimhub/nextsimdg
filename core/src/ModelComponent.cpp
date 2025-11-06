@@ -8,6 +8,7 @@ namespace Nextsim {
 
 size_t ModelComponent::nOcean = 0;
 std::vector<size_t> ModelComponent::oceanIndex;
+bool ModelComponent::columnPhysicsStoreIsDestroyed; // initialized to 0 because of static lifetime
 
 ModelComponent::ModelComponent()
 {

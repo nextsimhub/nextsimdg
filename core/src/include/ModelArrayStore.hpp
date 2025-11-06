@@ -67,14 +67,21 @@ private:
                 throw std::logic_error("Registering ModelArray \"" + field
                     + "\" as read-only but at least one accessor requested read-write.");
             }
-            // Double registration where previously allowed but it could cause unexpected behaviour
-            // when the ModelArray params do not agree and should not be a need for it.
+
             if (extArrFlagged.isRegistered) {
-                throw std::logic_error(
-                    "Registering ModelArray \"" + field + "\" but it was already registered.");
+                // Double registration unfortunately has to be allowed because two instances
+                // of each ModelComponent are created which try to register the same fields.
+                // This loophole can be used to get a RW access for a field that should be RO.
+                // throw std::logic_error(
+                //    "Registering ModelArray \"" + field + "\" but it was already registered.");
+                if (extArrFlagged.isReadWrite != isReadWrite) {
+                    throw std::logic_error("Registering ModelArray \"" + field
+                        + "\" but it was already registered with different access restrictions.");
+                }
+            } else {
+                extArrFlagged.isReadWrite = isReadWrite;
+                extArrFlagged.isRegistered = true;
             }
-            extArrFlagged.isReadWrite = isReadWrite;
-            extArrFlagged.isRegistered = true;
         } else {
             // Regular emplace would be fine here since we know that it does not exist but
             // try_emplace has a more ergonomic signature.

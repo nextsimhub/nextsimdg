@@ -25,6 +25,7 @@ public:
     std::string getName() const override { return "IceThermodynamics"; }
     void setData(const ModelState::DataMap& ms) override
     {
+        deltaHiAccessor.getDeviceRO();
         tsurf.resize();
         deltaHi.resize();
         snowToIce.resize();
@@ -67,12 +68,7 @@ public:
      */
     virtual void update(const TimestepTime& tsTime)
     {
-   /*     const ConstDeviceView& hiceDeviceRO = hiceAccessor.getDeviceRO();
-        const DeviceView& tsurfDeviceRW = tsurfAccessor.getDeviceRW();
-        const ConstDeviceView& tsurfDeviceRO = tsurfAccessor.getDeviceRO();
-        const ModelArray& hiceHostRO = hiceAccessor.getHostRO();*/
-        ModelArray& tsurfHostRW = tsurfAccessor.getHostRW();
-        FieldAdvection::advectField(tsurfHostRW, tsTime, minT, 0.);
+        FieldAdvection::advectField(tsurf, tsTime, minT, 0.);
     }
 
     inline static std::string getKappaSConfigKey() { return "nextsim_thermo.ks"; }
@@ -101,7 +97,7 @@ protected:
         , qiaAccessor(getStore())
         // formerly owned arrays are initialized by special constructor
         , deltaHiAccessor(getStore(), RW, ModelArray::Type::H)
-        , tsurfAccessor(getStore(), RO, ModelArray::Type::H)
+        //, tsurfAccessor(getStore(), RO, ModelArray::Type::H)
     {
         getStore().registerArray(Shared::DELTA_HICE, &deltaHi, RW);
         getStore().registerArray(Protected::T_SURF, &tsurf, RO);
@@ -132,7 +128,7 @@ protected:
     ModelArrayAccessor<Shared::H_ICE_DG, RW> hiceAccessor;
     ModelArrayAccessor<Shared::Q_IA, RO> qiaAccessor;
     ModelArrayAccessor<Shared::DELTA_HICE, RW> deltaHiAccessor;
-    ModelArrayAccessor<Shared::T_SURF, RW> tsurfAccessor;
+    //ModelArrayAccessor<Shared::T_SURF, RW> tsurfAccessor;
 
     constexpr static double minT = -90.0;
 };

@@ -6,6 +6,7 @@
 #ifndef MODELCOMPONENT_HPP
 #define MODELCOMPONENT_HPP
 
+#include "include/Finalizer.hpp"
 #include "include/Logged.hpp"
 #include "include/MissingData.hpp"
 #include "include/ModelArrayRef.hpp"
@@ -182,7 +183,7 @@ public:
     /*!
      * @brief Returns the ModelArrayRef backing store for column physics fields.
      */
-    static ModelArrayStore& getStore() { return columnPhysicsStore(); }
+    static ModelArrayStore& getStore() { return *columnPhysicsStore(); }
 
 protected:
     inline static void overElements(IteratedFn fn, const TimestepTime& tst)
@@ -231,14 +232,29 @@ protected:
     }
 
 private:
-    static ModelArrayStore& columnPhysicsStore()
+    static std::unique_ptr<ModelArrayStore>& columnPhysicsStore()
     {
-        static ModelArrayStore store;
-        return store;
+        static std::unique_ptr<ModelArrayStore> storePtr;
+
+        if (!storePtr) {
+            if (columnPhysicsStoreIsDestroyed) {
+                Logged::warning("Trying to access the ModelArray store after it was destroyed.");
+            } else {
+                storePtr = std::make_unique<ModelArrayStore>();
+                Finalizer::registerUnique(destroyModelArrayStore);
+            }
+        }
+        return storePtr;
+    }
+    static void destroyModelArrayStore()
+    {
+        columnPhysicsStore().reset(nullptr);
+        columnPhysicsStoreIsDestroyed = true;
     }
 
     static size_t nOcean;
     static std::vector<size_t> oceanIndex;
+    static bool columnPhysicsStoreIsDestroyed;
 };
 
 } /* namespace Nextsim */
