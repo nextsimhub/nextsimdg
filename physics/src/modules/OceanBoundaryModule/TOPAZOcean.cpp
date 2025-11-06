@@ -155,6 +155,24 @@ std::string topazFilenameFromYearMonth(const std::string& topazName, size_t year
     return TOPAZOcean::addDirectory(filename);
 }
 
+std::pair<double, double> topazFractionalIndices(double longitude, double latitude) {
+
+    // x and y positions in the source grid for each point on the target grid
+    const double dRad = radians(0.089828);
+    const double lat0 = radians(90);
+    const double lon0 = radians(-45.);
+    const double topazNx = 760;
+    const double topazNy = 1100;
+
+    double cosLat = cos(radians(latitude));
+    // Uses cos(lat0) = 0. and lon0 = 0.
+    double k = 2/dRad/(1+sin(radians(latitude)));
+    double iFrac = k * cosLat * sin(radians(longitude) - lon0) + topazNx/2;
+    double jFrac = -k * cosLat * cos(radians(longitude) - lon0) + topazNy/2;
+
+    return {iFrac, jFrac};
+}
+
 ModelArray getTOPAZVarIndexData(const std::string& topazName, size_t year, size_t month, size_t day, const ModelArray& modelLon, const ModelArray& modelLat)
 {
     std::string filePath = topazFilenameFromYearMonth(topazName, year, month);
@@ -172,11 +190,12 @@ ModelArray getTOPAZVarIndexData(const std::string& topazName, size_t year, size_
     ModelArray::MultiDim dim = modelLon.dimensions();
     for (int j = 0; j < dim[1]; ++j) {
         for (int i = 0; i < dim[0]; ++i) {
-            double cosLat = cos(radians(modelLat(i, j)));
+//            double cosLat = cos(radians(modelLat(i, j)));
             // Uses cos(lat0) = 0. and lon0 = 0.
-            double k = 2/dRad/(1+sin(radians(modelLat(i, j))));
-            iFrac(i, j) = k * cosLat * sin(radians(modelLon(i, j)) + lon0) + topazNx/2;
-            jFrac(i, j) = -k * cosLat * cos(radians(modelLon(i, j)) + lon0) + topazNy/2;
+//            double k = 2/dRad/(1+sin(radians(modelLat(i, j))));
+            auto [l, m] = topazFractionalIndices(modelLon(i, j), modelLat(i, j));
+            iFrac(i, j) = l;//k * cosLat * sin(radians(modelLon(i, j)) + lon0) + topazNx/2;
+            jFrac(i, j) = m;//-k * cosLat * cos(radians(modelLon(i, j)) + lon0) + topazNy/2;
         }
     }
     return NetCDFForcings::maFromBuffer(tdata, iFrac, jFrac);
