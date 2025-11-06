@@ -39,8 +39,8 @@ const std::string testFilesDir = TEST_FILES_DIR;
 
 size_t nx = 761;
 size_t ny = 1101;
-double dRad = radians(0.09);
-double lon0 = 0.0;
+double dRad = radians(0.089828);
+double lon0 = -45.0;
 double lat0 = radians(90.);
 size_t nt = 1.;
 double t0 = 438288; // hours between 1950-01-01T00:00:00 and 2000-01-01T00:00:00
@@ -60,6 +60,58 @@ TEST_CASE("topazFilename")
     REQUIRE(topazFilenameFromYearMonth(sst, early, 1) == testPath + "/" + "TP4DAILY_198001_3m.nc");
     REQUIRE(topazFilenameFromYearMonth(sst, early, 12) == testPath + "/" + "TP4DAILY_198012_3m.nc");
     REQUIRE(topazFilenameFromYearMonth(u, recent, 1) == testPath + "/" + "TP4DAILY_202401_30m.nc");
+}
+
+TEST_CASE("Fractional index test")
+{
+    Buffer lon2d(nx, ny);
+    Buffer lat2d(nx, ny);
+
+    int ic = nx/2;
+    int jc = ny/2;
+
+    for (int j = 0; j < ny; ++j) {
+        double y = (j - jc) * dRad;
+        for (int i = 0; i < nx; ++i) {
+            double x = (i - ic) * dRad;
+            double rho = sqrt(x*x + y*y);
+            double c = 2 * atan(rho / 2);
+            lat2d(i, j) = degrees(asin(cos(c)));
+            lon2d(i, j) = lon0 + degrees(atan2(x*sin(c), rho*cos(lat0)*cos(c) - y*sin(lat0)*sin(c)));
+        }
+    }
+    std::vector<std::pair<std::pair<int, int>, std::pair<double, double>>> testCoordsVector = {
+            { {0, 0}, {-79.64095, 34.686497} },
+            { {ic, jc}, {135.00000, 90.0} },
+            { {ic-1, jc}, {-135.00000, 89.910172} },
+            { {ic, jc-1}, {-45.00000, 89.910172} },
+            { {ic+1, jc}, {45.00000, 89.910172} },
+            { {ic, jc+1}, {135.00000, 89.910172} },
+            { {ic-1, jc-1}, {-90.00000, 89.872963} },
+            { {ic+1, jc-1}, {0.00000, 89.872963} },
+            { {ic+1, jc+1}, {90.00000, 89.872963} },
+            { {ic-1, jc+1}, {180.00000, 89.872963} },
+            { {ic, 0}, {-45, 43.353306} },
+    };
+    double prec = 1e-4;
+    for (const auto& testCoords : testCoordsVector) {
+        auto [i, j] = testCoords.first;
+        auto [lon, lat] = testCoords.second;
+        REQUIRE(lat2d(i, j) == doctest::Approx(lat).epsilon(prec));
+        // Use trigonometric functions to avoid spurious longitude differences
+        // at the pole and account for differences in representing the same angle.
+        double ll = lon2d(i,j);
+        double lr = lon;
+        double la = lat;
+        double clat = cos(radians(la));
+        double cl = cos(radians(ll));
+        double cr = cos(radians(lr));
+        double sl = sin(radians(ll));
+        double sr = sin(radians(lr));
+        REQUIRE_MESSAGE(cl*clat == doctest::Approx(cr*clat).epsilon(prec), ll, "==", lr);
+        REQUIRE_MESSAGE(sl*clat == doctest::Approx(sr*clat).epsilon(prec), ll, "==", lr);
+    }
+
 }
 
 TEST_CASE("Spatial interpolation from files")
