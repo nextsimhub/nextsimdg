@@ -165,7 +165,7 @@ std::pair<double, double> topazFractionalIndices(double longitude, double latitu
     const double topazNy = 1100;
 
     double cosLat = cos(radians(latitude));
-    // Uses cos(lat0) = 0. and lon0 = 0.
+    // Uses cos(lat0) = 0.
     double k = 2/dRad/(1+sin(radians(latitude)));
     double iFrac = k * cosLat * sin(radians(longitude) - lon0) + topazNx/2;
     double jFrac = -k * cosLat * cos(radians(longitude) - lon0) + topazNy/2;
@@ -190,12 +190,9 @@ ModelArray getTOPAZVarIndexData(const std::string& topazName, size_t year, size_
     ModelArray::MultiDim dim = modelLon.dimensions();
     for (int j = 0; j < dim[1]; ++j) {
         for (int i = 0; i < dim[0]; ++i) {
-//            double cosLat = cos(radians(modelLat(i, j)));
-            // Uses cos(lat0) = 0. and lon0 = 0.
-//            double k = 2/dRad/(1+sin(radians(modelLat(i, j))));
             auto [l, m] = topazFractionalIndices(modelLon(i, j), modelLat(i, j));
-            iFrac(i, j) = l;//k * cosLat * sin(radians(modelLon(i, j)) + lon0) + topazNx/2;
-            jFrac(i, j) = m;//-k * cosLat * cos(radians(modelLon(i, j)) + lon0) + topazNy/2;
+            iFrac(i, j) = l;
+            jFrac(i, j) = m;
         }
     }
     return NetCDFForcings::maFromBuffer(tdata, iFrac, jFrac);
