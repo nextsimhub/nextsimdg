@@ -30,6 +30,7 @@ using Buffer = Eigen::Array<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMa
 
 std::string topazFilenameFromYearMonth(const std::string& topazName, size_t year, size_t month);
 ModelArray getTOPAZVarIndexData(const std::string& topazName, size_t year, size_t month, size_t day, const ModelArray& modelLon, const ModelArray& modelLat);
+std::pair<double, double> topazFractionalIndices(double longitude, double latitude);
 
 #ifndef TEST_FILES_DIR
 #define TEST_FILES_DIR "."
@@ -62,6 +63,20 @@ TEST_CASE("topazFilename")
     REQUIRE(topazFilenameFromYearMonth(u, recent, 1) == testPath + "/" + "TP4DAILY_202401_30m.nc");
 }
 
+std::pair<double, double> topazCoords(double i, double j) {
+    int ic = nx/2;
+    int jc = ny/2;
+
+    double x = (i - ic) * dRad;
+    double y = (j - jc) * dRad;
+    double rho = sqrt(x*x + y*y);
+    double c = 2 * atan(rho / 2);
+    double lat = degrees(asin(cos(c)));
+    double lon = lon0 + degrees(atan2(x*sin(c), rho*cos(lat0)*cos(c) - y*sin(lat0)*sin(c)));
+
+    return {lon, lat};
+}
+
 TEST_CASE("Fractional index test")
 {
     Buffer lon2d(nx, ny);
@@ -71,16 +86,19 @@ TEST_CASE("Fractional index test")
     int jc = ny/2;
 
     for (int j = 0; j < ny; ++j) {
-        double y = (j - jc) * dRad;
+//        double y = (j - jc) * dRad;
         for (int i = 0; i < nx; ++i) {
-            double x = (i - ic) * dRad;
-            double rho = sqrt(x*x + y*y);
-            double c = 2 * atan(rho / 2);
-            lat2d(i, j) = degrees(asin(cos(c)));
-            lon2d(i, j) = lon0 + degrees(atan2(x*sin(c), rho*cos(lat0)*cos(c) - y*sin(lat0)*sin(c)));
+//            double x = (i - ic) * dRad;
+//            double rho = sqrt(x*x + y*y);
+//            double c = 2 * atan(rho / 2);
+//            lat2d(i, j) = degrees(asin(cos(c)));
+//            lon2d(i, j) = lon0 + degrees(atan2(x*sin(c), rho*cos(lat0)*cos(c) - y*sin(lat0)*sin(c)));
+            auto [lo, la] = topazCoords(i, j);
+            lon2d(i, j) = lo;
+            lat2d(i, j) = la;
         }
     }
-    std::vector<std::pair<std::pair<int, int>, std::pair<double, double>>> testCoordsVector = {
+    std::vector<std::pair<std::pair<int, int>, std::pair<double, double>>> testIndicesCoords = {
             { {0, 0}, {-79.64095, 34.686497} },
             { {ic, jc}, {135.00000, 90.0} },
             { {ic-1, jc}, {-135.00000, 89.910172} },
@@ -94,7 +112,7 @@ TEST_CASE("Fractional index test")
             { {ic, 0}, {-45, 43.353306} },
     };
     double prec = 1e-4;
-    for (const auto& testCoords : testCoordsVector) {
+    for (const auto& testCoords : testIndicesCoords) {
         auto [i, j] = testCoords.first;
         auto [lon, lat] = testCoords.second;
         REQUIRE(lat2d(i, j) == doctest::Approx(lat).epsilon(prec));
@@ -112,6 +130,38 @@ TEST_CASE("Fractional index test")
         REQUIRE_MESSAGE(sl*clat == doctest::Approx(sr*clat).epsilon(prec), ll, "==", lr);
     }
 
+    // test the fractional index calculation using the above TOPAZ lon and lat arrays
+    std::vector<std::pair<double, double>> testCoords = {
+            {0., 90.},
+            {0., 89.5},
+            {45., 89.},
+            {90., 88.},
+            {135., 86.},
+            {180., 82.},
+            {-180., 74.},
+            {270., 58.},
+            {-90., 26.},
+    };
+
+    prec = 1e-8;
+    for (const std::pair<double, double>& coords : testCoords) {
+        auto [iFrac, jFrac] = topazFractionalIndices(coords.first, coords.second);
+        auto [lon, lat] = topazCoords(iFrac, jFrac);
+        REQUIRE(coords.second == doctest::Approx(lat).epsilon(prec));
+        // Use trigonometric functions to avoid spurious longitude differences
+        // at the pole and account for differences in representing the same angle.
+        double ll = coords.first;
+        double lr = lon;
+        double la = lat;
+        double clat = cos(radians(la));
+        double cl = cos(radians(ll));
+        double cr = cos(radians(lr));
+        double sl = sin(radians(ll));
+        double sr = sin(radians(lr));
+        REQUIRE_MESSAGE(cl*clat == doctest::Approx(cr*clat).epsilon(prec), ll, "==", lr);
+        REQUIRE_MESSAGE(sl*clat == doctest::Approx(sr*clat).epsilon(prec), ll, "==", lr);
+
+    }
 }
 
 TEST_CASE("Spatial interpolation from files")
