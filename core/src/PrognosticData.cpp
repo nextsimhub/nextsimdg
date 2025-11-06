@@ -23,19 +23,15 @@ static constexpr bool checkFieldsFastDefault = true;
 
 PrognosticData::PrognosticData()
     : m_dt(1)
-    , hice(ModelArray::AdvectionType, { 0, 50 })
-    , cice(ModelArray::AdvectionType, { 0, 1 })
-    , damage(ModelArray::AdvectionType, { 0, 1 })
-    , hsnow(ModelArray::AdvectionType, { 0, 10 })
+    , hiceAccessor(getStore(), RW, ModelArray::AdvectionType, std::pair(0.0, 50.0))
+    , ciceAccessor(getStore(), RW, ModelArray::AdvectionType, std::pair(0.0, 1.0))
+    , damageAccessor(getStore(), RW, ModelArray::AdvectionType, std::pair(0.0, 1.0))
+    , hsnowAccessor(getStore(), RW, ModelArray::AdvectionType, std::pair(0.0, 10.0))
     , pAtmBdy(nullptr)
     , pOcnBdy(nullptr)
     , pDynamics(nullptr)
 {
-    getStore().registerArray(Shared::DAMAGE, &damage, RW);
-    getStore().registerArray(Shared::H_ICE_DG, &hice, RW);
-    getStore().registerArray(Shared::C_ICE_DG, &cice, RW);
-    getStore().registerArray(Shared::H_SNOW_DG, &hsnow, RW);
-}
+                }
 
 void PrognosticData::configure()
 {
@@ -64,8 +60,8 @@ void PrognosticData::configure()
         }
     } else if (checkFast) {
         addChecks({
-            { "thickness", &hice },
-            { "concentration", &cice },
+            { "thickness", &hiceAccessor.getHostRO() },
+            { "concentration", &ciceAccessor.getHostRO() },
         });
     }
 }
@@ -82,6 +78,11 @@ void copyMeanComponent(const ModelArray& source, ModelArray& sink)
 
 void PrognosticData::setData(const ModelState::DataMap& ms)
 {
+    AdvectedField& hice = hiceAccessor.getHostRW();
+    AdvectedField& cice = ciceAccessor.getHostRW();
+    AdvectedField& hsnow = hsnowAccessor.getHostRW();
+    AdvectedField& damage = damageAccessor.getHostRW();
+    
     if (ms.count(maskName)) {
         setOceanMask(ms.at(maskName));
     } else {
@@ -153,9 +154,9 @@ ModelState PrognosticData::getStatePrognostic() const
 {
     ModelState state = { {
                              { maskName, ModelArray(oceanMask()) }, // make a copy
-                             { hiceName, hice },
-                             { ciceName, cice },
-                             { hsnowName, hsnow },
+                             { hiceName, hiceAccessor.getHostRO() },
+                             { ciceName, ciceAccessor.getHostRO() },
+                             { hsnowName, hsnowAccessor.getHostRO() },
                          },
         ModelComponent::getConfiguration() };
 

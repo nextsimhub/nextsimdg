@@ -15,6 +15,7 @@ HostView ModelArrayStore::ExtModelArray::hostView()
 
 const DeviceView& ModelArrayStore::ExtModelArray::deviceView()
 {
+    assert(modelArray.trueSize() > 0 && "ModelArray is allocated");
     if (!m_deviceView.is_allocated()) {
         m_deviceView = makeKokkosDeviceView(name, modelArray.getDataRef());
     }

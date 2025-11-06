@@ -79,9 +79,9 @@ void MEVPDynamics::setData(const ModelState::DataMap& ms)
 
     // Set the DG field data. Needs to be done before initialise() because the Kokkos kernel
     // requires the actual vectors to init its views.
-    kernel.setDGArray(hiceName, hiceDG.allComponents());
-    kernel.setDGArray(ciceName, ciceDG.allComponents());
-    kernel.setDGArray(hsnowName, hsnowDG.allComponents());
+    kernel.setDGArray(hiceName, hiceDGAccessor.getHostRW());
+    kernel.setDGArray(ciceName, ciceDGAccessor.getHostRW());
+    kernel.setDGArray(hsnowName, hsnowDGAccessor.getHostRW());
 
     const bool isSpherical = checkSpherical(ms);
 
@@ -93,8 +93,8 @@ void MEVPDynamics::setData(const ModelState::DataMap& ms)
     // TODO: Some encoding of the periodic edge boundary conditions
     kernel.initialise(coords, isSpherical, ms.at(maskName));
 
-    uice = ms.at(uName);
-    vice = ms.at(vName);
+    uiceAccessor.getHostRW() = ms.at(uName);
+    viceAccessor.getHostRW() = ms.at(vName);
 
     // Set the data in the kernel arrays.
     for (const auto& fieldName : namedFields) {
@@ -107,24 +107,24 @@ void MEVPDynamics::update(const TimestepTime& tst)
     std::cout << tst.start << std::endl;
 
     // set the forcing velocities
-    kernel.setData(uWindName, uwind);
-    kernel.setData(vWindName, vwind);
-    kernel.setData(uOceanName, uocean);
-    kernel.setData(vOceanName, vocean);
-    kernel.setData(sshName, ssh);
+    kernel.setData(uWindName, uwindAccessor.getHostRO());
+    kernel.setData(vWindName, vwindAccessor.getHostRO());
+    kernel.setData(uOceanName, uoceanAccessor.getHostRO());
+    kernel.setData(vOceanName, voceanAccessor.getHostRO());
+    kernel.setData(sshName, sshAccessor.getHostRO());
 
     kernel.update(tst);
 
-    uice = kernel.getDG0Data(uName);
-    vice = kernel.getDG0Data(vName);
+    uiceAccessor.getHostRW() = kernel.getDG0Data(uName);
+    viceAccessor.getHostRW() = kernel.getDG0Data(vName);
 
-    taux = kernel.getDG0Data(uIOStressName);
-    tauy = kernel.getDG0Data(vIOStressName);
+    tauxAccessor.getHostRW() = kernel.getDG0Data(uIOStressName);
+    tauyAccessor.getHostRW() = kernel.getDG0Data(vIOStressName);
 
-    shear = kernel.getDG0Data(shearName);
-    divergence = kernel.getDG0Data(divergenceName);
-    sigmaI = kernel.getDG0Data(sigmaIName);
-    sigmaII = kernel.getDG0Data(sigmaIIName);
+    shearAccessor.getHostRW() = kernel.getDG0Data(shearName);
+    divergenceAccessor.getHostRW() = kernel.getDG0Data(divergenceName);
+    sigmaIAccessor.getHostRW() = kernel.getDG0Data(sigmaIName);
+    sigmaIIAccessor.getHostRW() = kernel.getDG0Data(sigmaIIName);
 }
 
 void MEVPDynamics::advectField(

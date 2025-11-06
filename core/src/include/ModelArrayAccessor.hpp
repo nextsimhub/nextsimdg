@@ -2,6 +2,9 @@
  * @author  Robert Jendersie <robert.jendersie@ovgu.de>
  */
 
+#ifndef MODELARRAYACCESSOR_HPP
+#define MODELARRAYACCESSOR_HPP
+
 #include "ModelArrayStore.hpp"
 
 namespace Nextsim {
@@ -15,18 +18,20 @@ public:
     {
     }
 
-    const ModelArray& getHostRO()
+    const ModelArray& getHostRO() const
     {
+#ifdef USE_KOKKOS
         if (target.syncState == SyncState::DEVICE_CHANGED) {
             Kokkos::deep_copy(target.hostView(), target.deviceView());
             target.syncState = SyncState::SYNCED;
         }
+#endif
         return target.modelArray;
     }
 
 #ifdef USE_KOKKOS
     // returns a copy because target.deviceView has mutable data
-    ConstDeviceView getDeviceRO()
+    ConstDeviceView getDeviceRO() const
     {
         DeviceView deviceView = target.deviceView();
         if (target.syncState == SyncState::HOST_CHANGED) {
@@ -56,7 +61,7 @@ public:
     {
     }
 
-    const ModelArray& getHostRO()
+    const ModelArray& getHostRO() const
     {
 #ifdef USE_KOKKOS
         if (target.syncState == SyncState::DEVICE_CHANGED) {
@@ -81,7 +86,7 @@ public:
 
 #ifdef USE_KOKKOS
     // returns a copy because target.deviceView has mutable data
-    ConstDeviceView getDeviceRO()
+    ConstDeviceView getDeviceRO() const
     {
         DeviceView deviceView = target.deviceView();
         if (target.syncState == SyncState::HOST_CHANGED) {
@@ -108,3 +113,5 @@ private:
     ModelArrayStore::ExtModelArray& target;
 };
 }
+
+#endif /* MODELARRAYACCESSOR_HPP */
