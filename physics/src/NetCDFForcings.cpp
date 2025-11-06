@@ -53,18 +53,21 @@ NetCDFForcings::Buffer NetCDFForcings::getFileIndexData(const std::string& filen
             "time",
             "valid_time",
     };
+    size_t nDim;
     for (auto entry : ncFile.getVars()) {
         if (ignoredFields.count(entry.first) == 0 && (fieldName.size() == 0 || entry.first == fieldName)) {
             dataVar = entry.second;
-            nx = dataVar.getDim(2).getSize();
-            ny = dataVar.getDim(1).getSize();
+            nDim = dataVar.getDimCount();
+            // x and y are assumed to be the last two dimensions
+            nx = dataVar.getDim(nDim-1).getSize();
+            ny = dataVar.getDim(nDim-2).getSize();
         }
     }
-    std::vector<size_t> start = {tIndex, 0, 0};
-    std::vector<size_t> count = {1, ny, nx};
-    // Time dimension
+    std::vector<size_t> start(nDim, 0);
     start[0] = tIndex;
-    count[0] = 1;
+    std::vector<size_t> count(nDim, 1);
+    count[nDim - 1] = nx;
+    count[nDim - 2] = ny;
 
     data.resize(nx, ny);
 
