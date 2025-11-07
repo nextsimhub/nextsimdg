@@ -87,8 +87,11 @@ public:
     ModelArray getData(const std::string& nsName, const TimePoint& time);
     static Buffer getFileIndexData(const std::string& filename, const std::string& fieldName, size_t tIndex);
     static Buffer getFileIndexData(const std::string& filename, size_t tIndex);
+    static Buffer getFileIndexData(const std::string& filename, const std::string& fieldName, size_t tIndex, double& missing);
+    static Buffer getFileIndexData(const std::string& filename, size_t tIndex, double& missing);
 
     static ModelArray maFromBuffer(const Buffer& buffer, const ModelArray& fracI, const ModelArray& fracJ);
+    static ModelArray maFromBuffer(const Buffer& buffer, const ModelArray& fracI, const ModelArray& fracJ, double missing);
 private:
 
     const Buffer getBufferData(const std::string nsName, const TimePoint& time);

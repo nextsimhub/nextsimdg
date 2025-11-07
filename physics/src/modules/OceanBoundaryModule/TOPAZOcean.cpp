@@ -176,14 +176,8 @@ std::pair<double, double> topazFractionalIndices(double longitude, double latitu
 ModelArray getTOPAZVarIndexData(const std::string& topazName, size_t year, size_t month, size_t day, const ModelArray& modelLon, const ModelArray& modelLat)
 {
     std::string filePath = topazFilenameFromYearMonth(topazName, year, month);
-    NetCDFForcings::Buffer tdata = NetCDFForcings::getFileIndexData(filePath, topazName, day-1);
-
-    // x and y positions in the source grid for each point on the target grid
-    double dRad = radians(0.09);
-    double lat0 = radians(90);
-    double lon0 = radians(0.);
-    double topazNx = 761;
-    double topazNy = 1101;
+    double missing = 0.;
+    NetCDFForcings::Buffer tdata = NetCDFForcings::getFileIndexData(filePath, topazName, day-1, missing);
 
     ModelArray iFrac;
     ModelArray jFrac;
@@ -195,7 +189,7 @@ ModelArray getTOPAZVarIndexData(const std::string& topazName, size_t year, size_
             jFrac(i, j) = m;
         }
     }
-    return NetCDFForcings::maFromBuffer(tdata, iFrac, jFrac);
+    return NetCDFForcings::maFromBuffer(tdata, iFrac, jFrac, missing);
 }
 
 // Time interpolation happens here

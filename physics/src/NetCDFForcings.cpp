@@ -41,6 +41,12 @@ ModelArray NetCDFForcings::getData(const std::string& nsName, const TimePoint& t
 
 NetCDFForcings::Buffer NetCDFForcings::getFileIndexData(const std::string& filename, const std::string& fieldName, size_t tIndex)
 {
+    double missing = 0.;
+    return getFileIndexData(filename, fieldName, tIndex, missing);
+}
+
+NetCDFForcings::Buffer NetCDFForcings::getFileIndexData(const std::string& filename, const std::string& fieldName, size_t tIndex, double& missing)
+{
     Buffer data;
     netCDF::NcFile ncFile(filename, netCDF::NcFile::read, netCDF::NcFile::nc4);
     netCDF::NcVar dataVar;
@@ -72,21 +78,38 @@ NetCDFForcings::Buffer NetCDFForcings::getFileIndexData(const std::string& filen
     data.resize(nx, ny);
 
     dataVar.getVar(start, count, data.data());
-    static const std::string offset_name = "add_offset";
-    static const std::string scale_name = "scale_factor";
+    static const std::string offsetName = "add_offset";
+    static const std::string scaleName = "scale_factor";
+    static const std::string missingName = "missing_value";
+    static const std::string fillValueName = "_FillValue";
     auto dataAtts = dataVar.getAtts();
     double a = 1.;
-    if (dataAtts.count(scale_name)){
-        dataAtts.at(scale_name).getValues(&a);
+    if (dataAtts.count(scaleName)){
+        dataAtts.at(scaleName).getValues(&a);
     }
     double b = 0.;
-    if (dataAtts.count(offset_name)) {
-        dataAtts.at(offset_name).getValues(&b);
+    if (dataAtts.count(offsetName)) {
+        dataAtts.at(offsetName).getValues(&b);
+    }
+    missing = 0.;
+    bool hasMissing = false;
+    if (dataAtts.count(missingName)) {
+        dataAtts.at(missingName).getValues(&missing);
+        hasMissing = true;
+    } else if (dataAtts.count(fillValueName)) {
+        dataAtts.at(fillValueName).getValues(&missing);
+        hasMissing = true;
     }
     ncFile.close();
 
     data *= a;
     data += b;
+
+    // Don't scale and offset the missing value if one was not set.
+    if (hasMissing) {
+        missing *= a;
+        missing += b;
+    }
     return data;
 }
 
@@ -94,6 +117,12 @@ NetCDFForcings::Buffer NetCDFForcings::getFileIndexData(const std::string& filen
 {
     return getFileIndexData(filename, "", tIndex);
 }
+
+NetCDFForcings::Buffer NetCDFForcings::getFileIndexData(const std::string& filename, size_t tIndex, double& missing)
+{
+    return getFileIndexData(filename, "", tIndex, missing);
+}
+
 ModelArray NetCDFForcings::maFromBuffer(const Buffer& buffer, const ModelArray& fracI, const ModelArray& fracJ)
 {
     int nxma = fracI.dimensions()[0];
@@ -136,6 +165,64 @@ ModelArray NetCDFForcings::maFromBuffer(const Buffer& buffer, const ModelArray& 
     }
     return maData;
 
+}
+
+/*!
+ * @brief Interpolates from the native forcing grid to the model grid.
+ *
+ * @details Interpolates from the grid on which the forcing value is natively
+ * stored to the model grid. Missing data is ignored in the interpolation, and
+ * a missing data value of 0. is taken to mean that there is no missing data
+ * value provided, as there are few circumstances where a value of 0. would not
+ * be a possible valid value. If the original data does use 0. as a missing
+ * data value, then the data should be re-masked before this function is
+ * called.
+ *
+ * @param buffer The forcing data on its native grid
+ * @param iFrac The x index (including fractional part) on the forcing grid for
+ *     each point on the target model grid.
+ * @param jFrac The y index (including fractional part) on the forcing grid for
+ *     each point on the target model grid.
+ * @param missing The value indicating missing data. A value of 0 is assumed to mean there is no missing data value
+ */
+ModelArray NetCDFForcings::maFromBuffer(const Buffer& buffer, const ModelArray& fracI, const ModelArray& fracJ, double missing)
+{
+    const size_t nSamples = 4;
+    const std::array<int, nSamples> xOffsets = { 0, 1, 0, 1 };
+    const std::array<int, nSamples> yOffests = { 0, 0, 1, 1 };
+    int nxma = fracI.dimensions()[0];
+    int nyma = fracI.dimensions()[1];
+
+    int nxbu = buffer.rows();
+    int nybu = buffer.cols();
+    ModelArray maData(ModelArray::Type::H);
+    maData.resize();
+    for (size_t j = 0; j < nyma; ++j) {
+        for (size_t i = 0; i < nxma; ++i) {
+            double iFloat = fracI(i, j);
+            double jFloat = fracJ(i, j);
+            // Separate out the integral and fractional parts
+            int ilo = iFloat;
+            int jlo = jFloat;
+            double fx = 1 - (iFloat - ilo);
+            double fy = 1 - (jFloat - jlo);
+            const std::array<double, nSamples> weights = { fx*fy, (1-fx)*fy, fx*(1-fy), (1-fx)*(1-fy) };
+            double vAcc = 0.;
+            double wAcc = 0.;
+            for (size_t s = 0; s < nSamples; ++s) {
+                if (ilo >= 0 && ilo+1 < nxbu && jlo >= 0 && jlo+1 < nybu) {
+                    double v = buffer(ilo, jlo);
+                    if (missing == 0 || v != missing) {
+                        vAcc += v * weights[s];
+                        wAcc += weights[s];
+                    }
+                }
+                maData(i, j) = (wAcc != 0.) ? vAcc / wAcc : missing;
+            }
+        }
+    }
+
+    return maData;
 }
 const NetCDFForcings::Buffer NetCDFForcings::getBufferData(const std::string nsName, const TimePoint& time)
 {
