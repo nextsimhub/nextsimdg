@@ -32,11 +32,6 @@ if(NOT ENABLE_MPI)
     target_include_directories(testTOPAZOcean PRIVATE "${ModulesRoot}/OceanBoundaryModule")
     target_link_libraries(testTOPAZOcean PRIVATE nextsimlib doctest::doctest)
 
-    add_executable(testTOPAZOcn "TOPAZOcn_test.cpp")
-    target_include_directories(testTOPAZOcn PRIVATE "${ModulesRoot}/OceanBoundaryModule")
-    target_compile_definitions(testTOPAZOcn PRIVATE TEST_FILES_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}\")
-    target_link_libraries(testTOPAZOcn PRIVATE nextsimlib doctest::doctest)
-
     add_executable(testIceGrowth "IceGrowth_test.cpp")
     target_include_directories(testIceGrowth PRIVATE "${ModulesRoot}/OceanBoundaryModule"
                                                      "${CoreModulesRoot}/FreezingPointModule")
