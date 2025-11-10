@@ -8,7 +8,6 @@
 
 #include "include/Configured.hpp"
 #include "include/IIceThermodynamics.hpp"
-#include "include/ModelArrayRef.hpp"
 
 namespace Nextsim {
 
@@ -48,8 +47,8 @@ private:
     HField snowMelt;
     HField topMelt;
     HField botMelt;
-    ModelArrayRef<Protected::SW_IN> sw_in;
-    ModelArrayRef<Shared::SUBLIM, RO> subl;
+    ModelArrayAccessor<Protected::SW_IN> sw_inAccessor;
+    ModelArrayAccessor<Shared::SUBLIM, RO> sublAccessor;
 
     static const double cVol;
     static bool doFlooding;
@@ -57,7 +56,7 @@ private:
     static double kappa_s;
 
     void calculateTemps(
-        double& tSurf, double& tMidt, double& tBotn, double& mSurf, size_t i, double dt);
+        double& tSurf, double& tMidt, double& tBotn, double& mSurf, const double cice, const double dQia_dt, const double hice, const double hsnow, const double penSw, const double qia, const double tf, double dt);
 };
 
 } /* namespace Nextsim */

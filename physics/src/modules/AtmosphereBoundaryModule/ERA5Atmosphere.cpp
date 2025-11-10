@@ -21,19 +21,13 @@ static const std::map<int, std::string> keyMap = {
 
 ERA5Atmosphere::ERA5Atmosphere()
     : fluxImpl(nullptr)
-    , tair(ModelArray::Type::H, { -100, 100 })
-    , tdew(ModelArray::Type::H, { -100, 100 })
-    , pair(ModelArray::Type::H, { 500e2, 2000e2 })
-    , sw_in(ModelArray::Type::H, { -1e-6, 1e4 })
-    , lw_in(ModelArray::Type::H, { -1e-6, 1e4 })
-    , wind(ModelArray::Type::H, { 0, 100 })
+    , tairAccessor(getStore(), RO, ModelArray::Type::H, std::pair(-100.0, 100.0))
+    , tdewAccessor(getStore(), RO, ModelArray::Type::H, std::pair(-100.0, 100.0))
+    , pairAccessor(getStore(), RO, ModelArray::Type::H, std::pair(500e2, 2000e2))
+    , sw_inAccessor(getStore(), RO, ModelArray::Type::H, std::pair(-1e-6, 1e4))
+    , lw_inAccessor(getStore(), RO, ModelArray::Type::H, std::pair(-1e-6, 1e4))
+    , windAccessor(getStore(), RO, ModelArray::Type::H, std::pair(0.0, 100.0))
 {
-    getStore().registerArray(Protected::T_AIR, &tair, RO);
-    getStore().registerArray(Protected::DEW_2M, &tdew, RO);
-    getStore().registerArray(Protected::P_AIR, &pair, RO);
-    getStore().registerArray(Protected::SW_IN, &sw_in, RO);
-    getStore().registerArray(Protected::LW_IN, &lw_in, RO);
-    getStore().registerArray(Protected::WIND_SPEED, &wind, RO);
 }
 
 ConfigurationHelp::HelpMap& ERA5Atmosphere::getHelpRecursive(HelpMap& map, bool getAll)
@@ -57,12 +51,12 @@ void ERA5Atmosphere::configure()
     tryConfigure(fluxImpl);
 
     addChecks({
-        { "tair", &tair },
-        { "tdew", &tdew },
-        { "pair", &pair },
-        { "sw_in", &sw_in },
-        { "lw_in", &lw_in },
-        { "wind", &wind },
+        { "tair", &tairAccessor.getHostRO() },
+        { "tdew", &tdewAccessor.getHostRO() },
+        { "pair", &pairAccessor.getHostRO() },
+        { "sw_in", &sw_inAccessor.getHostRO() },
+        { "lw_in", &lw_inAccessor.getHostRO() },
+        { "wind", &windAccessor.getHostRO() },
     });
 }
 
@@ -80,16 +74,16 @@ void ERA5Atmosphere::update(const TimestepTime& tst)
         = { "tair", "dew2m", "pair", "sw_in", "lw_in", "wind_speed", "u", "v" };
 
     ModelState state = ParaGridIO::readForcingTimeStatic(forcings, tst.start, filePath);
-    tair = state.data.at("tair");
-    tdew = state.data.at("dew2m");
-    pair = state.data.at("pair");
-    sw_in = state.data.at("sw_in");
-    lw_in = state.data.at("lw_in");
-    wind = state.data.at("wind_speed");
-    uwind = state.data.at("u");
-    vwind = state.data.at("v");
-    snow = 0; // FIXME get snow data
-    rain = 0; // FIXME get rain data
+    tairAccessor.getHostRW() = state.data.at("tair");
+    tdewAccessor.getHostRW() = state.data.at("dew2m");
+    pairAccessor.getHostRW() = state.data.at("pair");
+    sw_inAccessor.getHostRW() = state.data.at("sw_in");
+    lw_inAccessor.getHostRW() = state.data.at("lw_in");
+    windAccessor.getHostRW() = state.data.at("wind_speed");
+    uwindAccessor.getHostRW() = state.data.at("u");
+    vwindAccessor.getHostRW() = state.data.at("v");
+    snowAccessor.getHostRW() = 0; // FIXME get snow data
+    rainAccessor.getHostRW() = 0; // FIXME get rain data
 
     fluxImpl->update(tst);
 

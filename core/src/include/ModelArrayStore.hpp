@@ -8,7 +8,6 @@
 #include "../../../dynamics/src/kokkos/include/KokkosUtils.hpp"
 #include "ModelArray.hpp"
 #include "ModelArrayRef.hpp" // for RW,RO globals
-#include "ModelArrayReferenceStore.hpp" // only for testing
 
 #include <string>
 #include <unordered_map>
@@ -27,10 +26,10 @@ using ConstHostView = ConstKokkosHostView<ModelArray::DataType>;
 enum struct SyncState { SYNCED, HOST_CHANGED, DEVICE_CHANGED };
 #endif
 
-// Inherit from ModelArrayReferenceStore only for demonstration purposes so we can replace
-// ModelArrayReferenceStore with ModelArrayStore without changing everything.
-class ModelArrayStore : public ModelArrayReferenceStore {
+class ModelArrayStore {
 public:
+    std::unordered_map<std::string, const ModelArray*> getAllData() const;
+
 private:
     struct ExtModelArray {
         std::string name;
@@ -58,7 +57,7 @@ private:
 
     // underscore in name is just to prevent name conflict with ModelArrayReferenceStore for now
     template <typename... Args>
-    ExtModelArray& _registerArray(const std::string& field, bool isReadWrite, Args&&... args)
+    ExtModelArray& registerArray(const std::string& field, bool isReadWrite, Args&&... args)
     {
         auto it = store.find(field);
         if (it != store.end()) {

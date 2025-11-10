@@ -15,7 +15,7 @@ class BasicIceOceanHeatFlux : public IIceOceanHeatFlux {
 public:
     BasicIceOceanHeatFlux()
         : IIceOceanHeatFlux()
-        , mlBulkCp(getStore())
+        , mlBulkCpAccessor(getStore())
     {
     }
     virtual ~BasicIceOceanHeatFlux() = default;
@@ -26,7 +26,7 @@ public:
     void updateElement(size_t i, const TimestepTime&);
 
 protected:
-    ModelArrayRef<Protected::ML_BULK_CP> mlBulkCp;
+    ModelArrayAccessor<Protected::ML_BULK_CP> mlBulkCpAccessor;
 };
 
 } /* namespace Nextsim */

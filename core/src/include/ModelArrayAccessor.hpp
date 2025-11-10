@@ -57,7 +57,7 @@ public:
 
     template <typename... Args>
     ModelArrayAccessor(ModelArrayStore& store, bool isReadWriteExternal, Args&&... args)
-        : target(store._registerArray(fieldName, isReadWriteExternal, std::forward<Args>(args)...))
+        : target(store.registerArray(fieldName, isReadWriteExternal, std::forward<Args>(args)...))
     {
     }
 

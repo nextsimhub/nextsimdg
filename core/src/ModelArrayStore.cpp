@@ -33,6 +33,17 @@ ModelArrayStore::ExtModelArrayFlagged::ExtModelArrayFlagged(
 
 #endif
 
+std::unordered_map<std::string, const ModelArray*> ModelArrayStore::getAllData() const
+{
+    std::unordered_map<std::string, const ModelArray*> dataMap;
+
+    for (const auto& [name, extArrFlagged] : store) {
+        dataMap.emplace(name, &extArrFlagged.extModelArray.modelArray);
+    }
+
+    return dataMap;
+}
+
 ModelArrayStore::ExtModelArray& ModelArrayStore::getRW(const std::string& field)
 {
     if (auto it = store.find(field); it != store.end()) {

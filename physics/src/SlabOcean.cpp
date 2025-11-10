@@ -27,11 +27,6 @@ void SlabOcean::configure()
 {
     relaxationTimeT = Configured::getConfiguration(keyMap.at(TIMET_KEY), defaultRelaxationTime);
     relaxationTimeS = Configured::getConfiguration(keyMap.at(TIMES_KEY), defaultRelaxationTime);
-
-    getStore().registerArray(Protected::SLAB_QDW, &qdw, RO);
-    getStore().registerArray(Protected::SLAB_FDW, &fdw, RO);
-    getStore().registerArray(Protected::SLAB_SST, &sstSlab, RO);
-    getStore().registerArray(Protected::SLAB_SSS, &sssSlab, RO);
 }
 
 ConfigMap SlabOcean::getConfiguration() const
@@ -45,8 +40,8 @@ ConfigMap SlabOcean::getConfiguration() const
 ModelState SlabOcean::getStatePrognostic() const
 {
     return { {
-                 { sstName, sstSlab },
-                 { sssName, sssSlab },
+                 { sstName, sstSlabAccessor.getHostRO() },
+                 { sssName, sssSlabAccessor.getHostRO() },
              },
         getConfiguration() };
 }
@@ -54,8 +49,8 @@ ModelState SlabOcean::getStatePrognostic() const
 ModelState SlabOcean::getStateDiagnostic() const
 {
     ModelState state = { {
-                             { "Q_slab", qdw },
-                             { "F_slab", fdw },
+                             { "Q_slab", qdwAccessor.getHostRO() },
+                             { "F_slab", fdwAccessor.getHostRO() },
                          },
         {} };
 
@@ -77,20 +72,55 @@ SlabOcean::HelpMap& SlabOcean::getHelpText(HelpMap& map, bool getAll)
 
 void SlabOcean::setData(const ModelState::DataMap& ms)
 {
+    HField& qdw = qdwAccessor.getHostRW();
     qdw.resize();
+    HField& fdw = fdwAccessor.getHostRW();
     fdw.resize();
+    HField& sstSlab = sstSlabAccessor.getHostRW();
     sstSlab.resize();
+    HField& sssSlab = sssSlabAccessor.getHostRW();
     sssSlab.resize();
 }
 
 void SlabOcean::update(const TimestepTime& tst)
 {
+    HField& sstSlab = sstSlabAccessor.getHostRW();
+    HField& fdw = fdwAccessor.getHostRW();
+    HField& qdw = qdwAccessor.getHostRW();
+    HField& sssSlab = sssSlabAccessor.getHostRW();
+    const HField& fwFlux = fwFluxAccessor.getHostRO();
+    const HField& sssExt = sssExtAccessor.getHostRO();
+    const HField& sst = sstAccessor.getHostRO();
+    const HField& sstExt = sstExtAccessor.getHostRO();
+    const HField& qswNet = qswNetAccessor.getHostRO();
+    const HField& sss = sssAccessor.getHostRO();
+    const HField& qNoSun = qNoSunAccessor.getHostRO();
+    const HField& cpml = cpmlAccessor.getHostRO();
+
     dt = tst.step.seconds();
     overElements(
-        [this](const size_t i, const TimestepTime& tsTime) { this->updateElement(i, tsTime); },
+        [&](const size_t i, const TimestepTime& tsTime) {
+            // Slab SST update
+            qdw[i] = (sstExt[i] - sst[i]) * cpml[i] / relaxationTimeT;
+            sstSlab[i] = sst[i] - dt * (qswNet[i] + qNoSun[i] - qdw[i]) / cpml[i];
+
+            // Slab SSS update
+            const double arealDensity
+                = cpml[i] / Water::cp; // density times depth, or cpml divided by cp
+            // This is simplified compared to the finiteelement.cpp calculation
+            // Fdw = delS * mld * physical::rhow /(timeS*M_sss[i] - ddt*delS) where delS = sssSlab -
+            // sssExt
+            fdw[i] = (1 - sssExt[i] / sss[i]) * arealDensity / relaxationTimeS;
+
+            // Mass per unit area after all the changes in water volume
+            // Clamp the denominator to be at least 1 m deep, i.e. at least Water::rho kg m⁻²
+            const double denominator
+                = std::max(arealDensity - (fwFlux[i] - fdw[i]) * dt, Water::rhoOcean);
+            sssSlab[i] = sss[i] + (sss[i] * fwFlux[i] - fdw[i] * dt) / denominator;
+        },
         tst);
 }
-
+/*
 void SlabOcean::updateElement(size_t i, const TimestepTime& tst)
 {
     // Slab SST update
@@ -107,6 +137,6 @@ void SlabOcean::updateElement(size_t i, const TimestepTime& tst)
     // Clamp the denominator to be at least 1 m deep, i.e. at least Water::rho kg m⁻²
     const double denominator = std::max(arealDensity - (fwFlux[i] - fdw[i]) * dt, Water::rhoOcean);
     sssSlab[i] = sss[i] + (sss[i] * fwFlux[i] - fdw[i] * dt) / denominator;
-}
+}*/
 
 } /* namespace Nextsim */

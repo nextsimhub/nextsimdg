@@ -14,18 +14,32 @@ static inline double doOne(double tBot, double sst, double mlBulkCp, double time
 
 void BasicIceOceanHeatFlux::update(const TimestepTime& tst)
 {
+    HField& qio = qioAccessor.getHostRW();
+    const AdvectedField& cice = ciceAccessor.getHostRO();
+    const HField& mlBulkCp = mlBulkCpAccessor.getHostRO();
+    const HField& sst = sstAccessor.getHostRO();
+    const HField& tf = tfAccessor.getHostRO();
+
     overElements(
-        [this](size_t i, const TimestepTime& tsTime) { this->updateElement(i, tsTime); }, tst);
+        [&](size_t i, const TimestepTime& tsTime) {
+            // Use the timestep length as the relaxation time scale
+            if (cice[i] > 0.) {
+                qio[i] = doOne(tf[i], sst[i], mlBulkCp[i], tst.step.seconds());
+            } else {
+                qio[i] = 0.;
+            }
+        },
+        tst);
 }
 
-void BasicIceOceanHeatFlux::updateElement(size_t i, const TimestepTime& tst)
-{
-    // Use the timestep length as the relaxation time scale
-    if (cice[i] > 0.) {
-        qio[i] = doOne(tf[i], sst[i], mlBulkCp[i], tst.step.seconds());
-    } else {
-        qio[i] = 0.;
-    }
-}
+// void BasicIceOceanHeatFlux::updateElement(size_t i, const TimestepTime& tst)
+// {
+//     // Use the timestep length as the relaxation time scale
+//     if (cice[i] > 0.) {
+//         qio[i] = doOne(tf[i], sst[i], mlBulkCp[i], tst.step.seconds());
+//     } else {
+//         qio[i] = 0.;
+//     }
+// }
 
 } /* namespace Nextsim */

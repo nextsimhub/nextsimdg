@@ -7,7 +7,6 @@
 
 #include "include/FieldAdvection.hpp"
 #include "include/Finalizer.hpp"
-#include "include/ModelArrayRef.hpp"
 #include "include/NextsimModule.hpp"
 #include "include/gridNames.hpp"
 

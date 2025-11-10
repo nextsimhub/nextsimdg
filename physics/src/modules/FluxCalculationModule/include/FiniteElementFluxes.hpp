@@ -10,7 +10,6 @@
 #include "include/IFluxCalculation.hpp"
 #include "include/IIceAlbedo.hpp"
 #include "include/IIceOceanHeatFlux.hpp"
-#include "include/ModelArrayRef.hpp"
 #include "include/ModelComponent.hpp"
 
 namespace Nextsim {
@@ -33,19 +32,19 @@ public:
         , sh_water(ModelArray::Type::H)
         , sh_ice(ModelArray::Type::H)
         , dshice_dT(ModelArray::Type::H)
-        , sst(getStore())
-        , sss(getStore())
-        , t_air(getStore())
-        , t_dew2(getStore())
-        , p_air(getStore())
-        , windSpeed(getStore())
-        , u_air(getStore())
-        , v_air(getStore())
-        , hsnow(getStore())
-        , cice(getStore())
-        , tsurf(getStore())
-        , sw_in(getStore())
-        , lw_in(getStore())
+        , sstAccessor(getStore())
+        , sssAccessor(getStore())
+        , t_airAccessor(getStore())
+        , t_dew2Accessor(getStore())
+        , p_airAccessor(getStore())
+        , windSpeedAccessor(getStore())
+        , u_airAccessor(getStore())
+        , v_airAccessor(getStore())
+        , hsnowAccessor(getStore())
+        , ciceAccessor(getStore())
+        , tsurfAccessor(getStore())
+        , sw_inAccessor(getStore())
+        , lw_inAccessor(getStore())
     {
     }
     ~FiniteElementFluxes() = default;
@@ -98,19 +97,19 @@ private:
     HField sh_ice;
     HField dshice_dT;
     // Input fields
-    ModelArrayRef<Protected::SST> sst;
-    ModelArrayRef<Protected::SSS> sss;
-    ModelArrayRef<Protected::T_AIR> t_air;
-    ModelArrayRef<Protected::DEW_2M> t_dew2;
-    ModelArrayRef<Protected::P_AIR> p_air;
-    ModelArrayRef<Protected::WIND_SPEED> windSpeed;
-    ModelArrayRef<Protected::WIND_U> u_air;
-    ModelArrayRef<Protected::WIND_V> v_air;
-    ModelArrayRef<Shared::H_SNOW_DG> hsnow; // cell-averaged value
-    ModelArrayRef<Shared::C_ICE_DG> cice;
-    ModelArrayRef<Protected::T_SURF> tsurf;
-    ModelArrayRef<Protected::SW_IN> sw_in;
-    ModelArrayRef<Protected::LW_IN> lw_in;
+    ModelArrayAccessor<Protected::SST> sstAccessor;
+    ModelArrayAccessor<Protected::SSS> sssAccessor;
+    ModelArrayAccessor<Protected::T_AIR> t_airAccessor;
+    ModelArrayAccessor<Protected::DEW_2M> t_dew2Accessor;
+    ModelArrayAccessor<Protected::P_AIR> p_airAccessor;
+    ModelArrayAccessor<Protected::WIND_SPEED> windSpeedAccessor;
+    ModelArrayAccessor<Protected::WIND_U> u_airAccessor;
+    ModelArrayAccessor<Protected::WIND_V> v_airAccessor;
+    ModelArrayAccessor<Shared::H_SNOW_DG> hsnowAccessor; // cell-averaged value
+    ModelArrayAccessor<Shared::C_ICE_DG> ciceAccessor;
+    ModelArrayAccessor<Protected::T_SURF> tsurfAccessor;
+    ModelArrayAccessor<Protected::SW_IN> sw_inAccessor;
+    ModelArrayAccessor<Protected::LW_IN> lw_inAccessor;
 
     void calculateOW(size_t i, const TimestepTime& tst);
     void calculateIce(size_t i, const TimestepTime& tst);

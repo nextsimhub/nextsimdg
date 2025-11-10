@@ -9,7 +9,6 @@
 #include "include/Finalizer.hpp"
 #include "include/Logged.hpp"
 #include "include/MissingData.hpp"
-#include "include/ModelArrayRef.hpp"
 #include "include/ModelArrayStore.hpp"
 #include "include/ModelState.hpp"
 #include "include/OutputSpec.hpp"
@@ -133,7 +132,7 @@ namespace CouplingFields {
 /*!
  * A class encapsulating a component of the model. It also provide a method of
  * communicating data between ModelComponents using enums, static arrays of
- * pointers and the ModelArrayRef class.
+ * pointers and the ModelArrayAccessor class.
  */
 class ModelComponent {
 public:
@@ -181,7 +180,7 @@ public:
     virtual ModelState getStatePrognostic() const { return { {}, getConfiguration() }; }
 
     /*!
-     * @brief Returns the ModelArrayRef backing store for column physics fields.
+     * @brief Returns the ModelArrayAccessor backing store for column physics fields.
      */
     static ModelArrayStore& getStore() { return *columnPhysicsStore(); }
 

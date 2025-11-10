@@ -94,27 +94,27 @@ ConfigMap FluxConfiguredAtmosphere::getConfiguration() const
 void FluxConfiguredAtmosphere::setData(const ModelState::DataMap& dm)
 {
     IAtmosphereBoundary::setData(dm);
-    qia = qia0;
-    dqia_dt = dqia_dt0;
-    qow = qow0;
-    subl = subl0;
-    snow = snowfall0;
-    rain = rain0;
-    evap = evap0;
-    uwind = u0;
-    vwind = v0;
+    qiaAccessor.getHostRW() = qia0;
+    dqia_dtAccessor.getHostRW() = dqia_dt0;
+    qowAccessor.getHostRW() = qow0;
+    sublAccessor.getHostRW() = subl0;
+    snowAccessor.getHostRW() = snowfall0;
+    rainAccessor.getHostRW() = rain0;
+    evapAccessor.getHostRW() = evap0;
+    uwindAccessor.getHostRW() = u0;
+    vwindAccessor.getHostRW() = v0;
 
     // Not configured here:
-    penSW = 0; // Penetrating shortwave radiation
-    tauXOW = 0; // x(east)-ward open ocean stress, Pa
-    tauYOW = 0; // y(north)-ward open ocean stress, Pa
+    penSWAccessor.getHostRW() = 0; // Penetrating shortwave radiation
+    tauXOWAccessor.getHostRW() = 0; // x(east)-ward open ocean stress, Pa
+    tauYOWAccessor.getHostRW() = 0; // y(north)-ward open ocean stress, Pa
 }
 
 void FluxConfiguredAtmosphere::update(const TimestepTime& tst)
 {
     /* The open water heat flux is reset by the thermodynamics, so that the (slab) ocean doesn't
      * super cool. Therefore, we have to reset it here on every update */
-    qow = qow0;
+    qowAccessor.getHostRW() = qow0;
 }
 
 } /* namespace Nextsim */

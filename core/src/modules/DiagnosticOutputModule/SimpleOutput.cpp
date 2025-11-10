@@ -5,7 +5,6 @@
 #include "include/SimpleOutput.hpp"
 
 #include "include/Logged.hpp"
-#include "include/ModelArrayRef.hpp"
 #include "include/StructureFactory.hpp"
 
 #include <sstream>
