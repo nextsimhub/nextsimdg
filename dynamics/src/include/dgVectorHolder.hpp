@@ -41,8 +41,6 @@ public:
 
     void zero() { ref->setZero(); }
 
-    EigenDGVector& getDataRef() { return *ref; }
-
 private:
     EigenDGVector* ref;
 };

@@ -129,9 +129,9 @@ public:
         // Note: only need to create one halo object per array type, dimensionality and size.
 #ifdef USE_MPI
         Halo halo(hice);
-        halo.exchangeHalos(hice.getDataRef());
-        halo.exchangeHalos(cice.getDataRef());
-        halo.exchangeHalos(damage.getDataRef());
+        halo.exchangeHalos(static_cast<DGVector<DGadvection>&>(hice));
+        halo.exchangeHalos(static_cast<DGVector<DGadvection>&>(cice));
+        halo.exchangeHalos(static_cast<DGVector<DGadvection>&>(damage));
 #endif
 
         prepareIteration({ { hiceName, hice }, { ciceName, cice } });
