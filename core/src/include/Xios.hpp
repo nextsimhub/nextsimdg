@@ -196,6 +196,7 @@ private:
         { ModelArray::Type::VERTEX, "VertexDomain" },
         { ModelArray::Type::DG, "HDomain" },
         { ModelArray::Type::DGSTRESS, "HDomain" },
+        { ModelArray::Type::CG, "CGDomain" },
     };
     xios::CDomainGroup* getDomainGroup();
     xios::CDomain* getDomain(std::string domainId);
@@ -221,6 +222,7 @@ private:
         { ModelArray::Type::VERTEX, "VertexGrid" },
         { ModelArray::Type::DG, "DGGrid" },
         { ModelArray::Type::DGSTRESS, "DGSGrid" },
+        { ModelArray::Type::CG, "CGGrid" },
     };
 
     /* File */

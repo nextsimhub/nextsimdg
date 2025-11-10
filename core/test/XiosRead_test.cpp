@@ -25,6 +25,7 @@ const std::string forcingFilename = testFilesDir + "/xios_test_forcing.nc";
 
 static const int DG = 3;
 static const int DGSTRESSCOMP = 8;
+static const int CGDEGREE = 2;
 
 namespace Nextsim {
 
@@ -48,10 +49,10 @@ MPI_TEST_CASE("TestXiosRead", 2)
     config << "partition_file = xios_test_partition_metadata_2.nc" << std::endl;
     config << "[XiosInput]" << std::endl;
     config << "field_names = " << maskName << "," << coordsName << "," << hiceName << ","
-           << ticeName << std::endl;
+           << ticeName << "," << uName << std::endl;
     config << "[XiosForcing]" << std::endl;
     config << "filename = " << forcingFilename << std::endl;
-    config << "field_names = " << uName << std::endl;
+    config << "field_names = " << hsnowName << std::endl;
     config << "period = P0-0T01:30:00" << std::endl;
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
@@ -110,23 +111,50 @@ MPI_TEST_CASE("TestXiosRead", 2)
     metadata.setTime(xiosHandler.getCalendarStart());
     REQUIRE(xiosHandler.getCalendarStep() == 0);
     ModelState restarts = grid.getModelState(restartFilename);
+    const int rank = xiosHandler.getClientMPIRank();
     for (auto& entry : restarts.data) {
-        for (size_t j = 0; j < ny; ++j) {
-            for (size_t i = 0; i < nx; ++i) {
-                if (entry.first == maskName) {
+        if (entry.first == maskName) {
+            for (size_t j = 0; j < ny; ++j) {
+                for (size_t i = 0; i < nx; ++i) {
                     REQUIRE(entry.second(i, j) == doctest::Approx(j >= 1 ? 1.0 : 0.0));
-                } else if (entry.first == coordsName) {
-                    REQUIRE(entry.second.components({ i, j })[0] == doctest::Approx(i));
+                }
+            }
+        } else if (entry.first == coordsName) {
+            for (size_t j = 0; j < ny + 1; ++j) {
+                for (size_t i = 0; i < nx + 1; ++i) {
+                    if (rank == 0) {
+                        REQUIRE(entry.second.components({ i, j })[0] == doctest::Approx(i));
+                    } else {
+                        REQUIRE(entry.second.components({ i, j })[0] == doctest::Approx(i + 2));
+                    }
                     REQUIRE(entry.second.components({ i, j })[1] == doctest::Approx(j));
-                } else if (entry.first == hiceName) {
+                }
+            }
+        } else if (entry.first == hiceName) {
+            for (size_t j = 0; j < ny; ++j) {
+                for (size_t i = 0; i < nx; ++i) {
                     for (size_t d = 0; d < DG; ++d) {
                         float expected = 1.0 * (d + DG * (i + nx * j));
                         REQUIRE(entry.second.components({ i, j })[d] == doctest::Approx(expected));
                     }
-                } else if (entry.first == ticeName) {
+                }
+            }
+        } else if (entry.first == ticeName) {
+            for (size_t j = 0; j < ny; ++j) {
+                for (size_t i = 0; i < nx; ++i) {
                     for (size_t d = 0; d < DGSTRESSCOMP; ++d) {
                         REQUIRE(entry.second.components({ i, j })[d]
                             == doctest::Approx(2.0 * (d + DGSTRESSCOMP * (i + nx * j))));
+                    }
+                }
+            }
+        } else if (entry.first == uName) {
+            for (size_t j = 0; j < CGDEGREE * ny + 1; ++j) {
+                for (size_t i = 0; i < CGDEGREE * nx + 1; ++i) {
+                    if (rank == 0) {
+                        REQUIRE(entry.second(i, j) == doctest::Approx((i + 1) * (j + 1)));
+                    } else {
+                        REQUIRE(entry.second(i, j) == doctest::Approx((i + 5) * (j + 1)));
                     }
                 }
             }
@@ -143,9 +171,10 @@ MPI_TEST_CASE("TestXiosRead", 2)
         TimePoint time = xiosHandler.getCurrentDate();
         ModelState forcings = pio->readForcingTimeStatic(forcingFieldNames, time, forcingFilename);
         for (auto& entry : forcings.data) {
+            REQUIRE(entry.first == hsnowName);
             for (size_t j = 0; j < ny; ++j) {
                 for (size_t i = 0; i < nx; ++i) {
-                    REQUIRE(entry.second(i, j) == doctest::Approx(ts));
+                    REQUIRE(entry.second(i, j) == doctest::Approx(0.1 * ts));
                 }
             }
         }

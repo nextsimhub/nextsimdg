@@ -79,9 +79,10 @@ building with MPI, you will need to pass the MPI communicator to this member
 function when calling it.
 
 The XIOS I/O implementation supports fields of ``HField``, ``VertexField``,
-``DGField``, and ``DGSField``. When reading from file, the field type will
-be deduced from its dimension. When writing to file, the field type should be
-set using the ``setFieldType`` member function of the ``Xios`` handler class.
+``DGField``, ``DGSField``, and ``CGField``. When reading from file, the field
+type will be deduced from its dimension. When writing to file, the field type
+should be set using the ``setFieldType`` member function of the ``Xios`` handler
+class.
 
 Developer notes
 ^^^^^^^^^^^^^^^
