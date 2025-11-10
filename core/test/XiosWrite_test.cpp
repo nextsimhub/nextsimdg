@@ -212,6 +212,7 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     REQUIRE(std::filesystem::exists("xios_test_output_20230317171100-20230317201059.nc"));
     REQUIRE(std::filesystem::exists("xios_test_output_20230317201100-20230317231059.nc"));
     REQUIRE(std::filesystem::exists("xios_test_diagnostic.nc"));
+    // TODO: Read these files and check they have the right format
     if (rank == 0) {
         std::filesystem::remove("xios_test_output_20230317171100-20230317201059.nc");
         std::filesystem::remove("xios_test_output_20230317201100-20230317231059.nc");
