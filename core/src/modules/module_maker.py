@@ -1,8 +1,10 @@
 """Generate the code for a Nextsim module class source file."""
 
+
 def denamespace(nname):
     """Return the last element of the name, without any of the qualifying namespaces."""
     return nname.split(":")[-1]
+
 
 def generator(module_class_name, fq_interface_name, fq_impl_names, help_names):
     """Generate the text for a module support file."""
@@ -24,28 +26,41 @@ def generator(module_class_name, fq_interface_name, fq_impl_names, help_names):
 
     # String constants to name the implementations
     for fq_impl_name in fq_impl_names:
-        print(f'const std::string {denamespace(fq_impl_name).upper()} = "{fq_impl_name}";')
+        print(
+            f'const std::string {denamespace(fq_impl_name).upper()} = "{fq_impl_name}";'
+        )
     print("")
 
     # Create the functionMap from the FQ implementation and FQ module names
     print("template <>")
-    print(f"Module<{fq_interface_name}>::map Module<{fq_interface_name}>::functionMap" + " = {")
+    print(
+        f"Module<{fq_interface_name}>::map Module<{fq_interface_name}>::functionMap"
+        + " = {"
+    )
     for fq_impl_name in fq_impl_names:
-        print(f"    {{ {denamespace(fq_impl_name).upper()}, newImpl<{fq_interface_name}, {fq_impl_name}> }},")
+        print(
+            f"    {{ {denamespace(fq_impl_name).upper()}, newImpl<{fq_interface_name}, {fq_impl_name}> }},"
+        )
     print("};")
     print("")
 
     # Set up the function and static pointer (FQ Module)
     print("template <>")
-    print(f"Module<{fq_interface_name}>::fn Module<{fq_interface_name}>::spf = functionMap.at({denamespace(fq_impl_names[0]).upper()});")
+    print(
+        f"Module<{fq_interface_name}>::fn Module<{fq_interface_name}>::spf = functionMap.at({denamespace(fq_impl_names[0]).upper()});"
+    )
     print("template <>")
-    print(f"std::unique_ptr<{fq_interface_name}> Module<{fq_interface_name}>::staticInstance")
+    print(
+        f"std::unique_ptr<{fq_interface_name}> Module<{fq_interface_name}>::staticInstance"
+    )
     print(f"= std::move(newImpl<{fq_interface_name}, {fq_impl_names[0]}>());")
     print("")
 
     # Module name string
     print("template <>")
-    print(f'std::string Module<{fq_interface_name}>::moduleName(){{ return "{fq_interface_name}"; }}')
+    print(
+        f'std::string Module<{fq_interface_name}>::moduleName(){{ return "{fq_interface_name}"; }}'
+    )
     print("")
 
     # global functions (FQ module & module class names)
@@ -56,10 +71,14 @@ def generator(module_class_name, fq_interface_name, fq_impl_names, help_names):
     for fq_impl_name in fq_impl_names:
         impl_names_uc.append(denamespace(fq_impl_name).upper())
 
-    print(f"template<> HelpMap& getHelpRecursive<{fq_interface_name}>(HelpMap& map, bool getAll)")
+    print(
+        f"template<> HelpMap& getHelpRecursive<{fq_interface_name}>(HelpMap& map, bool getAll)"
+    )
     print("{")
     print("    const std::string& pfx = Nextsim::ConfiguredModule::MODULE_PREFIX;")
-    print(f'    map[pfx].push_back({{ pfx + "." + Module<{fq_interface_name}>::moduleName(), ConfigType::MODULE,')
+    print(
+        f'    map[pfx].push_back({{ pfx + "." + Module<{fq_interface_name}>::moduleName(), ConfigType::MODULE,'
+    )
     impl_namelist_uc = ", ".join(impl_names_uc)
     print(f'        {{ {impl_namelist_uc} }}, {impl_names_uc[0]}, "",')
     print('        "MODULE DESCRIPTION HERE" });')
@@ -94,17 +113,35 @@ def generator(module_class_name, fq_interface_name, fq_impl_names, help_names):
     print("")
     print("} /* namespace Module */")
 
-if __name__ == "__main__":
 
+if __name__ == "__main__":
     import argparse
-    parser = argparse.ArgumentParser(description = "Write out the text for a Nextsim module class source file.",
-                                     epilog = "Suffix the interface or any implementation name with an asterisk (*) to include a call to getHelpRecursive().")
-    parser.add_argument("impl", metavar = "impls", nargs = "*", default = None, help = "Fully qualified name of the implementation classes.")
-    parser.add_argument("--interface", dest = "interface", required = True, help = "Fully qualified name of the interface class.")
-    parser.add_argument("--module-prefix", dest = "modulepfx", help = "Name of the module, will be suffixed by 'Module'.")
+
+    parser = argparse.ArgumentParser(
+        description="Write out the text for a Nextsim module class source file.",
+        epilog="Suffix the interface or any implementation name with an asterisk (*) to include a call to getHelpRecursive().",
+    )
+    parser.add_argument(
+        "impl",
+        metavar="impls",
+        nargs="*",
+        default=None,
+        help="Fully qualified name of the implementation classes.",
+    )
+    parser.add_argument(
+        "--interface",
+        dest="interface",
+        required=True,
+        help="Fully qualified name of the interface class.",
+    )
+    parser.add_argument(
+        "--module-prefix",
+        dest="modulepfx",
+        help="Name of the module, will be suffixed by 'Module'.",
+    )
     args = parser.parse_args()
 
-    if (len(args.impl) == 0):
+    if len(args.impl) == 0:
         raise SystemExit
 
     # filter all the interface and implementation names for trailing asterisks,
@@ -132,6 +169,5 @@ if __name__ == "__main__":
         modulepfx += "Module"
     else:
         modulepfx = denamespace(args.modulepfx)
-
 
     generator(modulepfx, interface_name, impl_names, help_names)

@@ -16,20 +16,22 @@ html_theme = "sphinx_rtd_theme"
 
 html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 
+
 def setup(app):
     app.add_css_file("main_stylesheet.css")
 
-extensions = ["breathe","exhale"]
-breathe_projects = { "nextsimdg": "xml" }
+
+extensions = ["breathe", "exhale"]
+breathe_projects = {"nextsimdg": "xml"}
 breathe_default_project = "nextsimdg"
 # Setup the exhale extension
 exhale_args = {
     # These arguments are required
-    "containmentFolder":     "./api",
-    "rootFileName":          "library_root.rst",
-    "rootFileTitle":         "Library API",
-    "doxygenStripFromPath":  "..",
-    "createTreeView":        True,
+    "containmentFolder": "./api",
+    "rootFileName": "library_root.rst",
+    "rootFileTitle": "Library API",
+    "doxygenStripFromPath": "..",
+    "createTreeView": True,
 }
 templates_path = ["_templates"]
 html_extra_path = ["xml"]

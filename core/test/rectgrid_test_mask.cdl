@@ -1,0 +1,16 @@
+netcdf rectgrid_mask {
+dimensions:
+	x = 5 ;
+	y = 7 ;
+variables:
+	int mask(x, y) ;
+
+data:
+
+ mask =
+  1, 1, 1, 1, 1, 1, 1,
+  1, 1, 1, 1, 1, 1, 1,
+  1, 1, 1, 1, 1, 1, 1,
+  1, 1, 1, 1, 1, 1, 1,
+  1, 1, 1, 1, 1, 1, 1;
+}

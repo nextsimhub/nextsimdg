@@ -45,35 +45,43 @@ static const std::map<int, std::string> keyMap = {
 Model::Model()
     : iterator(modelStep)
 {
-    finalFileName = std::string("restart") + TimePoint::ymdhmsFormat + ".nc";
-}
-
-Model::~Model() { }
-
-void Model::configure()
-{
-    // Configure logging
-    Logged::configure();
-
-    // Configure the missing data value
-    MissingData::setValue(
-        Configured::getConfiguration(keyMap.at(MISSINGVALUE_KEY), MissingData::defaultValue));
-
-    // Parse the initial restart file name and the pattern for output restart files
-    initialFileName = Configured::getConfiguration(keyMap.at(RESTARTFILE_KEY), std::string());
-    finalFileName = Configured::getConfiguration(keyMap.at(RESTARTOUTFILE_KEY), finalFileName);
-
-    pData.configure();
-
-    modelStep.init();
-    modelStep.setInitFile(initialFileName);
-
 #ifdef USE_MPI
     std::string partitionFile
         = Configured::getConfiguration(keyMap.at(PARTITIONFILE_KEY), std::string("partition.nc"));
     auto& metadata = ModelMetadata::getInstance(partitionFile);
 #else
     auto& metadata = ModelMetadata::getInstance();
+#endif
+    metadata.finalFileName = "restart" + TimePoint::ymdhmsFormat + ".nc";
+}
+
+Model::~Model() { }
+
+void Model::configureRestarts()
+{
+    ModelMetadata& metadata = ModelMetadata::getInstance();
+
+    // Parse the initial restart file name and the pattern for output restart files
+    metadata.initialFileName
+        = Configured::getConfiguration(keyMap.at(RESTARTFILE_KEY), std::string());
+    metadata.finalFileName
+        = Configured::getConfiguration(keyMap.at(RESTARTOUTFILE_KEY), metadata.finalFileName);
+
+    // The period with which to write restart files.
+    std::string restartPeriodStr
+        = Configured::getConfiguration(keyMap.at(RESTARTPERIOD_KEY), std::string("0"));
+    metadata.restartPeriod = Duration(restartPeriodStr);
+}
+
+void Model::configureTime()
+{
+    ModelMetadata& metadata = ModelMetadata::getInstance();
+
+#ifdef USE_XIOS
+    // Enable XIOS in the config
+    std::stringstream config;
+    config << "[xios]" << std::endl << "enable = true" << std::endl;
+    Configurator::addStream(std::unique_ptr<std::istream>(new std::stringstream(config.str())));
 #endif
 
     // Start/stop times. Run length will override stop time, if present.
@@ -95,19 +103,34 @@ void Model::configure()
         metadata.setTimes(startTimeStr, Duration(runLengthStr), stepStr);
     }
     iterator.setStartStopStep(metadata.startTime(), metadata.stopTime(), metadata.stepLength());
+}
 
-    ModelState initialState(StructureFactory::stateFromFile(initialFileName));
+void Model::configure()
+{
+    // Configure logging
+    Logged::configure();
 
-    // The period with which to write restart files.
-    std::string restartPeriodStr
-        = Configured::getConfiguration(keyMap.at(RESTARTPERIOD_KEY), std::string("0"));
-    restartPeriod = Duration(restartPeriodStr);
+    // Configure the missing data value
+    MissingData::setValue(
+        Configured::getConfiguration(keyMap.at(MISSINGVALUE_KEY), MissingData::defaultValue));
+
+    configureRestarts();
+
+    pData.configure();
+
+    auto& metadata = ModelMetadata::getInstance();
+    modelStep.init();
+    modelStep.setInitFile(metadata.initialFileName);
+
+    configureTime();
+
+    ModelState initialState(StructureFactory::stateFromFile(metadata.initialFileName));
 
     // Get the coordinates from the ModelState for persistence
     metadata.extractCoordinates(initialState);
 
     modelStep.setData(pData);
-    modelStep.setRestartDetails(restartPeriod, finalFileName);
+    modelStep.setRestartDetails(metadata.restartPeriod, metadata.finalFileName);
     pData.setData(initialState.data);
 }
 
@@ -178,7 +201,7 @@ void Model::run()
 void Model::writeRestartFile()
 {
     auto& metadata = ModelMetadata::getInstance();
-    std::string formattedFileName = metadata.time().format(finalFileName);
+    std::string formattedFileName = metadata.time().format(metadata.finalFileName);
     pData.writeRestartFile(formattedFileName);
 }
 

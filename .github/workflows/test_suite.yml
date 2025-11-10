@@ -1,4 +1,5 @@
-name: compile code and tests
+# Workflow for compiling nextSIM-DG and running the tests under various configurations
+name: Test suite
 
 on:
   # if you wish to skip running CI please don't change this section, instead
@@ -12,38 +13,47 @@ on:
   # Note: You will not be able to merge into develop or main without running CI. To run CI either:
   # - edit the last commit message using `git commit --amend` and remove the tag "[skip ci]" or,
   # - create a new commit without a "[skip ci]" tag
+
+  # Trigger the workflow upon merging into main or develop
   push:
     branches: [ main, develop ]
+
+  # Trigger the workflow whenever commits are pushed to an open PR that changes one of the file types listed
   pull_request:
     paths:
       - '.github/workflows/test_suite.yml'
-      - 'core/*.sh'
-      - 'dynamics/*.sh'
-      - 'run/*.sh'
-      - 'test/*.sh'
       - '**.cdl'
       - '**.cfg'
       - '**.cpp'
       - '**.hpp'
       - '**.py'
+      - '**.sh'
       - '**.xml'
       - '**CMakeLists.txt'
-  pull_request_review:
-    branches: [ main, develop ]
+
+  # Enable running this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# Restrict default permissions
+permissions: {}
+
+# Cancel running jobs if new commits are pushed
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
 
+  # Serial tests on latest Ubuntu OS
   test-ubuntu-serial:
-
     runs-on: ubuntu-latest
-
     timeout-minutes: 10
-
     container:
       image: ghcr.io/nextsimhub/nextsimdg-dev-env:latest
-
     steps:
     - uses: actions/checkout@v2
+      with:
+        persist-credentials: false
 
     - name: build and compile without XIOS or MPI
       run: |
@@ -78,28 +88,43 @@ jobs:
         ./run_test_error_handling_test.sh python3
         cd -
 
+  # MPI tests on latest Ubuntu OS without XIOS support
   test-ubuntu-mpi-noxios:
-
     runs-on: ubuntu-latest
-
     timeout-minutes: 10
-
     container:
       image: ghcr.io/nextsimhub/nextsimdg-dev-env:latest
-
     steps:
     - uses: actions/checkout@v2
+      with:
+        persist-credentials: false
+
+    - name: build domain_decomp
+      run: |
+        . /opt/spack-environment/activate.sh
+        git config --global --add safe.directory /__w/nextsimdg/nextsimdg
+        git submodule init
+        git submodule update
+        cd domain_decomp
+        cmake -G "Unix Makefiles" -Bbuild -S.
+        cmake --build build --config Release
 
     - name: build and compile with MPI but not XIOS
       run: |
+        # set environment variables for MPI tests to run in docker container
+        export OMPI_ALLOW_RUN_AS_ROOT=1
+        export OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1
+        export OMPI_MCA_rmaps_base_oversubscribe=1
         . /opt/spack-environment/activate.sh
+        # provide path to domain_decomp binary
+        export PATH="${PATH}:${PWD}/domain_decomp/build"
         mkdir -p build && cd build
         cmake -DENABLE_MPI=ON -DENABLE_XIOS=OFF -DCMAKE_CXX_COMPILER="$(which mpic++)" ..
         make -j 4
 
     - name: run MPI tests
       run: |
-        # set enviornment variables for MPI tests to run in docker container
+        # set environment variables for MPI tests to run in docker container
         export OMPI_ALLOW_RUN_AS_ROOT=1
         export OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1
         export OMPI_MCA_rmaps_base_oversubscribe=1
@@ -110,28 +135,43 @@ jobs:
         (cd core/test && wget "ftp://ftp.nersc.no/nextsim/netCDF/partition_metadata_1.nc")
         ctest -V
 
+  # MPI tests on latest Ubuntu OS with XIOS support
   test-ubuntu-mpi-xios:
-
     runs-on: ubuntu-latest
-
     timeout-minutes: 10
-
     container:
       image: ghcr.io/nextsimhub/nextsimdg-dev-env:latest
-
     steps:
     - uses: actions/checkout@v2
+      with:
+        persist-credentials: false
+
+    - name: build domain_decomp
+      run: |
+        . /opt/spack-environment/activate.sh
+        git config --global --add safe.directory /__w/nextsimdg/nextsimdg
+        git submodule init
+        git submodule update
+        cd domain_decomp
+        cmake -G "Unix Makefiles" -Bbuild -S.
+        cmake --build build --config Release
 
     - name: build and compile with XIOS and MPI
       run: |
+        # set environment variables for MPI tests to run in docker container
+        export OMPI_ALLOW_RUN_AS_ROOT=1
+        export OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1
+        export OMPI_MCA_rmaps_base_oversubscribe=1
         . /opt/spack-environment/activate.sh
+        # provide path to domain_decomp binary
+        export PATH="${PATH}:${PWD}/domain_decomp/build"
         mkdir -p build && cd build
         cmake -DENABLE_MPI=ON -Dxios_DIR="/xios" -DENABLE_XIOS=ON -DCMAKE_CXX_COMPILER="$(which mpic++)" ..
         make -j 4
 
     - name: run MPI tests
       run: |
-        # set enviornment variables for MPI tests to run in docker container
+        # set environment variables for MPI tests to run in docker container
         export OMPI_ALLOW_RUN_AS_ROOT=1
         export OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1
         export OMPI_MCA_rmaps_base_oversubscribe=1
@@ -142,14 +182,15 @@ jobs:
         (cd core/test && wget "ftp://ftp.nersc.no/nextsim/netCDF/partition_metadata_1.nc")
         ctest -V
 
+  # Serial tests on latest Mac OS
   test-mac-serial:
-
     runs-on: macos-latest
-
     timeout-minutes: 10
-
     steps:
     - uses: actions/checkout@v2
+      with:
+        persist-credentials: false
+
     - name: installs
       run: |
         brew install boost
@@ -159,6 +200,8 @@ jobs:
         brew install eigen
         brew install netcdf
         brew install netcdf-cxx
+        python3 -m venv ~/nextsim
+        . $HOME/nextsim/bin/activate
         pip install netCDF4
         pip install numpy
 
@@ -171,13 +214,15 @@ jobs:
 
     - name: make
       run: |
+        . $HOME/nextsim/bin/activate
         mkdir -p build
         cd build
-        # added Python_ROOT_DIR to help cmake find correct Python in the mac VM
-        cmake -DCMAKE_BUILD_TYPE=Release -DENABLE_MPI=OFF -DENABLE_XIOS=OFF -DPython_ROOT_DIR=/Library/Frameworks/Python.framework/Versions/Current/bin ..
+        cmake -DCMAKE_BUILD_TYPE=Release -DENABLE_MPI=OFF -DENABLE_XIOS=OFF ..
         make -j 4
+
     - name: run serial tests
       run: |
+        . $HOME/nextsim/bin/activate
         cd build
         ctest -V
         mv ../test .

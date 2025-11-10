@@ -9,9 +9,12 @@
 #include <doctest/extensions/doctest_mpi.h>
 #undef INFO
 
+#include "StructureModule/include/ParametricGrid.hpp"
 #include "include/Finalizer.hpp"
+#include "include/Model.hpp"
 #include "include/ModelMPI.hpp"
-#include "include/ModelMetadata.hpp"
+#include "include/NextsimModule.hpp"
+#include "include/ParaGridIO.hpp"
 #include "include/Xios.hpp"
 
 namespace Nextsim {
@@ -27,17 +30,34 @@ namespace Nextsim {
  */
 MPI_TEST_CASE("TestXiosGrid", 2)
 {
-    enableXios();
+    std::stringstream config;
+    config << "[model]" << std::endl;
+    config << "start = 2023-03-17T17:11:00Z" << std::endl;
+    config << "stop = 2023-03-17T18:11:00Z" << std::endl;
+    config << "time_step = P0-0T01:00:00" << std::endl;
+    config << "partition_file = xios_test_partition_metadata_2.nc" << std::endl;
+    std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
+    Configurator::addStream(std::move(pcstream));
 
-    // Create ModelMetadata instance based off a partition metadata file
+    // Create ModelMPI instance based off the test communicator
     auto& modelMPI = ModelMPI::getInstance(test_comm);
-    auto& metadata = ModelMetadata::getInstance("xios_test_partition_metadata_2.nc");
+
+    // Create a Model and configure it so that time options are parsed
+    Model model;
+    model.configureTime();
 
     // Get the Xios singleton instance and check it's initialized
+    // NOTE: The singleton is created when Xios::getInstance() is first called. In this test, this
+    //       happens when the time sets set by ModelMetadata::setTime(). This occurs in the call to
+    //       Model::configureTime() above.
     Xios& xiosHandler = Xios::getInstance();
-    xiosHandler.affixModelMetadata();
-    REQUIRE(xiosHandler.isInitialized());
-    REQUIRE(xiosHandler.getClientMPISize() == 2);
+
+    // Create ParametricGrid and ParaGridIO instances
+    // NOTE: XIOS axes, domains, and grids are created by the ParaGridIO constructor
+    Module::setImplementation<IStructure>("Nextsim::ParametricGrid");
+    ParametricGrid grid;
+    ParaGridIO* pio = new ParaGridIO(grid);
+    grid.setIO(pio);
 
     const std::string gridId = "HGrid";
     REQUIRE_THROWS_WITH(xiosHandler.createGrid(gridId), "Xios: Grid 'HGrid' already exists");
@@ -45,7 +65,7 @@ MPI_TEST_CASE("TestXiosGrid", 2)
     // Add a vertical axis, too
     const std::string axisId = "z_axis";
     xiosHandler.createAxis(axisId);
-    xiosHandler.setAxisValues(axisId, { 0.0, 1.0 });
+    xiosHandler.setAxisSize(axisId, 2);
     xiosHandler.gridAddAxis("HGrid", axisId);
     std::vector<std::string> axisIds = xiosHandler.getGridAxisIds(gridId);
     REQUIRE(axisIds.size() == 1);

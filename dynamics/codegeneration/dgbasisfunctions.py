@@ -6,82 +6,96 @@ import numpy as np
 
 
 ### DG
-def dgdofs(d):    # Number of unknowns per element depending on gauss degree
-    if d==0:
+def dgdofs(d):  # Number of unknowns per element depending on gauss degree
+    if d == 0:
         return 1
-    elif d==1:
+    elif d == 1:
         return 3
-    elif d==2:
+    elif d == 2:
         return 6
     else:
         msg = "dG3 and higher is not implemented"
         raise AssertionError(msg)
 
+
 ### Inverse element mass matrix for the dg methods
-inversemass = np.array([1., 12., 12., 180., 180., 144.])
+inversemass = np.array([1.0, 12.0, 12.0, 180.0, 180.0, 144.0])
 
 ### Gauss quadrature
-gausspoints = np.array([
-    [0.5,0,0,0],
-    [0.5-np.sqrt(1./12.),0.5+np.sqrt(1./12.),0,0],
-    [0.5-np.sqrt(3./20.),0.5,0.5+np.sqrt(3./20.),0],
-    [0.5-0.5*np.sqrt(3./7.+2./7.*np.sqrt(6./5.)),
-     0.5-0.5*np.sqrt(3./7.-2./7.*np.sqrt(6./5.)),
-     0.5+0.5*np.sqrt(3./7.-2./7.*np.sqrt(6./5.)),
-     0.5+0.5*np.sqrt(3./7.+2./7.*np.sqrt(6./5.))]])
+gausspoints = np.array(
+    [
+        [0.5, 0, 0, 0],
+        [0.5 - np.sqrt(1.0 / 12.0), 0.5 + np.sqrt(1.0 / 12.0), 0, 0],
+        [0.5 - np.sqrt(3.0 / 20.0), 0.5, 0.5 + np.sqrt(3.0 / 20.0), 0],
+        [
+            0.5 - 0.5 * np.sqrt(3.0 / 7.0 + 2.0 / 7.0 * np.sqrt(6.0 / 5.0)),
+            0.5 - 0.5 * np.sqrt(3.0 / 7.0 - 2.0 / 7.0 * np.sqrt(6.0 / 5.0)),
+            0.5 + 0.5 * np.sqrt(3.0 / 7.0 - 2.0 / 7.0 * np.sqrt(6.0 / 5.0)),
+            0.5 + 0.5 * np.sqrt(3.0 / 7.0 + 2.0 / 7.0 * np.sqrt(6.0 / 5.0)),
+        ],
+    ]
+)
 
-gaussweights = np.array([
-    [1.0,0,0,0],
-    [0.5,0.5,0,0],
-    [5./18.,8./18.,5./18.,0],
-    [(18.-np.sqrt(30.0))/72.,
-     (18.+np.sqrt(30.0))/72.,
-     (18.+np.sqrt(30.0))/72.,
-     (18.-np.sqrt(30.0))/72.]])
+gaussweights = np.array(
+    [
+        [1.0, 0, 0, 0],
+        [0.5, 0.5, 0, 0],
+        [5.0 / 18.0, 8.0 / 18.0, 5.0 / 18.0, 0],
+        [
+            (18.0 - np.sqrt(30.0)) / 72.0,
+            (18.0 + np.sqrt(30.0)) / 72.0,
+            (18.0 + np.sqrt(30.0)) / 72.0,
+            (18.0 - np.sqrt(30.0)) / 72.0,
+        ],
+    ]
+)
 
 
 def sanitycheck_gauss():
-    for p in range(10):    # integrate x^p for p=0,1,2,...,9
-        ex = 1.0/(1.0+p)
-#        print("Integrate x^{0} over [0,1]: ".format(p),end='')
+    for p in range(10):  # integrate x^p for p=0,1,2,...,9
+        ex = 1.0 / (1.0 + p)
+        #        print("Integrate x^{0} over [0,1]: ".format(p),end='')
 
-        for q in range(4): # gauss 1,2,3,4
+        for q in range(4):  # gauss 1,2,3,4
             gi = 0.0
-            for k in range(q+1):
-                gi = gi + gaussweights[q,k] * gausspoints[q,k]**p
-            if (np.fabs(gi-ex) > 1.e-14) and (p < 2*(q+1)):
+            for k in range(q + 1):
+                gi = gi + gaussweights[q, k] * gausspoints[q, k] ** p
+            if (np.fabs(gi - ex) > 1.0e-14) and (p < 2 * (q + 1)):
                 msg = "Gauss rule should be exact"
                 raise ValueError(msg)
 
+
 # Evaluates the dG-basis functions on [0,1]^2 in (x,y)
-def basisfunction(j,x,y):
-    if j==0:
-        return 1.
-    elif j==1:
-        return x-0.5
-    elif j==2:
-        return y-0.5
-    elif j==3:
-        return (x-0.5)*(x-0.5)-1.0/12.0
-    elif j==4:
-        return (y-0.5)*(y-0.5)-1.0/12.0
-    elif j==5:
-        return (x-0.5)*(y-0.5)
+def basisfunction(j, x, y):
+    if j == 0:
+        return 1.0
+    elif j == 1:
+        return x - 0.5
+    elif j == 2:
+        return y - 0.5
+    elif j == 3:
+        return (x - 0.5) * (x - 0.5) - 1.0 / 12.0
+    elif j == 4:
+        return (y - 0.5) * (y - 0.5) - 1.0 / 12.0
+    elif j == 5:
+        return (x - 0.5) * (y - 0.5)
     else:
         print("dG3 and higher not implemented (yet)")
         raise AssertionError
 
+
 # Evaluates 1d dG-basis on the edge [0,1]
-def edgebasisfunction(j,x):
-    if j==0:
-        return 1.
-    elif j==1:
-        return x-0.5
-    elif j==2:
-        return (x-0.5)*(x-0.5)-1.0/12.0
+def edgebasisfunction(j, x):
+    if j == 0:
+        return 1.0
+    elif j == 1:
+        return x - 0.5
+    elif j == 2:
+        return (x - 0.5) * (x - 0.5) - 1.0 / 12.0
     else:
         print("dG3 and higher not implemented (yet)")
         raise AssertionError
+
 
 #
 # evaluate basis functions in the quadrature points on
@@ -91,23 +105,48 @@ def edgebasisfunction(j,x):
 # d   : order of dG (0, 1, 2)
 # g   : number of gauss points (1,2,3)
 def basisfunctions_in_gausspoints(edge, d, g):
-
     # print header
-    print("static const Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor> BiG{2}{3}_{4} =".format(g,dgdofs(d),d,g,edge))
-    print("\t(Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor>() <<".format(g,dgdofs(d)))
-    print("\t",end=" ")
+    print(
+        "static const Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor> BiG{2}{3}_{4} =".format(
+            g, dgdofs(d), d, g, edge
+        )
+    )
+    print(
+        "\t(Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor>() <<".format(g, dgdofs(d))
+    )
+    print("\t", end=" ")
     for gp in range(g):
         for dp in range(dgdofs(d)):
-            if (edge==3):
-                print(inversemass[dp]*gaussweights[g-1,gp] * basisfunction(dp, 0.0, gausspoints[g-1,gp]),end="")
-            elif (edge==1):
-                print(inversemass[dp]*gaussweights[g-1,gp] * basisfunction(dp, 1.0, gausspoints[g-1,gp]),end="")
-            elif (edge==0):
-                print(inversemass[dp]*gaussweights[g-1,gp] * basisfunction(dp, gausspoints[g-1,gp], 0.0),end="")
-            elif (edge==2):
-                print(inversemass[dp]*gaussweights[g-1,gp] * basisfunction(dp, gausspoints[g-1,gp], 1.0),end="")
-            if (gp<g-1 or dp<dgdofs(d)-1):
-                print(", ",end="")
+            if edge == 3:
+                print(
+                    inversemass[dp]
+                    * gaussweights[g - 1, gp]
+                    * basisfunction(dp, 0.0, gausspoints[g - 1, gp]),
+                    end="",
+                )
+            elif edge == 1:
+                print(
+                    inversemass[dp]
+                    * gaussweights[g - 1, gp]
+                    * basisfunction(dp, 1.0, gausspoints[g - 1, gp]),
+                    end="",
+                )
+            elif edge == 0:
+                print(
+                    inversemass[dp]
+                    * gaussweights[g - 1, gp]
+                    * basisfunction(dp, gausspoints[g - 1, gp], 0.0),
+                    end="",
+                )
+            elif edge == 2:
+                print(
+                    inversemass[dp]
+                    * gaussweights[g - 1, gp]
+                    * basisfunction(dp, gausspoints[g - 1, gp], 1.0),
+                    end="",
+                )
+            if gp < g - 1 or dp < dgdofs(d) - 1:
+                print(", ", end="")
             else:
                 print(").finished();")
 
@@ -122,18 +161,31 @@ def basisfunctions_in_gausspoints(edge, d, g):
 # d   : order of dG (0, 1, 2)
 # g   : number of gauss points (1,2,3) in each direction
 def integration_basisfunctions_in_gausspoints_cell(d, g):
-
     # print header
-    print("static const Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor> IBC{2}{3} =".format(g*g,dgdofs(d),d,g))
-    print("\t(Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor>() <<".format(g*g,dgdofs(d)))
-    print("\t",end=" ")
+    print(
+        "static const Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor> IBC{2}{3} =".format(
+            g * g, dgdofs(d), d, g
+        )
+    )
+    print(
+        "\t(Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor>() <<".format(
+            g * g, dgdofs(d)
+        )
+    )
+    print("\t", end=" ")
     for gx in range(g):
         for gy in range(g):
             for dp in range(dgdofs(d)):
-                print(inversemass[dp]*gaussweights[g-1,gx]*gaussweights[g-1,gy] * basisfunction(dp, gausspoints[g-1,gx],gausspoints[g-1,gy]),end="")
+                print(
+                    inversemass[dp]
+                    * gaussweights[g - 1, gx]
+                    * gaussweights[g - 1, gy]
+                    * basisfunction(dp, gausspoints[g - 1, gx], gausspoints[g - 1, gy]),
+                    end="",
+                )
 
-                if (gx<g-1 or gy<g-1 or dp<dgdofs(d)-1):
-                    print(", ",end="")
+                if gx < g - 1 or gy < g - 1 or dp < dgdofs(d) - 1:
+                    print(", ", end="")
                 else:
                     print(").finished();")
 
@@ -144,18 +196,28 @@ def integration_basisfunctions_in_gausspoints_cell(d, g):
 # d   : order of dG (0, 1, 2)
 # g   : Gauss points in each direction (2,3)
 def basisfunctions_in_gausspoints_cell(d, g):
-
     # print header
-    print("static const Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor> BiG{2}{3} =".format(dgdofs(d),g*g,d,g))
-    print("\t(Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor>() <<".format(dgdofs(d),g*g))
-    print("\t",end=" ")
+    print(
+        "static const Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor> BiG{2}{3} =".format(
+            dgdofs(d), g * g, d, g
+        )
+    )
+    print(
+        "\t(Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor>() <<".format(
+            dgdofs(d), g * g
+        )
+    )
+    print("\t", end=" ")
     for dp in range(dgdofs(d)):
         for gx in range(g):
             for gy in range(g):
-                print(basisfunction(dp, gausspoints[g-1,gx], gausspoints[g-1,gy]),end="")
+                print(
+                    basisfunction(dp, gausspoints[g - 1, gx], gausspoints[g - 1, gy]),
+                    end="",
+                )
 
-                if (gx<g-1 or gy<g-1 or dp<dgdofs(d)-1):
-                    print(", ",end="")
+                if gx < g - 1 or gy < g - 1 or dp < dgdofs(d) - 1:
+                    print(", ", end="")
                 else:
                     print(").finished();")
 
@@ -163,24 +225,25 @@ def basisfunctions_in_gausspoints_cell(d, g):
 #
 # evaluate edge basis functions in the quadrature points
 
+
 # d   : order of dG (0, 1, 2)
 # g   : number of gauss points (1,2,3)
 def edge_basisfunctions_in_gausspoints(d, g):
-
     # print header
-    print("static const Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor> BiGe{2}{3} =".format(d+1,g,d,g))
-    print("\t(Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor>() <<".format(d+1,g))
-    print("\t",end=" ")
-    for dp in range(d+1):
+    print(
+        "static const Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor> BiGe{2}{3} =".format(
+            d + 1, g, d, g
+        )
+    )
+    print("\t(Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor>() <<".format(d + 1, g))
+    print("\t", end=" ")
+    for dp in range(d + 1):
         for gp in range(g):
-            print(edgebasisfunction(dp, gausspoints[g-1,gp]),end="")
-            if (dp<d or gp<g-1):
-                print(", ",end="")
+            print(edgebasisfunction(dp, gausspoints[g - 1, gp]), end="")
+            if dp < d or gp < g - 1:
+                print(", ", end="")
             else:
                 print(").finished();")
-
-
-
 
 
 ### Main
@@ -224,53 +287,53 @@ print("")
 
 # print out guass points and weights
 print("\n\n//------------------------------ Gauss Quadrature\n")
-for gp in [1,2,3]:
-    print("constexpr double gauss_points{0}[{0}] = {{".format(gp),end="")
+for gp in [1, 2, 3]:
+    print("constexpr double gauss_points{0}[{0}] = {{".format(gp), end="")
     for q in range(gp):
-        print(gausspoints[gp-1,q],end="")
-        if q<gp-1:
-            print(",",end="")
+        print(gausspoints[gp - 1, q], end="")
+        if q < gp - 1:
+            print(",", end="")
     print("};")
-    print("constexpr double gauss_weights{0}[{0}] = {{".format(gp),end="")
+    print("constexpr double gauss_weights{0}[{0}] = {{".format(gp), end="")
     for q in range(gp):
-        print(gaussweights[gp-1,q],end="")
-        if q<gp-1:
-            print(",",end="")
+        print(gaussweights[gp - 1, q], end="")
+        if q < gp - 1:
+            print(",", end="")
     print("};")
 
 
 print("\n\n//------------------------------ Basis Functions in Gauss Points (edge)\n")
 # generate arrays that evaluate basis functions in the gauss points on the edges
-for dg in [1,2]:
-    for e in [0,1,2,3]:
-        basisfunctions_in_gausspoints(e, dg,dg+1)
+for dg in [1, 2]:
+    for e in [0, 1, 2, 3]:
+        basisfunctions_in_gausspoints(e, dg, dg + 1)
         print("")
 
 for dg in [1]:
-    for e in [0,1,2,3]:
-        basisfunctions_in_gausspoints(e, dg,dg+2)
+    for e in [0, 1, 2, 3]:
+        basisfunctions_in_gausspoints(e, dg, dg + 2)
         print("")
 
 print("\n\n//------------------------------ Basis Functions in Gauss Points (cell)\n")
 
-for dg in [1,2]:
-    basisfunctions_in_gausspoints_cell(dg,2)
-    basisfunctions_in_gausspoints_cell(dg,3)
+for dg in [1, 2]:
+    basisfunctions_in_gausspoints_cell(dg, 2)
+    basisfunctions_in_gausspoints_cell(dg, 3)
 
 
-for dg in [1,2]:
-    integration_basisfunctions_in_gausspoints_cell(dg,2)
-    integration_basisfunctions_in_gausspoints_cell(dg,3)
+for dg in [1, 2]:
+    integration_basisfunctions_in_gausspoints_cell(dg, 2)
+    integration_basisfunctions_in_gausspoints_cell(dg, 3)
 
 
 print("\n\n//------------------------------ Edge Basis Functions in Gauss Points\n")
 # generate arrays that evaluate basis functions in the gauss points on the edges
-for dg in [1,2]:
-    edge_basisfunctions_in_gausspoints(dg,dg+1)
+for dg in [1, 2]:
+    edge_basisfunctions_in_gausspoints(dg, dg + 1)
     print("")
 
 for dg in [1]:
-    edge_basisfunctions_in_gausspoints(dg,dg+2)
+    edge_basisfunctions_in_gausspoints(dg, dg + 2)
     print("")
 
 

@@ -6,7 +6,7 @@
 #include "include/ModelArray.hpp"
 
 #ifndef DGCOMP
-#define DGCOMP 3
+#define DGCOMP 6
 #endif
 
 #ifndef DGSTRESSCOMP
@@ -84,7 +84,7 @@ const std::map<ModelArray::Type, std::string> ModelArray::typeNames = {
     { ModelArray::Type::U, "UField" },
     { ModelArray::Type::V, "VField" },
     { ModelArray::Type::DG, "DGField" },
-    { ModelArray::Type::DGSTRESS, "DGStressField" },
+    { ModelArray::Type::DGSTRESS, "DGSField" },
     { ModelArray::Type::CG, "CGField" },
 };
 

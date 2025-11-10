@@ -69,6 +69,7 @@ public:
      */
     void writeDiagnosticTime(const ModelState& state, const std::string& filePath) override;
 
+#ifndef USE_XIOS
     /*!
      * Closes an open diagnostic file. Does nothing when provided with a
      * restart file name.
@@ -76,16 +77,18 @@ public:
      * @param filePath The path to the file to be closed.
      */
     static void close(const std::string& filePath);
+#endif
 
     static ModelState readForcingTimeStatic(
         const std::set<std::string>& forcings, const TimePoint& time, const std::string& filePath);
 
 private:
-    typedef std::map<std::string, std::pair<NetCDFFileType, size_t>> FileAndIndexMap;
-
     ParaGridIO() = delete;
     ParaGridIO(const ParaGridIO& other) = delete;
     ParaGridIO& operator=(const ParaGridIO& other) = delete;
+
+#ifndef USE_XIOS
+    typedef std::map<std::string, std::pair<NetCDFFileType, size_t>> FileAndIndexMap;
 
     const std::map<std::string, ModelArray::Type> dimensionKeys;
 
@@ -117,6 +120,7 @@ private:
     template <typename N>
     static ModelState readForcingTimeGeneric(
         const std::set<std::string>& forcings, const TimePoint& time, const N& node);
+#endif
 };
 
 } /* namespace Nextsim */

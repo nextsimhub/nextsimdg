@@ -11,6 +11,8 @@
 
 #include "StructureModule/include/ParametricGrid.hpp"
 #include "include/Finalizer.hpp"
+#include "include/Model.hpp"
+#include "include/ModelMPI.hpp"
 #include "include/Xios.hpp"
 
 namespace Nextsim {
@@ -26,24 +28,36 @@ namespace Nextsim {
  */
 MPI_TEST_CASE("TestXiosField", 3)
 {
-    // Enable XIOS in the 'config' and provide parameters to configure it
-    enableXios();
     std::stringstream config;
+    config << "[model]" << std::endl;
+    config << "start = 2023-03-17T17:11:00Z" << std::endl;
+    config << "stop = 2023-03-17T18:11:00Z" << std::endl;
+    config << "time_step = P0-0T01:00:00" << std::endl;
+    config << "restart_file = xios_test_output.nc" << std::endl;
+    config << "restart_period = P0-0T03:00:00" << std::endl;
+    config << "partition_file = xios_test_partition_metadata_3.nc" << std::endl;
     config << "[XiosOutput]" << std::endl;
-    config << "period = P0-0T03:00:00" << std::endl;
-    config << "filename = xios_test_output" << std::endl;
     config << "field_names = field_A" << std::endl;
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
 
+    // Create ModelMPI instance based off the test communicator
+    auto& modelMPI = ModelMPI::getInstance(test_comm);
+
+    // Create a Model and configure it so that time options are parsed
+    Model model;
+    model.configureRestarts();
+    model.configureTime();
+
     // Get the Xios singleton instance and check it's initialized
+    // NOTE: The singleton is created when Xios::getInstance() is first called. In this test, this
+    //       happens when the time sets set by ModelMetadata::setTime(). This occurs in the call to
+    //       Model::configureTime() above.
     Xios& xiosHandler = Xios::getInstance();
-    REQUIRE(xiosHandler.isInitialized());
-    REQUIRE(xiosHandler.getClientMPISize() == 3);
 
     // Create an axis with two points
     xiosHandler.createAxis("axis_A");
-    xiosHandler.setAxisValues("axis_A", { 0.0, 1.0 });
+    xiosHandler.setAxisSize("axis_A", 2);
 
     // Create a 1D grid comprised of the single axis
     xiosHandler.createGrid("grid_1D");
@@ -70,7 +84,8 @@ MPI_TEST_CASE("TestXiosField", 3)
     // setFieldReadAccess (see above note)
     REQUIRE(!xiosHandler.getFieldReadAccess(fieldId));
     // Frequency offset
-    Duration freqOffset = xiosHandler.getCalendarTimestep();
+    ModelMetadata& metadata = ModelMetadata::getInstance();
+    Duration freqOffset = metadata.stepLength();
     xiosHandler.setFieldFreqOffset(fieldId, freqOffset);
     // TODO: Overload == for Duration
     REQUIRE(xiosHandler.getFieldFreqOffset(fieldId).seconds() == freqOffset.seconds());

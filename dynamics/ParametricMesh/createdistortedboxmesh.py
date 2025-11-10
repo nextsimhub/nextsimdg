@@ -14,30 +14,30 @@ The mesh is slightly distorted
 import numpy as np
 
 # Size of the domain
-Lx =  1000000
-Ly =  1000000
+Lx = 1000000
+Ly = 1000000
 
 # Number of elements
-nx =  32
-ny =  32
+nx = 32
+ny = 32
 
 
-def distx(x,y):
-    return np.sin(3.0*np.pi*x/Lx)*np.sin(2.0*np.pi*y/Ly)
-
-def disty(x,y):
-    return np.sin(np.pi*x/Lx)*np.sin(3.0*np.pi*y/Ly)
+def distx(x, y):
+    return np.sin(3.0 * np.pi * x / Lx) * np.sin(2.0 * np.pi * y / Ly)
 
 
+def disty(x, y):
+    return np.sin(np.pi * x / Lx) * np.sin(3.0 * np.pi * y / Ly)
 
-sx = 0.05*Lx
-sy = 0.05*Ly
 
-#sx,sy = 0,0
+sx = 0.05 * Lx
+sy = 0.05 * Ly
+
+# sx,sy = 0,0
 
 with open("distortedbox.smesh", "w") as f:
-  f.write("ParametricMesh 1.0\n")
-  f.write("{0}\t{1}\n".format(nx,ny))
-  for y in np.linspace(0,Ly,ny+1):
-      for x in np.linspace(0,Lx,nx+1):
-          f.write("{0}\t{1}\n".format(x+sx*distx(x,y),y+sy*disty(x,y)))
+    f.write("ParametricMesh 1.0\n")
+    f.write("{0}\t{1}\n".format(nx, ny))
+    for y in np.linspace(0, Ly, ny + 1):
+        for x in np.linspace(0, Lx, nx + 1):
+            f.write("{0}\t{1}\n".format(x + sx * distx(x, y), y + sy * disty(x, y)))

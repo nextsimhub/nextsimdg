@@ -28,6 +28,7 @@ coords_dim = ncFile.createDimension("ncoords", n_coords)
 hfield_dims = ("ydim", "xdim")
 
 mask = ncFile.createVariable("mask", "f8", hfield_dims)
+# fmt: off
 mask[:,::-1] = [[0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
              [0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
              [0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0],
@@ -90,23 +91,24 @@ cice[:,::-1] = [[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
              [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
              [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
              [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]]
-cice[:,:] /= 10
+# fmt: on
+cice[:, :] /= 10
 hice = ncFile.createVariable("hice", "f8", hfield_dims)
-hice[:,:] = cice[:,:] * 2
+hice[:, :] = cice[:, :] * 2
 hsnow = ncFile.createVariable("hsnow", "f8", hfield_dims)
-hsnow[:,:] = cice[:,:] / 2
-tsurf= ncFile.createVariable("tsurf", "f8", hfield_dims)
-tsurf[:,:] = -0.5 - cice[:,:]
+hsnow[:, :] = cice[:, :] / 2
+tsurf = ncFile.createVariable("tsurf", "f8", hfield_dims)
+tsurf[:, :] = -0.5 - cice[:, :]
 
-mdi = -3.40282347e38 # Minus float max
+mdi = -3.40282347e38  # Minus float max
 # mask data
-cice[:,:] = cice[:,:] * mask[:,:] + antimask * mdi
+cice[:, :] = cice[:, :] * mask[:, :] + antimask * mdi
 cice.missing_value = mdi
-hice[:,:] = hice[:,:] * mask[:,:] + antimask * mdi
+hice[:, :] = hice[:, :] * mask[:, :] + antimask * mdi
 hice.missing_value = mdi
-hsnow[:,:] = hsnow[:,:] * mask[:,:] + antimask * mdi
+hsnow[:, :] = hsnow[:, :] * mask[:, :] + antimask * mdi
 hsnow.missing_value = mdi
-tsurf[:,:] = tsurf[:,:] * mask[:,:] + antimask * mdi
+tsurf[:, :] = tsurf[:, :] * mask[:, :] + antimask * mdi
 tsurf.missing_value = mdi
 
 # coordinates
@@ -114,7 +116,7 @@ tsurf.missing_value = mdi
 x_var = ncFile.createVariable("x", "f8", hfield_dims)
 y_var = ncFile.createVariable("y", "f8", hfield_dims)
 
-d_distance = 150000 # 150 km element spacing
+d_distance = 150000  # 150 km element spacing
 
 for j in range(ny):
     y = (j + 0.5) * d_distance
