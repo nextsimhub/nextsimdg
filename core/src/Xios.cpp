@@ -64,9 +64,10 @@ static const std::string xForcingPfx = "XiosForcing";
 static const std::map<int, std::string> keyMap = { { Xios::ENABLED_KEY, "xios.enable" },
     { Xios::OUTPUT_FIELD_NAMES_KEY, xOutputPfx + ".field_names" },
     { Xios::INPUT_FIELD_NAMES_KEY, xInputPfx + ".field_names" },
-    { Xios::DIAGNOSTIC_PERIOD_KEY, xPfx + ".period" },
-    { Xios::DIAGNOSTIC_FILE_KEY, xPfx + ".filename" },
-    { Xios::DIAGNOSTIC_FIELD_NAMES_KEY, xPfx + ".field_names" },
+    { Xios::OUTPUT_SPLITFREQ_KEY, xOutputPfx + ".split_period" },
+    { Xios::DIAGNOSTIC_PERIOD_KEY, xDiagnosticPfx + ".period" },
+    { Xios::DIAGNOSTIC_FILE_KEY, xDiagnosticPfx + ".filename" },
+    { Xios::DIAGNOSTIC_FIELD_NAMES_KEY, xDiagnosticPfx + ".field_names" },
     { Xios::DIAGNOSTIC_SPLITFREQ_KEY, xDiagnosticPfx + ".split_period" },
     { Xios::FORCING_PERIOD_KEY, xForcingPfx + ".period" },
     { Xios::FORCING_FILE_KEY, xForcingPfx + ".filename" },
@@ -1385,11 +1386,10 @@ void Xios::createFile(const std::string fileId, const int fieldType)
     }
 
     // Set the file output frequency
+    std::string periodStr;
     ModelMetadata& metadata = ModelMetadata::getInstance();
     if (fieldType == INPUT_RESTART || fieldType == OUTPUT_RESTART) {
         setFileOutputFreq(fileId, metadata.restartPeriod());
-        istringstream(Configured::getConfiguration(keyMap.at(RESTARTPERIOD_KEY), std::string()))
-            >> periodStr;
     } else {
         std::string periodStr;
         if (fieldType == FORCING) {
