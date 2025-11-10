@@ -180,10 +180,12 @@ private:
     std::map<ModelArray::Type, std::string> axisIds = {
         { ModelArray::Type::VERTEX, "VertexAxis" },
         { ModelArray::Type::DG, "DGAxis" },
+        { ModelArray::Type::DGSTRESS, "DGSAxis" },
     };
     std::map<std::string, std::string> axisNames = {
         { "VertexAxis", "ncoords" },
         { "DGAxis", "dg_comp" },
+        { "DGSAxis", "dgstress_comp" },
     };
     xios::CAxisGroup* getAxisGroup();
     xios::CAxis* getAxis(const std::string axisId);
@@ -193,6 +195,7 @@ private:
         { ModelArray::Type::H, "HDomain" },
         { ModelArray::Type::VERTEX, "VertexDomain" },
         { ModelArray::Type::DG, "HDomain" },
+        { ModelArray::Type::DGSTRESS, "HDomain" },
     };
     xios::CDomainGroup* getDomainGroup();
     xios::CDomain* getDomain(std::string domainId);
@@ -217,6 +220,7 @@ private:
         { ModelArray::Type::H, "HGrid" },
         { ModelArray::Type::VERTEX, "VertexGrid" },
         { ModelArray::Type::DG, "DGGrid" },
+        { ModelArray::Type::DGSTRESS, "DGSGrid" },
     };
 
     /* File */
