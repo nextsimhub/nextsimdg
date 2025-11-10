@@ -41,10 +41,13 @@ public:
     //! Prevent copying
     Xios(const Xios&) = delete;
 
-    /*
+    /*!
      * Define Xios handler Singleton
      *
      * NOTE: The arguments will only be used the first time this is called.
+     *
+     * @param contextId identifier string for the XIOS context
+     * @param calendarType calendar type used by XIOS
      */
     inline static Xios& getInstance(
         const std::string contextId = "nextSIM-DG", const std::string calendarType = "Gregorian")
