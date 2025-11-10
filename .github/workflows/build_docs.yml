@@ -2,9 +2,9 @@
 name: Build docs
 
 on:
-  # Trigger the workflow upon merging into main or docs
+  # Trigger the workflow upon merging into main, develop, or docs
   push:
-    branches: [ main, docs ]
+    branches: [ main, develop, docs ]
 
   # Trigger the workflow whenever commits are pushed to an open PR that changes one of the file types listed
   pull_request:
