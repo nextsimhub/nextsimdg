@@ -20,7 +20,7 @@ namespace Nextsim {
  */
 class SlabOcean : public ModelComponent, public Configured<SlabOcean> {
 public:
-    SlabOcean(ModelArrayStore& coupingArrays)
+    SlabOcean(ModelArrayStore& couplingArrays)
         : qdwAccessor(getStore(), RO, ModelArray::Type::H)
         , fdwAccessor(getStore(), RO, ModelArray::Type::H)
         , sstSlabAccessor(getStore(), RO, ModelArray::Type::H)
@@ -30,10 +30,10 @@ public:
         , sstAccessor(getStore())
         , sssAccessor(getStore())
         , cpmlAccessor(getStore())
-        , qswNetAccessor(coupingArrays)
-        , qNoSunAccessor(coupingArrays)
-        , fwFluxAccessor(coupingArrays)
-        , sFluxAccessor(coupingArrays)
+        , qswNetAccessor(couplingArrays)
+        , qNoSunAccessor(couplingArrays)
+        , fwFluxAccessor(couplingArrays)
+        , sFluxAccessor(couplingArrays)
     {
     }
 
