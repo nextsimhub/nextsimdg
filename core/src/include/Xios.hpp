@@ -30,10 +30,13 @@ class ParaGridIO;
 class Xios : public Configured<Xios> {
 private:
     //! Private constructor
-    Xios(const std::string contextId = "nextSIM-DG", const std::string calendarType = "Gregorian");
+    Xios();
 
     //! Performs some one-time initialization for the class. Returns true.
     static bool doOnce();
+
+    inline static std::string contextId;
+    inline static bool contextReset = true;
 
 public:
     ~Xios();
@@ -41,17 +44,23 @@ public:
     //! Prevent copying
     Xios(const Xios&) = delete;
 
-    /*
-     * Define Xios handler Singleton
-     *
-     * NOTE: The arguments will only be used the first time this is called.
-     */
-    inline static Xios& getInstance(
-        const std::string contextId = "nextSIM-DG", const std::string calendarType = "Gregorian")
+    //! Define Xios handler Singleton
+    inline static Xios& getInstance()
     {
-        static Xios instance = Xios(contextId, calendarType);
+        static Xios instance = Xios();
         return instance;
     };
+
+    /*!
+     * Set the XIOS context ID.
+     *
+     * @param ctxId The context ID to set.
+     */
+    inline static void setContextId(const std::string& ctxId)
+    {
+        contextId = ctxId;
+        contextReset = true;
+    }
 
     /* Help config */
     static HelpMap& getHelpText(HelpMap& map, bool getAll);
@@ -68,7 +77,6 @@ public:
     void configureServer();
 
     /* Calendar, date and duration */
-    void setCalendarType(const std::string type);
     void setCalendarOrigin(const TimePoint origin);
     void setCalendarStart(const TimePoint start);
     void setCalendarStep(const int stepNumber);
@@ -141,7 +149,6 @@ protected:
 private:
     inline static bool isEnabled = false;
     std::string clientId;
-    std::string contextId;
     MPI_Comm clientComm;
     MPI_Fint clientComm_F;
     MPI_Fint nullComm_F;
@@ -153,7 +160,7 @@ private:
     void parseInputFiles();
 
     /* Calendar, date and duration */
-    std::string calendarType;
+    const std::string calendarType = "Gregorian";
     xios::CCalendarWrapper* clientCalendar;
     std::string convertXiosDatetimeToString(const cxios_date datetime, const bool isoFormat = true);
     cxios_date convertStringToXiosDatetime(const std::string datetime, const bool isoFormat = true);

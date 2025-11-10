@@ -82,21 +82,18 @@ void enableXios()
     Configurator::addStream(std::unique_ptr<std::istream>(new std::stringstream(config.str())));
 }
 
-/*!
- * Constructor: Configure an XIOS server
- *
- * @param calendartype Type of calendar to use
- */
-Xios::Xios(const std::string contextid, const std::string calendartype)
+//! Constructor: Configure an XIOS server
+Xios::Xios()
 {
-    static bool firstTime = true;
-    contextId = contextid;
-    calendarType = calendartype;
+    if (contextId.empty()) {
+        setContextId("nextSIM-DG");
+    }
+
     configure();
     static bool doneOnce = doOnce();
 
     // Create the input and output files (if found in the config)
-    if (firstTime) {
+    if (contextReset) {
         ModelMetadata& metadata = ModelMetadata::getInstance();
         inputFilename = metadata.initialFileName;
         inputFileId = ((std::filesystem::path)inputFilename).filename().replace_extension();
@@ -134,7 +131,7 @@ Xios::Xios(const std::string contextid, const std::string calendartype)
 
         parseInputFiles();
     }
-    firstTime = false;
+    contextReset = false;
 }
 
 bool Xios::doOnce()
