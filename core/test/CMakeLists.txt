@@ -112,6 +112,7 @@ if(ENABLE_MPI)
         set(XIOS_INCLUDE_LIST
             "${xios_INCLUDES}"
             "${xios_EXTERNS}/blitz/"
+            "${xios_EXTERNS}/boost_extraction/include"
             "${xios_EXTERNS}/rapidxml/include"
         )
         set(MODEL_INCLUDE_DIR "${MODEL_INCLUDE_DIR}" "${XIOS_INCLUDE_LIST}")
