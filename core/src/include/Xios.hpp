@@ -105,11 +105,9 @@ public:
     void createFile(const std::string fileId, const int fieldType);
     void setFileType(const std::string fileId, const std::string fileType);
     void setFileOutputFreq(const std::string fileId, const Duration outputFreq);
-    void setFileSplitFreq(const std::string fileId, const Duration splitFreq);
     void setFileParAccess(const std::string fileId, const std::string parAccess);
     std::string getFileType(const std::string fileId);
     Duration getFileOutputFreq(const std::string fileId);
-    Duration getFileSplitFreq(const std::string fileId);
     std::string getFileMode(const std::string fileId);
     std::string getFileParAccess(const std::string fileId);
     void fileAddField(const std::string fileId, const std::string fieldId);
@@ -118,10 +116,12 @@ public:
     enum {
         ENABLED_KEY,
         OUTPUT_FIELD_NAMES_KEY,
+        OUTPUT_SPLITFREQ_KEY,
         INPUT_FIELD_NAMES_KEY,
         DIAGNOSTIC_PERIOD_KEY,
         DIAGNOSTIC_FILE_KEY,
         DIAGNOSTIC_FIELD_NAMES_KEY,
+        DIAGNOSTIC_SPLITFREQ_KEY,
         FORCING_PERIOD_KEY,
         FORCING_FILE_KEY,
         FORCING_FIELD_NAMES_KEY,
