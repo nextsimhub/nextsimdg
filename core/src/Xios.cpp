@@ -97,9 +97,9 @@ Xios::Xios(const std::string contextid, const std::string calendartype)
     // Create the input and output files (if found in the config)
     if (firstTime) {
         ModelMetadata& metadata = ModelMetadata::getInstance();
-        inputFilename = metadata.initialFileName();
+        inputFilename = metadata.initialFileName;
         inputFileId = ((std::filesystem::path)inputFilename).filename().replace_extension();
-        outputFilename = metadata.finalFileName();
+        outputFilename = metadata.finalFileName;
         // TODO: Properly support format "restart%Y-%m-%dT%H:%M:%SZ.nc" (#898)
         outputFileId = ((std::filesystem::path)outputFilename).filename().replace_extension();
         istringstream(Configured::getConfiguration(keyMap.at(FORCING_FILE_KEY), std::string()))
@@ -1389,7 +1389,7 @@ void Xios::createFile(const std::string fileId, const int fieldType)
     std::string periodStr;
     ModelMetadata& metadata = ModelMetadata::getInstance();
     if (fieldType == INPUT_RESTART || fieldType == OUTPUT_RESTART) {
-        setFileOutputFreq(fileId, metadata.restartPeriod());
+        setFileOutputFreq(fileId, metadata.restartPeriod);
     } else {
         std::string periodStr;
         if (fieldType == FORCING) {

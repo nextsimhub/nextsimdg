@@ -65,7 +65,9 @@ MPI_TEST_CASE("TestXiosRead", 2)
     model.configureTime();
 
     // Get the Xios singleton instance and check it's initialized
-    // NOTE: The singleton is created during configureTime
+    // NOTE: The singleton is created when Xios::getInstance() is first called. In this test, this
+    //       happens when the time sets set by ModelMetadata::setTime(). This occurs in the call to
+    //       Model::configureTime() above.
     Xios& xiosHandler = Xios::getInstance();
 
     // Create ParametricGrid and ParaGridIO instances

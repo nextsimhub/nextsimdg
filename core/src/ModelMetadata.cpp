@@ -227,10 +227,6 @@ void ModelMetadata::incrementTime(const Duration& step)
 #endif
 }
 
-void ModelMetadata::setInitialFileName(const std::string filename) { this->initFile = filename; }
-void ModelMetadata::setFinalFileName(const std::string filename) { this->finalFile = filename; }
-void ModelMetadata::setRestartPeriod(const Duration period) { this->period = period; }
-
 void ModelMetadata::finalize() { }
 
 bool ModelMetadata::doOnce()

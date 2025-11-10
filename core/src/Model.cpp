@@ -52,7 +52,7 @@ Model::Model()
 #else
     auto& metadata = ModelMetadata::getInstance();
 #endif
-    metadata.setFinalFileName("restart" + TimePoint::ymdhmsFormat + ".nc");
+    metadata.finalFileName = "restart" + TimePoint::ymdhmsFormat + ".nc";
 }
 
 Model::~Model() { }
@@ -62,15 +62,15 @@ void Model::configureRestarts()
     ModelMetadata& metadata = ModelMetadata::getInstance();
 
     // Parse the initial restart file name and the pattern for output restart files
-    metadata.setInitialFileName(
-        Configured::getConfiguration(keyMap.at(RESTARTFILE_KEY), std::string()));
-    metadata.setFinalFileName(
-        Configured::getConfiguration(keyMap.at(RESTARTOUTFILE_KEY), metadata.finalFileName()));
+    metadata.initialFileName
+        = Configured::getConfiguration(keyMap.at(RESTARTFILE_KEY), std::string());
+    metadata.finalFileName
+        = Configured::getConfiguration(keyMap.at(RESTARTOUTFILE_KEY), metadata.finalFileName);
 
     // The period with which to write restart files.
     std::string restartPeriodStr
         = Configured::getConfiguration(keyMap.at(RESTARTPERIOD_KEY), std::string("0"));
-    metadata.setRestartPeriod(Duration(restartPeriodStr));
+    metadata.restartPeriod = Duration(restartPeriodStr);
 }
 
 void Model::configureTime()
@@ -120,17 +120,17 @@ void Model::configure()
 
     auto& metadata = ModelMetadata::getInstance();
     modelStep.init();
-    modelStep.setInitFile(metadata.initialFileName());
+    modelStep.setInitFile(metadata.initialFileName);
 
     configureTime();
 
-    ModelState initialState(StructureFactory::stateFromFile(metadata.initialFileName()));
+    ModelState initialState(StructureFactory::stateFromFile(metadata.initialFileName));
 
     // Get the coordinates from the ModelState for persistence
     metadata.extractCoordinates(initialState);
 
     modelStep.setData(pData);
-    modelStep.setRestartDetails(metadata.restartPeriod(), metadata.finalFileName());
+    modelStep.setRestartDetails(metadata.restartPeriod, metadata.finalFileName);
     pData.setData(initialState.data);
 }
 
@@ -201,7 +201,7 @@ void Model::run()
 void Model::writeRestartFile()
 {
     auto& metadata = ModelMetadata::getInstance();
-    std::string formattedFileName = metadata.time().format(metadata.finalFileName());
+    std::string formattedFileName = metadata.time().format(metadata.finalFileName);
     pData.writeRestartFile(formattedFileName);
 }
 
