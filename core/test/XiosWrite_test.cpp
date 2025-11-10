@@ -23,7 +23,7 @@ const std::string testFilesDir = TEST_FILES_DIR;
 const std::string restartFilename = testFilesDir + "/xios_test_output.nc";
 const std::string diagnosticFilename = testFilesDir + "/xios_test_diagnostic.nc";
 
-static const int DG = 3;
+static const int DGCOMP = 6;
 static const int DGSTRESSCOMP = 8;
 static const int CGDEGREE = 2;
 
@@ -37,8 +37,6 @@ namespace Nextsim {
  */
 MPI_TEST_CASE("TestXiosWrite", 2)
 {
-    // Enable XIOS in the 'config' and provide parameters to configure it
-    enableXios();
     std::stringstream config;
     config << "[model]" << std::endl;
     config << "start = 2023-03-17T17:11:00Z" << std::endl;
@@ -67,16 +65,11 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     model.configureRestarts();
     model.configureTime();
 
-    // Create ParametricGrid and ParaGridIO instances
-    Module::setImplementation<IStructure>("Nextsim::ParametricGrid");
-    ParametricGrid grid;
-    ParaGridIO* pio = new ParaGridIO(grid);
-    grid.setIO(pio);
-
     // Get the Xios singleton instance and check it's initialized
+    // NOTE: The singleton is created when Xios::getInstance() is first called. In this test, this
+    //       happens when the time sets set by ModelMetadata::setTime(). This occurs in the call to
+    //       Model::configureTime() above.
     Xios& xiosHandler = Xios::getInstance();
-    REQUIRE(xiosHandler.isInitialized());
-    REQUIRE(xiosHandler.getClientMPISize() == 2);
 
     // Set ModelArray dimensions
     const size_t nx_glo = 4;
@@ -85,7 +78,8 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     const size_t ny = 2;
     size_t nx_start;
     const size_t ny_start = 0;
-    const int rank = xiosHandler.getClientMPIRank();
+    int rank;
+    MPI_Comm_rank(test_comm, &rank);
     if (rank == 0) {
         nx_start = 0;
     } else {
@@ -99,16 +93,14 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     ModelArray::setDimension(ModelArray::Dimension::YVERTEX, ny_glo + 1, ny + 1, ny_start);
     ModelArray::setDimension(
         ModelArray::Dimension::YCG, CGDEGREE * ny_glo + 1, CGDEGREE * ny + 1, ny_start);
-    ModelArray::setNComponents(ModelArray::Type::DG, DG);
-    ModelArray::setNComponents(ModelArray::Type::DGSTRESS, DGSTRESSCOMP);
-    ModelArray::setNComponents(ModelArray::Type::VERTEX, ModelArray::nCoords);
-    REQUIRE(ModelArray::nComponents(ModelArray::Type::DG) == DG);
-    REQUIRE(ModelArray::nComponents(ModelArray::Type::DGSTRESS) == DGSTRESSCOMP);
-    REQUIRE(ModelArray::nComponents(ModelArray::Type::VERTEX) == ModelArray::nCoords);
+    REQUIRE(ModelArray::nComponents(ModelArray::Type::DG) == DGCOMP);
 
-    // Affix ModelMetadata to Xios handler
-    // TODO: Automate this - can't be inlined in Xios::getInstance because need set field types
-    xiosHandler.affixModelMetadata();
+    // Create ParametricGrid and ParaGridIO instances
+    // NOTE: XIOS axes, domains, and grids are created by the ParaGridIO constructor
+    Module::setImplementation<IStructure>("Nextsim::ParametricGrid");
+    ParametricGrid grid;
+    ParaGridIO* pio = new ParaGridIO(grid);
+    grid.setIO(pio);
 
     // Set field types
     xiosHandler.setFieldType(maskName, ModelArray::Type::H);
@@ -150,8 +142,8 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     hice.resize();
     for (size_t j = 0; j < ny; ++j) {
         for (size_t i = 0; i < nx; ++i) {
-            for (size_t d = 0; d < DG; ++d) {
-                hice.components({ i, j })[d] = 1.0 * (d + DG * (i + nx * j));
+            for (size_t d = 0; d < DGCOMP; ++d) {
+                hice.components({ i, j })[d] = 1.0 * (d + DGCOMP * (i + nx * j));
             }
         }
     }
@@ -182,11 +174,12 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     REQUIRE_FALSE(std::filesystem::exists("xios_test_output*.nc"));
     REQUIRE_FALSE(std::filesystem::exists("xios_test_diagnostic*.nc"));
 
-    // Simulate 4 iterations (timesteps)
-    Duration timestep = xiosHandler.getCalendarTimestep();
-    ModelMetadata& metadata = ModelMetadata::getInstance();
-    metadata.setTime(xiosHandler.getCalendarStart());
+    // Check calendar step is zero initially
     REQUIRE(xiosHandler.getCalendarStep() == 0);
+
+    // Simulate 4 iterations (timesteps)
+    ModelMetadata& metadata = ModelMetadata::getInstance();
+    Duration timestep = metadata.stepLength();
     for (int ts = 1; ts <= 4; ts++) {
 
         // Update the current timestep and verify it's updated in XIOS

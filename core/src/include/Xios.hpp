@@ -27,8 +27,6 @@ namespace Nextsim {
 // Forward declarations to avoid circular dependencies
 class ParaGridIO;
 
-void enableXios();
-
 class Xios : public Configured<Xios> {
 private:
     //! Private constructor
@@ -69,32 +67,21 @@ public:
     void configure() override;
     void configureServer();
 
-    /* MPI decomposition */
-    int getClientMPISize();
-    int getClientMPIRank();
-
     /* Calendar, date and duration */
     void setCalendarType(const std::string type);
     void setCalendarOrigin(const TimePoint origin);
     void setCalendarStart(const TimePoint start);
     void setCalendarStep(const int stepNumber);
     void incrementCalendar();
-    std::string getCalendarType();
     TimePoint getCalendarOrigin();
     TimePoint getCalendarStart();
-    Duration getCalendarTimestep();
     int getCalendarStep();
     TimePoint getCurrentDate();
 
     /* Axis */
     void createAxis(const std::string axisId);
     void setAxisSize(const std::string axisId, const size_t size);
-    void setAxisValues(const std::string axisId, std::vector<double> values);
     size_t getAxisSize(const std::string axisId);
-    std::vector<double> getAxisValues(const std::string axisId);
-
-    /* Domain */
-    void affixModelMetadata();
 
     /* Grid */
     void createGrid(const std::string gridId);
@@ -128,9 +115,6 @@ public:
     void fileAddField(const std::string fileId, const std::string fieldId);
     std::vector<std::string> fileGetFieldIds(const std::string fileId);
 
-    /* I/O */
-    void read(const std::string fieldId, ModelArray& modelarray);
-
     enum {
         ENABLED_KEY,
         OUTPUT_FIELD_NAMES_KEY,
@@ -163,9 +147,10 @@ private:
     MPI_Fint nullComm_F;
     int mpi_rank { 0 };
     int mpi_size { 0 };
+    int cStrLen { 20 }; // Length of C-strings passed to XIOS
 
-    /* Length of C-strings passed to XIOS */
-    int cStrLen { 20 };
+    /* Configuration */
+    void parseInputFiles();
 
     /* Calendar, date and duration */
     std::string calendarType;
@@ -189,6 +174,7 @@ private:
     };
     xios::CAxisGroup* getAxisGroup();
     xios::CAxis* getAxis(const std::string axisId);
+    void setupAxes();
 
     /* Domain */
     std::map<ModelArray::Type, std::string> domainIds = {
@@ -200,6 +186,19 @@ private:
     };
     xios::CDomainGroup* getDomainGroup();
     xios::CDomain* getDomain(std::string domainId);
+    void setupDomains();
+
+    /* Grid */
+    xios::CGridGroup* getGridGroup();
+    xios::CGrid* getGrid(const std::string gridId);
+    std::map<ModelArray::Type, std::string> gridIds = {
+        { ModelArray::Type::H, "HGrid" },
+        { ModelArray::Type::VERTEX, "VertexGrid" },
+        { ModelArray::Type::DG, "DGGrid" },
+        { ModelArray::Type::DGSTRESS, "DGSGrid" },
+        { ModelArray::Type::CG, "CGGrid" },
+    };
+    void setupGrids();
 
     /* Field */
     xios::CFieldGroup* getFieldGroup();
@@ -213,17 +212,6 @@ private:
     std::set<std::string> configGetFieldNames(const bool readAccess);
     bool configCheckField(const std::string fieldId, const bool readAccess);
     std::map<std::string, ModelArray::Type> fieldTypes;
-
-    /* Grid */
-    xios::CGridGroup* getGridGroup();
-    xios::CGrid* getGrid(const std::string gridId);
-    std::map<ModelArray::Type, std::string> gridIds = {
-        { ModelArray::Type::H, "HGrid" },
-        { ModelArray::Type::VERTEX, "VertexGrid" },
-        { ModelArray::Type::DG, "DGGrid" },
-        { ModelArray::Type::DGSTRESS, "DGSGrid" },
-        { ModelArray::Type::CG, "CGGrid" },
-    };
 
     /* File */
     xios::CFileGroup* getFileGroup();
@@ -245,6 +233,7 @@ private:
     };
 
     /* I/O */
+    void read(const std::string fieldId, ModelArray& modelarray);
     void write(const std::string fieldId, ModelArray& modelarray);
 
     /* Declare any classes that need to access private members */

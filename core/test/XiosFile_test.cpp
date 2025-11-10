@@ -14,6 +14,8 @@
 #include "include/Finalizer.hpp"
 #include "include/Model.hpp"
 #include "include/ModelMPI.hpp"
+#include "include/NextsimModule.hpp"
+#include "include/ParaGridIO.hpp"
 #include "include/Xios.hpp"
 
 using namespace doctest;
@@ -31,8 +33,6 @@ namespace Nextsim {
  */
 MPI_TEST_CASE("TestXiosFile", 2)
 {
-    // Enable XIOS in the 'config' and provide parameters to configure it
-    enableXios();
     std::stringstream config;
     config << "[model]" << std::endl;
     config << "start = 2023-03-17T17:11:00Z" << std::endl;
@@ -58,18 +58,22 @@ MPI_TEST_CASE("TestXiosFile", 2)
     model.configureTime(); // TODO: Use Model.configure to parse restart files this way, too?
 
     // Get the Xios singleton instance and check it's initialized
+    // NOTE: The singleton is created when Xios::getInstance() is first called. In this test, this
+    //       happens when the time sets set by ModelMetadata::setTime(). This occurs in the call to
+    //       Model::configureTime() above.
     Xios& xiosHandler = Xios::getInstance();
-    REQUIRE(xiosHandler.isInitialized());
-    REQUIRE(xiosHandler.getClientMPISize() == 2);
+
+    // Create ParametricGrid and ParaGridIO instances
+    // NOTE: XIOS axes, domains, and grids are created by the ParaGridIO constructor
+    Module::setImplementation<IStructure>("Nextsim::ParametricGrid");
+    ParametricGrid grid;
+    ParaGridIO* pio = new ParaGridIO(grid);
+    grid.setIO(pio);
 
     // Associate fields with grids
     // NOTE: fields are automatically created along with files
     xiosHandler.setFieldType("mask", ModelArray::Type::H);
     xiosHandler.setFieldType("hice", ModelArray::Type::DG);
-
-    // Affix ModelMetadata to Xios handler
-    // TODO: Automate this - can't be inlined in Xios::getInstance because need set field types
-    xiosHandler.affixModelMetadata();
 
     // --- Tests for file API
     const std::string inFileId = "xios_test_input";
@@ -91,7 +95,8 @@ MPI_TEST_CASE("TestXiosFile", 2)
     // Split frequency
     REQUIRE_THROWS_WITH(xiosHandler.getFileSplitFreq(outFileId),
         "Xios: Undefined split frequency for file 'xios_test_output'");
-    xiosHandler.setFileSplitFreq(outFileId, xiosHandler.getCalendarTimestep());
+    ModelMetadata& metadata = ModelMetadata::getInstance();
+    xiosHandler.setFileSplitFreq(outFileId, metadata.stepLength());
     REQUIRE(xiosHandler.getFileSplitFreq(outFileId).seconds() == 1.5 * 60 * 60);
     // File mode
     // NOTE: setFileMode is set based off the XiosInput.filename and XiosOutput.filename entries

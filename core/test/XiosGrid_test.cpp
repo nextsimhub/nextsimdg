@@ -9,9 +9,12 @@
 #include <doctest/extensions/doctest_mpi.h>
 #undef INFO
 
+#include "StructureModule/include/ParametricGrid.hpp"
 #include "include/Finalizer.hpp"
 #include "include/Model.hpp"
 #include "include/ModelMPI.hpp"
+#include "include/NextsimModule.hpp"
+#include "include/ParaGridIO.hpp"
 #include "include/Xios.hpp"
 
 namespace Nextsim {
@@ -27,8 +30,6 @@ namespace Nextsim {
  */
 MPI_TEST_CASE("TestXiosGrid", 2)
 {
-    // Enable XIOS in the 'config' and provide parameters to configure it
-    enableXios();
     std::stringstream config;
     config << "[model]" << std::endl;
     config << "start = 2023-03-17T17:11:00Z" << std::endl;
@@ -46,13 +47,17 @@ MPI_TEST_CASE("TestXiosGrid", 2)
     model.configureTime();
 
     // Get the Xios singleton instance and check it's initialized
+    // NOTE: The singleton is created when Xios::getInstance() is first called. In this test, this
+    //       happens when the time sets set by ModelMetadata::setTime(). This occurs in the call to
+    //       Model::configureTime() above.
     Xios& xiosHandler = Xios::getInstance();
-    REQUIRE(xiosHandler.isInitialized());
-    REQUIRE(xiosHandler.getClientMPISize() == 2);
 
-    // Affix ModelMetadata to Xios handler
-    // TODO: Automate this - can't be inlined in Xios::getInstance because need set field types
-    xiosHandler.affixModelMetadata();
+    // Create ParametricGrid and ParaGridIO instances
+    // NOTE: XIOS axes, domains, and grids are created by the ParaGridIO constructor
+    Module::setImplementation<IStructure>("Nextsim::ParametricGrid");
+    ParametricGrid grid;
+    ParaGridIO* pio = new ParaGridIO(grid);
+    grid.setIO(pio);
 
     const std::string gridId = "HGrid";
     REQUIRE_THROWS_WITH(xiosHandler.createGrid(gridId), "Xios: Grid 'HGrid' already exists");
@@ -60,7 +65,7 @@ MPI_TEST_CASE("TestXiosGrid", 2)
     // Add a vertical axis, too
     const std::string axisId = "z_axis";
     xiosHandler.createAxis(axisId);
-    xiosHandler.setAxisValues(axisId, { 0.0, 1.0 });
+    xiosHandler.setAxisSize(axisId, 2);
     xiosHandler.gridAddAxis("HGrid", axisId);
     std::vector<std::string> axisIds = xiosHandler.getGridAxisIds(gridId);
     REQUIRE(axisIds.size() == 1);

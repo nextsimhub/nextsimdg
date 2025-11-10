@@ -40,6 +40,21 @@
 #include <regex>
 #include <string>
 
+#ifndef DGCOMP
+#define DGCOMP 6 // Define to prevent errors from static analysis tools
+#error "Number of DG components (DGCOMP) not defined" // But throw an error anyway
+#endif
+
+#ifndef DGSTRESSCOMP
+#define DGSTRESSCOMP 8 // Define to prevent errors from static analysis tools
+#error "Number of DG stress components (DGSTRESSCOMP) not defined" // But throw an error anyway
+#endif
+
+#ifndef CGDEGREE
+#define CGDEGREE 2 // Define to prevent errors from static analysis tools
+#error "CG degree (CGDEGREE) not defined" // But throw an error anyway
+#endif
+
 namespace Nextsim {
 
 static const std::string xOutputPfx = "XiosOutput";
@@ -106,6 +121,15 @@ Xios::Xios(const std::string contextid, const std::string calendartype)
                 }
             }
         }
+
+        // Verify the XIOS context has been initialized properly
+        bool init;
+        cxios_context_is_initialized(contextId.c_str(), contextId.length(), &init);
+        if (!init) {
+            throw std::runtime_error("Xios: context '" + contextId + "' not initialized");
+        }
+
+        parseInputFiles();
     }
     firstTime = false;
 }
@@ -237,34 +261,15 @@ void Xios::configureServer()
         clientCalendar, convertDurationToXios(metadata.stepLength()));
     cxios_create_calendar(clientCalendar);
     cxios_update_calendar_timestep(clientCalendar);
+    if (!cxios_is_defined_calendar_wrapper_timestep(clientCalendar)) {
+        throw std::runtime_error("Xios: Calendar timestep has not been set");
+    }
 
     // Set default calendar origin
     setCalendarOrigin(TimePoint("1970-01-01T00:00:00Z")); // Unix epoch
 
     // Set start time from configuration file
     setCalendarStart(metadata.startTime());
-}
-
-/*!
- * @return size of the client MPI communicator
- */
-int Xios::getClientMPISize() { return mpi_size; }
-
-/*!
- * @return rank of the client MPI communicator
- */
-int Xios::getClientMPIRank() { return mpi_rank; }
-
-/*!
- * Verify XIOS server is initialized
- *
- * @return true when XIOS server is initialized
- */
-bool Xios::isInitialized()
-{
-    bool init = false;
-    cxios_context_is_initialized(contextId.c_str(), contextId.length(), &init);
-    return init;
 }
 
 /*!
@@ -385,18 +390,6 @@ void Xios::setCalendarStep(const int stepNumber) { cxios_update_calendar(stepNum
 void Xios::incrementCalendar() { setCalendarStep(getCalendarStep() + 1); }
 
 /*!
- * Get calendar type
- *
- * @return calendar type
- */
-std::string Xios::getCalendarType()
-{
-    char cStr[cStrLen];
-    cxios_get_calendar_wrapper_type(clientCalendar, cStr, cStrLen);
-    return convertCStrToCppStr(cStr, cStrLen);
-}
-
-/*!
  * Get calendar origin
  *
  * @return calendar origin
@@ -424,21 +417,6 @@ TimePoint Xios::getCalendarStart()
     cxios_date calendar_start;
     cxios_get_calendar_wrapper_date_start_date(clientCalendar, &calendar_start);
     return TimePoint(convertXiosDatetimeToString(calendar_start, true));
-}
-
-/*!
- * Get calendar timestep
- *
- * @return calendar timestep
- */
-Duration Xios::getCalendarTimestep()
-{
-    if (!cxios_is_defined_calendar_wrapper_timestep(clientCalendar)) {
-        throw std::runtime_error("Xios: Calendar timestep has not been set");
-    }
-    cxios_duration calendar_timestep;
-    cxios_get_calendar_wrapper_timestep(clientCalendar, &calendar_timestep);
-    return convertDurationFromXios(calendar_timestep);
 }
 
 /*!
@@ -539,31 +517,6 @@ void Xios::setAxisSize(const std::string axisId, const size_t size)
 }
 
 /*!
- * Set the values associated with a given axis
- *
- * @param the axis ID
- * @param the values to set
- */
-void Xios::setAxisValues(const std::string axisId, std::vector<double> values)
-{
-    xios::CAxis* axis = getAxis(axisId);
-    if (cxios_is_defined_axis_value(axis)) {
-        Logged::warning("Xios: Values already set for axis '" + axisId + "'");
-    }
-    if (!cxios_is_defined_axis_n_glo(axis)) {
-        setAxisSize(axisId, values.size());
-    }
-    int size = getAxisSize(axisId);
-    if (size != values.size()) {
-        throw std::runtime_error("Xios: Size incompatible with values for axis '" + axisId + "'");
-    }
-    cxios_set_axis_value(axis, values.data(), &size);
-    if (!cxios_is_defined_axis_value(axis)) {
-        throw std::runtime_error("Xios: Failed to set values for axis '" + axisId + "'");
-    }
-}
-
-/*!
  * Get the size of a given axis (the number of global points)
  *
  * @param the axis ID
@@ -578,26 +531,6 @@ size_t Xios::getAxisSize(const std::string axisId)
     int size;
     cxios_get_axis_n_glo(axis, &size);
     return (size_t)size;
-}
-
-/*!
- * Get the values associated with a given axis
- *
- * @param the axis ID
- * @return the corresponding values
- */
-std::vector<double> Xios::getAxisValues(const std::string axisId)
-{
-    xios::CAxis* axis = getAxis(axisId);
-    if (!cxios_is_defined_axis_value(axis)) {
-        throw std::runtime_error("Xios: Undefined values for axis '" + axisId + "'");
-    }
-    int size = getAxisSize(axisId);
-    double* values = new double[size];
-    cxios_get_axis_value(axis, values, &size);
-    std::vector<double> vec(values, values + size);
-    delete[] values;
-    return vec;
 }
 
 /*!
@@ -637,11 +570,16 @@ xios::CDomain* Xios::getDomain(const std::string domainId)
 }
 
 /*!
- * Create axes, domains, and grids based off the provided metadata.
+ * @brief   Do an initial read of input files to deduce field dimensions.
+ *
+ * @details This function will read the dimension information from any NetCDF input files (restarts
+ *          and/or forcings) and set dimensions appropriately. It will then set the field type of
+ *          each input field.
  */
-void Xios::affixModelMetadata()
+void Xios::parseInputFiles()
 {
     auto& metadata = ModelMetadata::getInstance();
+
     // Initial read of the NetCDF file to deduce the dimensions
     for (std::string filename : { inputFilename, forcingFilename }) {
         if (filename.length() == 0) {
@@ -752,8 +690,21 @@ void Xios::affixModelMetadata()
             throw std::runtime_error(ncWhat);
         }
     }
+}
 
-    // Create XIOS domains associated with each ModelArray type
+/*!
+ * @brief   Create XIOS domains associated with each ModelArray type
+ *
+ * @details This function sets up the XIOS domains for each field type based on the configuration
+ *          in the domainIds map and in the ModelMetadata class.
+ */
+void Xios::setupDomains()
+{
+    auto& metadata = ModelMetadata::getInstance();
+
+    ModelArray::setNComponents(ModelArray::Type::VERTEX, ModelArray::nCoords);
+    ModelArray::setNComponents(ModelArray::Type::DG, DGCOMP);
+    ModelArray::setNComponents(ModelArray::Type::DGSTRESS, DGSTRESSCOMP);
     for (auto entry : domainIds) {
         ModelArray::Type type = entry.first;
         const std::string domainId = entry.second;
@@ -875,15 +826,20 @@ void Xios::affixModelMetadata()
             counter++;
         }
     }
+}
 
-    // Create XIOS axes for each ModelArray type
-    for (auto entry : ModelArray::componentMap) {
+/*!
+ * @brief   Create XIOS axes for each ModelArray type
+ *
+ * @details This function sets up the XIOS axes for each field type based on the configuration
+ *          in the axisIds map and in the ModelArray class.
+ */
+void Xios::setupAxes()
+{
+    for (auto entry : axisIds) {
         ModelArray::Type type = entry.first;
-        ModelArray::Dimension dim = entry.second;
-        if (axisIds.count(type) == 0) {
-            continue;
-        }
-        const std::string axisId = axisIds[type];
+        const std::string axisId = entry.second;
+        ModelArray::Dimension dim = ModelArray::componentMap.at(type);
         createAxis(axisId);
         setAxisSize(axisId, ModelArray::size(dim));
         xios::CAxis* axis = getAxis(axisId);
@@ -893,7 +849,16 @@ void Xios::affixModelMetadata()
             throw std::runtime_error("Xios: Failed to set name for axis '" + axisId + "'");
         }
     }
+}
 
+/*!
+ * @brief   Create XIOS grids for each ModelArray type
+ *
+ * @details This function sets up the XIOS grids for each field type based on the configuration
+ *          in the gridIds, axisIds, and domainIds maps.
+ */
+void Xios::setupGrids()
+{
     // Create XIOS grid associated with domain and possibly axis
     for (auto entry : gridIds) {
         ModelArray::Type type = entry.first;

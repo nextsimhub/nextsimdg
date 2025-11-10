@@ -23,7 +23,7 @@ const std::string testFilesDir = TEST_FILES_DIR;
 const std::string restartFilename = testFilesDir + "/xios_test_input.nc";
 const std::string forcingFilename = testFilesDir + "/xios_test_forcing.nc";
 
-static const int DG = 3;
+static const int DGCOMP = 6;
 static const int DGSTRESSCOMP = 8;
 static const int CGDEGREE = 2;
 
@@ -37,8 +37,6 @@ namespace Nextsim {
  */
 MPI_TEST_CASE("TestXiosRead", 2)
 {
-    // Enable XIOS in the 'config' and provide parameters to configure it
-    enableXios();
     std::stringstream config;
     config << "[model]" << std::endl;
     config << "start = 2023-03-17T17:11:00Z" << std::endl;
@@ -66,52 +64,38 @@ MPI_TEST_CASE("TestXiosRead", 2)
     model.configureRestarts();
     model.configureTime();
 
+    // Get the Xios singleton instance and check it's initialized
+    // NOTE: The singleton is created when Xios::getInstance() is first called. In this test, this
+    //       happens when the time sets set by ModelMetadata::setTime(). This occurs in the call to
+    //       Model::configureTime() above.
+    Xios& xiosHandler = Xios::getInstance();
+
     // Create ParametricGrid and ParaGridIO instances
+    // NOTE: XIOS axes, domains, and grids are created by the ParaGridIO constructor
     Module::setImplementation<IStructure>("Nextsim::ParametricGrid");
     ParametricGrid grid;
     ParaGridIO* pio = new ParaGridIO(grid);
     grid.setIO(pio);
 
-    // Get the Xios singleton instance and check it's initialized
-    Xios& xiosHandler = Xios::getInstance();
-    REQUIRE(xiosHandler.isInitialized());
-    REQUIRE(xiosHandler.getClientMPISize() == 2);
-
-    // TODO: We could deduce this from the NetCDF file
-    ModelArray::setNComponents(ModelArray::Type::DG, DG);
-    ModelArray::setNComponents(ModelArray::Type::DGSTRESS, DGSTRESSCOMP);
-    ModelArray::setNComponents(ModelArray::Type::VERTEX, ModelArray::nCoords);
-    REQUIRE(ModelArray::nComponents(ModelArray::Type::DG) == DG);
-    REQUIRE(ModelArray::nComponents(ModelArray::Type::DGSTRESS) == DGSTRESSCOMP);
-    REQUIRE(ModelArray::nComponents(ModelArray::Type::VERTEX) == ModelArray::nCoords);
-
-    // Affix ModelMetadata to Xios handler
-    // TODO: Automate this - can't be inlined in Xios::getInstance because need set field types
-    xiosHandler.affixModelMetadata();
-
     xiosHandler.close_context_definition();
-
-    // Check calendar step is zero initially
-    REQUIRE(xiosHandler.getCalendarStep() == 0);
 
     // Check the input files exists
     REQUIRE(std::filesystem::exists(restartFilename));
     REQUIRE(std::filesystem::exists(forcingFilename));
 
     // Check calendar step is zero initially
-    ModelMetadata& metadata = ModelMetadata::getInstance();
-    metadata.setTime(xiosHandler.getCalendarStart());
     REQUIRE(xiosHandler.getCalendarStep() == 0);
 
     // Deduce the local lengths of the two dimensions
     const size_t nx = ModelArray::size(ModelArray::Dimension::X);
     const size_t ny = ModelArray::size(ModelArray::Dimension::Y);
+    REQUIRE(ModelArray::nComponents(ModelArray::Type::DG) == DGCOMP);
+    REQUIRE(ModelArray::size(ModelArray::Dimension::DG) == DGCOMP);
 
     // Read restarts from file and check they take the expected values
-    metadata.setTime(xiosHandler.getCalendarStart());
-    REQUIRE(xiosHandler.getCalendarStep() == 0);
     ModelState restarts = grid.getModelState(restartFilename);
-    const int rank = xiosHandler.getClientMPIRank();
+    int rank;
+    MPI_Comm_rank(test_comm, &rank);
     for (auto& entry : restarts.data) {
         if (entry.first == maskName) {
             for (size_t j = 0; j < ny; ++j) {
@@ -133,8 +117,8 @@ MPI_TEST_CASE("TestXiosRead", 2)
         } else if (entry.first == hiceName) {
             for (size_t j = 0; j < ny; ++j) {
                 for (size_t i = 0; i < nx; ++i) {
-                    for (size_t d = 0; d < DG; ++d) {
-                        float expected = 1.0 * (d + DG * (i + nx * j));
+                    for (size_t d = 0; d < DGCOMP; ++d) {
+                        float expected = 1.0 * (d + DGCOMP * (i + nx * j));
                         REQUIRE(entry.second.components({ i, j })[d] == doctest::Approx(expected));
                     }
                 }
@@ -143,8 +127,8 @@ MPI_TEST_CASE("TestXiosRead", 2)
             for (size_t j = 0; j < ny; ++j) {
                 for (size_t i = 0; i < nx; ++i) {
                     for (size_t d = 0; d < DGSTRESSCOMP; ++d) {
-                        REQUIRE(entry.second.components({ i, j })[d]
-                            == doctest::Approx(2.0 * (d + DGSTRESSCOMP * (i + nx * j))));
+                        float expected = 2.0 * (d + DGSTRESSCOMP * (i + nx * j));
+                        REQUIRE(entry.second.components({ i, j })[d] == doctest::Approx(expected));
                     }
                 }
             }
@@ -162,7 +146,8 @@ MPI_TEST_CASE("TestXiosRead", 2)
     }
 
     // Simulate 4 iterations (timesteps), reading forcing data at each
-    Duration timestep = xiosHandler.getCalendarTimestep();
+    ModelMetadata& metadata = ModelMetadata::getInstance();
+    Duration timestep = metadata.stepLength();
     // TODO: Avoid making configGetForcingFieldNames public?
     auto forcingFieldNames = xiosHandler.configGetForcingFieldNames();
     for (int ts = 0; ts <= 4; ts++) {
