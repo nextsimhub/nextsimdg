@@ -77,7 +77,6 @@ public:
 
     /* Configuration */
     void configure() override;
-    void configureServer();
 
     /* Calendar, date and duration */
     void setCalendarOrigin(const TimePoint origin);
@@ -151,7 +150,7 @@ protected:
 
 private:
     inline static bool isEnabled = false;
-    std::string clientId;
+    const std::string clientId = "client";
     MPI_Comm clientComm;
     MPI_Fint clientComm_F;
     MPI_Fint nullComm_F;
@@ -159,11 +158,13 @@ private:
     int mpi_size { 0 };
     int cStrLen { 20 }; // Length of C-strings passed to XIOS
 
+    /* Client */
+    void configureClient();
+
     /* Context */
     void setupContext();
 
     /* Calendar, date and duration */
-    const std::string calendarType = "Gregorian";
     xios::CCalendarWrapper* clientCalendar;
     std::string convertXiosDatetimeToString(const cxios_date datetime, const bool isoFormat = true);
     cxios_date convertStringToXiosDatetime(const std::string datetime, const bool isoFormat = true);

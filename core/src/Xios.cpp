@@ -74,35 +74,6 @@ static const std::map<int, std::string> keyMap = { { Xios::ENABLED_KEY, "xios.en
     { Xios::FORCING_FILE_KEY, xForcingPfx + ".filename" },
     { Xios::FORCING_FIELD_NAMES_KEY, xForcingPfx + ".field_names" } };
 
-//! Enable XIOS in the 'config'
-void enableXios()
-{
-    std::stringstream config;
-    config << "[xios]" << std::endl << "enable = true" << std::endl;
-    Configurator::addStream(std::unique_ptr<std::istream>(new std::stringstream(config.str())));
-}
-
-//! Constructor: Configure an XIOS server
-Xios::Xios()
-{
-    // Check if XIOS is enabled in the nextSIM-DG configuration
-    istringstream(Configured::getConfiguration(keyMap.at(ENABLED_KEY), std::string()))
-        >> std::boolalpha >> isEnabled;
-
-    if (isEnabled) {
-        configureServer();
-    }
-    configure();
-    static bool doneOnce = doOnce();
-}
-
-bool Xios::doOnce()
-{
-    // Register the finalization function here
-    Finalizer::registerUnique(finalize);
-    return true;
-}
-
 Xios::HelpMap& Xios::getHelpText(HelpMap& map, bool getAll)
 {
     map["Xios"] = {
@@ -154,6 +125,48 @@ Xios::HelpMap& Xios::getHelpRecursive(HelpMap& map, bool getAll)
     return map;
 }
 
+//! Enable XIOS in the 'config'
+void enableXios()
+{
+    std::stringstream config;
+    config << "[xios]" << std::endl << "enable = true" << std::endl;
+    Configurator::addStream(std::unique_ptr<std::istream>(new std::stringstream(config.str())));
+}
+
+//! Constructor for the XIOS handler
+Xios::Xios()
+{
+    // Check if XIOS is enabled in the nextSIM-DG configuration
+    istringstream(Configured::getConfiguration(keyMap.at(ENABLED_KEY), std::string()))
+        >> std::boolalpha >> isEnabled;
+
+    if (isEnabled) {
+        configureClient();
+        configure();
+    }
+    static bool doneOnce = doOnce();
+}
+
+//! Configure XIOS client
+void Xios::configureClient()
+{
+    // Initialize XIOS Server process and store MPI communicator
+    nullComm_F = MPI_Comm_c2f(MPI_COMM_NULL);
+    cxios_init_client(clientId.c_str(), clientId.length(), &nullComm_F, &clientComm_F);
+
+    // Initialize MPI rank and size
+    clientComm = MPI_Comm_f2c(clientComm_F);
+    MPI_Comm_rank(clientComm, &mpi_rank);
+    MPI_Comm_size(clientComm, &mpi_size);
+}
+
+bool Xios::doOnce()
+{
+    // Register the finalization function here
+    Finalizer::registerUnique(finalize);
+    return true;
+}
+
 //! Destructor
 Xios::~Xios() { finalize(); }
 
@@ -203,9 +216,8 @@ void Xios::configure()
 void Xios::setupContext()
 {
     cxios_context_initialize(contextId.c_str(), contextId.length(), &clientComm_F);
-    xios::CContext* context = NULL;
-    cxios_context_handle_create(&context, contextId.c_str(), contextId.length());
-    cxios_context_set_current(context, true);
+
+    // Verify the XIOS context was created properly
     bool exists;
     cxios_context_valid_id(&exists, contextId.c_str(), contextId.length());
     if (!exists) {
@@ -218,41 +230,42 @@ void Xios::setupContext()
     if (!init) {
         throw std::runtime_error("Xios: context '" + contextId + "' not initialized");
     }
+
+    // Verify the correct context ID is being used
+    xios::CContext* context = NULL;
+    cxios_context_get_current(&context);
+    char cStr[cStrLen];
+    cxios_context_get_id(context, cStr, cStrLen);
+    if (convertCStrToCppStr(cStr, cStrLen) != contextId) {
+        throw std::runtime_error(
+            "Xios: current context ID does not match expected ID '" + contextId + "'");
+    }
 }
 
 //! Initialize calendar wrapper for the context
 void Xios::setupCalendar()
 {
+    // Set calendar type
     cxios_get_current_calendar_wrapper(&clientCalendar);
+    const std::string calendarType = "Gregorian";
     cxios_set_calendar_wrapper_type(clientCalendar, calendarType.c_str(), calendarType.length());
+
+    // Set timestep from configuration file
     ModelMetadata& metadata = ModelMetadata::getInstance();
     cxios_set_calendar_wrapper_timestep(
         clientCalendar, convertDurationToXios(metadata.stepLength()));
     cxios_create_calendar(clientCalendar);
-    cxios_update_calendar_timestep(clientCalendar);
+
+    // Verify the timestep was set correctly
     if (!cxios_is_defined_calendar_wrapper_timestep(clientCalendar)) {
         throw std::runtime_error("Xios: Calendar timestep has not been set");
     }
 
-    // Set default calendar origin
-    setCalendarOrigin(TimePoint("1970-01-01T00:00:00Z")); // Unix epoch
-
     // Set start time from configuration file
     setCalendarStart(metadata.startTime());
-}
 
-//! Configure calendar settings
-void Xios::configureServer()
-{
-    // Initialize XIOS Server process and store MPI communicator
-    clientId = "client";
-    nullComm_F = MPI_Comm_c2f(MPI_COMM_NULL);
-    cxios_init_client(clientId.c_str(), clientId.length(), &nullComm_F, &clientComm_F);
-
-    // Initialize MPI rank and size
-    clientComm = MPI_Comm_f2c(clientComm_F);
-    MPI_Comm_rank(clientComm, &mpi_rank);
-    MPI_Comm_size(clientComm, &mpi_size);
+    // Set default calendar origin
+    setCalendarOrigin(TimePoint("1970-01-01T00:00:00Z")); // Unix epoch
 }
 
 /*!
