@@ -486,7 +486,7 @@ void Xios::parseInputFiles()
     auto& metadata = ModelMetadata::getInstance();
 
     // Initial read of the NetCDF file to deduce the dimensions
-    for (std::string filename : { inputFilename, forcingFilename }) {
+    for (std::string filename : { metadata.initialFileName, forcingFilename }) {
         if (filename.empty()) {
             break;
         }
