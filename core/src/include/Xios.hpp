@@ -130,8 +130,7 @@ private:
     int mpi_size { 0 };
     int cStrLen { 20 }; // Length of C-strings passed to XIOS
 
-    /* Configuration */
-    void setupFiles();
+    /* Context */
     void setupContext();
 
     /* Calendar, date and duration */
@@ -181,6 +180,7 @@ private:
     std::set<std::string> configGetFieldNames(const bool readAccess);
     bool configCheckField(const std::string fieldId, const bool readAccess);
     std::map<std::string, ModelArray::Type> fieldTypes;
+    void setupFields();
 
     /* File */
     xios::CFileGroup* getFileGroup();
@@ -198,6 +198,7 @@ private:
         { DIAGNOSTIC, diagnosticFileId },
         { FORCING, forcingFileId },
     };
+    void setupFiles();
 
     /* I/O */
     void read(const std::string fieldId, ModelArray& modelarray);

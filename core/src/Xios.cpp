@@ -224,6 +224,10 @@ void Xios::configure()
 
     if (isEnabled) {
         configureServer();
+        setupContext();
+        setupCalendar();
+        setupFiles();
+        setupFields();
     }
 }
 
@@ -457,6 +461,29 @@ size_t Xios::getAxisSize(const std::string axisId)
 }
 
 /*!
+ * @brief   Create XIOS axes for each ModelArray type
+ *
+ * @details This function sets up the XIOS axes for each field type based on the configuration
+ *          in the axisIds map and in the ModelArray class.
+ */
+void Xios::setupAxes()
+{
+    for (auto entry : axisIds) {
+        ModelArray::Type type = entry.first;
+        const std::string axisId = entry.second;
+        ModelArray::Dimension dim = ModelArray::componentMap.at(type);
+        createAxis(axisId);
+        setAxisSize(axisId, ModelArray::size(dim));
+        xios::CAxis* axis = getAxis(axisId);
+        const std::string axisName = axisNames[axisId];
+        cxios_set_axis_dim_name(axis, axisName.c_str(), axisName.length());
+        if (!cxios_is_defined_axis_dim_name(axis)) {
+            throw std::runtime_error("Xios: Failed to set name for axis '" + axisId + "'");
+        }
+    }
+}
+
+/*!
  * Get the domain_definition group
  *
  * @return a pointer to the XIOS CDomainGroup object
@@ -490,105 +517,6 @@ xios::CDomain* Xios::getDomain(const std::string domainId)
         throw std::runtime_error("Xios: Null pointer for domain '" + domainId + "'");
     }
     return domain;
-}
-
-/*!
- * @brief   Do an initial read of input files to deduce field dimensions.
- *
- * @details This function will read the dimension information from any NetCDF input files (restarts
- *          and/or forcings) and set dimensions appropriately. It will then set the field type of
- *          each input field.
- */
-// TODO: Separate out setupFields()
-void Xios::setupFiles()
-{
-    auto& metadata = ModelMetadata::getInstance();
-
-    // Set up files
-    inputFileId = ((std::filesystem::path)metadata.initialFileName).filename().replace_extension();
-    // TODO: Properly support format "restart%Y-%m-%dT%H:%M:%SZ.nc" (#898)
-    outputFileId = ((std::filesystem::path)metadata.finalFileName).filename().replace_extension();
-    istringstream(Configured::getConfiguration(keyMap.at(FORCING_FILE_KEY), std::string()))
-        >> forcingFilename;
-    forcingFileId = ((std::filesystem::path)forcingFilename).filename().replace_extension();
-    istringstream(Configured::getConfiguration(keyMap.at(DIAGNOSTIC_FILE_KEY), std::string()))
-        >> diagnosticFilename;
-    diagnosticFileId = ((std::filesystem::path)diagnosticFilename).filename().replace_extension();
-    for (auto entry : fileMap) {
-        const std::string fileId = entry.second;
-        if (fileId.length() > 0) {
-            createFile(fileId, entry.first);
-
-            // Set file name
-            xios::CFile* file = getFile(fileId);
-            cxios_set_file_name(file, fileId.c_str(), fileId.length());
-            if (!cxios_is_defined_file_name(file)) {
-                throw std::runtime_error("Xios: Failed to set name for file '" + fileId + "'");
-            }
-        }
-    }
-
-    // Initial read of the NetCDF file to deduce the dimensions
-    for (std::string filename : { metadata.initialFileName, forcingFilename }) {
-        if (filename.empty()) {
-            break;
-        }
-        metadata.setDimensionsFromFile(filename);
-
-        // Create map for field types
-        const std::map<std::string, ModelArray::Type> dimensionKeys = {
-            { "yx", ModelArray::Type::H },
-            { "ydimxdim", ModelArray::Type::H },
-            { "yxdg_comp", ModelArray::Type::DG },
-            { "ydimxdimdg_comp", ModelArray::Type::DG },
-            { "yxdgstress_comp", ModelArray::Type::DGSTRESS },
-            { "ydimxdimdgstress_comp", ModelArray::Type::DGSTRESS },
-            { "y_cgx_cg", ModelArray::Type::CG },
-            { "yvertexxvertexncoords", ModelArray::Type::VERTEX },
-        };
-
-        // Determine field types
-        std::set<std::string> configFieldIds;
-        if (filename == inputFilename) {
-            configFieldIds = configGetInputRestartFieldNames();
-        } else {
-            configFieldIds = configGetForcingFieldNames();
-        }
-        try {
-            auto& modelMPI = ModelMPI::getInstance();
-            netCDF::NcFilePar ncFile(filename, netCDF::NcFile::read, modelMPI.getComm());
-
-            for (auto entry : ncFile.getVars()) {
-                const std::string& fieldId = entry.first;
-                // Only consider fields that appear in the config
-                if (configFieldIds.count(fieldId) == 0) {
-                    continue;
-                }
-                netCDF::NcVar& var = entry.second;
-                // Determine the type from the dimensions
-                std::vector<netCDF::NcDim> varDims = var.getDims();
-                std::string dimKey = "";
-                for (netCDF::NcDim& dim : varDims) {
-                    const std::string name = dim.getName();
-                    // Skip the time_counter dim as it's handled differently
-                    if (name != "time_counter") {
-                        dimKey += dim.getName();
-                    }
-                }
-                // Skip invalid dimension keys
-                if (!dimensionKeys.count(dimKey)) {
-                    continue;
-                }
-                ModelArray::Type type = dimensionKeys.at(dimKey);
-                setFieldType(fieldId, type);
-            }
-            ncFile.close();
-        } catch (const netCDF::exceptions::NcException& nce) {
-            std::string ncWhat(nce.what());
-            ncWhat += ": " + filename;
-            throw std::runtime_error(ncWhat);
-        }
-    }
 }
 
 /*!
@@ -1083,6 +1011,79 @@ void Xios::setFieldType(const std::string fieldId, ModelArray::Type type)
 }
 
 /*!
+ * @brief   Do an initial read of input files to deduce field dimensions.
+ *
+ * @details This function will read the dimension information from any NetCDF input files (restarts
+ *          and/or forcings) and set dimensions appropriately. It will then set the field type of
+ *          each input field.
+ */
+void Xios::setupFields()
+{
+    ModelMetadata& metadata = ModelMetadata::getInstance();
+
+    for (std::string filename : { metadata.initialFileName, forcingFilename }) {
+        if (filename.empty()) {
+            break;
+        }
+        metadata.setDimensionsFromFile(filename);
+
+        // Create map for field types
+        const std::map<std::string, ModelArray::Type> dimensionKeys = {
+            { "yx", ModelArray::Type::H },
+            { "ydimxdim", ModelArray::Type::H },
+            { "yxdg_comp", ModelArray::Type::DG },
+            { "ydimxdimdg_comp", ModelArray::Type::DG },
+            { "yxdgstress_comp", ModelArray::Type::DGSTRESS },
+            { "ydimxdimdgstress_comp", ModelArray::Type::DGSTRESS },
+            { "y_cgx_cg", ModelArray::Type::CG },
+            { "yvertexxvertexncoords", ModelArray::Type::VERTEX },
+        };
+
+        // Determine field types
+        std::set<std::string> configFieldIds;
+        if (filename == inputFilename) {
+            configFieldIds = configGetInputRestartFieldNames();
+        } else {
+            configFieldIds = configGetForcingFieldNames();
+        }
+        try {
+            auto& modelMPI = ModelMPI::getInstance();
+            netCDF::NcFilePar ncFile(filename, netCDF::NcFile::read, modelMPI.getComm());
+
+            for (auto entry : ncFile.getVars()) {
+                const std::string& fieldId = entry.first;
+                // Only consider fields that appear in the config
+                if (configFieldIds.count(fieldId) == 0) {
+                    continue;
+                }
+                netCDF::NcVar& var = entry.second;
+                // Determine the type from the dimensions
+                std::vector<netCDF::NcDim> varDims = var.getDims();
+                std::string dimKey = "";
+                for (netCDF::NcDim& dim : varDims) {
+                    const std::string name = dim.getName();
+                    // Skip the time_counter dim as it's handled differently
+                    if (name != "time_counter") {
+                        dimKey += dim.getName();
+                    }
+                }
+                // Skip invalid dimension keys
+                if (!dimensionKeys.count(dimKey)) {
+                    continue;
+                }
+                ModelArray::Type type = dimensionKeys.at(dimKey);
+                setFieldType(fieldId, type);
+            }
+            ncFile.close();
+        } catch (const netCDF::exceptions::NcException& nce) {
+            std::string ncWhat(nce.what());
+            ncWhat += ": " + filename;
+            throw std::runtime_error(ncWhat);
+        }
+    }
+}
+
+/*!
  * Get the file_definition group
  *
  * @return a pointer to the XIOS CFileGroup object
@@ -1421,6 +1422,38 @@ void Xios::fileAddField(const std::string fileId, const std::string fieldId)
 {
     xios::CField* field = getField(fieldId);
     cxios_xml_tree_add_fieldtofile(getFile(fileId), &field, fieldId.c_str(), fieldId.length());
+}
+
+/*!
+ * Set up files based on the configuration.
+ */
+void Xios::setupFiles()
+{
+    auto& metadata = ModelMetadata::getInstance();
+
+    // Set up files
+    inputFileId = ((std::filesystem::path)metadata.initialFileName).filename().replace_extension();
+    // TODO: Properly support format "restart%Y-%m-%dT%H:%M:%SZ.nc" (#898)
+    outputFileId = ((std::filesystem::path)metadata.finalFileName).filename().replace_extension();
+    istringstream(Configured::getConfiguration(keyMap.at(FORCING_FILE_KEY), std::string()))
+        >> forcingFilename;
+    forcingFileId = ((std::filesystem::path)forcingFilename).filename().replace_extension();
+    istringstream(Configured::getConfiguration(keyMap.at(DIAGNOSTIC_FILE_KEY), std::string()))
+        >> diagnosticFilename;
+    diagnosticFileId = ((std::filesystem::path)diagnosticFilename).filename().replace_extension();
+    for (auto entry : fileMap) {
+        const std::string fileId = entry.second;
+        if (fileId.length() > 0) {
+            createFile(fileId, entry.first);
+
+            // Set file name
+            xios::CFile* file = getFile(fileId);
+            cxios_set_file_name(file, fileId.c_str(), fileId.length());
+            if (!cxios_is_defined_file_name(file)) {
+                throw std::runtime_error("Xios: Failed to set name for file '" + fileId + "'");
+            }
+        }
+    }
 }
 
 /*!
