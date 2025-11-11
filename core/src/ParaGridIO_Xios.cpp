@@ -44,11 +44,12 @@ ParaGridIO::~ParaGridIO() = default;
 ModelState ParaGridIO::getModelState(const std::string& filePath)
 {
     ModelState state;
+    ModelMetadata& metadata = ModelMetadata::getInstance();
     Xios& xiosHandler = Xios::getInstance();
 
-    if (xiosHandler.inputFilename != filePath) {
+    if (metadata.initialFileName != filePath) {
         throw std::runtime_error("ParaGridIO::getModelState: file path '" + filePath
-            + "' is inconsistent with XiosInput.filename '" + xiosHandler.inputFilename + "'");
+            + "' is inconsistent with mode.init_file '" + metadata.initialFileName + "'");
     }
 
     // Get all variables in the file and load them into a new ModelState
@@ -150,11 +151,12 @@ ModelState ParaGridIO::readForcingTimeStatic(
 
 void ParaGridIO::dumpModelState(const ModelState& state, const std::string& filePath)
 {
+    ModelMetadata& metadata = ModelMetadata::getInstance();
     Xios& xiosHandler = Xios::getInstance();
 
-    if (xiosHandler.outputFilename != filePath) {
+    if (metadata.finalFileName != filePath) {
         throw std::runtime_error("ParaGridIO::dumpModelState: file path '" + filePath
-            + "' is inconsistent with XiosOutput.filename '" + xiosHandler.outputFilename + "'");
+            + "' is inconsistent with model.restart_file '" + metadata.finalFileName + "'");
     }
 
     // Assume that all fields in the supplied ModelState are necessary, and so write them to file.

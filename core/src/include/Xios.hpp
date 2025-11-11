@@ -227,9 +227,7 @@ private:
     xios::CFileGroup* getFileGroup();
     xios::CFile* getFile(const std::string fileId);
     void setFileMode(const std::string fileId, const std::string mode);
-    std::string outputFilename;
     std::string outputFileId;
-    std::string inputFilename;
     std::string inputFileId;
     std::string diagnosticFilename;
     std::string diagnosticFileId;

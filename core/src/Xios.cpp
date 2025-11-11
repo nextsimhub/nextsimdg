@@ -194,11 +194,11 @@ void Xios::configure()
     // Create the input and output files (if found in the config)
     if (contextReset) {
         ModelMetadata& metadata = ModelMetadata::getInstance();
-        inputFilename = metadata.initialFileName;
-        inputFileId = ((std::filesystem::path)inputFilename).filename().replace_extension();
-        outputFilename = metadata.finalFileName;
+        inputFileId
+            = ((std::filesystem::path)metadata.initialFileName).filename().replace_extension();
         // TODO: Properly support format "restart%Y-%m-%dT%H:%M:%SZ.nc" (#898)
-        outputFileId = ((std::filesystem::path)outputFilename).filename().replace_extension();
+        outputFileId
+            = ((std::filesystem::path)metadata.finalFileName).filename().replace_extension();
         istringstream(Configured::getConfiguration(keyMap.at(FORCING_FILE_KEY), std::string()))
             >> forcingFilename;
         forcingFileId = ((std::filesystem::path)forcingFilename).filename().replace_extension();
@@ -577,7 +577,7 @@ void Xios::parseInputFiles()
     auto& metadata = ModelMetadata::getInstance();
 
     // Initial read of the NetCDF file to deduce the dimensions
-    for (std::string filename : { inputFilename, forcingFilename }) {
+    for (std::string filename : { metadata.initialFileName, forcingFilename }) {
         if (filename.length() == 0) {
             break;
         }
@@ -650,7 +650,7 @@ void Xios::parseInputFiles()
 
             // Determine field types
             std::set<std::string> configFieldIds;
-            if (filename == inputFilename) {
+            if (filename == metadata.initialFileName) {
                 configFieldIds = configGetInputRestartFieldNames();
             } else {
                 configFieldIds = configGetForcingFieldNames();
