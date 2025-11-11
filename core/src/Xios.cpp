@@ -76,11 +76,9 @@ void enableXios()
  *
  * @param calendartype Type of calendar to use
  */
-Xios::Xios(const std::string contextid, const std::string calendartype)
+Xios::Xios()
 {
     static bool firstTime = true;
-    contextId = contextid;
-    calendarType = calendartype;
     configure();
     static bool doneOnce = doOnce();
 
@@ -229,6 +227,43 @@ void Xios::configure()
     }
 }
 
+//! Initialize the XIOS context with ID contextId
+void Xios::setupContext()
+{
+    cxios_context_initialize(contextId.c_str(), contextId.length(), &clientComm_F);
+    // xios::CContext* context = NULL;
+    // bool exists;
+    // cxios_context_valid_id(&exists, contextId.c_str(), contextId.length());
+    // if (!exists) {
+    //     cxios_context_handle_create(&context, contextId.c_str(), contextId.length());
+    // }
+    // cxios_context_set_current(context, true);
+
+    // Verify the XIOS context has been initialized properly
+    bool init;
+    cxios_context_is_initialized(contextId.c_str(), contextId.length(), &init);
+    if (!init) {
+        throw std::runtime_error("Xios: context '" + contextId + "' not initialized");
+    }
+}
+
+//! Initialize calendar wrapper for the context
+// NOTE: The calendar itself is set up in iodef.xml
+void Xios::setupCalendar()
+{
+    cxios_get_current_calendar_wrapper(&clientCalendar);
+    ModelMetadata& metadata = ModelMetadata::getInstance();
+    cxios_set_calendar_wrapper_timestep(
+        clientCalendar, convertDurationToXios(metadata.stepLength()));
+    cxios_update_calendar_timestep(clientCalendar);
+    if (!cxios_is_defined_calendar_wrapper_timestep(clientCalendar)) {
+        throw std::runtime_error("Xios: Calendar timestep has not been set");
+    }
+
+    // Set start time from configuration file
+    setCalendarStart(metadata.startTime());
+}
+
 //! Configure calendar settings
 void Xios::configureServer()
 {
@@ -241,23 +276,6 @@ void Xios::configureServer()
     clientComm = MPI_Comm_f2c(clientComm_F);
     MPI_Comm_rank(clientComm, &mpi_rank);
     MPI_Comm_size(clientComm, &mpi_size);
-
-    // Initialize 'nextSIM-DG' context
-    cxios_context_initialize(contextId.c_str(), contextId.length(), &clientComm_F);
-
-    // Set the calendar timestep for the 'nextSIM-DG' context
-    // NOTE: The calendar itself is set up in iodef.xml
-    cxios_get_current_calendar_wrapper(&clientCalendar);
-    ModelMetadata& metadata = ModelMetadata::getInstance();
-    cxios_set_calendar_wrapper_timestep(
-        clientCalendar, convertDurationToXios(metadata.stepLength()));
-    cxios_update_calendar_timestep(clientCalendar);
-    if (!cxios_is_defined_calendar_wrapper_timestep(clientCalendar)) {
-        throw std::runtime_error("Xios: Calendar timestep has not been set");
-    }
-
-    // Set start time from configuration file
-    setCalendarStart(metadata.startTime());
 }
 
 /*!
@@ -481,9 +499,34 @@ xios::CDomain* Xios::getDomain(const std::string domainId)
  *          and/or forcings) and set dimensions appropriately. It will then set the field type of
  *          each input field.
  */
-void Xios::parseInputFiles()
+// TODO: Separate out setupFields()
+void Xios::setupFiles()
 {
     auto& metadata = ModelMetadata::getInstance();
+
+    // Set up files
+    inputFileId = ((std::filesystem::path)metadata.initialFileName).filename().replace_extension();
+    // TODO: Properly support format "restart%Y-%m-%dT%H:%M:%SZ.nc" (#898)
+    outputFileId = ((std::filesystem::path)metadata.finalFileName).filename().replace_extension();
+    istringstream(Configured::getConfiguration(keyMap.at(FORCING_FILE_KEY), std::string()))
+        >> forcingFilename;
+    forcingFileId = ((std::filesystem::path)forcingFilename).filename().replace_extension();
+    istringstream(Configured::getConfiguration(keyMap.at(DIAGNOSTIC_FILE_KEY), std::string()))
+        >> diagnosticFilename;
+    diagnosticFileId = ((std::filesystem::path)diagnosticFilename).filename().replace_extension();
+    for (auto entry : fileMap) {
+        const std::string fileId = entry.second;
+        if (fileId.length() > 0) {
+            createFile(fileId, entry.first);
+
+            // Set file name
+            xios::CFile* file = getFile(fileId);
+            cxios_set_file_name(file, fileId.c_str(), fileId.length());
+            if (!cxios_is_defined_file_name(file)) {
+                throw std::runtime_error("Xios: Failed to set name for file '" + fileId + "'");
+            }
+        }
+    }
 
     // Initial read of the NetCDF file to deduce the dimensions
     for (std::string filename : { metadata.initialFileName, forcingFilename }) {

@@ -30,7 +30,7 @@ class ParaGridIO;
 class Xios : public Configured<Xios> {
 private:
     //! Private constructor
-    Xios(const std::string contextId = "nextSIM-DG", const std::string calendarType = "Gregorian");
+    Xios();
 
     //! Performs some one-time initialization for the class. Returns true.
     static bool doOnce();
@@ -41,20 +41,8 @@ public:
     //! Prevent copying
     Xios(const Xios&) = delete;
 
-    /*!
-     * Define Xios handler Singleton
-     *
-     * NOTE: The arguments will only be used the first time this is called.
-     *
-     * @param contextId identifier string for the XIOS context
-     * @param calendarType calendar type used by XIOS
-     */
-    inline static Xios& getInstance(
-        const std::string contextId = "nextSIM-DG", const std::string calendarType = "Gregorian")
-    {
-        static Xios instance = Xios(contextId, calendarType);
-        return instance;
-    };
+    //! Define Xios handler Singleton
+    inline static Xios& getInstance() { static Xios instance = Xios() return instance; };
 
     /* Help config */
     static HelpMap& getHelpText(HelpMap& map, bool getAll);
@@ -135,7 +123,6 @@ protected:
 private:
     inline static bool isEnabled = false;
     std::string clientId;
-    std::string contextId;
     MPI_Comm clientComm;
     MPI_Fint clientComm_F;
     MPI_Fint nullComm_F;
@@ -144,16 +131,17 @@ private:
     int cStrLen { 20 }; // Length of C-strings passed to XIOS
 
     /* Configuration */
-    void parseInputFiles();
+    void setupFiles();
+    void setupContext();
 
     /* Calendar, date and duration */
-    std::string calendarType;
     xios::CCalendarWrapper* clientCalendar;
     std::string convertXiosDatetimeToString(const cxios_date datetime, const bool isoFormat = true);
     cxios_date convertStringToXiosDatetime(const std::string datetime, const bool isoFormat = true);
     std::string convertCStrToCppStr(const char* cStr, int cStrLen);
     Duration convertDurationFromXios(const cxios_duration duration);
     cxios_duration convertDurationToXios(const Duration duration);
+    void setupCalendar();
 
     /* Axis */
     xios::CAxis* getAxis(const std::string axisId);
