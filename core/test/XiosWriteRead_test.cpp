@@ -290,6 +290,10 @@ MPI_TEST_CASE("TestXiosRead", 2)
     REQUIRE(ModelArray::size(ModelArray::Dimension::DG) == DGCOMP);
 
     // Read restarts from file and check they take the expected values
+    // FIXME: We get a crash in the following line when calling the Xios::read() member function for
+    //        the coordinate field (probably just because it's the first one). Despite the fact
+    //        that the read access checks pass, we get an XIOS error:
+    //      "Impossible to access field data, the field [ id = coords ] does not have read access."
     ModelState restarts = grid.getModelState(restartFilename);
     int rank;
     MPI_Comm_rank(test_comm, &rank);
