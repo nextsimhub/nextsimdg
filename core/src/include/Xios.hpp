@@ -56,7 +56,6 @@ public:
 
     /* Configuration */
     void configure() override;
-    void configureServer();
 
     /* Calendar, date and duration */
     void setCalendarStart(const TimePoint start);
@@ -122,13 +121,16 @@ protected:
 
 private:
     inline static bool isEnabled = false;
-    std::string clientId;
+    const std::string clientId = "client";
     MPI_Comm clientComm;
     MPI_Fint clientComm_F;
     MPI_Fint nullComm_F;
     int mpi_rank { 0 };
     int mpi_size { 0 };
     int cStrLen { 20 }; // Length of C-strings passed to XIOS
+
+    /* Client */
+    void configureClient();
 
     /* Context */
     void setupContext();

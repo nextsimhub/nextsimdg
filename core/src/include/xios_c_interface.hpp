@@ -31,8 +31,8 @@ void cxios_finalize();
 void cxios_context_initialize(const char* context_id, int len_context_id, MPI_Fint* f_comm);
 void cxios_context_is_initialized(const char* context_id, int len_context_id, bool* initialized);
 void cxios_context_valid_id(bool* _ret, const char* context_id, int len_context_id);
-void cxios_context_handle_create(xios::CContext** _ret, const char* context_id, int len_context_id);
-void cxios_context_set_current(xios::CContext* context_hdl, bool withswap);
+void cxios_context_get_current(xios::CContext** context_hdl);
+void cxios_context_get_id(xios::CContext*, const char* context_id, int len_context_id);
 void cxios_context_close_definition();
 void cxios_context_finalize();
 
