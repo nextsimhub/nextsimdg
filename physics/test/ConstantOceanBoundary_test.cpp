@@ -7,7 +7,6 @@
 
 #include "include/ConstantOceanBoundary.hpp"
 
-#include "include/ModelArrayRef.hpp"
 #include "include/ModelState.hpp"
 
 namespace Nextsim {
@@ -17,14 +16,17 @@ TEST_CASE("ConstantOcean Qio calculation")
 {
     ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
 
-    HField cice(ModelArray::Type::H);
+    ModelArrayAccessor<Shared::C_ICE_DG, RW> ciceAccessor(
+        ModelComponent::getStore(), RO, ModelArray::Type::H);
+    HField& cice = ciceAccessor.getHostRW();
     cice = 1.0; // Need some ice if Qio is to be calculated
-    ModelComponent::getStore().registerArray(Shared::C_ICE_DG, &cice, RO);
     ConstantOceanBoundary cob;
 
     cob.setData(ModelState::DataMap());
     cob.updateBefore(TimestepTime());
-    ModelArrayRef<Shared::Q_IO, RW> qio(ModelComponent::getStore());
+    
+    ModelArrayAccessor<Shared::Q_IO, RW> qioAccessor(ModelComponent::getStore());
+    const HField& qio = qioAccessor.getHostRO();
 
     REQUIRE(qio[0] != 0.);
 }

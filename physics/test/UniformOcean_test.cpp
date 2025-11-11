@@ -31,14 +31,22 @@ TEST_CASE("UniformOcean construction")
     UniformOcean uniOcn(sstIn, sssIn, mldIn, uIn, vIn, qioIn);
     uniOcn.setData(ModelState::DataMap());
 
-    ModelArrayRef<Protected::SST> sst(ModelComponent::getStore());
-    ModelArrayRef<Protected::SSS> sss(ModelComponent::getStore());
-    ModelArrayRef<Protected::MLD> mld(ModelComponent::getStore());
-    ModelArrayRef<Protected::OCEAN_U> u(ModelComponent::getStore());
-    ModelArrayRef<Protected::OCEAN_V> v(ModelComponent::getStore());
-    ModelArrayRef<Shared::Q_IO, RO> qio(ModelComponent::getStore());
-    ModelArrayRef<Protected::ML_BULK_CP> cpml(ModelComponent::getStore());
-    ModelArrayRef<Protected::TF> tf(ModelComponent::getStore());
+    ModelArrayAccessor<Protected::SST> sstAccessor(ModelComponent::getStore());
+    const HField& sst = sstAccessor.getHostRO();
+    ModelArrayAccessor<Protected::SSS> sssAccessor(ModelComponent::getStore());
+    const HField& sss = sssAccessor.getHostRO();
+    ModelArrayAccessor<Protected::MLD> mldAccessor(ModelComponent::getStore());
+    const HField& mld = mldAccessor.getHostRO();
+    ModelArrayAccessor<Protected::OCEAN_U> uAccessor(ModelComponent::getStore());
+    const HField& u = uAccessor.getHostRO();
+    ModelArrayAccessor<Protected::OCEAN_V> vAccessor(ModelComponent::getStore());
+    const HField& v = vAccessor.getHostRO();
+    ModelArrayAccessor<Shared::Q_IO, RO> qioAccessor(ModelComponent::getStore());
+    const HField& qio = qioAccessor.getHostRO();
+    ModelArrayAccessor<Protected::ML_BULK_CP> cpmlAccessor(ModelComponent::getStore());
+    const HField& cpml = cpmlAccessor.getHostRO();
+    ModelArrayAccessor<Protected::TF> tfAccessor(ModelComponent::getStore());
+    const HField& tf = tfAccessor.getHostRO();
 
     REQUIRE(sst[0] == sstIn);
     REQUIRE(sss[0] == sssIn);
@@ -67,14 +75,22 @@ TEST_CASE("UniformOcean set functions")
     uniOcn.setSST(sstIn).setSSS(sssIn).setMLD(mldIn).setU(uIn).setV(vIn).setQio(qioIn);
     uniOcn.setData(ModelState::DataMap());
 
-    ModelArrayRef<Protected::SST> sst(ModelComponent::getStore());
-    ModelArrayRef<Protected::SSS> sss(ModelComponent::getStore());
-    ModelArrayRef<Protected::MLD> mld(ModelComponent::getStore());
-    ModelArrayRef<Protected::OCEAN_U> u(ModelComponent::getStore());
-    ModelArrayRef<Protected::OCEAN_V> v(ModelComponent::getStore());
-    ModelArrayRef<Shared::Q_IO, RO> qio(ModelComponent::getStore());
-    ModelArrayRef<Protected::ML_BULK_CP> cpml(ModelComponent::getStore());
-    ModelArrayRef<Protected::TF> tf(ModelComponent::getStore());
+    ModelArrayAccessor<Protected::SST> sstAccessor(ModelComponent::getStore());
+    const HField& sst = sstAccessor.getHostRO();
+    ModelArrayAccessor<Protected::SSS> sssAccessor(ModelComponent::getStore());
+    const HField& sss = sssAccessor.getHostRO();
+    ModelArrayAccessor<Protected::MLD> mldAccessor(ModelComponent::getStore());
+    const HField& mld = mldAccessor.getHostRO();
+    ModelArrayAccessor<Protected::OCEAN_U> uAccessor(ModelComponent::getStore());
+    const HField& u = uAccessor.getHostRO();
+    ModelArrayAccessor<Protected::OCEAN_V> vAccessor(ModelComponent::getStore());
+    const HField& v = vAccessor.getHostRO();
+    ModelArrayAccessor<Shared::Q_IO, RO> qioAccessor(ModelComponent::getStore());
+    const HField& qio = qioAccessor.getHostRO();
+    ModelArrayAccessor<Protected::ML_BULK_CP> cpmlAccessor(ModelComponent::getStore());
+    const HField& cpml = cpmlAccessor.getHostRO();
+    ModelArrayAccessor<Protected::TF> tfAccessor(ModelComponent::getStore());
+    const HField& tf = tfAccessor.getHostRO();
 
     REQUIRE(sst[0] == sstIn);
     REQUIRE(sss[0] == sssIn);

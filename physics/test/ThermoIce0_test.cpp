@@ -32,86 +32,73 @@ TEST_CASE("Threshold ice")
     class IceTemperatureData : public ModelComponent {
     public:
         IceTemperatureData()
+            : hiceAccessor(getStore(), RW)
+            , ciceAccessor(getStore(), RW)
+            , hsnowAccessor(getStore(), RW)
+            , sstAccessor(getStore(), RO)
+            , sssAccessor(getStore(), RO)
+            , tfAccessor(getStore(), RO)
+            , snowAccessor(getStore(), RO)
+            , mlbhcAccessor(getStore(), RO)
+            , qioAccessor(getStore(), RW)
+            , qowAccessor(getStore(), RW)
+            , qiaAccessor(getStore(), RW)
+            , dqia_dtAccessor(getStore(), RW)
+            , sublAccessor(getStore(), RW)
+            , penSWAccessor(getStore(), RW)
         {
-            getStore().registerArray(Shared::H_ICE_DG, &hice, RW);
-            getStore().registerArray(Shared::C_ICE_DG, &cice, RW);
-            getStore().registerArray(Shared::H_SNOW_DG, &hsnow, RW);
-            getStore().registerArray(Protected::SST, &sst, RO);
-            getStore().registerArray(Protected::SSS, &sss, RO);
-            getStore().registerArray(Protected::TF, &tf, RO);
-            getStore().registerArray(Protected::SNOW, &snow, RO);
-            getStore().registerArray(Protected::ML_BULK_CP, &mlbhc, RO);
-            getStore().registerArray(Shared::Q_IO, &qio, RW);
-            getStore().registerArray(Shared::Q_OW, &qow, RW);
-            getStore().registerArray(Shared::Q_IA, &qia, RW);
-            getStore().registerArray(Shared::DQIA_DT, &dqia_dt, RW);
-            getStore().registerArray(Shared::SUBLIM, &subl, RW);
-            getStore().registerArray(Shared::Q_PEN_SW, &penSW, RW);
         }
         std::string getName() const override { return "IceTemperatureData"; }
 
         void setData(const ModelState::DataMap&) override
         {
-            cice[0] = 0.99;
+            ciceAccessor.getHostRW()[0] = 0.99;
+            HField& hice = hiceAccessor.getHostRW();
             hice[0] = 0.001;
             hice0[0] = hice[0];
-            hsnow[0] = 0.;
+            hsnowAccessor.getHostRW()[0] = 0.;
+            HField& sss = sssAccessor.getHostRW();
             sss[0] = 32.;
-            sst[0] = Module::getImplementation<IFreezingPoint>()(sss[0]);
-            snow[0] = 0.;
-            tf[0] = Module::getImplementation<IFreezingPoint>()(sss[0]);
-            mlbhc[0] = 4.29151e7;
-            qio[0] = 0.;
-            qow[0] = 0;
-            qia[0] = 0;
-            dqia_dt[0] = 0;
-            subl[0] = 0;
-            penSW[0] = 0;
+            sstAccessor.getHostRW()[0] = Module::getImplementation<IFreezingPoint>()(sss[0]);
+            snowAccessor.getHostRW()[0] = 0.;
+            tfAccessor.getHostRW()[0] = Module::getImplementation<IFreezingPoint>()(sss[0]);
+            mlbhcAccessor.getHostRW()[0] = 4.29151e7;
+            qioAccessor.getHostRW()[0] = 0.;
+            qowAccessor.getHostRW()[0] = 0;
+            qiaAccessor.getHostRW()[0] = 0;
+            dqia_dtAccessor.getHostRW()[0] = 0;
+            sublAccessor.getHostRW()[0] = 0;
+            penSWAccessor.getHostRW()[0] = 0;
         }
 
-        HField hice;
+        ModelArrayAccessor<Shared::H_ICE_DG, RW> hiceAccessor;
         HField hice0;
-        HField cice;
-        HField hsnow;
-        HField sst;
-        HField sss;
-        HField tf;
-        HField snow;
-        HField mlbhc; // Mixed layer bulk heat capacity
-        HField qio;
-        HField qow;
-        HField qia;
-        HField dqia_dt;
-        HField subl;
-        HField penSW;
+        ModelArrayAccessor<Shared::C_ICE_DG, RW> ciceAccessor;
+        ModelArrayAccessor<Shared::H_SNOW_DG, RW> hsnowAccessor;
+        ModelArrayAccessor<Protected::SST, RW> sstAccessor;
+        ModelArrayAccessor<Protected::SSS, RW> sssAccessor;
+        ModelArrayAccessor<Protected::TF, RW> tfAccessor;
+        ModelArrayAccessor<Protected::SNOW, RW> snowAccessor;
+        ModelArrayAccessor<Protected::ML_BULK_CP, RW>
+            mlbhcAccessor; // Mixed layer bulk heat capacity
+        ModelArrayAccessor<Shared::Q_IO, RW> qioAccessor;
+        ModelArrayAccessor<Shared::Q_OW, RW> qowAccessor;
+        ModelArrayAccessor<Shared::Q_IA, RW> qiaAccessor;
+        ModelArrayAccessor<Shared::DQIA_DT, RW> dqia_dtAccessor;
+        ModelArrayAccessor<Shared::SUBLIM, RW> sublAccessor;
+        ModelArrayAccessor<Shared::Q_PEN_SW, RW> penSWAccessor;
     } atmoState;
     atmoState.setData(ModelState::DataMap());
 
     // Supply the atmospheric boundary arrays, without an entire
     // IAtmosphereBoundary implementation
-    HField qow;
-    qow.resize();
-    ModelComponent::getStore().registerArray(Shared::Q_OW, &qow, RW);
-
-    HField qia;
-    qia.resize();
-    ModelComponent::getStore().registerArray(Shared::Q_IA, &qia, RW);
-
-    HField dqia_dt;
-    dqia_dt.resize();
-    ModelComponent::getStore().registerArray(Shared::DQIA_DT, &dqia_dt, RW);
-
-    HField qic;
+    ModelArrayAccessor<Shared::Q_IC, RW> qicAccessor(ModelComponent::getStore(), RW);
+    HField& qic = qicAccessor.getHostRW();
     qic.resize();
-    ModelComponent::getStore().registerArray(Shared::Q_IC, &qic, RW);
 
-    HField subl;
-    subl.resize();
-    ModelComponent::getStore().registerArray(Shared::SUBLIM, &subl, RW);
-
-    HField qswbase;
+    ModelArrayAccessor<Shared::Q_SW_BASE, RW> qswbaseAccessor(ModelComponent::getStore(), RW);
+    HField& qswbase = qswbaseAccessor.getHostRW();
     qswbase.resize();
-    ModelComponent::getStore().registerArray(Shared::Q_SW_BASE, &qswbase, RW);
 
     // An implementation of IFluxCalculation that returns zero fluxes
     class FluxData : public IFluxCalculation {
@@ -124,11 +111,11 @@ TEST_CASE("Threshold ice")
 
         void setData(const ModelState::DataMap&) override
         {
-            qow[0] = 0;
-            qia[0] = 0;
-            dqia_dt[0] = 0;
-            subl[0] = 0;
-            penSW[0] = 0;
+            qowAccessor.getHostRW()[0] = 0;
+            qiaAccessor.getHostRW()[0] = 0;
+            dqia_dtAccessor.getHostRW()[0] = 0;
+            sublAccessor.getHostRW()[0] = 0;
+            penSWAccessor.getHostRW()[0] = 0;
         }
 
         void update(const TimestepTime&) override { }
@@ -145,10 +132,14 @@ TEST_CASE("Threshold ice")
     ti0t.setData({ { tsurfName, tSurf } });
     ti0t.update(tst);
 
-    ModelArrayRef<Shared::H_ICE_DG> hice(ModelComponent::getStore());
+    ModelArrayAccessor<Shared::H_ICE_DG> hiceAccessor(ModelComponent::getStore());
+    const HField& hice = hiceAccessor.getHostRO();
+
     // So little ice should be reduced to zero
     REQUIRE(hice[0] == 0.);
-    ModelArrayRef<Shared::C_ICE_DG> cice(ModelComponent::getStore());
+    ModelArrayAccessor<Shared::C_ICE_DG> ciceAccessor(ModelComponent::getStore());
+    const HField& cice = ciceAccessor.getHostRO();
+
     REQUIRE(cice[0] == 0.);
 }
 TEST_SUITE_END();
