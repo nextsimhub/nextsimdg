@@ -250,11 +250,7 @@ MPI_TEST_CASE("TestXiosRead", 2)
     Configurator::addStream(std::move(pcstream));
 
     // Initialize a new XIOS context with a different name
-    // NOTE: Because the XIOS handler class is static, it needs to be reconfigured in order to use a
-    //       different context.
     Xios::setContextId("XiosRead_test");
-    Xios& xiosHandler = Xios::getInstance();
-    xiosHandler.configure(); // Force-reconfigure
 
     // Create ModelMPI instance based off the test communicator
     auto& modelMPI = ModelMPI::getInstance(test_comm);
@@ -264,6 +260,12 @@ MPI_TEST_CASE("TestXiosRead", 2)
     Model model;
     model.configureRestarts();
     model.configureTime();
+
+    // Reconfigure the XIOS handler
+    // NOTE: Because the XIOS handler class is static, it needs to be reconfigured in order to use a
+    //       different context.
+    Xios& xiosHandler = Xios::getInstance();
+    xiosHandler.configure();
 
     // Create ParametricGrid and ParaGridIO instances
     // NOTE: XIOS axes, domains, and grids are created by the ParaGridIO constructor
