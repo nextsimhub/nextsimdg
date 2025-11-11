@@ -7,6 +7,9 @@
 #define FREEDRIFTDYNAMICS_HPP
 
 #include "include/FreeDriftDynamicsKernel.hpp"
+#ifdef USE_MPI
+#include "include/ModelMPI.hpp"
+#endif
 #include "include/IDynamics.hpp"
 #include "include/dgVectorHolder.hpp"
 
@@ -35,7 +38,14 @@ public:
     std::string getName() const override { return "FreeDriftDynamics"; }
     void update(const TimestepTime& tst) override
     {
+#ifdef USE_MPI
+        auto& modelMPI = ModelMPI::getInstance();
+        if (modelMPI.getRank() == 0) {
+            std::cout << tst.start << std::endl;
+        }
+#else
         std::cout << tst.start << std::endl;
+#endif
 
         // set the forcing velocities
         kernel.setData(uOceanName, uocean);
