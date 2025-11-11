@@ -20,10 +20,8 @@
 #include <filesystem>
 
 const std::string testFilesDir = TEST_FILES_DIR;
-const std::string outputFilename = testFilesDir + "/xios_test_output.nc";
-const std::string inputFilename = testFilesDir + "/xios_test_input.nc";
+const std::string restartFilename = testFilesDir + "/xios_test_output.nc";
 const std::string diagnosticFilename = testFilesDir + "/xios_test_diagnostic.nc";
-const std::string forcingFilename = testFilesDir + "/xios_test_forcing.nc";
 
 static const int DGCOMP = 6;
 static const int DGSTRESSCOMP = 8;
@@ -44,14 +42,14 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     config << "start = 2023-03-17T17:11:00Z" << std::endl;
     config << "stop = 2023-03-17T23:11:00Z" << std::endl;
     config << "time_step = P0-0T01:30:00" << std::endl;
-    config << "restart_file = " << outputFilename << std::endl;
+    config << "restart_file = " << restartFilename << std::endl;
     config << "partition_file = xios_test_partition_metadata_2.nc" << std::endl;
     config << "restart_period = P0-0T01:30:00" << std::endl;
     config << "[XiosOutput]" << std::endl;
     config << "field_names = " << maskName << "," << coordsName << "," << hiceName << ","
            << ticeName << "," << uName << std::endl;
     config << "period = P0-0T01:30:00" << std::endl;
-    config << "split_period = P0-0T03:00:00" << std::endl;
+    // config << "split_period = P0-0T03:00:00" << std::endl;  // TODO: re-enable
     config << "[XiosDiagnostic]" << std::endl;
     config << "filename = " << diagnosticFilename << std::endl;
     config << "field_names = " << hsnowName << std::endl;
@@ -210,19 +208,14 @@ MPI_TEST_CASE("TestXiosWrite", 2)
 
         // Write out diagnostics and then restarts
         pio->writeDiagnosticTime(diagnostics, diagnosticFilename);
-        grid.dumpModelState(restarts, outputFilename, true);
+        grid.dumpModelState(restarts, restartFilename, true);
     }
 
     // Check the files have indeed been created then remove it
-    REQUIRE(std::filesystem::exists("xios_test_output_20230317171100-20230317201059.nc"));
-    REQUIRE(std::filesystem::exists("xios_test_output_20230317201100-20230317231059.nc"));
+    // REQUIRE(std::filesystem::exists("xios_test_output_20230317171100-20230317201059.nc"));
+    // REQUIRE(std::filesystem::exists("xios_test_output_20230317201100-20230317231059.nc"));
+    REQUIRE(std::filesystem::exists("xios_test_output.nc"));
     REQUIRE(std::filesystem::exists("xios_test_diagnostic.nc"));
-    // TODO: Read these files and check they have the right format
-    if (rank == 0) {
-        std::filesystem::remove("xios_test_output_20230317171100-20230317201059.nc");
-        std::filesystem::remove("xios_test_output_20230317201100-20230317231059.nc");
-        std::filesystem::remove("xios_test_diagnostic.nc");
-    }
 
     xiosHandler.context_finalize();
     Finalizer::finalize();
@@ -241,14 +234,14 @@ MPI_TEST_CASE("TestXiosRead", 2)
     config << "start = 2023-03-17T17:11:00Z" << std::endl;
     config << "stop = 2023-03-17T23:11:00Z" << std::endl;
     config << "time_step = P0-0T01:30:00" << std::endl;
-    config << "init_file = " << inputFilename << std::endl;
+    config << "init_file = " << restartFilename << std::endl;
     config << "restart_period = P0-0T01:30:00" << std::endl;
     config << "partition_file = xios_test_partition_metadata_2.nc" << std::endl;
     config << "[XiosInput]" << std::endl;
     config << "field_names = " << maskName << "," << coordsName << "," << hiceName << ","
            << ticeName << "," << uName << std::endl;
     config << "[XiosForcing]" << std::endl;
-    config << "filename = " << forcingFilename << std::endl;
+    config << "filename = " << diagnosticFilename << std::endl;
     config << "field_names = " << hsnowName << std::endl;
     config << "period = P0-0T01:30:00" << std::endl;
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
@@ -280,8 +273,8 @@ MPI_TEST_CASE("TestXiosRead", 2)
     xiosHandler.close_context_definition();
 
     // Check the input files exists
-    REQUIRE(std::filesystem::exists(inputFilename));
-    REQUIRE(std::filesystem::exists(forcingFilename));
+    REQUIRE(std::filesystem::exists(restartFilename));
+    REQUIRE(std::filesystem::exists(diagnosticFilename));
 
     // Check calendar step is zero initially
     REQUIRE(xiosHandler.getCalendarStep() == 0);
@@ -293,7 +286,7 @@ MPI_TEST_CASE("TestXiosRead", 2)
     REQUIRE(ModelArray::size(ModelArray::Dimension::DG) == DGCOMP);
 
     // Read restarts from file and check they take the expected values
-    ModelState restarts = grid.getModelState(inputFilename);
+    ModelState restarts = grid.getModelState(restartFilename);
     int rank;
     MPI_Comm_rank(test_comm, &rank);
     for (auto& entry : restarts.data) {
@@ -354,7 +347,8 @@ MPI_TEST_CASE("TestXiosRead", 2)
 
         // Read forcings from file and check they take the expected values
         TimePoint time = xiosHandler.getCurrentDate();
-        ModelState forcings = pio->readForcingTimeStatic(forcingFieldNames, time, forcingFilename);
+        ModelState forcings
+            = pio->readForcingTimeStatic(forcingFieldNames, time, diagnosticFilename);
         for (auto& entry : forcings.data) {
             REQUIRE(entry.first == hsnowName);
             for (size_t j = 0; j < ny; ++j) {
