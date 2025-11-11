@@ -203,13 +203,14 @@ void Xios::configure()
 void Xios::setupContext()
 {
     cxios_context_initialize(contextId.c_str(), contextId.length(), &clientComm_F);
-    // xios::CContext* context = NULL;
-    // bool exists;
-    // cxios_context_valid_id(&exists, contextId.c_str(), contextId.length());
-    // if (!exists) {
-    //     cxios_context_handle_create(&context, contextId.c_str(), contextId.length());
-    // }
-    // cxios_context_set_current(context, true);
+    xios::CContext* context = NULL;
+    cxios_context_handle_create(&context, contextId.c_str(), contextId.length());
+    cxios_context_set_current(context, true);
+    bool exists;
+    cxios_context_valid_id(&exists, contextId.c_str(), contextId.length());
+    if (!exists) {
+        throw std::runtime_error("Xios: context '" + contextId + "' was not created");
+    }
 
     // Verify the XIOS context has been initialized properly
     bool init;
