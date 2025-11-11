@@ -715,10 +715,7 @@ std::set<std::string> str2set(std::string asStr, const char delim = ',')
 // Extract the field_names entry from the XiosInput section of the config.
 std::set<std::string> Xios::configGetInputRestartFieldNames()
 {
-    std::string fieldsStr;
-    istringstream(Configured::getConfiguration(keyMap.at(INPUT_FIELD_NAMES_KEY), std::string()))
-        >> fieldsStr;
-    return str2set(fieldsStr);
+    return str2set(Configured::getConfiguration(keyMap.at(INPUT_FIELD_NAMES_KEY), std::string()));
 }
 
 /*!
@@ -726,10 +723,7 @@ std::set<std::string> Xios::configGetInputRestartFieldNames()
  */
 std::set<std::string> Xios::configGetForcingFieldNames()
 {
-    std::string fieldsStr;
-    istringstream(Configured::getConfiguration(keyMap.at(FORCING_FIELD_NAMES_KEY), std::string()))
-        >> fieldsStr;
-    return str2set(fieldsStr);
+    return str2set(Configured::getConfiguration(keyMap.at(FORCING_FIELD_NAMES_KEY), std::string()));
 }
 
 // Extract the field_names entry from the XiosInput and XiosForcing sections of the config.
@@ -744,20 +738,14 @@ std::set<std::string> Xios::configGetInputFieldNames()
 // Extract the field_names entry from the XiosOutput section of the config.
 std::set<std::string> Xios::configGetOutputRestartFieldNames()
 {
-    std::string fieldsStr;
-    istringstream(Configured::getConfiguration(keyMap.at(OUTPUT_FIELD_NAMES_KEY), std::string()))
-        >> fieldsStr;
-    return str2set(fieldsStr);
+    return str2set(Configured::getConfiguration(keyMap.at(OUTPUT_FIELD_NAMES_KEY), std::string()));
 }
 
 // Extract the field_names entry from the XiosDiagnostic section of the config.
 std::set<std::string> Xios::configGetDiagnosticFieldNames()
 {
-    std::string fieldsStr;
-    istringstream(
-        Configured::getConfiguration(keyMap.at(DIAGNOSTIC_FIELD_NAMES_KEY), std::string()))
-        >> fieldsStr;
-    return str2set(fieldsStr);
+    return str2set(
+        Configured::getConfiguration(keyMap.at(DIAGNOSTIC_FIELD_NAMES_KEY), std::string()));
 }
 
 // Extract the field_names entry from the XiosOutput and XiosDiagnostic sections of the config.
@@ -1167,13 +1155,10 @@ void Xios::createFile(const std::string fileId, const int fieldType)
     } else {
         std::string periodStr;
         if (fieldType == FORCING) {
-            istringstream(
-                Configured::getConfiguration(keyMap.at(FORCING_PERIOD_KEY), std::string()))
-                >> periodStr;
+            periodStr = Configured::getConfiguration(keyMap.at(FORCING_PERIOD_KEY), std::string());
         } else {
-            istringstream(
-                Configured::getConfiguration(keyMap.at(DIAGNOSTIC_PERIOD_KEY), std::string()))
-                >> periodStr;
+            periodStr
+                = Configured::getConfiguration(keyMap.at(DIAGNOSTIC_PERIOD_KEY), std::string());
         }
         if (periodStr.empty() || periodStr == "0") {
             setFileOutputFreq(fileId, metadata.runLength());
@@ -1186,13 +1171,10 @@ void Xios::createFile(const std::string fileId, const int fieldType)
     if (fieldType == OUTPUT_RESTART || fieldType == DIAGNOSTIC) {
         std::string splitStr;
         if (fieldType == OUTPUT_RESTART) {
-            istringstream(
-                Configured::getConfiguration(keyMap.at(OUTPUT_SPLITFREQ_KEY), std::string()))
-                >> splitStr;
+            splitStr = Configured::getConfiguration(keyMap.at(OUTPUT_SPLITFREQ_KEY), std::string());
         } else if (fieldType == DIAGNOSTIC) {
-            istringstream(
-                Configured::getConfiguration(keyMap.at(DIAGNOSTIC_SPLITFREQ_KEY), std::string()))
-                >> splitStr;
+            splitStr
+                = Configured::getConfiguration(keyMap.at(DIAGNOSTIC_SPLITFREQ_KEY), std::string());
         }
         if (!splitStr.empty()) {
             xios::CFile* file = getFile(fileId);
@@ -1401,17 +1383,20 @@ void Xios::fileAddField(const std::string fileId, const std::string fieldId)
 void Xios::setupFiles()
 {
     auto& metadata = ModelMetadata::getInstance();
+
+    // Get restart file IDs from the configuration
     inputFileId = ((std::filesystem::path)metadata.initialFileName).filename().replace_extension();
     // TODO: Properly support format "restart%Y-%m-%dT%H:%M:%SZ.nc" (#898)
     outputFileId = ((std::filesystem::path)metadata.finalFileName).filename().replace_extension();
 
-    istringstream(Configured::getConfiguration(keyMap.at(FORCING_FILE_KEY), std::string()))
-        >> forcingFilename;
+    // Get forcing and diganostic file IDs from the configuration
+    forcingFilename = Configured::getConfiguration(keyMap.at(FORCING_FILE_KEY), std::string());
     forcingFileId = ((std::filesystem::path)forcingFilename).filename().replace_extension();
-    istringstream(Configured::getConfiguration(keyMap.at(DIAGNOSTIC_FILE_KEY), std::string()))
-        >> diagnosticFilename;
+    diagnosticFilename
+        = Configured::getConfiguration(keyMap.at(DIAGNOSTIC_FILE_KEY), std::string());
     diagnosticFileId = ((std::filesystem::path)diagnosticFilename).filename().replace_extension();
 
+    // Create files for any non-empty file IDs
     for (auto entry : fileMap) {
         const std::string fileId = entry.second;
         if (!fileId.empty()) {
