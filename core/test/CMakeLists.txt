@@ -232,37 +232,21 @@ if(ENABLE_MPI)
         )
         target_link_libraries(testXiosFile_MPI2 PRIVATE nextsimlib doctest::doctest)
 
-        add_executable(testXiosRead_MPI2 "XiosRead_test.cpp" "MainMPI.cpp")
-        target_compile_definitions(testXiosRead_MPI2
+        add_executable(testXiosWriteRead_MPI2 "XiosWriteRead_test.cpp" "MainMPI.cpp")
+        target_compile_definitions(testXiosWriteRead_MPI2
             PRIVATE
                 USE_XIOS
                 TEST_FILES_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\"
         )
         target_include_directories(
-            testXiosRead_MPI2
+            testXiosWriteRead_MPI2
             PRIVATE
                 ${PHYSICS_INCLUDE_DIRS}
                 "${MODEL_INCLUDE_DIR}"
                 "${XIOS_INCLUDE_LIST}"
                 "${ModulesRoot}/StructureModule"
         )
-        target_link_libraries(testXiosRead_MPI2 PRIVATE nextsimlib doctest::doctest)
-
-        add_executable(testXiosWrite_MPI2 "XiosWrite_test.cpp" "MainMPI.cpp")
-        target_compile_definitions(testXiosWrite_MPI2
-            PRIVATE
-                USE_XIOS
-                TEST_FILES_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\"
-        )
-        target_include_directories(
-            testXiosWrite_MPI2
-            PRIVATE
-                ${PHYSICS_INCLUDE_DIRS}
-                "${MODEL_INCLUDE_DIR}"
-                "${XIOS_INCLUDE_LIST}"
-                "${ModulesRoot}/StructureModule"
-        )
-        target_link_libraries(testXiosWrite_MPI2 PRIVATE nextsimlib doctest::doctest)
+        target_link_libraries(testXiosWriteRead_MPI2 PRIVATE nextsimlib doctest::doctest)
 
         set(XIOS_TESTS
             testXiosCalendar_MPI1
@@ -270,8 +254,7 @@ if(ENABLE_MPI)
             testXiosGrid_MPI2
             testXiosField_MPI3
             testXiosFile_MPI2
-            testXiosRead_MPI2
-            testXiosWrite_MPI2
+            testXiosWriteRead_MPI2
         )
 
         add_mpi_test("${XIOS_TESTS}")

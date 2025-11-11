@@ -229,7 +229,6 @@ MPI_TEST_CASE("TestXiosWrite", 2)
  */
 MPI_TEST_CASE("TestXiosRead", 2)
 {
-    Configurator::clear();
     std::stringstream config;
     config << "[model]" << std::endl;
     config << "start = 2023-03-17T17:11:00Z" << std::endl;
@@ -246,6 +245,8 @@ MPI_TEST_CASE("TestXiosRead", 2)
     config << "field_names = " << hsnowName << std::endl;
     config << "period = P0-0T01:30:00" << std::endl;
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
+    // NOTE: We need to clear() the Configurator cache here, because it was already called above
+    Configurator::clear();
     Configurator::addStream(std::move(pcstream));
 
     // Initialize a new XIOS context with a different name
