@@ -160,7 +160,8 @@ private:
     int cStrLen { 20 }; // Length of C-strings passed to XIOS
 
     /* Configuration */
-    void parseInputFiles();
+    void setupFiles();
+    void setupContext();
 
     /* Calendar, date and duration */
     const std::string calendarType = "Gregorian";
@@ -170,6 +171,7 @@ private:
     std::string convertCStrToCppStr(const char* cStr, int cStrLen);
     Duration convertDurationFromXios(const cxios_duration duration);
     cxios_duration convertDurationToXios(const Duration duration);
+    void setupCalendar();
 
     /* Axis */
     std::map<ModelArray::Type, std::string> axisIds = {

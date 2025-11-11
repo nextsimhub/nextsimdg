@@ -85,6 +85,13 @@ void enableXios()
 //! Constructor: Configure an XIOS server
 Xios::Xios()
 {
+    // Check if XIOS is enabled in the nextSIM-DG configuration
+    istringstream(Configured::getConfiguration(keyMap.at(ENABLED_KEY), std::string()))
+        >> std::boolalpha >> isEnabled;
+
+    if (isEnabled) {
+        configureServer();
+    }
     configure();
     static bool doneOnce = doOnce();
 }
@@ -183,73 +190,37 @@ void Xios::finalize()
  */
 void Xios::configure()
 {
-    // Check if XIOS is enabled in the nextSIM-DG configuration
-    istringstream(Configured::getConfiguration(keyMap.at(ENABLED_KEY), std::string()))
-        >> std::boolalpha >> isEnabled;
-
-    if (isEnabled) {
-        configureServer();
-    }
-
-    // Create the input and output files (if found in the config)
     if (contextReset) {
-        ModelMetadata& metadata = ModelMetadata::getInstance();
-        inputFileId
-            = ((std::filesystem::path)metadata.initialFileName).filename().replace_extension();
-        // TODO: Properly support format "restart%Y-%m-%dT%H:%M:%SZ.nc" (#898)
-        outputFileId
-            = ((std::filesystem::path)metadata.finalFileName).filename().replace_extension();
-        istringstream(Configured::getConfiguration(keyMap.at(FORCING_FILE_KEY), std::string()))
-            >> forcingFilename;
-        forcingFileId = ((std::filesystem::path)forcingFilename).filename().replace_extension();
-        istringstream(Configured::getConfiguration(keyMap.at(DIAGNOSTIC_FILE_KEY), std::string()))
-            >> diagnosticFilename;
-        diagnosticFileId
-            = ((std::filesystem::path)diagnosticFilename).filename().replace_extension();
-
-        for (auto entry : fileMap) {
-            const std::string fileId = entry.second;
-            if (fileId.length() > 0) {
-                createFile(fileId, entry.first);
-
-                // Set file name
-                xios::CFile* file = getFile(fileId);
-                cxios_set_file_name(file, fileId.c_str(), fileId.length());
-                if (!cxios_is_defined_file_name(file)) {
-                    throw std::runtime_error("Xios: Failed to set name for file '" + fileId + "'");
-                }
-            }
-        }
-
-        // Verify the XIOS context has been initialized properly
-        bool init;
-        cxios_context_is_initialized(contextId.c_str(), contextId.length(), &init);
-        if (!init) {
-            throw std::runtime_error("Xios: context '" + contextId + "' not initialized");
-        }
-
-        parseInputFiles();
+        setupContext();
+        setupCalendar();
+        setupFiles();
     }
     contextReset = false;
 }
 
-//! Configure calendar settings
-void Xios::configureServer()
+//! Initialize the XIOS context with ID contextId
+void Xios::setupContext()
 {
-    // Initialize XIOS Server process and store MPI communicator
-    clientId = "client";
-    nullComm_F = MPI_Comm_c2f(MPI_COMM_NULL);
-    cxios_init_client(clientId.c_str(), clientId.length(), &nullComm_F, &clientComm_F);
-
-    // Initialize MPI rank and size
-    clientComm = MPI_Comm_f2c(clientComm_F);
-    MPI_Comm_rank(clientComm, &mpi_rank);
-    MPI_Comm_size(clientComm, &mpi_size);
-
-    // Initialize 'nextSIM-DG' context
     cxios_context_initialize(contextId.c_str(), contextId.length(), &clientComm_F);
+    // xios::CContext* context = NULL;
+    // bool exists;
+    // cxios_context_valid_id(&exists, contextId.c_str(), contextId.length());
+    // if (!exists) {
+    //     cxios_context_handle_create(&context, contextId.c_str(), contextId.length());
+    // }
+    // cxios_context_set_current(context, true);
 
-    // Initialize calendar wrapper for 'nextSIM-DG' context
+    // Verify the XIOS context has been initialized properly
+    bool init;
+    cxios_context_is_initialized(contextId.c_str(), contextId.length(), &init);
+    if (!init) {
+        throw std::runtime_error("Xios: context '" + contextId + "' not initialized");
+    }
+}
+
+//! Initialize calendar wrapper for the context
+void Xios::setupCalendar()
+{
     cxios_get_current_calendar_wrapper(&clientCalendar);
     cxios_set_calendar_wrapper_type(clientCalendar, calendarType.c_str(), calendarType.length());
     ModelMetadata& metadata = ModelMetadata::getInstance();
@@ -266,6 +237,20 @@ void Xios::configureServer()
 
     // Set start time from configuration file
     setCalendarStart(metadata.startTime());
+}
+
+//! Configure calendar settings
+void Xios::configureServer()
+{
+    // Initialize XIOS Server process and store MPI communicator
+    clientId = "client";
+    nullComm_F = MPI_Comm_c2f(MPI_COMM_NULL);
+    cxios_init_client(clientId.c_str(), clientId.length(), &nullComm_F, &clientComm_F);
+
+    // Initialize MPI rank and size
+    clientComm = MPI_Comm_f2c(clientComm_F);
+    MPI_Comm_rank(clientComm, &mpi_rank);
+    MPI_Comm_size(clientComm, &mpi_size);
 }
 
 /*!
@@ -572,9 +557,34 @@ xios::CDomain* Xios::getDomain(const std::string domainId)
  *          and/or forcings) and set dimensions appropriately. It will then set the field type of
  *          each input field.
  */
-void Xios::parseInputFiles()
+// TODO: Separate out setupFields()
+void Xios::setupFiles()
 {
     auto& metadata = ModelMetadata::getInstance();
+
+    // Set up files
+    inputFileId = ((std::filesystem::path)metadata.initialFileName).filename().replace_extension();
+    // TODO: Properly support format "restart%Y-%m-%dT%H:%M:%SZ.nc" (#898)
+    outputFileId = ((std::filesystem::path)metadata.finalFileName).filename().replace_extension();
+    istringstream(Configured::getConfiguration(keyMap.at(FORCING_FILE_KEY), std::string()))
+        >> forcingFilename;
+    forcingFileId = ((std::filesystem::path)forcingFilename).filename().replace_extension();
+    istringstream(Configured::getConfiguration(keyMap.at(DIAGNOSTIC_FILE_KEY), std::string()))
+        >> diagnosticFilename;
+    diagnosticFileId = ((std::filesystem::path)diagnosticFilename).filename().replace_extension();
+    for (auto entry : fileMap) {
+        const std::string fileId = entry.second;
+        if (fileId.length() > 0) {
+            createFile(fileId, entry.first);
+
+            // Set file name
+            xios::CFile* file = getFile(fileId);
+            cxios_set_file_name(file, fileId.c_str(), fileId.length());
+            if (!cxios_is_defined_file_name(file)) {
+                throw std::runtime_error("Xios: Failed to set name for file '" + fileId + "'");
+            }
+        }
+    }
 
     // Initial read of the NetCDF file to deduce the dimensions
     for (std::string filename : { metadata.initialFileName, forcingFilename }) {
