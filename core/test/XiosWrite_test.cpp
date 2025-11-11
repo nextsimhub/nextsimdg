@@ -229,6 +229,7 @@ MPI_TEST_CASE("TestXiosWrite", 2)
  */
 MPI_TEST_CASE("TestXiosRead", 2)
 {
+    Configurator::clear();
     std::stringstream config;
     config << "[model]" << std::endl;
     config << "start = 2023-03-17T17:11:00Z" << std::endl;
