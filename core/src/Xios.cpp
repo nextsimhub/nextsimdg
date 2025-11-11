@@ -125,14 +125,6 @@ Xios::HelpMap& Xios::getHelpRecursive(HelpMap& map, bool getAll)
     return map;
 }
 
-//! Enable XIOS in the 'config'
-void enableXios()
-{
-    std::stringstream config;
-    config << "[xios]" << std::endl << "enable = true" << std::endl;
-    Configurator::addStream(std::unique_ptr<std::istream>(new std::stringstream(config.str())));
-}
-
 //! Constructor for the XIOS handler
 Xios::Xios()
 {
