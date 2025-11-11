@@ -197,7 +197,7 @@ jobs:
         brew unlink pkg-config
         brew install pkgconf
         brew link --overwrite pkgconf
-        brew install eigen
+        brew install eigen@3
         brew install netcdf
         brew install netcdf-cxx
         python3 -m venv ~/nextsim
@@ -212,8 +212,14 @@ jobs:
     # - name: Setup tmate session
     #   uses: mxschmitt/action-tmate@v3
 
+    # Note that eigen@3 is keg-only, which means it was not symlinked into
+    # /opt/homebrew. Therefore we need to add it to CMAKE_PREFIX_PATH so CMake
+    # can detect it This should be removed when
+    # https://github.com/nextsimhub/nextsimdg/pull/985 is finished (if it is no
+    # longer needed)
     - name: make
       run: |
+        export CMAKE_PREFIX_PATH=/opt/homebrew/Cellar/eigen@3/3.4.1/share/eigen3/cmake
         . $HOME/nextsim/bin/activate
         mkdir -p build
         cd build
