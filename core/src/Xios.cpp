@@ -1324,6 +1324,12 @@ void Xios::createFile(const std::string fileId, const int fieldType)
         throw std::runtime_error("Xios: Failed to create file '" + fileId + "'");
     }
 
+    // Set file name
+    cxios_set_file_name(file, fileId.c_str(), fileId.length());
+    if (!cxios_is_defined_file_name(file)) {
+        throw std::runtime_error("Xios: Failed to set name for file '" + fileId + "'");
+    }
+
     // Determine whether the file is configured for reading or writing
     bool readAccess = (fieldType == INPUT_RESTART || fieldType == FORCING);
     bool writeAccess = (fieldType == OUTPUT_RESTART || fieldType == DIAGNOSTIC);
@@ -1611,28 +1617,21 @@ void Xios::fileAddField(const std::string fileId, const std::string fieldId)
 void Xios::setupFiles()
 {
     auto& metadata = ModelMetadata::getInstance();
-
-    // Set up files
     inputFileId = ((std::filesystem::path)metadata.initialFileName).filename().replace_extension();
     // TODO: Properly support format "restart%Y-%m-%dT%H:%M:%SZ.nc" (#898)
     outputFileId = ((std::filesystem::path)metadata.finalFileName).filename().replace_extension();
+
     istringstream(Configured::getConfiguration(keyMap.at(FORCING_FILE_KEY), std::string()))
         >> forcingFilename;
     forcingFileId = ((std::filesystem::path)forcingFilename).filename().replace_extension();
     istringstream(Configured::getConfiguration(keyMap.at(DIAGNOSTIC_FILE_KEY), std::string()))
         >> diagnosticFilename;
     diagnosticFileId = ((std::filesystem::path)diagnosticFilename).filename().replace_extension();
+
     for (auto entry : fileMap) {
         const std::string fileId = entry.second;
-        if (fileId.length() > 0) {
+        if (!fileId.empty()) {
             createFile(fileId, entry.first);
-
-            // Set file name
-            xios::CFile* file = getFile(fileId);
-            cxios_set_file_name(file, fileId.c_str(), fileId.length());
-            if (!cxios_is_defined_file_name(file)) {
-                throw std::runtime_error("Xios: Failed to set name for file '" + fileId + "'");
-            }
         }
     }
 }
