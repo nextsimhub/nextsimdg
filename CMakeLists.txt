@@ -54,7 +54,7 @@ endif()
 
 # Eigen
 find_package(Eigen3 3.4) # Try to find Eigen 3.4
-if(NOT TARGET Eigen3::Eigen) 
+if(NOT TARGET Eigen3::Eigen)
     # If Eigen 3.4 was not found, require any Eigen version after 3.4.1 and before 6
     find_package(Eigen3 3.4...5 REQUIRED NO_MODULE)
 endif()
