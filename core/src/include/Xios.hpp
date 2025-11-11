@@ -36,7 +36,7 @@ private:
     static bool doOnce();
 
     inline static std::string contextId;
-    inline static bool contextReset = true;
+    inline static bool contextReset = false;
 
 public:
     ~Xios();
@@ -47,6 +47,9 @@ public:
     //! Define Xios handler Singleton
     inline static Xios& getInstance()
     {
+        if (contextId.empty()) {
+            setContextId("nextSIM-DG");
+        }
         static Xios instance = Xios();
         return instance;
     };

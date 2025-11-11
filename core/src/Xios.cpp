@@ -85,53 +85,8 @@ void enableXios()
 //! Constructor: Configure an XIOS server
 Xios::Xios()
 {
-    if (contextId.empty()) {
-        setContextId("nextSIM-DG");
-    }
-
     configure();
     static bool doneOnce = doOnce();
-
-    // Create the input and output files (if found in the config)
-    if (contextReset) {
-        ModelMetadata& metadata = ModelMetadata::getInstance();
-        inputFilename = metadata.initialFileName;
-        inputFileId = ((std::filesystem::path)inputFilename).filename().replace_extension();
-        outputFilename = metadata.finalFileName;
-        // TODO: Properly support format "restart%Y-%m-%dT%H:%M:%SZ.nc" (#898)
-        outputFileId = ((std::filesystem::path)outputFilename).filename().replace_extension();
-        istringstream(Configured::getConfiguration(keyMap.at(FORCING_FILE_KEY), std::string()))
-            >> forcingFilename;
-        forcingFileId = ((std::filesystem::path)forcingFilename).filename().replace_extension();
-        istringstream(Configured::getConfiguration(keyMap.at(DIAGNOSTIC_FILE_KEY), std::string()))
-            >> diagnosticFilename;
-        diagnosticFileId
-            = ((std::filesystem::path)diagnosticFilename).filename().replace_extension();
-
-        for (auto entry : fileMap) {
-            const std::string fileId = entry.second;
-            if (fileId.length() > 0) {
-                createFile(fileId, entry.first);
-
-                // Set file name
-                xios::CFile* file = getFile(fileId);
-                cxios_set_file_name(file, fileId.c_str(), fileId.length());
-                if (!cxios_is_defined_file_name(file)) {
-                    throw std::runtime_error("Xios: Failed to set name for file '" + fileId + "'");
-                }
-            }
-        }
-
-        // Verify the XIOS context has been initialized properly
-        bool init;
-        cxios_context_is_initialized(contextId.c_str(), contextId.length(), &init);
-        if (!init) {
-            throw std::runtime_error("Xios: context '" + contextId + "' not initialized");
-        }
-
-        parseInputFiles();
-    }
-    contextReset = false;
 }
 
 bool Xios::doOnce()
@@ -235,6 +190,47 @@ void Xios::configure()
     if (isEnabled) {
         configureServer();
     }
+
+    // Create the input and output files (if found in the config)
+    if (contextReset) {
+        ModelMetadata& metadata = ModelMetadata::getInstance();
+        inputFilename = metadata.initialFileName;
+        inputFileId = ((std::filesystem::path)inputFilename).filename().replace_extension();
+        outputFilename = metadata.finalFileName;
+        // TODO: Properly support format "restart%Y-%m-%dT%H:%M:%SZ.nc" (#898)
+        outputFileId = ((std::filesystem::path)outputFilename).filename().replace_extension();
+        istringstream(Configured::getConfiguration(keyMap.at(FORCING_FILE_KEY), std::string()))
+            >> forcingFilename;
+        forcingFileId = ((std::filesystem::path)forcingFilename).filename().replace_extension();
+        istringstream(Configured::getConfiguration(keyMap.at(DIAGNOSTIC_FILE_KEY), std::string()))
+            >> diagnosticFilename;
+        diagnosticFileId
+            = ((std::filesystem::path)diagnosticFilename).filename().replace_extension();
+
+        for (auto entry : fileMap) {
+            const std::string fileId = entry.second;
+            if (fileId.length() > 0) {
+                createFile(fileId, entry.first);
+
+                // Set file name
+                xios::CFile* file = getFile(fileId);
+                cxios_set_file_name(file, fileId.c_str(), fileId.length());
+                if (!cxios_is_defined_file_name(file)) {
+                    throw std::runtime_error("Xios: Failed to set name for file '" + fileId + "'");
+                }
+            }
+        }
+
+        // Verify the XIOS context has been initialized properly
+        bool init;
+        cxios_context_is_initialized(contextId.c_str(), contextId.length(), &init);
+        if (!init) {
+            throw std::runtime_error("Xios: context '" + contextId + "' not initialized");
+        }
+
+        parseInputFiles();
+    }
+    contextReset = false;
 }
 
 //! Configure calendar settings

@@ -59,6 +59,7 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
 
+    // Set the XIOS context name for the first test
     Xios::setContextId("XiosWrite_test");
 
     // Create ModelMPI instance based off the test communicator
@@ -70,7 +71,7 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     model.configureRestarts();
     model.configureTime();
 
-    // Get the Xios singleton instance and check it's initialized
+    // Get the Xios singleton instance
     // NOTE: The singleton is created when Xios::getInstance() is first called. In this test, this
     //       happens when the time sets set by ModelMetadata::setTime(). This occurs in the call to
     //       Model::configureTime() above.
@@ -253,7 +254,12 @@ MPI_TEST_CASE("TestXiosRead", 2)
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
 
+    // Initialize a new XIOS context with a different name
+    // NOTE: Because the XIOS handler class is static, it needs to be reconfigured in order to use a
+    //       different context.
     Xios::setContextId("XiosRead_test");
+    Xios& xiosHandler = Xios::getInstance();
+    xiosHandler.configure(); // Force-reconfigure
 
     // Create ModelMPI instance based off the test communicator
     auto& modelMPI = ModelMPI::getInstance(test_comm);
@@ -263,12 +269,6 @@ MPI_TEST_CASE("TestXiosRead", 2)
     Model model;
     model.configureRestarts();
     model.configureTime();
-
-    // Get the Xios singleton instance and check it's initialized
-    // NOTE: The singleton is created when Xios::getInstance() is first called. In this test, this
-    //       happens when the time sets set by ModelMetadata::setTime(). This occurs in the call to
-    //       Model::configureTime() above.
-    Xios& xiosHandler = Xios::getInstance();
 
     // Create ParametricGrid and ParaGridIO instances
     // NOTE: XIOS axes, domains, and grids are created by the ParaGridIO constructor
