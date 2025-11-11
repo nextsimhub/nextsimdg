@@ -894,15 +894,6 @@ std::set<std::string> Xios::configGetForcingFieldNames()
     return str2set(Configured::getConfiguration(keyMap.at(FORCING_FIELD_NAMES_KEY), std::string()));
 }
 
-// Extract the field_names entry from the XiosInput and XiosForcing sections of the config.
-std::set<std::string> Xios::configGetInputFieldNames()
-{
-    std::set<std::string> restartFieldNames = configGetInputRestartFieldNames();
-    std::set<std::string> forcingFieldNames = configGetForcingFieldNames();
-    restartFieldNames.insert(forcingFieldNames.begin(), forcingFieldNames.end());
-    return restartFieldNames;
-}
-
 // Extract the field_names entry from the XiosOutput section of the config.
 std::set<std::string> Xios::configGetOutputRestartFieldNames()
 {
@@ -916,34 +907,20 @@ std::set<std::string> Xios::configGetDiagnosticFieldNames()
         Configured::getConfiguration(keyMap.at(DIAGNOSTIC_FIELD_NAMES_KEY), std::string()));
 }
 
-// Extract the field_names entry from the XiosOutput and XiosDiagnostic sections of the config.
-std::set<std::string> Xios::configGetOutputFieldNames()
-{
-    std::set<std::string> restartFieldNames = configGetOutputRestartFieldNames();
-    std::set<std::string> diagnosticFieldNames = configGetDiagnosticFieldNames();
-    restartFieldNames.insert(diagnosticFieldNames.begin(), diagnosticFieldNames.end());
-    return restartFieldNames;
-}
-
-/*!
- * Extract the field_names entry from the XIOS config.
- *
- * @param readAccess true if the fields are to be read, false if written
- */
-std::set<std::string> Xios::configGetFieldNames(const bool readAccess)
-{
-    if (readAccess) {
-        return configGetInputFieldNames();
-    } else {
-        return configGetOutputFieldNames();
-    }
-}
-
 // Check whether a fieldId exists in a string of field names separated by commas, as determined by
 // the map key
 bool Xios::configCheckField(const std::string fieldId, const bool readAccess)
 {
-    std::set<std::string> fieldNames = configGetFieldNames(readAccess);
+    std::set<std::string> fieldNames;
+    if (readAccess) {
+        fieldNames = configGetInputRestartFieldNames();
+        std::set<std::string> forcingFieldNames = configGetForcingFieldNames();
+        fieldNames.insert(forcingFieldNames.begin(), forcingFieldNames.end());
+    } else {
+        fieldNames = configGetOutputRestartFieldNames();
+        std::set<std::string> diagnosticFieldNames = configGetDiagnosticFieldNames();
+        fieldNames.insert(diagnosticFieldNames.begin(), diagnosticFieldNames.end());
+    }
     return fieldNames.find(fieldId) != fieldNames.end();
 }
 
@@ -1636,12 +1613,10 @@ void Xios::setupFiles()
  */
 void Xios::write(const std::string fieldId, ModelArray& modelarray)
 {
-    const bool readAccess = false;
-    std::set<std::string> fieldNames = configGetFieldNames(readAccess);
-    if (fieldNames.find(fieldId) == fieldNames.end()) {
-        throw std::runtime_error(
-            "Xios::write: field '" + fieldId + "' has not been configured for writing with XIOS.");
-    }
+    if (getFieldReadAccess(fieldId)) {
+        throw std::runtime_error("Xios::write: field " + fieldId
+            + " is not configured for writing, but is being written to file.");
+    };
     if (modelarray.nDimensions() != 2) {
         throw std::invalid_argument("Only ModelArrays of dimension 2 are supported");
     }
@@ -1673,12 +1648,10 @@ void Xios::write(const std::string fieldId, ModelArray& modelarray)
  */
 void Xios::read(const std::string fieldId, ModelArray& modelarray)
 {
-    const bool readAccess = true;
-    std::set<std::string> fieldNames = configGetFieldNames(readAccess);
-    if (fieldNames.find(fieldId) == fieldNames.end()) {
-        throw std::runtime_error(
-            "Xios::read: field '" + fieldId + "' has not been configured for reading with XIOS.");
-    }
+    if (!getFieldReadAccess(fieldId)) {
+        throw std::runtime_error("Xios::read: field " + fieldId
+            + " is not configured for reading, but is being read from file.");
+    };
     if (modelarray.nDimensions() != 2) {
         throw std::invalid_argument("Only ModelArrays of dimension 2 are supported");
     }
