@@ -79,7 +79,7 @@ void TOPAZOcean::updateBefore(const TimestepTime& tst)
     cpmlAccessor.getHostRW() = Water::rhoOcean * Water::cp * mld;
 
     // Update the freezing point
-    const HField& sss = sssExtAccessor.getHostRO();
+    const HField& sss = sssAccessor.getHostRO();
     HField& tf = tfAccessor.getHostRW();
     overElements(
         [&](size_t i, const TimestepTime& tsTime) { tf[i] = (*pFreezingPoint)(sss[i]); }, tst);
