@@ -30,6 +30,11 @@ class ModelArrayStore {
 public:
     std::unordered_map<std::string, const ModelArray*> getAllData() const;
 
+    // Checks that all known fields have been properly registered with an Accessor that provided the
+    // constructor arguments.
+    // @return True iff all fields are registered.
+    bool checkAllRegistered() const;
+
 private:
     struct ExtModelArray {
         std::string name;

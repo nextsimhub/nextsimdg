@@ -3,6 +3,7 @@
  */
 
 #include "include/ModelArrayStore.hpp"
+#include "include/Logged.hpp"
 
 namespace Nextsim {
 
@@ -10,6 +11,7 @@ namespace Nextsim {
 
 HostView ModelArrayStore::ExtModelArray::hostView()
 {
+    assert(modelArray.trueSize() > 0 && "ModelArray is allocated");
     return makeKokkosHostView(modelArray.getDataRef());
 }
 
@@ -42,6 +44,20 @@ std::unordered_map<std::string, const ModelArray*> ModelArrayStore::getAllData()
     }
 
     return dataMap;
+}
+
+bool ModelArrayStore::checkAllRegistered() const
+{
+    bool b = true;
+    for (const auto& [_, extArrFlagged] : store) {
+        if (!extArrFlagged.isRegistered) {
+            Logged::warning("Field \"" + extArrFlagged.extModelArray.name
+                + "\" was not properly initialized by a registering ModelArrayAccessor.\n");
+            b = false;
+        }
+    }
+
+    return b;
 }
 
 ModelArrayStore::ExtModelArray& ModelArrayStore::getRW(const std::string& field)

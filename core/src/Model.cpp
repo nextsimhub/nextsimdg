@@ -169,6 +169,8 @@ Model::HelpMap& Model::getHelpRecursive(HelpMap& map, bool getAll)
 
 void Model::run()
 {
+    assert(Nextsim::ModelComponent::getStore().checkAllRegistered());
+
     try {
         iterator.run();
     } catch (const std::exception& e) {

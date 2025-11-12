@@ -135,6 +135,8 @@ public:
      */
     void mergeFluxes(const TimestepTime& tst)
     {
+        assert(m_couplingArrays.checkAllRegistered());
+
         const double dt = tst.step.seconds();
         HField& fwFlux = fwFluxAccessor.getHostRW();
         HField& qNoSun = qNoSunAccessor.getHostRW();

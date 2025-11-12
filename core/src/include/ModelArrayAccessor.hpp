@@ -33,6 +33,8 @@ public:
     // returns a copy because target.deviceView has mutable data
     ConstDeviceView getDeviceRO() const
     {
+        assert(target.modelArray.trueSize() > 0 && "ModelArray is allocated");
+
         DeviceView deviceView = target.deviceView();
         if (target.syncState == SyncState::HOST_CHANGED) {
             Kokkos::deep_copy(deviceView, target.hostView());
