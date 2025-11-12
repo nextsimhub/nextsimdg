@@ -24,6 +24,7 @@ const DeviceView& ModelArrayStore::ExtModelArray::deviceView()
 
     return m_deviceView;
 }
+#endif
 
 ModelArrayStore::ExtModelArrayFlagged::ExtModelArrayFlagged(
     const std::string& name, bool _isReadWrite, bool _isRegistered)
@@ -32,8 +33,6 @@ ModelArrayStore::ExtModelArrayFlagged::ExtModelArrayFlagged(
 {
     extModelArray.name = name;
 }
-
-#endif
 
 std::unordered_map<std::string, const ModelArray*> ModelArrayStore::getAllData() const
 {

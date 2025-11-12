@@ -2,7 +2,9 @@
  * @author Robert Jendersie <robert.jendersie@ovgu.de>
  */
 
-#ifndef KOKKOSUTILS_HPP
+// by also guarding for USE_KOKKOS this header can be safely included even
+// when Kokkos is not enabled
+#if !defined(KOKKOSUTILS_HPP) && defined(USE_KOKKOS)
 #define KOKKOSUTILS_HPP
 
 #include <Eigen/Core>
