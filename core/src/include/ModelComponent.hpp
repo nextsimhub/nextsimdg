@@ -184,6 +184,17 @@ public:
      */
     static ModelArrayStore& getStore() { return *columnPhysicsStore(); }
 
+    // needs to be public because it calls a device function but should be used as if protected
+#if USE_KOKKOS
+    template <typename Fn> inline static void overElementsDevice(Fn fn, const TimestepTime& tst)
+    {
+        const auto oceanIndexLocal = oceanIndexDevice;
+        Kokkos::parallel_for(
+            "overElements", nOcean,
+            KOKKOS_LAMBDA(const DeviceIndex i) { fn(oceanIndexLocal[i], tst); });
+    }
+#endif
+
 protected:
     inline static void overElements(IteratedFn fn, const TimestepTime& tst)
     {
@@ -254,6 +265,12 @@ private:
     static size_t nOcean;
     static std::vector<size_t> oceanIndex;
     static bool columnPhysicsStoreIsDestroyed;
+
+#if USE_KOKKOS
+    static void destroyOceanIndex() { oceanIndexDevice.assign_data(nullptr); }
+    static KokkosDeviceMapView<DeviceIndex> oceanIndexDevice;
+    // static Kokkos::
+#endif
 };
 
 } /* namespace Nextsim */

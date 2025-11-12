@@ -6,7 +6,7 @@
 #define KOKKOSCGDYNAMICSKERNEL_HPP
 
 #include "../../include/CGDynamicsKernel.hpp"
-#include "KokkosUtils.hpp"
+#include "../../../core/src/kokkos/include/KokkosUtils.hpp"
 
 namespace Nextsim {
 

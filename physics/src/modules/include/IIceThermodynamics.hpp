@@ -16,6 +16,11 @@
 #include "include/gridNames.hpp"
 
 namespace Nextsim {
+
+namespace Private{
+    inline constexpr TextTag SNOW_TO_ICE = "SNOW_TO_ICE";
+}
+
 //! An interface class to update the ice thermodynamics.
 class IIceThermodynamics : public ModelComponent {
 public:
@@ -28,7 +33,7 @@ public:
         tsurf.resize();
         HField& deltaHi = deltaHiAccessor.getHostRW();
         deltaHi.resize();
-        snowToIce.resize();
+        snowToIceAccessor.getHostRW().resize();
 
         /* If the surface temperature is not in the restart file, then we simply set it to the
          * zero. It's a safe approximation, and it seems the user doesn't
@@ -53,7 +58,7 @@ public:
     {
         ModelState state = { {
                                  { "delta_H_ice", deltaHiAccessor.getHostRO() },
-                                 { "snow_to_ice", snowToIce },
+                                 { "snow_to_ice", snowToIceAccessor.getHostRO() },
                              },
             getConfiguration() };
         state.merge(getStatePrognostic());
@@ -77,7 +82,7 @@ protected:
     IIceThermodynamics()
         : tsurfAccessor(getStore(), RO, ModelArray::AdvectionType)
         , deltaHiAccessor(getStore(), RW, ModelArray::Type::H)
-        , snowToIce(ModelArray::Type::H)
+        , snowToIceAccessor(getStore(), RO, ModelArray::Type::H)
         , hiceAccessor(getStore())
         , ciceAccessor(getStore())
         , hsnowAccessor(getStore())
@@ -116,7 +121,7 @@ protected:
     ModelArrayAccessor<Protected::T_SURF, RW> tsurfAccessor;
     ModelArrayAccessor<Shared::DELTA_HICE, RW> deltaHiAccessor;
     // Owned, Module-private arrays
-    HField snowToIce;
+    ModelArrayAccessor<Private::SNOW_TO_ICE, RW> snowToIceAccessor;
 
     constexpr static double minT = -90.0;
 };

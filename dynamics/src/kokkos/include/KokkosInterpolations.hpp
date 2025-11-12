@@ -8,7 +8,7 @@
 #include "../include/cgVector.hpp"
 #include "../include/codeGenerationDGinGauss.hpp"
 #include "../include/dgVector.hpp"
-#include "KokkosUtils.hpp"
+#include "../../../core/src/kokkos/include/KokkosUtils.hpp"
 // #include "../include/ParametricMesh.hpp"
 
 namespace Nextsim {

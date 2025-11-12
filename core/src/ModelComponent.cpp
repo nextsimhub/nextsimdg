@@ -10,6 +10,10 @@ size_t ModelComponent::nOcean = 0;
 std::vector<size_t> ModelComponent::oceanIndex;
 bool ModelComponent::columnPhysicsStoreIsDestroyed; // initialized to 0 because of static lifetime
 
+#if USE_KOKKOS
+KokkosDeviceMapView<DeviceIndex> ModelComponent::oceanIndexDevice;
+#endif
+
 ModelComponent::ModelComponent()
 {
     // We only set no land mask if the mask hasn't been set by someone else.
@@ -39,6 +43,12 @@ void ModelComponent::setOceanMask(const ModelArray& mask)
             oceanIndex[iOceanIndex++] = i;
         }
     }
+
+#if USE_KOKKOS
+    std::vector<DeviceIndex> buf(oceanIndex.begin(), oceanIndex.end());
+    oceanIndexDevice = makeKokkosDeviceViewMap("oceanIndex", buf, MakeViewOptions::ALWAYS_COPY);
+    Finalizer::registerUnique(destroyOceanIndex);
+#endif
 }
 
 // Fills the nOcean and OceanIndex variables for the zero land case

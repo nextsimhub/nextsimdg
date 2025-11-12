@@ -90,7 +90,7 @@ public:
     // returns a copy because target.deviceView has mutable data
     ConstDeviceView getDeviceRO() const
     {
-        DeviceView deviceView = target.deviceView();
+        const DeviceView& deviceView = target.deviceView();
         if (target.syncState == SyncState::HOST_CHANGED) {
             Kokkos::deep_copy(deviceView, target.hostView());
             target.syncState = SyncState::SYNCED;

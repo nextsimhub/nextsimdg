@@ -5,7 +5,7 @@
 #ifndef __KOKKOSDGLIMIT_HPP
 #define __KOKKOSDGLIMIT_HPP
 
-#include "KokkosUtils.hpp"
+#include "../../../core/src/kokkos/include/KokkosUtils.hpp"
 #include "../../include/dgVector.hpp"
 
 namespace Nextsim {

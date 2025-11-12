@@ -9,7 +9,7 @@
 
 #include "../../include/VPParameters.hpp"
 #include "KokkosCGDynamicsKernel.hpp"
-#include "KokkosUtils.hpp"
+#include "../../../core/src/kokkos/include/KokkosUtils.hpp"
 
 namespace Nextsim {
 

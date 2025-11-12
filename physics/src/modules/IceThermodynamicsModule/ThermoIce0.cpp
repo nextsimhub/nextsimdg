@@ -37,6 +37,7 @@ void ThermoIce0::update(const TimestepTime& tsTime)
     AdvectedField& cice = ciceAccessor.getHostRW();
     HField& qow = qowAccessor.getHostRW();
     HField& qswBase = qswBaseAccessor.getHostRW();
+    HField& snowToIce = snowToIceAccessor.getHostRW();
     const HField& sublim = sublimAccessor.getHostRO();
     const HField& tf = tfAccessor.getHostRO();
     const HField& snowfall = snowfallAccessor.getHostRO();

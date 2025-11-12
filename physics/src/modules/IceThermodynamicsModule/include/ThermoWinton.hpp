@@ -11,6 +11,14 @@
 
 namespace Nextsim {
 
+namespace Private {
+    inline constexpr TextTag T_INTERNAL = "T_INTERNAL";
+    inline constexpr TextTag T_BOTTOM = "T_BOTTOM";
+    inline constexpr TextTag T_SNOW_MELT = "T_SNOW_MELT";
+    inline constexpr TextTag T_TOP_MELT = "T_TOP_MELT";
+    inline constexpr TextTag T_BOT_MELT = "T_BOT_MELT";
+}
+
 //! A class implementing IIceThermodynamics as the Winton thermodynamics model.
 class ThermoWinton : public IIceThermodynamics, public Configured<ThermoWinton> {
 public:
@@ -42,11 +50,18 @@ public:
 private:
     void calculateElement(size_t i, const TimestepTime& tst);
 
-    AdvectedField tInternal;
-    AdvectedField tBottom;
-    HField snowMelt;
-    HField topMelt;
-    HField botMelt;
+    /*    AdvectedField tInternal;
+        AdvectedField tBottom;
+        HField snowMelt;
+        HField topMelt;
+        HField botMelt;*/
+    // private owned
+    ModelArrayAccessor<Private::T_INTERNAL, RW> tInternalAccessor;
+    ModelArrayAccessor<Private::T_BOTTOM, RW> tBottomAccessor;
+    ModelArrayAccessor<Private::T_SNOW_MELT, RW> snowMeltAccessor;
+    ModelArrayAccessor<Private::T_TOP_MELT, RW> topMeltAccessor;
+    ModelArrayAccessor<Private::T_BOT_MELT, RW> botMeltAccessor;
+
     ModelArrayAccessor<Protected::SW_IN> sw_inAccessor;
     ModelArrayAccessor<Shared::SUBLIM, RO> sublAccessor;
 
@@ -54,9 +69,6 @@ private:
     static bool doFlooding;
     static const double seaIceTf;
     static double kappa_s;
-
-    void calculateTemps(
-        double& tSurf, double& tMidt, double& tBotn, double& mSurf, const double cice, const double dQia_dt, const double hice, const double hsnow, const double penSw, const double qia, const double tf, double dt);
 };
 
 } /* namespace Nextsim */

@@ -62,6 +62,10 @@ if(ENABLE_MPI)
     list(APPEND NextsimSourcesTemp "${ParallelNetCDFSources}")
 endif()
 
+if(WITH_KOKKOS)
+    list(APPEND NextsimSourcesTemp "${CMAKE_CURRENT_SOURCE_DIR}/kokkos/KokkosUtils.cpp")
+endif()
+
 set(NextsimSources "${NextsimSourcesTemp}" PARENT_SCOPE)
 
 set(NextsimIncludeDirs

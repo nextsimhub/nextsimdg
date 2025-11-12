@@ -8,7 +8,7 @@
 #include "include/KokkosMesh.hpp"
 #include "include/KokkosDGLimit.hpp"
 #include "include/KokkosSlopeLimiter.hpp"
-#include "include/KokkosTimer.hpp"
+#include "../../../core/src/kokkos/include/KokkosTimer.hpp"
 
 namespace Nextsim {
 /*************************************************************/

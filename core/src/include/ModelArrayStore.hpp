@@ -5,7 +5,7 @@
 #ifndef MASTORE_HPP
 #define MASTORE_HPP
 
-#include "../../../dynamics/src/kokkos/include/KokkosUtils.hpp"
+#include "../../../core/src/kokkos/include/KokkosUtils.hpp"
 #include "ModelArray.hpp"
 #include "ModelArrayRef.hpp" // for RW,RO globals
 
@@ -60,7 +60,6 @@ private:
         ExtModelArray extModelArray;
     };
 
-    // underscore in name is just to prevent name conflict with ModelArrayReferenceStore for now
     template <typename... Args>
     ExtModelArray& registerArray(const std::string& field, bool isReadWrite, Args&&... args)
     {
