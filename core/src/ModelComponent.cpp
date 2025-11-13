@@ -45,9 +45,7 @@ void ModelComponent::setOceanMask(const ModelArray& mask)
     }
 
 #if USE_KOKKOS
-    std::vector<DeviceIndex> buf(oceanIndex.begin(), oceanIndex.end());
-    oceanIndexDevice = makeKokkosDeviceViewMap("oceanIndex", buf, MakeViewOptions::ALWAYS_COPY);
-    Finalizer::registerUnique(destroyOceanIndex);
+    makeOceanIndexDevice();
 #endif
 }
 
@@ -64,6 +62,10 @@ void ModelComponent::noLandMask()
     for (size_t i = 0; i < ModelArray::size(ModelArray::Type::H); ++i) {
         oceanIndex[i] = i;
     }
+
+#if USE_KOKKOS
+    makeOceanIndexDevice();
+#endif
 }
 
 ModelArray ModelComponent::mask(const ModelArray& data, const double missingValue)
@@ -77,5 +79,21 @@ ModelArray ModelComponent::mask(const ModelArray& data, const double missingValu
 }
 
 const ModelArray& ModelComponent::oceanMask() { return oceanMaskSingleton(); }
+
+#if USE_KOKKOS
+void ModelComponent::makeOceanIndexDevice()
+{
+    // some tests don't need Kokkos
+    if (!Kokkos::is_initialized()) {
+        return;
+    }
+
+    std::vector<DeviceIndex> buf(oceanIndex.begin(), oceanIndex.end());
+    oceanIndexDevice = makeKokkosDeviceViewMap("oceanIndex", buf, MakeViewOptions::ALWAYS_COPY);
+    Finalizer::registerUnique(destroyOceanIndex);
+}
+
+void ModelComponent::destroyOceanIndex() { oceanIndexDevice.assign_data(nullptr); }
+#endif
 
 } /* namespace Nextsim */

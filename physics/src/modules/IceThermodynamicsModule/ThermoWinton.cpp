@@ -244,6 +244,7 @@ void ThermoWinton::update(const TimestepTime& tst)
     timerUpdate.start();
     overElementsDevice(
         KOKKOS_LAMBDA(const DeviceIndex i, const TimestepTime& tsTime) {
+            // todo: check if delaying data access until necessary improves performance
             double& cice = ciceDevice(i, 0);
             double& qswBase = qswBaseDevice(i, 0);
             double& topMelt = topMeltDevice(i, 0);
@@ -257,6 +258,14 @@ void ThermoWinton::update(const TimestepTime& tst)
             double& tsurf = tsurfDevice(i, 0);
             double& hice = hiceDevice(i, 0);
             double& tInternal = tInternalDevice(i, 0);
+
+            const double dQia_dt = dQia_dtDevice(i, 0);
+            const double penSw = penSwDevice(i, 0);
+            const double qia = qiaDevice(i, 0);
+            const double qio = qioDevice(i, 0);
+            const double snowfall = snowfallDevice(i, 0);
+            const double subl = sublDevice(i, 0);
+            const double tf = tfDevice(i, 0);
 
             static const double bulkLHFusionSnow = Water::Lf * Ice::rhoSnow;
             static const double bulkLHFusionIce = Water::Lf * Ice::rho;
@@ -282,15 +291,6 @@ void ThermoWinton::update(const TimestepTime& tst)
 
                 return;
             }
-
-            // read additional fields only if needed (after the early return)
-            const double dQia_dt = dQia_dtDevice(i, 0);
-            const double penSw = penSwDevice(i, 0);
-            const double qia = qiaDevice(i, 0);
-            const double qio = qioDevice(i, 0);
-            const double snowfall = snowfallDevice(i, 0);
-            const double subl = sublDevice(i, 0);
-            const double tf = tfDevice(i, 0);
 
             double tSurf = tsurf; // surface temperature
             double tUppr = tInternal; // upper layer temperature

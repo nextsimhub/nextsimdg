@@ -80,16 +80,19 @@ protected:
 
 template <const TextTag& fieldName>
 class ModelArrayAccessor<fieldName, RW> : public ModelArrayAccessor<fieldName, RO> {
+    using Base = ModelArrayAccessor<fieldName, RO>;
+
 public:
     ModelArrayAccessor(ModelArrayStore& store)
-        : ModelArrayAccessor<fieldName, RO>(store.getRW(fieldName))
+        : Base(store.getRW(fieldName))
     {
     }
 
     template <typename... Args>
     ModelArrayAccessor(ModelArrayStore& store, bool isReadWriteExternal, Args&&... args)
-        : ModelArrayAccessor<fieldName, RO>(
-              store.registerArray(fieldName, isReadWriteExternal, std::forward<Args>(args)...))
+        // using ModelArrayAccessor<fieldName, RO> directly instead of Base here leads to a compiler
+        // error in ModelArrayAccessor_test.cpp
+        : Base(store.registerArray(fieldName, isReadWriteExternal, std::forward<Args>(args)...))
     {
     }
 

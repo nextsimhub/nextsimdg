@@ -437,7 +437,7 @@ else()
     target_link_libraries(testModelArrayAccessor PRIVATE nextsimlib doctest::doctest)
 
     # PrognosticData (and hopefully that alone) requires code from the physics tree
-    add_executable(testPrognosticData "PrognosticData_test.cpp" "DynamicsModuleForPDtest.cpp")
+    add_executable(testPrognosticData "PrognosticData_test.cpp" "DynamicsModuleForPDtest.cpp" "MainTest.cpp")
     target_include_directories(
         testPrognosticData
         PRIVATE

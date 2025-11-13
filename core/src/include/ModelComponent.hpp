@@ -188,6 +188,7 @@ public:
 #if USE_KOKKOS
     template <typename Fn> inline static void overElementsDevice(Fn fn, const TimestepTime& tst)
     {
+        // the static member can not be captured directly
         const auto oceanIndexLocal = oceanIndexDevice;
         Kokkos::parallel_for(
             "overElements", nOcean,
@@ -267,7 +268,8 @@ private:
     static bool columnPhysicsStoreIsDestroyed;
 
 #if USE_KOKKOS
-    static void destroyOceanIndex() { oceanIndexDevice.assign_data(nullptr); }
+    static void makeOceanIndexDevice();
+    static void destroyOceanIndex();
     static KokkosDeviceMapView<DeviceIndex> oceanIndexDevice;
     // static Kokkos::
 #endif

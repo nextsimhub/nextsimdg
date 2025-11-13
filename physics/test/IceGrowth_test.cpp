@@ -2,7 +2,6 @@
  * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
-#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include <doctest/doctest.h>
 #include <sstream>
 
@@ -481,7 +480,7 @@ TEST_CASE("Zero thickness")
             deltaHiAccessor.getHostRW()[0] = -hice[0];
             hice[0] = 0;
             tsurfAccessor.getHostRW()[0] = 0;
-            snowToIce[0] = 0;
+            snowToIceAccessor.getHostRW()[0] = 0;
         }
     };
     Module::Module<IIceThermodynamics>::setExternalImplementation(

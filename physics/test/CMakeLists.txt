@@ -23,12 +23,12 @@ if(NOT ENABLE_MPI)
     target_compile_definitions(testTOPAZOcn PRIVATE TEST_FILES_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}\")
     target_link_libraries(testTOPAZOcn PRIVATE nextsimlib doctest::doctest)
 
-    add_executable(testIceGrowth "IceGrowth_test.cpp")
+    add_executable(testIceGrowth "IceGrowth_test.cpp" "../../core/test/MainTest.cpp")
     target_include_directories(testIceGrowth PRIVATE "${ModulesRoot}/OceanBoundaryModule"
                                                      "${CoreModulesRoot}/FreezingPointModule")
     target_link_libraries(testIceGrowth PRIVATE nextsimlib doctest::doctest)
 
-    add_executable(testThermoWinton "ThermoWintonTemperature_test.cpp")
+    add_executable(testThermoWinton "ThermoWintonTemperature_test.cpp" "../../core/test/MainTest.cpp")
     target_include_directories(testThermoWinton PRIVATE "${ModulesRoot}/IceThermodynamicsModule"
                                                         "${ModulesRoot}/OceanBoundaryModule")
     target_link_libraries(testThermoWinton PRIVATE nextsimlib doctest::doctest)
@@ -51,7 +51,7 @@ if(NOT ENABLE_MPI)
     target_include_directories(testSpecHum PRIVATE "${ModulesRoot}/FluxCalculationModule")
     target_link_libraries(testSpecHum PRIVATE nextsimlib doctest::doctest)
 
-    add_executable(testThermoIce0 "ThermoIce0_test.cpp")
+    add_executable(testThermoIce0 "ThermoIce0_test.cpp" "../../core/test/MainTest.cpp")
     target_include_directories(testThermoIce0 PRIVATE "${ModulesRoot}/IceThermodynamicsModule")
     target_link_libraries(testThermoIce0 PRIVATE nextsimlib doctest::doctest)
 

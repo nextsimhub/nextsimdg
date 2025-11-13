@@ -2,7 +2,6 @@
  * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
-#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include <doctest/doctest.h>
 #include <sstream>
 

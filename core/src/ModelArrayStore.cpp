@@ -4,7 +4,7 @@
 
 #include "include/ModelArrayStore.hpp"
 #include "include/Logged.hpp"
-
+#include <iostream>
 namespace Nextsim {
 
 #ifdef USE_KOKKOS
