@@ -17,7 +17,7 @@
 
 namespace Nextsim {
 
-namespace Private{
+namespace Private {
     inline constexpr TextTag SNOW_TO_ICE = "SNOW_TO_ICE";
 }
 
@@ -73,7 +73,11 @@ public:
      */
     virtual void update(const TimestepTime& tsTime)
     {
+#ifdef USE_KOKKOS
+        FieldAdvection::advectField(tsurfAccessor.getDeviceRW(), tsTime, minT, 0.);
+#else
         FieldAdvection::advectField(tsurfAccessor.getHostRW(), tsTime, minT, 0.);
+#endif
     }
 
     inline static std::string getKappaSConfigKey() { return "nextsim_thermo.ks"; }
@@ -86,7 +90,7 @@ protected:
         , hiceAccessor(getStore())
         , ciceAccessor(getStore())
         , hsnowAccessor(getStore())
-    //    , qicAccessor(getStore())
+        //    , qicAccessor(getStore())
         , qioAccessor(getStore())
         , qowAccessor(getStore())
         , qiaAccessor(getStore())

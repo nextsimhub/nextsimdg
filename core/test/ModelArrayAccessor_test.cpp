@@ -327,7 +327,7 @@ TEST_CASE("Host device data syncing")
         // do work on device
         ModelArrayAccessor<MiniModelComponent::H_ICE, RW> hiceDstAccessor(store);
         {
-            const DeviceView& hiceDevice = hiceDstAccessor.getDeviceRW();
+            const DeviceViewMA& hiceDevice = hiceDstAccessor.getDeviceRW();
             Kokkos::parallel_for(
                 "updateDevice", hiceDevice.extent(0),
                 KOKKOS_LAMBDA(const DeviceIndex i) { hiceDevice(i, 0) += i == IDX ? -1.0 : 1.0; });

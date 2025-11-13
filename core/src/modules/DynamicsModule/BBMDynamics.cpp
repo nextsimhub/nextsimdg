@@ -171,6 +171,14 @@ void BBMDynamics::advectField(
     kernel.advectField(timestep, field, lowerLimit, upperLimit);
 }
 
+#ifdef USE_KOKKOS
+void BBMDynamics::advectField(
+    double timestep, const DeviceViewMA& field, double lowerLimit, double upperLimit)
+{
+    kernel.advectDGVFieldDevice(timestep, field, lowerLimit, upperLimit);
+}
+#endif
+
 BBMDynamics::HelpMap& BBMDynamics::getHelpText(HelpMap& map, bool getAll)
 {
     map["BBMDynamics"] = {

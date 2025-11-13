@@ -10,9 +10,9 @@
 
 #include "include/IDamageHealing.hpp"
 #include "include/IDynamics.hpp"
-#include "kokkos/include/KokkosMEVPDynamicsKernel.hpp"
 #include "include/MEVPDynamicsKernel.hpp"
 #include "include/NextsimModule.hpp"
+#include "kokkos/include/KokkosMEVPDynamicsKernel.hpp"
 
 #include "include/ModelArray.hpp"
 #include "include/ModelComponent.hpp"
@@ -36,6 +36,12 @@ public:
     void advectField(double timestep, ModelArray& field,
         double lowerLimit = -std::numeric_limits<double>::infinity(),
         double upperLimit = std::numeric_limits<double>::infinity()) override;
+
+#ifdef USE_KOKKOS
+    void advectField(double timestep, const DeviceViewMA& field,
+        double lowerLimit = -std::numeric_limits<double>::infinity(),
+        double upperLimit = std::numeric_limits<double>::infinity()) override;
+#endif
 
     void setData(const ModelState::DataMap&) override;
     void configure() override;

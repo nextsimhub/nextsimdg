@@ -9,13 +9,13 @@ namespace Nextsim {
 
 #ifdef USE_KOKKOS
 
-HostView ModelArrayStore::ExtModelArray::hostView()
+HostViewMA ModelArrayStore::ExtModelArray::hostView()
 {
     assert(modelArray.trueSize() > 0 && "ModelArray is allocated");
     return makeKokkosHostView(modelArray.getDataRef());
 }
 
-const DeviceView& ModelArrayStore::ExtModelArray::deviceView()
+const DeviceViewMA& ModelArrayStore::ExtModelArray::deviceView()
 {
     assert(modelArray.trueSize() > 0 && "ModelArray is allocated");
     if (!m_deviceView.is_allocated()) {

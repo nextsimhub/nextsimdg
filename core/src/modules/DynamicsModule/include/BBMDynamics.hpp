@@ -30,6 +30,12 @@ public:
         double lowerLimit = -std::numeric_limits<double>::infinity(),
         double upperLimit = std::numeric_limits<double>::infinity()) override;
 
+#ifdef USE_KOKKOS
+    void advectField(double timestep, const DeviceViewMA& field,
+        double lowerLimit = -std::numeric_limits<double>::infinity(),
+        double upperLimit = std::numeric_limits<double>::infinity()) override;
+#endif
+
     void setData(const ModelState::DataMap&) override;
     void configure() override;
     ConfigMap getConfiguration() const override;

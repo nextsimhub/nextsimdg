@@ -18,10 +18,10 @@ namespace Nextsim {
 
 #ifdef USE_KOKKOS
 // kokkos views compatible with ModelArray
-using DeviceView = KokkosDeviceView<ModelArray::DataType>;
-using ConstDeviceView = ConstKokkosDeviceView<ModelArray::DataType>;
-using HostView = KokkosHostView<ModelArray::DataType>;
-using ConstHostView = ConstKokkosHostView<ModelArray::DataType>;
+using DeviceViewMA = KokkosDeviceView<ModelArray::DataType>;
+using ConstDeviceViewMA = ConstKokkosDeviceView<ModelArray::DataType>;
+using HostViewMA = KokkosHostView<ModelArray::DataType>;
+using ConstHostViewMA = ConstKokkosHostView<ModelArray::DataType>;
 
 enum struct SyncState { SYNCED, HOST_CHANGED, DEVICE_CHANGED };
 #endif
@@ -43,12 +43,12 @@ private:
 #ifdef USE_KOKKOS
         SyncState syncState = SyncState::SYNCED;
         // not a simple data member because the host buffer owned by ModelArray can be overwritten
-        HostView hostView();
+        HostViewMA hostView();
         // handles lazy initialization for the device buffer
-        const DeviceView& deviceView();
+        const DeviceViewMA& deviceView();
 
     private:
-        DeviceView m_deviceView;
+        DeviceViewMA m_deviceView;
 #endif
     };
 

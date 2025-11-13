@@ -5,10 +5,10 @@
 #ifndef IDYNAMICS_HPP
 #define IDYNAMICS_HPP
 
+#include "include/ModelArrayAccessor.hpp"
 #include "include/ModelComponent.hpp"
 #include "include/Time.hpp"
 #include "include/gridNames.hpp"
-#include "include/ModelArrayAccessor.hpp"
 
 #include <limits>
 
@@ -39,7 +39,7 @@ public:
         , ciceDGAccessor(getStore())
         , hsnowDGAccessor(getStore())
     {
-                                                                    }
+    }
     virtual ~IDynamics() = default;
 
     ModelState getStatePrognostic() const override
@@ -77,12 +77,18 @@ public:
     std::string getName() const override { return "IDynamics"; }
     virtual void setData(const ModelState::DataMap& ms) override
     {
-        HField& uice = uiceAccessor.getHostRW(); uice.resize();
-        HField& vice = viceAccessor.getHostRW(); vice.resize();
-        HField& shear = shearAccessor.getHostRW(); shear.resize();
-        HField& divergence = divergenceAccessor.getHostRW(); divergence.resize();
-        HField& sigmaI = sigmaIAccessor.getHostRW(); sigmaI.resize();
-        HField& sigmaII = sigmaIIAccessor.getHostRW(); sigmaII.resize();
+        HField& uice = uiceAccessor.getHostRW();
+        uice.resize();
+        HField& vice = viceAccessor.getHostRW();
+        vice.resize();
+        HField& shear = shearAccessor.getHostRW();
+        shear.resize();
+        HField& divergence = divergenceAccessor.getHostRW();
+        divergence.resize();
+        HField& sigmaI = sigmaIAccessor.getHostRW();
+        sigmaI.resize();
+        HField& sigmaII = sigmaIIAccessor.getHostRW();
+        sigmaII.resize();
     }
 
     virtual void update(const TimestepTime& tst) = 0;
@@ -97,6 +103,14 @@ public:
         double upperLimit = std::numeric_limits<double>::infinity())
     {
     }
+
+#ifdef USE_KOKKOS
+    virtual void advectField(double timestep, const DeviceViewMA& field,
+        double lowerLimit = -std::numeric_limits<double>::infinity(),
+        double upperLimit = std::numeric_limits<double>::infinity())
+    {
+    }
+#endif
 
     virtual void prepareAdvection() = 0;
 

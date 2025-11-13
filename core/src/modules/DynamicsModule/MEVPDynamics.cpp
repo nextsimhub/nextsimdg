@@ -133,6 +133,14 @@ void MEVPDynamics::advectField(
     kernel.advectField(timestep, field, lowerLimit, upperLimit);
 }
 
+#ifdef USE_KOKKOS
+void MEVPDynamics::advectField(
+    double timestep, const DeviceViewMA& field, double lowerLimit, double upperLimit)
+{
+    kernel.advectDGVFieldDevice(timestep, field, lowerLimit, upperLimit);
+}
+#endif
+
 MEVPDynamics::HelpMap& MEVPDynamics::getHelpText(HelpMap& map, bool getAll)
 {
     map["MEVPDynamics"] = {
