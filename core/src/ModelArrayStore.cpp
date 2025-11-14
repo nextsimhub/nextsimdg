@@ -9,6 +9,13 @@ namespace Nextsim {
 
 #ifdef USE_KOKKOS
 
+//double ConstDeviceModelArray::operator[](DeviceIndex i) const { return m_deviceView(i, 0); }
+ConstDeviceModelArray::operator ConstDeviceViewMA() const { return m_deviceView; }
+
+//double& DeviceModelArray::operator[](DeviceIndex i) const { return m_deviceView(i, 0); }
+DeviceModelArray::operator const DeviceViewMA&() const { return m_deviceView; }
+
+/*************************************************************/
 HostViewMA ModelArrayStore::ExtModelArray::hostView()
 {
     assert(modelArray.trueSize() > 0 && "ModelArray is allocated");
@@ -18,14 +25,22 @@ HostViewMA ModelArrayStore::ExtModelArray::hostView()
 const DeviceViewMA& ModelArrayStore::ExtModelArray::deviceView()
 {
     assert(modelArray.trueSize() > 0 && "ModelArray is allocated");
-    if (!m_deviceView.is_allocated()) {
-        m_deviceView = makeKokkosDeviceView(name, modelArray.getDataRef());
+    if (!m_deviceModelArray.m_deviceView.is_allocated()) {
+        m_deviceModelArray.m_deviceView = makeKokkosDeviceView(name, modelArray.getDataRef());
     }
 
-    return m_deviceView;
+    return m_deviceModelArray.m_deviceView;
+}
+
+DeviceModelArray& ModelArrayStore::ExtModelArray::deviceModelArray()
+{
+    // handles initialization
+    deviceView();
+    return m_deviceModelArray;
 }
 #endif
 
+/*************************************************************/
 ModelArrayStore::ExtModelArrayFlagged::ExtModelArrayFlagged(
     const std::string& name, bool _isReadWrite, bool _isRegistered)
     : isReadWrite(_isReadWrite)
@@ -34,6 +49,7 @@ ModelArrayStore::ExtModelArrayFlagged::ExtModelArrayFlagged(
     extModelArray.name = name;
 }
 
+/*************************************************************/
 std::unordered_map<std::string, const ModelArray*> ModelArrayStore::getAllData() const
 {
     std::unordered_map<std::string, const ModelArray*> dataMap;

@@ -186,15 +186,32 @@ public:
 
     // needs to be public because it calls a device function but should be used as if protected
 #if USE_KOKKOS
-    template <typename Fn> inline static void overElementsDevice(Fn fn, const TimestepTime& tst)
+    template <typename Fn> inline static void overElementsDevice(Fn fn)
     {
         // the static member can not be captured directly
         const auto oceanIndexLocal = oceanIndexDevice;
         Kokkos::parallel_for(
             "overElements", nOcean,
-            KOKKOS_LAMBDA(const DeviceIndex i) { fn(oceanIndexLocal[i], tst); });
+            KOKKOS_LAMBDA(const DeviceIndex i) { fn(oceanIndexLocal[i]); });
     }
 #endif
+
+    template <typename Fn> inline static void overElementsAuto(Fn&& fn)
+    {
+#if USE_KOKKOS
+       overElementsDevice(std::forward<Fn>(fn));
+#else
+        overElements(std::forward<Fn>(fn));
+#endif
+    }
+
+    template <typename Fn> static void overElements(Fn fn)
+    {
+#pragma omp parallel for
+        for (size_t i = 0; i < nOcean; ++i) {
+            fn(oceanIndex[i]);
+        }
+    }
 
 protected:
     inline static void overElements(IteratedFn fn, const TimestepTime& tst)

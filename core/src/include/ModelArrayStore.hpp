@@ -23,6 +23,37 @@ using ConstDeviceViewMA = ConstKokkosDeviceView<ModelArray::DataType>;
 using HostViewMA = KokkosHostView<ModelArray::DataType>;
 using ConstHostViewMA = ConstKokkosHostView<ModelArray::DataType>;
 
+// Wrapper for Kokkos views with semantics closer to ModelArray
+class ConstDeviceModelArray {
+public:
+    ConstDeviceModelArray(ConstDeviceViewMA deviceView)
+        : m_deviceView(std::move(deviceView))
+    {
+    }
+
+    KOKKOS_IMPL_FUNCTION double operator[](DeviceIndex i) const { return m_deviceView(i, 0); }
+
+    operator ConstDeviceViewMA() const;
+
+private:
+    ConstDeviceViewMA m_deviceView;
+
+    friend class ModelArrayStore;
+};
+class DeviceModelArray {
+public:
+    //DeviceModelArray(DeviceViewMA deviceView) : m_deviceView(std::move(m_deviceView)) {}
+
+    KOKKOS_IMPL_FUNCTION double& operator[](DeviceIndex i) const  { return m_deviceView(i, 0); }
+
+    operator const DeviceViewMA&() const;
+private:
+    DeviceModelArray() = default;
+    DeviceViewMA m_deviceView;
+
+    friend class ModelArrayStore;
+};
+
 enum struct SyncState { SYNCED, HOST_CHANGED, DEVICE_CHANGED };
 #endif
 
@@ -46,9 +77,10 @@ private:
         HostViewMA hostView();
         // handles lazy initialization for the device buffer
         const DeviceViewMA& deviceView();
+        DeviceModelArray& deviceModelArray();
 
     private:
-        DeviceViewMA m_deviceView;
+        DeviceModelArray m_deviceModelArray;
 #endif
     };
 

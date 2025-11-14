@@ -7,6 +7,7 @@
 #include "../../../core/src/kokkos/include/KokkosTimer.hpp"
 #include "include/IceMinima.hpp"
 
+#include "include/KernelAlternatives.hpp"
 #include "include/constants.hpp"
 #include "include/gridNames.hpp"
 
@@ -131,12 +132,7 @@ void ThermoWinton::setData(const ModelState::DataMap& state)
     }
 }
 
-#ifndef USE_KOKKOS
-#define KOKKOS_IMPL_FUNCTION
-namespace Kokkos = std;
-#endif
-
-KOKKOS_IMPL_FUNCTION static void calculateTemps(double& tSurf, double& tUppr, double& tLowr,
+KERNEL_IMPL_FUNCTION static void calculateTemps(double& tSurf, double& tUppr, double& tLowr,
     double& mSurf, const double cice, const double dQia_dt, const double hice, const double hsnow,
     const double penSw, const double qia, const double tf, double dt, const double cVol,
     const double seaIceTf, const double kappa_s)
@@ -166,7 +162,7 @@ KOKKOS_IMPL_FUNCTION static void calculateTemps(double& tSurf, double& tUppr, do
     double c1 = hi * Ice::Lf * Ice::rho * seaIceTf / (2 * dt); // (18)
 
     // Updated surface and mid-ice temperatures
-    tUppr = -(b1 + Kokkos::sqrt(b1 * b1 - 4 * a1 * c1)) / (2 * a1); // (21)
+    tUppr = -(b1 + Utils::sqrt(b1 * b1 - 4 * a1 * c1)) / (2 * a1); // (21)
     tSurf = (k12 * tUppr - a) / (k12 + b); // (6)
     // Is the surface melting?
     if (tSurf > tMelt) {
@@ -175,7 +171,7 @@ KOKKOS_IMPL_FUNCTION static void calculateTemps(double& tSurf, double& tUppr, do
         // apply the change to the *1 parameters, rather than recalculating in full
         a1 += k12 - k12 * b / (k12 + b); // (19) simplified using +=
         b1 -= k12 * tSurf + a * k12 / (k12 + b); // (20) simplified using -=
-        tUppr = -(b1 + Kokkos::sqrt(b1 * b1 - 4 * a1 * c1)) / (2 * a1); // (21)
+        tUppr = -(b1 + Utils::sqrt(b1 * b1 - 4 * a1 * c1)) / (2 * a1); // (21)
 
         // Surface melt
         mSurf = k12 * (tUppr - tSurf) - (a + b * tSurf); // (22)
@@ -189,50 +185,43 @@ void ThermoWinton::update(const TimestepTime& tst)
 {
     static KokkosTimer<true> timer("ThermoWinton");
     static KokkosTimer<DETAILED_MEASUREMENTS> timerAdvect("ThermoWintonAdvection");
-    static KokkosTimer<DETAILED_MEASUREMENTS> timerUpload("ThermoWintonUpload");
+    static KokkosTimer<DETAILED_MEASUREMENTS> timerCopy("ThermoWintonCopy");
     static KokkosTimer<DETAILED_MEASUREMENTS> timerUpdate("ThermoWintonUpdate");
 
     timer.start();
     timerAdvect.start();
     // Advect ice temperatures
     IIceThermodynamics::update(tst);
-#ifdef USE_KOKKOS
-    auto execSpace = Kokkos::DefaultExecutionSpace();
-    const DeviceViewMA& tBottomDevice = tBottomAccessor.getDeviceRW(execSpace);
-    const DeviceViewMA& tInternalDevice = tInternalAccessor.getDeviceRW(execSpace);
-    FieldAdvection::advectField(tInternalDevice, tst, IIceThermodynamics::minT, seaIceTf);
-    FieldAdvection::advectField(tBottomDevice, tst, IIceThermodynamics::minT, seaIceTf);
-#else
-    AdvectedField& tBottom = tBottomAccessor.getHostRW();
-    AdvectedField& tInternal = tInternalAccessor.getHostRW();
+    auto execSpace = DefaultExecutionSpace();
+    auto& tBottom = tBottomAccessor.getAutoRW(execSpace);
+    auto& tInternal = tInternalAccessor.getAutoRW(execSpace);
     FieldAdvection::advectField(tInternal, tst, IIceThermodynamics::minT, seaIceTf);
     FieldAdvection::advectField(tBottom, tst, IIceThermodynamics::minT, seaIceTf);
-#endif
     timerAdvect.stop();
 
-#ifdef USE_KOKKOS
-    timerUpload.start();
+    timerCopy.start();
     // explicit execution space enables asynchronous execution
-    const DeviceViewMA& hsnowDevice = hsnowAccessor.getDeviceRW(execSpace);
-    const DeviceViewMA& botMeltDevice = botMeltAccessor.getDeviceRW(execSpace);
-    const DeviceViewMA& hiceDevice = hiceAccessor.getDeviceRW(execSpace);
-    const DeviceViewMA& topMeltDevice = topMeltAccessor.getDeviceRW(execSpace);
-    const DeviceViewMA& qswBaseDevice = qswBaseAccessor.getDeviceRW(execSpace);
-    const DeviceViewMA& snowMeltDevice = snowMeltAccessor.getDeviceRW(execSpace);
-    const DeviceViewMA& tsurfDevice = tsurfAccessor.getDeviceRW(execSpace);
-    const DeviceViewMA& deltaHiDevice = deltaHiAccessor.getDeviceRW(execSpace);
-    const DeviceViewMA& qowDevice = qowAccessor.getDeviceRW(execSpace);
-    const DeviceViewMA& snowToIceDevice = snowToIceAccessor.getDeviceRW(execSpace);
-    const DeviceViewMA& ciceDevice = ciceAccessor.getDeviceRW(execSpace);
-    const ConstDeviceViewMA& dQia_dtDevice = dQia_dtAccessor.getDeviceRO(execSpace);
-    const ConstDeviceViewMA& penSwDevice = penSwAccessor.getDeviceRO(execSpace);
-    const ConstDeviceViewMA& qiaDevice = qiaAccessor.getDeviceRO(execSpace);
-    const ConstDeviceViewMA& qioDevice = qioAccessor.getDeviceRO(execSpace);
-    const ConstDeviceViewMA& snowfallDevice = snowfallAccessor.getDeviceRO(execSpace);
-    const ConstDeviceViewMA& sublDevice = sublAccessor.getDeviceRO(execSpace);
-    const ConstDeviceViewMA& tfDevice = tfAccessor.getDeviceRO(execSpace);
-    timerUpload.stop();
+    auto& hsnow = hsnowAccessor.getAutoRW(execSpace);
+    auto& botMelt = botMeltAccessor.getAutoRW(execSpace);
+    auto& hice = hiceAccessor.getAutoRW(execSpace);
+    auto& topMelt = topMeltAccessor.getAutoRW(execSpace);
+    auto& qswBase = qswBaseAccessor.getAutoRW(execSpace);
+    auto& snowMelt = snowMeltAccessor.getAutoRW(execSpace);
+    auto& tsurf = tsurfAccessor.getAutoRW(execSpace);
+    auto& deltaHi = deltaHiAccessor.getAutoRW(execSpace);
+    auto& qow = qowAccessor.getAutoRW(execSpace);
+    auto& snowToIce = snowToIceAccessor.getAutoRW(execSpace);
+    auto& cice = ciceAccessor.getAutoRW(execSpace);
+    const auto& dQia_dt = dQia_dtAccessor.getAutoRO(execSpace);
+    const auto& penSw = penSwAccessor.getAutoRO(execSpace);
+    const auto& qia = qiaAccessor.getAutoRO(execSpace);
+    const auto& qio = qioAccessor.getAutoRO(execSpace);
+    const auto& snowfall = snowfallAccessor.getAutoRO(execSpace);
+    const auto& subl = sublAccessor.getAutoRO(execSpace);
+    const auto& tf = tfAccessor.getAutoRO(execSpace);
+    timerCopy.stop();
 
+    // static members can not be captured directly
     const double cMin = IceMinima::c();
     const double hMin = IceMinima::h();
     const double dt = tst.step.seconds();
@@ -242,472 +231,434 @@ void ThermoWinton::update(const TimestepTime& tst)
     const double kappa_s = ThermoWinton::kappa_s;
 
     timerUpdate.start();
-    overElementsDevice(
-        KOKKOS_LAMBDA(const DeviceIndex i, const TimestepTime& tsTime) {
-            // todo: check if delaying data access until necessary improves performance
-            double& cice = ciceDevice(i, 0);
-            double& qswBase = qswBaseDevice(i, 0);
-            double& topMelt = topMeltDevice(i, 0);
-            double& tBottom = tBottomDevice(i, 0);
-            double& snowToIce = snowToIceDevice(i, 0);
-            double& deltaHi = deltaHiDevice(i, 0);
-            double& botMelt = botMeltDevice(i, 0);
-            double& qow = qowDevice(i, 0);
-            double& hsnow = hsnowDevice(i, 0);
-            double& snowMelt = snowMeltDevice(i, 0);
-            double& tsurf = tsurfDevice(i, 0);
-            double& hice = hiceDevice(i, 0);
-            double& tInternal = tInternalDevice(i, 0);
+    overElementsAuto(OVER_ELEMENTS_LAMBDA {
+        static const double bulkLHFusionSnow = Water::Lf * Ice::rhoSnow;
+        static const double bulkLHFusionIce = Water::Lf * Ice::rho;
 
-            const double dQia_dt = dQia_dtDevice(i, 0);
-            const double penSw = penSwDevice(i, 0);
-            const double qia = qiaDevice(i, 0);
-            const double qio = qioDevice(i, 0);
-            const double snowfall = snowfallDevice(i, 0);
-            const double subl = sublDevice(i, 0);
-            const double tf = tfDevice(i, 0);
+        // Don't do anything if there is no ice
+        if (cice[i] <= cMin || hice[i] <= hMin) {
 
-            static const double bulkLHFusionSnow = Water::Lf * Ice::rhoSnow;
-            static const double bulkLHFusionIce = Water::Lf * Ice::rho;
+            snowToIce[i] = 0.;
+            snowMelt[i] = 0.;
+            qswBase[i] = 0.;
 
-            // Don't do anything if there is no ice
-            if (cice <= cMin || hice <= hMin) {
+            // Add to open water flux, since cice will be set to zero
+            qow[i] += (hice[i] * bulkLHFusionIce + hsnow[i] * bulkLHFusionSnow) / dt;
 
-                snowToIce = 0.;
-                snowMelt = 0.;
-                qswBase = 0.;
+            deltaHi[i] = 0;
+            cice[i] = 0;
+            hice[i] = 0;
+            hsnow[i] = 0;
 
-                // Add to open water flux, since cice will be set to zero
-                qow += (hice * bulkLHFusionIce + hsnow * bulkLHFusionSnow) / dt;
+            tsurf[i] = seaIceTf;
+            tInternal[i] = seaIceTf;
+            tBottom[i] = seaIceTf;
 
-                deltaHi = 0;
-                cice = 0;
-                hice = 0;
-                hsnow = 0;
+            return;
+        }
 
-                tsurf = seaIceTf;
-                tInternal = seaIceTf;
-                tBottom = seaIceTf;
+        double tSurf = tsurf[i]; // surface temperature
+        double tUppr = tInternal[i]; // upper layer temperature
+        double tLowr = tBottom[i]; // lower layer temperature
+        double tBott = tf[i]; // freezing point of (local) seawater
 
-                return;
-            }
+        double hi = hice[i] / cice[i];
+        double hs = hsnow[i] / cice[i];
+        const double oldHi = hi; // Ice thickness at the start of the timestep
 
-            double tSurf = tsurf; // surface temperature
-            double tUppr = tInternal; // upper layer temperature
-            double tLowr = tBottom; // lower layer temperature
-            double tBott = tf; // freezing point of (local) seawater
+        double surfMelt = 0; // surface melting mass loss
+        // Calculate temperatures by solving the heat conduction equation
+        calculateTemps(tSurf, tUppr, tLowr, surfMelt, cice[i], dQia_dt[i], hice[i], hsnow[i],
+            penSw[i], qia[i], tf[i], dt, cVol, seaIceTf, kappa_s);
 
-            double hi = hice / cice;
-            double hs = hsnow / cice;
-            const double oldHi = hi; // Ice thickness at the start of the timestep
+        // The ratio of ΔΗ_f T_f / c_p,ice is used a lot. Units are K²
+        const static double dHfTf_cp = Water::Lf * seaIceTf / Ice::cp;
 
-            double surfMelt = 0; // surface melting mass loss
-            // Calculate temperatures by solving the heat conduction equation
-            calculateTemps(tSurf, tUppr, tLowr, surfMelt, cice, dQia_dt, hice, hsnow, penSw, qia,
-                tf, dt, cVol, seaIceTf, kappa_s);
+        // Thickness changes
+        // ice
+        double h1 = hi / 2;
+        double h2 = hi / 2;
+        // Eqs. (1) and (25) - but I 've multiplied them with \rho_i (hence cVol), because it's
+        // missing in the paper
+        double e1 = cVol * (tUppr - seaIceTf) - bulkLHFusionIce * (1 - seaIceTf / tUppr);
+        double e2 = cVol * (tLowr - seaIceTf) - bulkLHFusionIce;
 
-            // The ratio of ΔΗ_f T_f / c_p,ice is used a lot. Units are K²
-            const static double dHfTf_cp = Water::Lf * seaIceTf / Ice::cp;
+        // snow
+        hs += snowfall[i] / Ice::rhoSnow * dt;
+        //    double accumulatedSnowThickness = snowfall[i] / Ice::rhoSnow * dt;
 
-            // Thickness changes
-            // ice
-            double h1 = hi / 2;
-            double h2 = hi / 2;
-            // Eqs. (1) and (25) - but I 've multiplied them with \rho_i (hence cVol), because
-            // it's missing in the paper
-            double e1 = cVol * (tUppr - seaIceTf) - bulkLHFusionIce * (1 - seaIceTf / tUppr);
-            double e2 = cVol * (tLowr - seaIceTf) - bulkLHFusionIce;
+        // sublimation
+        // 4 cases
+        const double& subli = subl[i];
+        double deltaSnow = subli * dt / Ice::rhoSnow;
+        double deltaIce1 = (deltaSnow - hs) * Ice::rhoSnow / Ice::rho;
+        double deltaIce2 = deltaIce1 - h1;
+        if (deltaSnow <= hs) {
+            // sublimation is less than or equal to the mass of snow
+            hs -= deltaSnow;
+        } else if (deltaIce1 <= h1) {
+            // sublimation minus sublimed snow is less than or equal to half the
+            // ice thickness
+            h1 -= deltaIce1;
+            hs = 0;
+        } else if (deltaIce2 <= h2) {
+            // sublimation minus sublimed snow is greater than half the ice
+            // thickness, but not all of it
+            h2 -= deltaIce2;
+            h1 = 0;
+            hs = 0;
+        } else {
+            // the snow and ice sublimates
+            // double oceanEvapError = (deltaIce2 - h2) * Ice::rho / Water::rhoOcean;
+            // TODO: log the error
+            h2 = 0;
+            h1 = 0;
+            hs = 0;
+        }
+        // Sublimated ice counts as top melt
+        topMelt[i] = Utils::max(0., h1 + h2 - hi); // (23)
 
-            // snow
-            hs += snowfall / Ice::rhoSnow * dt;
-            //    double accumulatedSnowThickness = snowfall / Ice::rhoSnow * dt;
-
-            // sublimation
-            // 4 cases
-            double deltaSnow = subl * dt / Ice::rhoSnow;
-            double deltaIce1 = (deltaSnow - hs) * Ice::rhoSnow / Ice::rho;
-            double deltaIce2 = deltaIce1 - h1;
-            if (deltaSnow <= hs) {
-                // sublimation is less than or equal to the mass of snow
-                hs -= deltaSnow;
-            } else if (deltaIce1 <= h1) {
-                // sublimation minus sublimed snow is less than or equal to half the
-                // ice thickness
-                h1 -= deltaIce1;
-                hs = 0;
-            } else if (deltaIce2 <= h2) {
-                // sublimation minus sublimed snow is greater than half the ice
-                // thickness, but not all of it
-                h2 -= deltaIce2;
-                h1 = 0;
-                hs = 0;
-            } else {
-                // the snow and ice sublimates
-                // double oceanEvapError = (deltaIce2 - h2) * Ice::rho / Water::rhoOcean;
-                // TODO: log the error
-                h2 = 0;
-                h1 = 0;
-                hs = 0;
-            }
-            // Sublimated ice counts as top melt
-            topMelt = Kokkos::max(0., h1 + h2 - hi); // (23)
-
-            // Bottom melt/freezing
-            double meltBottom = (qio - 4 * Ice::kappa * (tBott - tLowr) / hi) * dt;
-            snowMelt = 0;
-            if (meltBottom <= 0.) {
-                // Freezing
-                // Eq. (25) - but I 've multiplied them with \rho_i (hence cVol), because it's
-                // missing in the paper
-                double eBot = cVol * (tBott - seaIceTf) - bulkLHFusionIce;
-                deltaIce2 = meltBottom / eBot; // (24)
-                tLowr = (deltaIce2 * tBott + h2 * tLowr) / (deltaIce2 + h2); // (26)
-                h2 += deltaIce2;
-            } else {
-                // Melting
-                // Eqs. (31)-(32) with added division with \rho_i (and \rho_s for 32)
-                deltaIce2 = -Kokkos::min(-meltBottom / e2, h2);
-                deltaIce1 = -Kokkos::min(Kokkos::max(-(meltBottom + e2 * h2) / e1, 0.), h1);
-                snowMelt = -Kokkos::min(
-                    Kokkos::max((meltBottom + e2 * h2 + e1 * h1) / bulkLHFusionSnow, 0.), hs);
-
-                // If everything melts we need to put heat back into the ocean
-                if (h2 + h1 + hs - deltaIce2 - deltaIce1 - snowMelt <= 0.) {
-                    // (34) - with added multiplication of rhoi and rhos and division with dt
-                    qow -= cice
-                        * Kokkos::max(meltBottom - bulkLHFusionSnow * hs + e1 * h1 + e2 * h2, 0.)
-                        / dt;
-                }
-
-                hs += snowMelt;
-                h1 += deltaIce1;
-                h2 += deltaIce2;
-                botMelt += deltaIce1 + deltaIce2;
-            }
-
-            // Melting at the surface
-            // Do we really need an assertion here?
-            // assert(surfMelt >= 0);
-            // Eqs. (27)-(29) with division of \rho_i and \rho_s
-            snowMelt -= Kokkos::min(surfMelt * dt / bulkLHFusionSnow, hs);
-            deltaIce1
-                = -Kokkos::min(Kokkos::max(-(surfMelt * dt - bulkLHFusionSnow * hs) / e1, 0.), h1);
-            deltaIce2 = -Kokkos::min(
-                Kokkos::max(-(surfMelt * dt - bulkLHFusionSnow * hs + e1 * h1) / e2, 0.), h2);
-
-            // If everything melts we need to put heat back into the ocean
-            // Eq (30) - with multiplication of rhoi and rhos and division with dt
-            if (h2 + h1 + hs - deltaIce2 - deltaIce1 - snowMelt <= 0.) {
-                qow -= cice
-                    * Kokkos::max(surfMelt * dt - bulkLHFusionSnow * hs + e1 * h1 + e2 * h2, 0.)
-                    / dt;
-            }
-
-            hs += snowMelt;
-            h1 += deltaIce1;
-            h2 += deltaIce2;
-            topMelt += deltaIce1 + deltaIce2;
-
-            // Snow to ice conversion
-            double freeboard
-                = (hi * (Water::rhoOcean - Ice::rho) - hs * Ice::rhoSnow) / Water::rhoOcean;
-            if (doFlooding && freeboard < 0.) {
-                hs += Kokkos::min(freeboard * Ice::rho / Ice::rhoSnow, 0.); // (35) using +=
-                deltaIce1 = Kokkos::max(-freeboard, 0.); // (36)
-                double f1
-                    = 1 - deltaIce1 / (deltaIce1 + h1); // Fraction of new ice in the upper layer
-                double tBar = f1 * (tUppr + dHfTf_cp / tUppr) + (1 - f1) * seaIceTf; // (39)
-                tUppr = (tBar - Kokkos::sqrt(tBar * tBar - 4 * dHfTf_cp)) / 2; // (38)
-                h1 += deltaIce1;
-                snowToIce += deltaIce1;
-            }
-
-            // Add up the half-layer thicknesses
-            hi = h1 + h2;
-            // Adjust the temperatures to evenly divide the ice
-            if (h2 > h1) {
-                // Lower layer ice is added to the upper layer
-                double f1 = h1 / hi * 2;
-                double tBar = f1 * (tUppr + dHfTf_cp / tUppr) + (1 - f1) * tLowr; // (39)
-                // The upper layer temperature changes
-                tUppr = (tBar - Kokkos::sqrt(tBar * tBar - 4 * dHfTf_cp)) / 2; // (38)
-            } else {
-                // Upper layer ice is added to the lower layer
-                double f1 = (2 * h1 - hi) / hi;
-                // Lower layer temperature changes
-                tLowr = f1 * (tUppr + dHfTf_cp / tUppr) + (1 - f1) * tLowr; // (40)
-                // Melt from top and bottom if the lower layer temperature is too high
-                if (tLowr > seaIceTf) {
-                    double deltaMelt = hi / 4 * Ice::cp * (tLowr - seaIceTf) * tUppr
-                        / (Ice::Lf * tUppr + (Ice::cp * tUppr - Ice::Lf) * (seaIceTf - tUppr));
-                    topMelt -= deltaMelt;
-                    botMelt -= deltaMelt;
-                    hi -= 2 * deltaMelt;
-                    tLowr = seaIceTf;
-                }
-            }
-            deltaHi = hi - oldHi;
-
-            // Remove very small ice thickness
-            // The fluxes are already sorted
-            if (hi < hMin) {
-                if (deltaHi < 0) {
-                    topMelt *= oldHi / deltaHi;
-                    botMelt *= oldHi / deltaHi;
-                }
-                snowToIce = 0;
-
-                deltaHi = -oldHi;
-                cice = 0;
-
-                tSurf = seaIceTf;
-                tUppr = seaIceTf;
-                tLowr = seaIceTf;
-            }
-
-            tsurf = tSurf;
-            tInternal = tUppr;
-            tBottom = tLowr;
-
-            hice = hi * cice;
-            hsnow = hs * cice;
-        },
-        tst);
-    timerUpdate.stop();
-#else
-    timerUpload.start();
-    AdvectedField& hsnow = hsnowAccessor.getHostRW();
-    AdvectedField& cice = ciceAccessor.getHostRW();
-    HField& qow = qowAccessor.getHostRW();
-    HField& snowToIce = snowToIceAccessor.getHostRW();
-    AdvectedField& hice = hiceAccessor.getHostRW();
-    AdvectedField& tsurf = tsurfAccessor.getHostRW();
-    HField& topMelt = topMeltAccessor.getHostRW();
-    HField& botMelt = botMeltAccessor.getHostRW();
-    HField& deltaHi = deltaHiAccessor.getHostRW();
-    HField& qswBase = qswBaseAccessor.getHostRW();
-    HField& snowMelt = snowMeltAccessor.getHostRW();
-    const HField& dQia_dt = dQia_dtAccessor.getHostRO();
-    const HField& penSw = penSwAccessor.getHostRO();
-    const HField& qia = qiaAccessor.getHostRO();
-    const HField& qio = qioAccessor.getHostRO();
-    const HField& snowfall = snowfallAccessor.getHostRO();
-    const HField& subl = sublAccessor.getHostRO();
-    const HField& tf = tfAccessor.getHostRO();
-    timerUpload.stop();
-
-    // Perform the rest of the thermodynamics using the advected temperatures
-    timerUpdate.start();
-    overElements(
-        [&](const size_t i, const TimestepTime& tsTime) {
-            static const double bulkLHFusionSnow = Water::Lf * Ice::rhoSnow;
-            static const double bulkLHFusionIce = Water::Lf * Ice::rho;
-
-            // Don't do anything if there is no ice
-            if (cice[i] <= IceMinima::c() || hice[i] <= IceMinima::h()) {
-
-                snowToIce[i] = 0.;
-                snowMelt[i] = 0.;
-                qswBase[i] = 0.;
-
-                // Add to open water flux, since cice will be set to zero
-                qow[i] += (hice[i] * bulkLHFusionIce + hsnow[i] * bulkLHFusionSnow) / tst.step;
-
-                deltaHi[i] = 0;
-                cice[i] = 0;
-                hice[i] = 0;
-                hsnow[i] = 0;
-
-                tsurf[i] = seaIceTf;
-                tInternal[i] = seaIceTf;
-                tBottom[i] = seaIceTf;
-
-                return;
-            }
-
-            double tSurf = tsurf[i]; // surface temperature
-            double tUppr = tInternal[i]; // upper layer temperature
-            double tLowr = tBottom[i]; // lower layer temperature
-            double tBott = tf[i]; // freezing point of (local) seawater
-
-            double hi = hice[i] / cice[i];
-            double hs = hsnow[i] / cice[i];
-            const double oldHi = hi; // Ice thickness at the start of the timestep
-
-            double dt = tst.step.seconds();
-
-            double surfMelt = 0; // surface melting mass loss
-            // Calculate temperatures by solving the heat conduction equation
-            calculateTemps(tSurf, tUppr, tLowr, surfMelt, cice[i], dQia_dt[i], hice[i], hsnow[i],
-                penSw[i], qia[i], tf[i], dt, cVol, seaIceTf, kappa_s);
-
-            // The ratio of ΔΗ_f T_f / c_p,ice is used a lot. Units are K²
-            const static double dHfTf_cp = Water::Lf * seaIceTf / Ice::cp;
-
-            // Thickness changes
-            // ice
-            double h1 = hi / 2;
-            double h2 = hi / 2;
-            // Eqs. (1) and (25) - but I 've multiplied them with \rho_i (hence cVol), because it's
+        // Bottom melt/freezing
+        double meltBottom = (qio[i] - 4 * Ice::kappa * (tBott - tLowr) / hi) * dt;
+        snowMelt[i] = 0;
+        if (meltBottom <= 0.) {
+            // Freezing
+            // Eq. (25) - but I 've multiplied them with \rho_i (hence cVol), because it's
             // missing in the paper
-            double e1 = cVol * (tUppr - seaIceTf) - bulkLHFusionIce * (1 - seaIceTf / tUppr);
-            double e2 = cVol * (tLowr - seaIceTf) - bulkLHFusionIce;
-
-            // snow
-            hs += snowfall[i] / Ice::rhoSnow * dt;
-            //    double accumulatedSnowThickness = snowfall[i] / Ice::rhoSnow * dt;
-
-            // sublimation
-            // 4 cases
-            const double& subli = subl[i];
-            double deltaSnow = subli * dt / Ice::rhoSnow;
-            double deltaIce1 = (deltaSnow - hs) * Ice::rhoSnow / Ice::rho;
-            double deltaIce2 = deltaIce1 - h1;
-            if (deltaSnow <= hs) {
-                // sublimation is less than or equal to the mass of snow
-                hs -= deltaSnow;
-            } else if (deltaIce1 <= h1) {
-                // sublimation minus sublimed snow is less than or equal to half the
-                // ice thickness
-                h1 -= deltaIce1;
-                hs = 0;
-            } else if (deltaIce2 <= h2) {
-                // sublimation minus sublimed snow is greater than half the ice
-                // thickness, but not all of it
-                h2 -= deltaIce2;
-                h1 = 0;
-                hs = 0;
-            } else {
-                // the snow and ice sublimates
-                double oceanEvapError = (deltaIce2 - h2) * Ice::rho / Water::rhoOcean;
-                // TODO: log the error
-                h2 = 0;
-                h1 = 0;
-                hs = 0;
-            }
-            // Sublimated ice counts as top melt
-            topMelt[i] = std::max(0., h1 + h2 - hi); // (23)
-
-            // Bottom melt/freezing
-            double meltBottom = (qio[i] - 4 * Ice::kappa * (tBott - tLowr) / hi) * dt;
-            snowMelt[i] = 0;
-            if (meltBottom <= 0.) {
-                // Freezing
-                // Eq. (25) - but I 've multiplied them with \rho_i (hence cVol), because it's
-                // missing in the paper
-                double eBot = cVol * (tBott - seaIceTf) - bulkLHFusionIce;
-                deltaIce2 = meltBottom / eBot; // (24)
-                tLowr = (deltaIce2 * tBott + h2 * tLowr) / (deltaIce2 + h2); // (26)
-                h2 += deltaIce2;
-            } else {
-                // Melting
-                // Eqs. (31)-(32) with added division with \rho_i (and \rho_s for 32)
-                deltaIce2 = -std::min(-meltBottom / e2, h2);
-                deltaIce1 = -std::min(std::max(-(meltBottom + e2 * h2) / e1, 0.), h1);
-                snowMelt[i] = -std::min(
-                    std::max((meltBottom + e2 * h2 + e1 * h1) / bulkLHFusionSnow, 0.), hs);
-
-                // If everything melts we need to put heat back into the ocean
-                if (h2 + h1 + hs - deltaIce2 - deltaIce1 - snowMelt[i] <= 0.) {
-                    // (34) - with added multiplication of rhoi and rhos and division with dt
-                    qow[i] -= cice[i]
-                        * std::max(meltBottom - bulkLHFusionSnow * hs + e1 * h1 + e2 * h2, 0.) / dt;
-                }
-
-                hs += snowMelt[i];
-                h1 += deltaIce1;
-                h2 += deltaIce2;
-                botMelt[i] += deltaIce1 + deltaIce2;
-            }
-
-            // Melting at the surface
-            // Do we really need an assertion here?
-            // assert(surfMelt >= 0);
-            // Eqs. (27)-(29) with division of \rho_i and \rho_s
-            snowMelt[i] -= std::min(surfMelt * dt / bulkLHFusionSnow, hs);
-            deltaIce1 = -std::min(std::max(-(surfMelt * dt - bulkLHFusionSnow * hs) / e1, 0.), h1);
-            deltaIce2 = -std::min(
-                std::max(-(surfMelt * dt - bulkLHFusionSnow * hs + e1 * h1) / e2, 0.), h2);
+            double eBot = cVol * (tBott - seaIceTf) - bulkLHFusionIce;
+            deltaIce2 = meltBottom / eBot; // (24)
+            tLowr = (deltaIce2 * tBott + h2 * tLowr) / (deltaIce2 + h2); // (26)
+            h2 += deltaIce2;
+        } else {
+            // Melting
+            // Eqs. (31)-(32) with added division with \rho_i (and \rho_s for 32)
+            deltaIce2 = -Utils::min(-meltBottom / e2, h2);
+            deltaIce1 = -Utils::min(Utils::max(-(meltBottom + e2 * h2) / e1, 0.), h1);
+            snowMelt[i] = -Utils::min(
+                Utils::max((meltBottom + e2 * h2 + e1 * h1) / bulkLHFusionSnow, 0.), hs);
 
             // If everything melts we need to put heat back into the ocean
-            // Eq (30) - with multiplication of rhoi and rhos and division with dt
             if (h2 + h1 + hs - deltaIce2 - deltaIce1 - snowMelt[i] <= 0.) {
+                // (34) - with added multiplication of rhoi and rhos and division with dt
                 qow[i] -= cice[i]
-                    * std::max(surfMelt * dt - bulkLHFusionSnow * hs + e1 * h1 + e2 * h2, 0.) / dt;
+                    * Utils::max(meltBottom - bulkLHFusionSnow * hs + e1 * h1 + e2 * h2, 0.) / dt;
             }
 
             hs += snowMelt[i];
             h1 += deltaIce1;
             h2 += deltaIce2;
-            topMelt[i] += deltaIce1 + deltaIce2;
+            botMelt[i] += deltaIce1 + deltaIce2;
+        }
 
-            // Snow to ice conversion
-            double freeboard
-                = (hi * (Water::rhoOcean - Ice::rho) - hs * Ice::rhoSnow) / Water::rhoOcean;
-            if (doFlooding && freeboard < 0.) {
-                hs += std::min(freeboard * Ice::rho / Ice::rhoSnow, 0.); // (35) using +=
-                deltaIce1 = std::max(-freeboard, 0.); // (36)
-                double f1
-                    = 1 - deltaIce1 / (deltaIce1 + h1); // Fraction of new ice in the upper layer
-                double tBar = f1 * (tUppr + dHfTf_cp / tUppr) + (1 - f1) * seaIceTf; // (39)
-                tUppr = (tBar - std::sqrt(tBar * tBar - 4 * dHfTf_cp)) / 2; // (38)
-                h1 += deltaIce1;
-                snowToIce[i] += deltaIce1;
-            }
+        // Melting at the surface
+        // Do we really need an assertion here?
+        // assert(surfMelt >= 0);
+        // Eqs. (27)-(29) with division of \rho_i and \rho_s
+        snowMelt[i] -= Utils::min(surfMelt * dt / bulkLHFusionSnow, hs);
+        deltaIce1 = -Utils::min(Utils::max(-(surfMelt * dt - bulkLHFusionSnow * hs) / e1, 0.), h1);
+        deltaIce2 = -Utils::min(
+            Utils::max(-(surfMelt * dt - bulkLHFusionSnow * hs + e1 * h1) / e2, 0.), h2);
 
-            // Add up the half-layer thicknesses
-            hi = h1 + h2;
-            // Adjust the temperatures to evenly divide the ice
-            if (h2 > h1) {
-                // Lower layer ice is added to the upper layer
-                double f1 = h1 / hi * 2;
-                double tBar = f1 * (tUppr + dHfTf_cp / tUppr) + (1 - f1) * tLowr; // (39)
-                // The upper layer temperature changes
-                tUppr = (tBar - std::sqrt(tBar * tBar - 4 * dHfTf_cp)) / 2; // (38)
-            } else {
-                // Upper layer ice is added to the lower layer
-                double f1 = (2 * h1 - hi) / hi;
-                // Lower layer temperature changes
-                tLowr = f1 * (tUppr + dHfTf_cp / tUppr) + (1 - f1) * tLowr; // (40)
-                // Melt from top and bottom if the lower layer temperature is too high
-                if (tLowr > seaIceTf) {
-                    double deltaMelt = hi / 4 * Ice::cp * (tLowr - seaIceTf) * tUppr
-                        / (Ice::Lf * tUppr + (Ice::cp * tUppr - Ice::Lf) * (seaIceTf - tUppr));
-                    topMelt[i] -= deltaMelt;
-                    botMelt[i] -= deltaMelt;
-                    hi -= 2 * deltaMelt;
-                    tLowr = seaIceTf;
-                }
-            }
-            deltaHi[i] = hi - oldHi;
+        // If everything melts we need to put heat back into the ocean
+        // Eq (30) - with multiplication of rhoi and rhos and division with dt
+        if (h2 + h1 + hs - deltaIce2 - deltaIce1 - snowMelt[i] <= 0.) {
+            qow[i] -= cice[i]
+                * Utils::max(surfMelt * dt - bulkLHFusionSnow * hs + e1 * h1 + e2 * h2, 0.) / dt;
+        }
 
-            // Remove very small ice thickness
-            // The fluxes are already sorted
-            if (hi < IceMinima::h()) {
-                if (deltaHi[i] < 0) {
-                    topMelt[i] *= oldHi / deltaHi[i];
-                    botMelt[i] *= oldHi / deltaHi[i];
-                }
-                snowToIce[i] = 0;
+        hs += snowMelt[i];
+        h1 += deltaIce1;
+        h2 += deltaIce2;
+        topMelt[i] += deltaIce1 + deltaIce2;
 
-                deltaHi[i] = -oldHi;
-                cice[i] = 0;
+        // Snow to ice conversion
+        double freeboard
+            = (hi * (Water::rhoOcean - Ice::rho) - hs * Ice::rhoSnow) / Water::rhoOcean;
+        if (doFlooding && freeboard < 0.) {
+            hs += Utils::min(freeboard * Ice::rho / Ice::rhoSnow, 0.); // (35) using +=
+            deltaIce1 = Utils::max(-freeboard, 0.); // (36)
+            double f1 = 1 - deltaIce1 / (deltaIce1 + h1); // Fraction of new ice in the upper layer
+            double tBar = f1 * (tUppr + dHfTf_cp / tUppr) + (1 - f1) * seaIceTf; // (39)
+            tUppr = (tBar - Utils::sqrt(tBar * tBar - 4 * dHfTf_cp)) / 2; // (38)
+            h1 += deltaIce1;
+            snowToIce[i] += deltaIce1;
+        }
 
-                tSurf = seaIceTf;
-                tUppr = seaIceTf;
+        // Add up the half-layer thicknesses
+        hi = h1 + h2;
+        // Adjust the temperatures to evenly divide the ice
+        if (h2 > h1) {
+            // Lower layer ice is added to the upper layer
+            double f1 = h1 / hi * 2;
+            double tBar = f1 * (tUppr + dHfTf_cp / tUppr) + (1 - f1) * tLowr; // (39)
+            // The upper layer temperature changes
+            tUppr = (tBar - Utils::sqrt(tBar * tBar - 4 * dHfTf_cp)) / 2; // (38)
+        } else {
+            // Upper layer ice is added to the lower layer
+            double f1 = (2 * h1 - hi) / hi;
+            // Lower layer temperature changes
+            tLowr = f1 * (tUppr + dHfTf_cp / tUppr) + (1 - f1) * tLowr; // (40)
+            // Melt from top and bottom if the lower layer temperature is too high
+            if (tLowr > seaIceTf) {
+                double deltaMelt = hi / 4 * Ice::cp * (tLowr - seaIceTf) * tUppr
+                    / (Ice::Lf * tUppr + (Ice::cp * tUppr - Ice::Lf) * (seaIceTf - tUppr));
+                topMelt[i] -= deltaMelt;
+                botMelt[i] -= deltaMelt;
+                hi -= 2 * deltaMelt;
                 tLowr = seaIceTf;
             }
+        }
+        deltaHi[i] = hi - oldHi;
 
-            tsurf[i] = tSurf;
-            tInternal[i] = tUppr;
-            tBottom[i] = tLowr;
+        // Remove very small ice thickness
+        // The fluxes are already sorted
+        if (hi < hMin) {
+            if (deltaHi[i] < 0) {
+                topMelt[i] *= oldHi / deltaHi[i];
+                botMelt[i] *= oldHi / deltaHi[i];
+            }
+            snowToIce[i] = 0;
 
-            hice[i] = hi * cice[i];
-            hsnow[i] = hs * cice[i];
-        },
-        tst);
+            deltaHi[i] = -oldHi;
+            cice[i] = 0;
+
+            tSurf = seaIceTf;
+            tUppr = seaIceTf;
+            tLowr = seaIceTf;
+        }
+
+        tsurf[i] = tSurf;
+        tInternal[i] = tUppr;
+        tBottom[i] = tLowr;
+
+        hice[i] = hi * cice[i];
+        hsnow[i] = hs * cice[i];
+    });
+    // todo: check if delaying data access until necessary improves performance
+    /*      double& cice = ciceDevice[i];
+          double& qswBase = qswBaseDevice[i];
+          double& topMelt = topMeltDevice[i];
+          double& tBottom = tBottomDevice[i];
+          double& snowToIce = snowToIceDevice[i];
+          double& deltaHi = deltaHiDevice[i];
+          double& botMelt = botMeltDevice[i];
+          double& qow = qowDevice[i];
+          double& hsnow = hsnowDevice[i];
+          double& snowMelt = snowMeltDevice[i];
+          double& tsurf = tsurfDevice[i];
+          double& hice = hiceDevice[i];
+          double& tInternal = tInternalDevice[i];
+          const double dQia_dt = dQia_dtDevice[i];
+          const double penSw = penSwDevice[i];
+          const double qia = qiaDevice[i];
+          const double qio = qioDevice[i];
+          const double snowfall = snowfallDevice[i];
+          const double subl = sublDevice[i];
+          const double tf = tfDevice[i];
+
+          static const double bulkLHFusionSnow = Water::Lf * Ice::rhoSnow;
+          static const double bulkLHFusionIce = Water::Lf * Ice::rho;
+
+          // Don't do anything if there is no ice
+          if (cice <= cMin || hice <= hMin) {
+
+              snowToIce = 0.;
+              snowMelt = 0.;
+              qswBase = 0.;
+
+              // Add to open water flux, since cice will be set to zero
+              qow += (hice * bulkLHFusionIce + hsnow * bulkLHFusionSnow) / dt;
+
+              deltaHi = 0;
+              cice = 0;
+              hice = 0;
+              hsnow = 0;
+
+              tsurf = seaIceTf;
+              tInternal = seaIceTf;
+              tBottom = seaIceTf;
+
+              return;
+          }
+
+          double tSurf = tsurf; // surface temperature
+          double tUppr = tInternal; // upper layer temperature
+          double tLowr = tBottom; // lower layer temperature
+          double tBott = tf; // freezing point of (local) seawater
+
+          double hi = hice / cice;
+          double hs = hsnow / cice;
+          const double oldHi = hi; // Ice thickness at the start of the timestep
+
+          double surfMelt = 0; // surface melting mass loss
+          // Calculate temperatures by solving the heat conduction equation
+          calculateTemps(tSurf, tUppr, tLowr, surfMelt, cice, dQia_dt, hice, hsnow, penSw, qia, tf,
+              dt, cVol, seaIceTf, kappa_s);
+
+          // The ratio of ΔΗ_f T_f / c_p,ice is used a lot. Units are K²
+          const static double dHfTf_cp = Water::Lf * seaIceTf / Ice::cp;
+
+          // Thickness changes
+          // ice
+          double h1 = hi / 2;
+          double h2 = hi / 2;
+          // Eqs. (1) and (25) - but I 've multiplied them with \rho_i (hence cVol), because
+          // it's missing in the paper
+          double e1 = cVol * (tUppr - seaIceTf) - bulkLHFusionIce * (1 - seaIceTf / tUppr);
+          double e2 = cVol * (tLowr - seaIceTf) - bulkLHFusionIce;
+
+          // snow
+          hs += snowfall / Ice::rhoSnow * dt;
+          //    double accumulatedSnowThickness = snowfall / Ice::rhoSnow * dt;
+
+          // sublimation
+          // 4 cases
+          double deltaSnow = subl * dt / Ice::rhoSnow;
+          double deltaIce1 = (deltaSnow - hs) * Ice::rhoSnow / Ice::rho;
+          double deltaIce2 = deltaIce1 - h1;
+          if (deltaSnow <= hs) {
+              // sublimation is less than or equal to the mass of snow
+              hs -= deltaSnow;
+          } else if (deltaIce1 <= h1) {
+              // sublimation minus sublimed snow is less than or equal to half the
+              // ice thickness
+              h1 -= deltaIce1;
+              hs = 0;
+          } else if (deltaIce2 <= h2) {
+              // sublimation minus sublimed snow is greater than half the ice
+              // thickness, but not all of it
+              h2 -= deltaIce2;
+              h1 = 0;
+              hs = 0;
+          } else {
+              // the snow and ice sublimates
+              // double oceanEvapError = (deltaIce2 - h2) * Ice::rho / Water::rhoOcean;
+              // TODO: log the error
+              h2 = 0;
+              h1 = 0;
+              hs = 0;
+          }
+          // Sublimated ice counts as top melt
+          topMelt = Kokkos::max(0., h1 + h2 - hi); // (23)
+
+          // Bottom melt/freezing
+          double meltBottom = (qio - 4 * Ice::kappa * (tBott - tLowr) / hi) * dt;
+          snowMelt = 0;
+          if (meltBottom <= 0.) {
+              // Freezing
+              // Eq. (25) - but I 've multiplied them with \rho_i (hence cVol), because it's
+              // missing in the paper
+              double eBot = cVol * (tBott - seaIceTf) - bulkLHFusionIce;
+              deltaIce2 = meltBottom / eBot; // (24)
+              tLowr = (deltaIce2 * tBott + h2 * tLowr) / (deltaIce2 + h2); // (26)
+              h2 += deltaIce2;
+          } else {
+              // Melting
+              // Eqs. (31)-(32) with added division with \rho_i (and \rho_s for 32)
+              deltaIce2 = -Kokkos::min(-meltBottom / e2, h2);
+              deltaIce1 = -Kokkos::min(Kokkos::max(-(meltBottom + e2 * h2) / e1, 0.), h1);
+              snowMelt = -Kokkos::min(
+                  Kokkos::max((meltBottom + e2 * h2 + e1 * h1) / bulkLHFusionSnow, 0.), hs);
+
+              // If everything melts we need to put heat back into the ocean
+              if (h2 + h1 + hs - deltaIce2 - deltaIce1 - snowMelt <= 0.) {
+                  // (34) - with added multiplication of rhoi and rhos and division with dt
+                  qow -= cice
+                      * Kokkos::max(meltBottom - bulkLHFusionSnow * hs + e1 * h1 + e2 * h2, 0.) /
+      dt;
+              }
+
+              hs += snowMelt;
+              h1 += deltaIce1;
+              h2 += deltaIce2;
+              botMelt += deltaIce1 + deltaIce2;
+          }
+
+          // Melting at the surface
+          // Do we really need an assertion here?
+          // assert(surfMelt >= 0);
+          // Eqs. (27)-(29) with division of \rho_i and \rho_s
+          snowMelt -= Kokkos::min(surfMelt * dt / bulkLHFusionSnow, hs);
+          deltaIce1
+              = -Kokkos::min(Kokkos::max(-(surfMelt * dt - bulkLHFusionSnow * hs) / e1, 0.), h1);
+          deltaIce2 = -Kokkos::min(
+              Kokkos::max(-(surfMelt * dt - bulkLHFusionSnow * hs + e1 * h1) / e2, 0.), h2);
+
+          // If everything melts we need to put heat back into the ocean
+          // Eq (30) - with multiplication of rhoi and rhos and division with dt
+          if (h2 + h1 + hs - deltaIce2 - deltaIce1 - snowMelt <= 0.) {
+              qow -= cice * Kokkos::max(surfMelt * dt - bulkLHFusionSnow * hs + e1 * h1 + e2 * h2,
+      0.) / dt;
+          }
+
+          hs += snowMelt;
+          h1 += deltaIce1;
+          h2 += deltaIce2;
+          topMelt += deltaIce1 + deltaIce2;
+
+          // Snow to ice conversion
+          double freeboard
+              = (hi * (Water::rhoOcean - Ice::rho) - hs * Ice::rhoSnow) / Water::rhoOcean;
+          if (doFlooding && freeboard < 0.) {
+              hs += Kokkos::min(freeboard * Ice::rho / Ice::rhoSnow, 0.); // (35) using +=
+              deltaIce1 = Kokkos::max(-freeboard, 0.); // (36)
+              double f1 = 1 - deltaIce1 / (deltaIce1 + h1); // Fraction of new ice in the upper
+      layer double tBar = f1 * (tUppr + dHfTf_cp / tUppr) + (1 - f1) * seaIceTf; // (39) tUppr =
+      (tBar - Kokkos::sqrt(tBar * tBar - 4 * dHfTf_cp)) / 2; // (38) h1 += deltaIce1; snowToIce +=
+      deltaIce1;
+          }
+
+          // Add up the half-layer thicknesses
+          hi = h1 + h2;
+          // Adjust the temperatures to evenly divide the ice
+          if (h2 > h1) {
+              // Lower layer ice is added to the upper layer
+              double f1 = h1 / hi * 2;
+              double tBar = f1 * (tUppr + dHfTf_cp / tUppr) + (1 - f1) * tLowr; // (39)
+              // The upper layer temperature changes
+              tUppr = (tBar - Kokkos::sqrt(tBar * tBar - 4 * dHfTf_cp)) / 2; // (38)
+          } else {
+              // Upper layer ice is added to the lower layer
+              double f1 = (2 * h1 - hi) / hi;
+              // Lower layer temperature changes
+              tLowr = f1 * (tUppr + dHfTf_cp / tUppr) + (1 - f1) * tLowr; // (40)
+              // Melt from top and bottom if the lower layer temperature is too high
+              if (tLowr > seaIceTf) {
+                  double deltaMelt = hi / 4 * Ice::cp * (tLowr - seaIceTf) * tUppr
+                      / (Ice::Lf * tUppr + (Ice::cp * tUppr - Ice::Lf) * (seaIceTf - tUppr));
+                  topMelt -= deltaMelt;
+                  botMelt -= deltaMelt;
+                  hi -= 2 * deltaMelt;
+                  tLowr = seaIceTf;
+              }
+          }
+          deltaHi = hi - oldHi;
+
+          // Remove very small ice thickness
+          // The fluxes are already sorted
+          if (hi < hMin) {
+              if (deltaHi < 0) {
+                  topMelt *= oldHi / deltaHi;
+                  botMelt *= oldHi / deltaHi;
+              }
+              snowToIce = 0;
+
+              deltaHi = -oldHi;
+              cice = 0;
+
+              tSurf = seaIceTf;
+              tUppr = seaIceTf;
+              tLowr = seaIceTf;
+          }
+
+          tsurf = tSurf;
+          tInternal = tUppr;
+          tBottom = tLowr;
+
+          hice = hi * cice;
+          hsnow = hs * cice;
+      });*/
     timerUpdate.stop();
-#endif
     timer.stop();
 }
 
