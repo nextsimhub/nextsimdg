@@ -255,20 +255,16 @@ void Xios::configureServer()
     // Initialize 'nextSIM-DG' context
     cxios_context_initialize(contextId.c_str(), contextId.length(), &clientComm_F);
 
-    // Initialize calendar wrapper for 'nextSIM-DG' context
+    // Set the calendar timestep for the 'nextSIM-DG' context
+    // NOTE: The calendar itself is set up in iodef.xml
     cxios_get_current_calendar_wrapper(&clientCalendar);
-    cxios_set_calendar_wrapper_type(clientCalendar, calendarType.c_str(), calendarType.length());
     ModelMetadata& metadata = ModelMetadata::getInstance();
     cxios_set_calendar_wrapper_timestep(
         clientCalendar, convertDurationToXios(metadata.stepLength()));
-    cxios_create_calendar(clientCalendar);
     cxios_update_calendar_timestep(clientCalendar);
     if (!cxios_is_defined_calendar_wrapper_timestep(clientCalendar)) {
         throw std::runtime_error("Xios: Calendar timestep has not been set");
     }
-
-    // Set default calendar origin
-    setCalendarOrigin(TimePoint("1970-01-01T00:00:00Z")); // Unix epoch
 
     // Set start time from configuration file
     setCalendarStart(metadata.startTime());
@@ -358,17 +354,6 @@ cxios_duration Xios::convertDurationToXios(const Duration duration)
 }
 
 /*!
- * Set calendar origin
- *
- * @param origin
- */
-void Xios::setCalendarOrigin(const TimePoint origin)
-{
-    cxios_date datetime = convertStringToXiosDatetime(origin.format(), true);
-    cxios_set_calendar_wrapper_date_time_origin(clientCalendar, datetime);
-}
-
-/*!
  * Set calendar start date
  *
  * @param start date
@@ -390,21 +375,6 @@ void Xios::setCalendarStep(const int stepNumber) { cxios_update_calendar(stepNum
  * Increment XIOS' calendar iteration/step number by one.
  */
 void Xios::incrementCalendar() { setCalendarStep(getCalendarStep() + 1); }
-
-/*!
- * Get calendar origin
- *
- * @return calendar origin
- */
-TimePoint Xios::getCalendarOrigin()
-{
-    if (!cxios_is_defined_calendar_wrapper_time_origin(clientCalendar)) {
-        throw std::runtime_error("Xios: Calendar origin has not been set");
-    }
-    cxios_date calendar_origin;
-    cxios_get_calendar_wrapper_date_time_origin(clientCalendar, &calendar_origin);
-    return TimePoint(convertXiosDatetimeToString(calendar_origin, true));
-}
 
 /*!
  * Get calendar start date

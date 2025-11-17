@@ -1,5 +1,9 @@
 <?xml version="1.0"?>
 <simulation>
+  <context id="nextSIM-DG">
+    <calendar type="Gregorian" time_origin="1970-01-01" />
+  </context>
+
   <context id="xios">
     <variable_definition>
       <variable_group id="parameters">
