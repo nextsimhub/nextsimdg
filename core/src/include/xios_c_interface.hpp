@@ -65,20 +65,11 @@ void cxios_set_calendar_wrapper_timestep(
 bool cxios_is_defined_calendar_wrapper_timestep(xios::CCalendarWrapper* calendar_wrapper_hdl);
 void cxios_update_calendar_timestep(xios::CCalendarWrapper* calendarWrapper_hdl);
 
-// axis group methods
-void cxios_axisgroup_handle_create(xios::CAxisGroup** _ret, const char* _id, int _id_len);
-void cxios_xml_tree_add_axis(
-    xios::CAxisGroup* axis_grp, xios::CAxis** axis, const char* _id, int _id_len);
-
 // axis methods
 void cxios_axis_handle_create(xios::CAxis** _ret, const char* _id, int _id_len);
 void cxios_axis_valid_id(bool* _ret, const char* _id, int _id_len);
-void cxios_set_axis_n_glo(xios::CAxis* axis_hdl, int n_glo);
-void cxios_set_axis_dim_name(xios::CAxis* axis_hdl, const char* dim_name, int dim_name_size);
-void cxios_set_axis_dim_name(xios::CAxis* axis_hdl, const char* dim_name, int dim_name_size);
 void cxios_get_axis_n_glo(xios::CAxis* axis_hdl, int* n_glo);
 bool cxios_is_defined_axis_n_glo(xios::CAxis* axis_hdl);
-bool cxios_is_defined_axis_dim_name(xios::CAxis* axis_hdl);
 
 // domain group methods
 void cxios_domaingroup_handle_create(xios::CDomainGroup** _ret, const char* _id, int _id_len);

@@ -166,14 +166,7 @@ private:
         { ModelArray::Type::DG, "DGAxis" },
         { ModelArray::Type::DGSTRESS, "DGSAxis" },
     };
-    std::map<std::string, std::string> axisNames = {
-        { "VertexAxis", "ncoords" },
-        { "DGAxis", "dg_comp" },
-        { "DGSAxis", "dgstress_comp" },
-    };
-    xios::CAxisGroup* getAxisGroup();
     xios::CAxis* getAxis(const std::string axisId);
-    void setupAxes();
 
     /* Domain */
     std::map<ModelArray::Type, std::string> domainIds = {

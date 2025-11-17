@@ -40,16 +40,6 @@
 #include <regex>
 #include <string>
 
-#ifndef DGCOMP
-#define DGCOMP 6 // Define to prevent errors from static analysis tools
-#error "Number of DG components (DGCOMP) not defined" // But throw an error anyway
-#endif
-
-#ifndef DGSTRESSCOMP
-#define DGSTRESSCOMP 8 // Define to prevent errors from static analysis tools
-#error "Number of DG stress components (DGSTRESSCOMP) not defined" // But throw an error anyway
-#endif
-
 #ifndef CGDEGREE
 #define CGDEGREE 2 // Define to prevent errors from static analysis tools
 #error "CG degree (CGDEGREE) not defined" // But throw an error anyway
@@ -411,22 +401,6 @@ TimePoint Xios::getCurrentDate()
 }
 
 /*!
- * Get the axis_definition group
- *
- * @return a pointer to the XIOS CAxisGroup object
- */
-xios::CAxisGroup* Xios::getAxisGroup()
-{
-    const std::string groupId = "axis_definition";
-    xios::CAxisGroup* group = NULL;
-    cxios_axisgroup_handle_create(&group, groupId.c_str(), groupId.length());
-    if (!group) {
-        throw std::runtime_error("Xios: Null pointer for group 'axis_definition'");
-    }
-    return group;
-}
-
-/*!
  * Get the axis associated with a given ID
  *
  * @param the axis ID
@@ -445,24 +419,6 @@ xios::CAxis* Xios::getAxis(const std::string axisId)
         throw std::runtime_error("Xios: Null pointer for axis '" + axisId + "'");
     }
     return axis;
-}
-
-/*!
- * Set the size of a given axis (the number of global points)
- *
- * @param the axis ID
- * @param the size to set
- */
-void Xios::setAxisSize(const std::string axisId, const size_t size)
-{
-    xios::CAxis* axis = getAxis(axisId);
-    if (cxios_is_defined_axis_n_glo(axis)) {
-        Logged::warning("Xios: Size already set for axis '" + axisId + "'");
-    }
-    cxios_set_axis_n_glo(axis, (int)size);
-    if (!cxios_is_defined_axis_n_glo(axis)) {
-        throw std::runtime_error("Xios: Failed to set size for axis '" + axisId + "'");
-    }
 }
 
 /*!
@@ -652,8 +608,8 @@ void Xios::setupDomains()
     auto& metadata = ModelMetadata::getInstance();
 
     ModelArray::setNComponents(ModelArray::Type::VERTEX, ModelArray::nCoords);
-    ModelArray::setNComponents(ModelArray::Type::DG, DGCOMP);
-    ModelArray::setNComponents(ModelArray::Type::DGSTRESS, DGSTRESSCOMP);
+    ModelArray::setNComponents(ModelArray::Type::DG, getAxisSize("DGAxis"));
+    ModelArray::setNComponents(ModelArray::Type::DGSTRESS, getAxisSize("DGSAxis"));
     for (auto entry : domainIds) {
         ModelArray::Type type = entry.first;
         const std::string domainId = entry.second;
@@ -773,29 +729,6 @@ void Xios::setupDomains()
                     "Xios: More than 2 dimensions were associated with a domain.");
             }
             counter++;
-        }
-    }
-}
-
-/*!
- * @brief   Create XIOS axes for each ModelArray type
- *
- * @details This function sets up the XIOS axes for each field type based on the configuration
- *          in the axisIds map and in the ModelArray class. Note that the axis names are defined
- *          in the iodef.xml configuration file.
- */
-void Xios::setupAxes()
-{
-    for (auto entry : axisIds) {
-        ModelArray::Type type = entry.first;
-        const std::string axisId = entry.second;
-        ModelArray::Dimension dim = ModelArray::componentMap.at(type);
-        setAxisSize(axisId, ModelArray::size(dim));
-        xios::CAxis* axis = getAxis(axisId);
-        const std::string axisName = axisNames[axisId];
-        cxios_set_axis_dim_name(axis, axisName.c_str(), axisName.length());
-        if (!cxios_is_defined_axis_dim_name(axis)) {
-            throw std::runtime_error("Xios: Failed to set name for axis '" + axisId + "'");
         }
     }
 }

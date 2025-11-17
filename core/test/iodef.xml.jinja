@@ -3,9 +3,9 @@
   <context id="nextSIM-DG">
     <calendar type="Gregorian" time_origin="1970-01-01" />
     <axis_definition>
-      <axis id="DGAxis" n_glo="{{ DGCOMP }}"/>
-      <axis id="DGSAxis" n_glo="{{ DGSTRESSCOMP }}"/>
-      <axis id="VertexAxis" n_glo="2"/>
+      <axis id="DGAxis" n_glo="{{ DGCOMP }}" name="dg_comp" dim_name="DGAxis"/>
+      <axis id="DGSAxis" n_glo="{{ DGSTRESSCOMP }}" name="dgstress_comp" dim_name="DGSAxis"/>
+      <axis id="VertexAxis" n_glo="2" name="ncoords" dim_name="VertexAxis"/>
     </axis_definition>
   </context>
 

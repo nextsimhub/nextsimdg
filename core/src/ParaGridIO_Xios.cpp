@@ -35,7 +35,6 @@ ParaGridIO::ParaGridIO(ParametricGrid& grid)
 {
     Xios& xiosHandler = Xios::getInstance();
     xiosHandler.setupDomains();
-    xiosHandler.setupAxes();
     xiosHandler.setupGrids();
 }
 

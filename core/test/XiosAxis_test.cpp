@@ -50,12 +50,11 @@ MPI_TEST_CASE("TestXiosAxis", 3)
     //       Model::configureTime() above.
     Xios& xiosHandler = Xios::getInstance();
 
-    // Tests for axis size getter and setter
+    // Tests for axis size getter
     REQUIRE_THROWS_WITH(xiosHandler.getAxisSize("axis_A"), "Xios: Undefined axis 'axis_A'");
+    REQUIRE(xiosHandler.getAxisSize("DGAxis") == 6);
+    REQUIRE(xiosHandler.getAxisSize("DGSAxis") == 8);
     REQUIRE(xiosHandler.getAxisSize("VertexAxis") == 2);
-    const size_t axisSize = 3;
-    xiosHandler.setAxisSize("VertexAxis", axisSize);
-    REQUIRE(xiosHandler.getAxisSize("VertexAxis") == axisSize);
 
     xiosHandler.close_context_definition();
     xiosHandler.context_finalize();
