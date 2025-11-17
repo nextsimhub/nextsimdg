@@ -116,12 +116,16 @@ if(ENABLE_MPI)
             "${xios_EXTERNS}/rapidxml/include"
         )
         set(MODEL_INCLUDE_DIR "${MODEL_INCLUDE_DIR}" "${XIOS_INCLUDE_LIST}")
-        file(
-            CREATE_LINK
-                "${CMAKE_SOURCE_DIR}/core/test/iodef.xml"
-                "${CMAKE_CURRENT_BINARY_DIR}/iodef.xml"
-            SYMBOLIC
+
+        # Generate XML file for XIOS configuration
+        add_custom_command(
+            OUTPUT iodef.xml
+            COMMAND minijinja-cli ${CMAKE_CURRENT_SOURCE_DIR}/iodef.xml.jinja
+                    -D DGCOMP=${DGComp} -D DGSTRESSCOMP=${DGStressComp}
+                    -o ${CMAKE_CURRENT_BINARY_DIR}/iodef.xml
+            DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/iodef.xml.jinja
         )
+        add_custom_target(generate_xios_iodef_file ALL DEPENDS iodef.xml)
 
         # Generate input and partition files needed for XIOS tests from respective cdl files
         add_custom_command(
