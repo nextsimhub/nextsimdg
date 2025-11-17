@@ -51,7 +51,6 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
     }
 
     // Get all variables in the file and load them into a new ModelState
-    const bool readAccess = true;
     for (std::string fieldId : xiosHandler.configGetInputRestartFieldNames()) {
         ModelArray::Type type = xiosHandler.getFieldType(fieldId);
         if (type == ModelArray::Type::H) {
@@ -119,7 +118,6 @@ ModelState ParaGridIO::readForcingTimeStatic(
     }
 
     // Get all forcings and load them into a new ModelState
-    const bool readAccess = true;
     std::set<std::string> forcingFieldIds = xiosHandler.configGetForcingFieldNames();
     for (const std::string& fieldId : forcings) {
         if (!xiosHandler.getFieldReadAccess(fieldId)) {
