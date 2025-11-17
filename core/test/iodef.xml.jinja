@@ -14,6 +14,20 @@
       <axis id="VertexAxis" n_glo="2" name="ncoords" dim_name="VertexAxis"/>
     </axis_definition>
 
+    <grid_definition>
+      <grid id="HGrid" name="HGrid"/>
+      <grid id="DGGrid" name="DGGrid">
+        <axis axis_ref="DGAxis"/>
+      </grid>
+      <grid id="DGSGrid" name="DGSGrid">
+        <axis axis_ref="DGSAxis"/>
+      </grid>
+      <grid id="VertexGrid" name="VertexGrid">
+        <axis axis_ref="VertexAxis"/>
+      </grid>
+      <grid id="CGGrid" name="CGGrid"/>
+    </grid_definition>
+
   </context>
 
   <!-- Context for handling XIOS errors and logs -->

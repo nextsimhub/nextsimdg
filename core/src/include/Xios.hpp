@@ -83,8 +83,6 @@ public:
     size_t getAxisSize(const std::string axisId);
 
     /* Grid */
-    void createGrid(const std::string gridId);
-    void gridAddAxis(std::string axisId, const std::string gridId);
     std::vector<std::string> getGridAxisIds(const std::string gridId);
 
     /* Field */
@@ -181,7 +179,6 @@ private:
     void setupDomains();
 
     /* Grid */
-    xios::CGridGroup* getGridGroup();
     xios::CGrid* getGrid(const std::string gridId);
     std::map<ModelArray::Type, std::string> gridIds = {
         { ModelArray::Type::H, "HGrid" },

@@ -110,10 +110,6 @@ void cxios_xml_tree_add_grid(
 // grid methods
 void cxios_grid_handle_create(xios::CGrid** _ret, const char* _id, int _id_len);
 void cxios_grid_valid_id(bool* _ret, const char* _id, int _id_len);
-void cxios_set_grid_name(xios::CGrid* _ret, const char* name, int name_size);
-bool cxios_is_defined_grid_name(xios::CGrid* file_hdl);
-void cxios_xml_tree_add_axistogrid(
-    xios::CGrid* grid, xios::CAxis** axis, const char* _id, int _id_len);
 void cxios_xml_tree_add_domaintogrid(
     xios::CGrid* grid, xios::CDomain** domain, const char* _id, int _id_len);
 

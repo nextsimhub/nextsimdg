@@ -745,33 +745,11 @@ void Xios::setupGrids()
     for (auto entry : gridIds) {
         ModelArray::Type type = entry.first;
         const std::string gridId = entry.second;
-        createGrid(gridId);
         xios::CGrid* grid = getGrid(gridId);
-        if (axisIds.count(type) > 0) {
-            const std::string axisId = axisIds[type];
-            xios::CAxis* axis = getAxis(axisId);
-            cxios_xml_tree_add_axistogrid(grid, &axis, axisId.c_str(), axisId.length());
-        }
         const std::string domainId = domainIds[type];
         xios::CDomain* domain = getDomain(domainId);
         cxios_xml_tree_add_domaintogrid(grid, &domain, domainId.c_str(), domainId.length());
     }
-}
-
-/*!
- * Get the grid_definition group
- *
- * @return a pointer to the XIOS CGridGroup object
- */
-xios::CGridGroup* Xios::getGridGroup()
-{
-    const std::string groupId = "grid_definition";
-    xios::CGridGroup* group = NULL;
-    cxios_gridgroup_handle_create(&group, groupId.c_str(), groupId.length());
-    if (!group) {
-        throw std::runtime_error("Xios: Null pointer for group 'grid_definition'");
-    }
-    return group;
 }
 
 /*!
@@ -793,56 +771,6 @@ xios::CGrid* Xios::getGrid(const std::string gridId)
         throw std::runtime_error("Xios: Null pointer for grid '" + gridId + "'");
     }
     return grid;
-}
-
-/*!
- * Create a grid with some ID
- *
- * @param the grid ID
- */
-void Xios::createGrid(const std::string gridId)
-{
-    bool exists;
-    cxios_grid_valid_id(&exists, gridId.c_str(), gridId.length());
-    if (exists) {
-        throw std::runtime_error("Xios: Grid '" + gridId + "' already exists");
-    }
-    xios::CGrid* grid = NULL;
-    cxios_xml_tree_add_grid(getGridGroup(), &grid, gridId.c_str(), gridId.length());
-    if (!grid) {
-        throw std::runtime_error("Xios: Null pointer for grid '" + gridId + "'");
-    }
-    cxios_grid_valid_id(&exists, gridId.c_str(), gridId.length());
-    if (!exists) {
-        throw std::runtime_error("Xios: Failed to create grid '" + gridId + "'");
-    }
-    cxios_set_grid_name(grid, gridId.c_str(), gridId.length());
-    if (!cxios_is_defined_grid_name(grid)) {
-        throw std::runtime_error("Xios: Failed to set name for grid '" + gridId + "'");
-    }
-}
-
-/*!
- * Associate an axis with a grid
- *
- * @param the grid ID
- * @param the axis ID
- */
-void Xios::gridAddAxis(const std::string gridId, const std::string axisId)
-{
-    xios::CAxis* axis = getAxis(axisId);
-    cxios_xml_tree_add_axistogrid(getGrid(gridId), &axis, axisId.c_str(), axisId.length());
-}
-
-/*!
- * Get all axis IDs associated with a given grid
- *
- * @param the grid ID
- * @return all axis IDs associated with the grid
- */
-std::vector<std::string> Xios::getGridAxisIds(const std::string gridId)
-{
-    return getGrid(gridId)->getAxisList();
 }
 
 /*!

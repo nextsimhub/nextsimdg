@@ -55,11 +55,6 @@ MPI_TEST_CASE("TestXiosField", 3)
     //       Model::configureTime() above.
     Xios& xiosHandler = Xios::getInstance();
 
-    // Create a 1D grid comprised of the single axis
-    // NOTE: VertexAxis is created automatically and consists of two points
-    xiosHandler.createGrid("grid_1D");
-    xiosHandler.gridAddAxis("grid_1D", "VertexAxis");
-
     // --- Tests for field API
     // Field creation
     // NOTE: Fields associated with files are automatically created with the appropriate read access
@@ -71,9 +66,10 @@ MPI_TEST_CASE("TestXiosField", 3)
     REQUIRE_THROWS_WITH(xiosHandler.createField("field_B"),
         "Xios: Field 'field_B' cannot be found in the XiosInput or XiosOutput config sections");
     // Grid reference
+    // NOTE: VertexGrid is created automatically and holds VertexAxis
     REQUIRE_THROWS_WITH(
         xiosHandler.getFieldGridRef(fieldId), "Xios: Undefined grid reference for field 'field_A'");
-    const std::string gridRef = "grid_1D";
+    const std::string gridRef = "VertexGrid";
     xiosHandler.setFieldGridRef(fieldId, gridRef);
     REQUIRE(xiosHandler.getFieldGridRef(fieldId) == gridRef);
     // Read access
