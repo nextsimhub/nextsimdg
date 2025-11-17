@@ -68,12 +68,9 @@ public:
     void configureServer();
 
     /* Calendar, date and duration */
-    void setCalendarType(const std::string type);
-    void setCalendarOrigin(const TimePoint origin);
     void setCalendarStart(const TimePoint start);
     void setCalendarStep(const int stepNumber);
     void incrementCalendar();
-    TimePoint getCalendarOrigin();
     TimePoint getCalendarStart();
     int getCalendarStep();
     TimePoint getCurrentDate();
@@ -81,9 +78,6 @@ public:
     /* Axis */
     void setAxisSize(const std::string axisId, const size_t size);
     size_t getAxisSize(const std::string axisId);
-
-    /* Grid */
-    std::vector<std::string> getGridAxisIds(const std::string gridId);
 
     /* Field */
     void createField(const std::string fieldId);
@@ -159,11 +153,6 @@ private:
     cxios_duration convertDurationToXios(const Duration duration);
 
     /* Axis */
-    std::map<ModelArray::Type, std::string> axisIds = {
-        { ModelArray::Type::VERTEX, "VertexAxis" },
-        { ModelArray::Type::DG, "DGAxis" },
-        { ModelArray::Type::DGSTRESS, "DGSAxis" },
-    };
     xios::CAxis* getAxis(const std::string axisId);
 
     /* Domain */
