@@ -62,10 +62,8 @@ MPI_TEST_CASE("TestXiosGrid", 2)
     const std::string gridId = "HGrid";
     REQUIRE_THROWS_WITH(xiosHandler.createGrid(gridId), "Xios: Grid 'HGrid' already exists");
 
-    // Add a vertical axis, too
-    const std::string axisId = "z_axis";
-    xiosHandler.createAxis(axisId);
-    xiosHandler.setAxisSize(axisId, 2);
+    // Set DGAxis to have two points
+    const std::string axisId = "DGAxis";
     xiosHandler.gridAddAxis("HGrid", axisId);
     std::vector<std::string> axisIds = xiosHandler.getGridAxisIds(gridId);
     REQUIRE(axisIds.size() == 1);

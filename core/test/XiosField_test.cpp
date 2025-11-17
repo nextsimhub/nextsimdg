@@ -55,13 +55,12 @@ MPI_TEST_CASE("TestXiosField", 3)
     //       Model::configureTime() above.
     Xios& xiosHandler = Xios::getInstance();
 
-    // Create an axis with two points
-    xiosHandler.createAxis("axis_A");
-    xiosHandler.setAxisSize("axis_A", 2);
+    // Set VertexAxis to have two points
+    xiosHandler.setAxisSize("VertexAxis", 2);
 
     // Create a 1D grid comprised of the single axis
     xiosHandler.createGrid("grid_1D");
-    xiosHandler.gridAddAxis("grid_1D", "axis_A");
+    xiosHandler.gridAddAxis("grid_1D", "VertexAxis");
 
     // --- Tests for field API
     // Field creation

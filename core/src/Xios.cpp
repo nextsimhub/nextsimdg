@@ -448,29 +448,6 @@ xios::CAxis* Xios::getAxis(const std::string axisId)
 }
 
 /*!
- * Create an axis with some ID.
- *
- * @param the axis ID
- */
-void Xios::createAxis(const std::string axisId)
-{
-    bool exists;
-    cxios_axis_valid_id(&exists, axisId.c_str(), axisId.length());
-    if (exists) {
-        throw std::runtime_error("Xios: Axis '" + axisId + "' already exists");
-    }
-    xios::CAxis* axis = NULL;
-    cxios_xml_tree_add_axis(getAxisGroup(), &axis, axisId.c_str(), axisId.length());
-    if (!axis) {
-        throw std::runtime_error("Xios: Null pointer for axis '" + axisId + "'");
-    }
-    cxios_axis_valid_id(&exists, axisId.c_str(), axisId.length());
-    if (!exists) {
-        throw std::runtime_error("Xios: Failed to create axis '" + axisId + "'");
-    }
-}
-
-/*!
  * Set the size of a given axis (the number of global points)
  *
  * @param the axis ID
@@ -804,7 +781,8 @@ void Xios::setupDomains()
  * @brief   Create XIOS axes for each ModelArray type
  *
  * @details This function sets up the XIOS axes for each field type based on the configuration
- *          in the axisIds map and in the ModelArray class.
+ *          in the axisIds map and in the ModelArray class. Note that the axis names are defined
+ *          in the iodef.xml configuration file.
  */
 void Xios::setupAxes()
 {
@@ -812,7 +790,6 @@ void Xios::setupAxes()
         ModelArray::Type type = entry.first;
         const std::string axisId = entry.second;
         ModelArray::Dimension dim = ModelArray::componentMap.at(type);
-        createAxis(axisId);
         setAxisSize(axisId, ModelArray::size(dim));
         xios::CAxis* axis = getAxis(axisId);
         const std::string axisName = axisNames[axisId];

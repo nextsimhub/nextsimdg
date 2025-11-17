@@ -79,7 +79,6 @@ public:
     TimePoint getCurrentDate();
 
     /* Axis */
-    void createAxis(const std::string axisId);
     void setAxisSize(const std::string axisId, const size_t size);
     size_t getAxisSize(const std::string axisId);
 
