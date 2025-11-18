@@ -146,6 +146,14 @@ jobs:
       with:
         persist-credentials: false
 
+    - name: Python installs
+      run: |
+        apt -y update
+        apt install -y python3-venv
+        python3 -m venv ~/nextsim
+        . $HOME/nextsim/bin/activate
+        pip install jinja2
+
     - name: build domain_decomp
       run: |
         . /opt/spack-environment/activate.sh
@@ -163,6 +171,7 @@ jobs:
         export OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1
         export OMPI_MCA_rmaps_base_oversubscribe=1
         . /opt/spack-environment/activate.sh
+        . $HOME/nextsim/bin/activate
         # provide path to domain_decomp binary
         export PATH="${PATH}:${PWD}/domain_decomp/build"
         mkdir -p build && cd build
