@@ -174,6 +174,14 @@ MPI_TEST_CASE("TestXiosRead", 2)
         REQUIRE(xiosHandler.getCalendarStep() == ts + 1);
     }
 
+    if (rank == 0) {
+        // TODO: Re-enable file splitting (#898)
+        // std::filesystem::remove("xios_test_output_20230317171100-20230317201059.nc");
+        // std::filesystem::remove("xios_test_output_20230317201100-20230317231059.nc");
+        std::filesystem::remove("xios_test_output.nc");
+        std::filesystem::remove("xios_test_diagnostic.nc");
+    }
+
     xiosHandler.context_finalize();
     Finalizer::finalize();
 }
