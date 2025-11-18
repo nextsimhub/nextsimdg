@@ -271,6 +271,9 @@ if(ENABLE_MPI)
         )
 
         add_mpi_test("${XIOS_TESTS}")
+
+        # Ensure XiosWrite_test is run before XiosRead_test
+        set_tests_properties(testXiosRead_MPI2 PROPERTIES DEPENDS testXiosWrite_MPI2)
     else()
         add_executable(testHaloExchangeCB_MPI3
             "HaloExchangeCB_test.cpp"
