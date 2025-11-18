@@ -20,5 +20,6 @@ spack:
     unify: true
   config:
     install_missing_compilers: true
-    install_tree: /opt/software
+    install_tree:
+      root: /opt/software
   view: /opt/views/view
