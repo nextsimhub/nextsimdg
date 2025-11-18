@@ -1,8 +1,9 @@
 """Generate an XML file for XIOS from a Jinja2 template based on user input."""
 
 import argparse
-from jinja2 import Environment, FileSystemLoader
 import os
+
+from jinja2 import Environment, FileSystemLoader
 
 # Parse user input
 parser = argparse.ArgumentParser()
@@ -17,7 +18,7 @@ template_dict = vars(parsed_args)
 
 # Set up Jinja2 environment and render template
 path, infile = os.path.split(template_dict.pop("infile"))
-env = Environment(loader=FileSystemLoader(path))
+env = Environment(loader=FileSystemLoader(path), autoescape=True)
 template = env.get_template(infile)
 
 # Generate the XML file
