@@ -15,6 +15,10 @@
 #include "include/ModelMPI.hpp"
 #include "include/Xios.hpp"
 
+const std::string testFilesDir = TEST_FILES_DIR;
+const std::string restartInputFilename = testFilesDir + "/xios_test_input.nc";
+const std::string restartOutputFilename = testFilesDir + "/xios_test_output.nc";
+
 namespace Nextsim {
 
 /*!
@@ -33,7 +37,8 @@ MPI_TEST_CASE("TestXiosField", 3)
     config << "start = 2023-03-17T17:11:00Z" << std::endl;
     config << "stop = 2023-03-17T18:11:00Z" << std::endl;
     config << "time_step = P0-0T01:00:00" << std::endl;
-    config << "restart_file = xios_test_output.nc" << std::endl;
+    config << "init_file = " << restartInputFilename << std::endl;
+    config << "restart_file = " << restartOutputFilename << std::endl;
     config << "restart_period = P0-0T03:00:00" << std::endl;
     config << "partition_file = xios_test_partition_metadata_3.nc" << std::endl;
     config << "[XiosOutput]" << std::endl;

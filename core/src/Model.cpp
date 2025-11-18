@@ -71,6 +71,9 @@ void Model::configureRestarts()
     std::string restartPeriodStr
         = Configured::getConfiguration(keyMap.at(RESTARTPERIOD_KEY), std::string("0"));
     metadata.restartPeriod = Duration(restartPeriodStr);
+
+    // Sets global dimensions with an initial read of the input file
+    metadata.setDimensionsFromFile(metadata.initialFileName);
 }
 
 void Model::configureTime()

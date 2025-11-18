@@ -20,8 +20,8 @@
 #include <filesystem>
 
 const std::string testFilesDir = TEST_FILES_DIR;
-const std::string restartFilename = testFilesDir + "/xios_test_input.nc";
-const std::string restartOutfilename = testFilesDir + "/xios_test_output.nc";
+const std::string restartInputFilename = testFilesDir + "/xios_test_input.nc";
+const std::string restartOutputFilename = testFilesDir + "/xios_test_output.nc";
 const std::string diagnosticFilename = testFilesDir + "/xios_test_diagnostic.nc";
 
 static const int DGCOMP = 6;
@@ -43,7 +43,8 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     config << "start = 2023-03-17T17:11:00Z" << std::endl;
     config << "stop = 2023-03-17T23:11:00Z" << std::endl;
     config << "time_step = P0-0T01:30:00" << std::endl;
-    config << "restart_file = " << restartOutfilename << std::endl;
+    config << "init_file = " << restartInputFilename << std::endl;
+    config << "restart_file = " << restartOutputFilename << std::endl;
     config << "partition_file = xios_test_partition_metadata_2.nc" << std::endl;
     config << "restart_period = P0-0T01:30:00" << std::endl;
     config << "[XiosOutput]" << std::endl;
@@ -74,8 +75,6 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     Xios& xiosHandler = Xios::getInstance();
 
     // Set ModelArray dimensions
-    ModelMetadata& metadata = ModelMetadata::getInstance();
-    metadata.setDimensionsFromFile(restartFilename);
     const size_t nx = ModelArray::size(ModelArray::Dimension::X);
     const size_t ny = ModelArray::size(ModelArray::Dimension::Y);
     REQUIRE(ModelArray::nComponents(ModelArray::Type::DG) == DGCOMP);
@@ -161,6 +160,7 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     REQUIRE(xiosHandler.getCalendarStep() == 0);
 
     // Simulate 4 iterations (timesteps)
+    ModelMetadata& metadata = ModelMetadata::getInstance();
     Duration timestep = metadata.stepLength();
     for (int ts = 1; ts <= 4; ts++) {
 
@@ -191,7 +191,7 @@ MPI_TEST_CASE("TestXiosWrite", 2)
 
         // Write out diagnostics and then restarts
         pio->writeDiagnosticTime(diagnostics, diagnosticFilename);
-        grid.dumpModelState(restarts, restartOutfilename, true);
+        grid.dumpModelState(restarts, restartOutputFilename, true);
     }
 
     // Check the files have indeed been created then remove it

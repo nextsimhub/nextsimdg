@@ -209,7 +209,11 @@ if(ENABLE_MPI)
         target_link_libraries(testXiosGrid_MPI2 PRIVATE nextsimlib doctest::doctest)
 
         add_executable(testXiosField_MPI3 "XiosField_test.cpp" "MainMPI.cpp")
-        target_compile_definitions(testXiosField_MPI3 PRIVATE USE_XIOS)
+        target_compile_definitions(testXiosField_MPI3
+            PRIVATE
+                USE_XIOS
+                TEST_FILES_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\"
+        )
         target_include_directories(
             testXiosField_MPI3
             PRIVATE
