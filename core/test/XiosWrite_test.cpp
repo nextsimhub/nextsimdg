@@ -51,7 +51,8 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     config << "field_names = " << maskName << "," << coordsName << "," << hiceName << ","
            << ticeName << "," << uName << std::endl;
     config << "period = P0-0T01:30:00" << std::endl;
-    config << "split_period = P0-0T03:00:00" << std::endl;
+    // TODO: Re-enable file splitting (#898)
+    // config << "split_period = P0-0T03:00:00" << std::endl;
     config << "[XiosDiagnostic]" << std::endl;
     config << "filename = " << diagnosticFilename << std::endl;
     config << "field_names = " << hsnowName << std::endl;
@@ -194,15 +195,13 @@ MPI_TEST_CASE("TestXiosWrite", 2)
         grid.dumpModelState(restarts, restartOutputFilename, true);
     }
 
-    // Check the files have indeed been created then remove it
-    REQUIRE(std::filesystem::exists("xios_test_output_20230317171100-20230317201059.nc"));
-    REQUIRE(std::filesystem::exists("xios_test_output_20230317201100-20230317231059.nc"));
+    // Check the files have indeed been created
+    // NOTE: We don't remove them because they are used in XiosRead_test
+    // TODO: Re-enable file splitting (#898)
+    // REQUIRE(std::filesystem::exists("xios_test_output_20230317171100-20230317201059.nc"));
+    // REQUIRE(std::filesystem::exists("xios_test_output_20230317201100-20230317231059.nc"));
+    REQUIRE(std::filesystem::exists("xios_test_output.nc"));
     REQUIRE(std::filesystem::exists("xios_test_diagnostic.nc"));
-    if (rank == 0) {
-        std::filesystem::remove("xios_test_output_20230317171100-20230317201059.nc");
-        std::filesystem::remove("xios_test_output_20230317201100-20230317231059.nc");
-        std::filesystem::remove("xios_test_diagnostic.nc");
-    }
 
     xiosHandler.context_finalize();
     Finalizer::finalize();
