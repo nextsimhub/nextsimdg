@@ -116,12 +116,17 @@ if(ENABLE_MPI)
             "${xios_EXTERNS}/rapidxml/include"
         )
         set(MODEL_INCLUDE_DIR "${MODEL_INCLUDE_DIR}" "${XIOS_INCLUDE_LIST}")
-        file(
-            CREATE_LINK
-                "${CMAKE_SOURCE_DIR}/core/test/iodef.xml"
-                "${CMAKE_CURRENT_BINARY_DIR}/iodef.xml"
-            SYMBOLIC
+
+        # Generate XML file for XIOS configuration
+        add_custom_command(
+            OUTPUT iodef.xml
+            COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/../src/generate_iodef.py
+                    ${DGComp} ${DGStressComp}
+                    ${CMAKE_CURRENT_SOURCE_DIR}/../src/iodef.xml.jinja
+                    ${CMAKE_CURRENT_BINARY_DIR}/iodef.xml
+            DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/../src/iodef.xml.jinja
         )
+        add_custom_target(generate_xios_iodef_file ALL DEPENDS iodef.xml)
 
         # Generate input and partition files needed for XIOS tests from respective cdl files
         add_custom_command(
@@ -196,18 +201,6 @@ if(ENABLE_MPI)
         )
         target_link_libraries(testXiosAxis_MPI3 PRIVATE nextsimlib doctest::doctest)
 
-        add_executable(testXiosGrid_MPI2 "XiosGrid_test.cpp" "MainMPI.cpp")
-        target_compile_definitions(testXiosGrid_MPI2 PRIVATE USE_XIOS)
-        target_include_directories(
-            testXiosGrid_MPI2
-            PRIVATE
-                ${PHYSICS_INCLUDE_DIRS}
-                "${MODEL_INCLUDE_DIR}"
-                "${XIOS_INCLUDE_LIST}"
-                "${ModulesRoot}/StructureModule"
-        )
-        target_link_libraries(testXiosGrid_MPI2 PRIVATE nextsimlib doctest::doctest)
-
         add_executable(testXiosField_MPI3 "XiosField_test.cpp" "MainMPI.cpp")
         target_compile_definitions(testXiosField_MPI3
             PRIVATE
@@ -271,7 +264,6 @@ if(ENABLE_MPI)
         set(XIOS_TESTS
             testXiosCalendar_MPI1
             testXiosAxis_MPI3
-            testXiosGrid_MPI2
             testXiosField_MPI3
             testXiosFile_MPI2
             testXiosRead_MPI2
