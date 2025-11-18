@@ -252,8 +252,6 @@ private:
     int globalExtentX, globalExtentY;
     const std::string bboxName = "bounding_boxes";
     const std::string neighbourName = "connectivity";
-#else
-    int extentX, extentY;
 #endif
 };
 
