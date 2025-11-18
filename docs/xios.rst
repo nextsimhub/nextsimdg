@@ -23,9 +23,42 @@ appropriate. Further details on how this works can be found in the following.
 Configuration
 -------------
 
-XIOS is configured automatically from files with ``.cfg`` extension that are
-passed to the ``nextsim`` executable. There are several configuration sections
-that are relevant to XIOS.
+XIOS is configured automatically from two sources, as detailed in the following.
+
+XML configuration
+^^^^^^^^^^^^^^^^^
+
+Given that XIOS is an XML-based approach, it does require a small XML file to
+configure information that is known at compile time, as well as how errors and
+logs are handled. As such, you will need to provide an ``iodef.xml`` file, which
+needs to exist in the directory you intend to run from. A Jinja2 template is
+provided as ``core/src/iodef.xml.jinja``, which accepts ``DGCOMP`` and
+``DGSTRESSCOMP`` as inputs. A helper script is provided for using the template
+to generate an XML file:
+
+.. code-block::
+
+   python3 core/src/generate_iodef.py \
+       <DGCOMP> \
+       <DGSTRESSCOMP> \
+       core/src/iodef.xml.jinja
+       <OUTPUT_FILE_NAME>
+
+where ``DGCOMP`` is the integer number of DG components (e.g., 6),
+``DGSTRESSCOMP`` is the integer number of DG stress components (e.g., 8), and
+``OUTPUT_FILE_NAME`` is the output file name, including its path, e.g.,
+``build/core/test/iodef.xml``.
+
+NextSIM-DG configuration
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+As mentioned above, the XML configuration handles information that is known at
+compile time. Information that is not known at compile time is configured by
+nextSIM-DG through calls to XIOS' API. This information is provided in the same
+way as information is provided to the rest of nextSIM-DG - from files with
+``.cfg`` extension that are passed to the ``nextsim`` executable. There are
+several configuration sections that are relevant to XIOS, as detailed in the
+following.
 
 The ``xios`` section contains a single entry, which determines whether or not to
 build nextSIM-DG with XIOS as the I/O driver.
@@ -154,7 +187,7 @@ For ``VertexField``, it gives rise to a vector field with as many components as
 the spatial dimension, i.e., two. For ``DGField`` and ``DGSField``, the Axis
 concept is used to give rise to vector fields with as many components as
 ``dg_comp`` and ``dgstress_comp``, respectively. These Axes are set up
-automatically at the same point at which Domains are created.
+automatically based on the XML configuration.
 
 XIOS Grid concept
 ^^^^^^^^^^^^^^^^^

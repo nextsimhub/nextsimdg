@@ -1,6 +1,6 @@
 breathe
 exhale
-Jinja2<3.1
+jinja2
 myst_parser>=0.15.2
 netCDF4
 pyproj

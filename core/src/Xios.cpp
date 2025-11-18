@@ -40,16 +40,6 @@
 #include <regex>
 #include <string>
 
-#ifndef DGCOMP
-#define DGCOMP 6 // Define to prevent errors from static analysis tools
-#error "Number of DG components (DGCOMP) not defined" // But throw an error anyway
-#endif
-
-#ifndef DGSTRESSCOMP
-#define DGSTRESSCOMP 8 // Define to prevent errors from static analysis tools
-#error "Number of DG stress components (DGSTRESSCOMP) not defined" // But throw an error anyway
-#endif
-
 #ifndef CGDEGREE
 #define CGDEGREE 2 // Define to prevent errors from static analysis tools
 #error "CG degree (CGDEGREE) not defined" // But throw an error anyway
@@ -255,20 +245,16 @@ void Xios::configureServer()
     // Initialize 'nextSIM-DG' context
     cxios_context_initialize(contextId.c_str(), contextId.length(), &clientComm_F);
 
-    // Initialize calendar wrapper for 'nextSIM-DG' context
+    // Set the calendar timestep for the 'nextSIM-DG' context
+    // NOTE: The calendar itself is set up in iodef.xml
     cxios_get_current_calendar_wrapper(&clientCalendar);
-    cxios_set_calendar_wrapper_type(clientCalendar, calendarType.c_str(), calendarType.length());
     ModelMetadata& metadata = ModelMetadata::getInstance();
     cxios_set_calendar_wrapper_timestep(
         clientCalendar, convertDurationToXios(metadata.stepLength()));
-    cxios_create_calendar(clientCalendar);
     cxios_update_calendar_timestep(clientCalendar);
     if (!cxios_is_defined_calendar_wrapper_timestep(clientCalendar)) {
         throw std::runtime_error("Xios: Calendar timestep has not been set");
     }
-
-    // Set default calendar origin
-    setCalendarOrigin(TimePoint("1970-01-01T00:00:00Z")); // Unix epoch
 
     // Set start time from configuration file
     setCalendarStart(metadata.startTime());
@@ -358,17 +344,6 @@ cxios_duration Xios::convertDurationToXios(const Duration duration)
 }
 
 /*!
- * Set calendar origin
- *
- * @param origin
- */
-void Xios::setCalendarOrigin(const TimePoint origin)
-{
-    cxios_date datetime = convertStringToXiosDatetime(origin.format(), true);
-    cxios_set_calendar_wrapper_date_time_origin(clientCalendar, datetime);
-}
-
-/*!
  * Set calendar start date
  *
  * @param start date
@@ -390,21 +365,6 @@ void Xios::setCalendarStep(const int stepNumber) { cxios_update_calendar(stepNum
  * Increment XIOS' calendar iteration/step number by one.
  */
 void Xios::incrementCalendar() { setCalendarStep(getCalendarStep() + 1); }
-
-/*!
- * Get calendar origin
- *
- * @return calendar origin
- */
-TimePoint Xios::getCalendarOrigin()
-{
-    if (!cxios_is_defined_calendar_wrapper_time_origin(clientCalendar)) {
-        throw std::runtime_error("Xios: Calendar origin has not been set");
-    }
-    cxios_date calendar_origin;
-    cxios_get_calendar_wrapper_date_time_origin(clientCalendar, &calendar_origin);
-    return TimePoint(convertXiosDatetimeToString(calendar_origin, true));
-}
 
 /*!
  * Get calendar start date
@@ -441,22 +401,6 @@ TimePoint Xios::getCurrentDate()
 }
 
 /*!
- * Get the axis_definition group
- *
- * @return a pointer to the XIOS CAxisGroup object
- */
-xios::CAxisGroup* Xios::getAxisGroup()
-{
-    const std::string groupId = "axis_definition";
-    xios::CAxisGroup* group = NULL;
-    cxios_axisgroup_handle_create(&group, groupId.c_str(), groupId.length());
-    if (!group) {
-        throw std::runtime_error("Xios: Null pointer for group 'axis_definition'");
-    }
-    return group;
-}
-
-/*!
  * Get the axis associated with a given ID
  *
  * @param the axis ID
@@ -475,47 +419,6 @@ xios::CAxis* Xios::getAxis(const std::string axisId)
         throw std::runtime_error("Xios: Null pointer for axis '" + axisId + "'");
     }
     return axis;
-}
-
-/*!
- * Create an axis with some ID.
- *
- * @param the axis ID
- */
-void Xios::createAxis(const std::string axisId)
-{
-    bool exists;
-    cxios_axis_valid_id(&exists, axisId.c_str(), axisId.length());
-    if (exists) {
-        throw std::runtime_error("Xios: Axis '" + axisId + "' already exists");
-    }
-    xios::CAxis* axis = NULL;
-    cxios_xml_tree_add_axis(getAxisGroup(), &axis, axisId.c_str(), axisId.length());
-    if (!axis) {
-        throw std::runtime_error("Xios: Null pointer for axis '" + axisId + "'");
-    }
-    cxios_axis_valid_id(&exists, axisId.c_str(), axisId.length());
-    if (!exists) {
-        throw std::runtime_error("Xios: Failed to create axis '" + axisId + "'");
-    }
-}
-
-/*!
- * Set the size of a given axis (the number of global points)
- *
- * @param the axis ID
- * @param the size to set
- */
-void Xios::setAxisSize(const std::string axisId, const size_t size)
-{
-    xios::CAxis* axis = getAxis(axisId);
-    if (cxios_is_defined_axis_n_glo(axis)) {
-        Logged::warning("Xios: Size already set for axis '" + axisId + "'");
-    }
-    cxios_set_axis_n_glo(axis, (int)size);
-    if (!cxios_is_defined_axis_n_glo(axis)) {
-        throw std::runtime_error("Xios: Failed to set size for axis '" + axisId + "'");
-    }
 }
 
 /*!
@@ -705,8 +608,8 @@ void Xios::setupDomains()
     auto& metadata = ModelMetadata::getInstance();
 
     ModelArray::setNComponents(ModelArray::Type::VERTEX, ModelArray::nCoords);
-    ModelArray::setNComponents(ModelArray::Type::DG, DGCOMP);
-    ModelArray::setNComponents(ModelArray::Type::DGSTRESS, DGSTRESSCOMP);
+    ModelArray::setNComponents(ModelArray::Type::DG, getAxisSize("DGAxis"));
+    ModelArray::setNComponents(ModelArray::Type::DGSTRESS, getAxisSize("DGSAxis"));
     for (auto entry : domainIds) {
         ModelArray::Type type = entry.first;
         const std::string domainId = entry.second;
@@ -831,29 +734,6 @@ void Xios::setupDomains()
 }
 
 /*!
- * @brief   Create XIOS axes for each ModelArray type
- *
- * @details This function sets up the XIOS axes for each field type based on the configuration
- *          in the axisIds map and in the ModelArray class.
- */
-void Xios::setupAxes()
-{
-    for (auto entry : axisIds) {
-        ModelArray::Type type = entry.first;
-        const std::string axisId = entry.second;
-        ModelArray::Dimension dim = ModelArray::componentMap.at(type);
-        createAxis(axisId);
-        setAxisSize(axisId, ModelArray::size(dim));
-        xios::CAxis* axis = getAxis(axisId);
-        const std::string axisName = axisNames[axisId];
-        cxios_set_axis_dim_name(axis, axisName.c_str(), axisName.length());
-        if (!cxios_is_defined_axis_dim_name(axis)) {
-            throw std::runtime_error("Xios: Failed to set name for axis '" + axisId + "'");
-        }
-    }
-}
-
-/*!
  * @brief   Create XIOS grids for each ModelArray type
  *
  * @details This function sets up the XIOS grids for each field type based on the configuration
@@ -865,33 +745,11 @@ void Xios::setupGrids()
     for (auto entry : gridIds) {
         ModelArray::Type type = entry.first;
         const std::string gridId = entry.second;
-        createGrid(gridId);
         xios::CGrid* grid = getGrid(gridId);
-        if (axisIds.count(type) > 0) {
-            const std::string axisId = axisIds[type];
-            xios::CAxis* axis = getAxis(axisId);
-            cxios_xml_tree_add_axistogrid(grid, &axis, axisId.c_str(), axisId.length());
-        }
         const std::string domainId = domainIds[type];
         xios::CDomain* domain = getDomain(domainId);
         cxios_xml_tree_add_domaintogrid(grid, &domain, domainId.c_str(), domainId.length());
     }
-}
-
-/*!
- * Get the grid_definition group
- *
- * @return a pointer to the XIOS CGridGroup object
- */
-xios::CGridGroup* Xios::getGridGroup()
-{
-    const std::string groupId = "grid_definition";
-    xios::CGridGroup* group = NULL;
-    cxios_gridgroup_handle_create(&group, groupId.c_str(), groupId.length());
-    if (!group) {
-        throw std::runtime_error("Xios: Null pointer for group 'grid_definition'");
-    }
-    return group;
 }
 
 /*!
@@ -913,56 +771,6 @@ xios::CGrid* Xios::getGrid(const std::string gridId)
         throw std::runtime_error("Xios: Null pointer for grid '" + gridId + "'");
     }
     return grid;
-}
-
-/*!
- * Create a grid with some ID
- *
- * @param the grid ID
- */
-void Xios::createGrid(const std::string gridId)
-{
-    bool exists;
-    cxios_grid_valid_id(&exists, gridId.c_str(), gridId.length());
-    if (exists) {
-        throw std::runtime_error("Xios: Grid '" + gridId + "' already exists");
-    }
-    xios::CGrid* grid = NULL;
-    cxios_xml_tree_add_grid(getGridGroup(), &grid, gridId.c_str(), gridId.length());
-    if (!grid) {
-        throw std::runtime_error("Xios: Null pointer for grid '" + gridId + "'");
-    }
-    cxios_grid_valid_id(&exists, gridId.c_str(), gridId.length());
-    if (!exists) {
-        throw std::runtime_error("Xios: Failed to create grid '" + gridId + "'");
-    }
-    cxios_set_grid_name(grid, gridId.c_str(), gridId.length());
-    if (!cxios_is_defined_grid_name(grid)) {
-        throw std::runtime_error("Xios: Failed to set name for grid '" + gridId + "'");
-    }
-}
-
-/*!
- * Associate an axis with a grid
- *
- * @param the grid ID
- * @param the axis ID
- */
-void Xios::gridAddAxis(const std::string gridId, const std::string axisId)
-{
-    xios::CAxis* axis = getAxis(axisId);
-    cxios_xml_tree_add_axistogrid(getGrid(gridId), &axis, axisId.c_str(), axisId.length());
-}
-
-/*!
- * Get all axis IDs associated with a given grid
- *
- * @param the grid ID
- * @return all axis IDs associated with the grid
- */
-std::vector<std::string> Xios::getGridAxisIds(const std::string gridId)
-{
-    return getGrid(gridId)->getAxisList();
 }
 
 /*!
@@ -1603,7 +1411,7 @@ std::vector<std::string> Xios::fileGetFieldIds(const std::string fileId)
 {
     std::vector<xios::CField*> fields = getFile(fileId)->getAllFields();
     std::vector<std::string> fieldIds(fields.size());
-    for (int i = 0; i < fields.size(); i++) {
+    for (size_t i = 0; i < fields.size(); i++) {
         fieldIds[i] = fields[i]->getId();
     }
     return fieldIds;

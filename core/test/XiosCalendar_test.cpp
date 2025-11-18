@@ -52,12 +52,6 @@ MPI_TEST_CASE("TestXiosCalendar", 1)
     Xios& xiosHandler = Xios::getInstance();
 
     // --- Tests for calendar API
-    // Calendar origin
-    REQUIRE(xiosHandler.getCalendarOrigin().format() == "1970-01-01T00:00:00Z"); // Default
-    TimePoint origin("2020-01-23T00:08:15Z");
-    xiosHandler.setCalendarOrigin(origin);
-    REQUIRE(origin == xiosHandler.getCalendarOrigin());
-    REQUIRE(origin.format() == "2020-01-23T00:08:15Z");
     // Calendar start
     REQUIRE(xiosHandler.getCalendarStart().format() == "2023-03-17T17:11:00Z"); // Set in config
     TimePoint start("2023-03-17T17:11:00Z");

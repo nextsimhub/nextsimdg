@@ -41,10 +41,13 @@ public:
     //! Prevent copying
     Xios(const Xios&) = delete;
 
-    /*
+    /*!
      * Define Xios handler Singleton
      *
      * NOTE: The arguments will only be used the first time this is called.
+     *
+     * @param contextId identifier string for the XIOS context
+     * @param calendarType calendar type used by XIOS
      */
     inline static Xios& getInstance(
         const std::string contextId = "nextSIM-DG", const std::string calendarType = "Gregorian")
@@ -68,25 +71,16 @@ public:
     void configureServer();
 
     /* Calendar, date and duration */
-    void setCalendarType(const std::string type);
-    void setCalendarOrigin(const TimePoint origin);
     void setCalendarStart(const TimePoint start);
     void setCalendarStep(const int stepNumber);
     void incrementCalendar();
-    TimePoint getCalendarOrigin();
     TimePoint getCalendarStart();
     int getCalendarStep();
     TimePoint getCurrentDate();
 
     /* Axis */
-    void createAxis(const std::string axisId);
     void setAxisSize(const std::string axisId, const size_t size);
     size_t getAxisSize(const std::string axisId);
-
-    /* Grid */
-    void createGrid(const std::string gridId);
-    void gridAddAxis(std::string axisId, const std::string gridId);
-    std::vector<std::string> getGridAxisIds(const std::string gridId);
 
     /* Field */
     void createField(const std::string fieldId);
@@ -162,19 +156,7 @@ private:
     cxios_duration convertDurationToXios(const Duration duration);
 
     /* Axis */
-    std::map<ModelArray::Type, std::string> axisIds = {
-        { ModelArray::Type::VERTEX, "VertexAxis" },
-        { ModelArray::Type::DG, "DGAxis" },
-        { ModelArray::Type::DGSTRESS, "DGSAxis" },
-    };
-    std::map<std::string, std::string> axisNames = {
-        { "VertexAxis", "ncoords" },
-        { "DGAxis", "dg_comp" },
-        { "DGSAxis", "dgstress_comp" },
-    };
-    xios::CAxisGroup* getAxisGroup();
     xios::CAxis* getAxis(const std::string axisId);
-    void setupAxes();
 
     /* Domain */
     std::map<ModelArray::Type, std::string> domainIds = {
@@ -189,7 +171,6 @@ private:
     void setupDomains();
 
     /* Grid */
-    xios::CGridGroup* getGridGroup();
     xios::CGrid* getGrid(const std::string gridId);
     std::map<ModelArray::Type, std::string> gridIds = {
         { ModelArray::Type::H, "HGrid" },

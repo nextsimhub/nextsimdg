@@ -57,7 +57,8 @@ You must have root privilege :
         ./make_xios --arch <your_architecture> --job <number_of_jobs>
 
 There is also a ``--debug`` option to compile in debug mode. For example, to
-compile XIOS on a GCC Linux system with 8 parallel jobs in debug mode, use:
+compile XIOS in debug mode on a Linux operating system and the GCC compiler
+using 8 parallel jobs, use:
 
 .. code::
 
