@@ -120,11 +120,11 @@ if(ENABLE_MPI)
         # Generate XML file for XIOS configuration
         add_custom_command(
             OUTPUT iodef.xml
-            COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/generate_iodef.py
+            COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/../src/generate_iodef.py
                     ${DGComp} ${DGStressComp}
-                    ${CMAKE_CURRENT_SOURCE_DIR}/iodef.xml.jinja
+                    ${CMAKE_CURRENT_SOURCE_DIR}/../src/iodef.xml.jinja
                     ${CMAKE_CURRENT_BINARY_DIR}/iodef.xml
-            DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/iodef.xml.jinja
+            DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/../src/iodef.xml.jinja
         )
         add_custom_target(generate_xios_iodef_file ALL DEPENDS iodef.xml)
 
