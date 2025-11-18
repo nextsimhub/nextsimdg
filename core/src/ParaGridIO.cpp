@@ -83,7 +83,7 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
 {
     ModelState state;
 
-    // TODO: Do this once rather than with every read
+    // Set global dimensions with an initial read of the input file
     ModelMetadata& metadata = ModelMetadata::getInstance();
     metadata.setDimensionsFromFile(filePath);
 
