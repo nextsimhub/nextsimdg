@@ -42,7 +42,11 @@ public:
     Xios(const Xios&) = delete;
 
     //! Define Xios handler Singleton
-    inline static Xios& getInstance() { static Xios instance = Xios() return instance; };
+    inline static Xios& getInstance()
+    {
+        static Xios instance = Xios();
+        return instance;
+    };
 
     /* Help config */
     static HelpMap& getHelpText(HelpMap& map, bool getAll);
@@ -121,7 +125,6 @@ protected:
 
 private:
     inline static bool isEnabled = false;
-    const std::string clientId = "client";
     MPI_Comm clientComm;
     MPI_Fint clientComm_F;
     MPI_Fint nullComm_F;
@@ -130,9 +133,11 @@ private:
     int cStrLen { 20 }; // Length of C-strings passed to XIOS
 
     /* Client */
-    void configureClient();
+    const std::string clientId = "client";
+    void setupClient();
 
     /* Context */
+    const std::string contextId = "nextSIM-DG";
     void setupContext();
 
     /* Calendar, date and duration */

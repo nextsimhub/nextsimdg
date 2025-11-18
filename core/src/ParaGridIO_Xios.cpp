@@ -48,7 +48,7 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
 
     if (metadata.initialFileName != filePath) {
         throw std::runtime_error("ParaGridIO::getModelState: file path '" + filePath
-            + "' is inconsistent with mode.init_file '" + metadata.initialFileName + "'");
+            + "' is inconsistent with model.init_file '" + metadata.initialFileName + "'");
     }
 
     // Get all variables in the file and load them into a new ModelState

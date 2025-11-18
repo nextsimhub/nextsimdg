@@ -122,14 +122,13 @@ Xios::Xios()
         >> std::boolalpha >> isEnabled;
 
     if (isEnabled) {
-        configureClient();
         configure();
     }
     static bool doneOnce = doOnce();
 }
 
 //! Configure XIOS client
-void Xios::configureClient()
+void Xios::setupClient()
 {
     // Initialize XIOS Server process and store MPI communicator
     nullComm_F = MPI_Comm_c2f(MPI_COMM_NULL);
@@ -185,7 +184,7 @@ void Xios::finalize()
 void Xios::configure()
 {
     if (isEnabled) {
-        configureServer();
+        setupClient();
         setupContext();
         setupCalendar();
         setupFiles();
@@ -196,6 +195,7 @@ void Xios::configure()
 //! Initialize the XIOS context with ID contextId
 void Xios::setupContext()
 {
+    // Initialize the XIOS context 'nextSIM-DG'
     cxios_context_initialize(contextId.c_str(), contextId.length(), &clientComm_F);
 
     // Verify the XIOS context was created properly
@@ -233,7 +233,7 @@ void Xios::setupCalendar()
     ModelMetadata& metadata = ModelMetadata::getInstance();
     cxios_set_calendar_wrapper_timestep(
         clientCalendar, convertDurationToXios(metadata.stepLength()));
-    cxios_create_calendar(clientCalendar);
+    cxios_update_calendar_timestep(clientCalendar);
 
     // Verify the timestep was set correctly
     if (!cxios_is_defined_calendar_wrapper_timestep(clientCalendar)) {
@@ -242,9 +242,6 @@ void Xios::setupCalendar()
 
     // Set start time from configuration file
     setCalendarStart(metadata.startTime());
-
-    // Set default calendar origin
-    setCalendarOrigin(TimePoint("1970-01-01T00:00:00Z")); // Unix epoch
 }
 
 /*!
@@ -423,29 +420,6 @@ size_t Xios::getAxisSize(const std::string axisId)
     int size;
     cxios_get_axis_n_glo(axis, &size);
     return (size_t)size;
-}
-
-/*!
- * @brief   Create XIOS axes for each ModelArray type
- *
- * @details This function sets up the XIOS axes for each field type based on the configuration
- *          in the axisIds map and in the ModelArray class.
- */
-void Xios::setupAxes()
-{
-    for (auto entry : axisIds) {
-        ModelArray::Type type = entry.first;
-        const std::string axisId = entry.second;
-        ModelArray::Dimension dim = ModelArray::componentMap.at(type);
-        createAxis(axisId);
-        setAxisSize(axisId, ModelArray::size(dim));
-        xios::CAxis* axis = getAxis(axisId);
-        const std::string axisName = axisNames[axisId];
-        cxios_set_axis_dim_name(axis, axisName.c_str(), axisName.length());
-        if (!cxios_is_defined_axis_dim_name(axis)) {
-            throw std::runtime_error("Xios: Failed to set name for axis '" + axisId + "'");
-        }
-    }
 }
 
 /*!
@@ -971,7 +945,7 @@ void Xios::setupFields()
 
         // Determine field types
         std::set<std::string> configFieldIds;
-        if (filename == inputFilename) {
+        if (filename == metadata.initialFileName) {
             configFieldIds = configGetInputRestartFieldNames();
         } else {
             configFieldIds = configGetForcingFieldNames();
