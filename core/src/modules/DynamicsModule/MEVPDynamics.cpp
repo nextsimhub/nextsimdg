@@ -89,6 +89,27 @@ void MEVPDynamics::setData(const ModelState::DataMap& ms)
     uice = ms.at(uName);
     vice = ms.at(vName);
 
+    // Handle CG data field sizes
+    const ModelArray::MultiDim cgDims = kernel.getCGDimensions();
+    /* If the u is Type::CG and the dimensions read from the restart file do
+     * not match those of the CG dynamics kernel, throw an exception.
+     * TODO: Support interpolation between different CG number of Gauss points.
+     */
+    if (uice.getType() == ModelArray::Type::CG && uice.dimensions()[0] != cgDims[0]) {
+        // CG degree of the read data
+        const unsigned int fileCGdegree = (ModelArray::dimensions(ModelArray::Type::CG)[0] - 1)
+                / ModelArray::dimensions(ModelArray::Type::H)[0];
+        const unsigned int modelCGdegree = (cgDims[0] - 1)
+                / ModelArray::dimensions(ModelArray::Type::H)[0];
+
+        throw std::runtime_error(
+                "Differing CG degrees between input data and model are not supported. File CG degree = "
+                        + std::to_string(fileCGdegree) + ", model CG degree = "
+                        + std::to_string(modelCGdegree) + ".");
+    }
+    // Set the dimensions of CG arrays
+    ModelArray::setDimensions(ModelArray::Type::CG, cgDims);
+
     // Set the data in the kernel arrays.
     for (const auto& fieldName : namedFields) {
         kernel.setData(fieldName, ms.at(fieldName));
@@ -129,6 +150,14 @@ void MEVPDynamics::advectField(
     double timestep, ModelArray& field, double lowerLimit, double upperLimit)
 {
     kernel.advectField(timestep, field, lowerLimit, upperLimit);
+}
+
+ModelState MEVPDynamics::getStatePrognostic() const
+{
+    return { {
+        { uName, kernel.getCGData(uName) },
+        { vName, kernel.getCGData(vName) },
+    }, { getConfiguration() } };
 }
 
 MEVPDynamics::HelpMap& MEVPDynamics::getHelpText(HelpMap& map, bool getAll)

@@ -44,6 +44,9 @@ public:
 
     void setData(const std::string& name, const ModelArray& data) override;
     ModelArray getDG0Data(const std::string& name) const override;
+    ModelArray getCGData(const std::string& name) const;
+
+    const ModelArray::MultiDim getCGDimensions() const;
     void computeGradientOfSeaSurfaceHeight(const DGVector<1>& seaSurfaceHeight);
     void prepareIteration(const DataMap& data) override;
     void projectVelocityToStrain() override;
@@ -96,10 +99,22 @@ protected:
 
     CGVector<CGdegree>& ma2cg(const ModelArray& maData, CGVector<CGdegree>& cgData)
     {
-        DGVector<DGadvection> dgtmp(*smesh);
-        dgtmp.zero();
-        DGModelArray::ma2dg(maData, dgtmp);
-        Nextsim::Interpolations::DG2CG(*smesh, cgData, dgtmp);
+        if (maData.getType() == ModelArray::Type::H) {
+            DGVector<DGadvection> dgtmp(*smesh);
+            dgtmp.zero();
+            DGModelArray::ma2dg(maData, dgtmp);
+            Nextsim::Interpolations::DG2CG(*smesh, cgData, dgtmp);
+        } else if (maData.getType() == ModelArray::Type::DG) {
+            const DGVector<DGadvection>& asdgv
+                = reinterpret_cast<const DGVector<DGadvection>&>(maData.data());
+            Nextsim::Interpolations::DG2CG(*smesh, cgData, asdgv);
+        } else if (maData.getType() == ModelArray::Type::CG) {
+            cgData = maData.data().matrix();
+        } else {
+            throw std::runtime_error(
+                std::string("CGDynamicsKernel::ma2cg: unhandled ModelArray type ")
+                + ModelArray::typeNames.at(maData.getType()));
+        }
         return cgData;
     }
 };

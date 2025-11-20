@@ -39,6 +39,7 @@ if(NOT ENABLE_MPI)
         "${CoreDir}/ModelArray.cpp"
         "${CoreDir}/ModelArraySlice.cpp"
         "${CoreDir}/${ModelArrayStructure}/ModelArrayDetails.cpp"
+        "${SRC_DIR}/Interpolations.cpp"
     )
     target_include_directories(
         testCGModelArray

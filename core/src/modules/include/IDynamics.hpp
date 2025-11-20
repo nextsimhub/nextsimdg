@@ -49,29 +49,11 @@ public:
     }
     virtual ~IDynamics() = default;
 
-    ModelState getStatePrognostic() const override
-    {
-        ModelState state = { {
-                                 { uName, uice },
-                                 { vName, vice },
-                             },
-            getConfiguration() };
-
-        if (m_usesDamage) {
-            ModelState::DataMap damageState = { { damageName, damage } };
-            state.merge(damageState);
-        }
-
-        return state;
-    }
-
     ModelState getStateDiagnostic() const override
     {
         ModelState state = { {
                                  { uIOStressName, taux },
                                  { vIOStressName, tauy },
-                                 { uName, uice },
-                                 { vName, vice },
                                  { shearName, shear },
                                  { divergenceName, divergence },
                                  { sigmaIName, sigmaI },

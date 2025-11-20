@@ -39,7 +39,7 @@ ParaGridIO::ParaGridIO(ParametricGrid& grid)
         { "ydimxdimdg_comp", ModelArray::Type::DG },
         { "yxdgstress_comp", ModelArray::Type::DGSTRESS },
         { "ydimxdimdgstress_comp", ModelArray::Type::DGSTRESS },
-        { "ycgxcg", ModelArray::Type::CG },
+        { "y_cgx_cg", ModelArray::Type::CG },
         { "yvertexxvertexncoords", ModelArray::Type::VERTEX },
           // clang-format on
       })
@@ -318,7 +318,7 @@ void ParaGridIO::dumpModelState(const ModelState& state, const std::string& file
     for (auto entry : ModelArray::definedDimensions) {
         ModelArray::Dimension dim = entry.first;
         size_t dimSz = (dimCompMap.count(dim)) ? ModelArray::nComponents(dimCompMap.at(dim))
-                                               : dimSz = entry.second.globalLength;
+                                               : dimSz = entry.second.localLength;
         ncFromMAMap[dim] = ncFile.addDim(entry.second.name, dimSz);
         // TODO Do I need to add data, even if it is just integers 0...n-1?
     }

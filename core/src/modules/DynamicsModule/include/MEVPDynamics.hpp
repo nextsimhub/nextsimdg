@@ -40,6 +40,8 @@ public:
     void configure() override;
     ConfigMap getConfiguration() const override;
 
+    ModelState getStatePrognostic() const override;
+
     enum {
         PSTAR_KEY,
         DELTA_KEY,

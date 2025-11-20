@@ -8,6 +8,4 @@
 // ModelArrayDetails.cpp
 
 typedef ModelArray HField;
-typedef ModelArray UField;
-typedef ModelArray VField;
 typedef ModelArray VertexField;

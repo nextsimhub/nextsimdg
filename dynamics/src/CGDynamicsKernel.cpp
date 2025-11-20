@@ -100,28 +100,47 @@ template <int DGadvection>
 ModelArray CGDynamicsKernel<DGadvection>::getDG0Data(const std::string& name) const
 {
     if (name == uName) {
-        ModelArray data(ModelArray::Type::U);
+        ModelArray data(ModelArray::Type::H);
         DGVector<DGadvection> utmp(*smesh);
         Nextsim::Interpolations::CG2DG(*smesh, utmp, u);
         return DGModelArray::dg2ma(utmp, data);
     } else if (name == vName) {
-        ModelArray data(ModelArray::Type::V);
+        ModelArray data(ModelArray::Type::H);
         DGVector<DGadvection> vtmp(*smesh);
         Nextsim::Interpolations::CG2DG(*smesh, vtmp, v);
         return DGModelArray::dg2ma(vtmp, data);
     } else if (name == uIOStressName) {
-        ModelArray data(ModelArray::Type::U);
+        ModelArray data(ModelArray::Type::H);
         DGVector<DGadvection> utmp(*smesh);
         Nextsim::Interpolations::CG2DG(*smesh, utmp, uIceOceanStress);
         return DGModelArray::dg2ma(utmp, data);
     } else if (name == vIOStressName) {
-        ModelArray data(ModelArray::Type::V);
+        ModelArray data(ModelArray::Type::H);
         DGVector<DGadvection> vtmp(*smesh);
         Nextsim::Interpolations::CG2DG(*smesh, vtmp, vIceOceanStress);
         return DGModelArray::dg2ma(vtmp, data);
     } else {
         return DynamicsKernel<DGadvection, DGstressComp>::getDG0Data(name);
     }
+}
+
+template <int DGadvection>
+ModelArray CGDynamicsKernel<DGadvection>::getCGData(const std::string& name) const
+{
+    CGField madata(ModelArray::Type::CG);
+    madata.resize();
+    if (name == uName) {
+        madata = u;
+    } else if (name == vName) {
+        madata = v;
+    }
+    return madata;
+}
+
+template <int DGadvection>
+const ModelArray::MultiDim CGDynamicsKernel<DGadvection>::getCGDimensions() const
+{
+    return { CGdegree * smesh->nx + 1, CGdegree * smesh->ny + 1 };
 }
 
 template <int DGadvection> void CGDynamicsKernel<DGadvection>::prepareAdvection()

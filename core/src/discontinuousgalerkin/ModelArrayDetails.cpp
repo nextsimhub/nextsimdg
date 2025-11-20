@@ -51,16 +51,6 @@ ModelArray::TypeDimensions ModelArray::typeDimensions = {
             ModelArray::Dimension::XVERTEX,
             ModelArray::Dimension::YVERTEX,
         } },
-    { ModelArray::Type::U,
-        {
-            ModelArray::Dimension::X,
-            ModelArray::Dimension::Y,
-        } },
-    { ModelArray::Type::V,
-        {
-            ModelArray::Dimension::X,
-            ModelArray::Dimension::Y,
-        } },
     { ModelArray::Type::DG,
         {
             ModelArray::Dimension::X,
@@ -81,8 +71,6 @@ ModelArray::TypeDimensions ModelArray::typeDimensions = {
 const std::map<ModelArray::Type, std::string> ModelArray::typeNames = {
     { ModelArray::Type::H, "HField" },
     { ModelArray::Type::VERTEX, "VertexField" },
-    { ModelArray::Type::U, "UField" },
-    { ModelArray::Type::V, "VField" },
     { ModelArray::Type::DG, "DGField" },
     { ModelArray::Type::DGSTRESS, "DGSField" },
     { ModelArray::Type::CG, "CGField" },
@@ -107,8 +95,8 @@ bool ModelArray::hasDoF(const Type type)
 }
 
 ModelArray::SizeMap::SizeMap()
-    : m_sizes({ { Type::H, 0 }, { Type::VERTEX, 1 }, { Type::U, 0 }, { Type::V, 0 },
-          { Type::DG, 0 }, { Type::DGSTRESS, 0 }, { Type::CG, 1 } })
+    : m_sizes({ { Type::H, 0 }, { Type::VERTEX, 1 }, { Type::DG, 0 }, { Type::DGSTRESS, 0 },
+          { Type::CG, 1 } })
 {
 }
 
@@ -116,8 +104,6 @@ ModelArray::DimensionMap::DimensionMap()
     : m_dimensions({
           { Type::H, { 0, 0 } },
           { Type::VERTEX, { 1, 1 } },
-          { Type::U, { 0, 0 } },
-          { Type::V, { 0, 0 } },
           { Type::DG, { 0, 0 } },
           { Type::DGSTRESS, { 0, 0 } },
           { Type::CG, { 1, 1 } },

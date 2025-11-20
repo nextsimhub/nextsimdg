@@ -20,8 +20,6 @@ TEST_CASE("OceanTest")
     const size_t nx = 256;
     const size_t ny = 256;
     ModelArray::setDimensions(ModelArray::Type::H, { nx, ny });
-    ModelArray::setDimensions(ModelArray::Type::U, { nx, ny });
-    ModelArray::setDimensions(ModelArray::Type::V, { nx, ny });
 
     BenchmarkOcean benchOcean;
     benchOcean.setData(ModelState::DataMap());
@@ -48,8 +46,6 @@ TEST_CASE("AtmosphereTest")
     const size_t nx = 256;
     const size_t ny = 256;
     ModelArray::setDimensions(ModelArray::Type::H, { nx, ny });
-    ModelArray::setDimensions(ModelArray::Type::U, { nx, ny });
-    ModelArray::setDimensions(ModelArray::Type::V, { nx, ny });
 
     BenchmarkAtmosphere benchAtm;
     benchAtm.setData(ModelState::DataMap());
