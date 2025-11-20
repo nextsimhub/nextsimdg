@@ -297,6 +297,18 @@ public:
      * @param minArr the array of clamp minimum target values.
      */
     ModelArray& clampBelow(const ModelArray& minArr);
+    /*!
+     * @brief Returns the per-element square root of the array
+     */
+    ModelArray sqrt();
+    /*!
+     * @brief Returns the per-element sin of the array
+     */
+    ModelArray sin();
+    /*!
+     * @brief Returns the per-element cos of the array
+     */
+    ModelArray cos();
 
     using MultiDim = std::vector<size_t>;
 

@@ -34,6 +34,8 @@ public:
     ModelState getStateDiagnostic() const override;
     ModelState getStatePrognostic() const override;
 
+    void setMetadata(const ModelMetadata& metadata);
+
     static HelpMap& getHelpText(HelpMap& map, bool getAll);
     static HelpMap& getHelpRecursive(HelpMap& map, bool getAll);
 

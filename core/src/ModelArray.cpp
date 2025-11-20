@@ -175,6 +175,27 @@ ModelArray& ModelArray::clampBelow(const ModelArray& minArr)
     return *this;
 }
 
+ModelArray ModelArray::sqrt()
+{
+    ModelArray sqrted = ModelArray(type);
+    sqrted.m_data.array() = m_data.array().sqrt();
+    return sqrted;
+}
+
+ModelArray ModelArray::sin()
+{
+    auto sined = ModelArray(type);
+    sined.m_data.array() = m_data.array().sin();
+    return sined;
+}
+
+ModelArray ModelArray::cos()
+{
+    auto cosed = ModelArray(type);
+    cosed.m_data.array() = m_data.array().cos();
+    return cosed;
+}
+
 void ModelArray::setData(double value)
 {
     resize();

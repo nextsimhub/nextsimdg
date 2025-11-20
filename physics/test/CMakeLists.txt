@@ -1,4 +1,19 @@
-if(NOT ENABLE_MPI)
+if(ENABLE_MPI)
+    if (ENABLE_OASIS)
+        add_executable(testOASISCoupledOcean_MPI1
+                "OASISCoupledOcean_test.cpp" "../../core/test/MainMPI.cpp")
+        target_include_directories(testOASISCoupledOcean_MPI1
+                PRIVATE "${ModulesRoot}/OceanBoundaryModule")
+        target_compile_definitions(
+                testOASISCoupledOcean_MPI1
+                PRIVATE USE_MPI TEST_FILES_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}\"
+        )
+        target_link_libraries(testOASISCoupledOcean_MPI1 PRIVATE nextsimlib doctest::doctest)
+
+        add_test(NAME testOASISCoupledOcean_MPI1 COMMAND
+                ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} 1 testOASISCoupledOcean_MPI1 -ns)
+    endif ()
+else()
     set(COMMON_INCLUDE_DIRS "../../core/src/discontinuousgalerkin" "../../core/src"
                             "../../core/src/modules" "../src" "../src/modules")
 

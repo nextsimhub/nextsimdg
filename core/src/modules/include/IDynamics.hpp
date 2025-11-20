@@ -86,6 +86,8 @@ public:
     {
         uice.resize();
         vice.resize();
+        taux.resize();
+        tauy.resize();
         shear.resize();
         divergence.resize();
         sigmaI.resize();

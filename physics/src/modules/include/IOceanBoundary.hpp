@@ -7,6 +7,7 @@
 #define IOCEANBOUNDARY_HPP
 
 #include "include/CheckingModelComponent.hpp"
+#include "include/ModelMetadata.hpp"
 #include "include/constants.hpp"
 #include "include/gridNames.hpp"
 
@@ -31,6 +32,7 @@ public:
         , sFlux(ModelArray::Type::H)
         , qswow(ModelArray::Type::H, { -1e3, 1e-6 })
         , qswBase(ModelArray::Type::H, { -1e3, 1e-6 })
+        , fracQSWAbs(ModelArray::Type::H)
         , tauX(ModelArray::Type::H, { -10, 10 })
         , tauY(ModelArray::Type::H, { -10, 10 })
         , cice(getStore())
@@ -75,6 +77,7 @@ public:
     virtual ~IOceanBoundary() = default;
 
     std::string getName() const override { return "IOceanBoundary"; }
+    virtual void setMetadata(const ModelMetadata& metadata) { }
     void setData(const ModelState::DataMap& ms) override
     {
         qio.resize();
@@ -92,6 +95,7 @@ public:
         sFlux.resize();
         qswow.resize();
         qswBase.resize();
+        fracQSWAbs.resize();
         tauX.resize();
         tauY.resize();
 
@@ -155,7 +159,7 @@ private:
     void mergeFluxesElement(size_t i, const TimestepTime& tst)
     {
         // Heat fluxes - partitioned in solar and non-solar
-        qswNet[i] = cice[i] * qswBase[i] + (1 - cice[i]) * qswow[i];
+        qswNet[i] = fracQSWAbs[i] * (cice[i] * qswBase[i] + (1 - cice[i]) * qswow[i]);
         qNoSun[i] = cice[i] * qio[i] + (1 - cice[i]) * qow[i] - qswNet[i];
 
         // Mass fluxes - fresh water and salt
@@ -194,6 +198,7 @@ protected:
     HField sFlux; // Net surface ocean salt flux, kg m⁻²
     HField qswow; // Shortwave flux in open water W m⁻²
     HField qswBase; // Shortwave flux at the base of the ice W m⁻²
+    HField fracQSWAbs; // The fraction of solar radiation absorbed in the surface ocean layer
     HField tauX; // x(east)-ward total ocean stress, Pa
     HField tauY; // y(north)-ward total ocean stress, Pa
 
@@ -201,7 +206,7 @@ protected:
 
     ModelArrayRef<Shared::C_ICE_DG, RO> cice;
     ModelArrayRef<Protected::IO_STRESS_X> tauXIO;
-    ModelArrayRef<Protected::IO_STRESS_X> tauYIO;
+    ModelArrayRef<Protected::IO_STRESS_Y> tauYIO;
     ModelArrayRef<Shared::EVAP, RW> evap;
     ModelArrayRef<Shared::RAIN, RO> rain;
     ModelArrayRef<Shared::NEW_ICE, RW> newIce;

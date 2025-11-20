@@ -23,7 +23,7 @@ public:
      */
 #include "include/ProtectedArrayNames.ipp"
 #include "include/SharedArrayNames.ipp"
-          })
+        })
     {
     }
     virtual ~IDiagnosticOutput() = default;

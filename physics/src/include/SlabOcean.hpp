@@ -20,6 +20,8 @@ namespace Nextsim {
  */
 class SlabOcean : public ModelComponent, public Configured<SlabOcean> {
 public:
+    SlabOcean() = delete;
+
     SlabOcean(ModelArrayReferenceStore& coupingArrays)
         : qdw(ModelArray::Type::H)
         , fdw(ModelArray::Type::H)

@@ -122,6 +122,9 @@ void TOPAZOcean::setData(const ModelState::DataMap& ms)
     });
 
     slabOcean.setData(ms);
+
+    // We assume that all incoming shortwave radiation is absorbed in the mixed layer
+    fracQSWAbs = 1.;
 }
 
 void TOPAZOcean::updateTf(size_t i, const TimestepTime& tst) { tf[i] = (*pFreezingPoint)(sss[i]); }

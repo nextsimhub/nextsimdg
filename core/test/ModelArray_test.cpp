@@ -179,6 +179,9 @@ TEST_CASE("Arithmetic tests")
     OneDField negative = -rhs;
     REQUIRE(negative[0] == -3);
     REQUIRE(negative[1] == 5);
+    OneDField squareRoot = lhs.sqrt();
+    REQUIRE(squareRoot[0] == 3.);
+    REQUIRE(squareRoot[1] == std::sqrt(lhs[1]));
 
     double three = 3;
     double four = 4;

@@ -11,6 +11,10 @@
 #include "include/NextsimModule.hpp"
 #include "include/gridNames.hpp"
 
+#ifdef USE_OASIS
+#include <oasis_c.h>
+#endif
+
 namespace Nextsim {
 
 static const std::string checkFieldsKey = "debug.check_fields";
@@ -109,6 +113,17 @@ void PrognosticData::setData(const ModelState::DataMap& ms)
     pOcnBdy->setData(ms);
     pDynamics->setData(ms);
     iceGrowth.setData(ms);
+}
+
+void PrognosticData::setMetadata(const Nextsim::ModelMetadata& metadata)
+{
+    pAtmBdy->setMetadata(metadata);
+    pOcnBdy->setMetadata(metadata);
+
+#ifdef USE_OASIS
+    // OASIS finalising definition - can only be called once
+    OASIS_CHECK_ERR(oasis_c_enddef());
+#endif
 }
 
 void PrognosticData::update(const TimestepTime& tst)

@@ -40,6 +40,9 @@ static const std::map<int, std::string> keyMap = {
     { Model::MISSINGVALUE_KEY, "model.missing_value" },
     { Model::RESTARTPERIOD_KEY, "model.restart_period" },
     { Model::RESTARTOUTFILE_KEY, "model.restart_file" },
+#ifdef USE_OASIS
+    { Model::WRITEOASISGRID_KEY, "oasis.write_grid" },
+#endif
 };
 
 Model::Model()
@@ -129,9 +132,15 @@ void Model::configure()
     // Get the coordinates from the ModelState for persistence
     metadata.extractCoordinates(initialState);
 
+#ifdef USE_OASIS
+    const bool writeOasisGrid = Configured::getConfiguration(keyMap.at(WRITEOASISGRID_KEY), false);
+    metadata.initOasis(writeOasisGrid);
+#endif
+
     modelStep.setData(pData);
     modelStep.setRestartDetails(metadata.restartPeriod, metadata.finalFileName);
     pData.setData(initialState.data);
+    pData.setMetadata(metadata);
 }
 
 Model::HelpMap& Model::getHelpText(HelpMap& map, bool getAll)
@@ -202,6 +211,8 @@ void Model::writeRestartFile()
 {
     auto& metadata = ModelMetadata::getInstance();
     std::string formattedFileName = metadata.time().format(metadata.finalFileName);
+    // Some MPI-IO implementations does not like colon in file names
+    std::replace(formattedFileName.begin(), formattedFileName.end(), ':', '_');
     pData.writeRestartFile(formattedFileName);
 }
 

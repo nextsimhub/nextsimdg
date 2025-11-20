@@ -43,6 +43,9 @@ public:
         // Other Model configuration keys, not to be written to the restart file.
         RESTARTPERIOD_KEY,
         RESTARTOUTFILE_KEY,
+#ifdef USE_OASIS
+        WRITEOASISGRID_KEY,
+#endif
     };
 
     ConfigMap getConfig() const { return ConfigMap(); };

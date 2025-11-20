@@ -50,6 +50,8 @@ COPY --from=builder /opt/views /opt/views
 # Create entrypoint script
 RUN { \
       echo '#!/bin/sh'; \
+      echo 'export OMPI_ALLOW_RUN_AS_ROOT=1'; \
+      echo 'export OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1'; \
       echo '. /opt/spack-environment/activate.sh'; \
       echo 'exec "$@"'; \
     } > /entrypoint.sh \

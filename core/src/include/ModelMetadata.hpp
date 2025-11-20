@@ -71,6 +71,10 @@ public:
     }
 #endif
 
+#ifdef USE_OASIS
+    int OASISPartitionId;
+#endif
+
     // finalize ModelMetadata
     static void finalize();
 
@@ -196,6 +200,10 @@ public:
     neighbourArray neighbourExtentsPeriodic;
     neighbourArray neighbourHaloSendPeriodic;
     neighbourArray neighbourHaloRecvPeriodic;
+#endif
+
+#ifdef USE_OASIS
+    void initOasis(const bool writeOasisGrid);
 #endif
 
     std::string initialFileName;
