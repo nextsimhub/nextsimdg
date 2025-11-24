@@ -79,8 +79,11 @@ MPI_TEST_CASE("TestXiosRead", 2)
 
     xiosHandler.close_context_definition();
 
-    // Check the input files exists
-    REQUIRE(std::filesystem::exists(restartFilename));
+    // Check the input files exist
+    if (!std::filesystem::exists(restartFilename)) {
+        throw std::runtime_error(
+            "XiosRead_test: Input file not found. Did you run XiosWrite_test?");
+    }
     REQUIRE(std::filesystem::exists(forcingFilename));
 
     // Check calendar step is zero initially
