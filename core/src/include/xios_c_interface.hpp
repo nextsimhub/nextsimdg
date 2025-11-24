@@ -90,10 +90,14 @@ bool cxios_is_defined_domain_lat_name(xios::CDomain* domain_hdl);
 bool cxios_is_defined_domain_lon_name(xios::CDomain* domain_hdl);
 bool cxios_is_defined_domain_ni_glo(xios::CDomain* domain_hdl);
 bool cxios_is_defined_domain_nj_glo(xios::CDomain* domain_hdl);
+void cxios_set_domain_lonvalue_1d(xios::CDomain* domain_hdl, double* data, const int* ni);
+void cxios_set_domain_latvalue_1d(xios::CDomain* domain_hdl, double* data, const int* nj);
 bool cxios_is_defined_domain_ni(xios::CDomain* domain_hdl);
 bool cxios_is_defined_domain_nj(xios::CDomain* domain_hdl);
 bool cxios_is_defined_domain_ibegin(xios::CDomain* domain_hdl);
 bool cxios_is_defined_domain_jbegin(xios::CDomain* domain_hdl);
+bool cxios_is_defined_domain_lonvalue_1d(xios::CDomain* domain_hdl);
+bool cxios_is_defined_domain_latvalue_1d(xios::CDomain* domain_hdl);
 
 // grid group methods
 void cxios_gridgroup_handle_create(xios::CGridGroup** _ret, const char* _id, int _id_len);
