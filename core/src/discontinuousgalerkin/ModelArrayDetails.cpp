@@ -27,10 +27,10 @@ namespace Nextsim {
 // clang-format off
 std::map<ModelArray::Dimension, ModelArray::DimensionSpec> ModelArray::definedDimensions = {
     // set default global size, local size and start position for each dimension
-    { ModelArray::Dimension::X, { "xdim", "x", 0, 0, 0 } },
-    { ModelArray::Dimension::Y, { "ydim", "y", 0, 0, 0 } },
-    { ModelArray::Dimension::XVERTEX, { "xvertex", "xvertex", 1, 1, 0 } }, // defined as x + 1
-    { ModelArray::Dimension::YVERTEX, { "yvertex", "yvertex", 1, 1, 0 } }, // defined as y + 1
+    { ModelArray::Dimension::X, { "xdim", "x_dim", 0, 0, 0 } },
+    { ModelArray::Dimension::Y, { "ydim", "y_dim", 0, 0, 0 } },
+    { ModelArray::Dimension::XVERTEX, { "xvertex", "x_vertex", 1, 1, 0 } }, // defined as x + 1
+    { ModelArray::Dimension::YVERTEX, { "yvertex", "y_vertex", 1, 1, 0 } }, // defined as y + 1
     { ModelArray::Dimension::XCG, { "x_cg", "x_cg", CGDEGREE, CGDEGREE, 0 } },
     { ModelArray::Dimension::YCG, { "y_cg", "y_cg", CGDEGREE, CGDEGREE, 0 } },
     // The DG components are also included here to store the names
