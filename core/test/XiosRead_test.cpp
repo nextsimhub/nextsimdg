@@ -20,7 +20,7 @@
 #include <filesystem>
 
 const std::string testFilesDir = TEST_FILES_DIR;
-const std::string restartFilename = testFilesDir + "/xios_test_input.nc";
+const std::string restartFilename = testFilesDir + "/xios_test_output.nc";
 const std::string forcingFilename = testFilesDir + "/xios_test_forcing.nc";
 
 static const int DGCOMP = 6;
