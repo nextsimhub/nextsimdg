@@ -20,7 +20,7 @@
 #include <filesystem>
 
 const std::string testFilesDir = TEST_FILES_DIR;
-const std::string restartFilename
+const std::string inputFilename
     = testFilesDir + "/restart_2023-03-17T17:11:00Z-2023-03-17T20:10:59Z.nc";
 const std::string forcingFilename = testFilesDir + "/xios_test_forcing.nc";
 
@@ -43,7 +43,7 @@ MPI_TEST_CASE("TestXiosRead", 2)
     config << "start = 2023-03-17T17:11:00Z" << std::endl;
     config << "stop = 2023-03-17T23:11:00Z" << std::endl;
     config << "time_step = P0-0T01:30:00" << std::endl;
-    config << "init_file = " << restartFilename << std::endl;
+    config << "init_file = " << inputFilename << std::endl;
     config << "partition_file = xios_test_partition_metadata_2.nc" << std::endl;
     config << "[XiosInput]" << std::endl;
     config << "field_names = " << maskName << "," << coordsName << "," << hiceName << ","
@@ -80,7 +80,7 @@ MPI_TEST_CASE("TestXiosRead", 2)
     xiosHandler.close_context_definition();
 
     // Check the input files exist
-    if (!std::filesystem::exists(restartFilename)) {
+    if (!std::filesystem::exists(inputFilename)) {
         throw std::runtime_error(
             "XiosRead_test: Input file not found. Did you run XiosWrite_test?");
     }
@@ -96,7 +96,7 @@ MPI_TEST_CASE("TestXiosRead", 2)
     REQUIRE(ModelArray::size(ModelArray::Dimension::DG) == DGCOMP);
 
     // Read restarts from file and check they take the expected values
-    ModelState restarts = grid.getModelState(restartFilename);
+    ModelState restarts = grid.getModelState(inputFilename);
     int rank;
     MPI_Comm_rank(test_comm, &rank);
     for (auto& entry : restarts.data) {

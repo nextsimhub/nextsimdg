@@ -20,9 +20,9 @@
 #include <filesystem>
 
 const std::string testFilesDir = TEST_FILES_DIR;
-const std::string restartInputFilename = testFilesDir + "/xios_test_input.nc";
-const std::string restartOutputFilename = testFilesDir + "/restart.nc";
-const std::string diagnosticFilename = testFilesDir + "/diagnostic.nc";
+const std::string inputFilename = testFilesDir + "/xios_test_input.nc";
+const std::string restartFilename = testFilesDir + "/restart%Y-%m-%dT%H:%M:%SZ.nc";
+const std::string diagnosticFilename = testFilesDir + "/diagnostic%Y-%m-%dT%H:%M:%SZ.nc";
 
 static const int DGCOMP = 6;
 static const int DGSTRESSCOMP = 8;
@@ -43,8 +43,8 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     config << "start = 2023-03-17T17:11:00Z" << std::endl;
     config << "stop = 2023-03-17T23:11:00Z" << std::endl;
     config << "time_step = P0-0T01:30:00" << std::endl;
-    config << "init_file = " << restartInputFilename << std::endl;
-    config << "restart_file = " << restartOutputFilename << std::endl;
+    config << "init_file = " << inputFilename << std::endl;
+    config << "restart_file = " << restartFilename << std::endl;
     config << "partition_file = xios_test_partition_metadata_2.nc" << std::endl;
     config << "restart_period = P0-0T03:00:00" << std::endl;
     config << "[XiosOutput]" << std::endl;
@@ -191,7 +191,7 @@ MPI_TEST_CASE("TestXiosWrite", 2)
 
         // Write out diagnostics and then restarts
         pio->writeDiagnosticTime(diagnostics, diagnosticFilename);
-        grid.dumpModelState(restarts, restartOutputFilename, true);
+        grid.dumpModelState(restarts, restartFilename, true);
     }
 
     // Check the files have indeed been created

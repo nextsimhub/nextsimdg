@@ -84,9 +84,8 @@ Xios::HelpMap& Xios::getHelpText(HelpMap& map, bool getAll)
             "The period between diagnostics file outputs expected in a file to be "
             "read, formatted as an ISO8601 duration (P prefix) or number of "
             "seconds. A value of zero assumes no intermediate diagnostics files." },
-        { keyMap.at(DIAGNOSTIC_FILE_KEY), ConfigType::STRING, {}, "", "",
-            // TODO: Support format "restart%Y-%m-%dT%H:%M:%SZ.nc" (#898)
-            "The file name to be used for diagnostics." },
+        { keyMap.at(DIAGNOSTIC_FILE_KEY), ConfigType::STRING, {}, "diagnostic%Y-%m-%dT%H:%M:%SZ.nc",
+            "", "The file name to be used for diagnostics." },
         { keyMap.at(DIAGNOSTIC_FIELD_NAMES_KEY), ConfigType::STRING, {}, "", "",
             "Comma-separated list of field names to be read from the diagnostics "
             "file." },
@@ -97,7 +96,6 @@ Xios::HelpMap& Xios::getHelpText(HelpMap& map, bool getAll)
             "read, formatted as an ISO8601 duration (P prefix) or number of "
             "seconds. A value of zero assumes no intermediate forcing files." },
         { keyMap.at(FORCING_FILE_KEY), ConfigType::STRING, {}, "", "",
-            // TODO: Support format "restart%Y-%m-%dT%H:%M:%SZ.nc" (#898)
             "The file name to be used for forcings." },
         { keyMap.at(FORCING_FIELD_NAMES_KEY), ConfigType::STRING, {}, "", "",
             "Comma-separated list of field names to be read from the forcings "
@@ -1064,6 +1062,9 @@ xios::CFile* Xios::getFile(const std::string fileId)
  */
 void Xios::createFile(const std::string fileId, const int fieldType)
 {
+    ModelMetadata& metadata = ModelMetadata::getInstance();
+
+    // Create the file
     xios::CFile* file = NULL;
     bool exists;
     cxios_file_valid_id(&exists, fileId.c_str(), fileId.length());
@@ -1079,8 +1080,29 @@ void Xios::createFile(const std::string fileId, const int fieldType)
         throw std::runtime_error("Xios: Failed to create file '" + fileId + "'");
     }
 
-    // Set file name
-    cxios_set_file_name(file, fileId.c_str(), fileId.length());
+    // Get the fieldIds and filenames
+    std::set<std::string> fieldIds;
+    std::string filename;
+    if (fieldType == INPUT_RESTART) {
+        fieldIds = configGetInputRestartFieldNames();
+        filename = metadata.initialFileName;
+    } else if (fieldType == OUTPUT_RESTART) {
+        fieldIds = configGetOutputRestartFieldNames();
+        filename = metadata.finalFileName;
+    } else if (fieldType == FORCING) {
+        fieldIds = configGetForcingFieldNames();
+        filename = forcingFilename;
+    } else if (fieldType == DIAGNOSTIC) {
+        fieldIds = configGetDiagnosticFieldNames();
+        filename = diagnosticFilename;
+    }
+
+    // Set file name, removing any format strings
+    // NOTE: Everything starting from the first '%' to the file extension is removed
+    if (filename.find("%") != std::string::npos) {
+        filename.erase(filename.find("%"), filename.find(".nc"));
+    }
+    cxios_set_file_name(file, filename.c_str(), filename.length());
     if (!cxios_is_defined_file_name(file)) {
         throw std::runtime_error("Xios: Failed to set name for file '" + fileId + "'");
     }
@@ -1118,20 +1140,7 @@ void Xios::createFile(const std::string fileId, const int fieldType)
     setFileType(fileId, "one_file");
     setFileParAccess(fileId, "collective");
 
-    // Get the fieldIds
-    std::set<std::string> fieldIds;
-    if (fieldType == INPUT_RESTART) {
-        fieldIds = configGetInputRestartFieldNames();
-    } else if (fieldType == OUTPUT_RESTART) {
-        fieldIds = configGetOutputRestartFieldNames();
-    } else if (fieldType == FORCING) {
-        fieldIds = configGetForcingFieldNames();
-    } else if (fieldType == DIAGNOSTIC) {
-        fieldIds = configGetDiagnosticFieldNames();
-    }
-
     // Set the file output frequency
-    ModelMetadata& metadata = ModelMetadata::getInstance();
     if (fieldType == INPUT_RESTART || fieldType == OUTPUT_RESTART) {
         setFileOutputFreq(fileId, metadata.restartPeriod, fieldType);
     } else {
@@ -1365,7 +1374,6 @@ void Xios::setupFiles()
 
     // Get restart file IDs from the configuration
     inputFileId = ((std::filesystem::path)metadata.initialFileName).filename().replace_extension();
-    // TODO: Properly support format "restart%Y-%m-%dT%H:%M:%SZ.nc" (#898)
     outputFileId = ((std::filesystem::path)metadata.finalFileName).filename().replace_extension();
 
     // Get forcing and diganostic file IDs from the configuration
