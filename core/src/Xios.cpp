@@ -1104,21 +1104,26 @@ void Xios::createFile(const std::string fileId, const int fieldType)
     std::string filename;
     std::string mode;
     std::set<std::string> fieldIds;
+    bool readAccess;
     if (fieldType == INPUT_RESTART) {
         filename = metadata.initialFileName;
         mode = "read";
+        readAccess = true;
         fieldIds = configGetInputRestartFieldNames();
     } else if (fieldType == OUTPUT_RESTART) {
         filename = metadata.finalFileName;
         mode = "write";
+        readAccess = false;
         fieldIds = configGetOutputRestartFieldNames();
     } else if (fieldType == FORCING) {
         filename = forcingFilename;
         mode = "read";
+        readAccess = true;
         fieldIds = configGetForcingFieldNames();
     } else if (fieldType == DIAGNOSTIC) {
         filename = diagnosticFilename;
         mode = "write";
+        readAccess = false;
         fieldIds = configGetDiagnosticFieldNames();
     }
 
@@ -1147,16 +1152,6 @@ void Xios::createFile(const std::string fileId, const int fieldType)
         throw std::runtime_error("Xios: Failed to set name for file '" + fileId + "'");
     }
 
-    // Check that the filename is not used for both reading and writing
-    // FIXME: This check will no longer ever be triggered
-    bool readAccess = (fieldType == INPUT_RESTART || fieldType == FORCING);
-    bool writeAccess = (fieldType == OUTPUT_RESTART || fieldType == DIAGNOSTIC);
-    if (readAccess && writeAccess) {
-        throw std::runtime_error("Xios: File '" + fileId + "' configured for both reading and"
-            + " writing. This is not yet supported in the XIOS I/O implementation.");
-        // TODO: Refactor to allow a field to be both read and written
-    }
-
     // Set the file output frequency
     if (fieldType == INPUT_RESTART || fieldType == OUTPUT_RESTART) {
         setFileOutputFreq(fileId, metadata.restartPeriod, fieldType);
@@ -1175,11 +1170,11 @@ void Xios::createFile(const std::string fileId, const int fieldType)
         }
     }
 
-    // XiosOutput.field_names, XiosInput.field_names, XiosDiagnostic.field_names, or
-    // XiosForcing.field_names entries in the config.
+    // Loop over all field names in the config section corresponding to the file
     for (std::string fieldId : fieldIds) {
         createField(fieldId);
         fileAddField(fileId, fieldId);
+        // TODO: Refactor to allow a field to be both read and written
         setFieldReadAccess(fieldId, readAccess);
 
         // Set field name
@@ -1292,9 +1287,16 @@ void Xios::setupFiles()
     diagnosticFileId = ((std::filesystem::path)diagnosticFilename).filename().replace_extension();
 
     // Create files for any non-empty file IDs
-    for (auto entry : fileMap) {
-        const std::string fileId = entry.second;
+    for (auto& entry : fileMap) {
+        const std::string& fileId = entry.second;
         if (!fileId.empty()) {
+            for (auto& other : fileMap) {
+                if ((entry.first != other.first) && (entry.second == other.second)) {
+                    throw std::runtime_error("Xios: File '" + fileId + "' appears in multiple"
+                        + " configuration sections. This is not yet supported in the XIOS I/O"
+                        + " implementation.");
+                }
+            }
             createFile(fileId, entry.first);
         }
     }
