@@ -20,7 +20,8 @@
 #include <filesystem>
 
 const std::string testFilesDir = TEST_FILES_DIR;
-const std::string restartFilename = testFilesDir + "/xios_test_output.nc";
+const std::string restartFilename
+    = testFilesDir + "/xios_test_output_20230317171100-20230317201059.nc";
 const std::string forcingFilename = testFilesDir + "/xios_test_forcing.nc";
 
 static const int DGCOMP = 6;
@@ -43,7 +44,6 @@ MPI_TEST_CASE("TestXiosRead", 2)
     config << "stop = 2023-03-17T23:11:00Z" << std::endl;
     config << "time_step = P0-0T01:30:00" << std::endl;
     config << "init_file = " << restartFilename << std::endl;
-    config << "restart_period = P0-0T01:30:00" << std::endl;
     config << "partition_file = xios_test_partition_metadata_2.nc" << std::endl;
     config << "[XiosInput]" << std::endl;
     config << "field_names = " << maskName << "," << coordsName << "," << hiceName << ","
@@ -173,11 +173,10 @@ MPI_TEST_CASE("TestXiosRead", 2)
     }
 
     if (rank == 0) {
-        // TODO: Re-enable file splitting (#898)
-        // std::filesystem::remove("xios_test_output_20230317171100-20230317201059.nc");
-        // std::filesystem::remove("xios_test_output_20230317201100-20230317231059.nc");
-        std::filesystem::remove("xios_test_output.nc");
-        std::filesystem::remove("xios_test_diagnostic.nc");
+        std::filesystem::remove("xios_test_output_20230317171100-20230317201059.nc");
+        std::filesystem::remove("xios_test_output_20230317201100-20230317231059.nc");
+        std::filesystem::remove("xios_test_diagnostic_20230317171100-20230317201059.nc");
+        std::filesystem::remove("xios_test_diagnostic_20230317201100-20230317231059.nc");
     }
 
     xiosHandler.context_finalize();
