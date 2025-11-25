@@ -108,48 +108,12 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     }
     VertexField coordinates(ModelArray::Type::VERTEX);
     coordinates.resize();
-    int rank;
-    MPI_Comm_rank(test_comm, &rank);
-    for (size_t j = 0; j < ny + 1; ++j) {
-        for (size_t i = 0; i < nx + 1; ++i) {
-            if (rank == 0) {
-                coordinates.components({ i, j })[0] = (double)i;
-                coordinates.components({ i, j })[1] = (double)j;
-            } else {
-                coordinates.components({ i, j })[0] = (double)(i + 2);
-                coordinates.components({ i, j })[1] = (double)j;
-            }
-        }
-    }
     DGField hice(ModelArray::Type::DG);
     hice.resize();
-    for (size_t j = 0; j < ny; ++j) {
-        for (size_t i = 0; i < nx; ++i) {
-            for (size_t d = 0; d < DGCOMP; ++d) {
-                hice.components({ i, j })[d] = 1.0 * (d + DGCOMP * (i + nx * j));
-            }
-        }
-    }
     DGSField tice(ModelArray::Type::DGSTRESS);
     tice.resize();
-    for (size_t j = 0; j < ny; ++j) {
-        for (size_t i = 0; i < nx; ++i) {
-            for (size_t d = 0; d < DGSTRESSCOMP; ++d) {
-                tice.components({ i, j })[d] = 2.0 * (d + DGSTRESSCOMP * (i + nx * j));
-            }
-        }
-    }
     CGField uice(ModelArray::Type::CG);
     uice.resize();
-    for (size_t j = 0; j < CGDEGREE * ny + 1; ++j) {
-        for (size_t i = 0; i < CGDEGREE * nx + 1; ++i) {
-            if (rank == 0) {
-                uice(i, j) = (double)((i + 1) * (j + 1));
-            } else {
-                uice(i, j) = (double)((i + 5) * (j + 1));
-            }
-        }
-    }
     HField hsnow(ModelArray::Type::H);
     hsnow.resize();
 
@@ -163,11 +127,49 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     // Simulate 4 iterations (timesteps)
     ModelMetadata& metadata = ModelMetadata::getInstance();
     const Duration& timestep = metadata.stepLength();
+    int rank;
+    MPI_Comm_rank(test_comm, &rank);
     for (int ts = 1; ts <= 4; ts++) {
 
         // Update the current timestep and verify it's updated in XIOS
         metadata.incrementTime(timestep);
         REQUIRE(xiosHandler.getCalendarStep() == ts);
+
+        // Update restart fields
+        for (size_t j = 0; j < ny + 1; ++j) {
+            for (size_t i = 0; i < nx + 1; ++i) {
+                if (rank == 0) {
+                    coordinates.components({ i, j })[0] = 1.0 * ts * i;
+                    coordinates.components({ i, j })[1] = 1.0 * ts * j;
+                } else {
+                    coordinates.components({ i, j })[0] = 1.0 * ts * (i + 2);
+                    coordinates.components({ i, j })[1] = 1.0 * ts * j;
+                }
+            }
+        }
+        for (size_t j = 0; j < ny; ++j) {
+            for (size_t i = 0; i < nx; ++i) {
+                for (size_t d = 0; d < DGCOMP; ++d) {
+                    hice.components({ i, j })[d] = 1.0 * ts * (d + DGCOMP * (i + nx * j));
+                }
+            }
+        }
+        for (size_t j = 0; j < CGDEGREE * ny + 1; ++j) {
+            for (size_t i = 0; i < CGDEGREE * nx + 1; ++i) {
+                if (rank == 0) {
+                    uice(i, j) = 1.0 * ts * ((i + 1) * (j + 1));
+                } else {
+                    uice(i, j) = 1.0 * ts * ((i + 5) * (j + 1));
+                }
+            }
+        }
+        for (size_t j = 0; j < ny; ++j) {
+            for (size_t i = 0; i < nx; ++i) {
+                for (size_t d = 0; d < DGSTRESSCOMP; ++d) {
+                    tice.components({ i, j })[d] = 2.0 * ts * (d + DGSTRESSCOMP * (i + nx * j));
+                }
+            }
+        }
 
         // Update diagnostics
         for (size_t j = 0; j < ny; ++j) {
@@ -176,32 +178,31 @@ MPI_TEST_CASE("TestXiosWrite", 2)
             }
         }
 
-        // Set up two ModelStates: one for restarts and one for diagnostics
-        ModelState restarts = { {
-                                    { maskName, mask },
-                                    { coordsName, coordinates },
-                                    { hiceName, hice },
-                                    { ticeName, tice },
-                                    { uName, uice },
-                                },
-            {} };
+        // Set up ModelStates for diagnostics and write out
         ModelState diagnostics = { {
                                        { hsnowName, hsnow },
                                    },
             {} };
-
-        // Write out diagnostics and then restarts
         pio->writeDiagnosticTime(diagnostics, diagnosticFilename);
-        grid.dumpModelState(restarts, restartOutputFilename, true);
     }
+
+    // Set up ModelState for restarts and write out
+    ModelState restarts = { {
+                                { maskName, mask },
+                                { coordsName, coordinates },
+                                { hiceName, hice },
+                                { ticeName, tice },
+                                { uName, uice },
+                            },
+        {} };
+    grid.dumpModelState(restarts, restartOutputFilename, true);
 
     // Check the files have indeed been created
     // NOTE: We don't remove them because they are used in XiosRead_test
-    // TODO: Re-enable file splitting (#898)
-    // REQUIRE(std::filesystem::exists("xios_test_output_20230317171100-20230317201059.nc"));
-    // REQUIRE(std::filesystem::exists("xios_test_output_20230317201100-20230317231059.nc"));
-    REQUIRE(std::filesystem::exists("xios_test_output.nc"));
-    REQUIRE(std::filesystem::exists("xios_test_diagnostic.nc"));
+    REQUIRE(std::filesystem::exists("xios_test_output_20230317171100-20230317201059.nc"));
+    REQUIRE(std::filesystem::exists("xios_test_output_20230317201100-20230317231059.nc"));
+    REQUIRE(std::filesystem::exists("xios_test_diagnostic_20230317171100-20230317201059.nc"));
+    REQUIRE(std::filesystem::exists("xios_test_diagnostic_20230317201100-20230317231059.nc"));
 
     xiosHandler.context_finalize();
     Finalizer::finalize();
