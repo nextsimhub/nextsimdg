@@ -801,8 +801,8 @@ void Xios::createField(const std::string fieldId)
 
     // Set the operation type
     std::string operation;
-    if (configGetInputRestartFieldNames().count(fieldId) > 0 || fieldId == maskName) {
-        // Restarts are read "once" and the mask is fixed so only written once
+    if (configGetInputRestartFieldNames().count(fieldId) > 0) {
+        // Restarts are read "once"
         operation = "once";
     } else if (configGetDiagnosticFieldNames().count(fieldId) > 0) {
         // Diagonstics are averaged over the diagnostic output period
