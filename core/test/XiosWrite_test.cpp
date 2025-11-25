@@ -21,8 +21,8 @@
 
 const std::string testFilesDir = TEST_FILES_DIR;
 const std::string restartInputFilename = testFilesDir + "/xios_test_input.nc";
-const std::string restartOutputFilename = testFilesDir + "/xios_test_output.nc";
-const std::string diagnosticFilename = testFilesDir + "/xios_test_diagnostic.nc";
+const std::string restartOutputFilename = testFilesDir + "/restart.nc";
+const std::string diagnosticFilename = testFilesDir + "/diagnostic.nc";
 
 static const int DGCOMP = 6;
 static const int DGSTRESSCOMP = 8;
@@ -196,10 +196,10 @@ MPI_TEST_CASE("TestXiosWrite", 2)
 
     // Check the files have indeed been created
     // NOTE: We don't remove them because they are used in XiosRead_test
-    REQUIRE(std::filesystem::exists("xios_test_output_20230317171100-20230317201059.nc"));
-    REQUIRE(std::filesystem::exists("xios_test_output_20230317201100-20230317231059.nc"));
-    REQUIRE(std::filesystem::exists("xios_test_diagnostic_20230317171100-20230317201059.nc"));
-    REQUIRE(std::filesystem::exists("xios_test_diagnostic_20230317201100-20230317231059.nc"));
+    REQUIRE(std::filesystem::exists("restart_2023-03-17T17:11:00Z-2023-03-17T20:10:59Z.nc"));
+    REQUIRE(std::filesystem::exists("restart_2023-03-17T20:11:00Z-2023-03-17T23:10:59Z.nc"));
+    REQUIRE(std::filesystem::exists("diagnostic_2023-03-17T17:11:00Z-2023-03-17T20:10:59Z.nc"));
+    REQUIRE(std::filesystem::exists("diagnostic_2023-03-17T20:11:00Z-2023-03-17T23:10:59Z.nc"));
 
     xiosHandler.context_finalize();
     Finalizer::finalize();

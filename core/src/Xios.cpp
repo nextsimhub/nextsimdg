@@ -1204,6 +1204,7 @@ void Xios::setFileOutputFreq(const std::string fileId, const Duration freq, cons
         throw std::runtime_error("Xios: Failed to set output frequency for file '" + fileId + "'");
     }
     if (fieldType == OUTPUT_RESTART || fieldType == DIAGNOSTIC) {
+        // For output files, align the file splitting frequency with the output frequency
         if (cxios_is_defined_file_split_freq(file)) {
             Logged::warning("Xios: Split frequency already set for file '" + fileId + "'");
         }
@@ -1212,6 +1213,10 @@ void Xios::setFileOutputFreq(const std::string fileId, const Duration freq, cons
             throw std::runtime_error(
                 "Xios: Failed to set split frequency for file '" + fileId + "'");
         }
+        // Set format string for file splitting
+        const std::string split_freq_format = "%y-%mo-%dT%h:%mi:%sZ";
+        cxios_set_file_split_freq_format(
+            file, split_freq_format.c_str(), split_freq_format.length());
     }
 }
 
