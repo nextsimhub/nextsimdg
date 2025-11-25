@@ -55,11 +55,9 @@ static const std::string xForcingPfx = "XiosForcing";
 static const std::map<int, std::string> keyMap = { { Xios::ENABLED_KEY, "xios.enable" },
     { Xios::OUTPUT_FIELD_NAMES_KEY, xOutputPfx + ".field_names" },
     { Xios::INPUT_FIELD_NAMES_KEY, xInputPfx + ".field_names" },
-    { Xios::OUTPUT_SPLITFREQ_KEY, xOutputPfx + ".split_period" },
     { Xios::DIAGNOSTIC_PERIOD_KEY, xDiagnosticPfx + ".period" },
     { Xios::DIAGNOSTIC_FILE_KEY, xDiagnosticPfx + ".filename" },
     { Xios::DIAGNOSTIC_FIELD_NAMES_KEY, xDiagnosticPfx + ".field_names" },
-    { Xios::DIAGNOSTIC_SPLITFREQ_KEY, xDiagnosticPfx + ".split_period" },
     { Xios::FORCING_PERIOD_KEY, xForcingPfx + ".period" },
     { Xios::FORCING_FILE_KEY, xForcingPfx + ".filename" },
     { Xios::FORCING_FIELD_NAMES_KEY, xForcingPfx + ".field_names" } };
@@ -1133,10 +1131,9 @@ void Xios::createFile(const std::string fileId, const int fieldType)
     }
 
     // Set the file output frequency
-    std::string periodStr;
     ModelMetadata& metadata = ModelMetadata::getInstance();
     if (fieldType == INPUT_RESTART || fieldType == OUTPUT_RESTART) {
-        setFileOutputFreq(fileId, metadata.restartPeriod);
+        setFileOutputFreq(fileId, metadata.restartPeriod, fieldType);
     } else {
         std::string periodStr;
         if (fieldType == FORCING) {
@@ -1146,31 +1143,9 @@ void Xios::createFile(const std::string fileId, const int fieldType)
                 = Configured::getConfiguration(keyMap.at(DIAGNOSTIC_PERIOD_KEY), std::string());
         }
         if (periodStr.empty() || periodStr == "0") {
-            setFileOutputFreq(fileId, metadata.runLength());
+            setFileOutputFreq(fileId, metadata.runLength(), fieldType);
         } else {
-            setFileOutputFreq(fileId, Duration(periodStr));
-        }
-    }
-
-    // Set the output file splitting frequency
-    if (fieldType == OUTPUT_RESTART || fieldType == DIAGNOSTIC) {
-        std::string splitStr;
-        if (fieldType == OUTPUT_RESTART) {
-            splitStr = Configured::getConfiguration(keyMap.at(OUTPUT_SPLITFREQ_KEY), std::string());
-        } else if (fieldType == DIAGNOSTIC) {
-            splitStr
-                = Configured::getConfiguration(keyMap.at(DIAGNOSTIC_SPLITFREQ_KEY), std::string());
-        }
-        if (!splitStr.empty()) {
-            xios::CFile* file = getFile(fileId);
-            if (cxios_is_defined_file_split_freq(file)) {
-                Logged::warning("Xios: Split frequency already set for file '" + fileId + "'");
-            }
-            cxios_set_file_split_freq(file, convertDurationToXios(Duration(splitStr)));
-            if (!cxios_is_defined_file_split_freq(file)) {
-                throw std::runtime_error(
-                    "Xios: Failed to set split frequency for file '" + fileId + "'");
-            }
+            setFileOutputFreq(fileId, Duration(periodStr), fieldType);
         }
     }
 
@@ -1209,12 +1184,16 @@ void Xios::setFileType(const std::string fileId, const std::string fileType)
 }
 
 /*!
- * Set the output frequency of a file with a given ID
+ * @brief   Set the output frequency of a file with a given ID
  *
- * @param the file ID
- * @param output frequency to set
+ * @details In the case of outputs, the file splitting frequency is also set to coincide with the
+ *          output frequency.
+ *
+ * @param   the file ID
+ * @param   output frequency to set
+ * @param   enum indicating field type
  */
-void Xios::setFileOutputFreq(const std::string fileId, const Duration freq)
+void Xios::setFileOutputFreq(const std::string fileId, const Duration freq, const int fieldType)
 {
     xios::CFile* file = getFile(fileId);
     if (cxios_is_defined_file_output_freq(file)) {
@@ -1223,6 +1202,16 @@ void Xios::setFileOutputFreq(const std::string fileId, const Duration freq)
     cxios_set_file_output_freq(file, convertDurationToXios(freq));
     if (!cxios_is_defined_file_output_freq(file)) {
         throw std::runtime_error("Xios: Failed to set output frequency for file '" + fileId + "'");
+    }
+    if (fieldType == OUTPUT_RESTART || fieldType == DIAGNOSTIC) {
+        if (cxios_is_defined_file_split_freq(file)) {
+            Logged::warning("Xios: Split frequency already set for file '" + fileId + "'");
+        }
+        cxios_set_file_split_freq(file, convertDurationToXios(freq));
+        if (!cxios_is_defined_file_split_freq(file)) {
+            throw std::runtime_error(
+                "Xios: Failed to set split frequency for file '" + fileId + "'");
+        }
     }
 }
 

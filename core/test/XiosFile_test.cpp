@@ -120,19 +120,19 @@ MPI_TEST_CASE("TestXiosFile", 2)
     const std::string minuteId = prefix + "_minute";
     const std::string secondId = prefix + "_second";
     xiosHandler.createFile(yearId, xiosHandler.OUTPUT_RESTART);
-    xiosHandler.setFileOutputFreq(yearId, Duration("P1-0T00:00:00"));
+    xiosHandler.setFileOutputFreq(yearId, Duration("P1-0T00:00:00"), xiosHandler.OUTPUT_RESTART);
     REQUIRE(xiosHandler.getFileOutputFreq(yearId).seconds() == 365 * 24 * 60 * 60);
     xiosHandler.createFile(dayId, xiosHandler.OUTPUT_RESTART);
-    xiosHandler.setFileOutputFreq(dayId, Duration("P0-1T00:00:00"));
+    xiosHandler.setFileOutputFreq(dayId, Duration("P0-1T00:00:00"), xiosHandler.OUTPUT_RESTART);
     REQUIRE(xiosHandler.getFileOutputFreq(dayId).seconds() == 24 * 60 * 60);
     xiosHandler.createFile(hourId, xiosHandler.OUTPUT_RESTART);
-    xiosHandler.setFileOutputFreq(hourId, Duration("P0-0T01:00:00"));
+    xiosHandler.setFileOutputFreq(hourId, Duration("P0-0T01:00:00"), xiosHandler.OUTPUT_RESTART);
     REQUIRE(xiosHandler.getFileOutputFreq(hourId).seconds() == 60 * 60);
     xiosHandler.createFile(minuteId, xiosHandler.OUTPUT_RESTART);
-    xiosHandler.setFileOutputFreq(minuteId, Duration("P0-0T00:01:00"));
+    xiosHandler.setFileOutputFreq(minuteId, Duration("P0-0T00:01:00"), xiosHandler.OUTPUT_RESTART);
     REQUIRE(xiosHandler.getFileOutputFreq(minuteId).seconds() == 60);
     xiosHandler.createFile(secondId, xiosHandler.OUTPUT_RESTART);
-    xiosHandler.setFileOutputFreq(secondId, Duration("P0-0T00:00:01"));
+    xiosHandler.setFileOutputFreq(secondId, Duration("P0-0T00:00:01"), xiosHandler.OUTPUT_RESTART);
     REQUIRE(xiosHandler.getFileOutputFreq(secondId).seconds() == 1);
 
     xiosHandler.close_context_definition();

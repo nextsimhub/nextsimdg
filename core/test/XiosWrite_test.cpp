@@ -46,17 +46,14 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     config << "init_file = " << restartInputFilename << std::endl;
     config << "restart_file = " << restartOutputFilename << std::endl;
     config << "partition_file = xios_test_partition_metadata_2.nc" << std::endl;
-    config << "restart_period = P0-0T01:30:00" << std::endl;
+    config << "restart_period = P0-0T03:00:00" << std::endl;
     config << "[XiosOutput]" << std::endl;
     config << "field_names = " << maskName << "," << coordsName << "," << hiceName << ","
            << ticeName << "," << uName << std::endl;
-    config << "period = P0-0T01:30:00" << std::endl;
-    // TODO: Re-enable file splitting (#898)
-    // config << "split_period = P0-0T03:00:00" << std::endl;
     config << "[XiosDiagnostic]" << std::endl;
     config << "filename = " << diagnosticFilename << std::endl;
     config << "field_names = " << hsnowName << std::endl;
-    config << "period = P0-0T01:30:00" << std::endl;
+    config << "period = P0-0T03:00:00" << std::endl;
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
 
