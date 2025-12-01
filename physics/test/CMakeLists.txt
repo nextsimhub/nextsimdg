@@ -85,7 +85,7 @@ if(NOT ENABLE_MPI)
     set(TEST_EXECUTABLES
         testERA5Atm
         testTOPAZOcn
-        testIceGrowth
+        testNSIceGrowth
         testThermoWinton
         testFEFluxes
         testBIOHFluxes
