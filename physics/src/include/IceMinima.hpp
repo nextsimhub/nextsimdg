@@ -16,6 +16,7 @@ public:
     static inline double c() { return cMin; };
     static const double hMinDefault;
     static const double cMinDefault;
+
 private:
     static double hMin;
     static double cMin;
