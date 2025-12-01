@@ -1,7 +1,4 @@
 spack:
-  packages:
-    all:
-      compiler: [gcc@11.4.0]
   specs:
   - boost@1.80.0+log+program_options
   - catch2
@@ -20,5 +17,6 @@ spack:
     unify: true
   config:
     install_missing_compilers: true
-    install_tree: /opt/software
+    install_tree:
+      root: /opt/software
   view: /opt/views/view
