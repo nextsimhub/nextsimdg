@@ -181,15 +181,15 @@ void ModelMetadata::setDimensionsFromFile(const std::string& filename)
 
         // Dimensions and DG components
         std::multimap<std::string, netCDF::NcDim> dimMap = ncFile.getDims();
-        for (auto entry : ModelArray::definedDimensions) {
-            auto dimType = entry.first;
+        for (auto& entry : ModelArray::definedDimensions) {
+            const ModelArray::Dimension& dimType = entry.first;
             if (dimType == ModelArray::Dimension::DG || dimType == ModelArray::Dimension::DGSTRESS
                 || dimType == ModelArray::Dimension::NCOORDS) {
                 // TODO: Assert that DG in the file equals the compile time DG in the model (#205)
                 continue;
             }
 
-            ModelArray::DimensionSpec& dimensionSpec = entry.second;
+            const ModelArray::DimensionSpec& dimensionSpec = entry.second;
             // Find dimensions in the netCDF file by their name in the ModelArray details
             netCDF::NcDim dim = ncFile.getDim(dimensionSpec.name);
             // Also check the old name

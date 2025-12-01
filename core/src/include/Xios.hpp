@@ -204,7 +204,7 @@ private:
 
     /* I/O */
     void read(const std::string& fieldId, ModelArray& modelarray);
-    void write(const std::string& fieldId, ModelArray& modelarray);
+    void write(const std::string& fieldId, const ModelArray& modelarray);
 
     /* Declare any classes that need to access private members */
     friend ParaGridIO;

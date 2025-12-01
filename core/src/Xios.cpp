@@ -1361,7 +1361,7 @@ void Xios::setupFiles()
  * @param field name
  * @param reference to the ModelArray containing the data to be written
  */
-void Xios::write(const std::string& fieldId, ModelArray& modelarray)
+void Xios::write(const std::string& fieldId, const ModelArray& modelarray)
 {
     if (getFieldReadAccess(fieldId)) {
         throw std::runtime_error("Xios::write: field " + fieldId
