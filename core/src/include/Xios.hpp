@@ -62,41 +62,38 @@ public:
     void configure() override;
 
     /* Calendar, date and duration */
-    void setCalendarStart(const TimePoint start);
-    void setCalendarStep(const int stepNumber);
+    void setCalendarStart(const TimePoint& start);
+    void setCalendarStep(const int& stepNumber);
     void incrementCalendar();
     TimePoint getCalendarStart();
     int getCalendarStep();
     TimePoint getCurrentDate();
 
     /* Axis */
-    void setAxisSize(const std::string axisId, const size_t size);
-    size_t getAxisSize(const std::string axisId);
+    size_t getAxisSize(const std::string& axisId);
 
     /* Field */
-    void createField(const std::string fieldId);
-    void setFieldOperation(const std::string fieldId, const std::string operation);
-    void setFieldGridRef(const std::string fieldId, const std::string gridRef);
-    void setFieldFreqOffset(const std::string fieldId, const Duration freqOffset);
-    std::string getFieldOperation(const std::string fieldId);
-    std::string getFieldGridRef(const std::string fieldId);
-    bool getFieldReadAccess(const std::string fieldId);
-    Duration getFieldFreqOffset(const std::string fieldId);
+    void createField(const std::string& fieldId);
+    void setFieldGridRef(const std::string& fieldId, const std::string& gridRef);
+    void setFieldFreqOffset(const std::string& fieldId, const Duration& freqOffset);
+    std::string getFieldGridRef(const std::string& fieldId);
+    bool getFieldReadAccess(const std::string& fieldId);
+    Duration getFieldFreqOffset(const std::string& fieldId);
     std::set<std::string> configGetForcingFieldNames();
-    ModelArray::Type getFieldType(const std::string fieldId);
-    void setFieldType(const std::string fieldId, ModelArray::Type type);
+    ModelArray::Type getFieldType(const std::string& fieldId);
+    void setFieldType(const std::string& fieldId, const ModelArray::Type& type);
 
     /* File */
-    void createFile(const std::string fileId, const int fieldType);
-    void setFileType(const std::string fileId, const std::string fileType);
-    void setFileOutputFreq(const std::string fileId, const Duration outputFreq);
-    void setFileParAccess(const std::string fileId, const std::string parAccess);
-    std::string getFileType(const std::string fileId);
-    Duration getFileOutputFreq(const std::string fileId);
-    std::string getFileMode(const std::string fileId);
-    std::string getFileParAccess(const std::string fileId);
-    void fileAddField(const std::string fileId, const std::string fieldId);
-    std::vector<std::string> fileGetFieldIds(const std::string fileId);
+    void createFile(const std::string& fileId, const int& fieldType);
+    void setFileType(const std::string& fileId, const std::string& fileType);
+    void setFileOutputFreq(const std::string& fileId, const Duration& outputFreq);
+    void setFileParAccess(const std::string& fileId, const std::string& parAccess);
+    std::string getFileType(const std::string& fileId);
+    Duration getFileOutputFreq(const std::string& fileId);
+    std::string getFileMode(const std::string& fileId);
+    std::string getFileParAccess(const std::string& fileId);
+    void fileAddField(const std::string& fileId, const std::string& fieldId);
+    std::vector<std::string> fileGetFieldIds(const std::string& fileId);
 
     enum {
         ENABLED_KEY,
@@ -142,15 +139,16 @@ private:
 
     /* Calendar, date and duration */
     xios::CCalendarWrapper* clientCalendar;
-    std::string convertXiosDatetimeToString(const cxios_date datetime, const bool isoFormat = true);
-    cxios_date convertStringToXiosDatetime(const std::string datetime, const bool isoFormat = true);
+    std::string convertXiosDatetimeToString(
+        const cxios_date& datetime, const bool& isoFormat = true);
+    cxios_date convertStringToXiosDatetime(std::string datetime, const bool& isoFormat = true);
     std::string convertCStrToCppStr(const char* cStr, int cStrLen);
-    Duration convertDurationFromXios(const cxios_duration duration);
-    cxios_duration convertDurationToXios(const Duration duration);
+    Duration convertDurationFromXios(const cxios_duration& duration);
+    cxios_duration convertDurationToXios(const Duration& duration);
     void setupCalendar();
 
     /* Axis */
-    xios::CAxis* getAxis(const std::string axisId);
+    xios::CAxis* getAxis(const std::string& axisId);
 
     /* Domain */
     std::map<ModelArray::Type, std::string> domainIds = {
@@ -161,11 +159,11 @@ private:
         { ModelArray::Type::CG, "CGDomain" },
     };
     xios::CDomainGroup* getDomainGroup();
-    xios::CDomain* getDomain(std::string domainId);
+    xios::CDomain* getDomain(const std::string& domainId);
     void setupDomains();
 
     /* Grid */
-    xios::CGrid* getGrid(const std::string gridId);
+    xios::CGrid* getGrid(const std::string& gridId);
     std::map<ModelArray::Type, std::string> gridIds = {
         { ModelArray::Type::H, "HGrid" },
         { ModelArray::Type::VERTEX, "VertexGrid" },
@@ -177,19 +175,19 @@ private:
 
     /* Field */
     xios::CFieldGroup* getFieldGroup();
-    xios::CField* getField(const std::string fieldId);
-    void setFieldReadAccess(const std::string fieldId, const bool readAccess);
+    xios::CField* getField(const std::string& fieldId);
     std::set<std::string> configGetOutputRestartFieldNames();
     std::set<std::string> configGetInputRestartFieldNames();
     std::set<std::string> configGetDiagnosticFieldNames();
-    bool configCheckField(const std::string fieldId, const bool readAccess);
+    bool configCheckField(const std::string& fieldId, const bool& readAccess);
+    void setFieldReadAccess(const std::string& fieldId, const bool& readAccess);
     std::map<std::string, ModelArray::Type> fieldTypes;
     void setupFields();
 
     /* File */
     xios::CFileGroup* getFileGroup();
-    xios::CFile* getFile(const std::string fileId);
-    void setFileMode(const std::string fileId, const std::string mode);
+    xios::CFile* getFile(const std::string& fileId);
+    void setFileMode(const std::string& fileId, const std::string& mode);
     std::string outputFileId;
     std::string inputFileId;
     std::string diagnosticFilename;
@@ -205,8 +203,8 @@ private:
     void setupFiles();
 
     /* I/O */
-    void read(const std::string fieldId, ModelArray& modelarray);
-    void write(const std::string fieldId, ModelArray& modelarray);
+    void read(const std::string& fieldId, ModelArray& modelarray);
+    void write(const std::string& fieldId, ModelArray& modelarray);
 
     /* Declare any classes that need to access private members */
     friend ParaGridIO;
