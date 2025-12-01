@@ -2,7 +2,7 @@ set(ModuleDir "${CMAKE_CURRENT_SOURCE_DIR}/modules")
 
 add_subdirectory("${ModuleDir}")
 
-set(Sources "IceGrowth.cpp" "IceMinima.cpp" "SlabOcean.cpp" "BenchmarkCoordinates.cpp")
+set(Sources "IceMinima.cpp" "SlabOcean.cpp" "BenchmarkCoordinates.cpp")
 
 list(TRANSFORM Sources PREPEND "${CMAKE_CURRENT_SOURCE_DIR}/")
 

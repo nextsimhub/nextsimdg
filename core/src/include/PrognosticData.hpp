@@ -10,7 +10,7 @@
 #include "include/IAtmosphereBoundary.hpp"
 #include "include/IDynamics.hpp"
 #include "include/IOceanBoundary.hpp"
-#include "include/IceGrowth.hpp"
+#include "include/IIceGrowth.hpp"
 #include "include/ModelMetadata.hpp"
 #include "include/Time.hpp"
 
@@ -70,7 +70,7 @@ private:
     };
 
     IDynamics* pDynamics;
-    IceGrowth iceGrowth;
+    IIceGrowth* pIceGrowth;
 };
 
 } /* namespace Nextsim */
