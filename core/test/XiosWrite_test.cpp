@@ -20,7 +20,8 @@
 #include <filesystem>
 
 const std::string testFilesDir = TEST_FILES_DIR;
-const std::string restartFilename = testFilesDir + "/xios_test_output.nc";
+const std::string restartInputFilename = testFilesDir + "/xios_test_input.nc";
+const std::string restartOutputFilename = testFilesDir + "/xios_test_output.nc";
 const std::string diagnosticFilename = testFilesDir + "/xios_test_diagnostic.nc";
 
 static const int DGCOMP = 6;
@@ -42,7 +43,8 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     config << "start = 2023-03-17T17:11:00Z" << std::endl;
     config << "stop = 2023-03-17T23:11:00Z" << std::endl;
     config << "time_step = P0-0T01:30:00" << std::endl;
-    config << "restart_file = " << restartFilename << std::endl;
+    config << "init_file = " << restartInputFilename << std::endl;
+    config << "restart_file = " << restartOutputFilename << std::endl;
     config << "partition_file = xios_test_partition_metadata_2.nc" << std::endl;
     config << "restart_period = P0-0T01:30:00" << std::endl;
     config << "[XiosOutput]" << std::endl;
@@ -73,28 +75,10 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     Xios& xiosHandler = Xios::getInstance();
 
     // Set ModelArray dimensions
-    const size_t nx_glo = 4;
-    const size_t ny_glo = 2;
-    const size_t nx = 2;
-    const size_t ny = 2;
-    size_t nx_start;
-    const size_t ny_start = 0;
-    int rank;
-    MPI_Comm_rank(test_comm, &rank);
-    if (rank == 0) {
-        nx_start = 0;
-    } else {
-        nx_start = nx_glo - nx;
-    }
-    ModelArray::setDimension(ModelArray::Dimension::X, nx_glo, nx, nx_start);
-    ModelArray::setDimension(ModelArray::Dimension::XVERTEX, nx_glo + 1, nx + 1, nx_start);
-    ModelArray::setDimension(
-        ModelArray::Dimension::XCG, CGDEGREE * nx_glo + 1, CGDEGREE * nx + 1, CGDEGREE * nx_start);
-    ModelArray::setDimension(ModelArray::Dimension::Y, ny_glo, ny, ny_start);
-    ModelArray::setDimension(ModelArray::Dimension::YVERTEX, ny_glo + 1, ny + 1, ny_start);
-    ModelArray::setDimension(
-        ModelArray::Dimension::YCG, CGDEGREE * ny_glo + 1, CGDEGREE * ny + 1, ny_start);
+    const size_t nx = ModelArray::size(ModelArray::Dimension::X);
+    const size_t ny = ModelArray::size(ModelArray::Dimension::Y);
     REQUIRE(ModelArray::nComponents(ModelArray::Type::DG) == DGCOMP);
+    REQUIRE(ModelArray::size(ModelArray::Dimension::DG) == DGCOMP);
 
     // Create ParametricGrid and ParaGridIO instances
     // NOTE: XIOS axes, domains, and grids are created by the ParaGridIO constructor
@@ -123,6 +107,8 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     }
     VertexField coordinates(ModelArray::Type::VERTEX);
     coordinates.resize();
+    int rank;
+    MPI_Comm_rank(test_comm, &rank);
     for (size_t j = 0; j < ny + 1; ++j) {
         for (size_t i = 0; i < nx + 1; ++i) {
             if (rank == 0) {
@@ -205,7 +191,7 @@ MPI_TEST_CASE("TestXiosWrite", 2)
 
         // Write out diagnostics and then restarts
         pio->writeDiagnosticTime(diagnostics, diagnosticFilename);
-        grid.dumpModelState(restarts, restartFilename, true);
+        grid.dumpModelState(restarts, restartOutputFilename, true);
     }
 
     // Check the files have indeed been created then remove it
