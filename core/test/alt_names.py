@@ -1,4 +1,4 @@
-"""Generate the old_names.nc file used by core/test/ParaGrid_test.cpp."""
+"""Generate the alt_names.nc file used by core/test/ParaGrid_test.cpp."""
 
 import time
 
@@ -16,7 +16,7 @@ if __name__ == "__main__":
     n_dgstress = 1
     n_coords = 2
 
-    ncFile = netCDF4.Dataset("old_names.nc", "w", format="NETCDF4")
+    ncFile = netCDF4.Dataset("alt_names.nc", "w", format="NETCDF4")
 
     ncFile.structure_name = "parametric_rectangular"
 
@@ -28,8 +28,8 @@ if __name__ == "__main__":
     formatted.format = "%Y-%m-%dT%H:%M:%SZ"
     formatted[0] = "2010-01-01T00:00:00Z"
 
-    yDim = ncFile.createDimension("y", nfirst)
-    xDim = ncFile.createDimension("x", nsecond)
+    yDim = ncFile.createDimension("ydim", nfirst)
+    xDim = ncFile.createDimension("xdim", nsecond)
     yVertexDim = ncFile.createDimension("yvertex", nfirst + 1)
     xVertexDim = ncFile.createDimension("xvertex", nsecond + 1)
     ycg_dim = ncFile.createDimension("y_cg", nfirst * ncg + 1)
@@ -38,21 +38,21 @@ if __name__ == "__main__":
     dgs_comp = ncFile.createDimension("dgstress_comp", n_dgstress)
     n_coords_comp = ncFile.createDimension("ncoords", n_coords)
 
-    field_dims = ("y", "x")
+    field_dims = ("ydim", "xdim")
     coord_dims = ("yvertex", "xvertex", "ncoords")
 
     # Array coordinates
     space = 25000.0  # 25 km in metres
 
-    x_vertex1d = np.arange(0, space * (nsecond + 1), space)
-    y_vertex1d = np.arange(0, space * (nfirst + 1), space)
+    xvertex1d = np.arange(0, space * (nsecond + 1), space)
+    yvertex1d = np.arange(0, space * (nfirst + 1), space)
 
-    x_vertex = np.resize(x_vertex1d, (nfirst + 1, nsecond + 1))
-    y_vertex = np.resize(y_vertex1d, (nsecond + 1, nfirst + 1)).transpose()
+    xvertex = np.resize(xvertex1d, (nfirst + 1, nsecond + 1))
+    yvertex = np.resize(yvertex1d, (nsecond + 1, nfirst + 1)).transpose()
 
     coords = ncFile.createVariable("coords", "f8", coord_dims)
-    coords[:, :, 0] = x_vertex
-    coords[:, :, 1] = y_vertex
+    coords[:, :, 0] = xvertex
+    coords[:, :, 1] = yvertex
 
     x_cell1d = np.arange(space * 0.5, space * (nsecond + 0.5), space)
     y_cell1d = np.arange(space * 0.5, space * (nfirst + 0.5), space)
@@ -60,9 +60,9 @@ if __name__ == "__main__":
     x_cell = np.resize(x_cell1d, (nfirst, nsecond))
     y_cell = np.resize(y_cell1d, (nsecond, nfirst)).transpose()
 
-    elem_x = ncFile.createVariable("x", "f8", field_dims)
+    elem_x = ncFile.createVariable("xdim", "f8", field_dims)
     elem_x[:, :] = x_cell
-    elem_y = ncFile.createVariable("y", "f8", field_dims)
+    elem_y = ncFile.createVariable("ydim", "f8", field_dims)
     elem_y[:, :] = y_cell
 
     grid_azimuth = ncFile.createVariable("grid_azimuth", "f8", field_dims)

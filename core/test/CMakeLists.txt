@@ -12,7 +12,7 @@ set(ModulesRoot "../src/modules")
 
 # Generate netCDF files for tests
 execute_process(
-    COMMAND "${Python_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/old_names.py"
+    COMMAND "${Python_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/alt_names.py"
     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
 )
 execute_process(

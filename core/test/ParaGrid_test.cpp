@@ -489,12 +489,12 @@ TEST_CASE("Check an exception is thrown for an invalid file name")
 }
 
 #ifdef USE_MPI
-MPI_TEST_CASE("Check if a file with the old dimension names can be read", 2)
+MPI_TEST_CASE("Check if a file with the alternative dimension names can be read", 2)
 #else
-TEST_CASE("Check if a file with the old dimension names can be read")
+TEST_CASE("Check if a file with the alternative dimension names can be read")
 #endif
 {
-    std::string inputFilename = std::string(TEST_FILE_SOURCE) + "/old_names.nc";
+    std::string inputFilename = std::string(TEST_FILE_SOURCE) + "/alt_names.nc";
 
     Module::setImplementation<IStructure>("Nextsim::ParametricGrid");
 
