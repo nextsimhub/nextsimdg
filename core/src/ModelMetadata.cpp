@@ -165,7 +165,7 @@ ModelMetadata::ModelMetadata()
 
 #endif
 
-void ModelMetadata::setDimensionsFromFile(const std::string filename)
+void ModelMetadata::setDimensionsFromFile(const std::string& filename)
 {
     if (filename.empty()) {
         throw std::runtime_error(

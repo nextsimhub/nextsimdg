@@ -79,7 +79,7 @@ public:
      *          set. Otherwise, a consistency check is made against the dimensions read from file
      *          and already set.
      */
-    void setDimensionsFromFile(const std::string filename);
+    void setDimensionsFromFile(const std::string& filename);
 
     // finalize ModelMetadata
     static void finalize();
