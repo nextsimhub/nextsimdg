@@ -23,8 +23,8 @@ formatted = ncFile.createVariable("formatted", str)
 formatted.format = "%Y-%m-%dT%H:%M:%SZ"
 formatted[0] = "2000-01-01T00:00:00Z"
 
-xDim = ncFile.createDimension("x", nx)
-yDim = ncFile.createDimension("y", ny)
+xDim = ncFile.createDimension("xdim", nx)
+yDim = ncFile.createDimension("ydim", ny)
 nLay = ncFile.createDimension("nLayers", nLayers)
 xVertexDim = ncFile.createDimension("xvertex", nx + 1)
 yVertexDim = ncFile.createDimension("yvertex", ny + 1)
@@ -34,7 +34,7 @@ dg_comp = ncFile.createDimension("dg_comp", n_dg)
 dgs_comp = ncFile.createDimension("dgstress_comp", n_dgstress)
 n_coords_comp = ncFile.createDimension("ncoords", n_coords)
 
-hfield_dims = ("y", "x")
+hfield_dims = ("ydim", "xdim")
 
 # fmt: off
 mask33 = np.array(
@@ -165,7 +165,7 @@ hice = ncFile.createVariable("hice", "f8", hfield_dims)
 hice[:, :] = cice[:, :] * 2
 hsnow = ncFile.createVariable("hsnow", "f8", hfield_dims)
 hsnow[:, :] = cice[:, :] / 2
-tice = ncFile.createVariable("tice", "f8", ("nLayers", "y", "x"))
+tice = ncFile.createVariable("tice", "f8", ("nLayers", "ydim", "xdim"))
 tice[0, :, :] = -0.5 - cice[:, :]
 tice[1, :, :] = -1.5 - cice[:, :]
 tice[2, :, :] = -2.5 - cice[:, :]

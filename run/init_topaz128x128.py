@@ -92,9 +92,9 @@ if __name__ == "__main__":
     formatted.format = "%Y-%m-%dT%H:%M:%SZ"
     formatted[0] = "2010-01-01T00:00:00Z"
 
-    xDim = ncFile.createDimension("x", nx)
-    yDim = ncFile.createDimension("y", ny)
-    nLay = ncFile.createDimension("z", nLayers)
+    xDim = ncFile.createDimension("xdim", nx)
+    yDim = ncFile.createDimension("ydim", ny)
+    nLay = ncFile.createDimension("zdim", nLayers)
     xVertexDim = ncFile.createDimension("xvertex", nx + 1)
     yVertexDim = ncFile.createDimension("yvertex", ny + 1)
     xcg_dim = ncFile.createDimension("x_cg", nx * ncg + 1)
@@ -103,7 +103,7 @@ if __name__ == "__main__":
     dgs_comp = ncFile.createDimension("dgstress_comp", n_dgstress)
     n_coords_comp = ncFile.createDimension("ncoords", n_coords)
 
-    hfield_dims = ("y", "x")
+    hfield_dims = ("ydim", "xdim")
 
     # Array coordinates
     array_size1d = 20.0  # About 20˚ square
@@ -206,7 +206,7 @@ if __name__ == "__main__":
     mu = -0.055
 
     # Ice temperature
-    tice = ncFile.createVariable("tice", "f8", ("z", "y", "x"))
+    tice = ncFile.createVariable("tice", "f8", ("zdim", "ydim", "xdim"))
     ice_melt = mu * 5  # Melting point of sea ice (salinity = 5) in ˚C
     # Tice outside the ice pack is the melting point of pure water ice, which is conveniently 0˚C
     ice_temp2d = np.fmin(sst_data, ice_melt) * isice
