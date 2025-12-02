@@ -14,7 +14,7 @@ ConstantAtmosphereBoundary::ConstantAtmosphereBoundary()
 void ConstantAtmosphereBoundary::setData(const ModelState::DataMap& ms)
 {
     // Directly set the array values
-    qia = 305.288; // Pulled from IceGrowth_test.cpp: New Ice Formation
+    qia = 305.288; // Pulled from NSColumnPhysics_test.cpp: New Ice Formation
     dqia_dt = 4.5036;
     qow = 307.546;
     subl = 0.; // Seems unlikely…

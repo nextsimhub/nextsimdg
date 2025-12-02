@@ -6,7 +6,7 @@
 #include <doctest/doctest.h>
 #include <sstream>
 
-#include "include/IceGrowth.hpp"
+#include "include/NSColumnPhysics.hpp"
 
 #include "include/Configurator.hpp"
 #include "include/IAtmosphereBoundary.hpp"
@@ -23,7 +23,7 @@
 extern template class Module::Module<Nextsim::IIceThermodynamics>;
 namespace Nextsim {
 
-TEST_SUITE_BEGIN("IceGrowth");
+TEST_SUITE_BEGIN("NSColumnPhysics");
 TEST_CASE("New ice formation")
 {
     ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
@@ -90,7 +90,7 @@ TEST_CASE("New ice formation")
     ModelComponent::getStore().registerArray(Protected::DAMAGE, &oldDamage, RO);
 
     TimestepTime tst = { TimePoint("2000-001"), Duration("P0-1") };
-    IceGrowth ig;
+    NSColumnPhysics ig;
     ig.configure();
 
     HField tsurf;
@@ -174,7 +174,7 @@ TEST_CASE("Melting conditions")
     ModelComponent::getStore().registerArray(Protected::DAMAGE, &oldDamage, RO);
 
     TimestepTime tst = { TimePoint("2000-001"), Duration("P0-0T0:10:0") };
-    IceGrowth ig;
+    NSColumnPhysics ig;
     ig.configure();
 
     HField tsurf;
@@ -266,7 +266,7 @@ TEST_CASE("Freezing conditions")
     ModelComponent::getStore().registerArray(Protected::DAMAGE, &oldDamage, RO);
 
     TimestepTime tst = { TimePoint("2000-001"), Duration("P0-0T0:10:0") };
-    IceGrowth ig;
+    NSColumnPhysics ig;
     ig.configure();
 
     HField tsurf;
@@ -364,7 +364,7 @@ TEST_CASE("Dummy ice")
 
     TimestepTime tst = { TimePoint("2000-001"), Duration("P0-0T0:10:0") };
 
-    IceGrowth ig;
+    NSColumnPhysics ig;
     ig.configure();
 
     HField tsurf;
@@ -474,7 +474,7 @@ TEST_CASE("Zero thickness")
         Module::newImpl<IIceThermodynamics, ZeroThicknessIce>);
 
     TimestepTime tst = { TimePoint("2000-001"), Duration("P0-1") };
-    IceGrowth ig;
+    NSColumnPhysics ig;
     ig.configure();
 
     HField tsurf;
@@ -587,7 +587,7 @@ TEST_CASE("Turn off thermo")
     ModelComponent::getStore().registerArray(Protected::DAMAGE, &oldDamage, RO);
 
     TimestepTime tst = { TimePoint("2000-001"), Duration("P0-0T0:10:0") };
-    IceGrowth ig;
+    NSColumnPhysics ig;
     ig.configure();
 
     HField tsurf;

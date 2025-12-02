@@ -30,6 +30,7 @@ PrognosticData::PrognosticData()
     , pAtmBdy(nullptr)
     , pOcnBdy(nullptr)
     , pDynamics(nullptr)
+    , pColumnPhysics(nullptr)
 {
     getStore().registerArray(Shared::DAMAGE, &damage, RW);
     getStore().registerArray(Shared::H_ICE_DG, &hice, RW);
@@ -53,7 +54,8 @@ void PrognosticData::configure()
     pDynamics = &Module::getImplementation<IDynamics>();
     tryConfigure(pDynamics);
 
-    tryConfigure(iceGrowth);
+    pColumnPhysics = &Module::getImplementation<IColumnPhysics>();
+    tryConfigure(pColumnPhysics);
 
     checkAll() = Configured::getConfiguration(keyMap.at(CHECKFIELDS_KEY), checkFieldsDefault);
     checkFast
@@ -108,7 +110,7 @@ void PrognosticData::setData(const ModelState::DataMap& ms)
     pAtmBdy->setData(ms);
     pOcnBdy->setData(ms);
     pDynamics->setData(ms);
-    iceGrowth.setData(ms);
+    pColumnPhysics->setData(ms);
 }
 
 void PrognosticData::update(const TimestepTime& tst)
@@ -119,8 +121,8 @@ void PrognosticData::update(const TimestepTime& tst)
     pDynamics->prepareAdvection();
 
     // Take the updated values of the true ice and snow thicknesses, and reset hice0 and hsnow0
-    // IceGrowth updates its own fields during update
-    iceGrowth.update(tst);
+    // ColumnPhysics updates its own fields during update
+    pColumnPhysics->update(tst);
 
     // Dynamics
     pDynamics->update(tst);
@@ -142,7 +144,7 @@ ModelState PrognosticData::getStateDiagnostic() const
 
     // Get the prognostic data from the dynamics, including the full dynamics state
     state.merge(pDynamics->getStateDiagnostic());
-    state.merge(iceGrowth.getStateDiagnostic());
+    state.merge(pColumnPhysics->getStateDiagnostic());
     state.merge(pAtmBdy->getStateDiagnostic());
     state.merge(pOcnBdy->getStateDiagnostic());
 
@@ -162,7 +164,7 @@ ModelState PrognosticData::getStatePrognostic() const
 
     // Get the prognostic data from the dynamics, including the full dynamics state
     state.merge(pDynamics->getStatePrognostic());
-    state.merge(iceGrowth.getStatePrognostic());
+    state.merge(pColumnPhysics->getStatePrognostic());
     state.merge(pAtmBdy->getStatePrognostic());
     state.merge(pOcnBdy->getStatePrognostic());
 
@@ -189,7 +191,7 @@ PrognosticData::HelpMap& PrognosticData::getHelpRecursive(HelpMap& map, bool get
     Module::getHelpRecursive<IAtmosphereBoundary>(map, getAll);
     Module::getHelpRecursive<IOceanBoundary>(map, getAll);
     Module::getHelpRecursive<IDynamics>(map, getAll);
-    IceGrowth::getHelpRecursive(map, getAll);
+    Module::getHelpRecursive<IColumnPhysics>(map, getAll);
     getHelpText(map, getAll);
     return map;
 }
