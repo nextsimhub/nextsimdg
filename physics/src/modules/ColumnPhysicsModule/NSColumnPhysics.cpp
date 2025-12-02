@@ -3,9 +3,9 @@
  * @author  Einar Ólason <einar.olason@nersc.no>
  */
 
-#include <ColumnPhysicsModule/include/NSColumnPhysics.hpp>
 #include "include/Finalizer.hpp"
 #include "include/NextsimModule.hpp"
+#include "include/NSColumnPhysics.hpp"
 #include "include/constants.hpp"
 
 namespace Nextsim {
