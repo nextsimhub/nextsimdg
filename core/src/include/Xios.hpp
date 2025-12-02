@@ -63,7 +63,7 @@ public:
 
     /* Calendar, date and duration */
     void setCalendarStart(const TimePoint& start);
-    void setCalendarStep(const int& stepNumber);
+    void setCalendarStep(const int stepNumber);
     void incrementCalendar();
     TimePoint getCalendarStart();
     int getCalendarStep();
@@ -140,8 +140,8 @@ private:
     /* Calendar, date and duration */
     xios::CCalendarWrapper* clientCalendar;
     std::string convertXiosDatetimeToString(
-        const cxios_date& datetime, const bool& isoFormat = true);
-    cxios_date convertStringToXiosDatetime(std::string datetime, const bool& isoFormat = true);
+        const cxios_date& datetime, const bool isoFormat = true);
+    cxios_date convertStringToXiosDatetime(std::string datetime, const bool isoFormat = true);
     std::string convertCStrToCppStr(const char* cStr, int cStrLen);
     Duration convertDurationFromXios(const cxios_duration& duration);
     cxios_duration convertDurationToXios(const Duration& duration);

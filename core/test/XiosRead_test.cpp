@@ -93,12 +93,9 @@ MPI_TEST_CASE("TestXiosRead", 2)
     REQUIRE(ModelArray::size(ModelArray::Dimension::DG) == DGCOMP);
 
     // Read restarts from file and check they take the expected values
-    const ModelState& restarts = grid.getModelState(restartFilename);
     int rank;
     MPI_Comm_rank(test_comm, &rank);
-    for (auto& entry : restarts.data) {
-        const std::string& fieldName = entry.first;
-        const ModelArray& modelarray = entry.second;
+    for (const auto [fieldName, modelarray] : grid.getModelState(restartFilename).data) {
         if (fieldName == maskName) {
             for (size_t j = 0; j < ny; ++j) {
                 for (size_t i = 0; i < nx; ++i) {
@@ -156,11 +153,9 @@ MPI_TEST_CASE("TestXiosRead", 2)
 
         // Read forcings from file and check they take the expected values
         const TimePoint& time = xiosHandler.getCurrentDate();
-        const ModelState& forcings
+        const ModelState forcings
             = pio->readForcingTimeStatic(forcingFieldNames, time, forcingFilename);
-        for (auto& entry : forcings.data) {
-            const std::string& fieldName = entry.first;
-            const ModelArray& modelarray = entry.second;
+        for (const auto& [fieldName, modelarray] : forcings.data) {
             REQUIRE(fieldName == hsnowName);
             for (size_t j = 0; j < ny; ++j) {
                 for (size_t i = 0; i < nx; ++i) {

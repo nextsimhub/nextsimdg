@@ -254,7 +254,7 @@ void Xios::setupCalendar()
  * @param isoFormat as bool
  * @return corresponding string representation
  */
-std::string Xios::convertXiosDatetimeToString(const cxios_date& datetime, const bool& isoFormat)
+std::string Xios::convertXiosDatetimeToString(const cxios_date& datetime, const bool isoFormat)
 {
     boost::format fmt;
     if (isoFormat) {
@@ -277,7 +277,7 @@ std::string Xios::convertXiosDatetimeToString(const cxios_date& datetime, const 
  * @param isoFormat as bool
  * @return corresponding XIOS datetime representation
  */
-cxios_date Xios::convertStringToXiosDatetime(std::string datetimeStr, const bool& isoFormat)
+cxios_date Xios::convertStringToXiosDatetime(std::string datetimeStr, const bool isoFormat)
 {
     if (isoFormat) {
         datetimeStr = datetimeStr.replace(10, 1, " "); // replaces T with a space
@@ -342,7 +342,7 @@ void Xios::setCalendarStart(const TimePoint& start)
  *
  * @param Step number to update to
  */
-void Xios::setCalendarStep(const int& stepNumber) { cxios_update_calendar(stepNumber); }
+void Xios::setCalendarStep(const int stepNumber) { cxios_update_calendar(stepNumber); }
 
 /*!
  * Increment XIOS' calendar iteration/step number by one.
@@ -470,9 +470,7 @@ void Xios::setupDomains()
     ModelArray::setNComponents(ModelArray::Type::VERTEX, ModelArray::nCoords);
     ModelArray::setNComponents(ModelArray::Type::DG, getAxisSize("DGAxis"));
     ModelArray::setNComponents(ModelArray::Type::DGSTRESS, getAxisSize("DGSAxis"));
-    for (auto& entry : domainIds) {
-        const ModelArray::Type& type = entry.first;
-        const std::string& domainId = entry.second;
+    for (const auto& [type, domainId] : domainIds) {
         bool exists;
         cxios_domain_valid_id(&exists, domainId.c_str(), domainId.length());
         if (exists) {
@@ -602,9 +600,7 @@ void Xios::setupDomains()
 void Xios::setupGrids()
 {
     // Create XIOS grid associated with domain and possibly axis
-    for (auto& entry : gridIds) {
-        ModelArray::Type type = entry.first;
-        const std::string& gridId = entry.second;
+    for (const auto& [type, gridId] : gridIds) {
         xios::CGrid* grid = getGrid(gridId);
         const std::string& domainId = domainIds[type];
         xios::CDomain* domain = getDomain(domainId);
@@ -953,13 +949,11 @@ void Xios::setupFields()
             auto& modelMPI = ModelMPI::getInstance();
             netCDF::NcFilePar ncFile(filename, netCDF::NcFile::read, modelMPI.getComm());
 
-            for (auto& entry : ncFile.getVars()) {
-                const std::string& fieldId = entry.first;
+            for (auto& [fieldId, var] : ncFile.getVars()) {
                 // Only consider fields that appear in the config
                 if (configFieldIds.count(fieldId) == 0) {
                     continue;
                 }
-                netCDF::NcVar& var = entry.second;
                 // Determine the type from the dimensions
                 std::vector<netCDF::NcDim> varDims = var.getDims();
                 std::string dimKey = "";
@@ -1347,10 +1341,9 @@ void Xios::setupFiles()
     diagnosticFileId = ((std::filesystem::path)diagnosticFilename).filename().replace_extension();
 
     // Create files for any non-empty file IDs
-    for (auto& entry : fileMap) {
-        const std::string fileId = entry.second;
+    for (const auto& [fileType, fileId] : fileMap) {
         if (!fileId.empty()) {
-            createFile(fileId, entry.first);
+            createFile(fileId, fileType);
         }
     }
 }
