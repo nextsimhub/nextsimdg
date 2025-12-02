@@ -93,52 +93,51 @@ MPI_TEST_CASE("TestXiosRead", 2)
     REQUIRE(ModelArray::size(ModelArray::Dimension::DG) == DGCOMP);
 
     // Read restarts from file and check they take the expected values
-    ModelState restarts = grid.getModelState(restartFilename);
     int rank;
     MPI_Comm_rank(test_comm, &rank);
-    for (auto& entry : restarts.data) {
-        if (entry.first == maskName) {
+    for (const auto [fieldName, modelarray] : grid.getModelState(restartFilename).data) {
+        if (fieldName == maskName) {
             for (size_t j = 0; j < ny; ++j) {
                 for (size_t i = 0; i < nx; ++i) {
-                    REQUIRE(entry.second(i, j) == doctest::Approx(j >= 1 ? 1.0 : 0.0));
+                    REQUIRE(modelarray(i, j) == doctest::Approx(j >= 1 ? 1.0 : 0.0));
                 }
             }
-        } else if (entry.first == coordsName) {
+        } else if (fieldName == coordsName) {
             for (size_t j = 0; j < ny + 1; ++j) {
                 for (size_t i = 0; i < nx + 1; ++i) {
                     if (rank == 0) {
-                        REQUIRE(entry.second.components({ i, j })[0] == doctest::Approx(i));
+                        REQUIRE(modelarray.components({ i, j })[0] == doctest::Approx(i));
                     } else {
-                        REQUIRE(entry.second.components({ i, j })[0] == doctest::Approx(i + 2));
+                        REQUIRE(modelarray.components({ i, j })[0] == doctest::Approx(i + 2));
                     }
-                    REQUIRE(entry.second.components({ i, j })[1] == doctest::Approx(j));
+                    REQUIRE(modelarray.components({ i, j })[1] == doctest::Approx(j));
                 }
             }
-        } else if (entry.first == hiceName) {
+        } else if (fieldName == hiceName) {
             for (size_t j = 0; j < ny; ++j) {
                 for (size_t i = 0; i < nx; ++i) {
                     for (size_t d = 0; d < DGCOMP; ++d) {
                         float expected = 1.0 * (d + DGCOMP * (i + nx * j));
-                        REQUIRE(entry.second.components({ i, j })[d] == doctest::Approx(expected));
+                        REQUIRE(modelarray.components({ i, j })[d] == doctest::Approx(expected));
                     }
                 }
             }
-        } else if (entry.first == ticeName) {
+        } else if (fieldName == ticeName) {
             for (size_t j = 0; j < ny; ++j) {
                 for (size_t i = 0; i < nx; ++i) {
                     for (size_t d = 0; d < DGSTRESSCOMP; ++d) {
                         float expected = 2.0 * (d + DGSTRESSCOMP * (i + nx * j));
-                        REQUIRE(entry.second.components({ i, j })[d] == doctest::Approx(expected));
+                        REQUIRE(modelarray.components({ i, j })[d] == doctest::Approx(expected));
                     }
                 }
             }
-        } else if (entry.first == uName) {
+        } else if (fieldName == uName) {
             for (size_t j = 0; j < CGDEGREE * ny + 1; ++j) {
                 for (size_t i = 0; i < CGDEGREE * nx + 1; ++i) {
                     if (rank == 0) {
-                        REQUIRE(entry.second(i, j) == doctest::Approx((i + 1) * (j + 1)));
+                        REQUIRE(modelarray(i, j) == doctest::Approx((i + 1) * (j + 1)));
                     } else {
-                        REQUIRE(entry.second(i, j) == doctest::Approx((i + 5) * (j + 1)));
+                        REQUIRE(modelarray(i, j) == doctest::Approx((i + 5) * (j + 1)));
                     }
                 }
             }
@@ -147,19 +146,20 @@ MPI_TEST_CASE("TestXiosRead", 2)
 
     // Simulate 4 iterations (timesteps), reading forcing data at each
     ModelMetadata& metadata = ModelMetadata::getInstance();
-    Duration timestep = metadata.stepLength();
+    const Duration& timestep = metadata.stepLength();
     // TODO: Avoid making configGetForcingFieldNames public?
     auto forcingFieldNames = xiosHandler.configGetForcingFieldNames();
     for (int ts = 0; ts <= 4; ts++) {
 
         // Read forcings from file and check they take the expected values
-        TimePoint time = xiosHandler.getCurrentDate();
-        ModelState forcings = pio->readForcingTimeStatic(forcingFieldNames, time, forcingFilename);
-        for (auto& entry : forcings.data) {
-            REQUIRE(entry.first == hsnowName);
+        const TimePoint& time = xiosHandler.getCurrentDate();
+        const ModelState forcings
+            = pio->readForcingTimeStatic(forcingFieldNames, time, forcingFilename);
+        for (const auto& [fieldName, modelarray] : forcings.data) {
+            REQUIRE(fieldName == hsnowName);
             for (size_t j = 0; j < ny; ++j) {
                 for (size_t i = 0; i < nx; ++i) {
-                    REQUIRE(entry.second(i, j) == doctest::Approx(0.1 * ts));
+                    REQUIRE(modelarray(i, j) == doctest::Approx(0.1 * ts));
                 }
             }
         }

@@ -161,7 +161,7 @@ MPI_TEST_CASE("TestXiosWrite", 2)
 
     // Simulate 4 iterations (timesteps)
     ModelMetadata& metadata = ModelMetadata::getInstance();
-    Duration timestep = metadata.stepLength();
+    const Duration& timestep = metadata.stepLength();
     for (int ts = 1; ts <= 4; ts++) {
 
         // Update the current timestep and verify it's updated in XIOS
