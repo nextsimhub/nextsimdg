@@ -23,11 +23,11 @@ if(NOT ENABLE_MPI)
     target_compile_definitions(testTOPAZOcn PRIVATE TEST_FILES_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}\")
     target_link_libraries(testTOPAZOcn PRIVATE nextsimlib doctest::doctest)
 
-    add_executable(testNSIceGrowth "NSIceGrowth_test.cpp")
-    target_include_directories(testNSIceGrowth PRIVATE "${ModulesRoot}/OceanBoundaryModule"
-                                                     "${ModulesRoot}/IceGrowthModule"
+    add_executable(testNSColumnPhysics "NSColumnPhysics_test.cpp")
+    target_include_directories(testNSColumnPhysics PRIVATE "${ModulesRoot}/OceanBoundaryModule"
+                                                     "${ModulesRoot}/ColumnPhysicsModule"
                                                      "${CoreModulesRoot}/FreezingPointModule")
-    target_link_libraries(testNSIceGrowth PRIVATE nextsimlib doctest::doctest)
+    target_link_libraries(testNSColumnPhysics PRIVATE nextsimlib doctest::doctest)
 
     add_executable(testThermoWinton "ThermoWintonTemperature_test.cpp")
     target_include_directories(testThermoWinton PRIVATE "${ModulesRoot}/IceThermodynamicsModule"
@@ -85,7 +85,7 @@ if(NOT ENABLE_MPI)
     set(TEST_EXECUTABLES
         testERA5Atm
         testTOPAZOcn
-        testNSIceGrowth
+        testNSColumnPhysics
         testThermoWinton
         testFEFluxes
         testBIOHFluxes

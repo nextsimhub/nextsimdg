@@ -3,8 +3,8 @@
  * @author  Einar Ólason <einar.olason@nersc.no>
  */
 
-#ifndef IICEGROWTH_HPP
-#define IICEGROWTH_HPP
+#ifndef ICOLUMNPHYSICS_HPP
+#define ICOLUMNPHYSICS_HPP
 
 #include "include/Configured.hpp"
 #include "include/IDamageHealing.hpp"
@@ -17,13 +17,13 @@
 
 namespace Nextsim {
 
-class IIceGrowth : public ModelComponent {
+class IColumnPhysics : public ModelComponent {
 public:
-    virtual ~IIceGrowth() = default;
+    virtual ~IColumnPhysics() = default;
 
     virtual void update(const TimestepTime&) = 0;
 protected:
-    IIceGrowth() = default;
+    IColumnPhysics() = default;
 
     static void setCMin(double cMin) { IceMinima::cMin = cMin; };
     static void setHMin(double hMin) { IceMinima::hMin = hMin; };
@@ -31,4 +31,4 @@ protected:
 
 } /* namespace Nextsim */
 
-#endif /* IICEGROWTH_HPP */
+#endif /* ICOLUMNPHYSICS_HPP */

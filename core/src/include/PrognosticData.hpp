@@ -5,11 +5,11 @@
 #ifndef PROGNOSTICDATA_HPP
 #define PROGNOSTICDATA_HPP
 
+#include <include/IColumnPhysics.hpp>
 #include "include/CheckingModelComponent.hpp"
 #include "include/Configured.hpp"
 #include "include/IAtmosphereBoundary.hpp"
 #include "include/IDynamics.hpp"
-#include "include/IIceGrowth.hpp"
 #include "include/IOceanBoundary.hpp"
 #include "include/ModelMetadata.hpp"
 #include "include/Time.hpp"
@@ -70,7 +70,7 @@ private:
     };
 
     IDynamics* pDynamics;
-    IIceGrowth* pIceGrowth;
+    IColumnPhysics* pColumnPhysics;
 };
 
 } /* namespace Nextsim */

@@ -3,17 +3,20 @@
  * @author  Einar Ólason <einar.olason@nersc.no>
  */
 
-#ifndef NSICEGROWTH_HPP
-#define NSICEGROWTH_HPP
+#ifndef NSCOLUMNPHYSICS_HPP
+#define NSCOLUMNPHYSICS_HPP
 
-#include "include/IIceGrowth.hpp"
+#include "include/IColumnPhysics.hpp"
 
 namespace Nextsim {
 
-class NSIceGrowth : public IIceGrowth, public Configured<NSIceGrowth> {
+/*!
+ * The column physics package derived from neXtSIM-Lagrangian
+ */
+class NSColumnPhysics : public IColumnPhysics, public Configured<NSColumnPhysics> {
 public:
-    NSIceGrowth();
-    virtual ~NSIceGrowth() = default;
+    NSColumnPhysics();
+    virtual ~NSColumnPhysics() = default;
 
     enum {
         ICE_THERMODYNAMICS_KEY,
@@ -26,7 +29,7 @@ public:
     void configure() override;
     ConfigMap getConfiguration() const override;
 
-    std::string getName() const override { return "NSIceGrowth"; }
+    std::string getName() const override { return "NSColumnPhysics"; }
 
     void setData(const ModelState::DataMap&) override;
     ModelState getStateDiagnostic() const override;
@@ -57,4 +60,4 @@ private:
 
 } /* namespace Nextsim */
 
-#endif /* NSICEGROWTH_HPP */
+#endif /* NSCOLUMNPHYSICS_HPP */

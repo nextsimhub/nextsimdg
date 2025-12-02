@@ -9,7 +9,7 @@
 
 namespace Nextsim {
 
-class IIceGrowth {
+class IColumnPhysics {
 public:
     inline static void setMinima(double hMin, double cMin)
     {
@@ -26,7 +26,7 @@ TEST_CASE("Set and retrieve ice minima values")
     const double hMinTest = 0.1;
     const double cMinTest = 1e-6;
 
-    IIceGrowth::setMinima(hMinTest, cMinTest);
+    IColumnPhysics::setMinima(hMinTest, cMinTest);
     REQUIRE(IceMinima::h() == hMinTest);
     REQUIRE(IceMinima::c() == cMinTest);
 }
