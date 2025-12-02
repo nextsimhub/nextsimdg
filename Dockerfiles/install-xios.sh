@@ -2,28 +2,20 @@
 
 set -eu
 
-# Checkout (clone) current version of XIOS using Subversion (svn)
-INSTALLDIR="/xios"
-if [ ! -d "${INSTALLDIR}" ]; then
+# Determine install directory based on whether running in a Docker container
+if [ -f /.dockerenv ]; then
+  INSTALL_DIR="/xios"
   cd /
-  svn checkout http://forge.ipsl.fr/ioserver/svn/XIOS3/trunk ${INSTALLDIR}
+else
+  INSTALL_DIR="XIOS3"
 fi
-cd ${INSTALLDIR}
 
-# Create a file for exporting paths to the include and lib directories for XIOS' dependencies
-cat <<EOF >arch/arch-GCC_LINUX.env
-export HDF5_INC_DIR=\$(pkg-config --variable=prefix hdf5)/include
-export HDF5_LIB_DIR=\$(pkg-config --variable=prefix hdf5)/lib
-
-export NETCDF_INC_DIR=\$(pkg-config --variable=prefix netcdf)/include
-export NETCDF_LIB_DIR=\$(pkg-config --variable=prefix netcdf)/lib
-
-export NETCDFFORT_INC_DIR=\$(pkg-config --variable=prefix netcdf-fortran)/include
-export NETCDFFORT_LIB_DIR=\$(pkg-config --variable=prefix netcdf-fortran)/lib
-
-export BOOST_INC_DIR=\$HOME/boost
-export BOOST_LIB_DIR=\$HOME/boost
-EOF
+# If install directory doesn't exist, checkout the latest version
+if [ ! -d ${INSTALL_DIR} ]; then
+  svn checkout http://forge.ipsl.fr/ioserver/svn/XIOS3/trunk "${INSTALL_DIR}"
+  ln -s "$(pwd)/${INSTALL_DIR}" "$(pwd)/XIOS"
+fi
+cd "${INSTALL_DIR}" || exit
 
 # Create a file for defining compiler and linking flags for building XIOS
 cat <<EOF >arch/arch-GCC_LINUX.path
@@ -48,7 +40,21 @@ OASIS_LIBDIR="-L\$PWD/../../oasis3-mct/BLD/lib"
 OASIS_LIB="-lpsmile.MPI1 -lscrip -lmct -lmpeu"
 EOF
 
-# Create a file containing parameters to be passed to the fcm-make build system
+# Create a file for exporting paths to the include and lib directories for XIOS' dependencies
+cat <<EOF >arch/arch-GCC_LINUX.env
+export HDF5_INC_DIR=\$(pkg-config --variable=prefix hdf5)/include
+export HDF5_LIB_DIR=\$(pkg-config --variable=prefix hdf5)/lib
+
+export NETCDF_INC_DIR=\$(pkg-config --variable=prefix netcdf)/include
+export NETCDF_LIB_DIR=\$(pkg-config --variable=prefix netcdf)/lib
+
+export NETCDFFORT_INC_DIR=\$(pkg-config --variable=prefix netcdf-fortran)/include
+export NETCDFFORT_LIB_DIR=\$(pkg-config --variable=prefix netcdf-fortran)/lib
+
+export BOOST_INC_DIR=\$HOME/boost
+export BOOST_LIB_DIR=\$HOME/boost
+EOF
+
 cat <<EOF >arch/arch-GCC_LINUX.fcm
 ################################################################################
 ###################                Projet XIOS               ###################
@@ -77,17 +83,18 @@ cat <<EOF >arch/arch-GCC_LINUX.fcm
 EOF
 
 # Build XIOS on a Linux operating system with the GCC compiler
-./make_xios --arch GCC_LINUX --job 8 --debug
+./make_xios --arch GCC_LINUX --job 8 --full --debug
 
 # Clean up files not needed
 rm -r \
-  /xios/arch \
-  /xios/doc \
-  /xios/done \
-  /xios/flags \
-  /xios/generic_testcase \
-  /xios/inputs \
-  /xios/obj \
-  /xios/ppsrc \
-  /xios/tools \
-  /xios/xios_test_suite
+  "${INSTALL_DIR}/arch" \
+  "${INSTALL_DIR}/bin/generic_testcase.exe" \
+  "${INSTALL_DIR}/doc" \
+  "${INSTALL_DIR}/done" \
+  "${INSTALL_DIR}/flags" \
+  "${INSTALL_DIR}/generic_testcase" \
+  "${INSTALL_DIR}/inputs" \
+  "${INSTALL_DIR}/obj" \
+  "${INSTALL_DIR}/ppsrc" \
+  "${INSTALL_DIR}/tools" \
+  "${INSTALL_DIR}/xios_test_suite"
