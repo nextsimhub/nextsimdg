@@ -1,5 +1,4 @@
 /*!
- *
  * @author  Tim Spain <timothy.spain@nersc.no>
  */
 

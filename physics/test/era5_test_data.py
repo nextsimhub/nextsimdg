@@ -15,8 +15,8 @@ ncFile = netCDF4.Dataset(f"era5_test{nx}x{ny}.nc", "w", format="NETCDF4")
 
 ncFile.structure_name = "parametric_rectangular"
 
-xDim = ncFile.createDimension("x", nx)
-yDim = ncFile.createDimension("y", ny)
+xDim = ncFile.createDimension("xdim", nx)
+yDim = ncFile.createDimension("ydim", ny)
 xVertexDim = ncFile.createDimension("xvertex", nx + 1)
 yVertexDim = ncFile.createDimension("yvertex", ny + 1)
 n_coords_comp = ncFile.createDimension("ncoords", n_coords)
@@ -29,8 +29,8 @@ formatted = ncFile.createVariable("formatted", str)
 formatted.format = "%Y-%m-%dT%H:%M:%SZ"
 formatted[0] = "2000-01-01T00:00:00Z"
 
-hfield_dims = ("y", "x")
-timefield_dims = ("time", "y", "x")
+hfield_dims = ("ydim", "xdim")
+timefield_dims = ("time", "ydim", "xdim")
 
 # fmt: off
 mask33 = np.array(

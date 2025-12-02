@@ -5,8 +5,8 @@ import numpy as np
 
 grid = netCDF4.Dataset("25km_NH.nc", "r")
 
-nx = grid.dimensions["x"].size
-ny = grid.dimensions["y"].size
+nx = grid.dimensions["xdim"].size
+ny = grid.dimensions["ydim"].size
 ncg = 1
 n_dg = 1
 n_dgstress = 1

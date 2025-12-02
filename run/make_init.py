@@ -113,8 +113,8 @@ tsurf.missing_value = mdi
 
 # coordinates
 # element centres
-x_var = ncFile.createVariable("x", "f8", hfield_dims)
-y_var = ncFile.createVariable("y", "f8", hfield_dims)
+x_var = ncFile.createVariable("xdim", "f8", hfield_dims)
+y_var = ncFile.createVariable("ydim", "f8", hfield_dims)
 
 d_distance = 150000  # 150 km element spacing
 

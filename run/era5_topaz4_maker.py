@@ -401,8 +401,8 @@ if __name__ == "__main__":
                 # Now interpolate the source data to the target grid
                 time_data = np.zeros((nx, ny))
                 proj_string = source_file["stereographic"].proj4
-                source_x = source_file["x"][:]
-                source_y = source_file["y"][:]
+                source_x = source_file["xdim"][:]
+                source_y = source_file["ydim"][:]
                 time_data = topaz4_interpolate(
                     element_lon,
                     element_lat,
@@ -441,8 +441,8 @@ if __name__ == "__main__":
         v_source_data_tgrid = np.zeros((nx, ny))
         # Interpolate the current components on the TOPAZ basis on to the new grid
         proj_string = source_file["stereographic"].proj4
-        source_x = source_file["x"][:]
-        source_y = source_file["y"][:]
+        source_x = source_file["xdim"][:]
+        source_y = source_file["ydim"][:]
         u_source_data_tgrid = topaz4_interpolate(
             element_lon, element_lat, u_source_data, source_x, source_y, proj_string
         )

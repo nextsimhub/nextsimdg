@@ -57,9 +57,9 @@ if __name__ == "__main__":
     x_cell = np.resize(x_cell1d, (nfirst, nsecond))
     y_cell = np.resize(y_cell1d, (nsecond, nfirst)).transpose()
 
-    elem_x = ncFile.createVariable("x", "f8", field_dims)
+    elem_x = ncFile.createVariable("xdim", "f8", field_dims)
     elem_x[:, :] = x_cell
-    elem_y = ncFile.createVariable("y", "f8", field_dims)
+    elem_y = ncFile.createVariable("ydim", "f8", field_dims)
     elem_y[:, :] = y_cell
 
     grid_azimuth = ncFile.createVariable("grid_azimuth", "f8", field_dims)

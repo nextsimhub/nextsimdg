@@ -129,9 +129,9 @@ class initMaker:
                 px[j, i] = (j + 0.5) * res
                 py[j, i] = (i + 0.5) * res
 
-        elem_x = self._ncFile.createVariable("x", "f8", self._field_dims)
+        elem_x = self._ncFile.createVariable("xdim", "f8", self._field_dims)
         elem_x[:, :] = px
-        elem_y = self._ncFile.createVariable("y", "f8", self._field_dims)
+        elem_y = self._ncFile.createVariable("ydim", "f8", self._field_dims)
         elem_y[:, :] = py
 
         grid_azimuth = self._ncFile.createVariable(
@@ -162,8 +162,8 @@ class initMaker:
         grid = netCDF4.Dataset(f"{grid_file}", "r")
 
         # Grid dimensions. We're dealing with files written in and for FORTRAN, so y is the first dimension and x the second.
-        nfirst = grid.dimensions["y"].size
-        nsecond = grid.dimensions["x"].size
+        nfirst = grid.dimensions["ydim"].size
+        nsecond = grid.dimensions["xdim"].size
 
         # Initialise the arrays and the output file
         self._init_vars_and_file(nfirst, nsecond)
