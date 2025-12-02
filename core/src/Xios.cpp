@@ -936,6 +936,7 @@ void Xios::setupFields()
             { "ydimxdimdgstress_comp", ModelArray::Type::DGSTRESS },
             { "y_cgx_cg", ModelArray::Type::CG },
             { "yvertexxvertexncoords", ModelArray::Type::VERTEX },
+            { "y_vertexx_vertexncoords", ModelArray::Type::VERTEX },
         };
 
         // Determine field types
