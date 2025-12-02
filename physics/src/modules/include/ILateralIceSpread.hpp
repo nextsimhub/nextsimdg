@@ -61,10 +61,10 @@ protected:
     HField newice; // New ice over open water this timestep, m
     HField snowMelt; // Ocean to snow transfer of freshwater kg m⁻²
 
-    ModelArrayRef<Shared::C_ICE_DG, RW> cice; // From IceGrowth
+    ModelArrayRef<Shared::C_ICE_DG, RW> cice; // From ColumnPhysics
     ModelArrayRef<Shared::DELTA_HICE, RO> deltaHi; // From Vertical Ice Growth
-    ModelArrayRef<Shared::H_ICE_DG, RW> hice; // From IceGrowth
-    ModelArrayRef<Shared::H_SNOW_DG, RW> hsnow; // From Ice Growth?
+    ModelArrayRef<Shared::H_ICE_DG, RW> hice; // From ColumnPhysics
+    ModelArrayRef<Shared::H_SNOW_DG, RW> hsnow; // From ColumnPhysics
     ModelArrayRef<Shared::Q_OW, RW> qow; // From FluxCalculation
 };
 

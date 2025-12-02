@@ -9,7 +9,7 @@ namespace Nextsim {
 
 class IColumnPhysics;
 //! A class to hold the minimum ice thresholds without having to pull in
-//! IceGrowth and its dependencies.
+//! IColumnPhysics and its dependencies.
 class IceMinima {
 public:
     static inline double h() { return hMin; };
