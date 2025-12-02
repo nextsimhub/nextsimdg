@@ -86,7 +86,6 @@ jobs:
         ./run_test_jan2010_integration.sh python3
         ./run_test_advection.sh python3
         ./run_test_error_handling_test.sh python3
-        cd -
 
   # MPI tests on latest Ubuntu OS without XIOS support
   test-ubuntu-mpi-noxios:
@@ -246,4 +245,3 @@ jobs:
         ./run_test_jan2010_integration.sh python
         ./run_test_advection.sh python
         ./run_test_error_handling_test.sh python
-        cd -
