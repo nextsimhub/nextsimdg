@@ -37,10 +37,10 @@ if __name__ == "__main__":
     time_meta[:] = the_time
     time_meta.units = "seconds since 1970-01-01T00:00:00Z"
 
-    xDim = ncFile.createDimension("xdim", nx)
-    yDim = ncFile.createDimension("ydim", ny)
-    xVertexDim = ncFile.createDimension("xvertex", nx + 1)
-    yVertexDim = ncFile.createDimension("yvertex", ny + 1)
+    xDim = ncFile.createDimension("x_dim", nx)
+    yDim = ncFile.createDimension("y_dim", ny)
+    xVertexDim = ncFile.createDimension("x_vertex", nx + 1)
+    yVertexDim = ncFile.createDimension("y_vertex", ny + 1)
     xcg_dim = ncFile.createDimension("x_cg", nx * ncg + 1)
     ycg_dim = ncFile.createDimension("y_cg", ny * ncg + 1)
     dg_comp = ncFile.createDimension("dg_comp", n_dg)
@@ -49,9 +49,9 @@ if __name__ == "__main__":
     tDim = ncFile.createDimension("time", None)
 
     # Position and time variables
-    nc_lons = ncFile.createVariable("longitude", "f8", ("ydim", "xdim"))
+    nc_lons = ncFile.createVariable("longitude", "f8", ("y_dim", "x_dim"))
     nc_lons[:, :] = element_x
-    nc_lats = ncFile.createVariable("latitude", "f8", ("ydim", "xdim"))
+    nc_lats = ncFile.createVariable("latitude", "f8", ("y_dim", "x_dim"))
     nc_lats[:, :] = element_y
 
     nc_times = ncFile.createVariable("time", "f8", ("time"))
@@ -59,7 +59,7 @@ if __name__ == "__main__":
     # (unix_times_e, era5_times) = create_era5_times(start_time, stop_time)
     # For each field and time, get the corresponding file name for each dataset
     # get the source data
-    data = ncFile.createVariable(field_name, "f8", ("time", "ydim", "xdim"))
+    data = ncFile.createVariable(field_name, "f8", ("time", "y_dim", "x_dim"))
     data[0, :, :] = time_data
     # 'fill' the time axis
     nc_times[0] = the_time

@@ -92,18 +92,18 @@ if __name__ == "__main__":
     formatted.format = "%Y-%m-%dT%H:%M:%SZ"
     formatted[0] = "2010-01-01T00:00:00Z"
 
-    xDim = ncFile.createDimension("xdim", nx)
-    yDim = ncFile.createDimension("ydim", ny)
-    nLay = ncFile.createDimension("zdim", nLayers)
-    xVertexDim = ncFile.createDimension("xvertex", nx + 1)
-    yVertexDim = ncFile.createDimension("yvertex", ny + 1)
+    xDim = ncFile.createDimension("x_dim", nx)
+    yDim = ncFile.createDimension("y_dim", ny)
+    nLay = ncFile.createDimension("z_dim", nLayers)
+    xVertexDim = ncFile.createDimension("x_vertex", nx + 1)
+    yVertexDim = ncFile.createDimension("y_vertex", ny + 1)
     xcg_dim = ncFile.createDimension("x_cg", nx * ncg + 1)
     ycg_dim = ncFile.createDimension("y_cg", ny * ncg + 1)
     dg_comp = ncFile.createDimension("dg_comp", n_dg)
     dgs_comp = ncFile.createDimension("dgstress_comp", n_dgstress)
     n_coords_comp = ncFile.createDimension("ncoords", n_coords)
 
-    hfield_dims = ("ydim", "xdim")
+    hfield_dims = ("y_dim", "x_dim")
 
     # Array coordinates
     array_size1d = 20.0  # About 20˚ square
@@ -156,7 +156,7 @@ if __name__ == "__main__":
     nc_lats = ncFile.createVariable("latitude", "f8", hfield_dims)
     nc_lats[:, :] = element_lat
 
-    coords = ncFile.createVariable("coords", "f8", ("yvertex", "xvertex", "ncoords"))
+    coords = ncFile.createVariable("coords", "f8", ("y_vertex", "x_vertex", "ncoords"))
     coords[:, :, 0] = lon
     coords[:, :, 1] = lat
 
@@ -206,7 +206,7 @@ if __name__ == "__main__":
     mu = -0.055
 
     # Ice temperature
-    tice = ncFile.createVariable("tice", "f8", ("zdim", "ydim", "xdim"))
+    tice = ncFile.createVariable("tice", "f8", ("z_dim", "y_dim", "x_dim"))
     ice_melt = mu * 5  # Melting point of sea ice (salinity = 5) in ˚C
     # Tice outside the ice pack is the melting point of pure water ice, which is conveniently 0˚C
     ice_temp2d = np.fmin(sst_data, ice_melt) * isice

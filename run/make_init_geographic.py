@@ -117,8 +117,8 @@ if __name__ == "__main__":
     source_file_name = topaz4_source_file_name(data_time)
     source_file = netCDF4.Dataset(source_file_name, "r")
     proj_string = source_file["stereographic"].proj4
-    source_x = source_file["xdim"][:]
-    source_y = source_file["ydim"][:]
+    source_x = source_file["x_dim"][:]
+    source_y = source_file["y_dim"][:]
 
     element_lon = init_base.get_element_longitude()
     element_lat = init_base.get_element_latitude()

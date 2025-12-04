@@ -11,10 +11,10 @@ ncFile = netCDF4.Dataset(f"init_rect{nx}x{ny}.nc", "w", format="NETCDF4")
 
 ncFile.structure_name = "simple_rectangular"
 
-xDim = ncFile.createDimension("xdim", nx)
-yDim = ncFile.createDimension("ydim", ny)
+xDim = ncFile.createDimension("x_dim", nx)
+yDim = ncFile.createDimension("y_dim", ny)
 
-hfield_dims = ("ydim", "xdim")
+hfield_dims = ("y_dim", "x_dim")
 
 mask = ncFile.createVariable("mask", "f8", hfield_dims)
 # fmt: off
@@ -90,7 +90,7 @@ hice = ncFile.createVariable("hice", "f8", hfield_dims)
 hice[:, :] = cice[:, :] * 2
 hsnow = ncFile.createVariable("hsnow", "f8", hfield_dims)
 hsnow[:, :] = cice[:, :] / 2
-tsurf = ncFile.createVariable("tsurf", "f8", ("ydim", "xdim"))
+tsurf = ncFile.createVariable("tsurf", "f8", ("y_dim", "x_dim"))
 tsurf[:, :] = -0.5 - cice[:, :]
 
 mdi = -(2.0**300)
