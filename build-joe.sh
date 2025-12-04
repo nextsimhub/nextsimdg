@@ -7,12 +7,14 @@ set -e # Exit immediately if a command exits with a non-zero status
 
 # Function to display help text
 show_help() {
-  echo "Usage: $0 [--prod | -p] [--fresh | -f] [--help | -h]"
+  echo "Usage: $0 [--debug | -d] [--no-xios | -nx] [--no-mpi | -nm] [--fresh | -f] [--help | -h]"
   echo
   echo "Options:"
-  echo "  --prod  | -p    Compile in Release mode."
-  echo "  --fresh | -f    Create a fresh build before compiling."
-  echo "  --help  | -h    Show this help message and exit."
+  echo "  --debug   | -d    Compile in Debug mode."
+  echo "  --no-xios | -nx   Compile without XIOS support."
+  echo "  --no-mpi  | -nm   Compile without MPI support."
+  echo "  --fresh   | -f    Create a fresh build before compiling."
+  echo "  --help    | -h    Show this help message and exit."
 }
 
 # Check if a Python virtual environment is active
@@ -33,13 +35,32 @@ fi
 BUILD_DIR="build"
 
 # Parse command line arguments
-PROD=false
+BUILD_TYPE=Release
+COMPILE_MPI=ON
+COMPILE_XIOS=ON
 FRESH_BUILD=false
 HELP=false
 for arg in "$@"; do
   case $arg in
-  --prod | -p)
-    PROD=true
+  --debug | -d)
+    BUILD_DIR="${BUILD_DIR}_debug"
+    BUILD_TYPE=Debug
+    shift
+    ;;
+  --no-xios | -nx)
+    BUILD_DIR="${BUILD_DIR}_noxios"
+    COMPILE_XIOS=OFF
+    if [ "${COMPILE_MPI}" == "OFF" ]; then
+      echo "Note: the --no-mpi flag already implies --no-xios"
+    fi
+    shift
+    ;;
+  --no-mpi | -nm)
+    BUILD_DIR="${BUILD_DIR}_nompi"
+    COMPILE_MPI=OFF
+    if [ "${COMPILE_XIOS}" == "OFF" ]; then
+      echo "Note: the --no-mpi flag already implies --no-xios"
+    fi
     shift
     ;;
   --fresh | -f)
@@ -70,15 +91,7 @@ if [ "${FRESH_BUILD}" = true ]; then
 else
   echo "Rebuilding..."
 fi
-
-# Use a different build directory in release mode
-if [ "${PROD}" = true ]; then
-  BUILD_DIR="${BUILD_DIR}_prod"
-fi
-
-# Create build directory and navigate into it
 mkdir -p "${BUILD_DIR}"
-cd "${BUILD_DIR}"
 
 # Different path to XIOS if running in a Docker container
 if [ -f /.dockerenv ]; then
@@ -99,33 +112,20 @@ command -v make >/dev/null 2>&1 || {
 # NOTE: Modify as appropriate
 MPICC=mpicc
 MPICXX=mpicxx
-MPIF90=mpif90
 
-if [ "${PROD}" = true ]; then
-  # Build the model with XIOS support in Release mode
-  cmake \
-    -DCMAKE_BUILD_TYPE=Release \
-    -DENABLE_XIOS=ON \
-    -Dxios_DIR="${xios_DIR}" \
-    -DENABLE_MPI=ON \
-    -DENABLE_OASIS=ON .. \
-    -DBUILD_TESTS=ON \
-    -DCMAKE_C_COMPILER="${MPICC}" \
-    -DCMAKE_CXX_COMPILER="${MPICXX}" \
-    -DCMAKE_Fortran_COMPILER="${MPIF90}"
-  make -j8
-else
-  # Build the model with XIOS support in Debug mode
-  cmake \
-    -DCMAKE_BUILD_TYPE=Debug \
-    -DENABLE_XIOS=ON \
-    -Dxios_DIR="${xios_DIR}" \
-    -DENABLE_MPI=ON \
-    -DENABLE_OASIS=ON .. \
-    -DBUILD_TESTS=ON \
-    -DCMAKE_C_COMPILER="${MPICC}" \
-    -DCMAKE_CXX_COMPILER="${MPICXX}" \
-    -DCMAKE_Fortran_COMPILER="${MPIF90}"
-  # -DCMAKE_CXX_FLAGS="-O0 -Wall -enable=all"
+# Build the model
+cmake -S. -B "${BUILD_DIR}" \
+  -DCMAKE_BUILD_TYPE="${BUILD_TYPE}" \
+  -DENABLE_MPI="${COMPILE_MPI}" \
+  -DENABLE_XIOS="${COMPILE_XIOS}" \
+  -Dxios_DIR="${xios_DIR}" \
+  -DBUILD_TESTS=ON \
+  -DCMAKE_C_COMPILER="${MPICC}" \
+  -DCMAKE_CXX_COMPILER="${MPICXX}"
+#   -DCMAKE_CXX_FLAGS="-O0 -Wall -enable=all"
+if [ "${BUILD_TYPE}" = Debug ]; then
+  cd "${BUILD_DIR}"
   make VERBOSE=1 -j8
+else
+  cmake --build "${BUILD_DIR}"
 fi
