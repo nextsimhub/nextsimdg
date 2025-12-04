@@ -94,7 +94,7 @@ if __name__ == "__main__":
 
     xDim = ncFile.createDimension("x_dim", nx)
     yDim = ncFile.createDimension("y_dim", ny)
-    nLay = ncFile.createDimension("z_dim", nLayers)
+    nLay = ncFile.createDimension("nLayers", nLayers)
     xVertexDim = ncFile.createDimension("x_vertex", nx + 1)
     yVertexDim = ncFile.createDimension("y_vertex", ny + 1)
     xcg_dim = ncFile.createDimension("x_cg", nx * ncg + 1)
@@ -206,7 +206,7 @@ if __name__ == "__main__":
     mu = -0.055
 
     # Ice temperature
-    tice = ncFile.createVariable("tice", "f8", ("z_dim", "y_dim", "x_dim"))
+    tice = ncFile.createVariable("tice", "f8", ("nLayers", "y_dim", "x_dim"))
     ice_melt = mu * 5  # Melting point of sea ice (salinity = 5) in ˚C
     # Tice outside the ice pack is the melting point of pure water ice, which is conveniently 0˚C
     ice_temp2d = np.fmin(sst_data, ice_melt) * isice
