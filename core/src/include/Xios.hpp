@@ -151,12 +151,17 @@ private:
     xios::CAxis* getAxis(const std::string& axisId);
 
     /* Domain */
+    // NOTE: Dimension names get processed as <dim>_<domainId> by XIOS, so we define the domainIds
+    //       so that these coincide with the altnames when applied to dimensions x and y.
     std::map<ModelArray::Type, std::string> domainIds = {
-        { ModelArray::Type::H, "HDomain" },
-        { ModelArray::Type::VERTEX, "VertexDomain" },
-        { ModelArray::Type::DG, "HDomain" },
-        { ModelArray::Type::DGSTRESS, "HDomain" },
-        { ModelArray::Type::CG, "CGDomain" },
+        // Standard cell-based x- and y-dimensions (alt. names x_dim and y_dim)
+        { ModelArray::Type::H, "dim" },
+        { ModelArray::Type::DG, "dim" },
+        { ModelArray::Type::DGSTRESS, "dim" },
+        // Vertex-based x- and y-dimensions (alt. names x_vertex and y_vertex)
+        { ModelArray::Type::VERTEX, "vertex" },
+        // CG-based x- and y-dimensions (alt. names x_cg and y_cg)
+        { ModelArray::Type::CG, "cg" },
     };
     xios::CDomainGroup* getDomainGroup();
     xios::CDomain* getDomain(const std::string& domainId);

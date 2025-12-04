@@ -86,18 +86,18 @@ class initMaker:
         structure_name = "parametric_rectangular"
         self._ncFile.structure_name = structure_name
 
-        self._ncFile.createDimension("ydim", nFirst)
-        self._ncFile.createDimension("xdim", nSecond)
-        self._ncFile.createDimension("yvertex", nFirst + 1)
-        self._ncFile.createDimension("xvertex", nSecond + 1)
+        self._ncFile.createDimension("y_dim", nFirst)
+        self._ncFile.createDimension("x_dim", nSecond)
+        self._ncFile.createDimension("y_vertex", nFirst + 1)
+        self._ncFile.createDimension("x_vertex", nSecond + 1)
         self._ncFile.createDimension("y_cg", nFirst * self._nCg + 1)
         self._ncFile.createDimension("x_cg", nSecond * self._nCg + 1)
         self._ncFile.createDimension("dg_comp", self._nDg)
         self._ncFile.createDimension("dgstress_comp", self._nDgStress)
         self._ncFile.createDimension("ncoords", self._nCoords)
 
-        self._field_dims = ("ydim", "xdim")
-        self._coord_dims = ("yvertex", "xvertex", "ncoords")
+        self._field_dims = ("y_dim", "x_dim")
+        self._coord_dims = ("y_vertex", "x_vertex", "ncoords")
 
     def make_cartesian_grid(self, nFirst, nSecond, res):
         """
@@ -129,9 +129,9 @@ class initMaker:
                 px[j, i] = (j + 0.5) * res
                 py[j, i] = (i + 0.5) * res
 
-        elem_x = self._ncFile.createVariable("x", "f8", self._field_dims)
+        elem_x = self._ncFile.createVariable("x_dim", "f8", self._field_dims)
         elem_x[:, :] = px
-        elem_y = self._ncFile.createVariable("y", "f8", self._field_dims)
+        elem_y = self._ncFile.createVariable("y_dim", "f8", self._field_dims)
         elem_y[:, :] = py
 
         grid_azimuth = self._ncFile.createVariable(
@@ -162,8 +162,8 @@ class initMaker:
         grid = netCDF4.Dataset(f"{grid_file}", "r")
 
         # Grid dimensions. We're dealing with files written in and for FORTRAN, so y is the first dimension and x the second.
-        nfirst = grid.dimensions["y"].size
-        nsecond = grid.dimensions["x"].size
+        nfirst = grid.dimensions["y_dim"].size
+        nsecond = grid.dimensions["x_dim"].size
 
         # Initialise the arrays and the output file
         self._init_vars_and_file(nfirst, nsecond)

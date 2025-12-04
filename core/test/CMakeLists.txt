@@ -12,7 +12,7 @@ set(ModulesRoot "../src/modules")
 
 # Generate netCDF files for tests
 execute_process(
-    COMMAND "${Python_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/old_names.py"
+    COMMAND "${Python_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/alt_names.py"
     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
 )
 execute_process(
@@ -271,6 +271,9 @@ if(ENABLE_MPI)
         )
 
         add_mpi_test("${XIOS_TESTS}")
+
+        # Ensure XiosWrite_test is run before XiosRead_test
+        set_tests_properties(testXiosRead_MPI2 PROPERTIES DEPENDS testXiosWrite_MPI2)
     else()
         add_executable(testHaloExchangeCB_MPI3
             "HaloExchangeCB_test.cpp"

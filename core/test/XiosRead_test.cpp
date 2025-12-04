@@ -20,7 +20,7 @@
 #include <filesystem>
 
 const std::string testFilesDir = TEST_FILES_DIR;
-const std::string restartFilename = testFilesDir + "/xios_test_input.nc";
+const std::string restartFilename = testFilesDir + "/xios_test_output.nc";
 const std::string forcingFilename = testFilesDir + "/xios_test_forcing.nc";
 
 static const int DGCOMP = 6;
@@ -79,8 +79,11 @@ MPI_TEST_CASE("TestXiosRead", 2)
 
     xiosHandler.close_context_definition();
 
-    // Check the input files exists
-    REQUIRE(std::filesystem::exists(restartFilename));
+    // Check the input files exist
+    if (!std::filesystem::exists(restartFilename)) {
+        throw std::runtime_error(
+            "XiosRead_test: Input file not found. Did you run XiosWrite_test?");
+    }
     REQUIRE(std::filesystem::exists(forcingFilename));
 
     // Check calendar step is zero initially
@@ -167,6 +170,14 @@ MPI_TEST_CASE("TestXiosRead", 2)
         // Update the current timestep and verify it's updated in XIOS
         metadata.incrementTime(timestep);
         REQUIRE(xiosHandler.getCalendarStep() == ts + 1);
+    }
+
+    if (rank == 0) {
+        // TODO: Re-enable file splitting (#898)
+        // std::filesystem::remove("xios_test_output_20230317171100-20230317201059.nc");
+        // std::filesystem::remove("xios_test_output_20230317201100-20230317231059.nc");
+        std::filesystem::remove("xios_test_output.nc");
+        std::filesystem::remove("xios_test_diagnostic.nc");
     }
 
     xiosHandler.context_finalize();

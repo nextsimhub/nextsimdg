@@ -25,16 +25,16 @@ if __name__ == "__main__":
     formatted.format = "%Y-%m-%dT%H:%M:%SZ"
     formatted[0] = "2010-01-01T00:00:00Z"
 
-    yDim = ncFile.createDimension("ydim", nfirst)
-    xDim = ncFile.createDimension("xdim", nsecond)
-    yVertexDim = ncFile.createDimension("yvertex", nfirst + 1)
-    xVertexDim = ncFile.createDimension("xvertex", nsecond + 1)
+    yDim = ncFile.createDimension("y_dim", nfirst)
+    xDim = ncFile.createDimension("x_dim", nsecond)
+    yVertexDim = ncFile.createDimension("y_vertex", nfirst + 1)
+    xVertexDim = ncFile.createDimension("x_vertex", nsecond + 1)
     dg_comp = ncFile.createDimension("dg_comp", n_dg)
     dgs_comp = ncFile.createDimension("dgstress_comp", n_dgstress)
     n_coords_comp = ncFile.createDimension("ncoords", n_coords)
-    field_dims = ("ydim", "xdim")
-    dg_dims = ("ydim", "xdim", "dg_comp")
-    coord_dims = ("yvertex", "xvertex", "ncoords")
+    field_dims = ("y_dim", "x_dim")
+    dg_dims = ("y_dim", "x_dim", "dg_comp")
+    coord_dims = ("y_vertex", "x_vertex", "ncoords")
 
     # Array coordinates
     space = 25000.0  # 25 km in metres
@@ -57,9 +57,9 @@ if __name__ == "__main__":
     x_cell = np.resize(x_cell1d, (nfirst, nsecond))
     y_cell = np.resize(y_cell1d, (nsecond, nfirst)).transpose()
 
-    elem_x = ncFile.createVariable("x", "f8", field_dims)
+    elem_x = ncFile.createVariable("x_dim", "f8", field_dims)
     elem_x[:, :] = x_cell
-    elem_y = ncFile.createVariable("y", "f8", field_dims)
+    elem_y = ncFile.createVariable("y_dim", "f8", field_dims)
     elem_y[:, :] = y_cell
 
     grid_azimuth = ncFile.createVariable("grid_azimuth", "f8", field_dims)

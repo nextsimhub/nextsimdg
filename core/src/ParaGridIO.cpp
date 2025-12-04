@@ -33,14 +33,15 @@ ParaGridIO::ParaGridIO(ParametricGrid& grid)
     , dimensionKeys({
           // clang-format off
           // Accept post-May 2024 (xdim, ydim, zdim) dimension names and pre-May 2024 (x, y, z)
-        { "yx", ModelArray::Type::H },
         { "ydimxdim", ModelArray::Type::H },
-        { "yxdg_comp", ModelArray::Type::DG },
+        { "y_dimx_dim", ModelArray::Type::H },
         { "ydimxdimdg_comp", ModelArray::Type::DG },
-        { "yxdgstress_comp", ModelArray::Type::DGSTRESS },
+        { "y_dimx_dimdg_comp", ModelArray::Type::DG },
         { "ydimxdimdgstress_comp", ModelArray::Type::DGSTRESS },
-        { "ycgxcg", ModelArray::Type::CG },
+        { "y_dimx_dimdgstress_comp", ModelArray::Type::DGSTRESS },
+        { "y_cgx_cg", ModelArray::Type::CG },
         { "yvertexxvertexncoords", ModelArray::Type::VERTEX },
+        { "y_vertexx_vertexncoords", ModelArray::Type::VERTEX },
           // clang-format on
       })
     , isDG({

@@ -1,36 +1,36 @@
 netcdf xios_test_input {
 dimensions:
 	axis_nbounds = 2 ;
-	x = 4 ;
-	y = 2 ;
-  xvertex = 5 ;
-  yvertex = 3 ;
+	x_dim = 4 ;
+	y_dim = 2 ;
+  x_vertex = 5 ;
+  y_vertex = 3 ;
   x_cg = 9 ;
   y_cg = 5 ;
   dg_comp = 6 ;
   dgstress_comp = 8 ;
   ncoords = 2 ;
 variables:
-	float x(x) ;
-		x:axis = "X" ;
-		x:standard_name = "longitude" ;
-		x:long_name = "Longitude" ;
-		x:units = "degrees_east" ;
-	float y(y) ;
-		y:axis = "Y" ;
-		y:standard_name = "latitude" ;
-		y:long_name = "Latitude" ;
-		y:units = "degrees_north" ;
-	float xvertex(xvertex) ;
-		xvertex:axis = "XVERTEX" ;
-		xvertex:standard_name = "vertex longitude" ;
-		xvertex:long_name = "Vertex longitude" ;
-		xvertex:units = "degrees_east" ;
-	float yvertex(yvertex) ;
-		yvertex:axis = "YVERTEX" ;
-		yvertex:standard_name = "vertex latitude" ;
-		yvertex:long_name = "Vertex latitude" ;
-		yvertex:units = "degrees_north" ;
+	float x_dim(x_dim) ;
+		x_dim:axis = "X" ;
+		x_dim:standard_name = "longitude" ;
+		x_dim:long_name = "Longitude" ;
+		x_dim:units = "degrees_east" ;
+	float y_dim(y_dim) ;
+		y_dim:axis = "Y" ;
+		y_dim:standard_name = "latitude" ;
+		y_dim:long_name = "Latitude" ;
+		y_dim:units = "degrees_north" ;
+	float x_vertex(x_vertex) ;
+		x_vertex:axis = "x_vertex" ;
+		x_vertex:standard_name = "vertex longitude" ;
+		x_vertex:long_name = "Vertex longitude" ;
+		x_vertex:units = "degrees_east" ;
+	float y_vertex(y_vertex) ;
+		y_vertex:axis = "y_vertex" ;
+		y_vertex:standard_name = "vertex latitude" ;
+		y_vertex:long_name = "Vertex latitude" ;
+		y_vertex:units = "degrees_north" ;
 	float x_cg(x_cg) ;
 		x_cg:axis = "XCG" ;
 		x_cg:standard_name = "CG longitude" ;
@@ -56,16 +56,16 @@ variables:
 		VertexAxis:standard_name = "Dimension" ;
     VertexAxis:long_name = "Spatial dimension" ;
 		VertexAxis:units = "-" ;
-	float coords(yvertex, xvertex, ncoords) ;
+	float coords(y_vertex, x_vertex, ncoords) ;
 		coords:online_operation = "once" ;
 		coords:coordinates = "lat lon VertexAxis" ;
-  float hice(y, x, dg_comp) ;
+  float hice(y_dim, x_dim, dg_comp) ;
 		hice:online_operation = "once" ;
 		hice:coordinates = "lat lon DGAxis" ;
-	float mask(y, x) ;
+	float mask(y_dim, x_dim) ;
 		mask:online_operation = "once" ;
 		mask:coordinates = "lat lon" ;
-	float tice(y, x, dgstress_comp) ;
+	float tice(y_dim, x_dim, dgstress_comp) ;
 		tice:online_operation = "once" ;
 		tice:coordinates = "lat lon DGSAxis" ;
 	float u(y_cg, x_cg) ;
@@ -80,14 +80,6 @@ variables:
 		:Conventions = "CF-1.6" ;
 
 data:
-
- y = -1, 0 ;
-
- x = -1, -0.5, 0, 0.5 ;
-
- yvertex = -1, 0, 1 ;
-
- xvertex = -1, -0.5, 0, 0.5, 1 ;
 
  coords =
   0, 0,
