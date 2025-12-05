@@ -19,7 +19,7 @@
 
 const std::string testFilesDir = TEST_FILES_DIR;
 const std::string inputFilename = testFilesDir + "/xios_test_input.nc";
-const std::string diagnosticFilename = testFilesDir + "/xios_test_diagnostic.nc";
+const std::string diagnosticFilename = testFilesDir + "/diagnostic%Y-%m-%dT%H:%M:%SZ.nc";
 
 static const int DGCOMP = 6;
 static const int DGSTRESSCOMP = 8;
@@ -103,7 +103,7 @@ MPI_TEST_CASE("TestXiosWriteDiagnostic", 2)
     hsnow.resize();
 
     // Check files with the expected names don't exist yet
-    REQUIRE_FALSE(std::filesystem::exists("xios_test_diagnostic*.nc"));
+    REQUIRE_FALSE(std::filesystem::exists("diagnostic*.nc"));
 
     // Check calendar step is zero initially
     REQUIRE(xiosHandler.getCalendarStep() == 0);
@@ -137,8 +137,8 @@ MPI_TEST_CASE("TestXiosWriteDiagnostic", 2)
     // Check the files have indeed been created
     // NOTE: Don't remove them because their contents are checked in
     // XiosReadxios_test_diagnostic_test
-    REQUIRE(std::filesystem::exists("xios_test_diagnostic_20230317171100-20230317201059.nc"));
-    REQUIRE(std::filesystem::exists("xios_test_diagnostic_20230317201100-20230317231059.nc"));
+    REQUIRE(std::filesystem::exists("diagnostic_2023-03-17T17:11:00Z-2023-03-17T20:10:59Z.nc"));
+    REQUIRE(std::filesystem::exists("diagnostic_2023-03-17T20:11:00Z-2023-03-17T23:10:59Z.nc"));
 
     xiosHandler.context_finalize();
     Finalizer::finalize();

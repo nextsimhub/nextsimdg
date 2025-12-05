@@ -176,9 +176,11 @@ private:
     xios::CFileGroup* getFileGroup();
     xios::CFile* getFile(const std::string& fileId);
     std::string outputFileId;
+    std::string outputFormatStr = "%y-%mo-%dT%h:%mi:%sZ";
     std::string inputFileId;
     std::string diagnosticFilename;
     std::string diagnosticFileId;
+    std::string diagnosticFormatStr = "%y-%mo-%dT%h:%mi:%sZ";
     std::string forcingFilename;
     std::string forcingFileId;
     enum {
@@ -197,6 +199,13 @@ private:
     void createFile(const std::string& fileId, const int fieldType);
     void fileAddField(const std::string& fileId, const std::string& fieldId);
     std::vector<std::string> fileGetFieldIds(const std::string& fileId);
+    const std::map<std::string, std::string> formatStrMap = {
+        { "%Y", "%y" },
+        { "%m-", "%mo-" },
+        { "%H", "%h" },
+        { "%M", "%mi" },
+        { "%S", "%s" },
+    };
     void postprocessOutputFiles();
 
     /* I/O */
