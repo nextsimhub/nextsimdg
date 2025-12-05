@@ -71,8 +71,8 @@ Xios::HelpMap& Xios::getHelpText(HelpMap& map, bool getAll)
             "-Dxios_DIR=/path/to/xios." },
     };
     map["XiosOutput"] = {
-        { keyMap.at(OUTPUT_FIELD_NAMES_KEY), ConfigType::STRING, {}, "", "",
-            "Comma-separated list of field names to be written to the output file." },
+        { keyMap.at(OUTPUT_FIELD_NAMES_KEY), ConfigType::STRING, {}, "restart%Y-%m-%dT%H:%M:%SZ.nc",
+            "", "Comma-separated list of field names to be written to the output file." },
     };
     map["XiosInput"] = {
         { keyMap.at(INPUT_FIELD_NAMES_KEY), ConfigType::STRING, {}, "", "",
@@ -83,9 +83,8 @@ Xios::HelpMap& Xios::getHelpText(HelpMap& map, bool getAll)
             "The period between diagnostics file outputs expected in a file to be "
             "read, formatted as an ISO8601 duration (P prefix) or number of "
             "seconds. A value of zero assumes no intermediate diagnostics files." },
-        { keyMap.at(DIAGNOSTIC_FILE_KEY), ConfigType::STRING, {}, "", "",
-            // TODO: Support format "restart%Y-%m-%dT%H:%M:%SZ.nc" (#898)
-            "The file name to be used for diagnostics." },
+        { keyMap.at(DIAGNOSTIC_FILE_KEY), ConfigType::STRING, {}, "diagnostic%Y-%m-%dT%H:%M:%SZ.nc",
+            "", "The file name to be used for diagnostics." },
         { keyMap.at(DIAGNOSTIC_FIELD_NAMES_KEY), ConfigType::STRING, {}, "", "",
             "Comma-separated list of field names to be read from the diagnostics "
             "file." },
@@ -96,7 +95,6 @@ Xios::HelpMap& Xios::getHelpText(HelpMap& map, bool getAll)
             "read, formatted as an ISO8601 duration (P prefix) or number of "
             "seconds. A value of zero assumes no intermediate forcing files." },
         { keyMap.at(FORCING_FILE_KEY), ConfigType::STRING, {}, "", "",
-            // TODO: Support format "restart%Y-%m-%dT%H:%M:%SZ.nc" (#898)
             "The file name to be used for forcings." },
         { keyMap.at(FORCING_FIELD_NAMES_KEY), ConfigType::STRING, {}, "", "",
             "Comma-separated list of field names to be read from the forcings "
@@ -1177,7 +1175,6 @@ void Xios::createFile(const std::string& fileId, const int fieldType)
     }
 
     // Set the file split frequency to coincide with the output frequency for output files
-    // TODO: Make this work for file reading, too (#898)
     if (writeAccess) {
         if (cxios_is_defined_file_split_freq(file)) {
             Logged::warning("Xios: Split frequency already set for file '" + fileId + "'");
@@ -1186,6 +1183,26 @@ void Xios::createFile(const std::string& fileId, const int fieldType)
         if (!cxios_is_defined_file_split_freq(file)) {
             throw std::runtime_error(
                 "Xios: Failed to set split frequency for file '" + fileId + "'");
+        }
+
+        // Set format string for file splitting, converting characters as expected by XIOS
+        std::string split_freq_format;
+        if (ioType == OUTPUT_RESTART) {
+            split_freq_format = outputFormatStr;
+        } else {
+            split_freq_format = diagnosticFormatStr;
+        }
+        for (const auto& [from, to] : formatStrMap) {
+            auto pos = split_freq_format.find(from);
+            if (pos != std::string::npos) {
+                split_freq_format.replace(pos, from.length(), to);
+            }
+        }
+        cxios_set_file_split_freq_format(
+            file, split_freq_format.c_str(), split_freq_format.length());
+        if (!cxios_is_defined_file_split_freq_format(file)) {
+            throw std::runtime_error(
+                "Xios: Failed to set split frequency format for file '" + fileId + "'");
         }
     }
 
@@ -1241,8 +1258,11 @@ void Xios::setupFiles()
 
     // Get restart file IDs from the configuration
     inputFileId = ((std::filesystem::path)metadata.initialFileName).filename().replace_extension();
-    // TODO: Properly support format "restart%Y-%m-%dT%H:%M:%SZ.nc" (#898)
     outputFileId = ((std::filesystem::path)metadata.finalFileName).filename().replace_extension();
+    if (outputFileId.find("%") != std::string::npos) {
+        outputFormatStr = outputFileId.substr(outputFileId.find("%"), outputFileId.find(".nc"));
+        outputFileId.erase(outputFileId.find("%"), outputFileId.length());
+    }
 
     // Get forcing and diganostic file IDs from the configuration
     forcingFilename = Configured::getConfiguration(keyMap.at(FORCING_FILE_KEY), std::string());
@@ -1250,6 +1270,11 @@ void Xios::setupFiles()
     diagnosticFilename
         = Configured::getConfiguration(keyMap.at(DIAGNOSTIC_FILE_KEY), std::string());
     diagnosticFileId = ((std::filesystem::path)diagnosticFilename).filename().replace_extension();
+    if (diagnosticFileId.find("%") != std::string::npos) {
+        diagnosticFormatStr
+            = diagnosticFileId.substr(diagnosticFileId.find("%"), diagnosticFileId.find(".nc"));
+        diagnosticFileId.erase(diagnosticFileId.find("%"), diagnosticFileId.length());
+    }
 
     // Create files for any non-empty file IDs
     for (const auto& [fileType, fileId] : fileMap) {
