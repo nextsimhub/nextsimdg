@@ -1,9 +1,7 @@
 /*!
  * @author  Joe Wallwork <jw2423@cam.ac.uk>
  * @brief   Tests for XIOS write functionality
- * @details
- * This test is designed to test the file writing functionality of the C++
- * interface for XIOS.
+ * @details The functionality of writing both restarts and diagnostics via XIOS is tested.
  */
 #include <doctest/extensions/doctest_mpi.h>
 #undef INFO
@@ -33,8 +31,8 @@ namespace Nextsim {
 /*!
  * TestXiosWrite
  *
- * This function tests the file writing functionality of the C++ interface for XIOS for fields with
- * two and three spatial dimensions. The test runs with two MPI ranks.
+ * 1. Test writing of restarts via `dumpModelState`.
+ * 2. Test writing of diagnostics via `writeDiagnosticTime`.
  */
 MPI_TEST_CASE("TestXiosWrite", 2)
 {
@@ -51,12 +49,12 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     config << "field_names = " << maskName << "," << coordsName << "," << hiceName << ","
            << ticeName << "," << uName << std::endl;
     config << "period = P0-0T01:30:00" << std::endl;
-    // TODO: Re-enable file splitting (#898)
-    // config << "split_period = P0-0T03:00:00" << std::endl;
+    config << "split_period = P0-0T03:00:00" << std::endl;
     config << "[XiosDiagnostic]" << std::endl;
     config << "filename = " << diagnosticFilename << std::endl;
     config << "field_names = " << hsnowName << std::endl;
-    config << "period = P0-0T01:30:00" << std::endl;
+    config << "period = P0-0T03:00:00" << std::endl;
+    config << "split_period = P0-0T03:00:00" << std::endl;
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
 
@@ -198,7 +196,8 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     grid.dumpModelState(restarts, restartOutputFilename, true);
 
     // Check the files have indeed been created
-    // NOTE: We don't remove them because they are used in XiosRead_test
+    // NOTE: Don't remove them because their contents are checked in XiosReadRestart_test and
+    //       XiosReadDiagnostic_test
     REQUIRE(std::filesystem::exists("xios_test_output_20230317171100-20230317201059.nc"));
     REQUIRE(std::filesystem::exists("xios_test_output_20230317201100-20230317231059.nc"));
     REQUIRE(std::filesystem::exists("xios_test_diagnostic_20230317171100-20230317201059.nc"));

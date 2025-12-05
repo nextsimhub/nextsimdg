@@ -1,9 +1,7 @@
 /*!
  * @author  Joe Wallwork <jw2423@cam.ac.uk>
- * @brief   Tests for XIOS read functionality
- * @details
- * This test is designed to test the file reading functionality of the C++
- * interface for XIOS.
+ * @brief   Tests for XIOS functionality for reading restart files.
+ * @details The functionality of reading restarts via XIOS is tested.
  */
 #include <doctest/extensions/doctest_mpi.h>
 #undef INFO
@@ -22,7 +20,6 @@
 const std::string testFilesDir = TEST_FILES_DIR;
 const std::string restartFilename
     = testFilesDir + "/xios_test_output_20230317171100-20230317201059.nc";
-const std::string forcingFilename = testFilesDir + "/xios_test_forcing.nc";
 
 static const int DGCOMP = 6;
 static const int DGSTRESSCOMP = 8;
@@ -31,12 +28,11 @@ static const int CGDEGREE = 2;
 namespace Nextsim {
 
 /*!
- * TestXiosRead
+ * TestXiosReadRestart
  *
- * This function tests the file reading functionality of the C++ interface for XIOS for fields with
- * two and three spatial dimensions. The test runs with two MPI ranks.
+ * Test reading of restarts via `getModelState`.
  */
-MPI_TEST_CASE("TestXiosRead", 2)
+MPI_TEST_CASE("TestXiosReadRestart", 2)
 {
     std::stringstream config;
     config << "[model]" << std::endl;
@@ -44,14 +40,11 @@ MPI_TEST_CASE("TestXiosRead", 2)
     config << "stop = 2023-03-17T23:11:00Z" << std::endl;
     config << "time_step = P0-0T01:30:00" << std::endl;
     config << "init_file = " << restartFilename << std::endl;
+    config << "restart_period = P0-0T01:30:00" << std::endl;
     config << "partition_file = xios_test_partition_metadata_2.nc" << std::endl;
     config << "[XiosInput]" << std::endl;
     config << "field_names = " << maskName << "," << coordsName << "," << hiceName << ","
            << ticeName << "," << uName << std::endl;
-    config << "[XiosForcing]" << std::endl;
-    config << "filename = " << forcingFilename << std::endl;
-    config << "field_names = " << hsnowName << std::endl;
-    config << "period = P0-0T01:30:00" << std::endl;
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
 
@@ -79,12 +72,11 @@ MPI_TEST_CASE("TestXiosRead", 2)
 
     xiosHandler.close_context_definition();
 
-    // Check the input files exist
+    // Check the input file exists
     if (!std::filesystem::exists(restartFilename)) {
         throw std::runtime_error(
-            "XiosRead_test: Input file not found. Did you run XiosWrite_test?");
+            "XiosReadRestart_test: Input file not found. Did you run XiosWrite_test?");
     }
-    REQUIRE(std::filesystem::exists(forcingFilename));
 
     // Check calendar step is zero initially
     REQUIRE(xiosHandler.getCalendarStep() == 0);
@@ -147,36 +139,10 @@ MPI_TEST_CASE("TestXiosRead", 2)
         }
     }
 
-    // Simulate 4 iterations (timesteps), reading forcing data at each
-    ModelMetadata& metadata = ModelMetadata::getInstance();
-    const Duration& timestep = metadata.stepLength();
-    // TODO: Avoid making configGetForcingFieldNames public?
-    auto forcingFieldNames = xiosHandler.configGetForcingFieldNames();
-    for (int ts = 0; ts <= 4; ts++) {
-
-        // Read forcings from file and check they take the expected values
-        const TimePoint& time = xiosHandler.getCurrentDate();
-        const ModelState forcings
-            = pio->readForcingTimeStatic(forcingFieldNames, time, forcingFilename);
-        for (const auto& [fieldName, modelarray] : forcings.data) {
-            REQUIRE(fieldName == hsnowName);
-            for (size_t j = 0; j < ny; ++j) {
-                for (size_t i = 0; i < nx; ++i) {
-                    REQUIRE(modelarray(i, j) == doctest::Approx(0.1 * ts));
-                }
-            }
-        }
-
-        // Update the current timestep and verify it's updated in XIOS
-        metadata.incrementTime(timestep);
-        REQUIRE(xiosHandler.getCalendarStep() == ts + 1);
-    }
-
+    // Remove the restart files
     if (rank == 0) {
         std::filesystem::remove("xios_test_output_20230317171100-20230317201059.nc");
         std::filesystem::remove("xios_test_output_20230317201100-20230317231059.nc");
-        std::filesystem::remove("xios_test_diagnostic_20230317171100-20230317201059.nc");
-        std::filesystem::remove("xios_test_diagnostic_20230317201100-20230317231059.nc");
     }
 
     xiosHandler.context_finalize();
