@@ -196,6 +196,21 @@ void ModelMetadata::setDimensionsFromFile(const std::string& filename)
             if (dim.isNull()) {
                 dim = ncFile.getDim(dimensionSpec.altName);
             }
+#ifdef USE_XIOS
+            // Account for the fact that XIOS writes dimensions differently if only one
+            // discretisation is written out. If the dimension is still null at this point then we
+            // assume that the only discretisation used is HDomain-based, i.e., HField, DGField, or
+            // DGSField.
+            if (dim.isNull()) {
+                if (dimensionSpec.name == "x_dim") {
+                    dim = ncFile.getDim("x");
+                } else if (dimensionSpec.name == "y_dim") {
+                    dim = ncFile.getDim("y");
+                } else {
+                    continue;
+                }
+            }
+#endif
             // If we didn't find a dimension with the dimensions name or altName, throw.
             if (dim.isNull()) {
                 throw std::out_of_range(

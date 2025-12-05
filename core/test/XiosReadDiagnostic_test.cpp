@@ -42,6 +42,7 @@ MPI_TEST_CASE("TestXiosReadDiagnostic", 2)
     config << "stop = 2023-03-17T23:11:00Z" << std::endl;
     config << "time_step = P0-0T01:30:00" << std::endl;
     config << "init_file = " << diagnosticFilename << std::endl;
+    config << "restart_period = P0-0T03:00:00" << std::endl;
     config << "partition_file = xios_test_partition_metadata_2.nc" << std::endl;
     config << "[XiosInput]" << std::endl;
     config << "field_names = " << hsnowName << std::endl;
