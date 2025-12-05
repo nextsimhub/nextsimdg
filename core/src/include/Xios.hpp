@@ -84,7 +84,7 @@ public:
     void setFieldType(const std::string& fieldId, const ModelArray::Type& type);
 
     /* File */
-    void createFile(const std::string& fileId, const int& fieldType);
+    void createFile(const std::string& fileId, const int fieldType);
     void fileAddField(const std::string& fileId, const std::string& fieldId);
     std::vector<std::string> fileGetFieldIds(const std::string& fileId);
 

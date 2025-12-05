@@ -1056,8 +1056,14 @@ xios::CFile* Xios::getFile(const std::string& fileId)
  * @param the file ID
  * @param enum indicating field type
  */
-void Xios::createFile(const std::string& fileId, const int& fieldType)
+void Xios::createFile(const std::string& fileId, const int fieldType)
 {
+    if (!(fieldType == INPUT_RESTART || fieldType == FORCING || fieldType == OUTPUT_RESTART
+            || fieldType == DIAGNOSTIC)) {
+        throw std::runtime_error(
+            "Xios::createFile: Invalid fieldType '" + std::to_string(fieldType) + "'");
+    }
+
     xios::CFile* file = NULL;
     bool exists;
     cxios_file_valid_id(&exists, fileId.c_str(), fileId.length());
@@ -1084,16 +1090,11 @@ void Xios::createFile(const std::string& fileId, const int& fieldType)
     bool writeAccess = (fieldType == OUTPUT_RESTART || fieldType == DIAGNOSTIC);
 
     // Check that the filename is not used for both reading and writing
+    // FIXME: This error check is unreachable
     if (readAccess && writeAccess) {
         throw std::runtime_error("Xios: File '" + fileId + "' configured for both reading and"
             + " writing. This is not yet supported in the XIOS I/O implementation.");
         // TODO: Refactor to allow a field to be both read and written
-    }
-
-    // Check that the filename is in the XiosOutput or XiosInput config section
-    if (!(readAccess || writeAccess)) {
-        throw std::runtime_error("Xios: File '" + fileId
-            + "' cannot be found in the model, XiosDiagnostic, or XiosForcing config sections");
     }
 
     // Set the file mode
@@ -1175,7 +1176,7 @@ void Xios::createFile(const std::string& fileId, const int& fieldType)
 
     // Set the file split frequency to coincide with the output frequency for output files
     // TODO: Make this work for file reading, too (#898)
-    if (fieldType == OUTPUT_RESTART || fieldType == DIAGNOSTIC) {
+    if (writeAccess) {
         if (cxios_is_defined_file_split_freq(file)) {
             Logged::warning("Xios: Split frequency already set for file '" + fileId + "'");
         }
