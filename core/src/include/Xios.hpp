@@ -83,11 +83,6 @@ public:
     ModelArray::Type getFieldType(const std::string& fieldId);
     void setFieldType(const std::string& fieldId, const ModelArray::Type& type);
 
-    /* File */
-    void createFile(const std::string& fileId, const int fieldType);
-    void fileAddField(const std::string& fileId, const std::string& fieldId);
-    std::vector<std::string> fileGetFieldIds(const std::string& fileId);
-
     enum {
         ENABLED_KEY,
         OUTPUT_FIELD_NAMES_KEY,
@@ -98,14 +93,6 @@ public:
         FORCING_PERIOD_KEY,
         FORCING_FILE_KEY,
         FORCING_FIELD_NAMES_KEY,
-    };
-
-    // TODO: Make the following enum private
-    enum {
-        OUTPUT_RESTART,
-        INPUT_RESTART,
-        DIAGNOSTIC,
-        FORCING,
     };
 
 protected:
@@ -194,6 +181,12 @@ private:
     std::string diagnosticFileId;
     std::string forcingFilename;
     std::string forcingFileId;
+    enum {
+        OUTPUT_RESTART,
+        INPUT_RESTART,
+        DIAGNOSTIC,
+        FORCING,
+    };
     const std::map<int, std::string&> fileMap = {
         { OUTPUT_RESTART, outputFileId },
         { INPUT_RESTART, inputFileId },
@@ -201,6 +194,9 @@ private:
         { FORCING, forcingFileId },
     };
     void setupFiles();
+    void createFile(const std::string& fileId, const int fieldType);
+    void fileAddField(const std::string& fileId, const std::string& fieldId);
+    std::vector<std::string> fileGetFieldIds(const std::string& fileId);
     void postprocessOutputFiles();
 
     /* I/O */
