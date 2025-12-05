@@ -127,11 +127,7 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     const Duration& timestep = metadata.stepLength();
     int rank;
     MPI_Comm_rank(test_comm, &rank);
-    for (int ts = 1; ts <= 4; ts++) {
-
-        // Update the current timestep and verify it's updated in XIOS
-        metadata.incrementTime(timestep);
-        REQUIRE(xiosHandler.getCalendarStep() == ts);
+    for (int ts = 0; ts <= 4; ts++) {
 
         // Update restart fields
         for (size_t j = 0; j < ny + 1; ++j) {
@@ -169,6 +165,17 @@ MPI_TEST_CASE("TestXiosWrite", 2)
             }
         }
 
+        // Set up ModelState for restarts and write out
+        ModelState restarts = { {
+                                    { maskName, mask },
+                                    { coordsName, coordinates },
+                                    { hiceName, hice },
+                                    { ticeName, tice },
+                                    { uName, uice },
+                                },
+            {} };
+        grid.dumpModelState(restarts, restartOutputFilename, true);
+
         // Update diagnostics
         for (size_t j = 0; j < ny; ++j) {
             for (size_t i = 0; i < nx; ++i) {
@@ -182,18 +189,11 @@ MPI_TEST_CASE("TestXiosWrite", 2)
                                    },
             {} };
         pio->writeDiagnosticTime(diagnostics, diagnosticFilename);
-    }
 
-    // Set up ModelState for restarts and write out
-    ModelState restarts = { {
-                                { maskName, mask },
-                                { coordsName, coordinates },
-                                { hiceName, hice },
-                                { ticeName, tice },
-                                { uName, uice },
-                            },
-        {} };
-    grid.dumpModelState(restarts, restartOutputFilename, true);
+        // Update the current timestep and verify it's updated in XIOS
+        metadata.incrementTime(timestep);
+        REQUIRE(xiosHandler.getCalendarStep() == ts + 1);
+    }
 
     // Check the files have indeed been created
     // NOTE: Don't remove them because their contents are checked in XiosReadRestart_test and
