@@ -85,13 +85,6 @@ public:
 
     /* File */
     void createFile(const std::string& fileId, const int& fieldType);
-    void setFileType(const std::string& fileId, const std::string& fileType);
-    void setFileOutputFreq(const std::string& fileId, const Duration& outputFreq);
-    void setFileParAccess(const std::string& fileId, const std::string& parAccess);
-    std::string getFileType(const std::string& fileId);
-    Duration getFileOutputFreq(const std::string& fileId);
-    std::string getFileMode(const std::string& fileId);
-    std::string getFileParAccess(const std::string& fileId);
     void fileAddField(const std::string& fileId, const std::string& fieldId);
     std::vector<std::string> fileGetFieldIds(const std::string& fileId);
 
@@ -190,7 +183,6 @@ private:
     /* File */
     xios::CFileGroup* getFileGroup();
     xios::CFile* getFile(const std::string& fileId);
-    void setFileMode(const std::string& fileId, const std::string& mode);
     std::string outputFileId;
     std::string inputFileId;
     std::string diagnosticFilename;

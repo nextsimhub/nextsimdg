@@ -1090,27 +1090,46 @@ void Xios::createFile(const std::string& fileId, const int& fieldType)
         // TODO: Refactor to allow a field to be both read and written
     }
 
-    // Terminate early for special unit test cases, for which IDs start with 'unittest'
-    if (fileId.rfind("unittest", 0) == 0) {
-        Logged::warning("Xios: Special 'unittest' ID found; skipping automated setup. Are you sure "
-                        "you want to do this?");
-        return;
-    }
-
     // Check that the filename is in the XiosOutput or XiosInput config section
     if (!(readAccess || writeAccess)) {
         throw std::runtime_error("Xios: File '" + fileId
             + "' cannot be found in the model, XiosDiagnostic, or XiosForcing config sections");
     }
 
-    // Set the file mode and some defaults
+    // Set the file mode
+    std::string fileMode;
     if (readAccess) {
-        setFileMode(fileId, "read");
+        fileMode = "read";
     } else {
-        setFileMode(fileId, "write");
+        fileMode = "write";
     }
-    setFileType(fileId, "one_file");
-    setFileParAccess(fileId, "collective");
+    if (cxios_is_defined_file_mode(file)) {
+        Logged::warning("Xios: Overwriting mode for file '" + fileId + "'");
+    }
+    cxios_set_file_mode(file, fileMode.c_str(), fileMode.length());
+    if (!cxios_is_defined_file_mode(file)) {
+        throw std::runtime_error("Xios: Failed to set mode for file '" + fileId + "'");
+    }
+
+    // Set the file type to one_file
+    const std::string fileType = "one_file";
+    if (cxios_is_defined_file_type(file)) {
+        Logged::warning("Xios: Overwriting type for file '" + fileId + "'");
+    }
+    cxios_set_file_type(file, fileType.c_str(), fileType.length());
+    if (!cxios_is_defined_file_type(file)) {
+        throw std::runtime_error("Xios: Failed to set type for file '" + fileId + "'");
+    }
+
+    // Set the file parallel access to collective
+    const std::string parAccess = "collective";
+    if (cxios_is_defined_file_par_access(file)) {
+        Logged::warning("Xios: Overwriting parallel access for file '" + fileId + "'");
+    }
+    cxios_set_file_par_access(file, parAccess.c_str(), parAccess.length());
+    if (!cxios_is_defined_file_par_access(file)) {
+        throw std::runtime_error("Xios: Failed to set parallel access for file '" + fileId + "'");
+    }
 
     // Get the fieldIds
     std::set<std::string> fieldIds;
@@ -1180,150 +1199,6 @@ void Xios::createFile(const std::string& fileId, const int& fieldType)
             throw std::runtime_error("Xios: Failed to set name for field '" + fieldId + "'");
         }
     }
-}
-
-/*!
- * Set the type of a file with a given ID
- *
- * @param the file ID
- * @param file type to set
- */
-void Xios::setFileType(const std::string& fileId, const std::string& fileType)
-{
-    xios::CFile* file = getFile(fileId);
-    if (cxios_is_defined_file_type(file)) {
-        Logged::warning("Xios: Overwriting type for file '" + fileId + "'");
-    }
-    cxios_set_file_type(file, fileType.c_str(), fileType.length());
-    if (!cxios_is_defined_file_type(file)) {
-        throw std::runtime_error("Xios: Failed to set type for file '" + fileId + "'");
-    }
-}
-
-/*!
- * Set the output frequency of a file with a given ID
- *
- * @param the file ID
- * @param output frequency to set
- */
-void Xios::setFileOutputFreq(const std::string& fileId, const Duration& freq)
-{
-    xios::CFile* file = getFile(fileId);
-    if (cxios_is_defined_file_output_freq(file)) {
-        Logged::warning("Xios: Overwriting output frequency for file '" + fileId + "'");
-    }
-    cxios_set_file_output_freq(file, convertDurationToXios(freq));
-    if (!cxios_is_defined_file_output_freq(file)) {
-        throw std::runtime_error("Xios: Failed to set output frequency for file '" + fileId + "'");
-    }
-}
-
-/*!
- * Set the mode of a file with a given ID
- *
- * @param the file ID
- * @param file mode to set
- */
-void Xios::setFileMode(const std::string& fileId, const std::string& mode)
-{
-    xios::CFile* file = getFile(fileId);
-    if (cxios_is_defined_file_mode(file)) {
-        Logged::warning("Xios: Overwriting mode for file '" + fileId + "'");
-    }
-    cxios_set_file_mode(file, mode.c_str(), mode.length());
-    if (!cxios_is_defined_file_mode(file)) {
-        throw std::runtime_error("Xios: Failed to set mode for file '" + fileId + "'");
-    }
-}
-
-/*!
- * Set the parallel access mode of a file with a given ID
- *
- * @param the file ID
- * @param parallel access mode to set
- */
-void Xios::setFileParAccess(const std::string& fileId, const std::string& parAccess)
-{
-    xios::CFile* file = getFile(fileId);
-    if (cxios_is_defined_file_par_access(file)) {
-        Logged::warning("Xios: Overwriting parallel access for file '" + fileId + "'");
-    }
-    cxios_set_file_par_access(file, parAccess.c_str(), parAccess.length());
-    if (!cxios_is_defined_file_par_access(file)) {
-        throw std::runtime_error("Xios: Failed to set parallel access for file '" + fileId + "'");
-    }
-}
-
-/*!
- * Get the type of a file with a given ID
- *
- * @param the file ID
- * @return type of the corresponding file
- */
-std::string Xios::getFileType(const std::string& fileId)
-{
-    xios::CFile* file = getFile(fileId);
-    if (!cxios_is_defined_file_type(file)) {
-        throw std::runtime_error("Xios: Undefined type for file '" + fileId + "'");
-    }
-    char cStr[cStrLen];
-    cxios_get_file_type(file, cStr, cStrLen);
-    return convertCStrToCppStr(cStr, cStrLen);
-}
-
-/*!
- * Get the output frequency of a file with a given ID
- *
- * @param the file ID
- * @return the corresponding output frequency
- */
-Duration Xios::getFileOutputFreq(const std::string& fileId)
-{
-    xios::CFile* file = getFile(fileId);
-    if (!cxios_is_defined_file_output_freq(file)) {
-        throw std::runtime_error("Xios: Undefined output frequency for file '" + fileId + "'");
-    }
-    cxios_duration duration;
-    cxios_get_file_output_freq(file, &duration);
-    return convertDurationFromXios(duration);
-}
-
-/*!
- * Get the mode of a file with a given ID
- *
- * @param the file ID
- * @return mode of the corresponding file
- */
-std::string Xios::getFileMode(const std::string& fileId)
-{
-    xios::CFile* file = getFile(fileId);
-    if (!cxios_is_defined_file_mode(file)) {
-        throw std::runtime_error("Xios: Undefined mode for file '" + fileId + "'");
-    }
-    char cStr[cStrLen];
-    cxios_get_file_mode(file, cStr, cStrLen);
-    std::string mode(cStr, cStrLen);
-    boost::algorithm::trim_right(mode);
-    return mode;
-}
-
-/*!
- * Get the parallel access mode of a file with a given ID
- *
- * @param the file ID
- * @return parallel access mode of the corresponding file
- */
-std::string Xios::getFileParAccess(const std::string& fileId)
-{
-    xios::CFile* file = getFile(fileId);
-    if (!cxios_is_defined_file_par_access(file)) {
-        throw std::runtime_error("Xios: Undefined parallel access for file '" + fileId + "'");
-    }
-    char cStr[cStrLen];
-    cxios_get_file_par_access(file, cStr, cStrLen);
-    std::string parAccess(cStr, cStrLen);
-    boost::algorithm::trim_right(parAccess);
-    return parAccess;
 }
 
 /*!

@@ -217,18 +217,6 @@ if(ENABLE_MPI)
         )
         target_link_libraries(testXiosField_MPI3 PRIVATE nextsimlib doctest::doctest)
 
-        add_executable(testXiosFile_MPI2 "XiosFile_test.cpp" "MainMPI.cpp")
-        target_compile_definitions(testXiosFile_MPI2 PRIVATE USE_XIOS)
-        target_include_directories(
-            testXiosFile_MPI2
-            PRIVATE
-                ${PHYSICS_INCLUDE_DIRS}
-                "${MODEL_INCLUDE_DIR}"
-                "${XIOS_INCLUDE_LIST}"
-                "${ModulesRoot}/StructureModule"
-        )
-        target_link_libraries(testXiosFile_MPI2 PRIVATE nextsimlib doctest::doctest)
-
         add_executable(testXiosReadForcing_MPI2 "XiosReadForcing_test.cpp" "MainMPI.cpp")
         target_compile_definitions(testXiosReadForcing_MPI2
             PRIVATE
@@ -297,7 +285,6 @@ if(ENABLE_MPI)
             testXiosCalendar_MPI1
             testXiosAxis_MPI3
             testXiosField_MPI3
-            testXiosFile_MPI2
             testXiosReadForcing_MPI2
             testXiosReadDiagnostic_MPI2
             testXiosReadRestart_MPI2
