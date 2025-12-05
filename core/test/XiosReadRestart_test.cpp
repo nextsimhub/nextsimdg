@@ -40,7 +40,7 @@ MPI_TEST_CASE("TestXiosReadRestart", 2)
     config << "stop = 2023-03-17T23:11:00Z" << std::endl;
     config << "time_step = P0-0T01:30:00" << std::endl;
     config << "init_file = " << restartFilename << std::endl;
-    config << "restart_period = P0-0T01:30:00" << std::endl;
+    config << "restart_period = P0-0T03:00:00" << std::endl;
     config << "partition_file = xios_test_partition_metadata_2.nc" << std::endl;
     config << "[XiosInput]" << std::endl;
     config << "field_names = " << maskName << "," << coordsName << "," << hiceName << ","
@@ -90,6 +90,7 @@ MPI_TEST_CASE("TestXiosReadRestart", 2)
     // Read restarts from file and check they take the expected values
     int rank;
     MPI_Comm_rank(test_comm, &rank);
+    float ts = 2; // Corresponds to 2023-03-17T20:10:59Z
     for (const auto [fieldName, modelarray] : grid.getModelState(restartFilename).data) {
         if (fieldName == maskName) {
             for (size_t j = 0; j < ny; ++j) {
@@ -100,19 +101,22 @@ MPI_TEST_CASE("TestXiosReadRestart", 2)
         } else if (fieldName == coordsName) {
             for (size_t j = 0; j < ny + 1; ++j) {
                 for (size_t i = 0; i < nx + 1; ++i) {
+                    float expected_x;
                     if (rank == 0) {
-                        REQUIRE(modelarray.components({ i, j })[0] == doctest::Approx(i));
+                        expected_x = ts * i;
                     } else {
-                        REQUIRE(modelarray.components({ i, j })[0] == doctest::Approx(i + 2));
+                        expected_x = ts * (i + 2);
                     }
-                    REQUIRE(modelarray.components({ i, j })[1] == doctest::Approx(j));
+                    const float expected_y = ts * j;
+                    REQUIRE(modelarray.components({ i, j })[0] == doctest::Approx(expected_x));
+                    REQUIRE(modelarray.components({ i, j })[1] == doctest::Approx(expected_y));
                 }
             }
         } else if (fieldName == hiceName) {
             for (size_t j = 0; j < ny; ++j) {
                 for (size_t i = 0; i < nx; ++i) {
                     for (size_t d = 0; d < DGCOMP; ++d) {
-                        float expected = 1.0 * (d + DGCOMP * (i + nx * j));
+                        const float expected = ts * (d + DGCOMP * (i + nx * j));
                         REQUIRE(modelarray.components({ i, j })[d] == doctest::Approx(expected));
                     }
                 }
@@ -121,7 +125,7 @@ MPI_TEST_CASE("TestXiosReadRestart", 2)
             for (size_t j = 0; j < ny; ++j) {
                 for (size_t i = 0; i < nx; ++i) {
                     for (size_t d = 0; d < DGSTRESSCOMP; ++d) {
-                        float expected = 2.0 * (d + DGSTRESSCOMP * (i + nx * j));
+                        const float expected = 2.0 * ts * (d + DGSTRESSCOMP * (i + nx * j));
                         REQUIRE(modelarray.components({ i, j })[d] == doctest::Approx(expected));
                     }
                 }
@@ -129,11 +133,13 @@ MPI_TEST_CASE("TestXiosReadRestart", 2)
         } else if (fieldName == uName) {
             for (size_t j = 0; j < CGDEGREE * ny + 1; ++j) {
                 for (size_t i = 0; i < CGDEGREE * nx + 1; ++i) {
+                    float expected;
                     if (rank == 0) {
-                        REQUIRE(modelarray(i, j) == doctest::Approx((i + 1) * (j + 1)));
+                        expected = ts * (i + 1) * (j + 1);
                     } else {
-                        REQUIRE(modelarray(i, j) == doctest::Approx((i + 5) * (j + 1)));
+                        expected = ts * (i + 5) * (j + 1);
                     }
+                    REQUIRE(modelarray(i, j) == doctest::Approx(expected));
                 }
             }
         }
