@@ -1,7 +1,7 @@
 /*!
  * @author  Joe Wallwork <jw2423@cam.ac.uk>
- * @brief   Tests for XIOS write functionality
- * @details The functionality of writing both restarts and diagnostics via XIOS is tested.
+ * @brief   Tests for XIOS functionality for writing restart files.
+ * @details The functionality of writing restarts via XIOS is tested.
  */
 #include <doctest/extensions/doctest_mpi.h>
 #undef INFO
@@ -18,9 +18,8 @@
 #include <filesystem>
 
 const std::string testFilesDir = TEST_FILES_DIR;
-const std::string restartInputFilename = testFilesDir + "/xios_test_input.nc";
-const std::string restartOutputFilename = testFilesDir + "/xios_test_output.nc";
-const std::string diagnosticFilename = testFilesDir + "/xios_test_diagnostic.nc";
+const std::string inputFilename = testFilesDir + "/xios_test_input.nc";
+const std::string outputFilename = testFilesDir + "/xios_test_restart.nc";
 
 static const int DGCOMP = 6;
 static const int DGSTRESSCOMP = 8;
@@ -31,8 +30,7 @@ namespace Nextsim {
 /*!
  * TestXiosWrite
  *
- * 1. Test writing of restarts via `dumpModelState`.
- * 2. Test writing of diagnostics via `writeDiagnosticTime`.
+ * Test writing of restarts via `dumpModelState`.
  */
 MPI_TEST_CASE("TestXiosWrite", 2)
 {
@@ -41,19 +39,13 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     config << "start = 2023-03-17T17:11:00Z" << std::endl;
     config << "stop = 2023-03-17T23:11:00Z" << std::endl;
     config << "time_step = P0-0T01:30:00" << std::endl;
-    config << "init_file = " << restartInputFilename << std::endl;
-    config << "restart_file = " << restartOutputFilename << std::endl;
+    config << "init_file = " << inputFilename << std::endl;
+    config << "restart_file = " << outputFilename << std::endl;
     config << "partition_file = xios_test_partition_metadata_2.nc" << std::endl;
-    config << "restart_period = P0-0T01:30:00" << std::endl;
+    config << "restart_period = P0-0T03:00:00" << std::endl;
     config << "[XiosOutput]" << std::endl;
     config << "field_names = " << maskName << "," << coordsName << "," << hiceName << ","
            << ticeName << "," << uName << std::endl;
-    config << "period = P0-0T01:30:00" << std::endl;
-    config << "split_period = P0-0T03:00:00" << std::endl;
-    config << "[XiosDiagnostic]" << std::endl;
-    config << "filename = " << diagnosticFilename << std::endl;
-    config << "field_names = " << hsnowName << std::endl;
-    config << "period = P0-0T03:00:00" << std::endl;
     config << "split_period = P0-0T03:00:00" << std::endl;
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
@@ -86,13 +78,12 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     ParaGridIO* pio = new ParaGridIO(grid);
     grid.setIO(pio);
 
-    // Set field types
+    // Set field types for restarts
     xiosHandler.setFieldType(maskName, ModelArray::Type::H);
     xiosHandler.setFieldType(coordsName, ModelArray::Type::VERTEX);
     xiosHandler.setFieldType(hiceName, ModelArray::Type::DG);
     xiosHandler.setFieldType(ticeName, ModelArray::Type::DGSTRESS);
     xiosHandler.setFieldType(uName, ModelArray::Type::CG);
-    xiosHandler.setFieldType(hsnowName, ModelArray::Type::H);
 
     xiosHandler.close_context_definition();
 
@@ -116,7 +107,7 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     hsnow.resize();
 
     // Check files with the expected names don't exist yet
-    REQUIRE_FALSE(std::filesystem::exists("xios_test_output*.nc"));
+    REQUIRE_FALSE(std::filesystem::exists("xios_test_restart*.nc"));
     REQUIRE_FALSE(std::filesystem::exists("xios_test_diagnostic*.nc"));
 
     // Check calendar step is zero initially
@@ -127,11 +118,7 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     const Duration& timestep = metadata.stepLength();
     int rank;
     MPI_Comm_rank(test_comm, &rank);
-    for (int ts = 1; ts <= 4; ts++) {
-
-        // Update the current timestep and verify it's updated in XIOS
-        metadata.incrementTime(timestep);
-        REQUIRE(xiosHandler.getCalendarStep() == ts);
+    for (int ts = 0; ts <= 4; ts++) {
 
         // Update restart fields
         for (size_t j = 0; j < ny + 1; ++j) {
@@ -169,39 +156,26 @@ MPI_TEST_CASE("TestXiosWrite", 2)
             }
         }
 
-        // Update diagnostics
-        for (size_t j = 0; j < ny; ++j) {
-            for (size_t i = 0; i < nx; ++i) {
-                hsnow(i, j) = 0.1 * ts;
-            }
-        }
-
-        // Set up ModelStates for diagnostics and write out
-        ModelState diagnostics = { {
-                                       { hsnowName, hsnow },
-                                   },
+        // Set up ModelState for restarts and write out
+        ModelState restarts = { {
+                                    { maskName, mask },
+                                    { coordsName, coordinates },
+                                    { hiceName, hice },
+                                    { ticeName, tice },
+                                    { uName, uice },
+                                },
             {} };
-        pio->writeDiagnosticTime(diagnostics, diagnosticFilename);
+        grid.dumpModelState(restarts, outputFilename, true);
+
+        // Update the current timestep and verify it's updated in XIOS
+        metadata.incrementTime(timestep);
+        REQUIRE(xiosHandler.getCalendarStep() == ts + 1);
     }
 
-    // Set up ModelState for restarts and write out
-    ModelState restarts = { {
-                                { maskName, mask },
-                                { coordsName, coordinates },
-                                { hiceName, hice },
-                                { ticeName, tice },
-                                { uName, uice },
-                            },
-        {} };
-    grid.dumpModelState(restarts, restartOutputFilename, true);
-
     // Check the files have indeed been created
-    // NOTE: Don't remove them because their contents are checked in XiosReadRestart_test and
-    //       XiosReadDiagnostic_test
-    REQUIRE(std::filesystem::exists("xios_test_output_20230317171100-20230317201059.nc"));
-    REQUIRE(std::filesystem::exists("xios_test_output_20230317201100-20230317231059.nc"));
-    REQUIRE(std::filesystem::exists("xios_test_diagnostic_20230317171100-20230317201059.nc"));
-    REQUIRE(std::filesystem::exists("xios_test_diagnostic_20230317201100-20230317231059.nc"));
+    // NOTE: Don't remove them because their contents are checked in XiosReadRestart_test
+    REQUIRE(std::filesystem::exists("xios_test_restart_20230317171100-20230317201059.nc"));
+    REQUIRE(std::filesystem::exists("xios_test_restart_20230317201100-20230317231059.nc"));
 
     xiosHandler.context_finalize();
     Finalizer::finalize();
