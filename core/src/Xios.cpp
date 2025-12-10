@@ -933,10 +933,10 @@ ModelArray::Type Xios::getFieldType(const std::string& fieldId) { return fieldTy
  * @param the field ID
  * @param ModelArray::Type used for the corresponding field
  */
-void Xios::setFieldType(const std::string& fieldId, const ModelArray::Type& type)
+void Xios::setFieldType(const std::string& fieldId, const ModelArray::Type& fieldType)
 {
-    fieldTypes[fieldId] = type;
-    setFieldGridRef(fieldId, gridIds[type]);
+    fieldTypes[fieldId] = fieldType;
+    setFieldGridRef(fieldId, gridIds[fieldType]);
 }
 
 /*!
@@ -1063,14 +1063,14 @@ void Xios::createFile(const std::string& fileId)
     }
 
     // Deduce the field type
-    int fieldType = -1;
-    for (const auto& [otherFieldType, otherFileId] : fileMap) {
-        if (fileId == otherFileId) {
-            fieldType = otherFieldType;
+    int ioType = -1;
+    for (const auto& [ioTypeOther, fileIdOther] : fileMap) {
+        if (fileId == fileIdOther) {
+            ioType = ioTypeOther;
             break;
         }
     }
-    if (fieldType == -1) {
+    if (ioType == -1) {
         throw std::runtime_error(
             "Xios::createFile: Could not deduce file type for file '" + fileId + "'");
     }
@@ -1098,8 +1098,8 @@ void Xios::createFile(const std::string& fileId)
     }
 
     // Determine whether the file is configured for reading or writing
-    bool readAccess = (fieldType == INPUT_RESTART || fieldType == FORCING);
-    bool writeAccess = (fieldType == OUTPUT_RESTART || fieldType == DIAGNOSTIC);
+    bool readAccess = (ioType == INPUT_RESTART || ioType == FORCING);
+    bool writeAccess = (ioType == OUTPUT_RESTART || ioType == DIAGNOSTIC);
 
     // Check that the filename is not used for both reading and writing
     // FIXME: This error check is unreachable
@@ -1146,24 +1146,24 @@ void Xios::createFile(const std::string& fileId)
 
     // Get the fieldIds
     std::set<std::string> fieldIds;
-    if (fieldType == INPUT_RESTART) {
+    if (ioType == INPUT_RESTART) {
         fieldIds = configGetInputRestartFieldNames();
-    } else if (fieldType == OUTPUT_RESTART) {
+    } else if (ioType == OUTPUT_RESTART) {
         fieldIds = configGetOutputRestartFieldNames();
-    } else if (fieldType == FORCING) {
+    } else if (ioType == FORCING) {
         fieldIds = configGetForcingFieldNames();
-    } else if (fieldType == DIAGNOSTIC) {
+    } else if (ioType == DIAGNOSTIC) {
         fieldIds = configGetDiagnosticFieldNames();
     }
 
     // Determine the file output frequency
     cxios_duration outputFreq;
     ModelMetadata& metadata = ModelMetadata::getInstance();
-    if (fieldType == INPUT_RESTART || fieldType == OUTPUT_RESTART) {
+    if (ioType == INPUT_RESTART || ioType == OUTPUT_RESTART) {
         outputFreq = convertDurationToXios(metadata.restartPeriod);
     } else {
         std::string periodStr;
-        if (fieldType == FORCING) {
+        if (ioType == FORCING) {
             periodStr = Configured::getConfiguration(keyMap.at(FORCING_PERIOD_KEY), std::string());
         } else {
             periodStr
