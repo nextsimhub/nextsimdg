@@ -1054,16 +1054,28 @@ xios::CFile* Xios::getFile(const std::string& fileId)
  * Create a file with some ID
  *
  * @param the file ID
- * @param enum indicating field type
  */
-void Xios::createFile(const std::string& fileId, const int fieldType)
+void Xios::createFile(const std::string& fileId)
 {
-    if (!(fieldType == INPUT_RESTART || fieldType == FORCING || fieldType == OUTPUT_RESTART
-            || fieldType == DIAGNOSTIC)) {
-        throw std::runtime_error(
-            "Xios::createFile: Invalid fieldType '" + std::to_string(fieldType) + "'");
+    if (!(fileId == outputFileId || fileId == inputFileId || fileId == diagnosticFileId
+            || fileId == forcingFileId)) {
+        throw std::runtime_error("Xios::createFile: Invalid fileId '" + fileId + "'");
     }
 
+    // Deduce the field type
+    int fieldType = -1;
+    for (const auto& [otherFieldType, otherFileId] : fileMap) {
+        if (fileId == otherFileId) {
+            fieldType = otherFieldType;
+            break;
+        }
+    }
+    if (fieldType == -1) {
+        throw std::runtime_error(
+            "Xios::createFile: Could not deduce file type for file '" + fileId + "'");
+    }
+
+    // Create the file
     xios::CFile* file = NULL;
     bool exists;
     cxios_file_valid_id(&exists, fileId.c_str(), fileId.length());
@@ -1277,9 +1289,10 @@ void Xios::setupFiles()
     }
 
     // Create files for any non-empty file IDs
-    for (const auto& [fileType, fileId] : fileMap) {
+    for (const std::string& fileId :
+        { outputFileId, inputFileId, diagnosticFileId, forcingFileId }) {
         if (!fileId.empty()) {
-            createFile(fileId, fileType);
+            createFile(fileId);
         }
     }
 }

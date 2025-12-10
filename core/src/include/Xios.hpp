@@ -191,7 +191,7 @@ private:
         { FORCING, forcingFileId },
     };
     void setupFiles();
-    void createFile(const std::string& fileId, const int fieldType);
+    void createFile(const std::string& fileId);
     void fileAddField(const std::string& fileId, const std::string& fieldId);
     std::vector<std::string> fileGetFieldIds(const std::string& fileId);
     const std::map<std::string, std::string> formatStrMap = {
