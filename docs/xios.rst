@@ -117,13 +117,15 @@ The ``field_names`` entry may contain a single field name or a comma-separated
 list. Note that all of the ``XiosOutput``, ``XiosInput``, ``XiosDiagnostic``,
 and ``XiosForcing`` sections are optional.
 
-When writing out files, the ``split_period`` option can be included in either of
-the ``XiosOutput`` or ``XiosDiagnostic`` sections, which instructs XIOS to
-create a separate output file for each such period. For a given period, a file
-will be written with a name of the form
-``<FILENAME>_<START_TIME>-<END_TIME>.nc``, where ``<FILENAME>`` is the
-user-provided file name and ``<START_TIME>`` and ``<END_TIME>`` are the start
-and end of the associated period.
+Restart and diagnostic file names may include format strings such as
+``restart%Y-%m-%dT%H:%M:%SZ.nc`` or ``diagnostic%Y-%m-%dT%H:%M:%SZ.nc`` (in
+fact, these are the defaults). When writing out restarts and diagnostics, a
+separate file is produced for each restart period, with filename of the format
+``<FILENAME>_<START_TIME>-<END_TIME>.nc``, where ``<START_TIME>`` and
+``<END_TIME>`` are the start and end of the associated period, written using the
+provided format string. Restart files contain the state at the beginning of the
+time window, whereas diagnostics files are averaged over the timesteps in the
+window.
 
 As elsewhere in the model, the configuration values above are all parsed by
 calling the ``Model.configure`` member function. Since building with XIOS
