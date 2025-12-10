@@ -54,10 +54,10 @@ MPI_TEST_CASE("TestXiosCalendar", 1)
     // --- Tests for calendar API
     // Calendar start
     REQUIRE(xiosHandler.getCalendarStart().format() == "2023-03-17T17:11:00Z"); // Set in config
-    TimePoint start("2023-03-17T17:11:00Z");
+    TimePoint start("2023-03-17T20:11:00Z");
     xiosHandler.setCalendarStart(start);
     REQUIRE(start == xiosHandler.getCalendarStart());
-    REQUIRE(start.format() == "2023-03-17T17:11:00Z");
+    REQUIRE(start.format() == "2023-03-17T20:11:00Z");
     // Timestep
     ModelMetadata& metadata = ModelMetadata::getInstance();
     REQUIRE(metadata.stepLength().seconds() == 3600.0); // Read from config
@@ -66,12 +66,12 @@ MPI_TEST_CASE("TestXiosCalendar", 1)
 
     // --- Tests for getCurrentDate method
     REQUIRE(xiosHandler.getCalendarStep() == 0);
-    REQUIRE(xiosHandler.getCurrentDate().format() == "2023-03-17T17:11:00Z");
+    REQUIRE(xiosHandler.getCurrentDate().format() == "2023-03-17T20:11:00Z");
 
     // -- Tests that the timestep is set up correctly
     xiosHandler.setCalendarStep(1);
     REQUIRE(xiosHandler.getCalendarStep() == 1);
-    REQUIRE(xiosHandler.getCurrentDate().format() == "2023-03-17T18:11:00Z");
+    REQUIRE(xiosHandler.getCurrentDate().format() == "2023-03-17T21:11:00Z");
 
     xiosHandler.context_finalize();
     Finalizer::finalize();
