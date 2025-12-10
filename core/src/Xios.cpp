@@ -1099,15 +1099,6 @@ void Xios::createFile(const std::string& fileId)
 
     // Determine whether the file is configured for reading or writing
     bool readAccess = (ioType == INPUT_RESTART || ioType == FORCING);
-    bool writeAccess = (ioType == OUTPUT_RESTART || ioType == DIAGNOSTIC);
-
-    // Check that the filename is not used for both reading and writing
-    // FIXME: This error check is unreachable
-    if (readAccess && writeAccess) {
-        throw std::runtime_error("Xios: File '" + fileId + "' configured for both reading and"
-            + " writing. This is not yet supported in the XIOS I/O implementation.");
-        // TODO: Refactor to allow a field to be both read and written
-    }
 
     // Set the file mode
     std::string fileMode;
@@ -1187,7 +1178,7 @@ void Xios::createFile(const std::string& fileId)
     }
 
     // Set the file split frequency to coincide with the output frequency for output files
-    if (writeAccess) {
+    if (!readAccess) {
         if (cxios_is_defined_file_split_freq(file)) {
             Logged::warning("Xios: Split frequency already set for file '" + fileId + "'");
         }
@@ -1275,10 +1266,24 @@ void Xios::setupFiles()
         outputFormatStr = outputFileId.substr(outputFileId.find("%"), outputFileId.find(".nc"));
         outputFileId.erase(outputFileId.find("%"), outputFileId.length());
     }
+    if (!inputFileId.empty() && inputFileId == outputFileId) {
+        throw std::runtime_error("Xios::setupFiles: Input and restart file names must differ.");
+    }
 
-    // Get forcing and diganostic file IDs from the configuration
+    // Get forcing file name and ID from the configuration
     forcingFilename = Configured::getConfiguration(keyMap.at(FORCING_FILE_KEY), std::string());
     forcingFileId = ((std::filesystem::path)forcingFilename).filename().replace_extension();
+    if (!forcingFileId.empty()) {
+        if (inputFileId == forcingFileId) {
+            throw std::runtime_error("Xios::setupFiles: Input and forcing file names must differ.");
+        }
+        if (outputFileId == forcingFileId) {
+            throw std::runtime_error(
+                "Xios::setupFiles: Restart and forcing file names must differ.");
+        }
+    }
+
+    // Get diagnostic file name and ID from the configuration
     diagnosticFilename
         = Configured::getConfiguration(keyMap.at(DIAGNOSTIC_FILE_KEY), std::string());
     diagnosticFileId = ((std::filesystem::path)diagnosticFilename).filename().replace_extension();
@@ -1286,6 +1291,20 @@ void Xios::setupFiles()
         diagnosticFormatStr
             = diagnosticFileId.substr(diagnosticFileId.find("%"), diagnosticFileId.find(".nc"));
         diagnosticFileId.erase(diagnosticFileId.find("%"), diagnosticFileId.length());
+    }
+    if (!diagnosticFileId.empty()) {
+        if (inputFileId == diagnosticFileId) {
+            throw std::runtime_error(
+                "Xios::setupFiles: Input and diagnostic file names must differ.");
+        }
+        if (outputFileId == diagnosticFileId) {
+            throw std::runtime_error(
+                "Xios::setupFiles: Restart and diagnostic file names must differ.");
+        }
+        if (forcingFileId == diagnosticFileId) {
+            throw std::runtime_error(
+                "Xios::setupFiles: Forcing and diagnostic file names must differ.");
+        }
     }
 
     // Create files for any non-empty file IDs
