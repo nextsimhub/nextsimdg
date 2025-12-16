@@ -157,7 +157,8 @@ void ParaGridIO::dumpModelState(const ModelState& state, const std::string& file
     xiosHandler.close_context_definition();
 
     ModelMetadata& metadata = ModelMetadata::getInstance();
-    if (metadata.finalFileName != filePath) {
+
+    if (filePath.find(xiosHandler.outputFileId) == std::string::npos) {
         throw std::runtime_error("ParaGridIO::dumpModelState: file path '" + filePath
             + "' is inconsistent with model.restart_file '" + metadata.finalFileName + "'");
     }
@@ -180,7 +181,7 @@ void ParaGridIO::writeDiagnosticTime(const ModelState& state, const std::string&
     Xios& xiosHandler = Xios::getInstance();
     xiosHandler.close_context_definition();
 
-    if (xiosHandler.diagnosticFilename != filePath) {
+    if (filePath.find(xiosHandler.diagnosticFileId) == std::string::npos) {
         throw std::runtime_error("ParaGridIO::writeDiagnosticTime: file path '" + filePath
             + "' is inconsistent with XiosDiagnostic.filename '" + xiosHandler.diagnosticFilename
             + "'");
