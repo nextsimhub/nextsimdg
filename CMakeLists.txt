@@ -11,7 +11,7 @@ option(ENABLE_MPI "Enable distributed-memory parallelization with MPI" OFF)
 option(ENABLE_XIOS "Enable XIOS library for IO" OFF)
 option(BUILD_TESTS "Build the tests" ON)
 set(DynamicsType
-    "DG2"
+    "DG1"
     CACHE STRING
     "Set the discretization order for the dynamics, either DG1 or DG2"
 )
