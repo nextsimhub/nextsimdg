@@ -67,7 +67,8 @@ public:
     }
 #endif
 
-    template <typename ExecSpace> decltype(auto) getAutoRO() const
+    // decltype(auto) for perfect forwarding of either copy or const reference
+    decltype(auto) getAutoRO() const
     {
 #ifdef USE_KOKKOS
         return ConstDeviceModelArray(getDeviceRO());
@@ -156,7 +157,7 @@ public:
     }
 #endif
 
-    template <typename ExecSpace> auto& getAutoRW()
+    auto& getAutoRW()
     {
 #ifdef USE_KOKKOS
         // sync buffers

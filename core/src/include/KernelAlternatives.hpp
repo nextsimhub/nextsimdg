@@ -31,12 +31,14 @@ namespace Utils = std;
 
 // KERNEL_LAMBDA capture list of a lambda used in a overElements call
 #ifdef USE_KOKKOS
-#define OVER_ELEMENTS_LAMBDA KOKKOS_LAMBDA (const DeviceIndex i)
+#define OVER_ELEMENTS_LAMBDA KOKKOS_LAMBDA
+using ElementIndex = DeviceIndex;
 #else
-#define OVER_ELEMENTS_LAMBDA [&] (const size_t i)
+#define OVER_ELEMENTS_LAMBDA [&]
+using ElementIndex = size_t;
 #endif
 
-// 
+// Execution space that is used to signal async operations.
 #ifdef USE_KOKKOS
 using DefaultExecutionSpace = Kokkos::DefaultExecutionSpace;
 #else
