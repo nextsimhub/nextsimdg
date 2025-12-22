@@ -79,10 +79,6 @@ private:
 
     double relaxationTimeT = defaultRelaxationTime;
     double relaxationTimeS = defaultRelaxationTime;
-
-    double dt;
-
-    void updateElement(size_t i, const TimestepTime& tst);
 };
 
 } /* namespace Nextsim */

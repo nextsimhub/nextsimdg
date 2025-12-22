@@ -2,7 +2,6 @@
  * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
-#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include <doctest/doctest.h>
 
 #include "include/SlabOcean.hpp"
@@ -93,10 +92,13 @@ TEST_CASE("Test Qdw")
         == doctest::Approx(tOffset * cpml[0] / SlabOcean::defaultRelaxationTime).epsilon(prec));
 
     ModelArrayAccessor<Protected::SLAB_SST> sstSlabAccessor(ModelComponent::getStore());
-    const HField& sstSlab = sstSlabAccessor.getHostRO();
+    // scope needed because we have to access sstSlab again after update
+    {
+        const HField& sstSlab = sstSlabAccessor.getHostRO();
 
-    REQUIRE(sstSlab[0] != doctest::Approx(sst[0]).epsilon(prec / dt));
-    REQUIRE(sstSlab[0] == doctest::Approx(sst[0] + dt * qdw[0] / cpml[0]).epsilon(prec));
+        REQUIRE(sstSlab[0] != doctest::Approx(sst[0]).epsilon(prec / dt));
+        REQUIRE(sstSlab[0] == doctest::Approx(sst[0] + dt * qdw[0] / cpml[0]).epsilon(prec));
+    }
 
     ModelArrayAccessor<CouplingFields::Q_SS_SW, RW> qswNetAccessor(
         couplingArrays, RW, ModelArray::Type::H);
@@ -106,8 +108,10 @@ TEST_CASE("Test Qdw")
         couplingArrays, RW, ModelArray::Type::H);
     HField& qNoSun = qNoSunAccessor.getHostRW();
     qNoSun[0] = -17.5;
+
     // Should not need to update anything else, as the slabOcean update only changes SLAB_SST
     slabOcean.update(tst);
+    const HField& sstSlab = sstSlabAccessor.getHostRO();
     REQUIRE(sstSlab[0]
         == doctest::Approx(sst[0] - dt * (qswNet[0] + qNoSun[0] - qdw[0]) / cpml[0]).epsilon(prec));
 }

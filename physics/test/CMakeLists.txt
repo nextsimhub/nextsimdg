@@ -62,7 +62,7 @@ if(NOT ENABLE_MPI)
     target_include_directories(testConstantOcn PRIVATE "${ModulesRoot}/OceanBoundaryModule")
     target_link_libraries(testConstantOcn PRIVATE nextsimlib doctest::doctest)
 
-    add_executable(testSlabOcn "SlabOcean_test.cpp")
+    add_executable(testSlabOcn "SlabOcean_test.cpp" "../../core/test/MainTest.cpp")
     target_include_directories(testSlabOcn PRIVATE "${CoreModulesRoot}/FreezingPointModule")
     target_link_libraries(testSlabOcn PRIVATE nextsimlib doctest::doctest)
 
@@ -76,7 +76,7 @@ if(NOT ENABLE_MPI)
                                         "${ModulesRoot}/OceanBoundaryModule")
     target_link_libraries(testBenchmarkBoundaries PRIVATE nextsimlib doctest::doctest)
 
-    add_executable(testDamageHealing "DamageHealing_test.cpp")
+    add_executable(testDamageHealing "DamageHealing_test.cpp" "../../core/test/MainTest.cpp")
     target_include_directories(testDamageHealing PRIVATE "${ModulesRoot}/DamageHealingModule"
                                                          "${ModulesRoot}/DamageHealingModule")
     target_link_libraries(testDamageHealing PRIVATE nextsimlib doctest::doctest)

@@ -7,6 +7,9 @@
 #include "include/constants.hpp"
 #include "include/gridNames.hpp"
 
+#include "include/KernelAlternatives.hpp"
+#include "kokkos/include/KokkosTimer.hpp"
+
 #include <map>
 #include <string>
 
@@ -84,59 +87,57 @@ void SlabOcean::setData(const ModelState::DataMap& ms)
 
 void SlabOcean::update(const TimestepTime& tst)
 {
-    HField& sstSlab = sstSlabAccessor.getHostRW();
-    HField& fdw = fdwAccessor.getHostRW();
-    HField& qdw = qdwAccessor.getHostRW();
-    HField& sssSlab = sssSlabAccessor.getHostRW();
-    const HField& fwFlux = fwFluxAccessor.getHostRO();
-    const HField& sssExt = sssExtAccessor.getHostRO();
-    const HField& sst = sstAccessor.getHostRO();
-    const HField& sstExt = sstExtAccessor.getHostRO();
-    const HField& qswNet = qswNetAccessor.getHostRO();
-    const HField& sss = sssAccessor.getHostRO();
-    const HField& qNoSun = qNoSunAccessor.getHostRO();
-    const HField& cpml = cpmlAccessor.getHostRO();
+    static KokkosTimer<true> timer("SlabOcean");
+    static KokkosTimer<DETAILED_MEASUREMENTS> timerCopy("SlabOceanCopy");
+    static KokkosTimer<DETAILED_MEASUREMENTS> timerUpdate("SlabOceanUpdate");
 
-    dt = tst.step.seconds();
-    overElements(
-        [&](const size_t i, const TimestepTime& tsTime) {
-            // Slab SST update
-            qdw[i] = (sstExt[i] - sst[i]) * cpml[i] / relaxationTimeT;
-            sstSlab[i] = sst[i] - dt * (qswNet[i] + qNoSun[i] - qdw[i]) / cpml[i];
+    timer.start();
+    timerCopy.start();
+    
+    auto execSpace = DefaultExecutionSpace();
+    auto& sstSlab = sstSlabAccessor.getAutoRW(execSpace);
+    auto& fdw = fdwAccessor.getAutoRW(execSpace);
+    auto& qdw = qdwAccessor.getAutoRW(execSpace);
+    auto& sssSlab = sssSlabAccessor.getAutoRW(execSpace);
+    const auto& fwFlux = fwFluxAccessor.getAutoRO(execSpace);
+    const auto& sssExt = sssExtAccessor.getAutoRO(execSpace);
+    const auto& sst = sstAccessor.getAutoRO(execSpace);
+    const auto& sstExt = sstExtAccessor.getAutoRO(execSpace);
+    const auto& qswNet = qswNetAccessor.getAutoRO(execSpace);
+    const auto& sss = sssAccessor.getAutoRO(execSpace);
+    const auto& qNoSun = qNoSunAccessor.getAutoRO(execSpace);
+    const auto& cpml = cpmlAccessor.getAutoRO(execSpace);
 
-            // Slab SSS update
-            const double arealDensity
-                = cpml[i] / Water::cp; // density times depth, or cpml divided by cp
-            // This is simplified compared to the finiteelement.cpp calculation
-            // Fdw = delS * mld * physical::rhow /(timeS*M_sss[i] - ddt*delS) where delS = sssSlab -
-            // sssExt
-            fdw[i] = (1 - sssExt[i] / sss[i]) * arealDensity / relaxationTimeS;
+    const double dt = tst.step.seconds();
+    const double relaxationTimeT = SlabOcean::relaxationTimeT;
+    const double relaxationTimeS = SlabOcean::relaxationTimeS;
+    timerCopy.stop();
 
-            // Mass per unit area after all the changes in water volume
-            // Clamp the denominator to be at least 1 m deep, i.e. at least Water::rho kg m⁻²
-            const double denominator
-                = std::max(arealDensity - (fwFlux[i] - fdw[i]) * dt, Water::rhoOcean);
-            sssSlab[i] = sss[i] + (sss[i] * fwFlux[i] - fdw[i] * dt) / denominator;
-        },
-        tst);
+    timerUpdate.start();
+    overElementsAuto(OVER_ELEMENTS_LAMBDA(const ElementIndex i) {
+        // Slab SST update
+        qdw[i] = (sstExt[i] - sst[i]) * cpml[i] / relaxationTimeT;
+        sstSlab[i] = sst[i] - dt * (qswNet[i] + qNoSun[i] - qdw[i]) / cpml[i];
+
+        // Slab SSS update
+        const double arealDensity
+            = cpml[i] / Water::cp; // density times depth, or cpml divided by cp
+        // This is simplified compared to the finiteelement.cpp calculation
+        // Fdw = delS * mld * physical::rhow /(timeS*M_sss[i] - ddt*delS) where delS = sssSlab -
+        // sssExt
+        fdw[i] = (1 - sssExt[i] / sss[i]) * arealDensity / relaxationTimeS;
+
+        // the compiler does not like a global constant appearing in the argument list of max
+        // "identifier "Water::rhoOcean" is undefined in device code"
+        const double rhoOcean = Water::rhoOcean;
+        // Mass per unit area after all the changes in water volume
+        // Clamp the denominator to be at least 1 m deep, i.e. at least Water::rho kg m⁻²
+        const double denominator
+            = Utils::max(arealDensity - (fwFlux[i] - fdw[i]) * dt, rhoOcean);
+        sssSlab[i] = sss[i] + (sss[i] * fwFlux[i] - fdw[i] * dt) / denominator;
+    });
+    timerUpdate.stop();
+    timer.stop();
 }
-/*
-void SlabOcean::updateElement(size_t i, const TimestepTime& tst)
-{
-    // Slab SST update
-    qdw[i] = (sstExt[i] - sst[i]) * cpml[i] / relaxationTimeT;
-    sstSlab[i] = sst[i] - dt * (qswNet[i] + qNoSun[i] - qdw[i]) / cpml[i];
-
-    // Slab SSS update
-    const double arealDensity = cpml[i] / Water::cp; // density times depth, or cpml divided by cp
-    // This is simplified compared to the finiteelement.cpp calculation
-    // Fdw = delS * mld * physical::rhow /(timeS*M_sss[i] - ddt*delS) where delS = sssSlab - sssExt
-    fdw[i] = (1 - sssExt[i] / sss[i]) * arealDensity / relaxationTimeS;
-
-    // Mass per unit area after all the changes in water volume
-    // Clamp the denominator to be at least 1 m deep, i.e. at least Water::rho kg m⁻²
-    const double denominator = std::max(arealDensity - (fwFlux[i] - fdw[i]) * dt, Water::rhoOcean);
-    sssSlab[i] = sss[i] + (sss[i] * fwFlux[i] - fdw[i] * dt) / denominator;
-}*/
 
 } /* namespace Nextsim */
