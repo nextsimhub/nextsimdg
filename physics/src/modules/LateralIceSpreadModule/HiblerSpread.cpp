@@ -4,7 +4,7 @@
  */
 
 #include "include/HiblerSpread.hpp"
-#include "include/KokkosTimer.hpp"
+#include "kokkos/include/KokkosTimer.hpp"
 #include "include/KernelAlternatives.hpp"
 
 #include "include/IceMinima.hpp"

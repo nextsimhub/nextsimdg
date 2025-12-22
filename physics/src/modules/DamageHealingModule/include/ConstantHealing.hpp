@@ -33,7 +33,6 @@ public:
 
 private:
     static double tD;
-    void updateElement(size_t i, const TimestepTime& tstep);
 };
 
 }

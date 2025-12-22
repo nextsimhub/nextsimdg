@@ -1,10 +1,12 @@
 /*!
  * @author  Einar Ólason <einar.olason@nersc.no>
+ * @author Robert Jendersie <robert.jendersie@ovgu.de>
  */
 
 #include "include/ConstantHealing.hpp"
-
 #include "include/IceMinima.hpp"
+#include "include/KernelAlternatives.hpp"
+#include "kokkos/include/KokkosTimer.hpp"
 
 namespace Nextsim {
 
@@ -41,64 +43,50 @@ ConstantHealing::HelpMap& ConstantHealing::getHelpRecursive(HelpMap& map, bool g
  * 2. Constant healing with a given time scale (tD) */
 void ConstantHealing::update(const TimestepTime& tstep)
 {
-    AdvectedField& damage = damageAccessor.getHostRW();
-    const HField& deltaCi = deltaCiAccessor.getHostRO();
-    const AdvectedField& cice = ciceAccessor.getHostRO();
+    static KokkosTimer<true> timer("ConstantHealing");
+    static KokkosTimer<DETAILED_MEASUREMENTS> timerCopy("ConstantHealingCopy");
+    static KokkosTimer<DETAILED_MEASUREMENTS> timerUpdate("ConstantHealingUpdate");
 
-    overElements(
-        [&](size_t i, const TimestepTime& tsTime) {
-            // No ice, no healing
-            if (cice[i] <= IceMinima::c()) {
-                damage[i] = 1.;
-                return;
-            }
+    timer.start();
+    timerCopy.start();
+    auto execSpace = DefaultExecutionSpace();
+    auto& damage = damageAccessor.getAutoRW(execSpace);
+    const auto& deltaCi = deltaCiAccessor.getAutoRO(execSpace);
+    const auto& cice = ciceAccessor.getAutoRO(execSpace);
 
-            // Only lateral growth contributes to healing, not melt(!)
-            double const lateralGrowth = std::max(0., deltaCi[i]);
+    const double tD = ConstantHealing::tD;
+    const double cMin = IceMinima::c();
+    const double dt = tstep.step.seconds();
+    timerCopy.stop();
 
-            /* 1. Lateral ice formation
-             * A weighted average of the original damage, weighted by the old concentration, and the
-             * undamaged new ice damage (1), weighted by the concentration of new ice. */
-            damage[i] = (damage[i] * (cice[i] - lateralGrowth) + lateralGrowth) / cice[i];
+    timerUpdate.start();
+    overElementsAuto(OVER_ELEMENTS_LAMBDA(const ElementIndex i) {
+        // No ice, no healing
+        if (cice[i] <= cMin) {
+            damage[i] = 1.;
+            return;
+        }
 
-            /* 2. Constant healing
-             * Damage healing using a constant timescale. Originally conceived as an exponential
-             * decay, but then revised to a linear one. */
-            // This is what Sylvain and Pierre (Bouillon and Rampal, 2015)
-            // damage[i] +=  damage[i] * tstep.step / tD;
+        // Only lateral growth contributes to healing, not melt(!)
+        double const lateralGrowth = Utils::max(0., deltaCi[i]);
 
-            // This is what Véro did (Dansereau et al., 2016)
-            damage[i] += tstep.step / tD;
-            damage[i] = std::min(1., damage[i]);
-        },
-        tstep);
+        /* 1. Lateral ice formation
+         * A weighted average of the original damage, weighted by the old concentration, and the
+         * undamaged new ice damage (1), weighted by the concentration of new ice. */
+        damage[i] = (damage[i] * (cice[i] - lateralGrowth) + lateralGrowth) / cice[i];
+
+        /* 2. Constant healing
+         * Damage healing using a constant timescale. Originally conceived as an exponential
+         * decay, but then revised to a linear one. */
+        // This is what Sylvain and Pierre (Bouillon and Rampal, 2015)
+        // damage[i] +=  damage[i] * tstep.step / tD;
+
+        // This is what Véro did (Dansereau et al., 2016)
+        damage[i] += dt / tD;
+        damage[i] = Utils::min(1., damage[i]);
+    });
+    timerUpdate.stop();
+    timer.stop();
 }
-
-// void ConstantHealing::updateElement(size_t i, const TimestepTime& tstep)
-// {
-//     // No ice, no healing
-//     if (cice[i] <= IceMinima::c()) {
-//         damage[i] = 1.;
-//         return;
-//     }
-// 
-//     // Only lateral growth contributes to healing, not melt(!)
-//     double const lateralGrowth = std::max(0., deltaCi[i]);
-// 
-//     /* 1. Lateral ice formation
-//      * A weighted average of the original damage, weighted by the old concentration, and the
-//      * undamaged new ice damage (1), weighted by the concentration of new ice. */
-//     damage[i] = (damage[i] * (cice[i] - lateralGrowth) + lateralGrowth) / cice[i];
-// 
-//     /* 2. Constant healing
-//      * Damage healing using a constant timescale. Originally conceived as an exponential decay, but
-//      * then revised to a linear one. */
-//     // This is what Sylvain and Pierre (Bouillon and Rampal, 2015)
-//     // damage[i] +=  damage[i] * tstep.step / tD;
-// 
-//     // This is what Véro did (Dansereau et al., 2016)
-//     damage[i] += tstep.step / tD;
-//     damage[i] = std::min(1., damage[i]);
-// }
 
 }
