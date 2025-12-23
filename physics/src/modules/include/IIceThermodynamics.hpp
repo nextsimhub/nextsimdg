@@ -90,7 +90,7 @@ protected:
         , hiceAccessor(getStore())
         , ciceAccessor(getStore())
         , hsnowAccessor(getStore())
-        //    , qicAccessor(getStore())
+    //    , qicAccessor(getStore())
         , qioAccessor(getStore())
         , qowAccessor(getStore())
         , qiaAccessor(getStore())
@@ -107,7 +107,7 @@ protected:
     ModelArrayAccessor<Shared::H_ICE_DG, RW> hiceAccessor; // From PrognosticData
     ModelArrayAccessor<Shared::C_ICE_DG, RW> ciceAccessor; // From PrognosticData
     ModelArrayAccessor<Shared::H_SNOW_DG, RW> hsnowAccessor; // From PrognosticData
-    // Q_IC is owned by ThermoIce0 and currently not registered
+    // Q_IC is owned by ThermoIce0 and currently not used
     // ModelArrayAccessor<Shared::Q_IC, RW>
     //    qicAccessor; // From IceTemperature. Conductive heat flux to the ice surface.
     ModelArrayAccessor<Shared::Q_SW_BASE, RW>

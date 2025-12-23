@@ -7,6 +7,7 @@
 
 #ifdef USE_KOKKOS
 #include <Kokkos_Core.hpp>
+#include "../kokkos/include/KokkosUtils.hpp"
 #else
 #include <cmath>
 #include <algorithm>

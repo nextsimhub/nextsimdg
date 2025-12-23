@@ -4,12 +4,12 @@
  */
 
 #include "include/ThermoWinton.hpp"
-#include "../../../core/src/kokkos/include/KokkosTimer.hpp"
 #include "include/IceMinima.hpp"
 
-#include "include/KernelAlternatives.hpp"
 #include "include/constants.hpp"
 #include "include/gridNames.hpp"
+#include "include/KernelAlternatives.hpp"
+#include "kokkos/include/KokkosTimer.hpp"
 
 #include <cmath>
 

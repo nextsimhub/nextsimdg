@@ -11,14 +11,6 @@
 
 namespace Nextsim {
 
-namespace Private {
-    inline constexpr TextTag T_INTERNAL = "T_INTERNAL";
-    inline constexpr TextTag T_BOTTOM = "T_BOTTOM";
-    inline constexpr TextTag T_SNOW_MELT = "T_SNOW_MELT";
-    inline constexpr TextTag T_TOP_MELT = "T_TOP_MELT";
-    inline constexpr TextTag T_BOT_MELT = "T_BOT_MELT";
-}
-
 //! A class implementing IIceThermodynamics as the Winton thermodynamics model.
 class ThermoWinton : public IIceThermodynamics, public Configured<ThermoWinton> {
 public:
@@ -48,13 +40,14 @@ public:
     static const std::string tBottomName;
 
 private:
-    void calculateElement(size_t i, const TimestepTime& tst);
-
-    /*    AdvectedField tInternal;
-        AdvectedField tBottom;
-        HField snowMelt;
-        HField topMelt;
-        HField botMelt;*/
+    // local namespace to prevent conflicts with other thermodynamics implementations
+    struct Private {
+        static inline constexpr TextTag T_INTERNAL = "T_INTERNAL";
+        static inline constexpr TextTag T_BOTTOM = "T_BOTTOM";
+        static inline constexpr TextTag T_SNOW_MELT = "T_SNOW_MELT";
+        static inline constexpr TextTag T_TOP_MELT = "T_TOP_MELT";
+        static inline constexpr TextTag T_BOT_MELT = "T_BOT_MELT";
+    };
     // private owned
     ModelArrayAccessor<Private::T_INTERNAL, RW> tInternalAccessor;
     ModelArrayAccessor<Private::T_BOTTOM, RW> tBottomAccessor;
