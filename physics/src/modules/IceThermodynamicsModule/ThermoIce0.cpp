@@ -128,8 +128,8 @@ void ThermoIce0::update(const TimestepTime& tsTime)
             hs += snowfall[i] * dt / Ice::rhoSnow;
 
         // Amount of melting (only) at the top and bottom of the ice
-        topMelt[i] = std::min(excessIceMelt, 0.);
-        botMelt[i] = std::min(iceBottomChange, 0.);
+        topMelt[i] = Utils::min(excessIceMelt, 0.);
+        botMelt[i] = Utils::min(iceBottomChange, 0.);
         // Snow to ice conversion
         double iceDraught = (hi * Ice::rho + hs * Ice::rhoSnow) / Water::rhoOcean;
 
