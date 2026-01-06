@@ -2,7 +2,7 @@ breathe
 exhale
 jinja2
 myst_parser>=0.15.2
-netCDF4
+netCDF4<1.7.4
 pyproj
 scipy
 sphinx>=4.4.0
