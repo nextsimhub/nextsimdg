@@ -1,16 +1,17 @@
 FROM sphinxdoc/sphinx
 
 WORKDIR /docs
-ADD requirements.txt /docs
+ADD requirements.txt .
 ADD scripts/build-docs.sh /
-ADD scripts/doxygen_prep.sh /
-RUN pip3 install -r requirements.txt
 
 RUN apt-get update \
- && apt-get install --no-install-recommends --yes \
-      doxygen \
+ && apt-get install --no-install-recommends -y doxygen git \
  && apt-get autoremove \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
+
+RUN pip3 install -r requirements.txt
+
+RUN git config --global --add safe.directory /docs
 
 ENTRYPOINT ["bash", "/build-docs.sh"]
