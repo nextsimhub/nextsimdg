@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 for EXTENSION in cpp hpp ipp; do
-  find . -name "*.${EXTENSION}" -exec doxygen_prep.sh {} \;
+  find . -name "*.${EXTENSION}" -exec ./scripts/doxygen_prep.sh {} \;
 done
 cd docs && doxygen
 
