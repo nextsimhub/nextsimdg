@@ -28,11 +28,11 @@ static const int CGDEGREE = 2;
 namespace Nextsim {
 
 /*!
- * TestXiosWrite
+ * TestXiosWriteRestart
  *
  * Test writing of restarts via `dumpModelState`.
  */
-MPI_TEST_CASE("TestXiosWrite", 2)
+MPI_TEST_CASE("TestXiosWriteRestart", 2)
 {
     std::stringstream config;
     config << "[model]" << std::endl;

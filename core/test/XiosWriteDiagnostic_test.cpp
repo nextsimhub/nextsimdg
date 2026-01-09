@@ -28,11 +28,11 @@ static const int CGDEGREE = 2;
 namespace Nextsim {
 
 /*!
- * TestXiosWrite
+ * TestXiosWriteDiagnostic
  *
  * Test writing of diagnostics via `writeDiagnosticTime`.
  */
-MPI_TEST_CASE("TestXiosWrite", 2)
+MPI_TEST_CASE("TestXiosWriteDiagnostic", 2)
 {
     std::stringstream config;
     config << "[model]" << std::endl;
