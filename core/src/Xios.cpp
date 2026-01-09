@@ -780,6 +780,7 @@ void Xios::createField(const std::string& fieldId)
     }
 
     // Set the operation type
+    // FIXME: This won't work for fields that are in multiple config sections
     std::string operation;
     if (configGetInputRestartFieldNames().count(fieldId) > 0) {
         // Restarts are read "once"
@@ -1210,6 +1211,8 @@ void Xios::createFile(const std::string& fileId)
 
         // Give the field read access if it is to be read
         if (readAccess) {
+            // FIXME: This will raise a (potentially confusing) warning about readAccess being
+            // overwritten
             setFieldReadAccess(fieldId, true);
         }
 
