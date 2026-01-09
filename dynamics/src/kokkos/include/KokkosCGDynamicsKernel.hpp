@@ -5,8 +5,8 @@
 #ifndef KOKKOSCGDYNAMICSKERNEL_HPP
 #define KOKKOSCGDYNAMICSKERNEL_HPP
 
-#include "../../include/CGDynamicsKernel.hpp"
 #include "../../../core/src/kokkos/include/KokkosUtils.hpp"
+#include "../../include/CGDynamicsKernel.hpp"
 
 namespace Nextsim {
 
@@ -29,6 +29,11 @@ public:
     using DeviceViewCG = KokkosDeviceView<CGVector<CGdegree>>;
     using HostViewCG = KokkosHostView<CGVector<CGdegree>>;
     using ConstDeviceViewCG = ConstKokkosDeviceView<CGVector<CGdegree>>;
+    using DeviceViewCG1 = KokkosDeviceView<CGVector<1>>;
+    using ConstDeviceViewCG1 = ConstKokkosDeviceView<CGVector<1>>;
+
+    using DeviceViewDG1 = KokkosDeviceView<DGVector<1>>;
+    using HostViewDG1 = KokkosHostView<DGVector<1>>;
 
     // strain and stress components
     using DeviceViewStress = KokkosDeviceView<DGVector<DGstressComp>>;
@@ -60,6 +65,8 @@ public:
         typename ParametricMomentumMap<CGdegree, DGadvection>::GaussMapMatrix>;
     using GaussMapAdvectDevice = KokkosDeviceMapView<
         typename ParametricMomentumMap<CGdegree, DGadvection>::GaussMapAdvectMatrix>;
+    using DSSHDevice
+        = KokkosDeviceMapView<typename ParametricMomentumMap<CGdegree, DGadvection>::DSSHMatrix>;
 
     KokkosCGDynamicsKernel(const DynamicsParameters& params);
     // still defaulted but explicitly defined in the source file to allow for pimpl with unique_ptr
@@ -145,6 +152,8 @@ protected:
     HostViewCG xGradSeaSurfaceHeightHost;
     DeviceViewCG yGradSeaSurfaceHeightDevice;
     HostViewCG yGradSeaSurfaceHeightHost;
+    DeviceViewDG1 seaSurfaceHeightDevice;
+    HostViewDG1 seaSurfaceHeightHost;
 
     DeviceViewCG dStressXDevice;
     HostViewCG dStressXHost;
@@ -224,6 +233,13 @@ protected:
         dG2CGAdvectInterpolator;
     std::unique_ptr<KokkosDGTransport<DGadvection>> dGTransportDevice;
     std::unique_ptr<KokkosSlopeLimiter<DGadvection>> slopeLimiterDevice;
+
+    // sea surface height is always computed in first order
+    // parts are only initialized if cG2DGAdvectInterpolator has a different order from <1,1>
+    std::unique_ptr<Interpolations::KokkosDG2CGInterpolator<1, 1>> dG2CGFirstOrderInterpolator;
+    DSSHDevice _dXSSHDevice;
+    DSSHDevice _dYSSHDevice;
+    ConstDeviceViewCG1 _lumpedCG1MassDevice;
 };
 
 }

@@ -5,10 +5,10 @@
 #ifndef __KOKKOSINTERPOLATIONS_HPP
 #define __KOKKOSINTERPOLATIONS_HPP
 
+#include "../../../core/src/kokkos/include/KokkosUtils.hpp"
 #include "../include/cgVector.hpp"
 #include "../include/codeGenerationDGinGauss.hpp"
 #include "../include/dgVector.hpp"
-#include "../../../core/src/kokkos/include/KokkosUtils.hpp"
 // #include "../include/ParametricMesh.hpp"
 
 namespace Nextsim {
@@ -45,6 +45,10 @@ namespace Interpolations {
         DeviceIndex nx;
         DeviceIndex ny;
     };
+
+    // Interpolate CG1 to CG2. This is a free function because it does not use precomputed maps.
+    void kokkosCG12CG2(const KokkosDeviceView<CGVector<2>>& dest,
+        const ConstKokkosDeviceView<CGVector<1>>& src, const DeviceIndex nx, const DeviceIndex ny);
 }
 }
 

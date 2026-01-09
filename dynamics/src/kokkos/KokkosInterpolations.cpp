@@ -173,5 +173,45 @@ namespace Interpolations {
     template class KokkosDG2CGInterpolator<2, 3>;
     template class KokkosDG2CGInterpolator<2, 6>;
     template class KokkosDG2CGInterpolator<2, 8>;
+
+    /*************************************************************/
+    void kokkosCG12CG2(const KokkosDeviceView<CGVector<2>>& dest,
+        const ConstKokkosDeviceView<CGVector<1>>& src, const DeviceIndex nx, const DeviceIndex ny)
+    {
+        assert(src.extent(0) == (nx + 1) * (ny + 1));
+        assert(dest.extent(0) == (2 * nx + 1) * (2 * ny + 1));
+
+        const DeviceIndex cg1Row = nx + 1;
+        Kokkos::parallel_for(
+            "CG12CG2", src.extent(0), KOKKOS_LAMBDA(const DeviceIndex icg1) {
+                const DeviceIndex iy = icg1 / cg1Row;
+                const DeviceIndex ix = icg1 % cg1Row;
+                const DeviceIndex icg2 = (2 * nx + 1) * 2 * iy + 2 * ix;
+
+                // outer nodes
+                const FloatType dof0 = src(icg1);
+                dest(icg2) = dof0;
+
+                // along horizontal lines
+                FloatType dof1;
+                if (ix < nx) {
+                    dof1 = src(icg1 + 1);
+                    dest(icg2 + 1) = 0.5 * (dof0 + dof1);
+                }
+
+                // along vertical lines
+                FloatType dof2;
+                if (iy < ny) {
+                    dof2 = src(icg1 + cg1Row);
+                    dest(icg2 + 2 * nx + 1) = 0.5 * (dof0 + dof2);
+                }
+
+                // midpoints
+                if (ix < nx && iy < ny) {
+                    const FloatType dof3 = src(icg1 + cg1Row + 1);
+                    dest(icg2 + 2 * nx + 1 + 1) = 0.25 * (dof0 + dof1 + dof2 + dof3);
+                }
+            });
+    }
 }
 }

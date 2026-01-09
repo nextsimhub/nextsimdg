@@ -201,9 +201,9 @@ void CGDynamicsKernel<DGadvection>::computeGradientOfSeaSurfaceHeight(
         yGradSeaSurfaceHeight = vGrad;
     } else {
         // outer nodes
-        size_t icg1 = 0;
 #pragma omp parallel for
         for (size_t iy = 0; iy <= smesh->ny; ++iy) {
+            size_t icg1 = (smesh->nx + 1) * iy;
             size_t icg2 = (2 * smesh->nx + 1) * 2 * iy;
             for (size_t ix = 0; ix <= smesh->nx; ++ix, ++icg1, icg2 += 2) {
                 xGradSeaSurfaceHeight(icg2) = uGrad(icg1);
