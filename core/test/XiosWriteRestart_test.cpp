@@ -46,7 +46,6 @@ MPI_TEST_CASE("TestXiosWriteRestart", 2)
     config << "[XiosOutput]" << std::endl;
     config << "field_names = " << maskName << "," << coordsName << "," << hiceName << ","
            << ticeName << "," << uName << std::endl;
-    config << "split_period = P0-0T03:00:00" << std::endl;
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
 

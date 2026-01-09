@@ -46,7 +46,6 @@ MPI_TEST_CASE("TestXiosWriteDiagnostic", 2)
     config << "filename = " << diagnosticFilename << std::endl;
     config << "field_names = " << hsnowName << std::endl;
     config << "period = P0-0T03:00:00" << std::endl;
-    config << "split_period = P0-0T03:00:00" << std::endl;
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
 
