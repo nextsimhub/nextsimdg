@@ -240,6 +240,8 @@ protected:
     DSSHDevice _dXSSHDevice;
     DSSHDevice _dYSSHDevice;
     ConstDeviceViewCG1 _lumpedCG1MassDevice;
+    DeviceViewCG1 _uGradDevice;
+    DeviceViewCG1 _vGradDevice;
 };
 
 }

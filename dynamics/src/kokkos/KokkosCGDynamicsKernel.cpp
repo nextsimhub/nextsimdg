@@ -132,6 +132,8 @@ void KokkosCGDynamicsKernel<DGadvection>::initialise(
             = makeKokkosDeviceViewMap("dYSSH", this->pmap->dY_SSH, MakeViewOptions::DEVICE_COPY);
         _lumpedCG1MassDevice = makeKokkosDeviceView(
             "lumpedCG1Mass", this->pmap->lumpedcg1mass, MakeViewOptions::DEVICE_COPY);
+        _uGradDevice = DeviceViewCG1("uGrad", _lumpedCG1MassDevice.extent(0));
+        _vGradDevice = DeviceViewCG1("vGrad", _lumpedCG1MassDevice.extent(0));
     }
 }
 
@@ -257,12 +259,15 @@ template <typename Mat> void compare(const std::string& name, const Mat& m1, con
               << ", norm: " << normRef;
     Eigen::Index maxIndex;
     const FloatType maxVal = (m1 - m2).cwiseAbs().maxCoeff(&maxIndex);
-    std::cout << ", max diff: " << maxVal << " at " << maxIndex << " abs(" << m1(maxIndex) << "-" << m2(maxIndex) << ")" << std::endl;
+    std::cout << ", max diff: " << maxVal << " at " << maxIndex << " abs(" << m1(maxIndex) << "-"
+              << m2(maxIndex) << ")" << std::endl;
 }
 
 template <int DGadvection>
 void KokkosCGDynamicsKernel<DGadvection>::updateGradientOfSeaSurfaceHeight()
 {
+    static KokkosTimer<DETAILED_MEASUREMENTS> timer("gradientSSHGPU");
+    timer.start();
     // capturing structured bindings is C++20 so we can't just do
     // const auto& [dG2CGInterpolater, dXSSHDevice, dYSSHDevice, lumpedCG1MassDevice] =
     const auto precomputedMaps = [this]() {
@@ -289,8 +294,7 @@ void KokkosCGDynamicsKernel<DGadvection>::updateGradientOfSeaSurfaceHeight()
         if constexpr (CGdegree == 1) {
             return std::tie(xGradSeaSurfaceHeightDevice, yGradSeaSurfaceHeightDevice);
         } else {
-            return std::make_pair(DeviceViewCG1("uGrad", lumpedCG1MassDevice.extent(0)),
-                DeviceViewCG1("vGrad", lumpedCG1MassDevice.extent(0)));
+            return std::tie(_uGradDevice, _vGradDevice);
         }
     }();
     const DeviceViewCG1& uGradDevice = std::get<0>(gradientFields);
@@ -334,19 +338,18 @@ void KokkosCGDynamicsKernel<DGadvection>::updateGradientOfSeaSurfaceHeight()
     const DeviceIndex cg1Row = nx + 1;
     // const DeviceIndex cg1rowRed = nx - 1;
     const auto makeScaleGradFn = [&](const DeviceViewCG1& gradDevice) {
-        return KOKKOS_LAMBDA(const DeviceIndex i)
-        {
-            gradDevice(i) /= lumpedCG1MassDevice(i);
-        };
+        return KOKKOS_LAMBDA(const DeviceIndex i) { gradDevice(i) /= lumpedCG1MassDevice(i); };
     };
 
     Kokkos::parallel_for("scaleUGrad", uGradDevice.extent(0), makeScaleGradFn(uGradDevice));
     Kokkos::parallel_for("scaleVGrad", vGradDevice.extent(0), makeScaleGradFn(vGradDevice));
 
     // correct boundary (just extend in last elements)
-    // Corners are handled impliclty. By treating them like regular nodes they recieve the values of
-    // the inner diagonal neighbors during the second (y) update.
-    const DeviceIndex topLeft = ny * cg1Row;
+    // Corners are handled impliclty. By treating them like regular nodes they recieve the
+    values of
+        // the inner diagonal neighbors during the second (y) update.
+        const DeviceIndex topLeft
+        = ny * cg1Row;
     const auto makeExtendBoundaryXFn = [&](const DeviceViewCG1& gradDevice) {
         return KOKKOS_LAMBDA(const DeviceIndex i)
         {
@@ -381,10 +384,10 @@ void KokkosCGDynamicsKernel<DGadvection>::updateGradientOfSeaSurfaceHeight()
     }
 
     // gradients are only used internally so they don't have to be synced
-/*    Kokkos::deep_copy(
-        execSpace, this->xGradSeaSurfaceHeightHost, xGradSeaSurfaceHeightDevice);
-    Kokkos::deep_copy(
-        execSpace, this->yGradSeaSurfaceHeightHost, yGradSeaSurfaceHeightDevice);*/
+    /*    Kokkos::deep_copy(
+            execSpace, this->xGradSeaSurfaceHeightHost, xGradSeaSurfaceHeightDevice);
+        Kokkos::deep_copy(
+            execSpace, this->yGradSeaSurfaceHeightHost, yGradSeaSurfaceHeightDevice);*/
 }
 
 /*************************************************************/
