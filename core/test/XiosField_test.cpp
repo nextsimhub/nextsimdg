@@ -66,9 +66,10 @@ MPI_TEST_CASE("TestXiosField", 3)
     // based off the XiosInput.field_names or XiosOutput.field_names entries in the config when the
     // file is created at initialisation
     const std::string fieldId = "field_A";
-    REQUIRE_THROWS_WITH(xiosHandler.createField(fieldId), "Xios: Field 'field_A' already exists");
+    REQUIRE_THROWS_WITH(
+        xiosHandler.createField(fieldId, 0), "Xios: Field 'field_A' already exists");
     // Disallow creation of fields that aren't in either config section
-    REQUIRE_THROWS_WITH(xiosHandler.createField("field_B"),
+    REQUIRE_THROWS_WITH(xiosHandler.createField("field_B", 0),
         "Xios: Field 'field_B' cannot be found in any config section");
     // Grid reference
     // NOTE: VertexGrid is created automatically and holds VertexAxis

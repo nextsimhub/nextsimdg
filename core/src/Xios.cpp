@@ -735,9 +735,10 @@ std::set<std::string> Xios::configGetDiagnosticFieldNames()
 /*!
  * Create a field with some ID
  *
- * @param the field ID
+ * @param fieldId the field ID
+ * @param ioType the I/O type enum
  */
-void Xios::createField(const std::string& fieldId)
+void Xios::createField(const std::string& fieldId, const int ioType)
 {
     // Check if the field already exists
     bool exists;
@@ -746,17 +747,27 @@ void Xios::createField(const std::string& fieldId)
         throw std::runtime_error("Xios: Field '" + fieldId + "' already exists");
     }
 
-    // Check that the field is in at least one config section
-    std::set<std::string> fieldNames = configGetInputRestartFieldNames();
-    std::set<std::string> forcingFieldNames = configGetForcingFieldNames();
-    fieldNames.insert(forcingFieldNames.begin(), forcingFieldNames.end());
-    std::set<std::string> outputRestartFieldNames = configGetOutputRestartFieldNames();
-    fieldNames.insert(outputRestartFieldNames.begin(), outputRestartFieldNames.end());
-    std::set<std::string> diagnosticFieldNames = configGetDiagnosticFieldNames();
-    fieldNames.insert(diagnosticFieldNames.begin(), diagnosticFieldNames.end());
+    // Check that the field is in the expected config section
+    std::set<std::string> fieldNames;
+    std::string ioName;
+    if (ioType == INPUT_RESTART) {
+        fieldNames = configGetInputRestartFieldNames();
+        ioName = "input restart";
+    } else if (ioType == OUTPUT_RESTART) {
+        fieldNames = configGetOutputRestartFieldNames();
+        ioName = "output restart";
+    } else if (ioType == FORCING) {
+        fieldNames = configGetForcingFieldNames();
+        ioName = "forcing";
+    } else if (ioType == DIAGNOSTIC) {
+        fieldNames = configGetDiagnosticFieldNames();
+        ioName = "diagnostic";
+    } else {
+        throw std::runtime_error("Xios: Unknown I/O type for field '" + fieldId + "'");
+    }
     if (fieldNames.find(fieldId) == fieldNames.end()) {
         throw std::runtime_error(
-            "Xios: Field '" + fieldId + "' cannot be found in any config section");
+            "Xios: Field '" + fieldId + "' cannot be found in the " + ioName + " config section");
     }
 
     // Attempt to create the field
@@ -782,10 +793,10 @@ void Xios::createField(const std::string& fieldId)
     // Set the operation type
     // FIXME: This won't work for fields that are in multiple config sections
     std::string operation;
-    if (configGetInputRestartFieldNames().count(fieldId) > 0) {
+    if (ioType == INPUT_RESTART) {
         // Restarts are read "once"
         operation = "once";
-    } else if (configGetDiagnosticFieldNames().count(fieldId) > 0) {
+    } else if (ioType == DIAGNOSTIC) {
         // Diagonstics are averaged over the diagnostic output period
         operation = "average";
     } else {
@@ -1203,7 +1214,7 @@ void Xios::createFile(const std::string& fileId)
         bool exists;
         cxios_field_valid_id(&exists, fieldId.c_str(), fieldId.length());
         if (!exists) {
-            createField(fieldId);
+            createField(fieldId, ioType);
 
             // Default read access to false
             setFieldReadAccess(fieldId, false);

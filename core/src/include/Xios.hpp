@@ -73,7 +73,7 @@ public:
     size_t getAxisSize(const std::string& axisId);
 
     /* Field */
-    void createField(const std::string& fieldId);
+    void createField(const std::string& fieldId, const int ioType);
     void setFieldGridRef(const std::string& fieldId, const std::string& gridRef);
     void setFieldFreqOffset(const std::string& fieldId, const Duration& freqOffset);
     std::string getFieldGridRef(const std::string& fieldId);
