@@ -69,7 +69,7 @@ MPI_TEST_CASE("TestXiosField", 3)
     REQUIRE_THROWS_WITH(xiosHandler.createField(fieldId), "Xios: Field 'field_A' already exists");
     // Disallow creation of fields that aren't in either config section
     REQUIRE_THROWS_WITH(xiosHandler.createField("field_B"),
-        "Xios: Field 'field_B' cannot be found in the XiosInput or XiosOutput config sections");
+        "Xios: Field 'field_B' cannot be found in any config section");
     // Grid reference
     // NOTE: VertexGrid is created automatically and holds VertexAxis
     REQUIRE_THROWS_WITH(

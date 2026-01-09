@@ -167,7 +167,6 @@ private:
     std::set<std::string> configGetOutputRestartFieldNames();
     std::set<std::string> configGetInputRestartFieldNames();
     std::set<std::string> configGetDiagnosticFieldNames();
-    bool configCheckField(const std::string& fieldId, const bool& readAccess);
     void setFieldReadAccess(const std::string& fieldId, const bool& readAccess);
     std::map<std::string, ModelArray::Type> fieldTypes;
     void setupFields();
