@@ -346,10 +346,8 @@ void KokkosCGDynamicsKernel<DGadvection>::updateGradientOfSeaSurfaceHeight()
 
     // correct boundary (just extend in last elements)
     // Corners are handled impliclty. By treating them like regular nodes they recieve the
-    values of
-        // the inner diagonal neighbors during the second (y) update.
-        const DeviceIndex topLeft
-        = ny * cg1Row;
+    // values of the inner diagonal neighbors during the second (y) update.
+    const DeviceIndex topLeft = ny * cg1Row;
     const auto makeExtendBoundaryXFn = [&](const DeviceViewCG1& gradDevice) {
         return KOKKOS_LAMBDA(const DeviceIndex i)
         {
@@ -373,12 +371,12 @@ void KokkosCGDynamicsKernel<DGadvection>::updateGradientOfSeaSurfaceHeight()
     Kokkos::parallel_for("extendCornersVGradX", nx + 1, makeExtendBoundaryXFn(vGradDevice));
     Kokkos::parallel_for("extendCornersVGradY", ny + 1, makeExtendBoundaryYFn(vGradDevice));
 
-    // Interpolate to CG2 (maybe own function in interpolation?)
-    // If we have CGdegree == 1 we are already finished since the computations where done on
-    // xGradSeaSurfaceHeightDevice, yGradSeaSurfaceHeightDevice.
+    // Interpolate to CG2
+    // If we have CGdegree == 1 we are already finished since the computations where done
+    // directly in the destination (xGradSeaSurfaceHeightDevice, yGradSeaSurfaceHeightDevice).
     if constexpr (CGdegree == 2) {
-        Kokkos::deep_copy(xGradSeaSurfaceHeightDevice, 0.0);
-        Kokkos::deep_copy(yGradSeaSurfaceHeightDevice, 0.0);
+        Kokkos::deep_copy(execSpace, xGradSeaSurfaceHeightDevice, 0.0);
+        Kokkos::deep_copy(execSpace, yGradSeaSurfaceHeightDevice, 0.0);
         Interpolations::kokkosCG12CG2(xGradSeaSurfaceHeightDevice, uGradDevice, nx, ny);
         Interpolations::kokkosCG12CG2(yGradSeaSurfaceHeightDevice, vGradDevice, nx, ny);
     }
