@@ -963,13 +963,10 @@ void Xios::setupFields()
 
         // Create map for field types
         const std::map<std::string, ModelArray::Type> dimensionKeys = {
-            { "yx", ModelArray::Type::H },
             { "ydimxdim", ModelArray::Type::H },
             { "y_dimx_dim", ModelArray::Type::H },
-            { "yxdg_comp", ModelArray::Type::DG },
             { "ydimxdimdg_comp", ModelArray::Type::DG },
             { "y_dimx_dimdg_comp", ModelArray::Type::DG },
-            { "yxdgstress_comp", ModelArray::Type::DGSTRESS },
             { "ydimxdimdgstress_comp", ModelArray::Type::DGSTRESS },
             { "y_dimx_dimdgstress_comp", ModelArray::Type::DGSTRESS },
             { "y_cgx_cg", ModelArray::Type::CG },
