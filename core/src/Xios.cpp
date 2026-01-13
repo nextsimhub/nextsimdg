@@ -163,6 +163,17 @@ void Xios::context_finalize()
 {
     if (isEnabled) {
         cxios_context_finalize();
+
+        // Count how many domains were written out
+        int sum = 0;
+        for (const auto& [domainId, written] : domainWritten) {
+            if (written) {
+                sum++;
+            }
+        }
+
+        // TODO: If only one domain was written then modify x and y dimensions and variables
+        std::cout << "TODO: modify x and y" << std::endl;
     }
 }
 
@@ -1402,6 +1413,7 @@ void Xios::write(const std::string& fieldId, const ModelArray& modelarray)
     }
     auto& dims = modelarray.dimensions();
     const ModelArray::Type& type = modelarray.getType();
+    domainWritten[domainIds[type]] = true;
     if ((type == ModelArray::Type::H) || (type == ModelArray::Type::CG)) {
         cxios_write_data_k82(
             fieldId.c_str(), fieldId.length(), modelarray.getData(), dims[0], dims[1], -1);

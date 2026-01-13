@@ -163,6 +163,11 @@ private:
         // CG-based x- and y-dimensions (alt. names x_cg and y_cg)
         { ModelArray::Type::CG, "cg" },
     };
+    std::map<std::string, bool> domainWritten = {
+        { "dim", false },
+        { "vertex", false },
+        { "cg", false },
+    };
     xios::CDomainGroup* getDomainGroup();
     xios::CDomain* getDomain(const std::string& domainId);
     void setupDomains();
