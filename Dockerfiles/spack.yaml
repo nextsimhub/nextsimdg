@@ -10,7 +10,6 @@ spack:
   - netcdf-cxx4@4.3.1
   - netcdf-fortran
   - openmpi@4.1.6
-  - trilinos
   - zlib-ng@2.1.4
   - zoltan
   concretizer:
