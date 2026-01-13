@@ -233,21 +233,21 @@ if(ENABLE_MPI)
         )
         target_link_libraries(testXiosReadForcing_MPI2 PRIVATE nextsimlib doctest::doctest)
 
-        add_executable(testXiosReadDiagnostic_MPI2 "XiosReadDiagnostic_test.cpp" "MainMPI.cpp")
-        target_compile_definitions(testXiosReadDiagnostic_MPI2
+        add_executable(testXiosReadDiagnostic_MPI3 "XiosReadDiagnostic_test.cpp" "MainMPI.cpp")
+        target_compile_definitions(testXiosReadDiagnostic_MPI3
             PRIVATE
                 USE_XIOS
                 TEST_FILES_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\"
         )
         target_include_directories(
-            testXiosReadDiagnostic_MPI2
+            testXiosReadDiagnostic_MPI3
             PRIVATE
                 ${PHYSICS_INCLUDE_DIRS}
                 "${MODEL_INCLUDE_DIR}"
                 "${XIOS_INCLUDE_LIST}"
                 "${ModulesRoot}/StructureModule"
         )
-        target_link_libraries(testXiosReadDiagnostic_MPI2 PRIVATE nextsimlib doctest::doctest)
+        target_link_libraries(testXiosReadDiagnostic_MPI3 PRIVATE nextsimlib doctest::doctest)
 
         add_executable(testXiosReadRestart_MPI2 "XiosReadRestart_test.cpp" "MainMPI.cpp")
         target_compile_definitions(testXiosReadRestart_MPI2
@@ -302,7 +302,7 @@ if(ENABLE_MPI)
             testXiosAxis_MPI3
             testXiosField_MPI3
             testXiosReadForcing_MPI2
-            testXiosReadDiagnostic_MPI2
+            testXiosReadDiagnostic_MPI3
             testXiosReadRestart_MPI2
             testXiosWriteDiagnostic_MPI2
             testXiosWriteRestart_MPI2
@@ -312,7 +312,7 @@ if(ENABLE_MPI)
 
         # Ensure XiosWrite<Diagnostic/Restart>_test are run before XiosRead<Diagnostic/Restart>_test
         set_tests_properties(testXiosReadRestart_MPI2 PROPERTIES DEPENDS testXiosWriteRestart_MPI2)
-        set_tests_properties(testXiosReadDiagnostic_MPI2
+        set_tests_properties(testXiosReadDiagnostic_MPI3
                              PROPERTIES DEPENDS testXiosWriteDiagnostic_MPI2)
     else()
         add_executable(testHaloExchangeCB_MPI3
