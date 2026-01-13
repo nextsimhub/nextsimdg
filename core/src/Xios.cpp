@@ -1352,6 +1352,14 @@ void Xios::postprocessOutputFiles()
             cxios_get_file_output_freq(file, &duration);
             Duration step = convertDurationFromXios(duration);
 
+            // Deduce the format string
+            std::string formatStr;
+            if (fileId == outputFileId) {
+                formatStr = outputFormatStr;
+            } else {
+                formatStr = diagnosticFormatStr;
+            }
+
             // Loop over the output window splits
             ModelMetadata& metadata = ModelMetadata::getInstance();
             TimePoint time = metadata.startTime();
@@ -1362,15 +1370,16 @@ void Xios::postprocessOutputFiles()
                 TimePoint nextTime = time + step - Duration(1);
 
                 // Generate the filename used by XIOS
-                // TODO: Support file patterns (#898)
-                std::string filename = fileId + "_" + time.format("%Y%m%d%H%M%S") + "-"
-                    + nextTime.format("%Y%m%d%H%M%S") + ".nc";
+                std::string filename = fileId + "_" + time.format(formatStr) + "-"
+                    + nextTime.format(formatStr) + ".nc";
+                std::cout << "DEBUG: filename=" << filename << std::endl;
 
                 // Increment the time then check if the file exists
                 time += step;
                 if (!std::filesystem::exists(filename)) {
                     continue;
                 }
+                std::cout << "DEBUG: file exists" << std::endl;
 
                 try {
                     // Open the netCDF file for both reading and writing
