@@ -211,6 +211,7 @@ private:
         { FORCING, forcingFileId },
     };
     void setupFiles();
+    void postprocessOutputFiles();
 
     /* I/O */
     void read(const std::string& fieldId, ModelArray& modelarray);

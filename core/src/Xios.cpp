@@ -163,60 +163,7 @@ void Xios::context_finalize()
 {
     if (isEnabled) {
         cxios_context_finalize();
-
-        // Count how many domains were written out
-        int sum = 0;
-        for (const auto& [domainId, written] : domainWritten) {
-            if (written) {
-                sum++;
-            }
-        }
-
-        // If a single domain was written then modify x and y dimensions and variables in the output
-        // files
-        if (sum == 1 && mpi_rank == 0) {
-            ModelMetadata& metadata = ModelMetadata::getInstance();
-            TimePoint time = metadata.startTime();
-            TimePoint endTime = metadata.stopTime();
-            Duration timestep = metadata.restartPeriod;
-            // TODO: Handle case where diagnostic period differs
-
-            // Loop over the output window splits
-            while (time < endTime) {
-                // Compute the end time of the window, subtracting 1 second to avoid overlap
-                TimePoint nextTime = time + timestep - Duration(1);
-
-                for (std::string fileId : { outputFileId, diagnosticFileId }) {
-
-                    // Generate the filename used by XIOS and check if it exists
-                    // TODO: Support file patterns (#898)
-                    std::string filename = fileId + "_" + time.format("%Y%m%d%H%M%S") + "-"
-                        + nextTime.format("%Y%m%d%H%M%S") + ".nc";
-                    if (!std::filesystem::exists(filename)) {
-                        continue;
-                    }
-
-                    try {
-                        // Open the netCDF file for both reading and writing
-                        netCDF::NcFile ncFile(filename, netCDF::NcFile::write);
-
-                        // Rename the x and y dimensions with x_dim and y_dim, respectively
-                        ncFile.getDim("x").rename("x_dim");
-                        ncFile.getDim("y").rename("y_dim");
-
-                        // Rename the x and y variables with x_dim and y_dim, respectively
-                        ncFile.getVar("x").rename("x_dim");
-                        ncFile.getVar("y").rename("y_dim");
-
-                        // Ensure changes are flushed to disk before closing
-                        ncFile.sync();
-                    } catch (const netCDF::exceptions::NcException& e) {
-                        std::cerr << "Error processing NetCDF file: " << e.what() << std::endl;
-                    }
-                }
-                time += timestep;
-            }
-        }
+        postprocessOutputFiles();
     }
 }
 
@@ -1435,6 +1382,75 @@ void Xios::setupFiles()
     for (const auto& [fileType, fileId] : fileMap) {
         if (!fileId.empty()) {
             createFile(fileId, fileType);
+        }
+    }
+}
+
+/*!
+ * @brief   Postprocess output files after the simulation has completed.
+ *
+ * @details If only a single domain was written to file, rename the x and y dimensions and variables
+ *          to x_dim and y_dim, respectively, for compatibility with other model components.
+ */
+void Xios::postprocessOutputFiles()
+{
+    // Count how many domains were written out
+    int sum = 0;
+    for (const auto& [domainId, written] : domainWritten) {
+        if (written) {
+            sum++;
+        }
+    }
+
+    // If a single domain was written then modify x and y dimensions and variables in the output
+    // files
+    if (sum == 1 && mpi_rank == 0) {
+
+        // Consider both restart files and diagnostic files
+        for (std::string fileId : { outputFileId, diagnosticFileId }) {
+            bool exists;
+            cxios_file_valid_id(&exists, fileId.c_str(), fileId.length());
+            if (!exists) {
+                continue;
+            }
+            Duration step = getFileOutputFreq(fileId);
+
+            // Loop over the output window splits
+            ModelMetadata& metadata = ModelMetadata::getInstance();
+            TimePoint time = metadata.startTime();
+            TimePoint endTime = metadata.stopTime();
+            while (time < endTime) {
+
+                // Compute the end time of the window, subtracting 1 second to avoid overlap
+                TimePoint nextTime = time + step - Duration(1);
+
+                // Generate the filename used by XIOS and check if it exists
+                // TODO: Support file patterns (#898)
+                std::string filename = fileId + "_" + time.format("%Y%m%d%H%M%S") + "-"
+                    + nextTime.format("%Y%m%d%H%M%S") + ".nc";
+                if (!std::filesystem::exists(filename)) {
+                    continue;
+                }
+
+                try {
+                    // Open the netCDF file for both reading and writing
+                    netCDF::NcFile ncFile(filename, netCDF::NcFile::write);
+
+                    // Rename the x and y dimensions with x_dim and y_dim, respectively
+                    ncFile.getDim("x").rename("x_dim");
+                    ncFile.getDim("y").rename("y_dim");
+
+                    // Rename the x and y variables with x_dim and y_dim, respectively
+                    ncFile.getVar("x").rename("x_dim");
+                    ncFile.getVar("y").rename("y_dim");
+
+                    // Ensure changes are flushed to disk before closing
+                    ncFile.sync();
+                } catch (const netCDF::exceptions::NcException& e) {
+                    std::cerr << "Error processing NetCDF file: " << e.what() << std::endl;
+                }
+            }
+            time += step;
         }
     }
 }
