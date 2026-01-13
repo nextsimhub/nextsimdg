@@ -80,13 +80,13 @@ void KokkosCGDynamicsKernel<DGadvection>::initialise(
         = makeKokkosDeviceViewMap("iMgradY", this->pmap->iMgradY, MakeViewOptions::DEVICE_COPY);
     iMMDevice = makeKokkosDeviceViewMap("iMM", this->pmap->iMM, MakeViewOptions::DEVICE_COPY);
 
-    // needed for stress and momentum
-    std::tie(hiceHost, hiceDevice)
-        = makeKokkosDualView("hice", static_cast<DGVector<DGadvection>&>(this->hice));
-    std::tie(ciceHost, ciceDevice)
-        = makeKokkosDualView("cice", static_cast<DGVector<DGadvection>&>(this->cice));
-    std::tie(hsnowHost, hsnowDevice)
-        = makeKokkosDualView("hsnow", static_cast<DGVector<DGadvection>&>(this->hsnow));
+    // this fields are given from outside the kernel now with setDGVector
+    // std::tie(hiceHost, hiceDevice)
+    //     = makeKokkosDualView("hice", static_cast<DGVector<DGadvection>&>(this->hice));
+    // std::tie(ciceHost, ciceDevice)
+    //     = makeKokkosDualView("cice", static_cast<DGVector<DGadvection>&>(this->cice));
+    // std::tie(hsnowHost, hsnowDevice)
+    //     = makeKokkosDualView("hsnow", static_cast<DGVector<DGadvection>&>(this->hsnow));
 
     PSIAdvectDevice = makeKokkosDeviceView(
         "PSI<DGadvection, NGP>", PSI<DGadvection, NGP>, MakeViewOptions::DEVICE_COPY);
@@ -184,6 +184,20 @@ ModelArray KokkosCGDynamicsKernel<DGadvection>::getDG0Data(const std::string& na
         return DGModelArray::dg2ma(tempDataAdvect, data);
     } else {
         return CGDynamicsKernel<DGadvection>::getDG0Data(name);
+    }
+}
+
+/*************************************************************/
+template <int DGadvection>
+void KokkosCGDynamicsKernel<DGadvection>::setDGArray(
+    const std::string& name, const KokkosDeviceView<ModelArray::DataType>& dgData)
+{
+    if (name == hiceName) {
+        hiceDevice = dgData;
+    } else if (name == ciceName) {
+        ciceDevice = dgData;
+    } else if (name == hsnowName) {
+        hsnowDevice = dgData;
     }
 }
 

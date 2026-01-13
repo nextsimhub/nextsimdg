@@ -25,7 +25,7 @@ public:
     {
     }
 
-    void setDGArray(const std::string& name, ModelArray::DataType& dgData) override
+    void setDGArray(const std::string& name, ModelArray::DataType& dgData)
     {
         BrittleCGDynamicsKernel<DGadvection>::setDGArray(name, dgData);
         // Set the damage array from BrittleCGDynamicsKernel::damage, if it was just set above.

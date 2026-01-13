@@ -76,6 +76,8 @@ public:
 
     ModelArray getDG0Data(const std::string& name) const override;
 
+    void setDGArray(const std::string& name, const KokkosDeviceView<ModelArray::DataType>& dgData);
+
     void prepareAdvection() override;
     void advectDynamicsFields(double timestep) override;
     DGVector<DGadvection>& advectDGVField(double timestep, DGVector<DGadvection>& field,
@@ -208,11 +210,11 @@ protected:
 
     // data that is needed by the child classes implementing stress and momentum
     DeviceViewAdvect hiceDevice;
-    HostViewAdvect hiceHost;
+    // HostViewAdvect hiceHost;
     DeviceViewAdvect ciceDevice;
-    HostViewAdvect ciceHost;
+    // HostViewAdvect ciceHost;
     DeviceViewAdvect hsnowDevice;
-    HostViewAdvect hsnowHost;
+    // HostViewAdvect hsnowHost;
 
     // constant matrices also need to be available on the GPU
     PSIAdvectView PSIAdvectDevice;

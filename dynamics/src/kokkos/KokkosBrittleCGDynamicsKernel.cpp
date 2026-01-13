@@ -3,8 +3,8 @@
  */
 
 #include "include/KokkosBrittleCGDynamicsKernel.hpp"
-#include "include/KokkosDGLimit.hpp"
 #include "../../../core/src/kokkos/include/KokkosTimer.hpp"
+#include "include/KokkosDGLimit.hpp"
 #include <include/constants.hpp>
 
 namespace Nextsim {
@@ -41,8 +41,8 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::initialise(
     std::tie(avgUHost, avgUDevice) = makeKokkosDualView("avgU", this->avgU);
     std::tie(avgVHost, avgVDevice) = makeKokkosDualView("avgV", this->avgV);
 
-    std::tie(damageHost, damageDevice)
-        = makeKokkosDualView("damage", static_cast<DGVector<DGadvection>&>(this->damage));
+    // std::tie(damageHost, damageDevice)
+    //     = makeKokkosDualView("damage", static_cast<DGVector<DGadvection>&>(this->damage));
 }
 
 /*************************************************************/
@@ -96,11 +96,11 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
     Kokkos::deep_copy(execSpace, this->uAtmosDevice, this->uAtmosHost);
     Kokkos::deep_copy(execSpace, this->vAtmosDevice, this->vAtmosHost);
 
-    Kokkos::deep_copy(execSpace, this->hiceDevice, this->hiceHost);
-    Kokkos::deep_copy(execSpace, this->ciceDevice, this->ciceHost);
-    Kokkos::deep_copy(execSpace, this->hsnowDevice, this->hsnowHost);
+    /*    Kokkos::deep_copy(execSpace, this->hiceDevice, this->hiceHost);
+        Kokkos::deep_copy(execSpace, this->ciceDevice, this->ciceHost);
+        Kokkos::deep_copy(execSpace, this->hsnowDevice, this->hsnowHost);
 
-    Kokkos::deep_copy(execSpace, this->damageDevice, this->damageHost);
+        Kokkos::deep_copy(execSpace, this->damageDevice, this->damageHost);*/
     timerUpload.stop();
 
     const FloatType dt = tst.step.seconds();
@@ -169,10 +169,10 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
     Kokkos::deep_copy(execSpace, this->uHost, this->uDevice);
     Kokkos::deep_copy(execSpace, this->vHost, this->vDevice);
 
-    Kokkos::deep_copy(execSpace, this->hiceHost, this->hiceDevice);
-    Kokkos::deep_copy(execSpace, this->ciceHost, this->ciceDevice);
-    Kokkos::deep_copy(execSpace, this->hsnowHost, this->hsnowDevice);
-    Kokkos::deep_copy(execSpace, this->damageHost, this->damageDevice);
+    /*    Kokkos::deep_copy(execSpace, this->hiceHost, this->hiceDevice);
+        Kokkos::deep_copy(execSpace, this->ciceHost, this->ciceDevice);
+        Kokkos::deep_copy(execSpace, this->hsnowHost, this->hsnowDevice);
+        Kokkos::deep_copy(execSpace, this->damageHost, this->damageDevice);*/
     /*    Kokkos::deep_copy(execSpace, this->s11Host, this->s11Device);
         Kokkos::deep_copy(execSpace, this->s12Host, this->s12Device);
         Kokkos::deep_copy(execSpace, this->s22Host, this->s22Device);*/
@@ -201,6 +201,17 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::setDGArray(
         damage = DGVectorHolder<DGadvection>(dgData);
     } else {
         CGDynamicsKernel<DGadvection>::setDGArray(name, dgData);
+    }
+}
+
+template <int DGadvection>
+void KokkosBrittleCGDynamicsKernel<DGadvection>::setDGArray(
+    const std::string& name, const KokkosDeviceView<ModelArray::DataType>& dgData)
+{
+    if (name == damageName) {
+        damageDevice = dgData;
+    } else {
+        KokkosCGDynamicsKernel<DGadvection>::setDGArray(name, dgData);
     }
 }
 

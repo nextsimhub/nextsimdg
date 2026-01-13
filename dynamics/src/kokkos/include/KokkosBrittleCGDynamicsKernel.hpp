@@ -37,7 +37,8 @@ public:
 
     // expose additional fields
     void setData(const std::string& name, const ModelArray& data) override;
-    void setDGArray(const std::string& name, ModelArray::DataType& dgData) override;
+    void setDGArray(const std::string& name, ModelArray::DataType& dgData);
+    void setDGArray(const std::string& name, const KokkosDeviceView<ModelArray::DataType>& dgData);
 
     static void updateMomentumDevice(const DeviceViewCG& uDevice, const DeviceViewCG& vDevice,
         const DeviceViewCG& avgUDevice, const DeviceViewCG& avgVDevice,
@@ -79,7 +80,7 @@ protected:
     HostViewCG avgVHost;
 
     DeviceViewAdvect damageDevice;
-    HostViewAdvect damageHost;
+    // HostViewAdvect damageHost;
 };
 
 } /* namespace Nextsim */

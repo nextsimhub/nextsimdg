@@ -77,12 +77,6 @@ void MEVPDynamics::setData(const ModelState::DataMap& ms)
 {
     IDynamics::setData(ms);
 
-    // Set the DG field data. Needs to be done before initialise() because the Kokkos kernel
-    // requires the actual vectors to init its views.
-    kernel.setDGArray(hiceName, hiceDGAccessor.getHostRW());
-    kernel.setDGArray(ciceName, ciceDGAccessor.getHostRW());
-    kernel.setDGArray(hsnowName, hsnowDGAccessor.getHostRW());
-
     const bool isSpherical = checkSpherical(ms);
 
     ModelArray coords = ms.at(coordsName);
@@ -105,6 +99,13 @@ void MEVPDynamics::setData(const ModelState::DataMap& ms)
 void MEVPDynamics::update(const TimestepTime& tst)
 {
     std::cout << tst.start << std::endl;
+
+    // set dg fields
+    // Needs to be done every step even so the field references do not change to ensure that the
+    // write accesses are registered and that needed host-device data transfers can take place.
+    kernel.setDGArray(hiceName, hiceDGAccessor.getAutoRW());
+    kernel.setDGArray(ciceName, ciceDGAccessor.getAutoRW());
+    kernel.setDGArray(hsnowName, hsnowDGAccessor.getAutoRW());
 
     // set the forcing velocities
     kernel.setData(uWindName, uwindAccessor.getHostRO());

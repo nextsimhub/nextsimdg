@@ -69,9 +69,9 @@ void KokkosMEVPDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
     Kokkos::deep_copy(execSpace, this->uAtmosDevice, this->uAtmosHost);
     Kokkos::deep_copy(execSpace, this->vAtmosDevice, this->vAtmosHost);
 
-    Kokkos::deep_copy(execSpace, this->hiceDevice, this->hiceHost);
+   /* Kokkos::deep_copy(execSpace, this->hiceDevice, this->hiceHost);
     Kokkos::deep_copy(execSpace, this->ciceDevice, this->ciceHost);
-    Kokkos::deep_copy(execSpace, this->hsnowDevice, this->hsnowHost);
+    Kokkos::deep_copy(execSpace, this->hsnowDevice, this->hsnowHost);*/
     timerUpload.stop();
 
     timerAdvection.start();
@@ -136,9 +136,9 @@ void KokkosMEVPDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
     Kokkos::deep_copy(execSpace, this->uHost, this->uDevice);
     Kokkos::deep_copy(execSpace, this->vHost, this->vDevice);
 
-    Kokkos::deep_copy(execSpace, this->hiceHost, this->hiceDevice);
+    /*Kokkos::deep_copy(execSpace, this->hiceHost, this->hiceDevice);
     Kokkos::deep_copy(execSpace, this->ciceHost, this->ciceDevice);
-    Kokkos::deep_copy(execSpace, this->hsnowHost, this->hsnowDevice);
+    Kokkos::deep_copy(execSpace, this->hsnowHost, this->hsnowDevice);*/
     timerDownload.stop();
 
     // Finally, do the base class update
