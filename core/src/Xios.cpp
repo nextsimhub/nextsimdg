@@ -162,8 +162,8 @@ void Xios::close_context_definition()
 void Xios::context_finalize()
 {
     if (isEnabled) {
-        cxios_context_finalize();
         postprocessOutputFiles();
+        cxios_context_finalize();
     }
 }
 
@@ -1424,10 +1424,13 @@ void Xios::postprocessOutputFiles()
                 // Compute the end time of the window, subtracting 1 second to avoid overlap
                 TimePoint nextTime = time + step - Duration(1);
 
-                // Generate the filename used by XIOS and check if it exists
+                // Generate the filename used by XIOS
                 // TODO: Support file patterns (#898)
                 std::string filename = fileId + "_" + time.format("%Y%m%d%H%M%S") + "-"
                     + nextTime.format("%Y%m%d%H%M%S") + ".nc";
+
+                // Increment the time then check if the file exists
+                time += step;
                 if (!std::filesystem::exists(filename)) {
                     continue;
                 }
@@ -1450,7 +1453,6 @@ void Xios::postprocessOutputFiles()
                     std::cerr << "Error processing NetCDF file: " << e.what() << std::endl;
                 }
             }
-            time += step;
         }
     }
 }
