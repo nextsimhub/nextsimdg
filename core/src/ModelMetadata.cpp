@@ -1,12 +1,14 @@
 /*!
  * @author  Tim Spain <timothy.spain@nersc.no>
  * @author  Tom Meltzer <tdm39@cam.ac.uk>
+ * @author  Joe Wallwork <jw2423@cam.ac.uk>
  */
 
 #include "include/ModelMetadata.hpp"
 
 #include "include/Finalizer.hpp"
 #include "include/IStructure.hpp"
+#include "include/Logged.hpp"
 #include "include/ModelMPI.hpp"
 #include "include/NextsimModule.hpp"
 #ifdef USE_MPI
