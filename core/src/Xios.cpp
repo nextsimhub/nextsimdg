@@ -736,30 +736,26 @@ std::set<std::string> Xios::configGetDiagnosticFieldNames()
  * Create a field with some ID
  *
  * @param  fieldId the field ID
- * @param  ioType the I/O type enum
- * @return inherited fieldId for the file type
+ * @param  fileId the file ID it is associated with
  */
-std::string Xios::createField(const std::string& fieldId, const int ioType)
+void Xios::createField(const std::string& fieldId, const std::string& fileId)
 {
+    int ioType = getFileIOType(fileId);
+
     // Check that the field is in the expected config section
     std::set<std::string> fieldNames;
-    std::string inheritedFieldId;
     std::string ioName;
     if (ioType == INPUT_RESTART) {
         fieldNames = configGetInputRestartFieldNames();
-        inheritedFieldId = fieldId + "_input";
         ioName = "input restart";
     } else if (ioType == OUTPUT_RESTART) {
         fieldNames = configGetOutputRestartFieldNames();
-        inheritedFieldId = fieldId + "_output";
         ioName = "output restart";
     } else if (ioType == FORCING) {
         fieldNames = configGetForcingFieldNames();
-        inheritedFieldId = fieldId + "_forcing";
         ioName = "forcing";
     } else if (ioType == DIAGNOSTIC) {
         fieldNames = configGetDiagnosticFieldNames();
-        inheritedFieldId = fieldId + "_diagnostic";
         ioName = "diagnostic";
     } else {
         throw std::runtime_error("Xios: Unknown I/O type for field '" + fieldId + "'");
@@ -793,7 +789,75 @@ std::string Xios::createField(const std::string& fieldId, const int ioType)
         }
     }
 
+    if (ioType == INPUT_RESTART || ioType == FORCING) {
+        // Create an inherited field and set it's operation type and read access and associate it
+        // with the file
+        const std::string inheritedFieldId = createInheritedField(fieldId, ioType);
+        setFieldOperation(inheritedFieldId, ioType);
+        setFieldReadAccess(inheritedFieldId, true);
+        fileAddField(fileId, inheritedFieldId);
+    } else {
+        // Set the field operation type and read access and associate the field with the file
+        setFieldOperation(fieldId, ioType);
+        setFieldReadAccess(fieldId, false);
+        fileAddField(fileId, fieldId);
+    }
+}
+
+/*
+ * Set the I/O operation type for a given field.
+ *
+ * @param  fieldId the field ID
+ * @param  ioType the enum for the I/O type
+ */
+void Xios::setFieldOperation(const std::string& fieldId, const int ioType)
+{
+    std::string operation;
+    if (ioType == INPUT_RESTART) {
+        // Restarts are read "once"
+        operation = "once";
+    } else if (ioType == DIAGNOSTIC) {
+        // Diagonstics are averaged over the diagnostic output period
+        operation = "average";
+    } else {
+        // Otherwise, read/write all timesteps without post-processing
+        operation = "instant";
+    }
+    xios::CField* field = getField(fieldId);
+    if (cxios_is_defined_field_operation(field)) {
+        Logged::warning("Xios: Overwriting operation for field '" + fieldId + "'");
+    }
+    cxios_set_field_operation(field, operation.c_str(), operation.length());
+    if (!cxios_is_defined_field_operation(field)) {
+        throw std::runtime_error("Xios: Failed to set operation for field '" + fieldId + "'");
+    }
+}
+
+/*
+ * Create an inherited field for reading.
+ *
+ * @param   fieldId the base field ID
+ * @param   ioType the enum for the I/O type
+ * @return  inheritedFieldId the inherited field ID
+ * @details When reading a field from file, we need to define a separate field that references the
+ *          'base' field, but has it's own I/O operation mode and read access properties.
+ */
+std::string Xios::createInheritedField(const std::string& fieldId, const int ioType)
+{
+    std::string inheritedFieldId;
+    if (ioType == INPUT_RESTART) {
+        inheritedFieldId = fieldId + "_input";
+    } else if (ioType == FORCING) {
+        inheritedFieldId = fieldId + "_forcing";
+    } else if (ioType == OUTPUT_RESTART || ioType == DIAGNOSTIC) {
+        throw std::runtime_error(
+            "Xios: Inherited output field not needed for field '" + fieldId + "'");
+    } else {
+        throw std::runtime_error("Xios: Unknown I/O type for field '" + fieldId + "'");
+    }
+
     // Check if the inherited field already exists
+    bool exists;
     cxios_field_valid_id(&exists, inheritedFieldId.c_str(), inheritedFieldId.length());
     if (exists) {
         throw std::runtime_error("Xios: Inherited field '" + inheritedFieldId + "' already exists");
@@ -821,35 +885,6 @@ std::string Xios::createField(const std::string& fieldId, const int ioType)
     if (!cxios_is_defined_field_name(inheritedField)) {
         throw std::runtime_error(
             "Xios: Failed to set name for inherited field '" + inheritedFieldId + "'");
-    }
-
-    // Set the inherited operation type
-    std::string operation;
-    if (ioType == INPUT_RESTART) {
-        // Restarts are read "once"
-        operation = "once";
-    } else if (ioType == DIAGNOSTIC) {
-        // Diagonstics are averaged over the diagnostic output period
-        operation = "average";
-    } else {
-        // Otherwise, read/write all timesteps without post-processing
-        operation = "instant";
-    }
-    if (cxios_is_defined_field_operation(inheritedField)) {
-        Logged::warning(
-            "Xios: Overwriting operation for inherited field '" + inheritedFieldId + "'");
-    }
-    cxios_set_field_operation(inheritedField, operation.c_str(), operation.length());
-    if (!cxios_is_defined_field_operation(inheritedField)) {
-        throw std::runtime_error(
-            "Xios: Failed to set operation for inherited field '" + inheritedFieldId + "'");
-    }
-
-    // Set read access as appropriate
-    if (ioType == INPUT_RESTART || ioType == FORCING) {
-        setFieldReadAccess(fieldId, true);
-    } else {
-        setFieldReadAccess(fieldId, false);
     }
 
     // Link the inherited field back to the base field with a field reference
@@ -1102,19 +1137,8 @@ xios::CFile* Xios::getFile(const std::string& fileId)
     return file;
 }
 
-/*!
- * Create a file with some ID
- *
- * @param the file ID
- */
-void Xios::createFile(const std::string& fileId)
+int Xios::getFileIOType(const std::string& fileId)
 {
-    if (!(fileId == outputFileId || fileId == inputFileId || fileId == diagnosticFileId
-            || fileId == forcingFileId)) {
-        throw std::runtime_error("Xios::createFile: Invalid fileId '" + fileId + "'");
-    }
-
-    // Deduce the field type
     int ioType = -1;
     for (const auto& [ioTypeOther, fileIdOther] : fileMap) {
         if (fileId == fileIdOther) {
@@ -1125,6 +1149,20 @@ void Xios::createFile(const std::string& fileId)
     if (ioType == -1) {
         throw std::runtime_error(
             "Xios::createFile: Could not deduce file type for file '" + fileId + "'");
+    }
+    return ioType;
+}
+
+/*!
+ * Create a file with some ID
+ *
+ * @param the file ID
+ */
+void Xios::createFile(const std::string& fileId)
+{
+    if (!(fileId == outputFileId || fileId == inputFileId || fileId == diagnosticFileId
+            || fileId == forcingFileId)) {
+        throw std::runtime_error("Xios::createFile: Invalid fileId '" + fileId + "'");
     }
 
     // Create the file
@@ -1150,6 +1188,7 @@ void Xios::createFile(const std::string& fileId)
     }
 
     // Determine whether the file is configured for reading or writing
+    int ioType = getFileIOType(fileId);
     bool readAccess = (ioType == INPUT_RESTART || ioType == FORCING);
 
     // Set the file mode
@@ -1263,12 +1302,7 @@ void Xios::createFile(const std::string& fileId)
 
     // Loop over field_names entries in the config
     for (const std::string& fieldId : fieldIds) {
-
-        // Create the base field if it doesn't already exist as well as the inherited field
-        const std::string inheritedFieldId = createField(fieldId, ioType);
-
-        // Associate the field with the file
-        fileAddField(fileId, inheritedFieldId);
+        createField(fieldId, fileId);
     }
 }
 

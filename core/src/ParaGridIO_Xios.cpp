@@ -151,7 +151,7 @@ void ParaGridIO::dumpModelState(const ModelState& state, const std::string& file
     // Assume that all fields in the supplied ModelState are necessary, and so write them to file.
     const std::set<std::string> outputFieldIds = xiosHandler.configGetOutputRestartFieldNames();
     for (const auto& [fieldId, modelarray] : state.data) {
-        const std::string outputFieldId = fieldId + "_output";
+        const std::string outputFieldId = fieldId;
         if (outputFieldIds.count(fieldId) == 0) {
             throw std::runtime_error("ParaGridIO::dumpModelState: field " + fieldId
                 + " is not configured as a restart.");
@@ -173,7 +173,7 @@ void ParaGridIO::writeDiagnosticTime(const ModelState& state, const std::string&
     // Assume that all fields in the supplied ModelState are necessary, and so write them to file.
     const std::set<std::string> diagnosticFieldIds = xiosHandler.configGetDiagnosticFieldNames();
     for (const auto& [fieldId, modelarray] : state.data) {
-        const std::string diagnosticFieldId = fieldId + "_diagnostic";
+        const std::string diagnosticFieldId = fieldId;
         if (diagnosticFieldIds.count(fieldId) == 0) {
             throw std::runtime_error("ParaGridIO::writeDiagnosticTime: field " + fieldId
                 + " is not configured as a diagnostic.");

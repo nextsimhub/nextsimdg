@@ -73,7 +73,6 @@ public:
     size_t getAxisSize(const std::string& axisId);
 
     /* Field */
-    std::string createField(const std::string& fieldId, const int ioType);
     void setFieldGridRef(const std::string& fieldId, const std::string& gridRef);
     void setFieldFreqOffset(const std::string& fieldId, const Duration& freqOffset);
     std::string getFieldGridRef(const std::string& fieldId);
@@ -167,6 +166,9 @@ private:
     std::set<std::string> configGetOutputRestartFieldNames();
     std::set<std::string> configGetInputRestartFieldNames();
     std::set<std::string> configGetDiagnosticFieldNames();
+    void createField(const std::string& fieldId, const std::string& fileId);
+    std::string createInheritedField(const std::string& fieldId, const int ioType);
+    void setFieldOperation(const std::string& fieldId, const int ioType);
     void setFieldReadAccess(const std::string& fieldId, const bool& readAccess);
     std::map<std::string, ModelArray::Type> fieldTypes;
     void setupFields();
@@ -174,6 +176,7 @@ private:
     /* File */
     xios::CFileGroup* getFileGroup();
     xios::CFile* getFile(const std::string& fileId);
+    int getFileIOType(const std::string& fileId);
     std::string outputFileId;
     std::string outputFormatStr = "%y-%mo-%dT%h:%mi:%sZ";
     std::string inputFileId;
