@@ -73,13 +73,7 @@ public:
     size_t getAxisSize(const std::string& axisId);
 
     /* Field */
-    void setFieldGridRef(const std::string& fieldId, const std::string& gridRef);
-    void setFieldFreqOffset(const std::string& fieldId, const Duration& freqOffset);
-    std::string getFieldGridRef(const std::string& fieldId);
-    bool getFieldReadAccess(const std::string& fieldId);
-    Duration getFieldFreqOffset(const std::string& fieldId);
     std::set<std::string> configGetForcingFieldNames();
-    ModelArray::Type getFieldType(const std::string& fieldId);
     void setFieldType(const std::string& fieldId, const ModelArray::Type& type);
 
     enum {
@@ -170,6 +164,12 @@ private:
     std::string createInheritedField(const std::string& fieldId, const int ioType);
     void setFieldOperation(const std::string& fieldId, const int ioType);
     void setFieldReadAccess(const std::string& fieldId, const bool& readAccess);
+    void setFieldGridRef(const std::string& fieldId, const std::string& gridRef);
+    void setFieldFreqOffset(const std::string& fieldId, const Duration& freqOffset);
+    std::string getFieldGridRef(const std::string& fieldId);
+    bool getFieldReadAccess(const std::string& fieldId);
+    Duration getFieldFreqOffset(const std::string& fieldId);
+    ModelArray::Type getFieldType(const std::string& fieldId);
     std::map<std::string, ModelArray::Type> fieldTypes;
     void setupFields();
 
