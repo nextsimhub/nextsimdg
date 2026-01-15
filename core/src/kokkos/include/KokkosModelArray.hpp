@@ -25,14 +25,14 @@ void kokkosMA2DG(const ConstDeviceViewMA& ma, const KokkosDeviceView<DGVector<N>
     // N == 1 needs different treatment at compile-time because the corresponding Kokkos::View has
     // only one dimension.
     if constexpr (N == 1) {
-        assert(ma.extent(0) == 1);
-        // views need to have the same rank so we squeeze the 0th dimension
+        assert(ma.extent(1) == 1);
+        // views need to have the same rank so we squeeze 1-sized component dimension
         const auto firstCompMA = Kokkos::subview(ma, Kokkos::ALL(), 0);
         Kokkos::deep_copy(dg, firstCompMA);
-    } else if (N == ma.extent(0)) {
+    } else if (N == ma.extent(1)) {
         Kokkos::deep_copy(dg, ma);
     } else {
-        assert(ma.extent(0) == 1);
+        assert(ma.extent(1) == 1);
         // Assign only to the 0th component. Use a range to keep the dimension.
         const auto firstCompDG = Kokkos::subview(dg, Kokkos::ALL(), std::make_pair(0, 1));
         Kokkos::deep_copy(firstCompDG, ma);
