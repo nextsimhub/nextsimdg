@@ -90,9 +90,8 @@ public:
      * @param data The ModelArray containing the data to be set.
      *
      */
-    virtual void setData(const std::string& name, const ModelArray& data)
+    void setData(const std::string& name, const ModelArray& data)
     {
-
         // Special cases: hice, cice, (damage, stress) <- not yet implemented
         if (name == hiceName || name == ciceName || name == hsnowName) {
             throw std::runtime_error(std::string("Use setDGArray() to set the data for ") + name);

@@ -108,10 +108,10 @@ void MEVPDynamics::update(const TimestepTime& tst)
     kernel.setDGArray(hsnowName, hsnowDGAccessor.getAutoRW());
 
     // set the forcing velocities
-    kernel.setData(uWindName, uwindAccessor.getHostRO());
-    kernel.setData(vWindName, vwindAccessor.getHostRO());
-    kernel.setData(uOceanName, uoceanAccessor.getHostRO());
-    kernel.setData(vOceanName, voceanAccessor.getHostRO());
+    kernel.setData(uWindName, uwindAccessor.getAutoRO());
+    kernel.setData(vWindName, vwindAccessor.getAutoRO());
+    kernel.setData(uOceanName, uoceanAccessor.getAutoRO());
+    kernel.setData(vOceanName, voceanAccessor.getAutoRO());
     kernel.setData(sshName, sshAccessor.getHostRO());
 
     kernel.update(tst);

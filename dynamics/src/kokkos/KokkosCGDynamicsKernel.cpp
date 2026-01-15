@@ -135,6 +135,15 @@ void KokkosCGDynamicsKernel<DGadvection>::initialise(
         _uGradDevice = DeviceViewCG1("uGrad", _lumpedCG1MassDevice.extent(0));
         _vGradDevice = DeviceViewCG1("vGrad", _lumpedCG1MassDevice.extent(0));
     }
+
+    namedFields = {
+        { uName, uDevice },
+        { vName, vDevice },
+        { uWindName, uAtmosDevice },
+        { vWindName, vAtmosDevice },
+        { uOceanName, uOceanDevice },
+        { vOceanName, vOceanDevice },
+    };
 }
 
 /*************************************************************/
@@ -189,6 +198,33 @@ ModelArray KokkosCGDynamicsKernel<DGadvection>::getDG0Data(const std::string& na
 
 /*************************************************************/
 template <int DGadvection>
+void KokkosCGDynamicsKernel<DGadvection>::setData(const std::string& name, const ModelArray& data)
+{
+    // Just copy to device and use the other setter so that we don't have to treat every field
+    // differently. It would be more efficient to use the destination device buffer directly.
+    const auto& [dataHost, dataDevice] = makeKokkosDualView(name + "Temp", data.data());
+    Kokkos::deep_copy(dataDevice, dataHost);
+    setData(name, dataDevice);
+}
+
+template <int DGadvection>
+void KokkosCGDynamicsKernel<DGadvection>::setData(
+    const std::string& name, const ConstDeviceViewMA& data)
+{
+    // Special cases: hice, cice
+    if (name == hiceName || name == ciceName || name == hsnowName) {
+        throw std::runtime_error(std::string("Use setDGArray() to set the data for ") + name);
+    } else if (name == sshName) {
+        kokkosMA2DG<1>(data, seaSurfaceHeightDevice);
+    } else if (auto it = namedFields.find(name); it != namedFields.end()) {
+        mA2CG(it->second, data);
+    } else {
+        throw std::runtime_error(std::string("Trying to setData() for unknown field ") + name);
+    }
+}
+
+/*************************************************************/
+template <int DGadvection>
 void KokkosCGDynamicsKernel<DGadvection>::setDGArray(
     const std::string& name, const KokkosDeviceView<ModelArray::DataType>& dgData)
 {
@@ -206,9 +242,6 @@ template <int DGadvection> void KokkosCGDynamicsKernel<DGadvection>::prepareAdve
 {
     static KokkosTimer<DETAILED_MEASUREMENTS> timerPrepAdvection("prepareAdvection");
     timerPrepAdvection.start();
-    auto execSpace = Kokkos::DefaultExecutionSpace();
-    Kokkos::deep_copy(execSpace, this->uDevice, this->uHost);
-    Kokkos::deep_copy(execSpace, this->vDevice, this->vHost);
     dGTransportDevice->prepareAdvection(uDevice, vDevice);
     timerPrepAdvection.stop();
 }
@@ -280,8 +313,6 @@ template <typename Mat> void compare(const std::string& name, const Mat& m1, con
 template <int DGadvection>
 void KokkosCGDynamicsKernel<DGadvection>::updateGradientOfSeaSurfaceHeight()
 {
-    static KokkosTimer<DETAILED_MEASUREMENTS> timer("gradientSSHGPU");
-    timer.start();
     // capturing structured bindings is C++20 so we can't just do
     // const auto& [dG2CGInterpolater, dXSSHDevice, dYSSHDevice, lumpedCG1MassDevice] =
     const auto precomputedMaps = [this]() {
@@ -695,6 +726,15 @@ void KokkosCGDynamicsKernel<DGadvection>::computeTensorInvariantIIDevice(
                 = ((0.5 * (e11.row(i) - e22.row(i))).array().square() + e12.row(i).array().square())
                       .sqrt();
         });
+}
+
+/*************************************************************/
+template <int DGadvection>
+void KokkosCGDynamicsKernel<DGadvection>::mA2CG(
+    const DeviceViewCG& dest, const ConstDeviceViewMA& src) const
+{
+    kokkosMA2DG<DGadvection>(src, tempDataAdvectDevice);
+    (*dG2CGAdvectInterpolator)(dest, tempDataAdvectDevice);
 }
 
 /*************************************************************/

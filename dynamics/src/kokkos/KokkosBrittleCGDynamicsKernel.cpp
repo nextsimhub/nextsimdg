@@ -81,27 +81,12 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
     static KokkosTimer<DETAILED_MEASUREMENTS> timerDivergence("divGPU");
     static KokkosTimer<DETAILED_MEASUREMENTS> timerMomentum("momentumGPU");
     static KokkosTimer<DETAILED_MEASUREMENTS> timerBoundary("bcGPU");
-    static KokkosTimer<true> timerUpload("uploadGPU");
     static KokkosTimer<true> timerDownload("downloadGPU");
     static KokkosTimer<true> timerAdvection("advectionGPU");
     static KokkosTimer<true> timerPrepIt("prepItGPU");
 
-    timerUpload.start();
     // explicit execution space enables asynchronous execution
     auto execSpace = Kokkos::DefaultExecutionSpace();
-    // uDevice, vDevice are already copied to the device in KokkosCGDynamicsKernel::prepareAdvection
-    Kokkos::deep_copy(execSpace, this->uOceanDevice, this->uOceanHost);
-    Kokkos::deep_copy(execSpace, this->vOceanDevice, this->vOceanHost);
-
-    Kokkos::deep_copy(execSpace, this->uAtmosDevice, this->uAtmosHost);
-    Kokkos::deep_copy(execSpace, this->vAtmosDevice, this->vAtmosHost);
-
-    /*    Kokkos::deep_copy(execSpace, this->hiceDevice, this->hiceHost);
-        Kokkos::deep_copy(execSpace, this->ciceDevice, this->ciceHost);
-        Kokkos::deep_copy(execSpace, this->hsnowDevice, this->hsnowHost);
-
-        Kokkos::deep_copy(execSpace, this->damageDevice, this->damageHost);*/
-    timerUpload.stop();
 
     const FloatType dt = tst.step.seconds();
     timerAdvection.start();
@@ -161,21 +146,10 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
     Base::updateIceOceanStressDevice(this->uIceOceanStressDevice, this->vIceOceanStressDevice,
         this->avgUDevice, this->avgVDevice, this->uOceanDevice, this->vOceanDevice, this->params,
         this->cosOceanAngle, this->sinOceanAngle);
-    // not needed on the host because the fields are only used in getDG0Data
-    // Kokkos::deep_copy(execSpace, this->uIceOceanStressHost, this->uIceOceanStressDevice);
-    // Kokkos::deep_copy(execSpace, this->vIceOceanStressHost, this->vIceOceanStressDevice);
 
     timerDownload.start();
     Kokkos::deep_copy(execSpace, this->uHost, this->uDevice);
     Kokkos::deep_copy(execSpace, this->vHost, this->vDevice);
-
-    /*    Kokkos::deep_copy(execSpace, this->hiceHost, this->hiceDevice);
-        Kokkos::deep_copy(execSpace, this->ciceHost, this->ciceDevice);
-        Kokkos::deep_copy(execSpace, this->hsnowHost, this->hsnowDevice);
-        Kokkos::deep_copy(execSpace, this->damageHost, this->damageDevice);*/
-    /*    Kokkos::deep_copy(execSpace, this->s11Host, this->s11Device);
-        Kokkos::deep_copy(execSpace, this->s12Host, this->s12Device);
-        Kokkos::deep_copy(execSpace, this->s22Host, this->s22Device);*/
     timerDownload.stop();
 
     // Finally, do the base class update
@@ -189,7 +163,7 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::setData(
     if (name == damageName) {
         throw std::runtime_error(std::string("Use setDGArray() to set the data for ") + name);
     } else {
-        CGDynamicsKernel<DGadvection>::setData(name, data);
+        KokkosCGDynamicsKernel<DGadvection>::setData(name, data);
     }
 }
 

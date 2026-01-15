@@ -5,7 +5,7 @@
 #ifndef MASTORE_HPP
 #define MASTORE_HPP
 
-#include "../../../core/src/kokkos/include/KokkosUtils.hpp"
+#include "../kokkos/include/KokkosModelArray.hpp"
 #include "ModelArray.hpp"
 #include "ModelArrayRef.hpp" // for RW,RO globals
 
@@ -17,11 +17,7 @@ struct TextTag;
 namespace Nextsim {
 
 #ifdef USE_KOKKOS
-// kokkos views compatible with ModelArray
-using DeviceViewMA = KokkosDeviceView<ModelArray::DataType>;
-using ConstDeviceViewMA = ConstKokkosDeviceView<ModelArray::DataType>;
-using HostViewMA = KokkosHostView<ModelArray::DataType>;
-using ConstHostViewMA = ConstKokkosHostView<ModelArray::DataType>;
+
 
 // Wrapper for Kokkos views with semantics closer to ModelArray
 class ConstDeviceModelArray {

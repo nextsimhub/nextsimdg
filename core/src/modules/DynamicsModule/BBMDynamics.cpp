@@ -139,11 +139,11 @@ void BBMDynamics::update(const TimestepTime& tst)
     kernel.setDGArray(damageName, damageAccessor.getAutoRW());
 
     // set the forcing velocities
-    kernel.setData(uWindName, uwindAccessor.getHostRO());
-    kernel.setData(vWindName, vwindAccessor.getHostRO());
-    kernel.setData(uOceanName, uoceanAccessor.getHostRO());
-    kernel.setData(vOceanName, voceanAccessor.getHostRO());
-    kernel.setData(sshName, sshAccessor.getHostRO());
+    kernel.setData(uWindName, uwindAccessor.getAutoRO());
+    kernel.setData(vWindName, vwindAccessor.getAutoRO());
+    kernel.setData(uOceanName, uoceanAccessor.getAutoRO());
+    kernel.setData(vOceanName, voceanAccessor.getAutoRO());
+    kernel.setData(sshName, sshAccessor.getAutoRO());
 
     /*
      * Ice velocity components are stored in the dynamics, and not changed by the model outside the

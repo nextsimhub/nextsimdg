@@ -49,36 +49,20 @@ void KokkosMEVPDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
     static KokkosTimer<DETAILED_MEASUREMENTS> timerDivergence("divGPU");
     static KokkosTimer<DETAILED_MEASUREMENTS> timerMomentum("momentumGPU");
     static KokkosTimer<DETAILED_MEASUREMENTS> timerBoundary("bcGPU");
-    static KokkosTimer<true> timerUpload("uploadGPU");
     static KokkosTimer<true> timerDownload("downloadGPU");
     static KokkosTimer<true> timerAdvection("advectionGPU");
     static KokkosTimer<true> timerPrepIt("prepItGPU");
 
-    timerUpload.start();
     // explicit execution space enables asynchronous execution
     auto execSpace = Kokkos::DefaultExecutionSpace();
-    Kokkos::deep_copy(execSpace, this->uDevice, this->uHost);
-    Kokkos::deep_copy(execSpace, this->vDevice, this->vHost);
-    // uDevice, vDevice are already copied to the device in KokkosCGDynamicsKernel::prepareAdvection
-    Kokkos::deep_copy(execSpace, this->u0DeviceMut, this->uDevice);
-    Kokkos::deep_copy(execSpace, this->v0DeviceMut, this->vDevice);
-
-    Kokkos::deep_copy(execSpace, this->uOceanDevice, this->uOceanHost);
-    Kokkos::deep_copy(execSpace, this->vOceanDevice, this->vOceanHost);
-
-    Kokkos::deep_copy(execSpace, this->uAtmosDevice, this->uAtmosHost);
-    Kokkos::deep_copy(execSpace, this->vAtmosDevice, this->vAtmosHost);
-
-   /* Kokkos::deep_copy(execSpace, this->hiceDevice, this->hiceHost);
-    Kokkos::deep_copy(execSpace, this->ciceDevice, this->ciceHost);
-    Kokkos::deep_copy(execSpace, this->hsnowDevice, this->hsnowHost);*/
-    timerUpload.stop();
 
     timerAdvection.start();
     this->advectDynamicsFields(tst.step.seconds());
     timerAdvection.stop();
 
     timerPrepIt.start();
+    Kokkos::deep_copy(execSpace, this->u0DeviceMut, this->uDevice);
+    Kokkos::deep_copy(execSpace, this->v0DeviceMut, this->vDevice);
     Base::prepareIterationDevice(this->cgHDevice, this->cgADevice, this->hiceDevice,
         this->ciceDevice, *this->dG2CGAdvectInterpolator);
     this->updateGradientOfSeaSurfaceHeight();
@@ -128,17 +112,10 @@ void KokkosMEVPDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
     Base::updateIceOceanStressDevice(this->uIceOceanStressDevice, this->vIceOceanStressDevice,
         this->uDevice, this->vDevice, this->uOceanDevice, this->vOceanDevice, this->params,
         this->cosOceanAngle, this->sinOceanAngle);
-    // not needed on the host because the fields are only used in getDG0Data
-    // Kokkos::deep_copy(execSpace, this->uIceOceanStressHost, this->uIceOceanStressDevice);
-    // Kokkos::deep_copy(execSpace, this->vIceOceanStressHost, this->vIceOceanStressDevice);
 
     timerDownload.start();
     Kokkos::deep_copy(execSpace, this->uHost, this->uDevice);
     Kokkos::deep_copy(execSpace, this->vHost, this->vDevice);
-
-    /*Kokkos::deep_copy(execSpace, this->hiceHost, this->hiceDevice);
-    Kokkos::deep_copy(execSpace, this->ciceHost, this->ciceDevice);
-    Kokkos::deep_copy(execSpace, this->hsnowHost, this->hsnowDevice);*/
     timerDownload.stop();
 
     // Finally, do the base class update
