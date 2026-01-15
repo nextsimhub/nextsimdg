@@ -68,30 +68,28 @@ namespace Details {
 
 }
 
-// We can't specialize just for Eigen::Matrix because it needs to work with classes inheriting from
-// Eigen::Matrix
-template <typename EigenMat>
-using KokkosDeviceView
+// Kokkos view types that are compatible (type, compile-time size, storage order, constness) with
+// Eigen matrices. We can't specialize just for Eigen::Matrix because it needs to work with classes
+// inheriting from Eigen::Matrix like DGVector
+template <typename EigenMat, typename... Args>
+using KokkosEigenView
     = Kokkos::View<typename Details::ToKokkosArrayDec<typename EigenMat::Scalar,
                        EigenMat::RowsAtCompileTime, EigenMat::ColsAtCompileTime>::Type,
-        typename Details::ToKokkosLayout<EigenMat::Options>::Type>;
-template <typename EigenMat>
-using ConstKokkosDeviceView
+        typename Details::ToKokkosLayout<EigenMat::Options>::Type, Args...>;
+template <typename EigenMat, typename... Args>
+using ConstKokkosEigenView
     = Kokkos::View<typename Details::ToKokkosArrayDec<const typename EigenMat::Scalar,
                        EigenMat::RowsAtCompileTime, EigenMat::ColsAtCompileTime>::Type,
         typename Details::ToKokkosLayout<EigenMat::Options>::Type>;
+
+template <typename EigenMat> using KokkosDeviceView = KokkosEigenView<EigenMat>;
+template <typename EigenMat> using ConstKokkosDeviceView = ConstKokkosEigenView<EigenMat>;
 template <typename EigenMat>
-using KokkosHostView =
-    typename Kokkos::View<typename Details::ToKokkosArrayDec<typename EigenMat::Scalar,
-                              EigenMat::RowsAtCompileTime, EigenMat::ColsAtCompileTime>::Type,
-        typename Details::ToKokkosLayout<EigenMat::Options>::Type, Kokkos::HostSpace,
-        Kokkos::MemoryTraits<Kokkos::Unmanaged>>;
+using KokkosHostView
+    = KokkosEigenView<EigenMat, Kokkos::HostSpace, Kokkos::MemoryTraits<Kokkos::Unmanaged>>;
 template <typename EigenMat>
-using ConstKokkosHostView =
-    typename Kokkos::View<typename Details::ToKokkosArrayDec<const typename EigenMat::Scalar,
-                              EigenMat::RowsAtCompileTime, EigenMat::ColsAtCompileTime>::Type,
-        typename Details::ToKokkosLayout<EigenMat::Options>::Type, Kokkos::HostSpace,
-        Kokkos::MemoryTraits<Kokkos::Unmanaged>>;
+using ConstKokkosHostView
+    = ConstKokkosEigenView<EigenMat, Kokkos::HostSpace, Kokkos::MemoryTraits<Kokkos::Unmanaged>>;
 
 /*!
  * @brief Creates a host view compatible with an Eigen matrix.
@@ -103,12 +101,21 @@ using ConstKokkosHostView =
  */
 template <typename EigenMat> auto makeKokkosHostView(EigenMat& mat)
 {
+    // const_cast is necessary because Eigen only gives const access to the underlying pointer
     if constexpr (EigenMat::RowsAtCompileTime == 1 || EigenMat::ColsAtCompileTime == 1) {
         return KokkosHostView<EigenMat>(
             const_cast<typename EigenMat::Scalar*>(mat.data()), mat.rows() * mat.cols());
     }
     return KokkosHostView<EigenMat>(
         const_cast<typename EigenMat::Scalar*>(mat.data()), mat.rows(), mat.cols());
+}
+// const overload
+template <typename EigenMat> auto makeKokkosHostView(const EigenMat& mat)
+{
+    if constexpr (EigenMat::RowsAtCompileTime == 1 || EigenMat::ColsAtCompileTime == 1) {
+        return ConstKokkosHostView<EigenMat>(mat.data(), mat.rows() * mat.cols());
+    }
+    return ConstKokkosHostView<EigenMat>(mat.data(), mat.rows(), mat.cols());
 }
 
 /// Options for the creation of views based on existing data.

@@ -19,8 +19,9 @@ using ConstDeviceViewMA = ConstKokkosDeviceView<ModelArray::DataType>;
 using HostViewMA = KokkosHostView<ModelArray::DataType>;
 using ConstHostViewMA = ConstKokkosHostView<ModelArray::DataType>;
 
-template <int N>
-void kokkosMA2DG(const ConstDeviceViewMA& ma, const KokkosDeviceView<DGVector<N>>& dg)
+template <int N, typename... ArgsMA, typename... ArgsDG>
+void kokkosMA2DG(const ConstKokkosEigenView<ModelArray::DataType, ArgsMA...>& ma,
+    const KokkosEigenView<DGVector<N>, ArgsDG...>& dg)
 {
     // N == 1 needs different treatment at compile-time because the corresponding Kokkos::View has
     // only one dimension.

@@ -202,9 +202,21 @@ void KokkosCGDynamicsKernel<DGadvection>::setData(const std::string& name, const
 {
     // Just copy to device and use the other setter so that we don't have to treat every field
     // differently. It would be more efficient to use the destination device buffer directly.
-    const auto& [dataHost, dataDevice] = makeKokkosDualView(name + "Temp", data.data());
-    Kokkos::deep_copy(dataDevice, dataHost);
-    setData(name, dataDevice);
+ //   const auto& [dataHost, dataDevice] = makeKokkosDualView(name + "Temp", data.data());
+ //   Kokkos::deep_copy(dataDevice, dataHost);
+ //   setData(name, dataDevice);
+    // Special cases: hice, cice
+    if (name == hiceName || name == ciceName || name == hsnowName) {
+        throw std::runtime_error(std::string("Use setDGArray() to set the data for ") + name);
+    } else if (name == sshName) {
+        const auto dataView = makeKokkosHostView(data.data());
+        kokkosMA2DG<1>(dataView, seaSurfaceHeightDevice);
+    } else if (auto it = namedFields.find(name); it != namedFields.end()) {
+        const auto dataView = makeKokkosHostView(data.data());
+        mA2CG(it->second, dataView);
+    } else {
+        throw std::runtime_error(std::string("Trying to setData() for the unknown field ") + name);
+    }
 }
 
 template <int DGadvection>
@@ -219,7 +231,7 @@ void KokkosCGDynamicsKernel<DGadvection>::setData(
     } else if (auto it = namedFields.find(name); it != namedFields.end()) {
         mA2CG(it->second, data);
     } else {
-        throw std::runtime_error(std::string("Trying to setData() for unknown field ") + name);
+        throw std::runtime_error(std::string("Trying to setData() for the unknown field ") + name);
     }
 }
 
@@ -729,13 +741,14 @@ void KokkosCGDynamicsKernel<DGadvection>::computeTensorInvariantIIDevice(
 }
 
 /*************************************************************/
-template <int DGadvection>
+/*template <int DGadvection>
 void KokkosCGDynamicsKernel<DGadvection>::mA2CG(
     const DeviceViewCG& dest, const ConstDeviceViewMA& src) const
 {
+    Kokkos::deep_copy(tempDataAdvectDevice, 0.0);
     kokkosMA2DG<DGadvection>(src, tempDataAdvectDevice);
     (*dG2CGAdvectInterpolator)(dest, tempDataAdvectDevice);
-}
+}*/
 
 /*************************************************************/
 // because ParametricMomentumMap<CGdegree>::iMJwPSIAdvect does not properly depend on DGadvection we

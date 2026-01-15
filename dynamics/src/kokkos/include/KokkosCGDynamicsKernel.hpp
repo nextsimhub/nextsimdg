@@ -5,8 +5,8 @@
 #ifndef KOKKOSCGDYNAMICSKERNEL_HPP
 #define KOKKOSCGDYNAMICSKERNEL_HPP
 
-#include "../../../core/src/kokkos/include/KokkosUtils.hpp"
 #include "../../../core/src/kokkos/include/KokkosModelArray.hpp"
+#include "../../../core/src/kokkos/include/KokkosUtils.hpp"
 #include "../../include/CGDynamicsKernel.hpp"
 
 namespace Nextsim {
@@ -77,9 +77,9 @@ public:
 
     ModelArray getDG0Data(const std::string& name) const override;
 
-    // The host variant is needed in IDynamics:setData where data does not come out of the ModelArrayStore.
-    // It should not be used in performance critical contexts because the implementation is inefficient
-    // and allocates extra device memory.
+    // The host variant is needed in IDynamics:setData where data does not come out of the
+    // ModelArrayStore. It should not be used in performance critical contexts because the
+    // implementation is inefficient and allocates extra device memory.
     void setData(const std::string& name, const ModelArray& data);
     // Use this to directly set the data of kernel internal buffers.
     void setData(const std::string& name, const ConstDeviceViewMA& data);
@@ -147,7 +147,14 @@ protected:
     void updateMomentum(const TimestepTime& tst) override { }
 
     // copy data from a ModelArray to a cG-field on device
-    void mA2CG(const DeviceViewCG& dest, const ConstDeviceViewMA& src) const;
+    template <typename... Args>
+    void mA2CG(
+        const DeviceViewCG& dest, const ConstKokkosEigenView<ModelArray::DataType, Args...>& src) const
+    {
+        Kokkos::deep_copy(tempDataAdvectDevice, 0.0);
+        kokkosMA2DG<DGadvection>(src, tempDataAdvectDevice);
+        (*dG2CGAdvectInterpolator)(dest, tempDataAdvectDevice);
+    }
 
     // named fields for setData
     std::unordered_map<std::string, DeviceViewCG> namedFields;
