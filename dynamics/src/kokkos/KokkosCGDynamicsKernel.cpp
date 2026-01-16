@@ -69,6 +69,8 @@ void KokkosCGDynamicsKernel<DGadvection>::initialise(
     tempData.resize_by_mesh(*this->smesh);
     std::tie(tempDataAdvectHost, tempDataAdvectDevice)
         = makeKokkosDualView("tempDataAdvect", (this->tempDataAdvect));
+    ModelArray tempDataMA;
+    tempDataMADevice = makeKokkosDeviceView("tempDataMA", tempDataMA.data());
 
     assert(this->pmap);
     divS1Device = makeKokkosDeviceViewMap("divS1", this->pmap->divS1, MakeViewOptions::DEVICE_COPY);
@@ -136,7 +138,7 @@ void KokkosCGDynamicsKernel<DGadvection>::initialise(
         _vGradDevice = DeviceViewCG1("vGrad", _lumpedCG1MassDevice.extent(0));
     }
 
-    namedFields = {
+    namedCGFields = {
         { uName, uDevice },
         { vName, vDevice },
         { uWindName, uAtmosDevice },
@@ -153,44 +155,37 @@ ModelArray KokkosCGDynamicsKernel<DGadvection>::getDG0Data(const std::string& na
     if (name == shearName) {
         computeShearDevice(tempDataAdvectDevice, e11Device, e12Device, e22Device, PSIStressDevice,
             meshData->landMaskDevice, iMJwPSIAdvectDevice);
-        Kokkos::deep_copy(this->tempDataAdvectHost, this->tempDataAdvectDevice);
         HField data(ModelArray::Type::H);
-        return DGModelArray::dg2ma(tempDataAdvect, data);
+        return dG2MA(data, tempDataAdvectDevice);
     } else if (name == divergenceName) {
         computeTensorInvariantIDevice(tempDataDevice, e11Device, e12Device, e22Device);
         Kokkos::deep_copy(this->tempDataHost, this->tempDataDevice);
         HField data(ModelArray::Type::H);
-        return DGModelArray::dg2ma(tempData, data);
+        return dG2MA(data, tempDataAdvectDevice);
     } else if (name == sigmaIName) {
         computeTensorInvariantIDevice(tempDataDevice, s11Device, s12Device, s22Device);
-        Kokkos::deep_copy(this->tempDataHost, this->tempDataDevice);
         HField data(ModelArray::Type::H);
-        return DGModelArray::dg2ma(tempData, data);
+        return dG2MA(data, tempDataAdvectDevice);
     } else if (name == sigmaIIName) {
         computeTensorInvariantIIDevice(tempDataDevice, s11Device, s12Device, s22Device);
-        Kokkos::deep_copy(this->tempDataHost, this->tempDataDevice);
         HField data(ModelArray::Type::H);
-        return DGModelArray::dg2ma(tempData, data);
+        return dG2MA(data, tempDataAdvectDevice);
     } else if (name == uName) {
         (*cG2DGAdvectInterpolator)(tempDataAdvectDevice, uDevice);
-        Kokkos::deep_copy(tempDataAdvectHost, tempDataAdvectDevice);
-        ModelArray data(ModelArray::Type::U);
-        return DGModelArray::dg2ma(tempDataAdvect, data);
+        HField data(ModelArray::Type::U);
+        return dG2MA(data, tempDataAdvectDevice);
     } else if (name == vName) {
         (*cG2DGAdvectInterpolator)(tempDataAdvectDevice, vDevice);
-        Kokkos::deep_copy(tempDataAdvectHost, tempDataAdvectDevice);
-        ModelArray data(ModelArray::Type::V);
-        return DGModelArray::dg2ma(tempDataAdvect, data);
+        HField data(ModelArray::Type::V);
+        return dG2MA(data, tempDataAdvectDevice);
     } else if (name == uIOStressName) {
         (*cG2DGAdvectInterpolator)(tempDataAdvectDevice, uIceOceanStressDevice);
-        Kokkos::deep_copy(tempDataAdvectHost, tempDataAdvectDevice);
-        ModelArray data(ModelArray::Type::U);
-        return DGModelArray::dg2ma(tempDataAdvect, data);
+        HField data(ModelArray::Type::U);
+        return dG2MA(data, tempDataAdvectDevice);
     } else if (name == vIOStressName) {
         (*cG2DGAdvectInterpolator)(tempDataAdvectDevice, vIceOceanStressDevice);
-        Kokkos::deep_copy(tempDataAdvectHost, tempDataAdvectDevice);
-        ModelArray data(ModelArray::Type::V);
-        return DGModelArray::dg2ma(tempDataAdvect, data);
+        HField data(ModelArray::Type::V);
+        return dG2MA(data, tempDataAdvectDevice);
     } else {
         return CGDynamicsKernel<DGadvection>::getDG0Data(name);
     }
@@ -201,22 +196,13 @@ template <int DGadvection>
 void KokkosCGDynamicsKernel<DGadvection>::setData(const std::string& name, const ModelArray& data)
 {
     // Just copy to device and use the other setter so that we don't have to treat every field
-    // differently. It would be more efficient to use the destination device buffer directly.
- //   const auto& [dataHost, dataDevice] = makeKokkosDualView(name + "Temp", data.data());
- //   Kokkos::deep_copy(dataDevice, dataHost);
- //   setData(name, dataDevice);
-    // Special cases: hice, cice
-    if (name == hiceName || name == ciceName || name == hsnowName) {
-        throw std::runtime_error(std::string("Use setDGArray() to set the data for ") + name);
-    } else if (name == sshName) {
-        const auto dataView = makeKokkosHostView(data.data());
-        kokkosMA2DG<1>(dataView, seaSurfaceHeightDevice);
-    } else if (auto it = namedFields.find(name); it != namedFields.end()) {
-        const auto dataView = makeKokkosHostView(data.data());
-        mA2CG(it->second, dataView);
-    } else {
-        throw std::runtime_error(std::string("Trying to setData() for the unknown field ") + name);
-    }
+    // differently. This is much faster than directly copying to the destination if there is
+    // a stride involved.
+    // const auto& [dataHost, dataDevice] = makeKokkosDualView(name + "Temp", data.data());
+    assert(data.components(0).size() == 1 && "Expecting only dg(0) fields in setData()");
+    const auto dataHost = makeKokkosHostView(data.data());
+    Kokkos::deep_copy(tempDataMADevice, dataHost);
+    setData(name, tempDataMADevice);
 }
 
 template <int DGadvection>
@@ -227,8 +213,8 @@ void KokkosCGDynamicsKernel<DGadvection>::setData(
     if (name == hiceName || name == ciceName || name == hsnowName) {
         throw std::runtime_error(std::string("Use setDGArray() to set the data for ") + name);
     } else if (name == sshName) {
-        kokkosMA2DG<1>(data, seaSurfaceHeightDevice);
-    } else if (auto it = namedFields.find(name); it != namedFields.end()) {
+        kokkosMA2DG<1>(seaSurfaceHeightDevice, data);
+    } else if (auto it = namedCGFields.find(name); it != namedCGFields.end()) {
         mA2CG(it->second, data);
     } else {
         throw std::runtime_error(std::string("Trying to setData() for the unknown field ") + name);
@@ -741,14 +727,16 @@ void KokkosCGDynamicsKernel<DGadvection>::computeTensorInvariantIIDevice(
 }
 
 /*************************************************************/
-/*template <int DGadvection>
-void KokkosCGDynamicsKernel<DGadvection>::mA2CG(
-    const DeviceViewCG& dest, const ConstDeviceViewMA& src) const
+template <int DGadvection>
+ModelArray& KokkosCGDynamicsKernel<DGadvection>::dG2MA(
+    ModelArray& ma, const ConstDeviceViewAdvect& dg) const
 {
-    Kokkos::deep_copy(tempDataAdvectDevice, 0.0);
-    kokkosMA2DG<DGadvection>(src, tempDataAdvectDevice);
-    (*dG2CGAdvectInterpolator)(dest, tempDataAdvectDevice);
-}*/
+    kokkosDG2MA<DGadvection>(tempDataMADevice, dg);
+    const auto maView = makeKokkosHostView(ma.getDataRef());
+    Kokkos::deep_copy(maView, tempDataMADevice);
+
+    return ma;
+}
 
 /*************************************************************/
 // because ParametricMomentumMap<CGdegree>::iMJwPSIAdvect does not properly depend on DGadvection we

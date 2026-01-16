@@ -81,7 +81,6 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
     static KokkosTimer<DETAILED_MEASUREMENTS> timerDivergence("divGPU");
     static KokkosTimer<DETAILED_MEASUREMENTS> timerMomentum("momentumGPU");
     static KokkosTimer<DETAILED_MEASUREMENTS> timerBoundary("bcGPU");
-    static KokkosTimer<true> timerDownload("downloadGPU");
     static KokkosTimer<true> timerAdvection("advectionGPU");
     static KokkosTimer<true> timerPrepIt("prepItGPU");
 
@@ -146,11 +145,6 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
     Base::updateIceOceanStressDevice(this->uIceOceanStressDevice, this->vIceOceanStressDevice,
         this->avgUDevice, this->avgVDevice, this->uOceanDevice, this->vOceanDevice, this->params,
         this->cosOceanAngle, this->sinOceanAngle);
-
-    timerDownload.start();
-    Kokkos::deep_copy(execSpace, this->uHost, this->uDevice);
-    Kokkos::deep_copy(execSpace, this->vHost, this->vDevice);
-    timerDownload.stop();
 
     // Finally, do the base class update
     DynamicsKernel<DGadvection, DGstressComp>::update(tst);

@@ -6,6 +6,7 @@
 #define KOKKOSCGDYNAMICSKERNEL_HPP
 
 #include "../../../core/src/kokkos/include/KokkosModelArray.hpp"
+#include "../../../core/src/kokkos/include/KokkosTimer.hpp"
 #include "../../../core/src/kokkos/include/KokkosUtils.hpp"
 #include "../../include/CGDynamicsKernel.hpp"
 
@@ -146,18 +147,21 @@ protected:
     // currently not used
     void updateMomentum(const TimestepTime& tst) override { }
 
-    // copy data from a ModelArray to a cG-field on device
+    // copy data from a ModelArray view to a cG-field on device
     template <typename... Args>
-    void mA2CG(
-        const DeviceViewCG& dest, const ConstKokkosEigenView<ModelArray::DataType, Args...>& src) const
+    void mA2CG(const DeviceViewCG& dest,
+        const ConstKokkosEigenView<ModelArray::DataType, Args...>& src) const
     {
         Kokkos::deep_copy(tempDataAdvectDevice, 0.0);
-        kokkosMA2DG<DGadvection>(src, tempDataAdvectDevice);
+        kokkosMA2DG<DGadvection>(tempDataAdvectDevice, src);
         (*dG2CGAdvectInterpolator)(dest, tempDataAdvectDevice);
     }
 
+    // copy data from a dg field on device to a host ModelArray
+    ModelArray& dG2MA(ModelArray& ma, const ConstDeviceViewAdvect& dg) const;
+
     // named fields for setData
-    std::unordered_map<std::string, DeviceViewCG> namedFields;
+    std::unordered_map<std::string, DeviceViewCG> namedCGFields;
 
     // cG (velocity) components
     DeviceViewCG uDevice;
@@ -218,6 +222,7 @@ protected:
     DGVector<DGadvection> tempDataAdvect;
     DeviceViewAdvect tempDataAdvectDevice;
     HostViewAdvect tempDataAdvectHost;
+    DeviceViewMA tempDataMADevice;
 
     // precomputed parametric map
     DivMapDevice divS1Device;

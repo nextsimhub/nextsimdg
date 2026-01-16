@@ -5,6 +5,8 @@
 #include <Kokkos_Core.hpp>
 #endif
 
+#include <iostream>
+
 namespace Nextsim {
 
 // The KokkosTimer introduces fences to measure the actual execution time for async operations. This
