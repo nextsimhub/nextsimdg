@@ -8,6 +8,7 @@
 #include "../../../core/src/kokkos/include/KokkosModelArray.hpp"
 #include "../../../core/src/kokkos/include/KokkosUtils.hpp"
 #include "../../include/CGDynamicsKernel.hpp"
+#include "KokkosDGModelArray.hpp"
 
 namespace Nextsim {
 
