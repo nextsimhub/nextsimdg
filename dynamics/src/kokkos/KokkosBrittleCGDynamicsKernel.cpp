@@ -162,6 +162,18 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::setData(
 }
 
 template <int DGadvection>
+void KokkosBrittleCGDynamicsKernel<DGadvection>::setData(
+    const std::string& name, const ConstDeviceViewMA& data)
+{
+    if (name == damageName) {
+        throw std::runtime_error(std::string("Use setDGArray() to set the data for ") + name);
+    } else {
+        KokkosCGDynamicsKernel<DGadvection>::setData(name, data);
+    }
+}
+
+/*
+template <int DGadvection>
 void KokkosBrittleCGDynamicsKernel<DGadvection>::setDGArray(
     const std::string& name, ModelArray::DataType& dgData)
 {
@@ -170,7 +182,7 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::setDGArray(
     } else {
         CGDynamicsKernel<DGadvection>::setDGArray(name, dgData);
     }
-}
+}*/
 
 template <int DGadvection>
 void KokkosBrittleCGDynamicsKernel<DGadvection>::setDGArray(

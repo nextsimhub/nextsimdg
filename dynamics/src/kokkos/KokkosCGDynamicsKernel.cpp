@@ -224,6 +224,30 @@ void KokkosCGDynamicsKernel<DGadvection>::setData(
 /*************************************************************/
 template <int DGadvection>
 void KokkosCGDynamicsKernel<DGadvection>::setDGArray(
+    const std::string& name, ModelArray::DataType& dgData)
+{
+    // There are different problems depending on the configuration.
+    if constexpr (IS_GPU_EXEC_SPACE<Kokkos::DefaultExecutionSpace>) {
+        // If the kernel runs on the device it would be necessary to copy every DGVector set with
+        // this function back after the update. It makes more sense to handle host-device transfers
+        // outside of the kernel where the ModelArrayStore tracks the state.
+        throw std::runtime_error("Setting the buffers with setDGArray(ModelArray::DataType&) does "
+                                 "not work properly with device execution "
+                                 "because the updated fields are not transferred back.");
+    } else {
+        // To implement this function we just have to update the correct Kokkos views, i.e.
+        // std::tie(hiceHost, hiceDevice) = makeKokkosDualView("hice", dgData);
+        // However, there is currently no scenario where this function is needed.
+        // As long as Kokkos is enabled, the view based setDGArray() will be used, even without
+        // device execution.
+        throw std::runtime_error(
+            "Setting the buffers with setDGArray(ModelArray::DataType&) is currently"
+            "not implemented for the Kokkos kernel.");
+    }
+}
+
+template <int DGadvection>
+void KokkosCGDynamicsKernel<DGadvection>::setDGArray(
     const std::string& name, const KokkosDeviceView<ModelArray::DataType>& dgData)
 {
     if (name == hiceName) {

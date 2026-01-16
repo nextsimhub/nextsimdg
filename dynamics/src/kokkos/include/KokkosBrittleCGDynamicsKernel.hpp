@@ -37,9 +37,10 @@ public:
 
     // expose additional fields
     void setData(const std::string& name, const ModelArray& data);
-    using Base::setData;
-    void setDGArray(const std::string& name, ModelArray::DataType& dgData);
-    void setDGArray(const std::string& name, const DeviceViewMA& dgData);
+    void setData(const std::string& name, const ConstDeviceViewMA& data);
+    //void setDGArray(const std::string& name, ModelArray::DataType& dgData) override;
+    using Base::setDGArray;
+    void setDGArray(const std::string& name, const DeviceViewMA& dgData) override;
 
     static void updateMomentumDevice(const DeviceViewCG& uDevice, const DeviceViewCG& vDevice,
         const DeviceViewCG& avgUDevice, const DeviceViewCG& avgVDevice,

@@ -25,6 +25,7 @@ template <int DG> constexpr int NGP_DG = ((DG == 8) || (DG == 6)) ? 3 : (DG == 3
 
 template <int DGadvection> class KokkosCGDynamicsKernel : public CGDynamicsKernel<DGadvection> {
 public:
+    using Base = CGDynamicsKernel<DGadvection>;
     // common types for Kokkos buffers
     // cG components
     using DeviceViewCG = KokkosDeviceView<CGVector<CGdegree>>;
@@ -78,12 +79,13 @@ public:
     ModelArray getDG0Data(const std::string& name) const override;
 
     // The host variant is needed in IDynamics:setData where data does not come out of the
-    // ModelArrayStore. It should not be used in performance critical contexts because the
-    // implementation is inefficient and allocates extra device memory.
-    void setData(const std::string& name, const ModelArray& data);
-    // Use this to directly set the data of kernel internal buffers.
-    void setData(const std::string& name, const ConstDeviceViewMA& data);
-    void setDGArray(const std::string& name, const KokkosDeviceView<ModelArray::DataType>& dgData);
+    // ModelArrayStore.
+    void setData(const std::string& name, const ModelArray& data) override;
+    // Use this to directly set the data of kernel's internal device buffers.
+    virtual void setData(const std::string& name, const ConstDeviceViewMA& data);
+    void setDGArray(const std::string& name, ModelArray::DataType& dgData) override;
+    virtual void setDGArray(
+        const std::string& name, const KokkosDeviceView<ModelArray::DataType>& dgData);
 
     void prepareAdvection() override;
     void advectDynamicsFields(double timestep) override;

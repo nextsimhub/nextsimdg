@@ -173,7 +173,7 @@ public:
         }
     }
 
-    void setDGArray(const std::string& name, ModelArray::DataType& dgData)
+    void setDGArray(const std::string& name, ModelArray::DataType& dgData) override
     {
         if (name == damageName) {
             damage = DGVectorHolder<DGadvection>(dgData);

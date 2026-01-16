@@ -42,7 +42,7 @@ public:
     virtual ~CGDynamicsKernel() = default;
     void initialise(const ModelArray& coords, bool isSpherical, const ModelArray& mask) override;
 
-    void setData(const std::string& name, const ModelArray& data);
+    void setData(const std::string& name, const ModelArray& data) override;
     ModelArray getDG0Data(const std::string& name) const override;
     void computeGradientOfSeaSurfaceHeight(const DGVector<1>& seaSurfaceHeight);
     void prepareIteration(const DataMap& data) override;
