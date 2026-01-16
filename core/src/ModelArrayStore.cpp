@@ -9,10 +9,10 @@ namespace Nextsim {
 
 #ifdef USE_KOKKOS
 
-//double ConstDeviceModelArray::operator[](DeviceIndex i) const { return m_deviceView(i, 0); }
+// double ConstDeviceModelArray::operator[](DeviceIndex i) const { return m_deviceView(i, 0); }
 ConstDeviceModelArray::operator ConstDeviceViewMA() const { return m_deviceView; }
 
-//double& DeviceModelArray::operator[](DeviceIndex i) const { return m_deviceView(i, 0); }
+// double& DeviceModelArray::operator[](DeviceIndex i) const { return m_deviceView(i, 0); }
 DeviceModelArray::operator const DeviceViewMA&() const { return m_deviceView; }
 
 /*************************************************************/

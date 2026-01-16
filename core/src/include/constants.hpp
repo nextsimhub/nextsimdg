@@ -137,10 +137,16 @@ KERNEL_IMPL_FUNCTION inline double kelvin(double celsius) { return celsius + Wat
 KERNEL_IMPL_FUNCTION inline double celsius(double kelvin) { return kelvin - Water::Tf; }
 
 //! Convert an angle from radians to degrees
-KERNEL_IMPL_FUNCTION inline double degrees(double radians) { return radians * PhysicalConstants::rad2deg; }
+KERNEL_IMPL_FUNCTION inline double degrees(double radians)
+{
+    return radians * PhysicalConstants::rad2deg;
+}
 
 //! Convert an angle from degrees to radians
-KERNEL_IMPL_FUNCTION inline double radians(double degrees) { return degrees * PhysicalConstants::deg2rad; }
+KERNEL_IMPL_FUNCTION inline double radians(double degrees)
+{
+    return degrees * PhysicalConstants::deg2rad;
+}
 
 //! Convert a pressure from Pa to mbar
 KERNEL_IMPL_FUNCTION inline double mbar(double pascals) { return pascals / 100; }

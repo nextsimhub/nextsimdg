@@ -30,7 +30,7 @@ PrognosticData::PrognosticData()
     , pOcnBdy(nullptr)
     , pDynamics(nullptr)
 {
-                }
+}
 
 void PrognosticData::configure()
 {
@@ -81,7 +81,7 @@ void PrognosticData::setData(const ModelState::DataMap& ms)
     AdvectedField& cice = ciceAccessor.getHostRW();
     AdvectedField& hsnow = hsnowAccessor.getHostRW();
     AdvectedField& damage = damageAccessor.getHostRW();
-    
+
     if (ms.count(maskName)) {
         setOceanMask(ms.at(maskName));
     } else {

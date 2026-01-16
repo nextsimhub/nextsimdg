@@ -24,4 +24,4 @@ DeviceBitset makeKokkosDeviceBitset(const std::vector<bool>& buf)
     return bitsetDevice;
 }
 
-} 
+}

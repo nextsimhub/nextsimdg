@@ -6,11 +6,11 @@
 #define KERNEL_ALTERNATIVES_HPP
 
 #ifdef USE_KOKKOS
-#include <Kokkos_Core.hpp>
 #include "../kokkos/include/KokkosUtils.hpp"
+#include <Kokkos_Core.hpp>
 #else
-#include <cmath>
 #include <algorithm>
+#include <cmath>
 #endif
 
 namespace Nextsim {
@@ -43,7 +43,7 @@ using ElementIndex = size_t;
 #ifdef USE_KOKKOS
 using DefaultExecutionSpace = Kokkos::DefaultExecutionSpace;
 #else
-struct ExecutionSpaceDummy {};
+struct ExecutionSpaceDummy { };
 using DefaultExecutionSpace = ExecutionSpaceDummy;
 #endif
 }

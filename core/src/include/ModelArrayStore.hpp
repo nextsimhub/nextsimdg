@@ -18,7 +18,6 @@ namespace Nextsim {
 
 #ifdef USE_KOKKOS
 
-
 // Wrapper for Kokkos views with semantics closer to ModelArray
 class ConstDeviceModelArray {
 public:
@@ -38,11 +37,12 @@ private:
 };
 class DeviceModelArray {
 public:
-    //DeviceModelArray(DeviceViewMA deviceView) : m_deviceView(std::move(m_deviceView)) {}
+    // DeviceModelArray(DeviceViewMA deviceView) : m_deviceView(std::move(m_deviceView)) {}
 
-    KOKKOS_IMPL_FUNCTION double& operator[](DeviceIndex i) const  { return m_deviceView(i, 0); }
+    KOKKOS_IMPL_FUNCTION double& operator[](DeviceIndex i) const { return m_deviceView(i, 0); }
 
     operator const DeviceViewMA&() const;
+
 private:
     DeviceModelArray() = default;
     DeviceViewMA m_deviceView;

@@ -191,15 +191,14 @@ public:
         // the static member can not be captured directly
         const auto oceanIndexLocal = oceanIndexDevice;
         Kokkos::parallel_for(
-            "overElements", nOcean,
-            KOKKOS_LAMBDA(const DeviceIndex i) { fn(oceanIndexLocal[i]); });
+            "overElements", nOcean, KOKKOS_LAMBDA(const DeviceIndex i) { fn(oceanIndexLocal[i]); });
     }
 #endif
 
     template <typename Fn> inline static void overElementsAuto(Fn&& fn)
     {
 #if USE_KOKKOS
-       overElementsDevice(std::forward<Fn>(fn));
+        overElementsDevice(std::forward<Fn>(fn));
 #else
         overElements(std::forward<Fn>(fn));
 #endif

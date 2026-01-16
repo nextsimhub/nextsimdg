@@ -6,7 +6,6 @@
 #define KOKKOSCGDYNAMICSKERNEL_HPP
 
 #include "../../../core/src/kokkos/include/KokkosModelArray.hpp"
-#include "../../../core/src/kokkos/include/KokkosTimer.hpp"
 #include "../../../core/src/kokkos/include/KokkosUtils.hpp"
 #include "../../include/CGDynamicsKernel.hpp"
 
