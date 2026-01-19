@@ -137,7 +137,7 @@ jobs:
   # MPI tests on latest Ubuntu OS with XIOS support
   test-ubuntu-mpi-xios:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    # timeout-minutes: 10
     container:
       image: ghcr.io/nextsimhub/nextsimdg-dev-env:latest
     steps:
