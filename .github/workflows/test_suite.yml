@@ -149,6 +149,7 @@ jobs:
       run: |
         apt -y update
         apt install -y python3-venv
+        apt install -y gdb
         python3 -m venv ~/nextsim
         . $HOME/nextsim/bin/activate
         pip install jinja2
