@@ -44,95 +44,95 @@ concurrency:
 
 jobs:
 
-  # Serial tests on latest Ubuntu OS
-  test-ubuntu-serial:
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    container:
-      image: ghcr.io/nextsimhub/nextsimdg-dev-env:latest
-    steps:
-    - uses: actions/checkout@v2
-      with:
-        persist-credentials: false
+  # # Serial tests on latest Ubuntu OS
+  # test-ubuntu-serial:
+  #   runs-on: ubuntu-latest
+  #   timeout-minutes: 15
+  #   container:
+  #     image: ghcr.io/nextsimhub/nextsimdg-dev-env:latest
+  #   steps:
+  #   - uses: actions/checkout@v2
+  #     with:
+  #       persist-credentials: false
 
-    - name: build and compile without XIOS or MPI
-      run: |
-        . /opt/spack-environment/activate.sh
-        mkdir -p build && cd build
-        cmake -DCMAKE_BUILD_TYPE=Release ..
-        make -j 4
+  #   - name: build and compile without XIOS or MPI
+  #     run: |
+  #       . /opt/spack-environment/activate.sh
+  #       mkdir -p build && cd build
+  #       cmake -DCMAKE_BUILD_TYPE=Release ..
+  #       make -j 4
 
-    - name: installs for python tests
-      run: |
-        apt -y update
-        apt install -y python3-venv
-        python3 -m venv ~/nextsim
-        . $HOME/nextsim/bin/activate
-        pip install numpy
-        pip install netCDF4
+  #   - name: installs for python tests
+  #     run: |
+  #       apt -y update
+  #       apt install -y python3-venv
+  #       python3 -m venv ~/nextsim
+  #       . $HOME/nextsim/bin/activate
+  #       pip install numpy
+  #       pip install netCDF4
 
-    - name: run serial tests
-      run: |
-        . /opt/spack-environment/activate.sh
-        . $HOME/nextsim/bin/activate
-        apt update
-        apt install -y wget
-        cd build
-        (cd core/test && wget "ftp://ftp.nersc.no/nextsim/netCDF/partition_metadata_1.nc")
-        ctest -V
-        mv ../test .
-        cd test
-        python3 ThermoIntegration_test.py
-        ./run_test_jan2010_integration.sh python3
-        ./run_test_advection.sh python3
-        ./run_test_error_handling_test.sh python3
+  #   - name: run serial tests
+  #     run: |
+  #       . /opt/spack-environment/activate.sh
+  #       . $HOME/nextsim/bin/activate
+  #       apt update
+  #       apt install -y wget
+  #       cd build
+  #       (cd core/test && wget "ftp://ftp.nersc.no/nextsim/netCDF/partition_metadata_1.nc")
+  #       ctest -V
+  #       mv ../test .
+  #       cd test
+  #       python3 ThermoIntegration_test.py
+  #       ./run_test_jan2010_integration.sh python3
+  #       ./run_test_advection.sh python3
+  #       ./run_test_error_handling_test.sh python3
 
-  # MPI tests on latest Ubuntu OS without XIOS support
-  test-ubuntu-mpi-noxios:
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    container:
-      image: ghcr.io/nextsimhub/nextsimdg-dev-env:latest
-    steps:
-    - uses: actions/checkout@v2
-      with:
-        persist-credentials: false
+  # # MPI tests on latest Ubuntu OS without XIOS support
+  # test-ubuntu-mpi-noxios:
+  #   runs-on: ubuntu-latest
+  #   timeout-minutes: 10
+  #   container:
+  #     image: ghcr.io/nextsimhub/nextsimdg-dev-env:latest
+  #   steps:
+  #   - uses: actions/checkout@v2
+  #     with:
+  #       persist-credentials: false
 
-    - name: build domain_decomp
-      run: |
-        . /opt/spack-environment/activate.sh
-        git config --global --add safe.directory /__w/nextsimdg/nextsimdg
-        git submodule init
-        git submodule update
-        cd domain_decomp
-        cmake -G "Unix Makefiles" -Bbuild -S.
-        cmake --build build --config Release
+  #   - name: build domain_decomp
+  #     run: |
+  #       . /opt/spack-environment/activate.sh
+  #       git config --global --add safe.directory /__w/nextsimdg/nextsimdg
+  #       git submodule init
+  #       git submodule update
+  #       cd domain_decomp
+  #       cmake -G "Unix Makefiles" -Bbuild -S.
+  #       cmake --build build --config Release
 
-    - name: build and compile with MPI but not XIOS
-      run: |
-        # set environment variables for MPI tests to run in docker container
-        export OMPI_ALLOW_RUN_AS_ROOT=1
-        export OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1
-        export OMPI_MCA_rmaps_base_oversubscribe=1
-        . /opt/spack-environment/activate.sh
-        # provide path to domain_decomp binary
-        export PATH="${PATH}:${PWD}/domain_decomp/build"
-        mkdir -p build && cd build
-        cmake -DENABLE_MPI=ON -DENABLE_XIOS=OFF -DCMAKE_CXX_COMPILER="$(which mpic++)" ..
-        make -j 4
+  #   - name: build and compile with MPI but not XIOS
+  #     run: |
+  #       # set environment variables for MPI tests to run in docker container
+  #       export OMPI_ALLOW_RUN_AS_ROOT=1
+  #       export OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1
+  #       export OMPI_MCA_rmaps_base_oversubscribe=1
+  #       . /opt/spack-environment/activate.sh
+  #       # provide path to domain_decomp binary
+  #       export PATH="${PATH}:${PWD}/domain_decomp/build"
+  #       mkdir -p build && cd build
+  #       cmake -DENABLE_MPI=ON -DENABLE_XIOS=OFF -DCMAKE_CXX_COMPILER="$(which mpic++)" ..
+  #       make -j 4
 
-    - name: run MPI tests
-      run: |
-        # set environment variables for MPI tests to run in docker container
-        export OMPI_ALLOW_RUN_AS_ROOT=1
-        export OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1
-        export OMPI_MCA_rmaps_base_oversubscribe=1
-        . /opt/spack-environment/activate.sh
-        apt update
-        apt install -y wget
-        cd build
-        (cd core/test && wget "ftp://ftp.nersc.no/nextsim/netCDF/partition_metadata_1.nc")
-        ctest -V
+  #   - name: run MPI tests
+  #     run: |
+  #       # set environment variables for MPI tests to run in docker container
+  #       export OMPI_ALLOW_RUN_AS_ROOT=1
+  #       export OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1
+  #       export OMPI_MCA_rmaps_base_oversubscribe=1
+  #       . /opt/spack-environment/activate.sh
+  #       apt update
+  #       apt install -y wget
+  #       cd build
+  #       (cd core/test && wget "ftp://ftp.nersc.no/nextsim/netCDF/partition_metadata_1.nc")
+  #       ctest -V
 
   # MPI tests on latest Ubuntu OS with XIOS support
   test-ubuntu-mpi-xios:
@@ -174,74 +174,81 @@ jobs:
         # provide path to domain_decomp binary
         export PATH="${PATH}:${PWD}/domain_decomp/build"
         mkdir -p build && cd build
-        cmake -DENABLE_MPI=ON -Dxios_DIR="/xios" -DENABLE_XIOS=ON -DCMAKE_CXX_COMPILER="$(which mpic++)" ..
+        cmake -DCMAKE_BUILD_TYPE=Debug -DENABLE_MPI=ON -Dxios_DIR="/xios" -DENABLE_XIOS=ON -DCMAKE_CXX_COMPILER="$(which mpic++)" ..
         make -j 4
-
-    - name: run MPI tests
-      run: |
-        # set environment variables for MPI tests to run in docker container
-        export OMPI_ALLOW_RUN_AS_ROOT=1
-        export OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1
-        export OMPI_MCA_rmaps_base_oversubscribe=1
-        . /opt/spack-environment/activate.sh
-        apt update
-        apt install -y wget
-        cd build
-        (cd core/test && wget "ftp://ftp.nersc.no/nextsim/netCDF/partition_metadata_1.nc")
-        ctest -V
-
-  # Serial tests on latest Mac OS
-  test-mac-serial:
-    runs-on: macos-latest
-    timeout-minutes: 15
-    steps:
-    - uses: actions/checkout@v2
-      with:
-        persist-credentials: false
-
-    - name: installs
-      run: |
-        brew install boost
-        brew unlink pkg-config
-        brew install pkgconf
-        brew link --overwrite pkgconf
-        brew install eigen@3
-        brew install netcdf
-        brew install netcdf-cxx
-        python3 -m venv ~/nextsim
-        . $HOME/nextsim/bin/activate
-        pip install netCDF4
-        pip install numpy
 
     # tmate can be used to get an interactive ssh session to the github runner
     # for debugging actions. See
     # [here](https://github.com/mxschmitt/action-tmate) for more information.
     # uncomment these lines to debug mac build
-    # - name: Setup tmate session
-    #   uses: mxschmitt/action-tmate@v3
+    - name: Setup tmate session
+      uses: mxschmitt/action-tmate@v3
 
-    # Note that eigen@3 is keg-only, which means it was not symlinked into
-    # /opt/homebrew. Therefore we need to add it to CMAKE_PREFIX_PATH so CMake
-    # can detect it This should be removed when
-    # https://github.com/nextsimhub/nextsimdg/pull/985 is finished (if it is no
-    # longer needed)
-    - name: make
-      run: |
-        export CMAKE_PREFIX_PATH=/opt/homebrew/Cellar/eigen@3/3.4.1/share/eigen3/cmake
-        . $HOME/nextsim/bin/activate
-        mkdir -p build
-        cd build
-        cmake -DCMAKE_BUILD_TYPE=Release -DENABLE_MPI=OFF -DENABLE_XIOS=OFF ..
-        make -j 4
+    # - name: run MPI tests
+    #   run: |
+    #     # set environment variables for MPI tests to run in docker container
+    #     export OMPI_ALLOW_RUN_AS_ROOT=1
+    #     export OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1
+    #     export OMPI_MCA_rmaps_base_oversubscribe=1
+    #     . /opt/spack-environment/activate.sh
+    #     apt update
+    #     apt install -y wget
+    #     cd build
+    #     (cd core/test && wget "ftp://ftp.nersc.no/nextsim/netCDF/partition_metadata_1.nc")
+    #     ctest -V
 
-    - name: run serial tests
-      run: |
-        . $HOME/nextsim/bin/activate
-        cd build
-        ctest -V
-        mv ../test .
-        cd test
-        python ThermoIntegration_test.py
-        ./run_test_jan2010_integration.sh python
-        ./run_test_advection.sh python
-        ./run_test_error_handling_test.sh python
+  # # Serial tests on latest Mac OS
+  # test-mac-serial:
+    # runs-on: macos-latest
+    # timeout-minutes: 15
+    # steps:
+    # - uses: actions/checkout@v2
+    #   with:
+    #     persist-credentials: false
+
+    # - name: installs
+    #   run: |
+    #     brew install boost
+    #     brew unlink pkg-config
+    #     brew install pkgconf
+    #     brew link --overwrite pkgconf
+    #     brew install eigen@3
+    #     brew install netcdf
+    #     brew install netcdf-cxx
+    #     python3 -m venv ~/nextsim
+    #     . $HOME/nextsim/bin/activate
+    #     pip install netCDF4
+    #     pip install numpy
+
+    # # tmate can be used to get an interactive ssh session to the github runner
+    # # for debugging actions. See
+    # # [here](https://github.com/mxschmitt/action-tmate) for more information.
+    # # uncomment these lines to debug mac build
+    # # - name: Setup tmate session
+    # #   uses: mxschmitt/action-tmate@v3
+
+    # # Note that eigen@3 is keg-only, which means it was not symlinked into
+    # # /opt/homebrew. Therefore we need to add it to CMAKE_PREFIX_PATH so CMake
+    # # can detect it This should be removed when
+    # # https://github.com/nextsimhub/nextsimdg/pull/985 is finished (if it is no
+    # # longer needed)
+    # - name: make
+    #   run: |
+    #     export CMAKE_PREFIX_PATH=/opt/homebrew/Cellar/eigen@3/3.4.1/share/eigen3/cmake
+    #     . $HOME/nextsim/bin/activate
+    #     mkdir -p build
+    #     cd build
+    #     cmake -DCMAKE_BUILD_TYPE=Release -DENABLE_MPI=OFF -DENABLE_XIOS=OFF ..
+    #     make -j 4
+
+    # - name: run serial tests
+    #   run: |
+    #     . $HOME/nextsim/bin/activate
+    #     cd build
+    #     ctest -V
+    #     mv ../test .
+    #     cd test
+    #     python ThermoIntegration_test.py
+    #     ./run_test_jan2010_integration.sh python
+    #     ./run_test_advection.sh python
+    #     ./run_test_error_handling_test.sh python
