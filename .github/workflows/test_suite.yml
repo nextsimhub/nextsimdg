@@ -152,6 +152,7 @@ jobs:
         python3 -m venv ~/nextsim
         . $HOME/nextsim/bin/activate
         pip install jinja2
+        pip install mdb-debugger
 
     - name: build domain_decomp
       run: |
