@@ -61,7 +61,7 @@ cat <<EOF >arch/arch-GCC_LINUX.fcm
 %DEV_CFLAGS     -g -O2
 %DEBUG_CFLAGS   -fPIC -g
 
-%BASE_FFLAGS    -D__NONE__
+%BASE_FFLAGS    -D__NONE__ -ffree-line-length-312
 %PROD_FFLAGS    -fPIC -O3
 %DEV_FFLAGS     -g -O2
 %DEBUG_FFLAGS   -fPIC -g
