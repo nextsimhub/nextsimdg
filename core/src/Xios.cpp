@@ -1372,14 +1372,12 @@ void Xios::postprocessOutputFiles()
                 // Generate the filename used by XIOS
                 std::string filename = fileId + "_" + time.format(formatStr) + "-"
                     + nextTime.format(formatStr) + ".nc";
-                std::cout << "DEBUG: filename=" << filename << std::endl;
 
                 // Increment the time then check if the file exists
                 time += step;
                 if (!std::filesystem::exists(filename)) {
                     continue;
                 }
-                std::cout << "DEBUG: file exists" << std::endl;
 
                 try {
                     // Open the netCDF file for both reading and writing
