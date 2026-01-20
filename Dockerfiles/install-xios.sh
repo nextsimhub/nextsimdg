@@ -1,9 +1,11 @@
 #!/bin/env bash
 
 # Checkout (clone) current version of XIOS using Subversion (svn)
-cd /
-INSTALLDIR="xios"
-svn checkout http://forge.ipsl.fr/ioserver/svn/XIOS3/trunk ${INSTALLDIR}
+INSTALLDIR="/xios"
+if [ ! -d "${INSTALLDIR}" ]; then
+  cd /
+  svn checkout http://forge.ipsl.fr/ioserver/svn/XIOS3/trunk ${INSTALLDIR}
+fi
 cd ${INSTALLDIR}
 
 # Create a file for exporting paths to the include and lib directories for XIOS' dependencies
