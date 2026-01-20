@@ -4,7 +4,7 @@
 INSTALLDIR="/xios"
 if [ ! -d "${INSTALLDIR}" ]; then
   cd /
-  svn checkout http://forge.ipsl.fr/ioserver/svn/XIOS3/trunk ${INSTALLDIR}
+  svn checkout -r 2880 http://forge.ipsl.fr/ioserver/svn/XIOS3/trunk ${INSTALLDIR}
 fi
 cd ${INSTALLDIR}
 
