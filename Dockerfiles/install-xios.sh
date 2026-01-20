@@ -85,6 +85,5 @@ rm -r \
   /xios/inputs \
   /xios/obj \
   /xios/ppsrc \
-  /xios/src \
   /xios/tools \
   /xios/xios_test_suite
