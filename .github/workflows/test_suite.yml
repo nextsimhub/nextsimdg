@@ -190,6 +190,13 @@ jobs:
         (cd core/test && wget "ftp://ftp.nersc.no/nextsim/netCDF/partition_metadata_1.nc")
         ctest -V
 
+    - name: Upload last XIOS error log on rank 0 as an artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: xios_client_0.err
+        path: build/core/test/xios_client_0.tar
+        retention-days: 1
+
   # Serial tests on latest Mac OS
   test-mac-serial:
     runs-on: macos-latest
