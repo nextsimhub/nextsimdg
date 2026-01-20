@@ -176,7 +176,12 @@ jobs:
         # provide path to domain_decomp binary
         export PATH="${PATH}:${PWD}/domain_decomp/build"
         mkdir -p build && cd build
-        cmake -DCMAKE_BUILD_TYPE=Debug -DENABLE_MPI=ON -Dxios_DIR="/xios" -DENABLE_XIOS=ON -DCMAKE_CXX_COMPILER="$(which mpic++)" ..
+        cmake .. \
+              -DCMAKE_BUILD_TYPE=Debug \
+              -DENABLE_MPI=ON \
+              -Dxios_DIR="/xios" \
+              -DENABLE_XIOS=ON \
+              -DCMAKE_CXX_COMPILER="$(which mpic++)"
         make -j 4
 
     # tmate can be used to get an interactive ssh session to the github runner
