@@ -1,5 +1,7 @@
 #!/bin/env bash
 
+set -eu
+
 # Checkout (clone) current version of XIOS using Subversion (svn)
 INSTALLDIR="/xios"
 if [ ! -d "${INSTALLDIR}" ]; then
