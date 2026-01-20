@@ -1,18 +1,21 @@
 # Build stage with Spack pre-installed and ready to be used
 FROM spack/ubuntu-noble:latest AS builder
 
-# Install software from spack_devenv.yaml
+# Install perl and subversion
+RUN apt update \
+    && apt install -y --no-install-recommends libany-uri-escape-perl subversion \
+    && rm -rf /var/lib/apt/lists/*
+
+# Pre-fetch XIOS source code
+RUN svn checkout http://forge.ipsl.fr/ioserver/svn/XIOS3/trunk /xios
+
+# Install software from spack.yaml
 RUN mkdir /opt/spack-environment
 COPY Dockerfiles/spack.yaml /opt/spack-environment/spack.yaml
 RUN cd /opt/spack-environment \
     && spack env activate . \
     && spack install --fail-fast \
     && spack gc -y
-
-# Install perl URI lib
-RUN apt update \
-    && apt install -y --no-install-recommends libany-uri-escape-perl \
-    && rm -rf /var/lib/apt/lists/*
 
 # Download and install domain_decomp and XIOS
 COPY Dockerfiles/install-xios.sh .
