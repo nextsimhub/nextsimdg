@@ -1,9 +1,7 @@
 /*!
  * @author  Joe Wallwork <jw2423@cam.ac.uk>
- * @brief   Tests for XIOS write functionality
- * @details
- * This test is designed to test the file writing functionality of the C++
- * interface for XIOS.
+ * @brief   Tests for XIOS functionality for writing diagnostic files.
+ * @details The functionality of writing diagnostics via XIOS is tested.
  */
 #include <doctest/extensions/doctest_mpi.h>
 #undef INFO
@@ -20,8 +18,7 @@
 #include <filesystem>
 
 const std::string testFilesDir = TEST_FILES_DIR;
-const std::string restartInputFilename = testFilesDir + "/xios_test_input.nc";
-const std::string restartOutputFilename = testFilesDir + "/xios_test_output.nc";
+const std::string inputFilename = testFilesDir + "/xios_test_input.nc";
 const std::string diagnosticFilename = testFilesDir + "/xios_test_diagnostic.nc";
 
 static const int DGCOMP = 6;
@@ -31,32 +28,25 @@ static const int CGDEGREE = 2;
 namespace Nextsim {
 
 /*!
- * TestXiosWrite
+ * TestXiosWriteDiagnostic
  *
- * This function tests the file writing functionality of the C++ interface for XIOS for fields with
- * two and three spatial dimensions. The test runs with two MPI ranks.
+ * Test writing of diagnostics via `writeDiagnosticTime`.
  */
-MPI_TEST_CASE("TestXiosWrite", 2)
+MPI_TEST_CASE("TestXiosWriteDiagnostic", 2)
 {
     std::stringstream config;
     config << "[model]" << std::endl;
     config << "start = 2023-03-17T17:11:00Z" << std::endl;
     config << "stop = 2023-03-17T23:11:00Z" << std::endl;
     config << "time_step = P0-0T01:30:00" << std::endl;
-    config << "init_file = " << restartInputFilename << std::endl;
-    config << "restart_file = " << restartOutputFilename << std::endl;
+    config << "init_file = " << inputFilename << std::endl;
     config << "partition_file = xios_test_partition_metadata_2.nc" << std::endl;
-    config << "restart_period = P0-0T01:30:00" << std::endl;
-    config << "[XiosOutput]" << std::endl;
-    config << "field_names = " << maskName << "," << coordsName << "," << hiceName << ","
-           << ticeName << "," << uName << std::endl;
-    config << "period = P0-0T01:30:00" << std::endl;
-    // TODO: Re-enable file splitting (#898)
-    // config << "split_period = P0-0T03:00:00" << std::endl;
+    config << "restart_period = P0-0T03:00:00" << std::endl;
     config << "[XiosDiagnostic]" << std::endl;
     config << "filename = " << diagnosticFilename << std::endl;
     config << "field_names = " << hsnowName << std::endl;
-    config << "period = P0-0T01:30:00" << std::endl;
+    config << "period = P0-0T03:00:00" << std::endl;
+    config << "split_period = P0-0T03:00:00" << std::endl;
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
 
@@ -88,12 +78,7 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     ParaGridIO* pio = new ParaGridIO(grid);
     grid.setIO(pio);
 
-    // Set field types
-    xiosHandler.setFieldType(maskName, ModelArray::Type::H);
-    xiosHandler.setFieldType(coordsName, ModelArray::Type::VERTEX);
-    xiosHandler.setFieldType(hiceName, ModelArray::Type::DG);
-    xiosHandler.setFieldType(ticeName, ModelArray::Type::DGSTRESS);
-    xiosHandler.setFieldType(uName, ModelArray::Type::CG);
+    // Set field type for diagnostics
     xiosHandler.setFieldType(hsnowName, ModelArray::Type::H);
 
     xiosHandler.close_context_definition();
@@ -108,53 +93,16 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     }
     VertexField coordinates(ModelArray::Type::VERTEX);
     coordinates.resize();
-    int rank;
-    MPI_Comm_rank(test_comm, &rank);
-    for (size_t j = 0; j < ny + 1; ++j) {
-        for (size_t i = 0; i < nx + 1; ++i) {
-            if (rank == 0) {
-                coordinates.components({ i, j })[0] = (double)i;
-                coordinates.components({ i, j })[1] = (double)j;
-            } else {
-                coordinates.components({ i, j })[0] = (double)(i + 2);
-                coordinates.components({ i, j })[1] = (double)j;
-            }
-        }
-    }
     DGField hice(ModelArray::Type::DG);
     hice.resize();
-    for (size_t j = 0; j < ny; ++j) {
-        for (size_t i = 0; i < nx; ++i) {
-            for (size_t d = 0; d < DGCOMP; ++d) {
-                hice.components({ i, j })[d] = 1.0 * (d + DGCOMP * (i + nx * j));
-            }
-        }
-    }
     DGSField tice(ModelArray::Type::DGSTRESS);
     tice.resize();
-    for (size_t j = 0; j < ny; ++j) {
-        for (size_t i = 0; i < nx; ++i) {
-            for (size_t d = 0; d < DGSTRESSCOMP; ++d) {
-                tice.components({ i, j })[d] = 2.0 * (d + DGSTRESSCOMP * (i + nx * j));
-            }
-        }
-    }
     CGField uice(ModelArray::Type::CG);
     uice.resize();
-    for (size_t j = 0; j < CGDEGREE * ny + 1; ++j) {
-        for (size_t i = 0; i < CGDEGREE * nx + 1; ++i) {
-            if (rank == 0) {
-                uice(i, j) = (double)((i + 1) * (j + 1));
-            } else {
-                uice(i, j) = (double)((i + 5) * (j + 1));
-            }
-        }
-    }
     HField hsnow(ModelArray::Type::H);
     hsnow.resize();
 
     // Check files with the expected names don't exist yet
-    REQUIRE_FALSE(std::filesystem::exists("xios_test_output*.nc"));
     REQUIRE_FALSE(std::filesystem::exists("xios_test_diagnostic*.nc"));
 
     // Check calendar step is zero initially
@@ -163,11 +111,9 @@ MPI_TEST_CASE("TestXiosWrite", 2)
     // Simulate 4 iterations (timesteps)
     ModelMetadata& metadata = ModelMetadata::getInstance();
     const Duration& timestep = metadata.stepLength();
-    for (int ts = 1; ts <= 4; ts++) {
-
-        // Update the current timestep and verify it's updated in XIOS
-        metadata.incrementTime(timestep);
-        REQUIRE(xiosHandler.getCalendarStep() == ts);
+    int rank;
+    MPI_Comm_rank(test_comm, &rank);
+    for (int ts = 0; ts <= 4; ts++) {
 
         // Update diagnostics
         for (size_t j = 0; j < ny; ++j) {
@@ -176,32 +122,23 @@ MPI_TEST_CASE("TestXiosWrite", 2)
             }
         }
 
-        // Set up two ModelStates: one for restarts and one for diagnostics
-        ModelState restarts = { {
-                                    { maskName, mask },
-                                    { coordsName, coordinates },
-                                    { hiceName, hice },
-                                    { ticeName, tice },
-                                    { uName, uice },
-                                },
-            {} };
+        // Set up ModelStates for diagnostics and write out
         ModelState diagnostics = { {
                                        { hsnowName, hsnow },
                                    },
             {} };
-
-        // Write out diagnostics and then restarts
         pio->writeDiagnosticTime(diagnostics, diagnosticFilename);
-        grid.dumpModelState(restarts, restartOutputFilename, true);
+
+        // Update the current timestep and verify it's updated in XIOS
+        metadata.incrementTime(timestep);
+        REQUIRE(xiosHandler.getCalendarStep() == ts + 1);
     }
 
     // Check the files have indeed been created
-    // NOTE: We don't remove them because they are used in XiosRead_test
-    // TODO: Re-enable file splitting (#898)
-    // REQUIRE(std::filesystem::exists("xios_test_output_20230317171100-20230317201059.nc"));
-    // REQUIRE(std::filesystem::exists("xios_test_output_20230317201100-20230317231059.nc"));
-    REQUIRE(std::filesystem::exists("xios_test_output.nc"));
-    REQUIRE(std::filesystem::exists("xios_test_diagnostic.nc"));
+    // NOTE: Don't remove them because their contents are checked in
+    // XiosReadxios_test_diagnostic_test
+    REQUIRE(std::filesystem::exists("xios_test_diagnostic_20230317171100-20230317201059.nc"));
+    REQUIRE(std::filesystem::exists("xios_test_diagnostic_20230317201100-20230317231059.nc"));
 
     xiosHandler.context_finalize();
     Finalizer::finalize();

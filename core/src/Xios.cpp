@@ -794,11 +794,16 @@ void Xios::createField(const std::string& fieldId)
         throw std::runtime_error("Xios: Failed to create field '" + fieldId + "'");
     }
 
-    // Restarts are read "once", everything else is written "instant"ly (no averaging)
+    // Set the operation type
     std::string operation;
     if (configGetInputRestartFieldNames().count(fieldId) > 0) {
+        // Restarts are read "once"
         operation = "once";
+    } else if (configGetDiagnosticFieldNames().count(fieldId) > 0) {
+        // Diagonstics are averaged over the diagnostic output period
+        operation = "average";
     } else {
+        // Otherwise, read/write all timesteps without post-processing
         operation = "instant";
     }
     if (cxios_is_defined_field_operation(field)) {
@@ -957,10 +962,13 @@ void Xios::setupFields()
 
         // Create map for field types
         const std::map<std::string, ModelArray::Type> dimensionKeys = {
+            { "yx", ModelArray::Type::H },
             { "ydimxdim", ModelArray::Type::H },
             { "y_dimx_dim", ModelArray::Type::H },
+            { "yxdg_comp", ModelArray::Type::DG },
             { "ydimxdimdg_comp", ModelArray::Type::DG },
             { "y_dimx_dimdg_comp", ModelArray::Type::DG },
+            { "yxdgstress_comp", ModelArray::Type::DGSTRESS },
             { "ydimxdimdgstress_comp", ModelArray::Type::DGSTRESS },
             { "y_dimx_dimdgstress_comp", ModelArray::Type::DGSTRESS },
             { "y_cgx_cg", ModelArray::Type::CG },
@@ -998,8 +1006,7 @@ void Xios::setupFields()
                 if (!dimensionKeys.count(dimKey)) {
                     continue;
                 }
-                const ModelArray::Type& type = dimensionKeys.at(dimKey);
-                setFieldType(fieldId, type);
+                setFieldType(fieldId, dimensionKeys.at(dimKey));
             }
             ncFile.close();
         } catch (const netCDF::exceptions::NcException& nce) {

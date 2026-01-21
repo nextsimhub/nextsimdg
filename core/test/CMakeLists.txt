@@ -229,51 +229,104 @@ if(ENABLE_MPI)
         )
         target_link_libraries(testXiosFile_MPI2 PRIVATE nextsimlib doctest::doctest)
 
-        add_executable(testXiosRead_MPI2 "XiosRead_test.cpp" "MainMPI.cpp")
-        target_compile_definitions(testXiosRead_MPI2
+        add_executable(testXiosReadForcing_MPI2 "XiosReadForcing_test.cpp" "MainMPI.cpp")
+        target_compile_definitions(testXiosReadForcing_MPI2
             PRIVATE
                 USE_XIOS
                 TEST_FILES_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\"
         )
         target_include_directories(
-            testXiosRead_MPI2
+            testXiosReadForcing_MPI2
             PRIVATE
                 ${PHYSICS_INCLUDE_DIRS}
                 "${MODEL_INCLUDE_DIR}"
                 "${XIOS_INCLUDE_LIST}"
                 "${ModulesRoot}/StructureModule"
         )
-        target_link_libraries(testXiosRead_MPI2 PRIVATE nextsimlib doctest::doctest)
+        target_link_libraries(testXiosReadForcing_MPI2 PRIVATE nextsimlib doctest::doctest)
 
-        add_executable(testXiosWrite_MPI2 "XiosWrite_test.cpp" "MainMPI.cpp")
-        target_compile_definitions(testXiosWrite_MPI2
+        add_executable(testXiosReadDiagnostic_MPI2 "XiosReadDiagnostic_test.cpp" "MainMPI.cpp")
+        target_compile_definitions(testXiosReadDiagnostic_MPI2
             PRIVATE
                 USE_XIOS
                 TEST_FILES_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\"
         )
         target_include_directories(
-            testXiosWrite_MPI2
+            testXiosReadDiagnostic_MPI2
             PRIVATE
                 ${PHYSICS_INCLUDE_DIRS}
                 "${MODEL_INCLUDE_DIR}"
                 "${XIOS_INCLUDE_LIST}"
                 "${ModulesRoot}/StructureModule"
         )
-        target_link_libraries(testXiosWrite_MPI2 PRIVATE nextsimlib doctest::doctest)
+        target_link_libraries(testXiosReadDiagnostic_MPI2 PRIVATE nextsimlib doctest::doctest)
+
+        add_executable(testXiosReadRestart_MPI2 "XiosReadRestart_test.cpp" "MainMPI.cpp")
+        target_compile_definitions(testXiosReadRestart_MPI2
+            PRIVATE
+                USE_XIOS
+                TEST_FILES_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\"
+        )
+        target_include_directories(
+            testXiosReadRestart_MPI2
+            PRIVATE
+                ${PHYSICS_INCLUDE_DIRS}
+                "${MODEL_INCLUDE_DIR}"
+                "${XIOS_INCLUDE_LIST}"
+                "${ModulesRoot}/StructureModule"
+        )
+        target_link_libraries(testXiosReadRestart_MPI2 PRIVATE nextsimlib doctest::doctest)
+
+        add_executable(testXiosWriteDiagnostic_MPI2 "XiosWriteDiagnostic_test.cpp" "MainMPI.cpp")
+        target_compile_definitions(testXiosWriteDiagnostic_MPI2
+            PRIVATE
+                USE_XIOS
+                TEST_FILES_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\"
+        )
+        target_include_directories(
+            testXiosWriteDiagnostic_MPI2
+            PRIVATE
+                ${PHYSICS_INCLUDE_DIRS}
+                "${MODEL_INCLUDE_DIR}"
+                "${XIOS_INCLUDE_LIST}"
+                "${ModulesRoot}/StructureModule"
+        )
+        target_link_libraries(testXiosWriteDiagnostic_MPI2 PRIVATE nextsimlib doctest::doctest)
+
+        add_executable(testXiosWriteRestart_MPI2 "XiosWriteRestart_test.cpp" "MainMPI.cpp")
+        target_compile_definitions(testXiosWriteRestart_MPI2
+            PRIVATE
+                USE_XIOS
+                TEST_FILES_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\"
+        )
+        target_include_directories(
+            testXiosWriteRestart_MPI2
+            PRIVATE
+                ${PHYSICS_INCLUDE_DIRS}
+                "${MODEL_INCLUDE_DIR}"
+                "${XIOS_INCLUDE_LIST}"
+                "${ModulesRoot}/StructureModule"
+        )
+        target_link_libraries(testXiosWriteRestart_MPI2 PRIVATE nextsimlib doctest::doctest)
 
         set(XIOS_TESTS
             testXiosCalendar_MPI1
             testXiosAxis_MPI3
             testXiosField_MPI3
             testXiosFile_MPI2
-            testXiosRead_MPI2
-            testXiosWrite_MPI2
+            testXiosReadForcing_MPI2
+            testXiosReadDiagnostic_MPI2
+            testXiosReadRestart_MPI2
+            testXiosWriteDiagnostic_MPI2
+            testXiosWriteRestart_MPI2
         )
 
         add_mpi_test("${XIOS_TESTS}")
 
-        # Ensure XiosWrite_test is run before XiosRead_test
-        set_tests_properties(testXiosRead_MPI2 PROPERTIES DEPENDS testXiosWrite_MPI2)
+        # Ensure XiosWrite<Diagnostic/Restart>_test are run before XiosRead<Diagnostic/Restart>_test
+        set_tests_properties(testXiosReadRestart_MPI2 PROPERTIES DEPENDS testXiosWriteRestart_MPI2)
+        set_tests_properties(testXiosReadDiagnostic_MPI2
+                             PROPERTIES DEPENDS testXiosWriteDiagnostic_MPI2)
     else()
         add_executable(testHaloExchangeCB_MPI3
             "HaloExchangeCB_test.cpp"
