@@ -162,6 +162,7 @@ void Xios::close_context_definition()
 void Xios::context_finalize()
 {
     if (isEnabled) {
+        postprocessOutputFiles();
         cxios_context_finalize();
     }
 }
@@ -962,13 +963,10 @@ void Xios::setupFields()
 
         // Create map for field types
         const std::map<std::string, ModelArray::Type> dimensionKeys = {
-            { "yx", ModelArray::Type::H },
             { "ydimxdim", ModelArray::Type::H },
             { "y_dimx_dim", ModelArray::Type::H },
-            { "yxdg_comp", ModelArray::Type::DG },
             { "ydimxdimdg_comp", ModelArray::Type::DG },
             { "y_dimx_dimdg_comp", ModelArray::Type::DG },
-            { "yxdgstress_comp", ModelArray::Type::DGSTRESS },
             { "ydimxdimdgstress_comp", ModelArray::Type::DGSTRESS },
             { "y_dimx_dimdgstress_comp", ModelArray::Type::DGSTRESS },
             { "y_cgx_cg", ModelArray::Type::CG },
@@ -1386,6 +1384,77 @@ void Xios::setupFiles()
 }
 
 /*!
+ * @brief   Postprocess output files after the simulation has completed.
+ *
+ * @details If only a single domain was written to file, rename the x and y dimensions and variables
+ *          to x_dim and y_dim, respectively, for compatibility with other model components.
+ */
+void Xios::postprocessOutputFiles()
+{
+    // Count how many domains were written out
+    int sum = 0;
+    for (const auto& [domainId, written] : domainWritten) {
+        if (written) {
+            sum++;
+        }
+    }
+
+    // If a single domain was written then modify x and y dimensions and variables in the output
+    // files
+    if (sum == 1 && mpi_rank == 0) {
+
+        // Consider both restart files and diagnostic files
+        for (std::string fileId : { outputFileId, diagnosticFileId }) {
+            bool exists;
+            cxios_file_valid_id(&exists, fileId.c_str(), fileId.length());
+            if (!exists) {
+                continue;
+            }
+            Duration step = getFileOutputFreq(fileId);
+
+            // Loop over the output window splits
+            ModelMetadata& metadata = ModelMetadata::getInstance();
+            TimePoint time = metadata.startTime();
+            TimePoint endTime = metadata.stopTime();
+            while (time < endTime) {
+
+                // Compute the end time of the window, subtracting 1 second to avoid overlap
+                TimePoint nextTime = time + step - Duration(1);
+
+                // Generate the filename used by XIOS
+                // TODO: Support file patterns (#898)
+                std::string filename = fileId + "_" + time.format("%Y%m%d%H%M%S") + "-"
+                    + nextTime.format("%Y%m%d%H%M%S") + ".nc";
+
+                // Increment the time then check if the file exists
+                time += step;
+                if (!std::filesystem::exists(filename)) {
+                    continue;
+                }
+
+                try {
+                    // Open the netCDF file for both reading and writing
+                    netCDF::NcFile ncFile(filename, netCDF::NcFile::write);
+
+                    // Rename the x and y dimensions with x_dim and y_dim, respectively
+                    ncFile.getDim("x").rename("x_dim");
+                    ncFile.getDim("y").rename("y_dim");
+
+                    // Rename the x and y variables with x_dim and y_dim, respectively
+                    ncFile.getVar("x").rename("x_dim");
+                    ncFile.getVar("y").rename("y_dim");
+
+                    // Ensure changes are flushed to disk before closing
+                    ncFile.sync();
+                } catch (const netCDF::exceptions::NcException& e) {
+                    std::cerr << "Error processing NetCDF file: " << e.what() << std::endl;
+                }
+            }
+        }
+    }
+}
+
+/*!
  * Send a field to the XIOS server to be written to file
  *
  * @param field name
@@ -1402,6 +1471,7 @@ void Xios::write(const std::string& fieldId, const ModelArray& modelarray)
     }
     auto& dims = modelarray.dimensions();
     const ModelArray::Type& type = modelarray.getType();
+    domainWritten[domainIds[type]] = true;
     if ((type == ModelArray::Type::H) || (type == ModelArray::Type::CG)) {
         cxios_write_data_k82(
             fieldId.c_str(), fieldId.length(), modelarray.getData(), dims[0], dims[1], -1);
