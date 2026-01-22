@@ -57,7 +57,7 @@ void SMUIceAlbedo::update(const TimestepTime& tst)
 
     const double i0 = SMUIceAlbedo::m_i0;
 
-    overElements(OVER_ELEMENTS_LAMBDA(ElementIndex i) {
+    overElementsAuto(OVER_ELEMENTS_LAMBDA(ElementIndex i) {
         const double snowThickness = cice[i] > 0 ? hsnow[i] / cice[i] : 0.;
 
         if (snowThickness > 0.) {

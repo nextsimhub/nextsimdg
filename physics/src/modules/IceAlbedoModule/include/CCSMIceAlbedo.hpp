@@ -29,12 +29,15 @@ public:
 
     ConfigMap getConfiguration() const override;
 
+    void update(const TimestepTime& tst) override;
+
     static HelpMap& getHelpText(HelpMap& map, bool getAll);
     static HelpMap& getHelpRecursive(HelpMap& map, bool getAll);
 
 private:
     static double iceAlbedo;
     static double snowAlbedo;
+    static double i0;
 };
 
 }

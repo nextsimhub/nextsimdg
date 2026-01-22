@@ -33,7 +33,7 @@ if(NOT ENABLE_MPI)
                                                         "${ModulesRoot}/OceanBoundaryModule")
     target_link_libraries(testThermoWinton PRIVATE nextsimlib doctest::doctest)
 
-    add_executable(testFEFluxes "FiniteElementFluxes_test.cpp")
+    add_executable(testFEFluxes "FiniteElementFluxes_test.cpp"  "../../core/test/MainTest.cpp")
     target_include_directories(
         testFEFluxes
         PRIVATE "${ModulesRoot}/FluxCalculationModule" "${ModulesRoot}/OceanBoundaryModule"

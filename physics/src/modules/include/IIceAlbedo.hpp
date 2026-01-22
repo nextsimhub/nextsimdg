@@ -22,6 +22,7 @@ public:
         , icePenSWAccessor(getStore(), RO, ModelArray::Type::H)
         , hsnowAccessor(getStore())
         , ciceAccessor(getStore())
+        , tsurfAccessor(getStore())
     {
     }
     virtual ~IIceAlbedo() = default;
@@ -63,6 +64,7 @@ protected:
     // needed for snow thickness
     ModelArrayAccessor<Shared::H_SNOW_DG> hsnowAccessor;
     ModelArrayAccessor<Shared::C_ICE_DG> ciceAccessor;
+    ModelArrayAccessor<Protected::T_SURF> tsurfAccessor;
 };
 }
 #endif /* IICEALBEDO_HPP */

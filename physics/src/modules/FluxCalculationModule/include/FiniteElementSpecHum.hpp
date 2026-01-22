@@ -1,6 +1,7 @@
 /*
  *
  * @author  Tim Spain <timothy.spain@nersc.no>
+ * @author  Robert Jendersie<robert.jendersie@ovgu.de>
  */
 
 #ifndef FINITEELEMENTSPECHUM_HPP
@@ -11,15 +12,29 @@
 
 namespace Nextsim {
 
-class FiniteElementSpecHum : public ISpecificHumidity {
+class FiniteElementSpecHum {
 public:
-    double operator()(double temperature, double pressure) const override;
-    double operator()(double temperature, double pressure, double salinity) const override;
+    // device functions need to be defined inline
+    KERNEL_IMPL_FUNCTION double operator()(double temperature, double pressure) const
+    {
+        return operator()(temperature, pressure, 0);
+    }
+    KERNEL_IMPL_FUNCTION double operator()(
+        double temperature, double pressure, double salinity) const
+    {
+        return calculate<false>(temperature, pressure, salinity);
+    }
 
-    std::pair<double, double> valueAndDerivative(
-        double temperature, double pressure) const override;
-    std::pair<double, double> valueAndDerivative(
-        double temperature, double pressure, double salinity) const override;
+    KERNEL_IMPL_FUNCTION Utils::pair<double, double> valueAndDerivative(
+        double temperature, double pressure) const
+    {
+        return valueAndDerivative(temperature, pressure, 0);
+    }
+    KERNEL_IMPL_FUNCTION Utils::pair<double, double> valueAndDerivative(
+        double temperature, double pressure, double salinity) const
+    {
+        return calculate<true>(temperature, pressure, salinity);
+    }
 
     //! Returns a static instance already constructed to calculate specific
     //! humidity over liquid water.
@@ -29,41 +44,7 @@ public:
     static FiniteElementSpecHum& ice() { return m_ice; }
 
 private:
-    FiniteElementSpecHum();
-    // General constructor
     FiniteElementSpecHum(
-        double a, double b, double c, double d, double bigA, double bigB, double bigC);
-
-    std::pair<double, double> calculate(
-        double temperature, double pressure, double salinity, bool doDeriv) const;
-
-    double f(double temperature, double pressurePa) const;
-    double est(double temperature, double salinity) const;
-
-    const double m_a;
-    const double m_b;
-    const double m_c;
-    const double m_d;
-    const double m_bigA;
-    const double m_bigB;
-    const double m_bigC;
-    const double m_alpha;
-    const double m_beta;
-
-    static FiniteElementSpecHum m_water;
-    static FiniteElementSpecHum m_ice;
-
-    struct Constructor {
-        Constructor();
-    };
-    static Constructor cons;
-};
-
-// ********************************************* //
-class FiniteElementSpecHum2 {
-public:
-    // General constructor
-    constexpr FiniteElementSpecHum2(
         double a, double b, double c, double d, double bigA, double bigB, double bigC)
         : m_a(a)
         , m_b(b)
@@ -77,52 +58,30 @@ public:
     {
     }
 
-    // device functions need to be defined inline
-    KERNEL_IMPL_FUNCTION double operator()(double temperature, double pressure) const
+    template <bool doDeriv>
+    KERNEL_IMPL_FUNCTION auto calculate(double temperature, double pressure, double salinity) const
+        -> std::conditional_t<doDeriv, Utils::pair<double, double>, double>
     {
-        return operator()(temperature, pressure, 0);
-    }
-    KERNEL_IMPL_FUNCTION double operator()(
-        double temperature, double pressure, double salinity) const
-    {
-        return calculate(temperature, pressure, salinity, false).first;
-    }
+        const double estCalc = est(temperature, salinity);
+        const double fCalc = f(temperature, pressure);
+        const double sphum = m_alpha * fCalc * estCalc / (pressure - m_beta * fCalc * estCalc);
 
-    KERNEL_IMPL_FUNCTION Utils::pair<double, double> valueAndDerivative(
-        double temperature, double pressure) const
-    {
-        return valueAndDerivative(temperature, pressure, 0);
-    }
-    KERNEL_IMPL_FUNCTION Utils::pair<double, double> valueAndDerivative(
-        double temperature, double pressure, double salinity) const
-    {
-        return calculate(temperature, pressure, salinity, true);
-    }
-
-private:
-    KERNEL_IMPL_FUNCTION Utils::pair<double, double> calculate(
-        double temperature, double pressure, double salinity, bool doDeriv) const
-    {
-        double estCalc = est(temperature, salinity);
-        double fCalc = f(temperature, pressure);
-        double sphum = m_alpha * fCalc * estCalc / (pressure - m_beta * fCalc * estCalc);
-
-        double deriv = 0;
-
-        if (doDeriv) {
-            double df_dT = 2 * m_bigC * m_bigB * temperature;
+        if constexpr (doDeriv) {
+            const double df_dT = 2 * m_bigC * m_bigB * temperature;
             double numerator = m_b * m_c * m_d - temperature * (2 * m_c + temperature);
             double sqrtDenom = m_c + temperature;
             double denominator = m_d * sqrtDenom * sqrtDenom;
-            double dest_dT = numerator / denominator * estCalc;
+            const double dest_dT = numerator / denominator * estCalc;
             numerator = m_alpha * pressure * (fCalc * dest_dT + estCalc * df_dT);
             sqrtDenom = pressure - m_beta * estCalc * fCalc;
             denominator = sqrtDenom * sqrtDenom;
 
-            deriv = numerator / denominator;
-        }
+            const double deriv = numerator / denominator;
 
-        return Utils::make_pair<double, double>(sphum, deriv);
+            return Utils::make_pair<double, double>(sphum, deriv);
+        } else {
+            return sphum;
+        }
     }
 
     // Specific humidity terms
@@ -147,12 +106,10 @@ private:
     const double m_bigC;
     const double m_alpha;
     const double m_beta;
-};
 
-constexpr FiniteElementSpecHum2 finiteElementSpecHumWater(
-    6.1121e2, 18.729, 257.87, 227.3, 7.2e-4, 3.20e-6, 5.9e-10);
-constexpr FiniteElementSpecHum2 finiteElementSpecHumIce(
-    6.1115e2, 23.036, 279.82, 333.7, 2.2e-4, 3.83e-6, 6.4e-10);
+    static FiniteElementSpecHum m_water;
+    static FiniteElementSpecHum m_ice;
+};
 
 } /* namespace Nextsim */
 

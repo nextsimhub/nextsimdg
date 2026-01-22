@@ -181,9 +181,11 @@ void FiniteElementFluxes::updateAtmosphere(const TimestepTime& tst)
     const auto& t_dew2 = t_dew2Accessor.getAutoRO(execSpace);
     const auto& tsurf = tsurfAccessor.getAutoRO(execSpace);
 
-    const FiniteElementSpecHum2 specHumWater = finiteElementSpecHumWater;
-    const FiniteElementSpecHum2 specHumIce = finiteElementSpecHumIce;
+    const FiniteElementSpecHum specHumWater = FiniteElementSpecHum::water();
+    const FiniteElementSpecHum specHumIce = FiniteElementSpecHum::ice();
 
+    static KokkosTimer<true> timer("FiniteElementFluxes::updateAtmosphere");
+    timer.start();
     overElementsAuto(OVER_ELEMENTS_LAMBDA(const ElementIndex i) {
         // Specific humidity of...
         // ...the air
@@ -200,6 +202,7 @@ void FiniteElementFluxes::updateAtmosphere(const TimestepTime& tst)
         // Heat capacity of the wet air
         cp_air[i] = Air::cp + sh_air[i] * Vapour::cp;
     });
+    timer.stop();
 }
 
 void FiniteElementFluxes::updateOW(const TimestepTime& tst)
@@ -284,6 +287,7 @@ void FiniteElementFluxes::updateIce(const TimestepTime& tst)
     const double dragIce_t = FiniteElementFluxes::dragIce_t;
 
     iIceAlbedoImpl->setTime(tst.start);
+    iIceAlbedoImpl->update(tst);
     overElementsAuto(OVER_ELEMENTS_LAMBDA(const ElementIndex i) {
         // Mass flux ice
         subl[i] = dragIce_t * rho_air[i] * windSpeed[i] * (sh_ice[i] - sh_air[i]);

@@ -3,6 +3,7 @@
  */
 
 #include "include/CCSMIceAlbedo.hpp"
+#include "include/KernelAlternatives.hpp"
 
 #include <cmath>
 
@@ -18,13 +19,16 @@ namespace Nextsim {
 
 static const double ICE_ALBEDO0 = 0.538;
 static const double SNOW_ALBEDO0 = 0.8256;
+static const double I0_DEFAULT = 0.17;
 
 double CCSMIceAlbedo::iceAlbedo = ICE_ALBEDO0;
 double CCSMIceAlbedo::snowAlbedo = SNOW_ALBEDO0;
+double CCSMIceAlbedo::i0 = I0_DEFAULT;
 
 static const std::string pfx = "CCSMIceAlbedo";
 static const std::string iceAlbedoKey = pfx + ".iceAlbedo";
 static const std::string snowAlbedoKey = pfx + ".snowAlbedo";
+static const std::string i0Key = "nextsim_thermo.I_0";
 
 std::tuple<double, double> CCSMIceAlbedo::surfaceShortWaveBalance(
     double temperature, double snowThickness, double i0)
@@ -44,6 +48,7 @@ void CCSMIceAlbedo::configure()
 {
     iceAlbedo = Configured::getConfiguration(iceAlbedoKey, ICE_ALBEDO0);
     snowAlbedo = Configured::getConfiguration(snowAlbedoKey, SNOW_ALBEDO0);
+    i0 = Configured::getConfiguration(i0Key, I0_DEFAULT);
 }
 
 ConfigMap CCSMIceAlbedo::getConfiguration() const
@@ -51,7 +56,39 @@ ConfigMap CCSMIceAlbedo::getConfiguration() const
     return {
         { iceAlbedoKey, iceAlbedo },
         { snowAlbedoKey, snowAlbedo },
+        { i0Key, i0 },
     };
+}
+
+void CCSMIceAlbedo::update(const TimestepTime& tst)
+{
+    auto execSpace = DefaultExecutionSpace();
+    auto& iceAlbedo = iceAlbedoAccessor.getAutoRW(execSpace);
+    auto& icePenSW = icePenSWAccessor.getAutoRW(execSpace);
+    const auto& cice = ciceAccessor.getAutoRO(execSpace);
+    const auto& hsnow = hsnowAccessor.getAutoRO(execSpace);
+    const auto& tsurf = tsurfAccessor.getAutoRO(execSpace);
+
+    const double iceAlbedoBase = CCSMIceAlbedo::iceAlbedo;
+    const double snowAlbedoBase = CCSMIceAlbedo::snowAlbedo;
+    const double i0 = CCSMIceAlbedo::i0;
+
+    overElementsAuto(OVER_ELEMENTS_LAMBDA(const ElementIndex i) {
+        const double snowThickness = cice[i] > 0 ? hsnow[i] / cice[i] : 0.;
+        const double temperature = tsurf[i];
+
+        constexpr double tLimit = -1.;
+        const double iceAlbedoT = iceAlbedoBase - Utils::fmax(0., 0.075 * (temperature - tLimit));
+        const double snowAlbedoT = snowAlbedoBase - Utils::fmax(0., 0.124 * (temperature - tLimit));
+        const double snowCoverFraction = snowThickness / (snowThickness + 0.02);
+
+        const double albedo
+            = snowCoverFraction * snowAlbedoT + (1 - snowCoverFraction) * iceAlbedoT;
+        const double penSW = (1. - snowCoverFraction) * i0;
+
+        iceAlbedo[i] = albedo;
+        icePenSW[i] = penSW;
+    });
 }
 
 CCSMIceAlbedo::HelpMap& CCSMIceAlbedo::getHelpText(HelpMap& map, bool getAll)
