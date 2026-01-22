@@ -67,6 +67,10 @@ namespace Protected {
     inline constexpr TextTag DIV = "DIV"; // Instantaneous divergence , s⁻¹
     inline constexpr TextTag SIGMAI = "SIGMAI"; // First invariant of the stress tensor Pa
     inline constexpr TextTag SIGMAII = "SIGMAII"; // First invariant of the stress tensor Pa
+
+    // Ice Albedo
+    inline constexpr TextTag ICE_ALBEDO = "ICE_ALBEDO";
+    inline constexpr TextTag ICE_PEN_SW = "ICE_PEN_SW";
 }
 
 namespace Shared {
@@ -287,7 +291,6 @@ private:
     static void makeOceanIndexDevice();
     static void destroyOceanIndex();
     static KokkosDeviceMapView<DeviceIndex> oceanIndexDevice;
-    // static Kokkos::
 #endif
 };
 

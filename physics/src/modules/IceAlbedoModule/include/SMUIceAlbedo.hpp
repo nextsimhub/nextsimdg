@@ -6,13 +6,24 @@
 #ifndef SRC_INCLUDE_SMUICEALBEDO_HPP
 #define SRC_INCLUDE_SMUICEALBEDO_HPP
 
+#include "include/Configured.hpp"
 #include "include/IIceAlbedo.hpp"
+#include "include/ModelComponent.hpp"
 
 namespace Nextsim {
 
 //! The implementation class for the SMU calculation of ice surface albedo
 // with constant snow albedo.
-class SMUIceAlbedo : public IIceAlbedo {
+class SMUIceAlbedo : public IIceAlbedo, public Configured<SMUIceAlbedo> {
+public:
+    void configure() override;
+    ConfigMap getConfiguration() const override;
+    void update(const TimestepTime& tst) override;
+
+    enum {
+        I0_KEY,
+    };
+
     /*!
      * @brief Calculates the SMU ice surface short wave albedo with constant
      * snow albedo.
@@ -24,6 +35,9 @@ class SMUIceAlbedo : public IIceAlbedo {
      */
     std::tuple<double, double> surfaceShortWaveBalance(
         double temperature, double snowThickness, double i0);
+
+private:
+    static double m_i0;
 };
 
 }

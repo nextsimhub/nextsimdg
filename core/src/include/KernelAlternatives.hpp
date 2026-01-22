@@ -24,7 +24,7 @@ namespace Utils = std;
 
 // KERNEL_IMPL_FUNCTION annotates functions that need to be callable inside a kernel
 #ifdef USE_KOKKOS
-#define KERNEL_IMPL_FUNCTION KOKKOS_IMPL_FUNCTION
+#define KERNEL_IMPL_FUNCTION KOKKOS_FUNCTION
 #else
 // no special annotation needed
 #define KERNEL_IMPL_FUNCTION

@@ -1,5 +1,6 @@
 /*!
  * @author  Tim Spain <timothy.spain@nersc.no>
+ * @author Robert Jendersie <robert.jendersie@ovgu.de>
  */
 
 #include "include/FiniteElementFluxes.hpp"
@@ -9,12 +10,11 @@
 #include "include/IIceAlbedo.hpp"
 #include "include/NextsimModule.hpp"
 #include "include/constants.hpp"
+#include "kokkos/include/KokkosTimer.hpp"
 
 #include <memory>
 
 namespace Nextsim {
-
-static double stefanBoltzmannLaw(double temperature);
 
 double FiniteElementFluxes::dragOcean_q;
 double FiniteElementFluxes::dragOcean_t;
@@ -65,19 +65,19 @@ ModelState FiniteElementFluxes::getStateDiagnostic() const
 {
     return { {
                  { "evap", evapAccessor.getHostRO() },
-                 { "Q_lh_ow", Q_lh_ow },
-                 { "Q_sh_ow", Q_sh_ow },
-                 { "Q_lw_ow", Q_lw_ow },
-                 { "Q_lh_ia", Q_lh_ia },
-                 { "Q_sh_ia", Q_sh_ia },
-                 { "Q_sw_ia", Q_sw_ia },
-                 { "Q_lw_ia", Q_lw_ia },
-                 { "rho_air", rho_air },
-                 { "cp_air", cp_air },
-                 { "sh_air", sh_air },
-                 { "sh_water", sh_water },
-                 { "sh_ice", sh_ice },
-                 { "dshice_dT", dshice_dT },
+                 { "Q_lh_ow", Q_lh_owAccessor.getHostRO() },
+                 { "Q_sh_ow", Q_sh_owAccessor.getHostRO() },
+                 { "Q_lw_ow", Q_lw_owAccessor.getHostRO() },
+                 { "Q_lh_ia", Q_lh_iaAccessor.getHostRO() },
+                 { "Q_sh_ia", Q_sh_iaAccessor.getHostRO() },
+                 { "Q_sw_ia", Q_sw_iaAccessor.getHostRO() },
+                 { "Q_lw_ia", Q_lw_iaAccessor.getHostRO() },
+                 { "rho_air", rho_airAccessor.getHostRO() },
+                 { "cp_air", cp_airAccessor.getHostRO() },
+                 { "sh_air", sh_airAccessor.getHostRO() },
+                 { "sh_water", sh_waterAccessor.getHostRO() },
+                 { "sh_ice", sh_iceAccessor.getHostRO() },
+                 { "dshice_dT", dshice_dTAccessor.getHostRO() },
              },
         getConfiguration() };
 }
@@ -85,19 +85,21 @@ ModelState FiniteElementFluxes::getStateDiagnostic() const
 void FiniteElementFluxes::setData(const ModelState::DataMap& ms)
 {
     // Data arrays can now be set to the correct size
-    Q_lh_ow.resize();
-    Q_sh_ow.resize();
-    Q_lw_ow.resize();
-    Q_lh_ia.resize();
-    Q_sh_ia.resize();
-    Q_sw_ia.resize();
-    Q_lw_ia.resize();
-    rho_air.resize();
-    cp_air.resize();
-    sh_air.resize();
-    sh_water.resize();
-    sh_ice.resize();
-    dshice_dT.resize();
+    Q_lh_owAccessor.getHostRW().resize();
+    Q_sh_owAccessor.getHostRW().resize();
+    Q_lw_owAccessor.getHostRW().resize();
+    Q_lh_iaAccessor.getHostRW().resize();
+    Q_sh_iaAccessor.getHostRW().resize();
+    Q_sw_iaAccessor.getHostRW().resize();
+    Q_lw_iaAccessor.getHostRW().resize();
+    rho_airAccessor.getHostRW().resize();
+    cp_airAccessor.getHostRW().resize();
+    sh_airAccessor.getHostRW().resize();
+    sh_waterAccessor.getHostRW().resize();
+    sh_iceAccessor.getHostRW().resize();
+    dshice_dTAccessor.getHostRW().resize();
+
+    iIceAlbedoImpl->setData(ms);
 }
 
 FiniteElementFluxes::HelpMap& FiniteElementFluxes::getHelpText(HelpMap& map, bool getAll)
@@ -127,236 +129,195 @@ FiniteElementFluxes::HelpMap& FiniteElementFluxes::getHelpRecursive(HelpMap& map
     return map;
 }
 
-// void FiniteElementFluxes::calculateOW(size_t i, const TimestepTime& tst)
-// {
-//     // Mass flux from open water (evaporation)
-//     evap[i] = dragOcean_q * rho_air[i] * windSpeed[i] * (sh_water[i] - sh_air[i]);
-//     // Momentum flux from open water (drag pressure)
-//     /* Drag the ocean experiences from the wind - still only used in the coupled case */
-// tau_x_ow[i] = rho_air[i] * dragOcean_m(windSpeed[i]) * u_air[i] * windSpeed[i];
-// tau_y_ow[i] = rho_air[i] * dragOcean_m(windSpeed[i]) * v_air[i] * windSpeed[i];
-//
-// // Heat flux open water
-// //   Latent heat from evaporation (and condensation)
-// Q_lh_ow[i] = evap[i] * latentHeatWater(sst[i]);
-// //   Sensible heat
-// Q_sh_ow[i] = dragOcean_t * rho_air[i] * cp_air[i] * windSpeed[i] * (sst[i] - t_air[i]);
-// //   Shortwave flux
-// Q_sw_ow[i] = -sw_in[i] * (1 - m_oceanAlbedo);
-// // Longwave flux
-// Q_lw_ow[i] = stefanBoltzmannLaw(sst[i]) - lw_in[i];
-// // Total open water flux
-// qow[i] = Q_lh_ow[i] + Q_sh_ow[i] + Q_sw_ow[i] + Q_lw_ow[i];
-// }
-
+/*************************************************************/
 // Drag coefficient from Gill(1982) / Smith (1980)
 // Could be replaced by a  module ... but we'll probably never do that
-inline double FiniteElementFluxes::dragOcean_m(double windSpeed)
+KERNEL_IMPL_FUNCTION static double dragOcean_m(double windSpeed)
 {
-    return 1e-3 * std::max(1., std::min(2., 0.61 + 0.063 * windSpeed));
+    return 1e-3 * Utils::max(1., Utils::min(2., 0.61 + 0.063 * windSpeed));
 }
 
-// void FiniteElementFluxes::calculateIce(size_t i, const TimestepTime& tst)
-// {
-//     // Mass flux ice
-//     subl[i] = dragIce_t * rho_air[i] * windSpeed[i] * (sh_ice[i] - sh_air[i]);
-//
-//     // Momentum flux is dealt with by the ice dynamics
-//
-//     // Heat flux ice-atmosphere
-//     // Latent heat from sublimation
-//     Q_lh_ia[i] = subl[i] * latentHeatIce(tsurf[i]);
-//     double dmdot_dT = dragIce_t * rho_air[i] * windSpeed[i] * dshice_dT[i];
-//     double dQlh_dT = latentHeatIce(tsurf[i]) * dmdot_dT;
-//
-//     // Sensible heat flux
-//     Q_sh_ia[i] = dragIce_t * rho_air[i] * cp_air[i] * windSpeed[i] * (tsurf[i] - t_air[i]);
-//     double dQsh_dT = dragIce_t * rho_air[i] * cp_air[i] * windSpeed[i];
-//
-//     // Shortwave flux
-//     double albedoValue, i0;
-//     const double hs = cice[i] > 0 ? hsnow[i] / cice[i] : 0.;
-//     std::tie(albedoValue, i0) = iIceAlbedoImpl->surfaceShortWaveBalance(tsurf[i], hs, m_I0);
-//     Q_sw_ia[i] = -sw_in[i] * (1. - albedoValue) * (1. - i0);
-//     const double extinction = 0.; // TODO: Replace with de Beer's law or a module
-//     penSW[i] = sw_in[i] * (1. - albedoValue) * i0 * (1. - extinction);
-//     Q_sw_base[i] = sw_in[i] * (1. - albedoValue) * i0 * extinction;
-//
-//     // Longwave flux
-//     Q_lw_ia[i] = stefanBoltzmannLaw(tsurf[i]) - lw_in[i];
-//     double dQlw_dT = 4 / kelvin(tsurf[i]) * stefanBoltzmannLaw(tsurf[i]);
-//
-//     // Total flux
-//     qia[i] = Q_lh_ia[i] + Q_sh_ia[i] + Q_sw_ia[i] + Q_lw_ia[i];
-//
-//     // Total temperature dependence of flux
-//     dqia_dt[i] = dQlh_dT + dQsh_dT + dQlw_dT;
-// }
-
-void FiniteElementFluxes::update(const TimestepTime& tst)
-{
-    updateAtmosphere(tst); // common atmospheric values
-    updateOW(tst); // qow
-    updateIce(tst); // qia & dqia/dT
-}
-
-void FiniteElementFluxes::updateAtmosphere(const TimestepTime& tst)
-{
-    const AdvectedField& tsurf = tsurfAccessor.getHostRO();
-    const HField& sss = sssAccessor.getHostRO();
-    const HField& p_air = p_airAccessor.getHostRO();
-    const HField& sst = sstAccessor.getHostRO();
-    const HField& t_air = t_airAccessor.getHostRO();
-    const HField& t_dew2 = t_dew2Accessor.getHostRO();
-
-    overElements(
-        [&](size_t i, const TimestepTime& tsTime) {
-            // Specific humidity of...
-            // ...the air
-            sh_air[i] = FiniteElementSpecHum::water()(t_dew2[i], p_air[i]);
-            // ...over the open ocean
-            sh_water[i] = FiniteElementSpecHum::water()(sst[i], p_air[i], sss[i]);
-            // ...over the ice
-            std::pair<double, double> iceData
-                = FiniteElementSpecHum::ice().valueAndDerivative(tsurf[i], p_air[i]);
-            sh_ice[i] = iceData.first;
-            dshice_dT[i] = iceData.second;
-            // Density of the wet air
-            double Ra_wet = Air::Ra / (1 - sh_air[i] * (1 - Vapour::Ra / Air::Ra));
-            rho_air[i] = p_air[i] / (Ra_wet * kelvin(t_air[i]));
-            // Heat capacity of the wet air
-            cp_air[i] = Air::cp + sh_air[i] * Vapour::cp;
-        },
-        tst);
-}
-
-void FiniteElementFluxes::updateOW(const TimestepTime& tst)
-{
-    HField& tau_x_ow = tau_x_owAccessor.getHostRW();
-    HField& tau_y_ow = tau_y_owAccessor.getHostRW();
-    HField& Q_sw_ow = Q_sw_owAccessor.getHostRW();
-    HField& qow = qowAccessor.getHostRW();
-    HField& evap = evapAccessor.getHostRW();
-    const HField& lw_in = lw_inAccessor.getHostRO();
-    const HField& sst = sstAccessor.getHostRO();
-    const HField& sw_in = sw_inAccessor.getHostRO();
-    const HField& t_air = t_airAccessor.getHostRO();
-    const UField& u_air = u_airAccessor.getHostRO();
-    const VField& v_air = v_airAccessor.getHostRO();
-    const HField& windSpeed = windSpeedAccessor.getHostRO();
-
-    overElements(
-        [&](size_t i, const TimestepTime& tsTime) {
-            // Mass flux from open water (evaporation)
-            evap[i] = dragOcean_q * rho_air[i] * windSpeed[i] * (sh_water[i] - sh_air[i]);
-            // Momentum flux from open water (drag pressure)
-            /* Drag the ocean experiences from the wind - still only used in the coupled case */
-            tau_x_ow[i] = rho_air[i] * dragOcean_m(windSpeed[i]) * u_air[i] * windSpeed[i];
-            tau_y_ow[i] = rho_air[i] * dragOcean_m(windSpeed[i]) * v_air[i] * windSpeed[i];
-
-            // Heat flux open water
-            //   Latent heat from evaporation (and condensation)
-            Q_lh_ow[i] = evap[i] * latentHeatWater(sst[i]);
-            //   Sensible heat
-            Q_sh_ow[i] = dragOcean_t * rho_air[i] * cp_air[i] * windSpeed[i] * (sst[i] - t_air[i]);
-            //   Shortwave flux
-            Q_sw_ow[i] = -sw_in[i] * (1 - m_oceanAlbedo);
-            // Longwave flux
-            Q_lw_ow[i] = stefanBoltzmannLaw(sst[i]) - lw_in[i];
-            // Total open water flux
-            qow[i] = Q_lh_ow[i] + Q_sh_ow[i] + Q_sw_ow[i] + Q_lw_ow[i];
-        },
-        tst);
-}
-
-void FiniteElementFluxes::updateIce(const TimestepTime& tst)
-{
-    HField& Q_sw_base = Q_sw_baseAccessor.getHostRW();
-    HField& qia = qiaAccessor.getHostRW();
-    HField& subl = sublAccessor.getHostRW();
-    HField& penSW = penSWAccessor.getHostRW();
-    HField& dqia_dt = dqia_dtAccessor.getHostRW();
-    const AdvectedField& cice = ciceAccessor.getHostRO();
-    const AdvectedField& hsnow = hsnowAccessor.getHostRO();
-    const HField& lw_in = lw_inAccessor.getHostRO();
-    const HField& sw_in = sw_inAccessor.getHostRO();
-    const HField& t_air = t_airAccessor.getHostRO();
-    const AdvectedField& tsurf = tsurfAccessor.getHostRO();
-    const HField& windSpeed = windSpeedAccessor.getHostRO();
-
-    iIceAlbedoImpl->setTime(tst.start);
-    overElements(
-        [&](size_t i, const TimestepTime& tsTime) {
-            // Mass flux ice
-            subl[i] = dragIce_t * rho_air[i] * windSpeed[i] * (sh_ice[i] - sh_air[i]);
-
-            // Momentum flux is dealt with by the ice dynamics
-
-            // Heat flux ice-atmosphere
-            // Latent heat from sublimation
-            Q_lh_ia[i] = subl[i] * latentHeatIce(tsurf[i]);
-            double dmdot_dT = dragIce_t * rho_air[i] * windSpeed[i] * dshice_dT[i];
-            double dQlh_dT = latentHeatIce(tsurf[i]) * dmdot_dT;
-
-            // Sensible heat flux
-            Q_sh_ia[i] = dragIce_t * rho_air[i] * cp_air[i] * windSpeed[i] * (tsurf[i] - t_air[i]);
-            double dQsh_dT = dragIce_t * rho_air[i] * cp_air[i] * windSpeed[i];
-
-            // Shortwave flux
-            double albedoValue, i0;
-            const double hs = cice[i] > 0 ? hsnow[i] / cice[i] : 0.;
-            std::tie(albedoValue, i0) = iIceAlbedoImpl->surfaceShortWaveBalance(tsurf[i], hs, m_I0);
-            Q_sw_ia[i] = -sw_in[i] * (1. - albedoValue) * (1. - i0);
-            const double extinction = 0.; // TODO: Replace with de Beer's law or a module
-            penSW[i] = sw_in[i] * (1. - albedoValue) * i0 * (1. - extinction);
-            Q_sw_base[i] = sw_in[i] * (1. - albedoValue) * i0 * extinction;
-
-            // Longwave flux
-            Q_lw_ia[i] = stefanBoltzmannLaw(tsurf[i]) - lw_in[i];
-            double dQlw_dT = 4 / kelvin(tsurf[i]) * stefanBoltzmannLaw(tsurf[i]);
-
-            // Total flux
-            qia[i] = Q_lh_ia[i] + Q_sh_ia[i] + Q_sw_ia[i] + Q_lw_ia[i];
-
-            // Total temperature dependence of flux
-            dqia_dt[i] = dQlh_dT + dQsh_dT + dQlw_dT;
-        },
-        tst);
-}
-/*
-void FiniteElementFluxes::calculateAtmos(size_t i, const TimestepTime& tst)
-{
-    // Specific humidity of...
-    // ...the air
-    sh_air[i] = FiniteElementSpecHum::water()(t_dew2[i], p_air[i]);
-    // ...over the open ocean
-    sh_water[i] = FiniteElementSpecHum::water()(sst[i], p_air[i], sss[i]);
-    // ...over the ice
-    std::pair<double, double> iceData
-        = FiniteElementSpecHum::ice().valueAndDerivative(tsurf[i], p_air[i]);
-    sh_ice[i] = iceData.first;
-    dshice_dT[i] = iceData.second;
-    // Density of the wet air
-    double Ra_wet = Air::Ra / (1 - sh_air[i] * (1 - Vapour::Ra / Air::Ra));
-    rho_air[i] = p_air[i] / (Ra_wet * kelvin(t_air[i]));
-    // Heat capacity of the wet air
-    cp_air[i] = Air::cp + sh_air[i] * Vapour::cp;
-}*/
-
-double FiniteElementFluxes::latentHeatWater(double temperature)
+KERNEL_IMPL_FUNCTION static double latentHeatWater(double temperature)
 {
     // Polynomial approximation expressed using Horner's scheme
     return Water::Lv0
         + temperature * (-2.36418e3 + temperature * (1.58927 + temperature * (-6.14342e-2)));
 }
 
-double FiniteElementFluxes::latentHeatIce(double temperature)
+KERNEL_IMPL_FUNCTION static double latentHeatIce(double temperature)
 {
     return Water::Lv0 + Water::Lf - 240. + temperature * (-290. + temperature * (-4.));
 }
 
-double stefanBoltzmannLaw(double temperatureC)
+KERNEL_IMPL_FUNCTION static double stefanBoltzmannLaw(double temperatureC)
 {
-    return Ice::epsilon * PhysicalConstants::sigma * std::pow(kelvin(temperatureC), 4);
+    return Ice::epsilon * PhysicalConstants::sigma * Utils::pow(kelvin(temperatureC), 4);
 }
+
+void FiniteElementFluxes::update(const TimestepTime& tst)
+{
+    static KokkosTimer<true> timer("FiniteElementFluxes::update");
+    timer.start();
+    updateAtmosphere(tst); // common atmospheric values
+    updateOW(tst); // qow
+    updateIce(tst); // qia & dqia/dT
+    timer.stop();
+}
+
+/*************************************************************/
+void FiniteElementFluxes::updateAtmosphere(const TimestepTime& tst)
+{
+    auto execSpace = DefaultExecutionSpace();
+    auto& sh_water = sh_waterAccessor.getAutoRW(execSpace);
+    auto& sh_ice = sh_iceAccessor.getAutoRW(execSpace);
+    auto& cp_air = cp_airAccessor.getAutoRW(execSpace);
+    auto& dshice_dT = dshice_dTAccessor.getAutoRW(execSpace);
+    auto& rho_air = rho_airAccessor.getAutoRW(execSpace);
+    auto& sh_air = sh_airAccessor.getAutoRW(execSpace);
+    const auto& p_air = p_airAccessor.getAutoRO(execSpace);
+    const auto& sss = sssAccessor.getAutoRO(execSpace);
+    const auto& sst = sstAccessor.getAutoRO(execSpace);
+    const auto& t_air = t_airAccessor.getAutoRO(execSpace);
+    const auto& t_dew2 = t_dew2Accessor.getAutoRO(execSpace);
+    const auto& tsurf = tsurfAccessor.getAutoRO(execSpace);
+
+    const FiniteElementSpecHum2 specHumWater = finiteElementSpecHumWater;
+    const FiniteElementSpecHum2 specHumIce = finiteElementSpecHumIce;
+
+    overElementsAuto(OVER_ELEMENTS_LAMBDA(const ElementIndex i) {
+        // Specific humidity of...
+        // ...the air
+        sh_air[i] = specHumWater(t_dew2[i], p_air[i]);
+        // ...over the open ocean
+        sh_water[i] = specHumWater(sst[i], p_air[i], sss[i]);
+        // ...over the ice
+        const auto [shIce, dshIceDT] = specHumIce.valueAndDerivative(tsurf[i], p_air[i]);
+        sh_ice[i] = shIce;
+        dshice_dT[i] = dshIceDT;
+        // Density of the wet air
+        double Ra_wet = Air::Ra / (1 - sh_air[i] * (1 - Vapour::Ra / Air::Ra));
+        rho_air[i] = p_air[i] / (Ra_wet * kelvin(t_air[i]));
+        // Heat capacity of the wet air
+        cp_air[i] = Air::cp + sh_air[i] * Vapour::cp;
+    });
+}
+
+void FiniteElementFluxes::updateOW(const TimestepTime& tst)
+{
+    auto execSpace = DefaultExecutionSpace();
+    auto& Q_lh_ow = Q_lh_owAccessor.getAutoRW(execSpace);
+    auto& evap = evapAccessor.getAutoRW(execSpace);
+    auto& qow = qowAccessor.getAutoRW(execSpace);
+    auto& Q_sw_ow = Q_sw_owAccessor.getAutoRW(execSpace);
+    auto& Q_sh_ow = Q_sh_owAccessor.getAutoRW(execSpace);
+    auto& tau_x_ow = tau_x_owAccessor.getAutoRW(execSpace);
+    auto& Q_lw_ow = Q_lw_owAccessor.getAutoRW(execSpace);
+    auto& tau_y_ow = tau_y_owAccessor.getAutoRW(execSpace);
+    const auto& cp_air = cp_airAccessor.getAutoRO(execSpace);
+    const auto& lw_in = lw_inAccessor.getAutoRO(execSpace);
+    const auto& rho_air = rho_airAccessor.getAutoRO(execSpace);
+    const auto& sh_air = sh_airAccessor.getAutoRO(execSpace);
+    const auto& sh_water = sh_waterAccessor.getAutoRO(execSpace);
+    const auto& sst = sstAccessor.getAutoRO(execSpace);
+    const auto& sw_in = sw_inAccessor.getAutoRO(execSpace);
+    const auto& t_air = t_airAccessor.getAutoRO(execSpace);
+    const auto& u_air = u_airAccessor.getAutoRO(execSpace);
+    const auto& v_air = v_airAccessor.getAutoRO(execSpace);
+    const auto& windSpeed = windSpeedAccessor.getAutoRO(execSpace);
+
+    // static members can not be captured directly
+    const double dragOcean_q = FiniteElementFluxes::dragOcean_q;
+    const double dragOcean_t = FiniteElementFluxes::dragOcean_t;
+    const double m_oceanAlbedo = FiniteElementFluxes::m_oceanAlbedo;
+
+    overElementsAuto(OVER_ELEMENTS_LAMBDA(const ElementIndex i) {
+        // Mass flux from open water (evaporation)
+        evap[i] = dragOcean_q * rho_air[i] * windSpeed[i] * (sh_water[i] - sh_air[i]);
+        // Momentum flux from open water (drag pressure)
+        /* Drag the ocean experiences from the wind - still only used in the coupled case */
+        const double oceanDrag = dragOcean_m(windSpeed[i]);
+        tau_x_ow[i] = rho_air[i] * oceanDrag * u_air[i] * windSpeed[i];
+        tau_y_ow[i] = rho_air[i] * oceanDrag * v_air[i] * windSpeed[i];
+
+        // Heat flux open water
+        //   Latent heat from evaporation (and condensation)
+        Q_lh_ow[i] = evap[i] * latentHeatWater(sst[i]);
+        //   Sensible heat
+        Q_sh_ow[i] = dragOcean_t * rho_air[i] * cp_air[i] * windSpeed[i] * (sst[i] - t_air[i]);
+        //   Shortwave flux
+        Q_sw_ow[i] = -sw_in[i] * (1 - m_oceanAlbedo);
+        // Longwave flux
+        Q_lw_ow[i] = stefanBoltzmannLaw(sst[i]) - lw_in[i];
+        // Total open water flux
+        qow[i] = Q_lh_ow[i] + Q_sh_ow[i] + Q_sw_ow[i] + Q_lw_ow[i];
+    });
+}
+
+void FiniteElementFluxes::updateIce(const TimestepTime& tst)
+{
+    auto execSpace = DefaultExecutionSpace();
+    auto& qia = qiaAccessor.getAutoRW(execSpace);
+    auto& subl = sublAccessor.getAutoRW(execSpace);
+    auto& Q_lh_ia = Q_lh_iaAccessor.getAutoRW(execSpace);
+    auto& Q_lw_ia = Q_lw_iaAccessor.getAutoRW(execSpace);
+    auto& penSW = penSWAccessor.getAutoRW(execSpace);
+    auto& dqia_dt = dqia_dtAccessor.getAutoRW(execSpace);
+    auto& Q_sw_base = Q_sw_baseAccessor.getAutoRW(execSpace);
+    auto& Q_sw_ia = Q_sw_iaAccessor.getAutoRW(execSpace);
+    auto& Q_sh_ia = Q_sh_iaAccessor.getAutoRW(execSpace);
+    const auto& cice = ciceAccessor.getAutoRO(execSpace);
+    const auto& cp_air = cp_airAccessor.getAutoRO(execSpace);
+    const auto& dshice_dT = dshice_dTAccessor.getAutoRO(execSpace);
+    const auto& hsnow = hsnowAccessor.getAutoRO(execSpace);
+    const auto& lw_in = lw_inAccessor.getAutoRO(execSpace);
+    const auto& rho_air = rho_airAccessor.getAutoRO(execSpace);
+    const auto& sh_air = sh_airAccessor.getAutoRO(execSpace);
+    const auto& sh_ice = sh_iceAccessor.getAutoRO(execSpace);
+    const auto& sw_in = sw_inAccessor.getAutoRO(execSpace);
+    const auto& t_air = t_airAccessor.getAutoRO(execSpace);
+    const auto& tsurf = tsurfAccessor.getAutoRO(execSpace);
+    const auto& windSpeed = windSpeedAccessor.getAutoRO(execSpace);
+    const auto& iceAlbedo = iceAlbedoAccessor.getAutoRO(execSpace);
+    const auto& icePenSW = icePenSWAccessor.getAutoRO(execSpace);
+
+    // static members can not be captured directly
+    const double dragIce_t = FiniteElementFluxes::dragIce_t;
+
+    iIceAlbedoImpl->setTime(tst.start);
+    overElementsAuto(OVER_ELEMENTS_LAMBDA(const ElementIndex i) {
+        // Mass flux ice
+        subl[i] = dragIce_t * rho_air[i] * windSpeed[i] * (sh_ice[i] - sh_air[i]);
+
+        // Momentum flux is dealt with by the ice dynamics
+
+        // Heat flux ice-atmosphere
+        // Latent heat from sublimation
+        Q_lh_ia[i] = subl[i] * latentHeatIce(tsurf[i]);
+        double dmdot_dT = dragIce_t * rho_air[i] * windSpeed[i] * dshice_dT[i];
+        double dQlh_dT = latentHeatIce(tsurf[i]) * dmdot_dT;
+
+        // Sensible heat flux
+        Q_sh_ia[i] = dragIce_t * rho_air[i] * cp_air[i] * windSpeed[i] * (tsurf[i] - t_air[i]);
+        double dQsh_dT = dragIce_t * rho_air[i] * cp_air[i] * windSpeed[i];
+
+        // Shortwave flux
+        const double albedoValue = iceAlbedo[i];
+        const double i0 = icePenSW[i];
+        Q_sw_ia[i] = -sw_in[i] * (1. - albedoValue) * (1. - i0);
+        const double extinction = 0.; // TODO: Replace with de Beer's law or a module
+        penSW[i] = sw_in[i] * (1. - albedoValue) * i0 * (1. - extinction);
+        Q_sw_base[i] = sw_in[i] * (1. - albedoValue) * i0 * extinction;
+
+        // Longwave flux
+        Q_lw_ia[i] = stefanBoltzmannLaw(tsurf[i]) - lw_in[i];
+        double dQlw_dT = 4 / kelvin(tsurf[i]) * stefanBoltzmannLaw(tsurf[i]);
+
+        // Total flux
+        qia[i] = Q_lh_ia[i] + Q_sh_ia[i] + Q_sw_ia[i] + Q_lw_ia[i];
+
+        // Total temperature dependence of flux
+        dqia_dt[i] = dQlh_dT + dQsh_dT + dQlw_dT;
+    });
+}
+
 } /* namespace Nextsim */
