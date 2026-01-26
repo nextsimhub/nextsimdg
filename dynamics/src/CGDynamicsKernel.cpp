@@ -307,7 +307,7 @@ template <int DGadvection> void CGDynamicsKernel<DGadvection>::projectVelocityTo
         int cgi = CGdegree * cgshift * row; //!< Lower left index of cg vector
 
         for (size_t col = 0; col < smesh->nx;
-             ++col, ++dgi, cgi += CGdegree) { // loop over all elements
+            ++col, ++dgi, cgi += CGdegree) { // loop over all elements
 
             if (smesh->landmask[dgi] == 0) // only on ice
                 continue;
@@ -322,11 +322,11 @@ template <int DGadvection> void CGDynamicsKernel<DGadvection>::projectVelocityTo
             // by integrating rhs and inverting with dG(stress) mass matrix
             //
             e11.row(dgi) = pmap->iMgradX[dgi] * vx_local;
-        //    for(int i = 0; i < 8; ++i)
-        //        e11.row(dgi)(i) = pmap->iMgradX[dgi](i,0);
+            //    for(int i = 0; i < 8; ++i)
+            //        e11.row(dgi)(i) = pmap->iMgradX[dgi](i,0);
             e22.row(dgi) = pmap->iMgradY[dgi] * vy_local;
             e12.row(dgi) = 0.5 * (pmap->iMgradX[dgi] * vy_local + pmap->iMgradY[dgi] * vx_local);
-        
+
             if (smesh->CoordinateSystem == SPHERICAL) {
                 e11.row(dgi) -= pmap->iMM[dgi] * vy_local;
                 e12.row(dgi) += 0.5 * pmap->iMM[dgi] * vx_local;

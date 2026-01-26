@@ -2,6 +2,7 @@ import netCDF4
 import numpy as np
 import os
 
+
 class initMaker:
     """
     A "plug-and-play" initialisation class for neXtSIM.
