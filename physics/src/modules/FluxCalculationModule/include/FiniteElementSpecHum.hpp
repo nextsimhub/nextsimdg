@@ -78,7 +78,7 @@ private:
 
             const double deriv = numerator / denominator;
 
-            return Utils::make_pair<double, double>(sphum, deriv);
+            return Utils::pair<double, double>(sphum, deriv);
         } else {
             return sphum;
         }
