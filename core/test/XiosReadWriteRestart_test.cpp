@@ -6,12 +6,10 @@
 #include <doctest/extensions/doctest_mpi.h>
 #undef INFO
 
-#include "StructureModule/include/ParametricGrid.hpp"
 #include "include/Finalizer.hpp"
 #include "include/Model.hpp"
 #include "include/ModelMPI.hpp"
 #include "include/NextsimModule.hpp"
-#include "include/ParaGridIO.hpp"
 #include "include/StructureFactory.hpp"
 #include "include/Xios.hpp"
 #include "include/gridNames.hpp"
@@ -81,14 +79,6 @@ MPI_TEST_CASE("TestXiosReadWriteRestart", 2)
     //       gets closed in this call.
     ModelState modelstate = StructureFactory::stateFromFile(inputFilename);
 
-    // Create ParametricGrid and ParaGridIO instances
-    // NOTE: We need to create another ParametricGrid because we lose access to the one created by
-    //       StructureFactory::stateFromFile()
-    Module::setImplementation<IStructure>("Nextsim::ParametricGrid");
-    ParametricGrid grid;
-    ParaGridIO* pio = new ParaGridIO(grid);
-    grid.setIO(pio);
-
     // Check files with the expected names don't exist yet
     REQUIRE_FALSE(std::filesystem::exists("readwrite*.nc"));
 
@@ -101,7 +91,7 @@ MPI_TEST_CASE("TestXiosReadWriteRestart", 2)
     int rank;
     MPI_Comm_rank(test_comm, &rank);
     for (int ts = 0; ts <= 4; ts++) {
-        grid.dumpModelState(modelstate, outputFilename, true);
+        StructureFactory::fileFromState(modelstate, outputFilename, true);
 
         // Update the current timestep and verify it's updated in XIOS
         metadata.incrementTime(timestep);
