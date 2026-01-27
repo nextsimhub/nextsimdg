@@ -42,16 +42,18 @@ ParaGridIO::~ParaGridIO() = default;
 
 ModelState ParaGridIO::getModelState(const std::string& filePath)
 {
-    ModelState state;
-    ModelMetadata& metadata = ModelMetadata::getInstance();
+    // Close the XIOS context definition, if it hasn't already been closed
     Xios& xiosHandler = Xios::getInstance();
+    xiosHandler.close_context_definition();
 
+    ModelMetadata& metadata = ModelMetadata::getInstance();
     if (metadata.initialFileName != filePath) {
         throw std::runtime_error("ParaGridIO::getModelState: file path '" + filePath
             + "' is inconsistent with model.init_file '" + metadata.initialFileName + "'");
     }
 
     // Get all variables in the file and load them into a new ModelState
+    ModelState state;
     for (const std::string& fieldId : xiosHandler.configGetInputRestartFieldNames()) {
         const ModelArray::Type& type = xiosHandler.getFieldType(fieldId);
         if (type == ModelArray::Type::H) {
@@ -96,8 +98,9 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
 ModelState ParaGridIO::readForcingTimeStatic(
     const std::set<std::string>& forcings, const TimePoint& time, const std::string& filePath)
 {
-    ModelState state;
+    // Close the XIOS context definition, if it hasn't already been closed
     Xios& xiosHandler = Xios::getInstance();
+    xiosHandler.close_context_definition();
 
     if (xiosHandler.forcingFilename != filePath) {
         throw std::runtime_error("ParaGridIO::readForcingTimeStatic: file path '" + filePath
@@ -115,6 +118,7 @@ ModelState ParaGridIO::readForcingTimeStatic(
     }
 
     // Get all forcings and load them into a new ModelState
+    ModelState state;
     const std::set<std::string> forcingFieldIds = xiosHandler.configGetForcingFieldNames();
     for (const std::string& fieldId : forcings) {
         if (forcingFieldIds.count(fieldId) == 0) {
@@ -140,9 +144,11 @@ ModelState ParaGridIO::readForcingTimeStatic(
 
 void ParaGridIO::dumpModelState(const ModelState& state, const std::string& filePath)
 {
-    ModelMetadata& metadata = ModelMetadata::getInstance();
+    // Close the XIOS context definition, if it hasn't already been closed
     Xios& xiosHandler = Xios::getInstance();
+    xiosHandler.close_context_definition();
 
+    ModelMetadata& metadata = ModelMetadata::getInstance();
     if (metadata.finalFileName != filePath) {
         throw std::runtime_error("ParaGridIO::dumpModelState: file path '" + filePath
             + "' is inconsistent with model.restart_file '" + metadata.finalFileName + "'");
@@ -162,7 +168,9 @@ void ParaGridIO::dumpModelState(const ModelState& state, const std::string& file
 
 void ParaGridIO::writeDiagnosticTime(const ModelState& state, const std::string& filePath)
 {
+    // Close the XIOS context definition, if it hasn't already been closed
     Xios& xiosHandler = Xios::getInstance();
+    xiosHandler.close_context_definition();
 
     if (xiosHandler.diagnosticFilename != filePath) {
         throw std::runtime_error("ParaGridIO::writeDiagnosticTime: file path '" + filePath

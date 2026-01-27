@@ -47,8 +47,11 @@ ModelState StructureFactory::stateFromFile(const std::string& filePath)
 {
     Finalizer::registerUnique(Module::finalize<IStructure>);
 
-#ifndef USE_XIOS
+#ifdef USE_XIOS
+    std::string structureName = ParametricGrid::structureName;
+#else
     std::string structureName = structureNameFromFile(filePath);
+#endif
     // TODO There must be a better way
     if (RectangularGrid::structureName == structureName) {
         Module::setImplementation<IStructure>("Nextsim::RectangularGrid");
@@ -56,23 +59,16 @@ ModelState StructureFactory::stateFromFile(const std::string& filePath)
         gridIn.setIO(new RectGridIO(gridIn));
         return gridIn.getModelState(filePath);
     } else if (ParametricGrid::structureName == structureName) {
-#endif
         Module::setImplementation<IStructure>("Nextsim::ParametricGrid");
         ParametricGrid gridIn;
         gridIn.setIO(new ParaGridIO(gridIn));
-#ifdef USE_XIOS
-        Xios& xiosHandler = Xios::getInstance();
-        xiosHandler.close_context_definition();
-#endif
         return gridIn.getModelState(filePath);
-#ifndef USE_XIOS
     } else {
         throw std::invalid_argument(
             std::string("fileFromName: structure not implemented: ") + structureName);
     }
     throw std::invalid_argument(std::string("fileFromName: structure not implemented: ")
         + structureName + "\nAlso, how did you get here?");
-#endif
     return ModelState();
 }
 
