@@ -105,6 +105,12 @@ private:
     void setupClient();
 
     /* Context */
+    enum {
+        PRE_DEFINITION,
+        DEFINITION_OPEN,
+        DEFINITION_CLOSED,
+    };
+    int contextStatus = PRE_DEFINITION;
     const std::string contextId = "nextSIM-DG";
     void setupContext();
 

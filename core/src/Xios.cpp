@@ -149,7 +149,7 @@ Xios::~Xios() { finalize(); }
 //! Close XIOS context definition once xml config has been read and calendar settings updated
 void Xios::close_context_definition()
 {
-    if (isEnabled) {
+    if (isEnabled && contextStatus == DEFINITION_OPEN) {
 
         // Ensure that base fields have operation type 'instant' if not already defined
         std::set<std::string> fieldIds = configGetInputRestartFieldNames();
@@ -168,6 +168,7 @@ void Xios::close_context_definition()
         }
 
         cxios_context_close_definition();
+        contextStatus = DEFINITION_CLOSED;
     }
 }
 
@@ -209,6 +210,10 @@ void Xios::configure()
 //! Initialize the XIOS context with ID contextId
 void Xios::setupContext()
 {
+    if (contextStatus != PRE_DEFINITION) {
+        throw std::runtime_error("Xios: context was already created");
+    }
+
     // Initialize the XIOS context 'nextSIM-DG'
     cxios_context_initialize(contextId.c_str(), contextId.length(), &clientComm_F);
 
@@ -235,6 +240,8 @@ void Xios::setupContext()
         throw std::runtime_error(
             "Xios: current context ID does not match expected ID '" + contextId + "'");
     }
+
+    contextStatus = DEFINITION_OPEN;
 }
 
 //! Initialize calendar wrapper for the context
