@@ -9,6 +9,15 @@
 
 namespace Nextsim {
 
+#ifdef USE_KOKKOS
+using ModelArrayAuto = DeviceViewMA;
+using ConstModelArrayAuto = ConstDeviceViewMA;
+#else
+using ModelArrayAuto = ModelArray;
+// ModelArray has value semantics
+using ConstModelArrayAuto = const ModelArray;
+#endif
+
 template <const TextTag& fieldName, bool isReadWrite = RO> class ModelArrayAccessor;
 
 template <const TextTag& fieldName> class ModelArrayAccessor<fieldName, RO> {

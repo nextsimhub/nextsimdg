@@ -1,5 +1,6 @@
 /*!
  * @author  Tim Spain <timothy.spain@nersc.no>
+ * @author  Robert Jendersie <robert.jendersie@ovgu.de>
  */
 
 #include "include/CCSMIceAlbedo.hpp"
@@ -17,9 +18,9 @@
 
 namespace Nextsim {
 
-static const double ICE_ALBEDO0 = 0.538;
-static const double SNOW_ALBEDO0 = 0.8256;
-static const double I0_DEFAULT = 0.17;
+static constexpr double ICE_ALBEDO0 = 0.538;
+static constexpr double SNOW_ALBEDO0 = 0.8256;
+static constexpr double I0_DEFAULT = 0.17;
 
 double CCSMIceAlbedo::iceAlbedo = ICE_ALBEDO0;
 double CCSMIceAlbedo::snowAlbedo = SNOW_ALBEDO0;
@@ -28,20 +29,10 @@ double CCSMIceAlbedo::i0 = I0_DEFAULT;
 static const std::string pfx = "CCSMIceAlbedo";
 static const std::string iceAlbedoKey = pfx + ".iceAlbedo";
 static const std::string snowAlbedoKey = pfx + ".snowAlbedo";
-static const std::string i0Key = "nextsim_thermo.I_0";
+static const std::string i0Key = pfx + ".I0";
 
-std::tuple<double, double> CCSMIceAlbedo::surfaceShortWaveBalance(
-    double temperature, double snowThickness, double i0)
-{
-    const double tLimit = -1.;
-    double iceAlbedoT = iceAlbedo - std::fmax(0., 0.075 * (temperature - tLimit));
-    double snowAlbedoT = snowAlbedo - std::fmax(0., 0.124 * (temperature - tLimit));
-    double snowCoverFraction = snowThickness / (snowThickness + 0.02);
-
-    const double albedo = snowCoverFraction * snowAlbedoT + (1 - snowCoverFraction) * iceAlbedoT;
-    const double penSW = (1. - snowCoverFraction) * i0;
-
-    return { albedo, penSW };
+std::string CCSMIceAlbedo::getName() const {
+    return pfx;
 }
 
 void CCSMIceAlbedo::configure()
@@ -98,6 +89,12 @@ CCSMIceAlbedo::HelpMap& CCSMIceAlbedo::getHelpText(HelpMap& map, bool getAll)
             "", "Albedo of snow-free ice." },
         { snowAlbedoKey, ConfigType::NUMERIC, { "0", "1" },
             ConfigurationHelp::toString(SNOW_ALBEDO0), "", "Albedo of snow." },
+        // From the former documentation of IIceAlbedo::surfaceShortWaveBalance:
+        // Fraction of short-wave radiation that can penetrate bare ice (not taking snow cover into account)
+        { i0Key, ConfigType::NUMERIC, { "0", "1" }, ConfigurationHelp::toString(I0_DEFAULT), "",
+            "Transmissivity of ice." },
+
+            
     };
     return map;
 }

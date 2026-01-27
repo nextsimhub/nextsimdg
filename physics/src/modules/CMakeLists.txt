@@ -22,4 +22,7 @@ foreach(ModuleSubDir IN LISTS ModuleSubDirs)
     set(AllModuleSources "${AllModuleSources}" "${ThisModuleSources}")
 endforeach()
 
-set(NextsimSources "${NextsimSources}" "${AllModuleSources}" PARENT_SCOPE)
+# shared parts of the implementations located in the modules/ directory
+file(GLOB ModuleBaseSources "*.cpp")
+
+set(NextsimSources "${NextsimSources}" "${AllModuleSources}" "${ModuleBaseSources}" PARENT_SCOPE)

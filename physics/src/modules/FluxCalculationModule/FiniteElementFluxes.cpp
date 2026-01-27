@@ -1,6 +1,6 @@
 /*!
  * @author  Tim Spain <timothy.spain@nersc.no>
- * @author Robert Jendersie <robert.jendersie@ovgu.de>
+ * @author  Robert Jendersie <robert.jendersie@ovgu.de>
  */
 
 #include "include/FiniteElementFluxes.hpp"
@@ -20,20 +20,17 @@ double FiniteElementFluxes::dragOcean_q;
 double FiniteElementFluxes::dragOcean_t;
 double FiniteElementFluxes::dragIce_t;
 double FiniteElementFluxes::m_oceanAlbedo;
-double FiniteElementFluxes::m_I0;
 
-static const double dragOcean_q_default = 1.5e-3;
-static const double dragOcean_t_default = 0.83e-3;
-static const double dragIce_t_default = 1.3e-3;
-static const double oceanAlbedo_default = 0.07;
-static const double i0_default = 0.17;
+static constexpr double dragOcean_q_default = 1.5e-3;
+static constexpr double dragOcean_t_default = 0.83e-3;
+static constexpr double dragIce_t_default = 1.3e-3;
+static constexpr double oceanAlbedo_default = 0.07;
 
 static const std::map<int, std::string> keyMap = {
     { FiniteElementFluxes::DRAGOCEANQ_KEY, "nextsim_thermo.drag_ocean_q" },
     { FiniteElementFluxes::DRAGOCEANT_KEY, "nextsim_thermo.drag_ocean_t" },
     { FiniteElementFluxes::DRAGICET_KEY, "nextsim_thermo.drag_ice_t" },
     { FiniteElementFluxes::OCEANALBEDO_KEY, "nextsim_thermo.albedoW" },
-    { FiniteElementFluxes::I0_KEY, "nextsim_thermo.I_0" },
 };
 
 void FiniteElementFluxes::configure()
@@ -47,7 +44,6 @@ void FiniteElementFluxes::configure()
     dragOcean_t = Configured::getConfiguration(keyMap.at(DRAGOCEANT_KEY), dragOcean_t_default);
     dragIce_t = Configured::getConfiguration(keyMap.at(DRAGICET_KEY), dragIce_t_default);
     m_oceanAlbedo = Configured::getConfiguration(keyMap.at(OCEANALBEDO_KEY), oceanAlbedo_default);
-    m_I0 = Configured::getConfiguration(keyMap.at(I0_KEY), i0_default);
 }
 
 ConfigMap FiniteElementFluxes::getConfiguration() const
@@ -57,7 +53,6 @@ ConfigMap FiniteElementFluxes::getConfiguration() const
         { keyMap.at(DRAGOCEANT_KEY), dragOcean_t },
         { keyMap.at(DRAGICET_KEY), dragIce_t },
         { keyMap.at(OCEANALBEDO_KEY), m_oceanAlbedo },
-        { keyMap.at(I0_KEY), m_I0 },
     };
 }
 
@@ -117,8 +112,6 @@ FiniteElementFluxes::HelpMap& FiniteElementFluxes::getHelpText(HelpMap& map, boo
         { keyMap.at(OCEANALBEDO_KEY), ConfigType::NUMERIC, { "0", "∞" },
             ConfigurationHelp::toString(oceanAlbedo_default), "",
             "Shortwave albedo of open ocean water." },
-        { keyMap.at(I0_KEY), ConfigType::NUMERIC, { "0", "∞" },
-            ConfigurationHelp::toString(i0_default), "", "Transmissivity of ice." },
     };
     return map;
 }
@@ -184,8 +177,6 @@ void FiniteElementFluxes::updateAtmosphere(const TimestepTime& tst)
     const FiniteElementSpecHum specHumWater = FiniteElementSpecHum::water();
     const FiniteElementSpecHum specHumIce = FiniteElementSpecHum::ice();
 
-    static KokkosTimer<true> timer("FiniteElementFluxes::updateAtmosphere");
-    timer.start();
     overElementsAuto(OVER_ELEMENTS_LAMBDA(const ElementIndex i) {
         // Specific humidity of...
         // ...the air
@@ -202,7 +193,6 @@ void FiniteElementFluxes::updateAtmosphere(const TimestepTime& tst)
         // Heat capacity of the wet air
         cp_air[i] = Air::cp + sh_air[i] * Vapour::cp;
     });
-    timer.stop();
 }
 
 void FiniteElementFluxes::updateOW(const TimestepTime& tst)
@@ -258,6 +248,8 @@ void FiniteElementFluxes::updateOW(const TimestepTime& tst)
 
 void FiniteElementFluxes::updateIce(const TimestepTime& tst)
 {
+    iIceAlbedoImpl->update(tst);
+
     auto execSpace = DefaultExecutionSpace();
     auto& qia = qiaAccessor.getAutoRW(execSpace);
     auto& subl = sublAccessor.getAutoRW(execSpace);
@@ -286,8 +278,6 @@ void FiniteElementFluxes::updateIce(const TimestepTime& tst)
     // static members can not be captured directly
     const double dragIce_t = FiniteElementFluxes::dragIce_t;
 
-    iIceAlbedoImpl->setTime(tst.start);
-    iIceAlbedoImpl->update(tst);
     overElementsAuto(OVER_ELEMENTS_LAMBDA(const ElementIndex i) {
         // Mass flux ice
         subl[i] = dragIce_t * rho_air[i] * windSpeed[i] * (sh_ice[i] - sh_air[i]);

@@ -144,8 +144,6 @@ private:
 
     static double m_oceanAlbedo;
 
-    static double m_I0;
-
     IIceAlbedo* iIceAlbedoImpl;
 };
 

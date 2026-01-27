@@ -1,6 +1,7 @@
-//
-// Created by Einar Ólason on 01/09/2022.
-//
+/*!
+ * @author  Einar Örn Ólason <einar.olason@nersc.no>
+ * @author  Robert Jendersie <robert.jendersie@ovgu.de>
+ */
 
 #ifndef MU71ATMOSPHERE_HPP
 #define MU71ATMOSPHERE_HPP
@@ -22,16 +23,16 @@ class MU71Atmosphere : public IAtmosphereBoundary, public Configured<MU71Atmosph
 public:
     MU71Atmosphere();
 
+    void setData(const ModelState::DataMap& ms) override;
     /*!
-     * @brief The required update call for an IFluxCalculation implementation. Here we just call
-     * calculateElement inside an overElements loop.
+     * @brief The required update call for an IFluxCalculation implementation.
+     * @details Calculate the fluxes qia, qio, and qow (=0), and subl (=0), as well as dqia_dt. All
+     * incoming fluxes are tabulated from Maykut and Untersteiner (1971). Outgoing long wave and the
+     * derivative (dqio_dt) are black body radiation.
      * @param tst The TimestepTime object for the current time step
      */
     void update(const TimestepTime& tst) override;
 
-    enum {
-        I0_KEY,
-    };
     void configure() override;
     ConfigMap getConfiguration() const override;
 
@@ -39,18 +40,12 @@ public:
     static HelpMap& getHelpRecursive(HelpMap& map, bool getAll);
 
 private:
-    /*!
-     * @brief A function to calculate the fluxes qia, qio, and qow (=0), and subl (=0), as well as
-     * dqia_dt. All incoming fluxes are tabulated from Maykut and Untersteiner (1971). Outgoing long
-     * wave and the derivative (dqio_dt) are black body radiation.
-     * @param i The index of the current grid cell
-     * @param tst The TimestepTime object for the current time step
-     */
-    void calculateElement(size_t i, const TimestepTime& tst);
-
     ModelArrayAccessor<Protected::T_SURF> tsurfAccessor;
     ModelArrayAccessor<Shared::H_SNOW_DG> hsnowAccessor; // cell-averaged value
     ModelArrayAccessor<Shared::C_ICE_DG> ciceAccessor; // cell-averaged value
+
+    ModelArrayAccessor<Protected::ICE_ALBEDO> iceAlbedoAccessor;
+    ModelArrayAccessor<Protected::ICE_PEN_SW> icePenSWAccessor;
 
     /*!
      * @brief A function to calculate the snow fall according tu Maykut and Untersteiner (1971)
@@ -79,8 +74,6 @@ private:
     monthlyCubicBSpline q_lw;
     monthlyCubicBSpline q_sh;
     monthlyCubicBSpline q_lh;
-
-    static double m_I0;
 
     IIceAlbedo* iIceAlbedoImpl;
 };
