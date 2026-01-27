@@ -71,6 +71,7 @@ MPI_TEST_CASE("TestXiosReadForcing", 2)
     ParaGridIO* pio = new ParaGridIO(grid);
     grid.setIO(pio);
 
+    // NOTE: Needs calling before Xios::getCurrentDate()
     xiosHandler.close_context_definition();
 
     // Check the input file exists

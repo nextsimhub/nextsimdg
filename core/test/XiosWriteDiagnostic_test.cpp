@@ -80,8 +80,6 @@ MPI_TEST_CASE("TestXiosWriteDiagnostic", 2)
     // Set field type for diagnostics
     xiosHandler.setFieldType(hsnowName, ModelArray::Type::H);
 
-    xiosHandler.close_context_definition();
-
     // Create some fake data to test writing methods
     HField mask(ModelArray::Type::H);
     mask.resize();
