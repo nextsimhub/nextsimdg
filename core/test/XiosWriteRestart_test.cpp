@@ -11,7 +11,7 @@
 #include "include/Model.hpp"
 #include "include/ModelMPI.hpp"
 #include "include/NextsimModule.hpp"
-#include "include/ParaGridIO.hpp"
+#include "include/StructureFactory.hpp"
 #include "include/Xios.hpp"
 #include "include/gridNames.hpp"
 
@@ -70,12 +70,8 @@ MPI_TEST_CASE("TestXiosWriteRestart", 2)
     REQUIRE(ModelArray::nComponents(ModelArray::Type::DG) == DGCOMP);
     REQUIRE(ModelArray::size(ModelArray::Dimension::DG) == DGCOMP);
 
-    // Create ParametricGrid and ParaGridIO instances
-    // NOTE: XIOS axes, domains, and grids are created by the ParaGridIO constructor
+    // The ParametricGrid structure is required by XIOS
     Module::setImplementation<IStructure>("Nextsim::ParametricGrid");
-    ParametricGrid grid;
-    ParaGridIO* pio = new ParaGridIO(grid);
-    grid.setIO(pio);
 
     // Set field types for restarts
     xiosHandler.setFieldType(maskName, ModelArray::Type::H);
@@ -83,8 +79,6 @@ MPI_TEST_CASE("TestXiosWriteRestart", 2)
     xiosHandler.setFieldType(hiceName, ModelArray::Type::DG);
     xiosHandler.setFieldType(ticeName, ModelArray::Type::DGSTRESS);
     xiosHandler.setFieldType(uName, ModelArray::Type::CG);
-
-    xiosHandler.close_context_definition();
 
     // Create some fake data to test writing methods
     HField mask(ModelArray::Type::H);
@@ -163,7 +157,7 @@ MPI_TEST_CASE("TestXiosWriteRestart", 2)
                                     { uName, uice },
                                 },
             {} };
-        grid.dumpModelState(restarts, outputFilename, true);
+        StructureFactory::fileFromState(restarts, outputFilename, true);
 
         // Update the current timestep and verify it's updated in XIOS
         metadata.incrementTime(timestep);
