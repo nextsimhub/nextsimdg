@@ -44,11 +44,13 @@ MPI_TEST_CASE("TestXiosReadWriteRestart", 2)
     config << "partition_file = xios_test_partition_metadata_2.nc" << std::endl;
     config << "restart_period = P0-0T03:00:00" << std::endl;
     config << "[XiosInput]" << std::endl;
-    config << "field_names = " << maskName << "," << coordsName << "," << hiceName << ","
-           << ticeName << "," << uName << std::endl;
+    config << "field_names = " << maskName << "," << longitudeName << "," << latitudeName << ","
+           << gridAzimuthName << "," << ciceName << "," << hiceName << "," << damageName << ","
+           << hsnowName << "," << ticeName << "," << uName << "," << std::endl;
     config << "[XiosOutput]" << std::endl;
-    config << "field_names = " << maskName << "," << coordsName << "," << hiceName << ","
-           << ticeName << "," << uName << std::endl;
+    config << "field_names = " << maskName << "," << longitudeName << "," << latitudeName << ","
+           << gridAzimuthName << "," << ciceName << "," << hiceName << "," << damageName << ","
+           << hsnowName << "," << ticeName << "," << uName << "," << std::endl;
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
 
@@ -56,16 +58,15 @@ MPI_TEST_CASE("TestXiosReadWriteRestart", 2)
     auto& modelMPI = ModelMPI::getInstance(test_comm);
 
     // Create a Model and configure it so that time options are parsed
-    // TODO: Use Model.configure for consistency with the rest of the model
     Model model;
-    model.configureRestarts();
-    model.configureTime();
+    model.configure();
 
-    // Get the Xios singleton instance and check it's initialized
+    // Get the Xios singleton instance and check calendar step is zero initially
     // NOTE: The singleton is created when Xios::getInstance() is first called. In this test, this
     //       happens when the time sets set by ModelMetadata::setTime(). This occurs in the call to
-    //       Model::configureTime() above.
+    //       Model::configure() above.
     Xios& xiosHandler = Xios::getInstance();
+    REQUIRE(xiosHandler.getCalendarStep() == 0);
 
     // Set ModelArray dimensions
     const size_t nx = ModelArray::size(ModelArray::Dimension::X);
@@ -81,9 +82,6 @@ MPI_TEST_CASE("TestXiosReadWriteRestart", 2)
 
     // Check files with the expected names don't exist yet
     REQUIRE_FALSE(std::filesystem::exists("readwrite*.nc"));
-
-    // Check calendar step is zero initially
-    REQUIRE(xiosHandler.getCalendarStep() == 0);
 
     // Simulate 4 iterations (timesteps)
     ModelMetadata& metadata = ModelMetadata::getInstance();
