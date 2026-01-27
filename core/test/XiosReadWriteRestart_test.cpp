@@ -12,6 +12,7 @@
 #include "include/ModelMPI.hpp"
 #include "include/NextsimModule.hpp"
 #include "include/ParaGridIO.hpp"
+#include "include/StructureFactory.hpp"
 #include "include/Xios.hpp"
 #include "include/gridNames.hpp"
 
@@ -74,17 +75,19 @@ MPI_TEST_CASE("TestXiosReadWriteRestart", 2)
     REQUIRE(ModelArray::nComponents(ModelArray::Type::DG) == DGCOMP);
     REQUIRE(ModelArray::size(ModelArray::Dimension::DG) == DGCOMP);
 
+    // Read initial state from the test input file
+    // NOTE: XIOS axes, domains, and grids are created by the ParaGridIO constructor, which is
+    //       constructed in the call to StructureFactory::stateFromFile(). The XIOS context also
+    //       gets closed in this call.
+    ModelState modelstate = StructureFactory::stateFromFile(inputFilename);
+
     // Create ParametricGrid and ParaGridIO instances
-    // NOTE: XIOS axes, domains, and grids are created by the ParaGridIO constructor
+    // NOTE: We need to create another ParametricGrid because we lose access to the one created by
+    //       StructureFactory::stateFromFile()
     Module::setImplementation<IStructure>("Nextsim::ParametricGrid");
     ParametricGrid grid;
     ParaGridIO* pio = new ParaGridIO(grid);
     grid.setIO(pio);
-
-    xiosHandler.close_context_definition();
-
-    // Read initial state from the test input file
-    ModelState modelstate = grid.getModelState(inputFilename);
 
     // Check files with the expected names don't exist yet
     REQUIRE_FALSE(std::filesystem::exists("readwrite*.nc"));

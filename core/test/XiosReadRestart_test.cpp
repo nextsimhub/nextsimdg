@@ -79,7 +79,7 @@ MPI_TEST_CASE("TestXiosReadRestart", 2)
 
     // Read restarts from file and check they take the expected values
     // NOTE: The ParametricGrid is created and the XIOS context definition is closed in the call to
-    // StructureFactory::stateFromFile()
+    //       StructureFactory::stateFromFile()
     int rank;
     MPI_Comm_rank(test_comm, &rank);
     float ts = 2; // Corresponds to 2023-03-17T20:10:59Z

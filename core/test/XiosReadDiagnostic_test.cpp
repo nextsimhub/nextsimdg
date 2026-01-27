@@ -79,7 +79,7 @@ MPI_TEST_CASE("TestXiosReadDiagnostic", 2)
 
     // Read restarts from file and check they take the expected values
     // NOTE: The ParametricGrid is created and the XIOS context definition is closed in the call to
-    // StructureFactory::stateFromFile()
+    //       StructureFactory::stateFromFile()
     for (const auto [fieldName, modelarray] :
         StructureFactory::stateFromFile(diagnosticFilename).data) {
         REQUIRE(fieldName == hsnowName);
