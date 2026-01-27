@@ -136,8 +136,9 @@ Order of operations for XIOS setup
 ----------------------------------
 
 The required order of operations to set everything up correctly for reading and
-writing files using XIOS is demonstrated in the ``core/test/XiosRead_test.cpp``
-and ``core/test/XiosWrite_test.cpp`` worked examples and is elaborated in the
+writing files using XIOS is demonstrated in the
+``core/test/XiosReadRestart_test.cpp`` and
+``core/test/XiosWriteRestart_test.cpp`` worked examples and is elaborated in the
 following:
 
 1. Set configuration options as for other parts of the model. (See section above
@@ -155,7 +156,10 @@ following:
    member function of ``Xios``, providing the field name as the first argument
    and the ``ModelArray::Type::<TYPE>`` enum as the second argument (replacing
    ``<TYPE>>`` as appropriate).
-8. Call the ``close_context_definition`` member function of ``Xios``.
+8. Call the ``close_context_definition`` member function of ``Xios``. This is
+   not required if files were read with ``StructureFactory::stateFromFile``
+   because that function automatically closes the context definition before
+   reading.
 
 XIOS concepts
 -------------
@@ -232,7 +236,7 @@ Developer notes
   additional fields. This is because the two may have different I/O modes, e.g.,
   reading or writing at a specified frequency (``"instant"```), writing after
   applying a reduction operator (e.g., ``"average"``), or reading or writing
-  once at the start of the time window (`"once"`). We use the 'base' field
+  once at the start of the time window (``"once"``). We use the 'base' field
   associated with the field ID for writing. For reading a field, we create a
   separate 'inherited' field, which has the same name but with ID appended by
   ``"_input"`` or ``"_forcing"``, depending on whether the field is to be read
