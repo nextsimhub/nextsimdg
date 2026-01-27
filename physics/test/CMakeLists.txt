@@ -18,7 +18,7 @@ if(NOT ENABLE_MPI)
     target_include_directories(testERA5Atm PRIVATE "${ModulesRoot}/AtmosphereBoundaryModule")
     target_link_libraries(testERA5Atm PRIVATE nextsimlib doctest::doctest)
 
-    add_executable(testTOPAZOcn "TOPAZOcn_test.cpp")
+    add_executable(testTOPAZOcn "TOPAZOcn_test.cpp" "../../core/test/MainTest.cpp")
     target_include_directories(testTOPAZOcn PRIVATE "${ModulesRoot}/OceanBoundaryModule")
     target_compile_definitions(testTOPAZOcn PRIVATE TEST_FILES_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}\")
     target_link_libraries(testTOPAZOcn PRIVATE nextsimlib doctest::doctest)

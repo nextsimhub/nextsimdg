@@ -10,11 +10,11 @@
 namespace Nextsim {
 
 #ifdef USE_KOKKOS
-using ModelArrayAuto = DeviceViewMA;
-using ConstModelArrayAuto = ConstDeviceViewMA;
+using ModelArrayAuto = DeviceModelArray;
+using ConstModelArrayAuto = ConstDeviceModelArray;
 #else
+// ModelArray has value semantics. The const applies to the data.
 using ModelArrayAuto = ModelArray;
-// ModelArray has value semantics
 using ConstModelArrayAuto = const ModelArray;
 #endif
 

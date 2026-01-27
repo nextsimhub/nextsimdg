@@ -53,11 +53,10 @@ TEST_CASE("PrognosticData call order test")
         {
             UnescoFreezing uf;
             sstAccessor.getHostRW() = -1.;
-            HField& sss = sssAccessor.getHostRW();
-            sss = 32.;
+            sssAccessor.getHostRW() = 32.;
             HField& mld = mldAccessor.getHostRW();
             mld = 10.25;
-            tfAccessor.getHostRW() = uf(sss[0]);
+            uf.update(tfAccessor.getAutoRW(), sssAccessor.getAutoRO());
             cpmlAccessor.getHostRW() = Water::cp * Water::rho * mld[0];
             uAccessor.getHostRW() = 0;
             vAccessor.getHostRW() = 0;

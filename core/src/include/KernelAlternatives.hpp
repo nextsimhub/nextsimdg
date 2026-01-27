@@ -33,9 +33,11 @@ namespace Utils = std;
 // KERNEL_LAMBDA capture list of a lambda used in a overElements call
 #ifdef USE_KOKKOS
 #define OVER_ELEMENTS_LAMBDA KOKKOS_LAMBDA
+#define OVER_ELEMENTS_CLASS_LAMBDA KOKKOS_CLASS_LAMBDA
 using ElementIndex = DeviceIndex;
 #else
 #define OVER_ELEMENTS_LAMBDA [&]
+#define OVER_ELEMENTS_CLASS_LAMBDA [&]
 using ElementIndex = size_t;
 #endif
 
