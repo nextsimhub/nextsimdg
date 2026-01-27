@@ -6,12 +6,10 @@
 #include <doctest/extensions/doctest_mpi.h>
 #undef INFO
 
-#include "StructureModule/include/ParametricGrid.hpp"
 #include "include/Finalizer.hpp"
 #include "include/Model.hpp"
 #include "include/ModelMPI.hpp"
 #include "include/NextsimModule.hpp"
-#include "include/ParaGridIO.hpp"
 #include "include/StructureFactory.hpp"
 #include "include/Xios.hpp"
 #include "include/gridNames.hpp"
