@@ -3,62 +3,52 @@
 Fixes #(your issue number)
 
 ### Task List
-- [ ] Defined the tests that specify a complete and functioning change (*It may help to create a [design specification & test specification](../../../wiki/Specification-Template)*)
+- [ ] Linked an issue above that captures the requirements of this PR
+- [ ] Defined the tests that specify a complete and functioning change
 - [ ] Implemented the source code change that satisfies the tests
-- [ ] Documented the feature by providing worked example
-- [ ] Updated the README or other documentation
-- [ ] Completed the pre-Request checklist below
+- [ ] Commented all code so that it can be understood without additional context
+- [ ] No new warnings are generated or they are mentioned below
+- [ ] The documentation has been updated (or an issue has been created to do so)
+- [ ] Relevant labels (e.g., enhancement, bug) have been applied to this PR
+- [ ] This change conforms to the conventions described in the README
 
 ---
 # Change Description
 
-*Please write a summary of the change and specify which Issue this fixes. This should cover the motivation for making the change and provide almost enough context to review the change in isolation. While the issue description is a good place to discuss the failure/requirements, this is the ideal space for explaining why this design fixes the issue and why you designed it the way you did.*
+<!--
+Summarise the change and specify which Issue it fixes. This should motivate the
+change, explain your solution approach and/or any design decisions, and provide
+almost enough context to review the PR in isolation.
 
-- *If there are important design decisions, particularly those that leverage functionality outside this change or were caused by existing limitations, they should be noted here.*
-- *If there is a design specification which relates to this PR, please provide a link to it here.*
-- *If the PR relates to an open issue, please link the issue to the PR by using the 'fixes #issue_number' syntax.*
-- *If the PR relates to several open issue, make sure to use 'fixes #issue_1, fixes #issue_2, etc.' syntax.*
-- *If there are any dependencies (third-party or internal downstream) which are added or impacted, please note them here. And if their limitations informed your design, please note how they did so here (particularly if this information was not captured in a design specification).*
-
-Text goes here
+Make note of any dependencies that are added or impacted, particularly if their
+limitations informed your design.
+-->
 
 ---
 # Test Description
 
-*Please describe the tests you have written that verify the enhancement works or that the bug fix has been remedied. For a bug fix, please ensure a complete description of the failure is available here or in the issue such that a reviewer can verify that the testing is suitable. This is a good place to highlight any manual testing you may have had to perform.*
+<!--
+Describe the tests you have written that resolve the issue.
 
-*Please describe any operating system limitations placed on the testing (if appropriate).*
+For a bug fix, ensure a complete description of the failure is available here or
+in the issue such that a reviewer can verify that the testing is suitable.
 
-*If your tests fixes any issue, please explain that in the comment you provided in the test file by referencing the issue within the comment and please record the mapping here e.g.*
-- *testA fixes issue 404*
-- *testB fixes issue 999*
-
-Text goes here
+Highlight any manual testing you may have had to perform, noting any operating
+system or software version limitations.
+-->
 
 ---
 # Documentation Impact
 
-*Please describe any changes to the documentation not captured above or, if made in a seperate pull request, please link to the corresponding PR or issue.*
-
-Text goes here
+<!--
+Describe any changes to the documentation not captured above or, if this will be
+done seperately, link to the corresponding PR or issue.
+-->
 
 ---
 # Other Details
 
-*If you have run any static analysis, including complexity analysis, or run coverage testing which has not been captured by an automated tool, please link or copy it here.*
-
-Text goes here
-
----
-### Pre-Request Checklist
-
-- [ ] The requirements of this pull request are fully captured in an issue or design specification and are linked and summarised in the description of this PR
-- [ ] No new warnings are generated
-- [ ] The documentation has been updated (or an issue has been created to track the corresponding change)
-- [ ] Methods and Tests are commented such that they can be understood without having to obtain additional context
-- [ ] This PR/Issue is labelled as a bug/feature/enhancement/breaking change
-- [ ] This change conforms to the conventions described in the README
-
-*Please complete your pull request description and delete the instructional text before submitting.*
-
-*Congratulations and thank you for making your contribution to neXtSIM_DG!*
+<!--
+Any other details such as outputs of any static analysis tools not already in
+the continuous integration workflows.
+-->
