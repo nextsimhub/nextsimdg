@@ -3,17 +3,14 @@
 set -eu
 
 # Determine install directory based on whether running in a Docker container
-if [ -f /.dockerenv ]; then
-  INSTALL_DIR="/xios"
-  cd /
-else
+INSTALL_DIR="/xios"
+if [ ! -d ${INSTALL_DIR} ]; then
   INSTALL_DIR="XIOS3"
 fi
 
 # If install directory doesn't exist, checkout the latest version
 if [ ! -d ${INSTALL_DIR} ]; then
   svn checkout http://forge.ipsl.fr/ioserver/svn/XIOS3/trunk "${INSTALL_DIR}"
-  ln -s "$(pwd)/${INSTALL_DIR}" "$(pwd)/XIOS"
 fi
 cd "${INSTALL_DIR}" || exit
 
