@@ -18,7 +18,7 @@ Fixes #(your issue number)
 <!--
 Summarise the change and specify which Issue it fixes. This should motivate the
 change, explain your solution approach and/or any design decisions, and provide
-almost enough context to review the PR in isolation.
+enough context to review the PR in isolation.
 
 Make note of any dependencies that are added or impacted, particularly if their
 limitations informed your design.
