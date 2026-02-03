@@ -104,7 +104,7 @@ MPI_TEST_CASE("TestXiosWriteRestart", 2)
     mask.resize();
     for (size_t j = 0; j < ny; ++j) {
         for (size_t i = 0; i < nx; ++i) {
-            mask(i, j) = j >= 1 ? 1.0 : 0.0;
+            mask(i, j) = (i == 0 && j == 0 ? 0.0 : 1.0);
         }
     }
     DGField cice(ModelArray::Type::DG);
@@ -115,6 +115,7 @@ MPI_TEST_CASE("TestXiosWriteRestart", 2)
     damage.resize();
     DGField hsnow(ModelArray::Type::DG);
     hsnow.resize();
+    hsnow = mask; // Convert HField to DGField
     VertexField grid_azimuth(ModelArray::Type::VERTEX);
     grid_azimuth.resize();
     DGSField tice(ModelArray::Type::DGSTRESS);
@@ -143,7 +144,6 @@ MPI_TEST_CASE("TestXiosWriteRestart", 2)
                     cice.components({ i, j })[d] = value;
                     hice.components({ i, j })[d] = value;
                     damage.components({ i, j })[d] = value;
-                    hsnow.components({ i, j })[d] = value;
                 }
             }
         }
