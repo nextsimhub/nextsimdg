@@ -157,13 +157,8 @@ void Xios::close_context_definition()
         fieldIds.insert(forcingFieldIds.begin(), forcingFieldIds.end());
         for (const std::string& fieldId : fieldIds) {
             xios::CField* field = getField(fieldId);
-            if (cxios_is_defined_field_operation(field)) {
-                Logged::warning("Xios: Overwriting operation for field '" + fieldId + "'");
-            }
-            cxios_set_field_operation(field, "instant", strlen("instant"));
             if (!cxios_is_defined_field_operation(field)) {
-                throw std::runtime_error(
-                    "Xios: Failed to set operation for field '" + fieldId + "'");
+                cxios_set_field_operation(field, "instant", strlen("instant"));
             }
         }
 
