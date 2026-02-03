@@ -71,8 +71,8 @@ Xios::HelpMap& Xios::getHelpText(HelpMap& map, bool getAll)
             "-Dxios_DIR=/path/to/xios." },
     };
     map["XiosOutput"] = {
-        { keyMap.at(OUTPUT_FIELD_NAMES_KEY), ConfigType::STRING, {}, "restart%Y-%m-%dT%H:%M:%SZ.nc",
-            "", "Comma-separated list of field names to be written to the output file." },
+        { keyMap.at(OUTPUT_FIELD_NAMES_KEY), ConfigType::STRING, {}, "", "",
+            "Comma-separated list of field names to be written to the output file." },
     };
     map["XiosInput"] = {
         { keyMap.at(INPUT_FIELD_NAMES_KEY), ConfigType::STRING, {}, "", "",
