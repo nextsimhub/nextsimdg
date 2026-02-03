@@ -140,7 +140,8 @@ MPI_TEST_CASE("TestXiosWriteRestart", 2)
         for (size_t j = 0; j < ny; ++j) {
             for (size_t i = 0; i < nx; ++i) {
                 for (size_t d = 0; d < DGCOMP; ++d) {
-                    const float value = 1.0 * ts * (d + DGCOMP * (i + nx * j));
+                    const float value
+                        = (i == 0 && j == 0) ? NAN : 1.0 * ts * (d + DGCOMP * (i + nx * j));
                     cice.components({ i, j })[d] = value;
                     hice.components({ i, j })[d] = value;
                     damage.components({ i, j })[d] = value;
