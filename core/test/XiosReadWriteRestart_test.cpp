@@ -6,12 +6,10 @@
 #include <doctest/extensions/doctest_mpi.h>
 #undef INFO
 
-#include "StructureModule/include/ParametricGrid.hpp"
 #include "include/Finalizer.hpp"
 #include "include/Model.hpp"
 #include "include/ModelMPI.hpp"
 #include "include/NextsimModule.hpp"
-#include "include/ParaGridIO.hpp"
 #include "include/StructureFactory.hpp"
 #include "include/Xios.hpp"
 #include "include/gridNames.hpp"
@@ -46,11 +44,13 @@ MPI_TEST_CASE("TestXiosReadWriteRestart", 2)
     config << "partition_file = xios_test_partition_metadata_2.nc" << std::endl;
     config << "restart_period = P0-0T03:00:00" << std::endl;
     config << "[XiosInput]" << std::endl;
-    config << "field_names = " << maskName << "," << coordsName << "," << hiceName << ","
-           << ticeName << "," << uName << std::endl;
+    config << "field_names = " << maskName << "," << longitudeName << "," << latitudeName << ","
+           << gridAzimuthName << "," << ciceName << "," << hiceName << "," << damageName << ","
+           << hsnowName << "," << ticeName << "," << uName << "," << std::endl;
     config << "[XiosOutput]" << std::endl;
-    config << "field_names = " << maskName << "," << coordsName << "," << hiceName << ","
-           << ticeName << "," << uName << std::endl;
+    config << "field_names = " << maskName << "," << longitudeName << "," << latitudeName << ","
+           << gridAzimuthName << "," << ciceName << "," << hiceName << "," << damageName << ","
+           << hsnowName << "," << ticeName << "," << uName << "," << std::endl;
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
 
@@ -58,16 +58,15 @@ MPI_TEST_CASE("TestXiosReadWriteRestart", 2)
     auto& modelMPI = ModelMPI::getInstance(test_comm);
 
     // Create a Model and configure it so that time options are parsed
-    // TODO: Use Model.configure for consistency with the rest of the model
     Model model;
-    model.configureRestarts();
-    model.configureTime();
+    model.configure();
 
-    // Get the Xios singleton instance and check it's initialized
+    // Get the Xios singleton instance and check calendar step is zero initially
     // NOTE: The singleton is created when Xios::getInstance() is first called. In this test, this
     //       happens when the time sets set by ModelMetadata::setTime(). This occurs in the call to
-    //       Model::configureTime() above.
+    //       Model::configure() above.
     Xios& xiosHandler = Xios::getInstance();
+    REQUIRE(xiosHandler.getCalendarStep() == 0);
 
     // Set ModelArray dimensions
     const size_t nx = ModelArray::size(ModelArray::Dimension::X);
@@ -81,19 +80,8 @@ MPI_TEST_CASE("TestXiosReadWriteRestart", 2)
     //       gets closed in this call.
     ModelState modelstate = StructureFactory::stateFromFile(inputFilename);
 
-    // Create ParametricGrid and ParaGridIO instances
-    // NOTE: We need to create another ParametricGrid because we lose access to the one created by
-    //       StructureFactory::stateFromFile()
-    Module::setImplementation<IStructure>("Nextsim::ParametricGrid");
-    ParametricGrid grid;
-    ParaGridIO* pio = new ParaGridIO(grid);
-    grid.setIO(pio);
-
     // Check files with the expected names don't exist yet
     REQUIRE_FALSE(std::filesystem::exists("readwrite*.nc"));
-
-    // Check calendar step is zero initially
-    REQUIRE(xiosHandler.getCalendarStep() == 0);
 
     // Simulate 4 iterations (timesteps)
     ModelMetadata& metadata = ModelMetadata::getInstance();
@@ -101,7 +89,7 @@ MPI_TEST_CASE("TestXiosReadWriteRestart", 2)
     int rank;
     MPI_Comm_rank(test_comm, &rank);
     for (int ts = 0; ts <= 4; ts++) {
-        grid.dumpModelState(modelstate, outputFilename, true);
+        StructureFactory::fileFromState(modelstate, outputFilename, true);
 
         // Update the current timestep and verify it's updated in XIOS
         metadata.incrementTime(timestep);

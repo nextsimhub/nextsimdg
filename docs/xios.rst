@@ -128,9 +128,13 @@ time window, whereas diagnostics files are averaged over the timesteps in the
 window.
 
 As elsewhere in the model, the configuration values above are all parsed by
-calling the ``Model.configure`` member function. Since building with XIOS
-implies also building with MPI, you will need to pass the MPI communicator to
-this member function when calling it.
+calling the ``Model.configure`` member function. Note that this function will
+automatically initialize the model state based on the ``input_file`` entry and
+any ``field_names`` listed in the ``[XiosInput]`` configuration section. You
+will need to ensure that variables defining the grid are read here, i.e.,
+``longitude`` and ``latitude`` and possibly ``coords`` and ``grid_azimuth``. The
+XIOS I/O implementation does not currently support Cartesian grids (based on
+``x_dim`` and ``y_dim``).
 
 Order of operations for XIOS setup
 ----------------------------------

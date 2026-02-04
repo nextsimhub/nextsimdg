@@ -42,8 +42,9 @@ MPI_TEST_CASE("TestXiosReadRestart", 2)
     config << "restart_period = P0-0T03:00:00" << std::endl;
     config << "partition_file = xios_test_partition_metadata_2.nc" << std::endl;
     config << "[XiosInput]" << std::endl;
-    config << "field_names = " << maskName << "," << coordsName << "," << hiceName << ","
-           << ticeName << "," << uName << std::endl;
+    config << "field_names = " << maskName << "," << longitudeName << "," << latitudeName << ","
+           << gridAzimuthName << "," << ciceName << "," << hiceName << "," << damageName << ","
+           << hsnowName << "," << ticeName << "," << uName << "," << std::endl;
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
 
@@ -57,15 +58,13 @@ MPI_TEST_CASE("TestXiosReadRestart", 2)
     auto& modelMPI = ModelMPI::getInstance(test_comm);
 
     // Create a Model and configure it so that time options are parsed
-    // TODO: Use Model.configure for consistency with the rest of the model
     Model model;
-    model.configureRestarts();
-    model.configureTime();
+    model.configure();
 
     // Get the Xios singleton instance and check calendar step is zero initially
     // NOTE: The singleton is created when Xios::getInstance() is first called. In this test, this
     //       happens when the time sets set by ModelMetadata::setTime(). This occurs in the call to
-    //       Model::configureTime() above.
+    //       Model::configure() above.
     Xios& xiosHandler = Xios::getInstance();
     REQUIRE(xiosHandler.getCalendarStep() == 0);
 
@@ -83,13 +82,25 @@ MPI_TEST_CASE("TestXiosReadRestart", 2)
     float ts = 2; // Corresponds to 2023-03-17T20:10:59Z
     for (const auto [fieldName, modelarray] :
         StructureFactory::stateFromFile(restartFilename).data) {
-        if (fieldName == maskName) {
+        if (fieldName == longitudeName) {
+            for (size_t j = 0; j < ny; ++j) {
+                for (size_t i = 0; i < nx; ++i) {
+                    REQUIRE(modelarray(i, j) == doctest::Approx(i));
+                }
+            }
+        } else if (fieldName == latitudeName) {
+            for (size_t j = 0; j < ny; ++j) {
+                for (size_t i = 0; i < nx; ++i) {
+                    REQUIRE(modelarray(i, j) == doctest::Approx(j));
+                }
+            }
+        } else if (fieldName == maskName) {
             for (size_t j = 0; j < ny; ++j) {
                 for (size_t i = 0; i < nx; ++i) {
                     REQUIRE(modelarray(i, j) == doctest::Approx(j >= 1 ? 1.0 : 0.0));
                 }
             }
-        } else if (fieldName == coordsName) {
+        } else if (fieldName == gridAzimuthName) {
             for (size_t j = 0; j < ny + 1; ++j) {
                 for (size_t i = 0; i < nx + 1; ++i) {
                     float expected_x;
@@ -103,7 +114,8 @@ MPI_TEST_CASE("TestXiosReadRestart", 2)
                     REQUIRE(modelarray.components({ i, j })[1] == doctest::Approx(expected_y));
                 }
             }
-        } else if (fieldName == hiceName) {
+        } else if (fieldName == ciceName || fieldName == hiceName || fieldName == damageName
+            || fieldName == hsnowName) {
             for (size_t j = 0; j < ny; ++j) {
                 for (size_t i = 0; i < nx; ++i) {
                     for (size_t d = 0; d < DGCOMP; ++d) {

@@ -171,7 +171,13 @@ void Xios::close_context_definition()
 void Xios::context_finalize()
 {
     if (isEnabled) {
+        // Close the context definition, if it wasn't already closed
+        close_context_definition();
+
+        // Ensure the dimension and variable names are correct in the output files
         postprocessOutputFiles();
+
+        // Finalize the XIOS context
         cxios_context_finalize();
     }
 }

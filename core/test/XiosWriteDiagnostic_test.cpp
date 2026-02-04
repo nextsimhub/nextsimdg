@@ -53,7 +53,6 @@ MPI_TEST_CASE("TestXiosWriteDiagnostic", 2)
     auto& modelMPI = ModelMPI::getInstance(test_comm);
 
     // Create a Model and configure it so that time options are parsed
-    // TODO: Use Model.configure for consistency with the rest of the model
     Model model;
     model.configureRestarts();
     model.configureTime();
@@ -79,8 +78,6 @@ MPI_TEST_CASE("TestXiosWriteDiagnostic", 2)
 
     // Set field type for diagnostics
     xiosHandler.setFieldType(hsnowName, ModelArray::Type::H);
-
-    xiosHandler.close_context_definition();
 
     // Create some fake data to test writing methods
     HField mask(ModelArray::Type::H);
