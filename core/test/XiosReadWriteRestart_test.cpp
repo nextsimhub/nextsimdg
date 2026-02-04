@@ -74,6 +74,10 @@ MPI_TEST_CASE("TestXiosReadWriteRestart", 2)
     REQUIRE(ModelArray::nComponents(ModelArray::Type::DG) == DGCOMP);
     REQUIRE(ModelArray::size(ModelArray::Dimension::DG) == DGCOMP);
 
+    // Set the hsnow field type to be DGField
+    // NOTE: It is a HField in the initial condition file so a conversion will be required
+    xiosHandler.setPrognosticFieldType(hsnowName, ModelArray::Type::DG);
+
     // Read initial state from the test input file
     // NOTE: XIOS axes, domains, and grids are created by the ParaGridIO constructor, which is
     //       constructed in the call to StructureFactory::stateFromFile(). The XIOS context also
