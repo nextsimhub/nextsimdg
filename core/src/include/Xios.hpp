@@ -74,7 +74,8 @@ public:
 
     /* Field */
     std::set<std::string> configGetForcingFieldNames();
-    void setFieldType(const std::string& fieldId, const ModelArray::Type& type);
+    void setPrognosticFieldType(const std::string& fieldId, const ModelArray::Type& type);
+    void setDiagnosticFieldType(const std::string& fieldId, const ModelArray::Type& type);
 
     enum {
         ENABLED_KEY,
@@ -178,6 +179,7 @@ private:
     ModelArray::Type getFieldType(const std::string& fieldId);
     std::map<std::string, ModelArray::Type> fieldTypes;
     void setupFields();
+    void setFieldType(const std::string& fieldId, const ModelArray::Type& type, const int ioType);
 
     /* File */
     xios::CFileGroup* getFileGroup();

@@ -157,6 +157,8 @@ void Xios::close_context_definition()
                 ? configGetInputRestartFieldNames()
                 : configGetForcingFieldNames();
             for (const std::string& fieldId : fieldIds) {
+                const std::string inputFieldId
+                    = (ioType == INPUT_RESTART) ? fieldId + "_input" : fieldId + "_forcing";
 
                 // Ensure that base fields have operation type 'instant' if not already defined
                 xios::CField* field = getField(fieldId);
@@ -164,9 +166,13 @@ void Xios::close_context_definition()
                     cxios_set_field_operation(field, "instant", strlen("instant"));
                 }
 
+                // Ensure that base fields have a grid reference if not already defined
+                if (!cxios_is_defined_field_grid_ref(field)) {
+                    const std::string gridRef = getFieldGridRef(inputFieldId);
+                    cxios_set_field_grid_ref(field, gridRef.c_str(), gridRef.length());
+                }
+
                 // Link the input field back to the base field with a field reference
-                const std::string inputFieldId
-                    = (ioType == INPUT_RESTART) ? fieldId + "_input" : fieldId + "_forcing";
                 xios::CField* inputField = getField(inputFieldId);
                 if (cxios_is_defined_field_field_ref(inputField)) {
                     throw std::runtime_error(
@@ -1049,13 +1055,43 @@ ModelArray::Type Xios::getFieldType(const std::string& fieldId) { return fieldTy
 /*!
  * Set the field type associated with a field with a given ID
  *
- * @param the field ID
- * @param ModelArray::Type used for the corresponding field
+ * @param fieldId the field ID
+ * @param fieldType ModelArray::Type used for the corresponding field
+ * @param ioType the enum for the I/O type
  */
-void Xios::setFieldType(const std::string& fieldId, const ModelArray::Type& fieldType)
+void Xios::setFieldType(
+    const std::string& fieldId, const ModelArray::Type& fieldType, const int ioType)
 {
     fieldTypes[fieldId] = fieldType;
-    setFieldGridRef(fieldId, gridIds[fieldType]);
+    if (ioType == INPUT_RESTART) {
+        setFieldGridRef(fieldId + "_input", gridIds[fieldType]);
+    } else if (ioType == FORCING) {
+        setFieldGridRef(fieldId + "_forcing", gridIds[fieldType]);
+    } else {
+        setFieldGridRef(fieldId, gridIds[fieldType]);
+    }
+}
+
+/*!
+ * Set the field type associated with a field to be written as a restart
+ *
+ * @param fieldId the field ID
+ * @param fieldType ModelArray::Type used for the corresponding field
+ */
+void Xios::setPrognosticFieldType(const std::string& fieldId, const ModelArray::Type& fieldType)
+{
+    setFieldType(fieldId, fieldType, OUTPUT_RESTART);
+}
+
+/*!
+ * Set the field type associated with a field to be written as a diagnostic
+ *
+ * @param fieldId the field ID
+ * @param fieldType ModelArray::Type used for the corresponding field
+ */
+void Xios::setDiagnosticFieldType(const std::string& fieldId, const ModelArray::Type& fieldType)
+{
+    setFieldType(fieldId, fieldType, DIAGNOSTIC);
 }
 
 /*!
@@ -1090,10 +1126,13 @@ void Xios::setupFields()
 
         // Determine field types
         std::set<std::string> configFieldIds;
+        int ioType;
         if (filename == metadata.initialFileName) {
             configFieldIds = configGetInputRestartFieldNames();
+            ioType = INPUT_RESTART;
         } else {
             configFieldIds = configGetForcingFieldNames();
+            ioType = FORCING;
         }
         try {
             auto& modelMPI = ModelMPI::getInstance();
@@ -1118,7 +1157,7 @@ void Xios::setupFields()
                 if (!dimensionKeys.count(dimKey)) {
                     continue;
                 }
-                setFieldType(fieldId, dimensionKeys.at(dimKey));
+                setFieldType(fieldId, dimensionKeys.at(dimKey), ioType);
             }
             ncFile.close();
         } catch (const netCDF::exceptions::NcException& nce) {
