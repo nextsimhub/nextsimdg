@@ -19,7 +19,7 @@
 
 const std::string testFilesDir = TEST_FILES_DIR;
 const std::string restartFilename
-    = testFilesDir + "/xios_test_restart_20230317171100-20230317201059.nc";
+    = testFilesDir + "/restart_2023-03-17T17:11:00Z-2023-03-17T20:10:59Z.nc";
 
 static const int DGCOMP = 6;
 static const int DGSTRESSCOMP = 8;
@@ -147,8 +147,8 @@ MPI_TEST_CASE("TestXiosReadRestart", 2)
 
     // Remove the restart files
     if (rank == 0) {
-        std::filesystem::remove("xios_test_restart_20230317171100-20230317201059.nc");
-        std::filesystem::remove("xios_test_restart_20230317201100-20230317231059.nc");
+        std::filesystem::remove("restart_2023-03-17T17:11:00Z-2023-03-17T20:10:59Z.nc");
+        std::filesystem::remove("restart_2023-03-17T20:11:00Z-2023-03-17T23:10:59Z.nc");
     }
 
     xiosHandler.context_finalize();

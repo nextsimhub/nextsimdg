@@ -19,7 +19,7 @@
 
 const std::string testFilesDir = TEST_FILES_DIR;
 const std::string diagnosticFilename
-    = testFilesDir + "/xios_test_diagnostic_20230317171100-20230317201059.nc";
+    = testFilesDir + "/diagnostic_2023-03-17T17:11:00Z-2023-03-17T20:10:59Z.nc";
 
 static const int DGCOMP = 6;
 static const int DGSTRESSCOMP = 8;
@@ -101,8 +101,8 @@ MPI_TEST_CASE("TestXiosReadDiagnostic", 2)
     int rank;
     MPI_Comm_rank(test_comm, &rank);
     if (rank == 0) {
-        std::filesystem::remove("xios_test_diagnostic_20230317171100-20230317201059.nc");
-        std::filesystem::remove("xios_test_diagnostic_20230317201100-20230317231059.nc");
+        std::filesystem::remove("diagnostic_2023-03-17T17:11:00Z-2023-03-17T20:10:59Z.nc");
+        std::filesystem::remove("diagnostic_2023-03-17T20:11:00Z-2023-03-17T23:10:59Z.nc");
     }
 
     xiosHandler.context_finalize();

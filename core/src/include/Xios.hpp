@@ -83,38 +83,16 @@ public:
     ModelArray::Type getFieldType(const std::string& fieldId);
     void setFieldType(const std::string& fieldId, const ModelArray::Type& type);
 
-    /* File */
-    void createFile(const std::string& fileId, const int& fieldType);
-    void setFileType(const std::string& fileId, const std::string& fileType);
-    void setFileOutputFreq(const std::string& fileId, const Duration& outputFreq);
-    void setFileParAccess(const std::string& fileId, const std::string& parAccess);
-    std::string getFileType(const std::string& fileId);
-    Duration getFileOutputFreq(const std::string& fileId);
-    std::string getFileMode(const std::string& fileId);
-    std::string getFileParAccess(const std::string& fileId);
-    void fileAddField(const std::string& fileId, const std::string& fieldId);
-    std::vector<std::string> fileGetFieldIds(const std::string& fileId);
-
     enum {
         ENABLED_KEY,
         OUTPUT_FIELD_NAMES_KEY,
-        OUTPUT_SPLITFREQ_KEY,
         INPUT_FIELD_NAMES_KEY,
         DIAGNOSTIC_PERIOD_KEY,
         DIAGNOSTIC_FILE_KEY,
         DIAGNOSTIC_FIELD_NAMES_KEY,
-        DIAGNOSTIC_SPLITFREQ_KEY,
         FORCING_PERIOD_KEY,
         FORCING_FILE_KEY,
         FORCING_FIELD_NAMES_KEY,
-    };
-
-    // TODO: Make the following enum private
-    enum {
-        OUTPUT_RESTART,
-        INPUT_RESTART,
-        DIAGNOSTIC,
-        FORCING,
     };
 
 protected:
@@ -197,13 +175,20 @@ private:
     /* File */
     xios::CFileGroup* getFileGroup();
     xios::CFile* getFile(const std::string& fileId);
-    void setFileMode(const std::string& fileId, const std::string& mode);
     std::string outputFileId;
+    std::string outputFormatStr = "%y-%mo-%dT%h:%mi:%sZ";
     std::string inputFileId;
     std::string diagnosticFilename;
     std::string diagnosticFileId;
+    std::string diagnosticFormatStr = "%y-%mo-%dT%h:%mi:%sZ";
     std::string forcingFilename;
     std::string forcingFileId;
+    enum {
+        OUTPUT_RESTART,
+        INPUT_RESTART,
+        DIAGNOSTIC,
+        FORCING,
+    };
     const std::map<int, std::string&> fileMap = {
         { OUTPUT_RESTART, outputFileId },
         { INPUT_RESTART, inputFileId },
@@ -211,6 +196,16 @@ private:
         { FORCING, forcingFileId },
     };
     void setupFiles();
+    void createFile(const std::string& fileId);
+    void fileAddField(const std::string& fileId, const std::string& fieldId);
+    std::vector<std::string> fileGetFieldIds(const std::string& fileId);
+    const std::map<std::string, std::string> formatStrMap = {
+        { "%Y", "%y" },
+        { "%m-", "%mo-" },
+        { "%H", "%h" },
+        { "%M", "%mi" },
+        { "%S", "%s" },
+    };
     void postprocessOutputFiles();
 
     /* I/O */
