@@ -132,7 +132,6 @@ bool cxios_is_defined_field_operation(xios::CField* field_hdl);
 bool cxios_is_defined_field_grid_ref(xios::CField* field_hdl);
 bool cxios_is_defined_field_read_access(xios::CField* field_hdl);
 bool cxios_is_defined_field_freq_offset(xios::CField* field_hdl);
-bool cxios_is_defined_field_field_ref(xios::CField* field_hdl);
 
 // file group methods
 void cxios_filegroup_handle_create(xios::CFileGroup** _ret, const char* _id, int _id_len);

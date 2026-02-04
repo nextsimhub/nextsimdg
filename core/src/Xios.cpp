@@ -168,21 +168,20 @@ void Xios::close_context_definition()
 
                 // Ensure that base fields have a grid reference if not already defined
                 if (!cxios_is_defined_field_grid_ref(field)) {
-                    const std::string gridRef = getFieldGridRef(inputFieldId);
-                    cxios_set_field_grid_ref(field, gridRef.c_str(), gridRef.length());
+                    setFieldGridRef(fieldId, getFieldGridRef(inputFieldId));
                 }
 
-                // Link the input field back to the base field with a field reference
-                xios::CField* inputField = getField(inputFieldId);
-                if (cxios_is_defined_field_field_ref(inputField)) {
+                // Link the input field to the base field if their types align
+                const ModelArray::Type& inputType = getFieldType(inputFieldId);
+                const ModelArray::Type& baseType = getFieldType(fieldId);
+                if (inputType == baseType) {
+                    cxios_set_field_field_ref(
+                        getField(inputFieldId), fieldId.c_str(), fieldId.length());
+                } else {
+                    // TODO: Support having a HField for reading and a DGField for writing
                     throw std::runtime_error(
-                        "Xios: Field reference already exists for input field '" + inputFieldId
+                        "Xios: Inconsistent field types for reading and writing field '" + fieldId
                         + "'");
-                }
-                cxios_set_field_field_ref(inputField, fieldId.c_str(), fieldId.length());
-                if (!cxios_is_defined_field_field_ref(inputField)) {
-                    throw std::runtime_error(
-                        "Xios: Failed to set reference for input field '" + inputFieldId + "'");
                 }
             }
         }
