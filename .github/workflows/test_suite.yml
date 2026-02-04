@@ -91,9 +91,22 @@ jobs:
               -DCMAKE_CXX_COMPILER="$(which mpic++)" ..
         make -j 4
 
-    # tmate can be used to get an interactive ssh session to the github runner
-    # for debugging actions. See
-    # [here](https://github.com/mxschmitt/action-tmate) for more information.
-    # uncomment these lines to debug mac build
-    - name: Setup tmate session
-      uses: mxschmitt/action-tmate@v3
+    # # tmate can be used to get an interactive ssh session to the github runner
+    # # for debugging actions. See
+    # # [here](https://github.com/mxschmitt/action-tmate) for more information.
+    # # uncomment these lines to debug mac build
+    # - name: Setup tmate session
+    #   uses: mxschmitt/action-tmate@v3
+
+    - name: run MPI tests
+      run: |
+        # set environment variables for MPI tests to run in docker container
+        export OMPI_ALLOW_RUN_AS_ROOT=1
+        export OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1
+        export OMPI_MCA_rmaps_base_oversubscribe=1
+        . /opt/spack-environment/activate.sh
+        apt update
+        apt install -y wget
+        cd build
+        (cd core/test && wget "ftp://ftp.nersc.no/nextsim/netCDF/partition_metadata_1.nc")
+        ctest -V
