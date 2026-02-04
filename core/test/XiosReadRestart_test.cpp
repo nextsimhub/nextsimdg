@@ -6,12 +6,11 @@
 #include <doctest/extensions/doctest_mpi.h>
 #undef INFO
 
-#include "StructureModule/include/ParametricGrid.hpp"
 #include "include/Finalizer.hpp"
 #include "include/Model.hpp"
 #include "include/ModelMPI.hpp"
 #include "include/NextsimModule.hpp"
-#include "include/ParaGridIO.hpp"
+#include "include/StructureFactory.hpp"
 #include "include/Xios.hpp"
 #include "include/gridNames.hpp"
 
@@ -48,6 +47,12 @@ MPI_TEST_CASE("TestXiosReadRestart", 2)
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
 
+    // Check the input file exists
+    if (!std::filesystem::exists(restartFilename)) {
+        throw std::runtime_error(
+            "XiosReadRestart_test: Input file not found. Did you run XiosWrite_test?");
+    }
+
     // Create ModelMPI instance based off the test communicator
     auto& modelMPI = ModelMPI::getInstance(test_comm);
 
@@ -57,28 +62,11 @@ MPI_TEST_CASE("TestXiosReadRestart", 2)
     model.configureRestarts();
     model.configureTime();
 
-    // Get the Xios singleton instance and check it's initialized
+    // Get the Xios singleton instance and check calendar step is zero initially
     // NOTE: The singleton is created when Xios::getInstance() is first called. In this test, this
     //       happens when the time sets set by ModelMetadata::setTime(). This occurs in the call to
     //       Model::configureTime() above.
     Xios& xiosHandler = Xios::getInstance();
-
-    // Create ParametricGrid and ParaGridIO instances
-    // NOTE: XIOS axes, domains, and grids are created by the ParaGridIO constructor
-    Module::setImplementation<IStructure>("Nextsim::ParametricGrid");
-    ParametricGrid grid;
-    ParaGridIO* pio = new ParaGridIO(grid);
-    grid.setIO(pio);
-
-    xiosHandler.close_context_definition();
-
-    // Check the input file exists
-    if (!std::filesystem::exists(restartFilename)) {
-        throw std::runtime_error(
-            "XiosReadRestart_test: Input file not found. Did you run XiosWrite_test?");
-    }
-
-    // Check calendar step is zero initially
     REQUIRE(xiosHandler.getCalendarStep() == 0);
 
     // Deduce the local lengths of the two dimensions
@@ -88,10 +76,13 @@ MPI_TEST_CASE("TestXiosReadRestart", 2)
     REQUIRE(ModelArray::size(ModelArray::Dimension::DG) == DGCOMP);
 
     // Read restarts from file and check they take the expected values
+    // NOTE: The ParametricGrid is created and the XIOS context definition is closed in the call to
+    //       StructureFactory::stateFromFile()
     int rank;
     MPI_Comm_rank(test_comm, &rank);
     float ts = 2; // Corresponds to 2023-03-17T20:10:59Z
-    for (const auto [fieldName, modelarray] : grid.getModelState(restartFilename).data) {
+    for (const auto [fieldName, modelarray] :
+        StructureFactory::stateFromFile(restartFilename).data) {
         if (fieldName == maskName) {
             for (size_t j = 0; j < ny; ++j) {
                 for (size_t i = 0; i < nx; ++i) {

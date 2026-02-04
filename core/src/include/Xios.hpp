@@ -105,6 +105,12 @@ private:
     void setupClient();
 
     /* Context */
+    enum {
+        PRE_DEFINITION, // XIOS context has not yet been initialized
+        DEFINITION_OPEN, // XIOS context has been initialized but the definition has not been closed
+        DEFINITION_CLOSED, // XIOS context definition has been closed
+    };
+    int contextStatus = PRE_DEFINITION;
     const std::string contextId = "nextSIM-DG";
     void setupContext();
 
