@@ -81,13 +81,13 @@ MPI_TEST_CASE("TestXiosReadRestart", 2)
     MPI_Comm_rank(test_comm, &rank);
     float ts = 2; // Corresponds to 2023-03-17T20:10:59Z
     ModelState modelstate = StructureFactory::stateFromFile(restartFilename);
-    ModelArray mask = modelstate.data.at(maskName);
+    ModelArray& mask = modelstate.data.at(maskName);
     for (size_t j = 0; j < ny; ++j) {
         for (size_t i = 0; i < nx; ++i) {
             REQUIRE(mask(i, j) == doctest::Approx(i == 0 && j == 0 ? 0.0 : 1.0));
         }
     }
-    for (const auto [fieldName, modelarray] : modelstate.data) {
+    for (const auto& [fieldName, modelarray] : modelstate.data) {
         if (fieldName == longitudeName) {
             for (size_t j = 0; j < ny; ++j) {
                 for (size_t i = 0; i < nx; ++i) {
