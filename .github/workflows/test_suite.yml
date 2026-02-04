@@ -57,11 +57,12 @@ jobs:
 
     - name: Python installs
       run: |
+        sudo apt install gdb
         apt -y update
         apt install -y python3-venv
         python3 -m venv ~/nextsim
         . $HOME/nextsim/bin/activate
-        pip install jinja2
+        pip install jinja2 mdb-debugger
 
     - name: build domain_decomp
       run: |
@@ -84,7 +85,11 @@ jobs:
         # provide path to domain_decomp binary
         export PATH="${PATH}:${PWD}/domain_decomp/build"
         mkdir -p build && cd build
-        cmake -DENABLE_MPI=ON -Dxios_DIR="/xios" -DENABLE_XIOS=ON -DCMAKE_CXX_COMPILER="$(which mpic++)" ..
+        cmake -DCMAKE_BUILD_TYPE=Debug \
+              -DENABLE_MPI=ON \
+              -Dxios_DIR="/xios" \
+              -DENABLE_XIOS=ON \
+              -DCMAKE_CXX_COMPILER="$(which mpic++)" ..
         make -j 4
 
     # tmate can be used to get an interactive ssh session to the github runner
