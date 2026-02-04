@@ -223,7 +223,7 @@ jobs:
     # [here](https://github.com/mxschmitt/action-tmate) for more information.
     # uncomment these lines to debug mac build
     # - name: Setup tmate session
-    #   uses: mxschmitt/action-tmate@v3
+    #   uses: mxschmitt/action-tmate@c0afd6f790e3a5564914980036ebf83216678101 # v3
 
     # Note that eigen@3 is keg-only, which means it was not symlinked into
     # /opt/homebrew. Therefore we need to add it to CMAKE_PREFIX_PATH so CMake
