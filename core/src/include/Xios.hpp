@@ -73,14 +73,7 @@ public:
     size_t getAxisSize(const std::string& axisId);
 
     /* Field */
-    void createField(const std::string& fieldId);
-    void setFieldGridRef(const std::string& fieldId, const std::string& gridRef);
-    void setFieldFreqOffset(const std::string& fieldId, const Duration& freqOffset);
-    std::string getFieldGridRef(const std::string& fieldId);
-    bool getFieldReadAccess(const std::string& fieldId);
-    Duration getFieldFreqOffset(const std::string& fieldId);
     std::set<std::string> configGetForcingFieldNames();
-    ModelArray::Type getFieldType(const std::string& fieldId);
     void setFieldType(const std::string& fieldId, const ModelArray::Type& type);
 
     enum {
@@ -167,14 +160,23 @@ private:
     std::set<std::string> configGetOutputRestartFieldNames();
     std::set<std::string> configGetInputRestartFieldNames();
     std::set<std::string> configGetDiagnosticFieldNames();
-    bool configCheckField(const std::string& fieldId, const bool& readAccess);
+    void createField(const std::string& fieldId, const std::string& fileId);
+    std::string createInheritedField(const std::string& fieldId, const int ioType);
+    void setFieldOperation(const std::string& fieldId, const int ioType);
     void setFieldReadAccess(const std::string& fieldId, const bool& readAccess);
+    void setFieldGridRef(const std::string& fieldId, const std::string& gridRef);
+    void setFieldFreqOffset(const std::string& fieldId, const Duration& freqOffset);
+    std::string getFieldGridRef(const std::string& fieldId);
+    bool getFieldReadAccess(const std::string& fieldId);
+    Duration getFieldFreqOffset(const std::string& fieldId);
+    ModelArray::Type getFieldType(const std::string& fieldId);
     std::map<std::string, ModelArray::Type> fieldTypes;
     void setupFields();
 
     /* File */
     xios::CFileGroup* getFileGroup();
     xios::CFile* getFile(const std::string& fileId);
+    int getFileIOType(const std::string& fileId);
     std::string outputFileId;
     std::string outputFormatStr = "%y-%mo-%dT%h:%mi:%sZ";
     std::string inputFileId;

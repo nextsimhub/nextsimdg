@@ -227,3 +227,15 @@ Developer notes
 * The nextSIM-DG XIOS integration is set up such that the filename and field
   names coincide with the fileId and fieldId of the corresponding ``File`` and
   ``Field`` objects.
+
+* Allowing fields to be both read and written in the same run requires
+  additional fields. This is because the two may have different I/O modes, e.g.,
+  reading or writing at a specified frequency (``"instant"```), writing after
+  applying a reduction operator (e.g., ``"average"``), or reading or writing
+  once at the start of the time window (`"once"`). We use the 'base' field
+  associated with the field ID for writing. For reading a field, we create a
+  separate 'inherited' field, which has the same name but with ID appended by
+  ``"_input"`` or ``"_forcing"``, depending on whether the field is to be read
+  as a restart or as a forcing. The inherited field references the base one so
+  that they share the same data, but differ in how they are handled for I/O. All
+  of this happens automatically in the ``createField`` function.

@@ -201,22 +201,6 @@ if(ENABLE_MPI)
         )
         target_link_libraries(testXiosAxis_MPI3 PRIVATE nextsimlib doctest::doctest)
 
-        add_executable(testXiosField_MPI3 "XiosField_test.cpp" "MainMPI.cpp")
-        target_compile_definitions(testXiosField_MPI3
-            PRIVATE
-                USE_XIOS
-                TEST_FILES_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\"
-        )
-        target_include_directories(
-            testXiosField_MPI3
-            PRIVATE
-                ${PHYSICS_INCLUDE_DIRS}
-                "${MODEL_INCLUDE_DIR}"
-                "${XIOS_INCLUDE_LIST}"
-                "${ModulesRoot}/StructureModule"
-        )
-        target_link_libraries(testXiosField_MPI3 PRIVATE nextsimlib doctest::doctest)
-
         add_executable(testXiosReadForcing_MPI2 "XiosReadForcing_test.cpp" "MainMPI.cpp")
         target_compile_definitions(testXiosReadForcing_MPI2
             PRIVATE
@@ -297,15 +281,31 @@ if(ENABLE_MPI)
         )
         target_link_libraries(testXiosWriteRestart_MPI2 PRIVATE nextsimlib doctest::doctest)
 
+        add_executable(testXiosReadWriteRestart_MPI2 "XiosReadWriteRestart_test.cpp" "MainMPI.cpp")
+        target_compile_definitions(testXiosReadWriteRestart_MPI2
+            PRIVATE
+                USE_XIOS
+                TEST_FILES_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\"
+        )
+        target_include_directories(
+          testXiosReadWriteRestart_MPI2
+            PRIVATE
+                ${PHYSICS_INCLUDE_DIRS}
+                "${MODEL_INCLUDE_DIR}"
+                "${XIOS_INCLUDE_LIST}"
+                "${ModulesRoot}/StructureModule"
+        )
+        target_link_libraries(testXiosReadWriteRestart_MPI2 PRIVATE nextsimlib doctest::doctest)
+
         set(XIOS_TESTS
             testXiosCalendar_MPI1
             testXiosAxis_MPI3
-            testXiosField_MPI3
             testXiosReadForcing_MPI2
             testXiosReadDiagnostic_MPI2
             testXiosReadRestart_MPI2
             testXiosWriteDiagnostic_MPI2
             testXiosWriteRestart_MPI2
+            testXiosReadWriteRestart_MPI2
         )
 
         add_mpi_test("${XIOS_TESTS}")
