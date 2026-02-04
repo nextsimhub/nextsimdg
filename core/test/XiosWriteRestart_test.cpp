@@ -166,7 +166,9 @@ MPI_TEST_CASE("TestXiosWriteRestart", 2)
         for (size_t j = 0; j < ny; ++j) {
             for (size_t i = 0; i < nx; ++i) {
                 for (size_t d = 0; d < DGSTRESSCOMP; ++d) {
-                    tice.components({ i, j })[d] = 2.0 * ts * (d + DGSTRESSCOMP * (i + nx * j));
+                    const float value
+                        = (i == 0 && j == 0) ? NAN : 2.0 * ts * (d + DGSTRESSCOMP * (i + nx * j));
+                    tice.components({ i, j })[d] = value;
                 }
             }
         }

@@ -141,8 +141,13 @@ MPI_TEST_CASE("TestXiosReadRestart", 2)
             for (size_t j = 0; j < ny; ++j) {
                 for (size_t i = 0; i < nx; ++i) {
                     for (size_t d = 0; d < DGSTRESSCOMP; ++d) {
-                        const float expected = 2.0 * ts * (d + DGSTRESSCOMP * (i + nx * j));
-                        REQUIRE(modelarray.components({ i, j })[d] == doctest::Approx(expected));
+                        if (i == 0 && j == 0) {
+                            REQUIRE(std::isnan(modelarray.components({ i, j })[d]));
+                        } else {
+                            const float expected = 2.0 * ts * (d + DGSTRESSCOMP * (i + nx * j));
+                            REQUIRE(
+                                modelarray.components({ i, j })[d] == doctest::Approx(expected));
+                        }
                     }
                 }
             }
