@@ -57,9 +57,8 @@ jobs:
 
     - name: Python installs
       run: |
-        apt install gdb
         apt -y update
-        apt install -y python3-venv
+        apt install -y python3-venv gdb
         python3 -m venv ~/nextsim
         . $HOME/nextsim/bin/activate
         pip install jinja2 mdb-debugger
