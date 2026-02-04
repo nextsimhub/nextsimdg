@@ -815,12 +815,12 @@ void Xios::createField(const std::string& fieldId, const std::string& fileId)
     }
 
     if (ioType == INPUT_RESTART || ioType == FORCING) {
-        // Create an inherited field and set it's operation type and read access and associate it
+        // Create an input field and set it's operation type and read access and associate it
         // with the file
-        const std::string inheritedFieldId = createInheritedField(fieldId, ioType);
-        setFieldOperation(inheritedFieldId, ioType);
-        setFieldReadAccess(inheritedFieldId, true);
-        fileAddField(fileId, inheritedFieldId);
+        const std::string inputFieldId = createInputField(fieldId, ioType);
+        setFieldOperation(inputFieldId, ioType);
+        setFieldReadAccess(inputFieldId, true);
+        fileAddField(fileId, inputFieldId);
     } else {
         // Set the field operation type and read access and associate the field with the file
         setFieldOperation(fieldId, ioType);
@@ -859,71 +859,67 @@ void Xios::setFieldOperation(const std::string& fieldId, const int ioType)
 }
 
 /*
- * Create an inherited field for reading.
+ * Create an input field for reading.
  *
  * @param   fieldId the base field ID
  * @param   ioType the enum for the I/O type
- * @return  inheritedFieldId the inherited field ID
+ * @return  inputFieldId the input field ID
  * @details When reading a field from file, we need to define a separate field that references the
  *          'base' field, but has it's own I/O operation mode and read access properties.
  */
-std::string Xios::createInheritedField(const std::string& fieldId, const int ioType)
+std::string Xios::createInputField(const std::string& fieldId, const int ioType)
 {
-    std::string inheritedFieldId;
+    std::string inputFieldId;
     if (ioType == INPUT_RESTART) {
-        inheritedFieldId = fieldId + "_input";
+        inputFieldId = fieldId + "_input";
     } else if (ioType == FORCING) {
-        inheritedFieldId = fieldId + "_forcing";
+        inputFieldId = fieldId + "_forcing";
     } else if (ioType == OUTPUT_RESTART || ioType == DIAGNOSTIC) {
-        throw std::runtime_error(
-            "Xios: Inherited output field not needed for field '" + fieldId + "'");
+        throw std::runtime_error("Xios: Input field inconsistent with I/O type");
     } else {
         throw std::runtime_error("Xios: Unknown I/O type for field '" + fieldId + "'");
     }
 
-    // Check if the inherited field already exists
+    // Check if the input field already exists
     bool exists;
-    cxios_field_valid_id(&exists, inheritedFieldId.c_str(), inheritedFieldId.length());
+    cxios_field_valid_id(&exists, inputFieldId.c_str(), inputFieldId.length());
     if (exists) {
-        throw std::runtime_error("Xios: Inherited field '" + inheritedFieldId + "' already exists");
+        throw std::runtime_error("Xios: input field '" + inputFieldId + "' already exists");
     }
 
-    // Attempt to create the inherited field
-    xios::CField* inheritedField = NULL;
+    // Attempt to create the input field
+    xios::CField* inputField = NULL;
     cxios_xml_tree_add_field(
-        getFieldGroup(), &inheritedField, inheritedFieldId.c_str(), inheritedFieldId.length());
-    if (!inheritedField) {
-        throw std::runtime_error(
-            "Xios: Null pointer for inherited field '" + inheritedFieldId + "'");
+        getFieldGroup(), &inputField, inputFieldId.c_str(), inputFieldId.length());
+    if (!inputField) {
+        throw std::runtime_error("Xios: Null pointer for input field '" + inputFieldId + "'");
     }
-    cxios_field_valid_id(&exists, inheritedFieldId.c_str(), inheritedFieldId.length());
+    cxios_field_valid_id(&exists, inputFieldId.c_str(), inputFieldId.length());
     if (!exists) {
-        throw std::runtime_error(
-            "Xios: Failed to create inherited field '" + inheritedFieldId + "'");
+        throw std::runtime_error("Xios: Failed to create input field '" + inputFieldId + "'");
     }
 
-    // Set inherited field name
-    if (cxios_is_defined_field_name(inheritedField)) {
-        Logged::warning("Xios: Overwriting name for inherited field '" + inheritedFieldId + "'");
+    // Set input field name
+    if (cxios_is_defined_field_name(inputField)) {
+        Logged::warning("Xios: Overwriting name for input field '" + inputFieldId + "'");
     }
-    cxios_set_field_name(inheritedField, fieldId.c_str(), fieldId.length());
-    if (!cxios_is_defined_field_name(inheritedField)) {
-        throw std::runtime_error(
-            "Xios: Failed to set name for inherited field '" + inheritedFieldId + "'");
-    }
-
-    // Link the inherited field back to the base field with a field reference
-    if (cxios_is_defined_field_field_ref(inheritedField)) {
-        throw std::runtime_error(
-            "Xios: Field reference already exists for inherited field '" + inheritedFieldId + "'");
-    }
-    cxios_set_field_field_ref(inheritedField, fieldId.c_str(), fieldId.length());
-    if (!cxios_is_defined_field_field_ref(inheritedField)) {
-        throw std::runtime_error(
-            "Xios: Failed to set reference for inherited field '" + inheritedFieldId + "'");
+    cxios_set_field_name(inputField, fieldId.c_str(), fieldId.length());
+    if (!cxios_is_defined_field_name(inputField)) {
+        throw std::runtime_error("Xios: Failed to set name for input field '" + inputFieldId + "'");
     }
 
-    return inheritedFieldId;
+    // Link the input field back to the base field with a field reference
+    if (cxios_is_defined_field_field_ref(inputField)) {
+        throw std::runtime_error(
+            "Xios: Field reference already exists for input field '" + inputFieldId + "'");
+    }
+    cxios_set_field_field_ref(inputField, fieldId.c_str(), fieldId.length());
+    if (!cxios_is_defined_field_field_ref(inputField)) {
+        throw std::runtime_error(
+            "Xios: Failed to set reference for input field '" + inputFieldId + "'");
+    }
+
+    return inputFieldId;
 }
 
 /*!

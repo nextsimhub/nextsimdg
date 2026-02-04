@@ -167,7 +167,7 @@ private:
     std::set<std::string> configGetInputRestartFieldNames();
     std::set<std::string> configGetDiagnosticFieldNames();
     void createField(const std::string& fieldId, const std::string& fileId);
-    std::string createInheritedField(const std::string& fieldId, const int ioType);
+    std::string createInputField(const std::string& fieldId, const int ioType);
     void setFieldOperation(const std::string& fieldId, const int ioType);
     void setFieldReadAccess(const std::string& fieldId, const bool& readAccess);
     void setFieldGridRef(const std::string& fieldId, const std::string& gridRef);
