@@ -55,7 +55,8 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
     // Get all variables in the file and load them into a new ModelState
     ModelState state;
     for (const std::string& fieldId : xiosHandler.configGetInputRestartFieldNames()) {
-        const ModelArray::Type& type = xiosHandler.getFieldType(fieldId);
+        const std::string inputFieldId = fieldId + "_input";
+        const ModelArray::Type& type = xiosHandler.getFieldType(inputFieldId);
         if (type == ModelArray::Type::H) {
             HField field(ModelArray::Type::H);
             field.resize();
@@ -125,11 +126,18 @@ ModelState ParaGridIO::readForcingTimeStatic(
             throw std::runtime_error("ParaGridIO::readForcingTimeStatic: field " + fieldId
                 + " is not configured as a forcing.");
         }
+        const std::string forcingFieldId = fieldId + "_forcing";
+        const ModelArray::Type& type = xiosHandler.getFieldType(forcingFieldId);
         // ASSUME all forcings are HFields: finite volume fields on the same
         // grid as ice thickness
-        HField field(ModelArray::Type::H);
-        field.resize();
-        state.merge(ModelState { { { fieldId, field } }, {} });
+        if (type == ModelArray::Type::H) {
+            HField field(ModelArray::Type::H);
+            field.resize();
+            state.merge(ModelState { { { fieldId, field } }, {} });
+        } else {
+            throw std::runtime_error("ParaGridIO::readForcingTimeStatic: field type for field "
+                + fieldId + " is not supported.");
+        }
     }
 
     // Read all forcings from file

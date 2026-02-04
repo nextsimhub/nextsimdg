@@ -1061,14 +1061,14 @@ ModelArray::Type Xios::getFieldType(const std::string& fieldId) { return fieldTy
 void Xios::setFieldType(
     const std::string& fieldId, const ModelArray::Type& fieldType, const int ioType)
 {
-    fieldTypes[fieldId] = fieldType;
+    std::string ioFieldId = fieldId;
     if (ioType == INPUT_RESTART) {
-        setFieldGridRef(fieldId + "_input", gridIds[fieldType]);
+        ioFieldId += "_input";
     } else if (ioType == FORCING) {
-        setFieldGridRef(fieldId + "_forcing", gridIds[fieldType]);
-    } else {
-        setFieldGridRef(fieldId, gridIds[fieldType]);
+        ioFieldId += "_forcing";
     }
+    fieldTypes[ioFieldId] = fieldType;
+    setFieldGridRef(ioFieldId, gridIds[fieldType]);
 }
 
 /*!
