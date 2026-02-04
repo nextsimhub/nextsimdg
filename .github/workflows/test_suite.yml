@@ -57,7 +57,7 @@ jobs:
 
     - name: Python installs
       run: |
-        sudo apt install gdb
+        apt install gdb
         apt -y update
         apt install -y python3-venv
         python3 -m venv ~/nextsim
