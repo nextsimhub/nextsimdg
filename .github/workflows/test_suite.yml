@@ -84,7 +84,7 @@ jobs:
         # provide path to domain_decomp binary
         export PATH="${PATH}:${PWD}/domain_decomp/build"
         mkdir -p build && cd build
-        cmake -DCMAKE_BUILD_TYPE=Debug \
+        cmake -DCMAKE_BUILD_TYPE=Release \
               -DENABLE_MPI=ON \
               -Dxios_DIR="/xios" \
               -DENABLE_XIOS=ON \
