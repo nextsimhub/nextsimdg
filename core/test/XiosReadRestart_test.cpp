@@ -154,13 +154,19 @@ MPI_TEST_CASE("TestXiosReadRestart", 2)
         } else if (fieldName == uName) {
             for (size_t j = 0; j < CGDEGREE * ny + 1; ++j) {
                 for (size_t i = 0; i < CGDEGREE * nx + 1; ++i) {
-                    float expected;
                     if (rank == 0) {
-                        expected = ts * (i + 1) * (j + 1);
+                        if (i <= 1 && j <= 1) {
+                            REQUIRE(std::isnan(modelarray(i, j)));
+                        } else {
+                            REQUIRE(modelarray(i, j) == doctest::Approx(ts * (i + 1) * (j + 1)));
+                        }
                     } else {
-                        expected = ts * (i + 5) * (j + 1);
+                        if (i == 1 && j == 1) {
+                            REQUIRE(std::isnan(modelarray(i, j)));
+                        } else {
+                            REQUIRE(modelarray(i, j) == doctest::Approx(ts * (i + 5) * (j + 1)));
+                        }
                     }
-                    REQUIRE(modelarray(i, j) == doctest::Approx(expected));
                 }
             }
         }

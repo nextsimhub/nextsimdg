@@ -176,11 +176,13 @@ MPI_TEST_CASE("TestXiosWriteRestart", 2)
         // Update CGField restarts
         for (size_t j = 0; j < CGDEGREE * ny + 1; ++j) {
             for (size_t i = 0; i < CGDEGREE * nx + 1; ++i) {
+                float value;
                 if (rank == 0) {
-                    uice(i, j) = 1.0 * ts * ((i + 1) * (j + 1));
+                    value = (i <= 1 && j <= 1) ? NAN : 1.0 * ts * ((i + 1) * (j + 1));
                 } else {
-                    uice(i, j) = 1.0 * ts * ((i + 5) * (j + 1));
+                    value = (i == 1 && j == 1) ? NAN : 1.0 * ts * ((i + 5) * (j + 1));
                 }
+                uice(i, j) = value;
             }
         }
 
