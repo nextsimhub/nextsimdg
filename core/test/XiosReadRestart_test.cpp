@@ -114,7 +114,8 @@ MPI_TEST_CASE("TestXiosReadRestart", 2)
                     REQUIRE(modelarray.components({ i, j })[1] == doctest::Approx(expected_y));
                 }
             }
-        } else if (fieldName == ciceName || fieldName == hiceName || fieldName == damageName) {
+        } else if (fieldName == ciceName || fieldName == hiceName || fieldName == damageName
+            || fieldName == hsnowName) {
             for (size_t j = 0; j < ny; ++j) {
                 for (size_t i = 0; i < nx; ++i) {
                     for (size_t d = 0; d < DGCOMP; ++d) {
@@ -125,15 +126,6 @@ MPI_TEST_CASE("TestXiosReadRestart", 2)
                             REQUIRE(
                                 modelarray.components({ i, j })[d] == doctest::Approx(expected));
                         }
-                    }
-                }
-            }
-        } else if (fieldName == hsnowName) {
-            for (size_t j = 0; j < ny; ++j) {
-                for (size_t i = 0; i < nx; ++i) {
-                    for (size_t d = 0; d < DGCOMP; ++d) {
-                        const float expected = ((d == 0) ? mask(i, j) : 0.0);
-                        REQUIRE(modelarray.components({ i, j })[d] == doctest::Approx(expected));
                     }
                 }
             }
