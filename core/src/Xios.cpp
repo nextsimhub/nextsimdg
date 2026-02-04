@@ -151,14 +151,33 @@ void Xios::close_context_definition()
 {
     if (isEnabled && contextStatus == DEFINITION_OPEN) {
 
-        // Ensure that base fields have operation type 'instant' if not already defined
-        std::set<std::string> fieldIds = configGetInputRestartFieldNames();
-        std::set<std::string> forcingFieldIds = configGetForcingFieldNames();
-        fieldIds.insert(forcingFieldIds.begin(), forcingFieldIds.end());
-        for (const std::string& fieldId : fieldIds) {
-            xios::CField* field = getField(fieldId);
-            if (!cxios_is_defined_field_operation(field)) {
-                cxios_set_field_operation(field, "instant", strlen("instant"));
+        // Special handling of input fields
+        for (int ioType : { INPUT_RESTART, FORCING }) {
+            const std::set<std::string> fieldIds = (ioType == INPUT_RESTART)
+                ? configGetInputRestartFieldNames()
+                : configGetForcingFieldNames();
+            for (const std::string& fieldId : fieldIds) {
+
+                // Ensure that base fields have operation type 'instant' if not already defined
+                xios::CField* field = getField(fieldId);
+                if (!cxios_is_defined_field_operation(field)) {
+                    cxios_set_field_operation(field, "instant", strlen("instant"));
+                }
+
+                // Link the input field back to the base field with a field reference
+                const std::string inputFieldId
+                    = (ioType == INPUT_RESTART) ? fieldId + "_input" : fieldId + "_forcing";
+                xios::CField* inputField = getField(inputFieldId);
+                if (cxios_is_defined_field_field_ref(inputField)) {
+                    throw std::runtime_error(
+                        "Xios: Field reference already exists for input field '" + inputFieldId
+                        + "'");
+                }
+                cxios_set_field_field_ref(inputField, fieldId.c_str(), fieldId.length());
+                if (!cxios_is_defined_field_field_ref(inputField)) {
+                    throw std::runtime_error(
+                        "Xios: Failed to set reference for input field '" + inputFieldId + "'");
+                }
             }
         }
 
@@ -906,17 +925,6 @@ std::string Xios::createInputField(const std::string& fieldId, const int ioType)
     cxios_set_field_name(inputField, fieldId.c_str(), fieldId.length());
     if (!cxios_is_defined_field_name(inputField)) {
         throw std::runtime_error("Xios: Failed to set name for input field '" + inputFieldId + "'");
-    }
-
-    // Link the input field back to the base field with a field reference
-    if (cxios_is_defined_field_field_ref(inputField)) {
-        throw std::runtime_error(
-            "Xios: Field reference already exists for input field '" + inputFieldId + "'");
-    }
-    cxios_set_field_field_ref(inputField, fieldId.c_str(), fieldId.length());
-    if (!cxios_is_defined_field_field_ref(inputField)) {
-        throw std::runtime_error(
-            "Xios: Failed to set reference for input field '" + inputFieldId + "'");
     }
 
     return inputFieldId;
