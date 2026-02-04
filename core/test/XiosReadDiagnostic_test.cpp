@@ -34,7 +34,7 @@ namespace Nextsim {
  * 2. Test the file writing functionality via `writeDiagnosticTime` in the sense of checking that
  *    time-averaging is applied.
  */
-MPI_TEST_CASE("TestXiosReadDiagnostic", 2)
+MPI_TEST_CASE("TestXiosReadDiagnostic", 3)
 {
     std::stringstream config;
     config << "[model]" << std::endl;
@@ -43,7 +43,7 @@ MPI_TEST_CASE("TestXiosReadDiagnostic", 2)
     config << "time_step = P0-0T01:30:00" << std::endl;
     config << "init_file = " << diagnosticFilename << std::endl;
     config << "restart_period = P0-0T03:00:00" << std::endl;
-    config << "partition_file = xios_test_partition_metadata_2.nc" << std::endl;
+    config << "partition_file = xios_test_partition_metadata_3.nc" << std::endl;
     config << "[XiosInput]" << std::endl;
     config << "field_names = " << hsnowName << std::endl;
     config << "period = P0-0T03:00:00" << std::endl;
