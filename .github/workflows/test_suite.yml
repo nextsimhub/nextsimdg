@@ -74,8 +74,7 @@ jobs:
         apt install -y python3-venv
         python3 -m venv ~/nextsim
         . $HOME/nextsim/bin/activate
-        pip install numpy
-        pip install netCDF4
+        pip install netCDF4 numpy
 
     - name: run serial tests
       run: |
@@ -157,7 +156,7 @@ jobs:
         apt install -y python3-venv
         python3 -m venv ~/nextsim
         . $HOME/nextsim/bin/activate
-        pip install jinja2
+        pip install jinja2 netCDF4
 
     - name: build domain_decomp
       run: |
