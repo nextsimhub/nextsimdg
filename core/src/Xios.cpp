@@ -1616,7 +1616,6 @@ void Xios::read(const std::string& fieldId, ModelArray& modelarray)
     if (modelarray.nDimensions() != 2) {
         throw std::invalid_argument("Only ModelArrays of dimension 2 are supported");
     }
-    auto& dims = modelarray.dimensions();
     const ModelArray::Type& type = modelarray.getType();
     const ModelArray::Type& expectedType = getFieldType(fieldId);
 
@@ -1630,7 +1629,8 @@ void Xios::read(const std::string& fieldId, ModelArray& modelarray)
             throw std::runtime_error(
                 "Xios::read: field '" + fieldId + "' was expected to be converted to a DGField");
         }
-        ModelArray inputarray;
+        HField inputarray(ModelArray::Type::H);
+        auto& dims = inputarray.dimensions();
         cxios_read_data_k82(
             fieldId.c_str(), fieldId.length(), inputarray.getData(), dims[0], dims[1]);
         // FIXME: Conversion with overloaded '=' operator is known to be problematic
@@ -1639,6 +1639,7 @@ void Xios::read(const std::string& fieldId, ModelArray& modelarray)
     }
 
     // Other field types should not need converting
+    auto& dims = modelarray.dimensions();
     if (type != expectedType) {
         throw std::runtime_error(
             "Xios::read: field '" + fieldId + "' does not have the expected type");
