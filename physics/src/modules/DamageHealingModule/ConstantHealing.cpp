@@ -43,12 +43,6 @@ ConstantHealing::HelpMap& ConstantHealing::getHelpRecursive(HelpMap& map, bool g
  * 2. Constant healing with a given time scale (tD) */
 void ConstantHealing::update(const TimestepTime& tstep)
 {
-    static KokkosTimer<true> timer("ConstantHealing");
-    static KokkosTimer<DETAILED_MEASUREMENTS> timerCopy("ConstantHealingCopy");
-    static KokkosTimer<DETAILED_MEASUREMENTS> timerUpdate("ConstantHealingUpdate");
-
-    timer.start();
-    timerCopy.start();
     auto execSpace = DefaultExecutionSpace();
     auto& damage = damageAccessor.getAutoRW(execSpace);
     const auto& deltaCi = deltaCiAccessor.getAutoRO(execSpace);
@@ -57,9 +51,7 @@ void ConstantHealing::update(const TimestepTime& tstep)
     const double tD = ConstantHealing::tD;
     const double cMin = IceMinima::c();
     const double dt = tstep.step.seconds();
-    timerCopy.stop();
 
-    timerUpdate.start();
     overElementsAuto(OVER_ELEMENTS_LAMBDA(const ElementIndex i) {
         // No ice, no healing
         if (cice[i] <= cMin) {
@@ -85,8 +77,6 @@ void ConstantHealing::update(const TimestepTime& tstep)
         damage[i] += dt / tD;
         damage[i] = Utils::min(1., damage[i]);
     });
-    timerUpdate.stop();
-    timer.stop();
 }
 
 }

@@ -88,11 +88,8 @@ void SlabOcean::setData(const ModelState::DataMap& ms)
 void SlabOcean::update(const TimestepTime& tst)
 {
     static KokkosTimer<true> timer("SlabOcean");
-    static KokkosTimer<DETAILED_MEASUREMENTS> timerCopy("SlabOceanCopy");
-    static KokkosTimer<DETAILED_MEASUREMENTS> timerUpdate("SlabOceanUpdate");
 
     timer.start();
-    timerCopy.start();
 
     auto execSpace = DefaultExecutionSpace();
     auto& sstSlab = sstSlabAccessor.getAutoRW(execSpace);
@@ -111,9 +108,7 @@ void SlabOcean::update(const TimestepTime& tst)
     const double dt = tst.step.seconds();
     const double relaxationTimeT = SlabOcean::relaxationTimeT;
     const double relaxationTimeS = SlabOcean::relaxationTimeS;
-    timerCopy.stop();
-
-    timerUpdate.start();
+    
     overElementsAuto(OVER_ELEMENTS_LAMBDA(const ElementIndex i) {
         // Slab SST update
         qdw[i] = (sstExt[i] - sst[i]) * cpml[i] / relaxationTimeT;
@@ -135,7 +130,6 @@ void SlabOcean::update(const TimestepTime& tst)
         const double denominator = Utils::max(arealDensity - (fwFlux[i] - fdw[i]) * dt, rhoOcean);
         sssSlab[i] = sss[i] + (sss[i] * fwFlux[i] - fdw[i] * dt) / denominator;
     });
-    timerUpdate.stop();
     timer.stop();
 }
 

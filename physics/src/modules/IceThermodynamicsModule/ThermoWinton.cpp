@@ -184,12 +184,8 @@ KERNEL_IMPL_FUNCTION static void calculateTemps(double& tSurf, double& tUppr, do
 void ThermoWinton::update(const TimestepTime& tst)
 {
     static KokkosTimer<true> timer("ThermoWinton");
-    static KokkosTimer<DETAILED_MEASUREMENTS> timerAdvect("ThermoWintonAdvection");
-    static KokkosTimer<DETAILED_MEASUREMENTS> timerCopy("ThermoWintonCopy");
-    static KokkosTimer<DETAILED_MEASUREMENTS> timerUpdate("ThermoWintonUpdate");
 
     timer.start();
-    timerAdvect.start();
     // Advect ice temperatures
     IIceThermodynamics::update(tst);
     auto execSpace = DefaultExecutionSpace();
@@ -197,9 +193,7 @@ void ThermoWinton::update(const TimestepTime& tst)
     auto& tInternal = tInternalAccessor.getAutoRW(execSpace);
     FieldAdvection::advectField(tInternal, tst, IIceThermodynamics::minT, seaIceTf);
     FieldAdvection::advectField(tBottom, tst, IIceThermodynamics::minT, seaIceTf);
-    timerAdvect.stop();
 
-    timerCopy.start();
     // explicit execution space enables asynchronous execution
     auto& hsnow = hsnowAccessor.getAutoRW(execSpace);
     auto& botMelt = botMeltAccessor.getAutoRW(execSpace);
@@ -228,9 +222,7 @@ void ThermoWinton::update(const TimestepTime& tst)
     const double cMin = IceMinima::c();
     const double hMin = IceMinima::h();
     const double dt = tst.step.seconds();
-    timerCopy.stop();
 
-    timerUpdate.start();
     overElementsAuto(OVER_ELEMENTS_LAMBDA (const ElementIndex i) {
         static const double bulkLHFusionSnow = Water::Lf * Ice::rhoSnow;
         static const double bulkLHFusionIce = Water::Lf * Ice::rho;
@@ -434,8 +426,6 @@ void ThermoWinton::update(const TimestepTime& tst)
         hice[i] = hi * cice[i];
         hsnow[i] = hs * cice[i];
     });
-    timerUpdate.stop();
-    timer.stop();
 }
 
 } /* namespace Nextsim */

@@ -86,11 +86,8 @@ KERNEL_IMPL_FUNCTION double melt(double deltaHi, double cice, double hice, doubl
 void HiblerSpread::update(const TimestepTime& tstep)
 {
     static KokkosTimer<true> timer("HiblerSpread");
-    static KokkosTimer<DETAILED_MEASUREMENTS> timerCopy("HiblerSpreadCopy");
-    static KokkosTimer<DETAILED_MEASUREMENTS> timerUpdate("HiblerSpreadUpdate");
     timer.start();
 
-    timerCopy.start();
     auto execSpace = DefaultExecutionSpace();
     auto& hsnow = hsnowAccessor.getAutoRW(execSpace);
     auto& qow = qowAccessor.getAutoRW(execSpace);
@@ -109,9 +106,7 @@ void HiblerSpread::update(const TimestepTime& tstep)
     const double dt = tstep.step.seconds();
     const double cMin = IceMinima::c();
     const double hMin = IceMinima::h();
-    timerCopy.stop();
 
-    timerUpdate.start();
     overElementsAuto(
         OVER_ELEMENTS_LAMBDA (const ElementIndex i) {
             // newIceFormation
@@ -167,7 +162,6 @@ void HiblerSpread::update(const TimestepTime& tstep)
                 hsnow[i] = 0;
             }
         });
-    timerUpdate.stop();
     timer.stop();
 }
 }
