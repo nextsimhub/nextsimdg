@@ -172,8 +172,11 @@ void Xios::close_context_definition()
                 }
 
                 // Link the input field to the base field if their types align
-                const ModelArray::Type& inputType = getFieldType(inputFieldId);
                 const ModelArray::Type& baseType = getFieldType(fieldId);
+                if (ioType == FORCING && baseType != ModelArray::Type::H) {
+                    throw std::runtime_error("Xios: Forcing fields must be treated as HFields");
+                }
+                const ModelArray::Type& inputType = getFieldType(inputFieldId);
                 if (inputType == baseType) {
                     cxios_set_field_field_ref(
                         getField(inputFieldId), fieldId.c_str(), fieldId.length());

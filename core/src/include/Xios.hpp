@@ -180,6 +180,7 @@ private:
     std::map<std::string, ModelArray::Type> fieldTypes;
     void setupFields();
     void setFieldType(const std::string& fieldId, const ModelArray::Type& type, const int ioType);
+    std::set<std::string> inputFieldsToConvert;
 
     /* File */
     xios::CFileGroup* getFileGroup();
