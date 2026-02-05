@@ -9,6 +9,9 @@
 #include "include/Finalizer.hpp"
 #include "include/ModelArrayRef.hpp"
 #include "include/NextsimModule.hpp"
+#ifdef USE_XIOS
+#include "include/Xios.hpp"
+#endif
 #include "include/gridNames.hpp"
 
 namespace Nextsim {
@@ -70,6 +73,15 @@ void PrognosticData::configure()
             { "concentration", &cice },
         });
     }
+
+#ifdef USE_XIOS
+    // Set XIOS field types
+    Xios& xiosHandler = Xios::getInstance();
+    xiosHandler.setPrognosticFieldType(hiceName, ModelArray::Type::DG);
+    xiosHandler.setPrognosticFieldType(ciceName, ModelArray::Type::DG);
+    xiosHandler.setPrognosticFieldType(damageName, ModelArray::Type::DG);
+    xiosHandler.setPrognosticFieldType(hsnowName, ModelArray::Type::DG);
+#endif
 }
 
 // Copies an HField from a source ModelArray that is either an HField or a DGField.
