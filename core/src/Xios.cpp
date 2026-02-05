@@ -171,17 +171,19 @@ void Xios::close_context_definition()
                     setFieldGridRef(fieldId, getFieldGridRef(inputFieldId));
                 }
 
-                // Link the input field to the base field if their types align
                 const ModelArray::Type& baseType = getFieldType(fieldId);
                 if (ioType == FORCING && baseType != ModelArray::Type::H) {
                     throw std::runtime_error("Xios: Forcing fields must be treated as HFields");
                 }
                 const ModelArray::Type& inputType = getFieldType(inputFieldId);
                 if (inputType == baseType) {
+                    // Link the input field to the base field if their types align
                     cxios_set_field_field_ref(
                         getField(inputFieldId), fieldId.c_str(), fieldId.length());
+                } else if (baseType == ModelArray::Type::DG && inputType == ModelArray::Type::H) {
+                    // Record fields read in as HField but treated as DGField
+                    inputFieldsToConvert.insert(fieldId);
                 } else {
-                    // TODO: Support having a HField for reading and a DGField for writing
                     throw std::runtime_error(
                         "Xios: Inconsistent field types for reading and writing field '" + fieldId
                         + "'");
@@ -1596,14 +1598,39 @@ void Xios::write(const std::string& fieldId, const ModelArray& modelarray)
 void Xios::read(const std::string& fieldId, ModelArray& modelarray)
 {
     if (!getFieldReadAccess(fieldId)) {
-        throw std::runtime_error("Xios::read: field " + fieldId
-            + " is not configured for reading, but is being read from file.");
+        throw std::runtime_error("Xios::read: field '" + fieldId
+            + "'' is not configured for reading, but is being read from file.");
     };
     if (modelarray.nDimensions() != 2) {
         throw std::invalid_argument("Only ModelArrays of dimension 2 are supported");
     }
     auto& dims = modelarray.dimensions();
     const ModelArray::Type& type = modelarray.getType();
+    const ModelArray::Type& expectedType = getFieldType(fieldId);
+
+    // Account for fields to be read in as HField but converted to DGField
+    if (inputFieldsToConvert.count(fieldId)) {
+        if (type != ModelArray::Type::H) {
+            throw std::runtime_error(
+                "Xios::read: field '" + fieldId + "' was expected to be read as a HField");
+        }
+        if (expectedType != ModelArray::Type::DG) {
+            throw std::runtime_error(
+                "Xios::read: field '" + fieldId + "' was expected to be converted to a DGField");
+        }
+        ModelArray inputarray;
+        cxios_read_data_k82(
+            fieldId.c_str(), fieldId.length(), inputarray.getData(), dims[0], dims[1]);
+        // FIXME: Conversion with overloaded '=' operator is known to be problematic
+        modelarray = inputarray;
+        return;
+    }
+
+    // Other field types should not need converting
+    if (type != expectedType) {
+        throw std::runtime_error(
+            "Xios::read: field '" + fieldId + "' does not have the expected type");
+    }
     if ((type == ModelArray::Type::H) || (type == ModelArray::Type::CG)) {
         cxios_read_data_k82(
             fieldId.c_str(), fieldId.length(), modelarray.getData(), dims[0], dims[1]);
