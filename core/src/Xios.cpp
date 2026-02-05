@@ -171,11 +171,16 @@ void Xios::close_context_definition()
                     setFieldGridRef(fieldId, getFieldGridRef(inputFieldId));
                 }
 
+                // Check the field types
+                const ModelArray::Type& inputType = getFieldType(inputFieldId);
+                if (fieldTypes.count(fieldId) == 0) {
+                    setFieldType(fieldId, inputType, NOT_READ);
+                }
                 const ModelArray::Type& baseType = getFieldType(fieldId);
                 if (ioType == FORCING && baseType != ModelArray::Type::H) {
                     throw std::runtime_error("Xios: Forcing fields must be treated as HFields");
                 }
-                const ModelArray::Type& inputType = getFieldType(inputFieldId);
+
                 if (inputType == baseType) {
                     // Link the input field to the base field if their types align
                     cxios_set_field_field_ref(
@@ -1054,7 +1059,14 @@ Duration Xios::getFieldFreqOffset(const std::string& fieldId)
  * @param the field ID
  * @return ModelArray::Type used for the corresponding field
  */
-ModelArray::Type Xios::getFieldType(const std::string& fieldId) { return fieldTypes[fieldId]; }
+ModelArray::Type Xios::getFieldType(const std::string& fieldId)
+{
+    if (fieldTypes.count(fieldId) == 0) {
+        throw std::runtime_error(
+            "Xios::getFieldType: Undefined field type for field '" + fieldId + "'");
+    }
+    return fieldTypes[fieldId];
+}
 
 /*!
  * Set the field type associated with a field with a given ID

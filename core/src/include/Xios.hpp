@@ -195,10 +195,11 @@ private:
     std::string forcingFilename;
     std::string forcingFileId;
     enum {
-        OUTPUT_RESTART,
-        INPUT_RESTART,
-        DIAGNOSTIC,
-        FORCING,
+        NOT_READ, // Either unused or generically written but not read
+        OUTPUT_RESTART, // Written as restart
+        INPUT_RESTART, // Read as restart
+        DIAGNOSTIC, // Written as diagnostic
+        FORCING, // Read as forcing
     };
     const std::map<int, std::string&> fileMap = {
         { OUTPUT_RESTART, outputFileId },
