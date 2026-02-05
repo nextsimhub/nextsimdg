@@ -93,7 +93,7 @@ void SlabOcean::update(const TimestepTime& tst)
 
     timer.start();
     timerCopy.start();
-    
+
     auto execSpace = DefaultExecutionSpace();
     auto& sstSlab = sstSlabAccessor.getAutoRW(execSpace);
     auto& fdw = fdwAccessor.getAutoRW(execSpace);
@@ -127,13 +127,12 @@ void SlabOcean::update(const TimestepTime& tst)
         // sssExt
         fdw[i] = (1 - sssExt[i] / sss[i]) * arealDensity / relaxationTimeS;
 
-        // the compiler does not like a global constant appearing in the argument list of max
-        // "identifier "Water::rhoOcean" is undefined in device code"
+        // the device compiler does not like a global constant appearing in the argument list of
+        // a template function: "Water::rhoOcean" is undefined in device code"
         const double rhoOcean = Water::rhoOcean;
         // Mass per unit area after all the changes in water volume
         // Clamp the denominator to be at least 1 m deep, i.e. at least Water::rho kg m⁻²
-        const double denominator
-            = Utils::max(arealDensity - (fwFlux[i] - fdw[i]) * dt, rhoOcean);
+        const double denominator = Utils::max(arealDensity - (fwFlux[i] - fdw[i]) * dt, rhoOcean);
         sssSlab[i] = sss[i] + (sss[i] * fwFlux[i] - fdw[i] * dt) / denominator;
     });
     timerUpdate.stop();

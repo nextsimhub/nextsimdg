@@ -1,5 +1,6 @@
 /*!
  * @author  Tim Spain <timothy.spain@nersc.no>
+ * @author  Robert Jendersie <robert.jendersie@ovgu.de>
  */
 
 #include "include/TOPAZOcean.hpp"
@@ -9,6 +10,9 @@
 #include "include/ParaGridIO.hpp"
 #include "include/constants.hpp"
 #include "include/gridNames.hpp"
+
+// testing
+#include "kokkos/include/KokkosTimer.hpp"
 
 namespace Nextsim {
 
@@ -58,15 +62,14 @@ void TOPAZOcean::configure()
 
 ConfigMap TOPAZOcean::getConfiguration() const { return { { keyMap.at(FILEPATH_KEY), filePath } }; }
 
+static const std::set<std::string> forcings = { sstName, sssName, mldName, uName, vName, sshName };
+
 void TOPAZOcean::updateBefore(const TimestepTime& tst)
 {
-    std::set<std::string> forcings = { sstName, sssName, mldName, uName, vName, sshName };
-
     ModelState state = ParaGridIO::readForcingTimeStatic(forcings, tst.start, filePath);
     sstExtAccessor.getHostRW() = state.data.at(sstName);
     sssExtAccessor.getHostRW() = state.data.at(sssName);
-    HField& mld = mldAccessor.getHostRW();
-    mld = state.data.at(mldName);
+    mldAccessor.getHostRW() = state.data.at(mldName);
     uAccessor.getHostRW() = state.data.at(uName);
     vAccessor.getHostRW() = state.data.at(vName);
     HField& ssh = sshAccessor.getHostRW();
@@ -76,11 +79,14 @@ void TOPAZOcean::updateBefore(const TimestepTime& tst)
         ssh = 0.;
     }
 
-    cpmlAccessor.getHostRW() = Water::rhoOcean * Water::cp * mld;
+    auto cpml = cpmlAccessor.getAutoRW();
+    const auto& mld = mldAccessor.getAutoRO();
+    overElementsAuto(OVER_ELEMENTS_LAMBDA(
+        const ElementIndex i) { cpml[i] = Water::rhoOcean * Water::cp * mld[i]; });
 
     // Update the freezing point
     auto& tf = tfAccessor.getAutoRW();
-    const ConstModelArrayAuto& sss = sssAccessor.getAutoRO();
+    const auto& sss = sssAccessor.getAutoRO();
     pFreezingPoint->update(tf, sss);
 
     Module::getImplementation<IIceOceanHeatFlux>().update(tst);
@@ -90,8 +96,12 @@ void TOPAZOcean::updateAfter(const TimestepTime& tst)
 {
     mergeFluxes(tst);
     slabOcean.update(tst);
-    sstAccessor.getHostRW().component() = sstSlabAccessor.getHostRO().component();
-    sssAccessor.getHostRW().component() = sssSlabAccessor.getHostRO().component();
+
+    static KokkosTimer<true> timer("====>assignData");
+    timer.start();
+    sstAccessor.getAutoRW().assignData(sstSlabAccessor.getAutoRO());
+    sssAccessor.getAutoRW().assignData(sssSlabAccessor.getAutoRO());
+    timer.stop();
 
     try {
         checkFields();

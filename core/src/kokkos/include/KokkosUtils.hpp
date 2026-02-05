@@ -287,7 +287,7 @@ namespace Details {
 }
 
 /*!
- * @brief Create an aquivalent Eigen map for a given Kokkos view.
+ * @brief Create an equivalent Eigen map for a given Kokkos view.
  *
  * @details Supports 1D and 2D views. Constness of the underlying data is preserved.
  *

@@ -130,7 +130,7 @@ public:
         = { -std::numeric_limits<double>::max(), std::numeric_limits<double>::max() });
     //! Copy constructor
     ModelArray(const ModelArray&);
-    virtual ~ModelArray() {};
+    virtual ~ModelArray() { };
 
     //! Copy assignment operator
     ModelArray& operator=(const ModelArray&);
@@ -408,6 +408,18 @@ public:
      * @param source The object to be copied from.
      */
     void setData(const ModelArray& source);
+
+    /*!
+     * @brief Sets data from another ModelArray, respecting the type of this.
+     *
+     * @details This function copies the data from the source but keeps the
+     * the type and size of this. In case the number of components does not match, only the 0th
+     * component is copied.
+     * @param source The object to be copied from.
+     */
+    void assignData(const ModelArray& source);
+    // Move variant that takes the buffer of source if the number of components match.
+    void assignData(ModelArray&& source);
 
 private:
     // Fast special case for 1-d indexing

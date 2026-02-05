@@ -63,7 +63,10 @@ if(ENABLE_MPI)
 endif()
 
 if(WITH_KOKKOS)
-    list(APPEND NextsimSourcesTemp "${CMAKE_CURRENT_SOURCE_DIR}/kokkos/KokkosUtils.cpp")
+    list(APPEND NextsimSourcesTemp 
+        "${CMAKE_CURRENT_SOURCE_DIR}/kokkos/KokkosUtils.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/kokkos/KokkosModelArray.cpp"
+    )
 endif()
 
 set(NextsimSources "${NextsimSourcesTemp}" PARENT_SCOPE)

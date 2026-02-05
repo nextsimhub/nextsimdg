@@ -40,7 +40,7 @@ if(NOT ENABLE_MPI)
                 "${CoreModulesRoot}/FreezingPointModule")
     target_link_libraries(testFEFluxes PRIVATE nextsimlib doctest::doctest)
 
-    add_executable(testBIOHFluxes "BasicIceOceanFlux_test.cpp")
+    add_executable(testBIOHFluxes "BasicIceOceanFlux_test.cpp" "../../core/test/MainTest.cpp")
     target_include_directories(
         testBIOHFluxes
         PRIVATE "${ModulesRoot}/IceOceanHeatFluxModule" "${ModulesRoot}/OceanBoundaryModule"
@@ -58,7 +58,7 @@ if(NOT ENABLE_MPI)
     add_executable(testIceMinima "IceMinima_test.cpp")
     target_link_libraries(testIceMinima PRIVATE nextsimlib doctest::doctest)
 
-    add_executable(testConstantOcn "ConstantOceanBoundary_test.cpp")
+    add_executable(testConstantOcn "ConstantOceanBoundary_test.cpp" "../../core/test/MainTest.cpp")
     target_include_directories(testConstantOcn PRIVATE "${ModulesRoot}/OceanBoundaryModule")
     target_link_libraries(testConstantOcn PRIVATE nextsimlib doctest::doctest)
 

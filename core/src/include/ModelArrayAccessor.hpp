@@ -9,12 +9,15 @@
 
 namespace Nextsim {
 
+// ModelArray type that is either on host or device, depending on the build options.
+// See KokkosModelArray.hpp for why an additional type ConstModelArrayAuto is needed.
+// Adding another const, i.e. "const ConstModelArrayAuto&", is possible but has no effect.
 #ifdef USE_KOKKOS
 using ModelArrayAuto = DeviceModelArray;
 using ConstModelArrayAuto = ConstDeviceModelArray;
 #else
-// ModelArray has value semantics. The const applies to the data.
 using ModelArrayAuto = ModelArray;
+// ModelArray has value semantics. The const applies to the data.
 using ConstModelArrayAuto = const ModelArray;
 #endif
 
@@ -49,46 +52,45 @@ public:
     }
 
     // returns a copy because target.deviceView has mutable data
-    ConstDeviceViewMA getDeviceRO() const
+    const ConstDeviceModelArray& getDeviceRO() const
     {
         assert(target.modelArray.trueSize() > 0 && "ModelArray is allocated");
 
         DeviceViewMA deviceView = target.deviceView();
         if (target.syncState == SyncState::HOST_CHANGED) {
-            Kokkos::deep_copy(deviceView, target.hostView());
+            Kokkos::deep_copy(target.deviceView(), target.hostView());
             target.syncState = SyncState::SYNCED;
         }
 
-        return deviceView;
+        return target.deviceModelArray();
     }
 
-    template <typename ExecSpace> ConstDeviceViewMA getDeviceRO(ExecSpace execSpace) const
+    template <typename ExecSpace>
+    const ConstDeviceModelArray& getDeviceRO(ExecSpace execSpace) const
     {
         assert(target.modelArray.trueSize() > 0 && "ModelArray is allocated");
 
-        DeviceViewMA deviceView = target.deviceView();
         if (target.syncState == SyncState::HOST_CHANGED) {
-            Kokkos::deep_copy(execSpace, deviceView, target.hostView());
+            Kokkos::deep_copy(execSpace, target.deviceView(), target.hostView());
             target.syncState = SyncState::SYNCED;
         }
 
-        return deviceView;
+        return target.deviceModelArray();
     }
 #endif
 
-    // decltype(auto) for perfect forwarding of either copy or const reference
-    decltype(auto) getAutoRO() const
+    const ConstModelArrayAuto& getAutoRO() const
     {
 #ifdef USE_KOKKOS
-        return ConstDeviceModelArray(getDeviceRO());
+        return getDeviceRO();
 #else
         return getHostRO();
 #endif
     }
-    template <typename ExecSpace> decltype(auto) getAutoRO(ExecSpace execSpace) const
+    template <typename ExecSpace> const ConstModelArrayAuto& getAutoRO(ExecSpace execSpace) const
     {
 #ifdef USE_KOKKOS
-        return ConstDeviceModelArray(getDeviceRO(execSpace));
+        return getDeviceRO(execSpace);
 #else
         return getHostRO();
 #endif
@@ -145,43 +147,38 @@ public:
         return this->target.modelArray;
     }
 
-    const DeviceViewMA& getDeviceRW()
+    DeviceModelArray& getDeviceRW()
     {
-        const DeviceViewMA& deviceView = this->target.deviceView();
         if (this->target.syncState == SyncState::HOST_CHANGED)
-            Kokkos::deep_copy(deviceView, this->target.hostView());
+            Kokkos::deep_copy(this->target.deviceView(), this->target.hostView());
         this->target.syncState = SyncState::DEVICE_CHANGED;
 
-        return deviceView;
+        return this->target.deviceModelArray();
     }
 
-    template <typename ExecSpace> const DeviceViewMA& getDeviceRW(ExecSpace execSpace)
+    template <typename ExecSpace> DeviceModelArray& getDeviceRW(ExecSpace execSpace)
     {
-        const DeviceViewMA& deviceView = this->target.deviceView();
         if (this->target.syncState == SyncState::HOST_CHANGED)
-            Kokkos::deep_copy(execSpace, deviceView, this->target.hostView());
+            Kokkos::deep_copy(execSpace, this->target.deviceView(), this->target.hostView());
         this->target.syncState = SyncState::DEVICE_CHANGED;
 
-        return deviceView;
+        return this->target.deviceModelArray();
     }
 #endif
 
-    auto& getAutoRW()
+    ModelArrayAuto& getAutoRW()
     {
 #ifdef USE_KOKKOS
-        // sync buffers
-        getDeviceRW();
-        return this->target.deviceModelArray();
+        return getDeviceRW();
 #else
         return getHostRW();
 #endif
     }
-    template <typename ExecSpace> auto& getAutoRW(ExecSpace execSpace)
+    
+    template <typename ExecSpace> ModelArrayAuto& getAutoRW(ExecSpace execSpace)
     {
 #ifdef USE_KOKKOS
-        // sync buffers
-        getDeviceRW(execSpace);
-        return this->target.deviceModelArray();
+        return getDeviceRW(execSpace);
 #else
         return getHostRW();
 #endif

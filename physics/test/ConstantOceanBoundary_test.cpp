@@ -2,7 +2,6 @@
  * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
-#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include <doctest/doctest.h>
 
 #include "include/ConstantOceanBoundary.hpp"
@@ -24,7 +23,7 @@ TEST_CASE("ConstantOcean Qio calculation")
 
     cob.setData(ModelState::DataMap());
     cob.updateBefore(TimestepTime());
-    
+
     ModelArrayAccessor<Shared::Q_IO, RW> qioAccessor(ModelComponent::getStore());
     const HField& qio = qioAccessor.getHostRO();
 

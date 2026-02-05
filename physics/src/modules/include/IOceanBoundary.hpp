@@ -1,12 +1,14 @@
 /*!
  *
  * @author  Tim Spain <timothy.spain@nersc.no>
+ * @author  Robert Jendersie <robert.jendersie@ovgu.de>
  */
 
 #ifndef IOCEANBOUNDARY_HPP
 #define IOCEANBOUNDARY_HPP
 
 #include "include/CheckingModelComponent.hpp"
+#include "include/KernelAlternatives.hpp"
 #include "include/ModelArrayAccessor.hpp"
 #include "include/constants.hpp"
 #include "include/gridNames.hpp"
@@ -137,62 +139,63 @@ public:
     {
         assert(m_couplingArrays.checkAllRegistered());
 
+        auto& fwFlux = fwFluxAccessor.getAutoRW();
+        auto& qNoSun = qNoSunAccessor.getAutoRW();
+        auto& tauX = tauXAccessor.getAutoRW();
+        auto& tauY = tauYAccessor.getAutoRW();
+        auto& sFlux = sFluxAccessor.getAutoRW();
+        auto& qswNet = qswNetAccessor.getAutoRW();
+        const auto& tauXIO = tauXIOAccessor.getAutoRO();
+        const auto& cice = ciceAccessor.getAutoRO();
+        const auto& deltaHice = deltaHiceAccessor.getAutoRO();
+        const auto& rain = rainAccessor.getAutoRO();
+        const auto& sss = sssAccessor.getAutoRO();
+        const auto& qswow = qswowAccessor.getAutoRO();
+        const auto& tauYIO = tauYIOAccessor.getAutoRO();
+        const auto& evap = evapAccessor.getAutoRO();
+        const auto& qio = qioAccessor.getAutoRO();
+        const auto& newIce = newIceAccessor.getAutoRO();
+        const auto& tauYOW = tauYOWAccessor.getAutoRO();
+        const auto& qow = qowAccessor.getAutoRO();
+        const auto& qswBase = qswBaseAccessor.getAutoRO();
+        const auto& deltaSmelt = deltaSmeltAccessor.getAutoRO();
+        const auto& tauXOW = tauXOWAccessor.getAutoRO();
+
         const double dt = tst.step.seconds();
-        HField& fwFlux = fwFluxAccessor.getHostRW();
-        HField& qNoSun = qNoSunAccessor.getHostRW();
-        HField& tauX = tauXAccessor.getHostRW();
-        HField& tauY = tauYAccessor.getHostRW();
-        HField& sFlux = sFluxAccessor.getHostRW();
-        HField& qswNet = qswNetAccessor.getHostRW();
-        const HField& tauXIO = tauXIOAccessor.getHostRO();
-        const HField& cice = ciceAccessor.getHostRO();
-        const HField& deltaHice = deltaHiceAccessor.getHostRO();
-        const HField& rain = rainAccessor.getHostRO();
-        const HField& sss = sssAccessor.getHostRO();
-        const HField& qswow = qswowAccessor.getHostRO();
-        const HField& tauYIO = tauYIOAccessor.getHostRO();
-        const HField& evap = evapAccessor.getHostRO();
-        const HField& qio = qioAccessor.getHostRO();
-        const HField& newIce = newIceAccessor.getHostRO();
-        const HField& tauYOW = tauYOWAccessor.getHostRO();
-        const HField& qow = qowAccessor.getHostRO();
-        const HField& qswBase = qswBaseAccessor.getHostRO();
-        const HField& deltaSmelt = deltaSmeltAccessor.getHostRO();
-        const HField& tauXOW = tauXOWAccessor.getHostRO();
 
-        overElements(
-            [&](const size_t i, const TimestepTime& tsTime) {
-                // Heat fluxes - partitioned in solar and non-solar
-                qswNet[i] = cice[i] * qswBase[i] + (1 - cice[i]) * qswow[i];
-                qNoSun[i] = cice[i] * qio[i] + (1 - cice[i]) * qow[i] - qswNet[i];
+        overElementsAuto(OVER_ELEMENTS_LAMBDA(const ElementIndex i) {
+            // Heat fluxes - partitioned in solar and non-solar
+            qswNet[i] = cice[i] * qswBase[i] + (1 - cice[i]) * qswow[i];
+            qNoSun[i] = cice[i] * qio[i] + (1 - cice[i]) * qow[i] - qswNet[i];
 
-                // Mass fluxes - fresh water and salt
-                // ice volume change, both laterally and vertically
-                const double deltaIceVol = newIce[i] + deltaHice[i] * cice[i];
-                // change in snow volume due to melting (should be < 0)
-                const double meltSnowVol = deltaSmelt[i] * cice[i];
-                // Effective ice salinity is always less than or equal to the SSS, and here we use
-                // the right units too
-                const double effectiveIceSal = 1e-3 * std::min(Ice::s, sss[i]);
+            // Mass fluxes - fresh water and salt
+            // ice volume change, both laterally and vertically
+            const double deltaIceVol = newIce[i] + deltaHice[i] * cice[i];
+            // change in snow volume due to melting (should be < 0)
+            const double meltSnowVol = deltaSmelt[i] * cice[i];
+            // the device compiler does not like a global constant appearing in the argument list of
+            // a template function: "identifier "Ice::s" is undefined in device code"
+            const double s = Ice::s;
+            // Effective ice salinity is always less than or equal to the SSS, and here we use
+            // the right units too
+            const double effectiveIceSal = 1e-3 * Utils::min(s, sss[i]);
 
-                // Positive flux is up!
-                fwFlux[i]
-                    = ((1 - effectiveIceSal) * Ice::rho * deltaIceVol + Ice::rhoSnow * meltSnowVol)
-                        / dt
-                    + (evap[i] - rain[i]) * (1 - cice[i]);
-                sFlux[i] = effectiveIceSal * Ice::rho * deltaIceVol / dt;
+            // Positive flux is up!
+            fwFlux[i]
+                = ((1 - effectiveIceSal) * Ice::rho * deltaIceVol + Ice::rhoSnow * meltSnowVol) / dt
+                + (evap[i] - rain[i]) * (1 - cice[i]);
+            sFlux[i] = effectiveIceSal * Ice::rho * deltaIceVol / dt;
 
-                // Momentum fluxes
-                tauX[i] = cice[i] * tauXIO[i] + (1 - cice[i]) * tauXOW[i];
-                tauY[i] = cice[i] * tauYIO[i] + (1 - cice[i]) * tauYOW[i];
-            },
-            tst);
+            // Momentum fluxes
+            tauX[i] = cice[i] * tauXIO[i] + (1 - cice[i]) * tauXOW[i];
+            tauY[i] = cice[i] * tauYIO[i] + (1 - cice[i]) * tauYOW[i];
+        });
     }
 
 private:
 protected:
     ModelArrayStore m_couplingArrays;
-    
+
     ModelArrayAccessor<Shared::Q_IO, RW> qioAccessor; // Ice-ocean heat flux, W m⁻²
     ModelArrayAccessor<Protected::SST, RW>
         sstAccessor; // Coupled or slab ocean sea surface temperature, ˚C

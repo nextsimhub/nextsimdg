@@ -112,7 +112,7 @@ void ConfiguredOcean::setData(const ModelState::DataMap& ms)
 
     sstExt = sst0;
     sssExt = sss0;
-    HField& mld = mldAccessor.getHostRW(); 
+    HField& mld = mldAccessor.getHostRW();
     mld = mld0;
     uAccessor.getHostRW() = u0;
     vAccessor.getHostRW() = v0;
@@ -137,7 +137,7 @@ void ConfiguredOcean::updateAfter(const TimestepTime& tst)
 {
     mergeFluxes(tst);
     slabOcean.update(tst);
-    sstAccessor.getHostRW().component() = sstSlabAccessor.getHostRO().component();
-    sssAccessor.getHostRW().component() = sssSlabAccessor.getHostRO().component();
+    sstAccessor.getAutoRW().assignData(sstSlabAccessor.getAutoRO());
+    sssAccessor.getAutoRW().assignData(sssSlabAccessor.getAutoRO());
 }
 } /* namespace Nextsim */

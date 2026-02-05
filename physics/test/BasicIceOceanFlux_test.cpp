@@ -6,7 +6,6 @@
 // FiniteElementFluxes_test and I thought the tests should continue to exist
 // somewhere
 
-#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include <doctest/doctest.h>
 
 #include "include/BasicIceOceanHeatFlux.hpp"
@@ -56,14 +55,13 @@ TEST_CASE("Melting conditions")
     iceState.setData(ModelState().data);
 
     ModelArrayAccessor<Shared::Q_IO, RW> qioAccessor(ModelComponent::getStore());
-    HField& qio = qioAccessor.getHostRW();
-    qio.resize();
+    qioAccessor.getHostRW().resize();
     TimestepTime tst = { TimePoint("2000-001"), Duration("P0-0T0:10:0") };
     BasicIceOceanHeatFlux biohf;
     biohf.update(tst);
 
-    double prec = 1e-5;
-    REQUIRE(qio[0] == doctest::Approx(53717.8).epsilon(prec));
+    constexpr double prec = 1e-5;
+    REQUIRE(qioAccessor.getHostRO()[0] == doctest::Approx(53717.8).epsilon(prec));
 }
 
 TEST_CASE("Freezing conditions")
@@ -106,7 +104,7 @@ TEST_CASE("Freezing conditions")
     BasicIceOceanHeatFlux biohf;
     biohf.update(tst);
 
-    double prec = 1e-5;
+    constexpr double prec = 1e-5;
     REQUIRE(qioAccessor.getHostRO()[0] == doctest::Approx(73.9465).epsilon(prec));
 }
 TEST_SUITE_END();
