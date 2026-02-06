@@ -236,6 +236,8 @@ void Duration::setDurationSeconds(double secs)
 
 TimePoint Duration::operator+(const TimePoint& t) const { return t + *this; }
 
+TimePoint Duration::operator-(const TimePoint& t) const { return t - *this; }
+
 std::tm* TimePoint::gmtime() const
 {
     auto tt = Clock::to_time_t(m_t);

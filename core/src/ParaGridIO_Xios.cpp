@@ -42,16 +42,18 @@ ParaGridIO::~ParaGridIO() = default;
 
 ModelState ParaGridIO::getModelState(const std::string& filePath)
 {
-    ModelState state;
-    ModelMetadata& metadata = ModelMetadata::getInstance();
+    // Close the XIOS context definition, if it hasn't already been closed
     Xios& xiosHandler = Xios::getInstance();
+    xiosHandler.close_context_definition();
 
+    ModelMetadata& metadata = ModelMetadata::getInstance();
     if (metadata.initialFileName != filePath) {
         throw std::runtime_error("ParaGridIO::getModelState: file path '" + filePath
             + "' is inconsistent with model.init_file '" + metadata.initialFileName + "'");
     }
 
     // Get all variables in the file and load them into a new ModelState
+    ModelState state;
     for (const std::string& fieldId : xiosHandler.configGetInputRestartFieldNames()) {
         const ModelArray::Type& type = xiosHandler.getFieldType(fieldId);
         if (type == ModelArray::Type::H) {
@@ -81,13 +83,14 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
     }
 
     // Assume that all fields in the supplied ModelState are necessary, and so read them from file.
-    const std::set<std::string> restartFieldIds = xiosHandler.configGetInputRestartFieldNames();
+    const std::set<std::string> inputFieldIds = xiosHandler.configGetInputRestartFieldNames();
     for (auto& [fieldId, modelarray] : state.data) {
-        if (restartFieldIds.count(fieldId) == 0) {
+        const std::string inputFieldId = fieldId + "_input";
+        if (inputFieldIds.count(fieldId) == 0) {
             throw std::runtime_error(
                 "ParaGridIO::getModelState: field " + fieldId + " is not configured as a restart.");
         }
-        xiosHandler.read(fieldId, modelarray);
+        xiosHandler.read(inputFieldId, modelarray);
     }
     return state;
 }
@@ -95,8 +98,9 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
 ModelState ParaGridIO::readForcingTimeStatic(
     const std::set<std::string>& forcings, const TimePoint& time, const std::string& filePath)
 {
-    ModelState state;
+    // Close the XIOS context definition, if it hasn't already been closed
     Xios& xiosHandler = Xios::getInstance();
+    xiosHandler.close_context_definition();
 
     if (xiosHandler.forcingFilename != filePath) {
         throw std::runtime_error("ParaGridIO::readForcingTimeStatic: file path '" + filePath
@@ -114,6 +118,7 @@ ModelState ParaGridIO::readForcingTimeStatic(
     }
 
     // Get all forcings and load them into a new ModelState
+    ModelState state;
     const std::set<std::string> forcingFieldIds = xiosHandler.configGetForcingFieldNames();
     for (const std::string& fieldId : forcings) {
         if (forcingFieldIds.count(fieldId) == 0) {
@@ -129,8 +134,9 @@ ModelState ParaGridIO::readForcingTimeStatic(
 
     // Read all forcings from file
     for (auto& [fieldId, modelarray] : state.data) {
+        const std::string forcingFieldId = fieldId + "_forcing";
         if (forcings.count(fieldId)) {
-            xiosHandler.read(fieldId, modelarray);
+            xiosHandler.read(forcingFieldId, modelarray);
         }
     }
     return state;
@@ -138,28 +144,33 @@ ModelState ParaGridIO::readForcingTimeStatic(
 
 void ParaGridIO::dumpModelState(const ModelState& state, const std::string& filePath)
 {
-    ModelMetadata& metadata = ModelMetadata::getInstance();
+    // Close the XIOS context definition, if it hasn't already been closed
     Xios& xiosHandler = Xios::getInstance();
+    xiosHandler.close_context_definition();
 
+    ModelMetadata& metadata = ModelMetadata::getInstance();
     if (metadata.finalFileName != filePath) {
         throw std::runtime_error("ParaGridIO::dumpModelState: file path '" + filePath
             + "' is inconsistent with model.restart_file '" + metadata.finalFileName + "'");
     }
 
     // Assume that all fields in the supplied ModelState are necessary, and so write them to file.
-    const std::set<std::string> restartFieldIds = xiosHandler.configGetOutputRestartFieldNames();
+    const std::set<std::string> outputFieldIds = xiosHandler.configGetOutputRestartFieldNames();
     for (const auto& [fieldId, modelarray] : state.data) {
-        if (restartFieldIds.count(fieldId) == 0) {
+        const std::string outputFieldId = fieldId;
+        if (outputFieldIds.count(fieldId) == 0) {
             throw std::runtime_error("ParaGridIO::dumpModelState: field " + fieldId
                 + " is not configured as a restart.");
         }
-        xiosHandler.write(fieldId, modelarray);
+        xiosHandler.write(outputFieldId, modelarray);
     }
 }
 
 void ParaGridIO::writeDiagnosticTime(const ModelState& state, const std::string& filePath)
 {
+    // Close the XIOS context definition, if it hasn't already been closed
     Xios& xiosHandler = Xios::getInstance();
+    xiosHandler.close_context_definition();
 
     if (xiosHandler.diagnosticFilename != filePath) {
         throw std::runtime_error("ParaGridIO::writeDiagnosticTime: file path '" + filePath
@@ -170,11 +181,12 @@ void ParaGridIO::writeDiagnosticTime(const ModelState& state, const std::string&
     // Assume that all fields in the supplied ModelState are necessary, and so write them to file.
     const std::set<std::string> diagnosticFieldIds = xiosHandler.configGetDiagnosticFieldNames();
     for (const auto& [fieldId, modelarray] : state.data) {
+        const std::string diagnosticFieldId = fieldId;
         if (diagnosticFieldIds.count(fieldId) == 0) {
             throw std::runtime_error("ParaGridIO::writeDiagnosticTime: field " + fieldId
                 + " is not configured as a diagnostic.");
         }
-        xiosHandler.write(fieldId, modelarray);
+        xiosHandler.write(diagnosticFieldId, modelarray);
     }
 }
 

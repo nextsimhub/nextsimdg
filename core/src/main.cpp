@@ -55,10 +55,8 @@ int main(int argc, char* argv[])
         // Construct the Model
 #ifdef USE_MPI
         Nextsim::ModelMPI& modelMPI = Nextsim::ModelMPI::getInstance(MPI_COMM_WORLD);
-        Nextsim::Model model;
-#else
-        Nextsim::Model model;
 #endif
+        Nextsim::Model model;
         // Apply the model configuration
         model.configure();
         // Run the Model

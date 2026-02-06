@@ -1,9 +1,13 @@
 #!/bin/env bash
 
+set -eu
+
 # Checkout (clone) current version of XIOS using Subversion (svn)
-cd /
-INSTALLDIR="xios"
-svn checkout http://forge.ipsl.fr/ioserver/svn/XIOS3/trunk ${INSTALLDIR}
+INSTALLDIR="/xios"
+if [ ! -d "${INSTALLDIR}" ]; then
+  cd /
+  svn checkout http://forge.ipsl.fr/ioserver/svn/XIOS3/trunk ${INSTALLDIR}
+fi
 cd ${INSTALLDIR}
 
 # Create a file for exporting paths to the include and lib directories for XIOS' dependencies
@@ -59,7 +63,7 @@ cat <<EOF >arch/arch-GCC_LINUX.fcm
 %DEV_CFLAGS     -g -O2
 %DEBUG_CFLAGS   -fPIC -g
 
-%BASE_FFLAGS    -D__NONE__
+%BASE_FFLAGS    -D__NONE__ -ffree-line-length-312
 %PROD_FFLAGS    -fPIC -O3
 %DEV_FFLAGS     -g -O2
 %DEBUG_FFLAGS   -fPIC -g
@@ -85,6 +89,5 @@ rm -r \
   /xios/inputs \
   /xios/obj \
   /xios/ppsrc \
-  /xios/src \
   /xios/tools \
   /xios/xios_test_suite

@@ -73,48 +73,19 @@ public:
     size_t getAxisSize(const std::string& axisId);
 
     /* Field */
-    void createField(const std::string& fieldId);
-    void setFieldGridRef(const std::string& fieldId, const std::string& gridRef);
-    void setFieldFreqOffset(const std::string& fieldId, const Duration& freqOffset);
-    std::string getFieldGridRef(const std::string& fieldId);
-    bool getFieldReadAccess(const std::string& fieldId);
-    Duration getFieldFreqOffset(const std::string& fieldId);
     std::set<std::string> configGetForcingFieldNames();
-    ModelArray::Type getFieldType(const std::string& fieldId);
     void setFieldType(const std::string& fieldId, const ModelArray::Type& type);
-
-    /* File */
-    void createFile(const std::string& fileId, const int& fieldType);
-    void setFileType(const std::string& fileId, const std::string& fileType);
-    void setFileOutputFreq(const std::string& fileId, const Duration& outputFreq);
-    void setFileParAccess(const std::string& fileId, const std::string& parAccess);
-    std::string getFileType(const std::string& fileId);
-    Duration getFileOutputFreq(const std::string& fileId);
-    std::string getFileMode(const std::string& fileId);
-    std::string getFileParAccess(const std::string& fileId);
-    void fileAddField(const std::string& fileId, const std::string& fieldId);
-    std::vector<std::string> fileGetFieldIds(const std::string& fileId);
 
     enum {
         ENABLED_KEY,
         OUTPUT_FIELD_NAMES_KEY,
-        OUTPUT_SPLITFREQ_KEY,
         INPUT_FIELD_NAMES_KEY,
         DIAGNOSTIC_PERIOD_KEY,
         DIAGNOSTIC_FILE_KEY,
         DIAGNOSTIC_FIELD_NAMES_KEY,
-        DIAGNOSTIC_SPLITFREQ_KEY,
         FORCING_PERIOD_KEY,
         FORCING_FILE_KEY,
         FORCING_FIELD_NAMES_KEY,
-    };
-
-    // TODO: Make the following enum private
-    enum {
-        OUTPUT_RESTART,
-        INPUT_RESTART,
-        DIAGNOSTIC,
-        FORCING,
     };
 
 protected:
@@ -134,6 +105,12 @@ private:
     void setupClient();
 
     /* Context */
+    enum {
+        PRE_DEFINITION, // XIOS context has not yet been initialized
+        DEFINITION_OPEN, // XIOS context has been initialized but the definition has not been closed
+        DEFINITION_CLOSED, // XIOS context definition has been closed
+    };
+    int contextStatus = PRE_DEFINITION;
     const std::string contextId = "nextSIM-DG";
     void setupContext();
 
@@ -163,6 +140,11 @@ private:
         // CG-based x- and y-dimensions (alt. names x_cg and y_cg)
         { ModelArray::Type::CG, "cg" },
     };
+    std::map<std::string, bool> domainWritten = {
+        { "dim", false },
+        { "vertex", false },
+        { "cg", false },
+    };
     xios::CDomainGroup* getDomainGroup();
     xios::CDomain* getDomain(const std::string& domainId);
     void setupDomains();
@@ -184,21 +166,37 @@ private:
     std::set<std::string> configGetOutputRestartFieldNames();
     std::set<std::string> configGetInputRestartFieldNames();
     std::set<std::string> configGetDiagnosticFieldNames();
-    bool configCheckField(const std::string& fieldId, const bool& readAccess);
+    void createField(const std::string& fieldId, const std::string& fileId);
+    std::string createInheritedField(const std::string& fieldId, const int ioType);
+    void setFieldOperation(const std::string& fieldId, const int ioType);
     void setFieldReadAccess(const std::string& fieldId, const bool& readAccess);
+    void setFieldGridRef(const std::string& fieldId, const std::string& gridRef);
+    void setFieldFreqOffset(const std::string& fieldId, const Duration& freqOffset);
+    std::string getFieldGridRef(const std::string& fieldId);
+    bool getFieldReadAccess(const std::string& fieldId);
+    Duration getFieldFreqOffset(const std::string& fieldId);
+    ModelArray::Type getFieldType(const std::string& fieldId);
     std::map<std::string, ModelArray::Type> fieldTypes;
     void setupFields();
 
     /* File */
     xios::CFileGroup* getFileGroup();
     xios::CFile* getFile(const std::string& fileId);
-    void setFileMode(const std::string& fileId, const std::string& mode);
+    int getFileIOType(const std::string& fileId);
     std::string outputFileId;
+    std::string outputFormatStr = "%y-%mo-%dT%h:%mi:%sZ";
     std::string inputFileId;
     std::string diagnosticFilename;
     std::string diagnosticFileId;
+    std::string diagnosticFormatStr = "%y-%mo-%dT%h:%mi:%sZ";
     std::string forcingFilename;
     std::string forcingFileId;
+    enum {
+        OUTPUT_RESTART,
+        INPUT_RESTART,
+        DIAGNOSTIC,
+        FORCING,
+    };
     const std::map<int, std::string&> fileMap = {
         { OUTPUT_RESTART, outputFileId },
         { INPUT_RESTART, inputFileId },
@@ -206,6 +204,17 @@ private:
         { FORCING, forcingFileId },
     };
     void setupFiles();
+    void createFile(const std::string& fileId);
+    void fileAddField(const std::string& fileId, const std::string& fieldId);
+    std::vector<std::string> fileGetFieldIds(const std::string& fileId);
+    const std::map<std::string, std::string> formatStrMap = {
+        { "%Y", "%y" },
+        { "%m-", "%mo-" },
+        { "%H", "%h" },
+        { "%M", "%mi" },
+        { "%S", "%s" },
+    };
+    void postprocessOutputFiles();
 
     /* I/O */
     void read(const std::string& fieldId, ModelArray& modelarray);

@@ -117,25 +117,32 @@ The ``field_names`` entry may contain a single field name or a comma-separated
 list. Note that all of the ``XiosOutput``, ``XiosInput``, ``XiosDiagnostic``,
 and ``XiosForcing`` sections are optional.
 
-When writing out files, the ``split_period`` option can be included in either of
-the ``XiosOutput`` or ``XiosDiagnostic`` sections, which instructs XIOS to
-create a separate output file for each such period. For a given period, a file
-will be written with a name of the form
-``<FILENAME>_<START_TIME>-<END_TIME>.nc``, where ``<FILENAME>`` is the
-user-provided file name and ``<START_TIME>`` and ``<END_TIME>`` are the start
-and end of the associated period.
+Restart and diagnostic file names may include format strings such as
+``restart%Y-%m-%dT%H:%M:%SZ.nc`` or ``diagnostic%Y-%m-%dT%H:%M:%SZ.nc`` (in
+fact, these are the defaults). When writing out restarts and diagnostics, a
+separate file is produced for each restart period, with filename of the format
+``<FILENAME>_<START_TIME>-<END_TIME>.nc``, where ``<START_TIME>`` and
+``<END_TIME>`` are the start and end of the associated period, written using the
+provided format string. Restart files contain the state at the beginning of the
+time window, whereas diagnostics files are averaged over the timesteps in the
+window.
 
 As elsewhere in the model, the configuration values above are all parsed by
-calling the ``Model.configure`` member function. Since building with XIOS
-implies also building with MPI, you will need to pass the MPI communicator to
-this member function when calling it.
+calling the ``Model.configure`` member function. Note that this function will
+automatically initialize the model state based on the ``input_file`` entry and
+any ``field_names`` listed in the ``[XiosInput]`` configuration section. You
+will need to ensure that variables defining the grid are read here, i.e.,
+``longitude`` and ``latitude`` and possibly ``coords`` and ``grid_azimuth``. The
+XIOS I/O implementation does not currently support Cartesian grids (based on
+``x_dim`` and ``y_dim``).
 
 Order of operations for XIOS setup
 ----------------------------------
 
 The required order of operations to set everything up correctly for reading and
-writing files using XIOS is demonstrated in the ``core/test/XiosRead_test.cpp``
-and ``core/test/XiosWrite_test.cpp`` worked examples and is elaborated in the
+writing files using XIOS is demonstrated in the
+``core/test/XiosReadRestart_test.cpp`` and
+``core/test/XiosWriteRestart_test.cpp`` worked examples and is elaborated in the
 following:
 
 1. Set configuration options as for other parts of the model. (See section above
@@ -153,7 +160,10 @@ following:
    member function of ``Xios``, providing the field name as the first argument
    and the ``ModelArray::Type::<TYPE>`` enum as the second argument (replacing
    ``<TYPE>>`` as appropriate).
-8. Call the ``close_context_definition`` member function of ``Xios``.
+8. Call the ``close_context_definition`` member function of ``Xios``. This is
+   not required if files were read with ``StructureFactory::stateFromFile``
+   because that function automatically closes the context definition before
+   reading.
 
 XIOS concepts
 -------------
@@ -225,3 +235,15 @@ Developer notes
 * The nextSIM-DG XIOS integration is set up such that the filename and field
   names coincide with the fileId and fieldId of the corresponding ``File`` and
   ``Field`` objects.
+
+* Allowing fields to be both read and written in the same run requires
+  additional fields. This is because the two may have different I/O modes, e.g.,
+  reading or writing at a specified frequency (``"instant"```), writing after
+  applying a reduction operator (e.g., ``"average"``), or reading or writing
+  once at the start of the time window (``"once"``). We use the 'base' field
+  associated with the field ID for writing. For reading a field, we create a
+  separate 'inherited' field, which has the same name but with ID appended by
+  ``"_input"`` or ``"_forcing"``, depending on whether the field is to be read
+  as a restart or as a forcing. The inherited field references the base one so
+  that they share the same data, but differ in how they are handled for I/O. All
+  of this happens automatically in the ``createField`` function.

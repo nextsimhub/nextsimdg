@@ -1,12 +1,14 @@
 /*!
  * @author  Tim Spain <timothy.spain@nersc.no>
  * @author  Tom Meltzer <tdm39@cam.ac.uk>
+ * @author  Joe Wallwork <jw2423@cam.ac.uk>
  */
 
 #include "include/ModelMetadata.hpp"
 
 #include "include/Finalizer.hpp"
 #include "include/IStructure.hpp"
+#include "include/Logged.hpp"
 #include "include/ModelMPI.hpp"
 #include "include/NextsimModule.hpp"
 #ifdef USE_MPI
@@ -171,6 +173,10 @@ void ModelMetadata::setDimensionsFromFile(const std::string& filename)
         throw std::runtime_error(
             "ModelMetadata :: setDimensionsFromFile() called without input file.");
     }
+
+    // Set to record the names of dimensions found in the file
+    std::set<std::string> dimNames;
+
     try {
 #ifdef USE_MPI
         auto& modelMPI = ModelMPI::getInstance();
@@ -196,11 +202,13 @@ void ModelMetadata::setDimensionsFromFile(const std::string& filename)
             if (dim.isNull()) {
                 dim = ncFile.getDim(dimensionSpec.altName);
             }
-            // If we didn't find a dimension with the dimensions name or altName, throw.
             if (dim.isNull()) {
-                throw std::out_of_range(
+                Logged::warning(
                     "ModelMetadata: No netCDF dimension found corresponding to the dimension named "
                     + dimensionSpec.name + " or " + dimensionSpec.altName);
+                continue;
+            } else {
+                dimNames.insert(dimensionSpec.name);
             }
 #ifdef USE_MPI
             size_t localLength;
@@ -241,6 +249,12 @@ void ModelMetadata::setDimensionsFromFile(const std::string& filename)
         std::string ncWhat(nce.what());
         ncWhat += ": " + filename;
         throw std::runtime_error(ncWhat);
+    }
+
+    // Throw an error if we didn't find any dimensions
+    if (dimNames.empty()) {
+        throw std::out_of_range(
+            "ModelMetadata: No netCDF dimensions in input file '" + filename + "'");
     }
 }
 

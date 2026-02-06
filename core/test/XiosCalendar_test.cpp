@@ -62,6 +62,7 @@ MPI_TEST_CASE("TestXiosCalendar", 1)
     ModelMetadata& metadata = ModelMetadata::getInstance();
     REQUIRE(metadata.stepLength().seconds() == 3600.0); // Read from config
 
+    // NOTE: Needs calling before Xios::getCurrentDate()
     xiosHandler.close_context_definition();
 
     // --- Tests for getCurrentDate method

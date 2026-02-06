@@ -118,19 +118,21 @@ void cxios_xml_tree_add_field(
 // field methods
 void cxios_field_handle_create(xios::CField** _ret, const char* _id, int _id_len);
 void cxios_field_valid_id(bool* _ret, const char* _id, int _id_len);
-void cxios_set_field_name(xios::CField* _ret, const char* name, int name_size);
-void cxios_set_field_operation(xios::CField* _ret, const char* operation, int operation_size);
-void cxios_set_field_grid_ref(xios::CField* _ret, const char* grid_ref, int grid_ref_size);
-void cxios_set_field_read_access(xios::CField* _ret, bool read_access);
-void cxios_set_field_freq_offset(xios::CField* _ret, cxios_duration freq_offset);
-void cxios_get_field_grid_ref(xios::CField* _ret, char* grid_ref, int grid_ref_size);
-void cxios_get_field_read_access(xios::CField* _ret, bool* read_access);
-void cxios_get_field_freq_offset(xios::CField* _ret, cxios_duration* freq_offset);
-bool cxios_is_defined_field_name(xios::CField* _ret);
-bool cxios_is_defined_field_operation(xios::CField* _ret);
-bool cxios_is_defined_field_grid_ref(xios::CField* _ret);
-bool cxios_is_defined_field_read_access(xios::CField* _ret);
-bool cxios_is_defined_field_freq_offset(xios::CField* _ret);
+void cxios_set_field_name(xios::CField* field_hdl, const char* name, int name_size);
+void cxios_set_field_operation(xios::CField* field_hdl, const char* operation, int operation_size);
+void cxios_set_field_grid_ref(xios::CField* field_hdl, const char* grid_ref, int grid_ref_size);
+void cxios_set_field_read_access(xios::CField* field_hdl, bool read_access);
+void cxios_set_field_freq_offset(xios::CField* field_hdl, cxios_duration freq_offset);
+void cxios_set_field_field_ref(xios::CField* field_hdl, const char* field_ref, int field_ref_size);
+void cxios_get_field_grid_ref(xios::CField* field_hdl, char* grid_ref, int grid_ref_size);
+void cxios_get_field_read_access(xios::CField* field_hdl, bool* read_access);
+void cxios_get_field_freq_offset(xios::CField* field_hdl, cxios_duration* freq_offset);
+bool cxios_is_defined_field_name(xios::CField* field_hdl);
+bool cxios_is_defined_field_operation(xios::CField* field_hdl);
+bool cxios_is_defined_field_grid_ref(xios::CField* field_hdl);
+bool cxios_is_defined_field_read_access(xios::CField* field_hdl);
+bool cxios_is_defined_field_freq_offset(xios::CField* field_hdl);
+bool cxios_is_defined_field_field_ref(xios::CField* field_hdl);
 
 // file group methods
 void cxios_filegroup_handle_create(xios::CFileGroup** _ret, const char* _id, int _id_len);
@@ -143,19 +145,19 @@ void cxios_file_valid_id(bool* _ret, const char* _id, int _id_len);
 void cxios_set_file_name(xios::CFile* file_hdl, const char* name, int name_size);
 void cxios_set_file_type(xios::CFile* file_hdl, const char* type, int type_size);
 void cxios_set_file_output_freq(xios::CFile* file_hdl, cxios_duration output_freq_c);
+void cxios_get_file_output_freq(xios::CFile* file_hdl, cxios_duration* output_freq_c);
 void cxios_set_file_split_freq(xios::CFile* file_hdl, cxios_duration split_freq_c);
 void cxios_set_file_mode(xios::CFile* file_hdl, const char* mode, int mode_size);
 void cxios_set_file_par_access(xios::CFile* file_hdl, const char* par_access, int par_access_size);
-void cxios_get_file_type(xios::CFile* file_hdl, char* type, int type_size);
-void cxios_get_file_output_freq(xios::CFile* file_hdl, cxios_duration* output_freq_c);
-void cxios_get_file_mode(xios::CFile* file_hdl, char* mode, int mode_size);
-void cxios_get_file_par_access(xios::CFile* file_hdl, char* par_access, int par_access_size);
+void cxios_set_file_split_freq_format(
+    xios::CFile* file_hdl, const char* split_freq_format, int split_freq_format_size);
 bool cxios_is_defined_file_name(xios::CFile* file_hdl);
 bool cxios_is_defined_file_type(xios::CFile* file_hdl);
 bool cxios_is_defined_file_output_freq(xios::CFile* file_hdl);
 bool cxios_is_defined_file_split_freq(xios::CFile* file_hdl);
 bool cxios_is_defined_file_mode(xios::CFile* file_hdl);
 bool cxios_is_defined_file_par_access(xios::CFile* file_hdl);
+bool cxios_is_defined_file_split_freq_format(xios::CFile* file_hdl);
 void cxios_xml_tree_add_fieldtofile(
     xios::CFile* file, xios::CField** field, const char* _id, int _id_len);
 

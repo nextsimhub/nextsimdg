@@ -56,7 +56,6 @@ MPI_TEST_CASE("TestXiosAxis", 3)
     REQUIRE(xiosHandler.getAxisSize("DGSAxis") == 8);
     REQUIRE(xiosHandler.getAxisSize("VertexAxis") == 2);
 
-    xiosHandler.close_context_definition();
     xiosHandler.context_finalize();
     Finalizer::finalize();
 }
