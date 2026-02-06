@@ -188,7 +188,7 @@ Model::HelpMap& Model::getHelpRecursive(HelpMap& map, bool getAll)
 
 void Model::run()
 {
-    assert(Nextsim::ModelComponent::getStore().checkAllRegistered());
+    Nextsim::ModelComponent::getStore().checkAllRegistered();
 
     try {
         iterator.run();
