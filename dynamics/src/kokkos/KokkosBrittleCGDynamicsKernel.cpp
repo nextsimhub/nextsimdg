@@ -146,6 +146,10 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
         this->avgUDevice, this->avgVDevice, this->uOceanDevice, this->vOceanDevice, this->params,
         this->cosOceanAngle, this->sinOceanAngle);
 
+    // TODO: It's annoying to have to limit damage again. We need to find a better solution.
+    limitMax(this->damageDevice, 1.0);
+    limitMin(this->damageDevice, 1e-12);
+
     // Finally, do the base class update
     DynamicsKernel<DGadvection, DGstressComp>::update(tst);
 }
