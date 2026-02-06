@@ -63,10 +63,10 @@ protected:
     ModelArrayAccessor<Shared::HSNOW_MELT, RW>
         snowMeltAccessor; // Ocean to snow transfer of freshwater kg m⁻²
 
-    ModelArrayAccessor<Shared::C_ICE_DG, RW> ciceAccessor; // From IceGrowth
+    ModelArrayAccessor<Shared::C_ICE_DG, RW> ciceAccessor; // From ColumnPhysics
     ModelArrayAccessor<Shared::DELTA_HICE, RO> deltaHiAccessor; // From Vertical Ice Growth
-    ModelArrayAccessor<Shared::H_ICE_DG, RW> hiceAccessor; // From IceGrowth
-    ModelArrayAccessor<Shared::H_SNOW_DG, RW> hsnowAccessor; // From Ice Growth?
+    ModelArrayAccessor<Shared::H_ICE_DG, RW> hiceAccessor; // From ColumnPhysics
+    ModelArrayAccessor<Shared::H_SNOW_DG, RW> hsnowAccessor; // From ColumnPhysics
     ModelArrayAccessor<Shared::Q_OW, RW> qowAccessor; // From FluxCalculation
 };
 

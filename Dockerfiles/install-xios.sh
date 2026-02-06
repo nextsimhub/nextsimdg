@@ -1,11 +1,27 @@
-#!/usr/bin/env bash
+#!/bin/env bash
 
-# use svn to obtain current version of xios
+# Checkout (clone) current version of XIOS using Subversion (svn)
 cd /
-installdir="xios"
-svn checkout http://forge.ipsl.fr/ioserver/svn/XIOS2/trunk $installdir
-cd $installdir
+INSTALLDIR="xios"
+svn checkout http://forge.ipsl.fr/ioserver/svn/XIOS3/trunk ${INSTALLDIR}
+cd ${INSTALLDIR}
 
+# Create a file for exporting paths to the include and lib directories for XIOS' dependencies
+cat <<EOF >arch/arch-GCC_LINUX.env
+export HDF5_INC_DIR=\$(pkg-config --variable=prefix hdf5)/include
+export HDF5_LIB_DIR=\$(pkg-config --variable=prefix hdf5)/lib
+
+export NETCDF_INC_DIR=\$(pkg-config --variable=prefix netcdf)/include
+export NETCDF_LIB_DIR=\$(pkg-config --variable=prefix netcdf)/lib
+
+export NETCDFFORT_INC_DIR=\$(pkg-config --variable=prefix netcdf-fortran)/include
+export NETCDFFORT_LIB_DIR=\$(pkg-config --variable=prefix netcdf-fortran)/lib
+
+export BOOST_INC_DIR=\$HOME/boost
+export BOOST_LIB_DIR=\$HOME/boost
+EOF
+
+# Create a file for defining compiler and linking flags for building XIOS
 cat <<EOF >arch/arch-GCC_LINUX.path
 NETCDF_INCDIR="-I \$NETCDF_INC_DIR -I \$NETCDFFORT_INC_DIR"
 NETCDF_LIBDIR="-L \$NETCDF_LIB_DIR -L \$NETCDFFORT_LIB_DIR"
@@ -28,20 +44,7 @@ OASIS_LIBDIR="-L\$PWD/../../oasis3-mct/BLD/lib"
 OASIS_LIB="-lpsmile.MPI1 -lscrip -lmct -lmpeu"
 EOF
 
-cat <<EOF >arch/arch-GCC_LINUX.env
-export HDF5_INC_DIR=\$(pkg-config --variable=prefix hdf5)/include
-export HDF5_LIB_DIR=\$(pkg-config --variable=prefix hdf5)/lib
-
-export NETCDF_INC_DIR=\$(pkg-config --variable=prefix netcdf)/include
-export NETCDF_LIB_DIR=\$(pkg-config --variable=prefix netcdf)/lib
-
-export NETCDFFORT_INC_DIR=\$(pkg-config --variable=prefix netcdf-fortran)/include
-export NETCDFFORT_LIB_DIR=\$(pkg-config --variable=prefix netcdf-fortran)/lib
-
-export BOOST_INC_DIR=\$HOME/boost
-export BOOST_LIB_DIR=\$HOME/boost
-EOF
-
+# Create a file containing parameters to be passed to the fcm-make build system
 cat <<EOF >arch/arch-GCC_LINUX.fcm
 ################################################################################
 ###################                Projet XIOS               ###################
@@ -69,12 +72,19 @@ cat <<EOF >arch/arch-GCC_LINUX.fcm
 %MAKE           gmake
 EOF
 
-# Hack to remove a line that stops calendar attributes being accessed after the
-# context definition has been closed.
-# This should be fixed when we update to XIOS3 (see #761).
-sed -i "s/if (hasClient) CleanTree/\/\/if (hasClient) CleanTree/" src/node/context.cpp
-
+# Build XIOS on a Linux operating system with the GCC compiler
 ./make_xios --arch GCC_LINUX --job 8 --debug
-rm -r /xios/obj /xios/bin/generic_testcase.exe /xios/src /xios/tools \
-  /xios/inputs /xios/doc /xios/arch /xios/xios_test_suite /xios/flags \
-  /xios/generic_testcase /xios/ppsrc /xios/done
+
+# Clean up files not needed
+rm -r \
+  /xios/arch \
+  /xios/doc \
+  /xios/done \
+  /xios/flags \
+  /xios/generic_testcase \
+  /xios/inputs \
+  /xios/obj \
+  /xios/ppsrc \
+  /xios/src \
+  /xios/tools \
+  /xios/xios_test_suite

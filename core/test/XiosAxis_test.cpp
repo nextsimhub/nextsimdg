@@ -28,50 +28,33 @@ namespace Nextsim {
  */
 MPI_TEST_CASE("TestXiosAxis", 3)
 {
-    // Enable XIOS in the 'config' and provide parameters to configure it
-    enableXios();
     std::stringstream config;
     config << "[model]" << std::endl;
     config << "start = 2023-03-17T17:11:00Z" << std::endl;
     config << "stop = 2023-03-17T18:11:00Z" << std::endl;
     config << "time_step = P0-0T01:00:00" << std::endl;
+    config << "partition_file = xios_test_partition_metadata_3.nc" << std::endl;
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
 
-    // Create ModelMetadata instance based off a partition metadata file
+    // Create ModelMPI instance based off the test communicator
     auto& modelMPI = ModelMPI::getInstance(test_comm);
-    auto& metadata = ModelMetadata::getInstance("xios_test_partition_metadata_3.nc");
 
     // Create a Model and configure it so that time options are parsed
     Model model;
     model.configureTime();
 
     // Get the Xios singleton instance and check it's initialized
+    // NOTE: The singleton is created when Xios::getInstance() is first called. In this test, this
+    //       happens when the time sets set by ModelMetadata::setTime(). This occurs in the call to
+    //       Model::configureTime() above.
     Xios& xiosHandler = Xios::getInstance();
-    REQUIRE(xiosHandler.isInitialized());
-    REQUIRE(xiosHandler.getClientMPISize() == 3);
 
-    // --- Tests for axis API
-    const std::string axisId = { "axis_A" };
-    REQUIRE_THROWS_WITH(xiosHandler.getAxisSize(axisId), "Xios: Undefined axis 'axis_A'");
-    REQUIRE_THROWS_WITH(xiosHandler.getAxisValues(axisId), "Xios: Undefined axis 'axis_A'");
-    xiosHandler.createAxis(axisId);
-    REQUIRE_THROWS_WITH(xiosHandler.createAxis(axisId), "Xios: Axis 'axis_A' already exists");
-    // Axis size
-    REQUIRE_THROWS_WITH(xiosHandler.getAxisSize(axisId), "Xios: Undefined size for axis 'axis_A'");
-    const size_t axisSize { 2 };
-    xiosHandler.setAxisSize(axisId, axisSize);
-    REQUIRE(xiosHandler.getAxisSize(axisId) == axisSize);
-    // Axis values
-    REQUIRE_THROWS_WITH(
-        xiosHandler.getAxisValues(axisId), "Xios: Undefined values for axis 'axis_A'");
-    REQUIRE_THROWS_WITH(xiosHandler.setAxisValues(axisId, { 0.0, 1.0, 2.0 }),
-        "Xios: Size incompatible with values for axis 'axis_A'");
-    std::vector<double> axisValues { 0.0, 1.0 };
-    xiosHandler.setAxisValues(axisId, axisValues);
-    std::vector<double> axis_A = xiosHandler.getAxisValues(axisId);
-    REQUIRE(axis_A[0] == doctest::Approx(0.0));
-    REQUIRE(axis_A[1] == doctest::Approx(1.0));
+    // Tests for axis size getter
+    REQUIRE_THROWS_WITH(xiosHandler.getAxisSize("axis_A"), "Xios: Undefined axis 'axis_A'");
+    REQUIRE(xiosHandler.getAxisSize("DGAxis") == 6);
+    REQUIRE(xiosHandler.getAxisSize("DGSAxis") == 8);
+    REQUIRE(xiosHandler.getAxisSize("VertexAxis") == 2);
 
     xiosHandler.close_context_definition();
     xiosHandler.context_finalize();

@@ -14,7 +14,7 @@ ConstantAtmosphereBoundary::ConstantAtmosphereBoundary()
 void ConstantAtmosphereBoundary::setData(const ModelState::DataMap& ms)
 {
     // Directly set the array values
-    qiaAccessor.getHostRW() = 305.288; // Pulled from IceGrowth_test.cpp: New Ice Formation
+    qiaAccessor.getHostRW() = 305.288; // Pulled from NSColumnPhysics_test.cpp: New Ice Formation
     dqia_dtAccessor.getHostRW() = 4.5036;
     qowAccessor.getHostRW() = 307.546;
     sublAccessor.getHostRW() = 0.; // Seems unlikely…

@@ -10,16 +10,25 @@
 #
 # If changes are made by the pre-commit hook then the commit will abort and you
 # will need to re-run the commit command.
+#
+# Developer note: If you are working on an unstable nextSIM-DG version and
+# frequently switching between branches then you might benefit from soft-linking
+# the `pre-commit` file rather than copying it.
 
 BEFORE=$(mktemp)
 git diff >${BEFORE}
 
-# Apply clang-format for linting
+# Apply clang-format for C++ linting
 for FILE in $(git diff --cached --name-only | grep -iE '\.(cpp|cc|h|hpp)$'); do
   clang-format -i ${FILE} --verbose
 done
 
-# Apply cmake-lint for linting
+# Apply ruff format for Python linting
+for FILE in $(git diff --cached --name-only | grep -iE '\.py$'); do
+    ruff format ${FILE}
+done
+
+# Apply cmake-lint for CMake linting
 for FILE in $(git diff --cached --name-only | grep -i 'CMakeLists.txt'); do
   cmake-lint ${FILE} -c .cmake-lint-config.py
 done

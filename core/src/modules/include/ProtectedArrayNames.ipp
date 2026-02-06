@@ -34,8 +34,8 @@
     { "qdw", "SLAB_QDW" }, // Slab ocean temperature nudging heat flux, W m⁻²
     { "fdw", "SLAB_FDW" }, // Slab ocean salinity nudging water flux, kg s⁻¹ m⁻²
     { "ssh", "SSH" }, // Sea-surface height [m]
-    { "taux", "IO_STRESS_X" }, // Ice-ocean stress x(east) direction, Pa
-    { "tauy", "IO_STRESS_Y" }, // Ice-ocean stress y(north) direction, Pa
+    { "taux_io", "IO_STRESS_X" }, // Ice-ocean stress x(east) direction, Pa
+    { "tauy_io", "IO_STRESS_Y" }, // Ice-ocean stress y(north) direction, Pa
     { "shear", "SHEAR" }, // The instantaneous share rate, s⁻¹
     { "divergence", "DIV" }, // The instantaneous divergence, s⁻¹
     { "sigma_I", "SIGMAI" }, // The first stress invariant, Pa

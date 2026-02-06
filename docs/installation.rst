@@ -52,10 +52,17 @@ You must have root privilege :
 
         sudo apt-get update
         sudo apt-get install netcdf-bin libnetcdf-c++4-dev libboost-all-dev cmake subversion libeigen3-dev
-        svn checkout http://forge.ipsl.fr/ioserver/svn/XIOS/trunk xios
+        svn checkout http://forge.ipsl.fr/ioserver/svn/XIOS3/trunk xios
         cd xios
-        ./make_xios --arch <your_architecture>
+        ./make_xios --arch <your_architecture> --job <number_of_jobs>
 
+There is also a ``--debug`` option to compile in debug mode. For example, to
+compile XIOS in debug mode on a Linux operating system and the GCC compiler
+using 8 parallel jobs, use:
+
+.. code::
+
+        ./make_xios --arch GCC_LINUX --job 8 --debug
 
 **Installing dependencies via conda**
 

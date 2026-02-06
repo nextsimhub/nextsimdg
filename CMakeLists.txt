@@ -143,7 +143,8 @@ if(ENABLE_XIOS)
     target_link_libraries(nextsimlib PUBLIC xios HDF5::HDF5)
     target_include_directories(
         nextsimlib
-        PRIVATE ${xios_INCLUDES} ${xios_EXTERNS}/blitz/ ${xios_EXTERNS}/rapidxml/include
+        PRIVATE ${xios_INCLUDES} ${xios_EXTERNS}/blitz ${xios_EXTERNS}/boost_extraction/include
+                ${xios_EXTERNS}/rapidxml/include
     )
     if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
         set(FORTRAN_RUNTIME_LIB "-lgfortran")

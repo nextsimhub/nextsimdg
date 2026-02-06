@@ -15,10 +15,10 @@ ncFile = netCDF4.Dataset(f"era5_test{nx}x{ny}.nc", "w", format="NETCDF4")
 
 ncFile.structure_name = "parametric_rectangular"
 
-xDim = ncFile.createDimension("x", nx)
-yDim = ncFile.createDimension("y", ny)
-xVertexDim = ncFile.createDimension("xvertex", nx + 1)
-yVertexDim = ncFile.createDimension("yvertex", ny + 1)
+xDim = ncFile.createDimension("x_dim", nx)
+yDim = ncFile.createDimension("y_dim", ny)
+xVertexDim = ncFile.createDimension("x_vertex", nx + 1)
+yVertexDim = ncFile.createDimension("y_vertex", ny + 1)
 n_coords_comp = ncFile.createDimension("ncoords", n_coords)
 time_dim = ncFile.createDimension("time", None)
 
@@ -29,8 +29,8 @@ formatted = ncFile.createVariable("formatted", str)
 formatted.format = "%Y-%m-%dT%H:%M:%SZ"
 formatted[0] = "2000-01-01T00:00:00Z"
 
-hfield_dims = ("y", "x")
-timefield_dims = ("time", "y", "x")
+hfield_dims = ("y_dim", "x_dim")
+timefield_dims = ("time", "y_dim", "x_dim")
 
 # fmt: off
 mask33 = np.array(
@@ -98,7 +98,7 @@ for i in range(nx + 1):
 lat = 90 - (x_coords**2 + y_coords**2) ** 0.5
 lon = np.rad2deg(np.arctan2(y_coords, x_coords))
 
-coords = ncFile.createVariable("coords", "f8", ("yvertex", "xvertex", "ncoords"))
+coords = ncFile.createVariable("coords", "f8", ("y_vertex", "x_vertex", "ncoords"))
 coords[:, :, 0] = lon
 coords[:, :, 1] = lat
 

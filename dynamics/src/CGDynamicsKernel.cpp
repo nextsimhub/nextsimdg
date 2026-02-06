@@ -40,25 +40,39 @@ void CGDynamicsKernel<DGadvection>::initialise(
     pmap->InitializeCGLandmask();
 
     u.resize_by_mesh(*smesh);
+    u.setZero();
     v.resize_by_mesh(*smesh);
+    v.setZero();
 
     cgH.resize_by_mesh(*smesh);
+    cgH.setZero();
     cgA.resize_by_mesh(*smesh);
+    cgA.setZero();
 
     xGradSeaSurfaceHeight.resize_by_mesh(*smesh);
+    xGradSeaSurfaceHeight.setZero();
     yGradSeaSurfaceHeight.resize_by_mesh(*smesh);
+    yGradSeaSurfaceHeight.setZero();
 
     dStressX.resize_by_mesh(*smesh);
+    dStressX.setZero();
     dStressY.resize_by_mesh(*smesh);
+    dStressY.setZero();
 
     uOcean.resize_by_mesh(*smesh);
+    uOcean.setZero();
     vOcean.resize_by_mesh(*smesh);
+    vOcean.setZero();
 
     uAtmos.resize_by_mesh(*smesh);
+    uAtmos.setZero();
     vAtmos.resize_by_mesh(*smesh);
+    vAtmos.setZero();
 
     uIceOceanStress.resize_by_mesh(*smesh);
+    uIceOceanStress.setZero();
     vIceOceanStress.resize_by_mesh(*smesh);
+    vIceOceanStress.setZero();
 
     cosOceanAngle = std::cos(radians(baseParams.oceanTurningAngle));
     sinOceanAngle = std::sin(radians(baseParams.oceanTurningAngle));
@@ -450,6 +464,9 @@ void CGDynamicsKernel<DGadvection>::updateIceOceanStress(
 
 #pragma omp parallel for
     for (int i = 0; i < uIceOceanStress.rows(); ++i) {
+        if (pmap->cglandmask(i) == 0)
+            continue;
+
         const FloatType uOceanRel = uOcean(i) - uIce(i);
         const FloatType vOceanRel = vOcean(i) - vIce(i);
         const FloatType cPrime = FOcean * std::hypot(uOceanRel, vOceanRel);

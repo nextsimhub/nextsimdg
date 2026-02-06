@@ -1,27 +1,43 @@
+# Workflow for checking the formatting of various file types
 name: Check formatting
 
 on:
+  # Trigger the workflow upon merging into main or develop
   push:
     branches: [ main, develop ]
+
+  # Trigger the workflow whenever commits are pushed to an open PR that changes one of the file types listed
   pull_request:
     paths:
-      - '.github/workflows/linting.yml'
+      - '.github/workflows/*.yml'
       - '**.cpp'
       - '**.hpp'
       - '**.py'
       - '**CMakeLists.txt'
-  pull_request_review:
-    branches: [ main, develop ]
+
+  # Enable running this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# Restrict default permissions
+permissions: {}
+
+# Cancel running jobs if new commits are pushed
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
+
+  # Linting for C++, Python, and CMake
   linting:
     runs-on: ubuntu-latest
-
     timeout-minutes: 5
-
     steps:
     - uses: actions/checkout@v2
+      with:
+        persist-credentials: false
 
+    # Apply C++ formatter, clang-format
     - name: clang-format
       run: |
         sudo apt update
@@ -33,6 +49,7 @@ jobs:
           cd -
         done
 
+    # Apply Python formatter, Ruff
     - name: ruff
       if: always()
       run: |
@@ -41,11 +58,23 @@ jobs:
         ruff format --diff ./
         ruff check --diff ./
 
+    # Apply CMake linter, cmake-lint
     - name: cmake-lint
       run: |
         pip install cmakelang
         cmake-lint $(find . -name CMakeLists.txt) -c .cmake-lint-config.py
-        # NOTE: We ignore C0103, which would enforce that variables are all-caps
-        # NOTE: We ignore C0113, which would enforce that comments are used
-        # NOTE: We set the tab size to 4
-        # NOTE: We set the maximum line length to 100
+
+  # Apply GitHub Actions linter, zizmor
+  zizmor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      security-events: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          persist-credentials: false
+
+      - name: Run zizmor
+        uses: zizmorcore/zizmor-action@e673c3917a1aef3c65c972347ed84ccd013ecda4 # v0.2.0

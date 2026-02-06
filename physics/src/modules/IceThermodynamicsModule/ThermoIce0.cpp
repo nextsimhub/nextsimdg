@@ -5,7 +5,6 @@
 #include "include/ThermoIce0.hpp"
 
 #include "include/IFreezingPoint.hpp"
-#include "include/IceGrowth.hpp"
 #include "include/IceMinima.hpp"
 #include "include/KernelAlternatives.hpp"
 #include "include/ModelArray.hpp"

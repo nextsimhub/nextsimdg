@@ -1,0 +1,85 @@
+# Workflow for building nextSIM-DG documentation
+name: Build docs
+
+on:
+  # Trigger the workflow upon merging into main or docs
+  push:
+    branches: [ main, docs ]
+
+  # Trigger the workflow whenever commits are pushed to an open PR that changes one of the file types listed
+  pull_request:
+    paths:
+      - '.github/workflows/build_docs.yml'
+      - 'docs/Doxyfile'
+      - 'docs/*.rst'
+      - 'scripts/*.sh'
+      - '**.cpp'
+      - '**.hpp'
+
+# Restrict default permissions
+permissions: {}
+
+# Cancel running jobs if new commits are pushed
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+
+  # Test the docs build on the latest Ubuntu OS
+  test-build:
+    if: github.ref != 'refs/heads/main' && github.ref != 'refs/heads/docs'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        persist-credentials: false
+
+    - name: Build the docs
+      run: |
+          sudo apt update
+          sudo apt install doxygen -y
+          pip install -r requirements.txt
+          ./scripts/build-docs.sh
+
+    # tmate can be used to get an interactive ssh session to the GitHub runner
+    # for debugging actions. See
+    # [here](https://github.com/mxschmitt/action-tmate) for more information.
+    # Uncomment these lines to debug the Doxygen build
+    # - name: Setup tmate session
+    #   uses: mxschmitt/action-tmate@v3
+
+  # Build and deploy the docs on the latest Ubuntu OS
+  build-and-deploy:
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/docs'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    # We trust the deploy action with write permissions
+    permissions:
+      contents: write
+      id-token: write
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        persist-credentials: false
+
+    - name: Build the docs
+      run: |
+          sudo apt update
+          sudo apt install doxygen -y
+          pip install -r requirements.txt
+          ./scripts/build-docs.sh
+
+    - name: Deploy to GitHub Pages
+      if: success() && (github.ref == 'refs/heads/main')
+      uses: crazy-max/ghaction-github-pages@df5cc2bfa78282ded844b354faee141f06b41865  # v4
+      with:
+        target_branch: gh-pages
+        build_dir: docs/html
+        jekyll: false
+        keep_history: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

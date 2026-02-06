@@ -19,13 +19,13 @@ formatted = ncFile.createVariable("formatted", str)
 formatted.format = "%Y-%m-%dT%H:%M:%SZ"
 formatted[0] = "2000-01-01T00:00:00Z"
 
-x_dim = ncFile.createDimension("xdim", nx)
-y_dim = ncFile.createDimension("ydim", ny)
-xvertex_dim = ncFile.createDimension("xvertex", nx + 1)
-yvertex_dim = ncFile.createDimension("yvertex", ny + 1)
+x_dim = ncFile.createDimension("x_dim", nx)
+y_dim = ncFile.createDimension("y_dim", ny)
+xvertex_dim = ncFile.createDimension("x_vertex", nx + 1)
+yvertex_dim = ncFile.createDimension("y_vertex", ny + 1)
 coords_dim = ncFile.createDimension("ncoords", n_coords)
 
-hfield_dims = ("ydim", "xdim")
+hfield_dims = ("y_dim", "x_dim")
 
 mask = ncFile.createVariable("mask", "f8", hfield_dims)
 # fmt: off
@@ -113,8 +113,8 @@ tsurf.missing_value = mdi
 
 # coordinates
 # element centres
-x_var = ncFile.createVariable("x", "f8", hfield_dims)
-y_var = ncFile.createVariable("y", "f8", hfield_dims)
+x_var = ncFile.createVariable("x_dim", "f8", hfield_dims)
+y_var = ncFile.createVariable("y_dim", "f8", hfield_dims)
 
 d_distance = 150000  # 150 km element spacing
 
@@ -125,7 +125,7 @@ for j in range(ny):
         x_var[j, i] = x
         y_var[j, i] = y
 
-coords = ncFile.createVariable("coords", "f8", ("yvertex", "xvertex", "ncoords"))
+coords = ncFile.createVariable("coords", "f8", ("y_vertex", "x_vertex", "ncoords"))
 
 for j in range(ny + 1):
     y = j * d_distance

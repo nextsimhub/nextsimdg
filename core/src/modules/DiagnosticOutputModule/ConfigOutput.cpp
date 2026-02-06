@@ -20,6 +20,7 @@ static const std::regex ncSuffix(".nc$");
 
 static const std::string pfx = "ConfigOutput";
 static const std::string periodKey = pfx + ".period";
+static const std::string snapshotKey = pfx + ".snapshots";
 static const std::string startKey = pfx + ".start";
 static const std::string fieldNamesKey = pfx + ".field_names";
 static const std::string fileNameKey = pfx + ".filename";
@@ -31,6 +32,7 @@ static const std::string modelStartKey = "model.start";
 static const std::map<int, std::string> keyMap = {
     { ConfigOutput::PERIOD_KEY, periodKey },
     { ConfigOutput::START_KEY, startKey },
+    { ConfigOutput::SNAPSHOT_KEY, snapshotKey },
     { ConfigOutput::FIELDNAMES_KEY, fieldNamesKey },
     { ConfigOutput::FILENAME_KEY, fileNameKey },
     { ConfigOutput::FILEPERIOD_KEY, filePeriodKey },
@@ -46,6 +48,8 @@ ConfigOutput::ConfigOutput()
     , lastOutput(defaultLastOutput)
     , fieldsForOutput()
     , currentFileName()
+    , snapshots(false)
+    , resetState(true)
 {
 }
 
@@ -55,6 +59,8 @@ ConfigurationHelp::HelpMap& ConfigOutput::getHelpText(HelpMap& map, bool getAll)
         { periodKey, ConfigType::STRING, {}, "", "", "Time between samples of the output data." },
         { startKey, ConfigType::STRING, {}, "model.start", "",
             "Date at which to start outputting data." },
+        { snapshotKey, ConfigType::BOOLEAN, { "true", "false" }, "false", "",
+            "Output snapshots. Otherwise, output-period averages are output." },
         { fieldNamesKey, ConfigType::STRING, {}, "ALL", "",
             "Comma separated, space free list of fields to be output. "
             "The special value \""
@@ -93,6 +99,8 @@ void ConfigOutput::configure()
             lastOutput -= outputPeriod;
         }
     }
+
+    snapshots = Configured::getConfiguration(keyMap.at(SNAPSHOT_KEY), false);
 
     std::string outputFields
         = Configured::getConfiguration(keyMap.at(FIELDNAMES_KEY), std::string(""));
@@ -151,7 +159,9 @@ void ConfigOutput::outputState(const ModelState& diagState)
         lastFileChange = time;
     }
 
-    ModelState state { {}, diagState.config };
+    double averagingFactor = meta.stepLength().seconds() / outputPeriod.seconds();
+    if (resetState)
+        state = { {}, diagState.config };
     auto storeData = ModelComponent::getStore().getAllData();
     if (outputAllTheFields) {
         // If the internal to external name lookup table is still empty, fill it
@@ -169,10 +179,29 @@ void ConfigOutput::outputState(const ModelState& diagState)
         // defined, or as its internal name.
         for (auto entry : storeData) {
             if (entry.second && entry.second->trueSize()) {
+                std::string key;
                 if (reverseExternalNames.count(entry.first)) {
-                    state.data[reverseExternalNames.at(entry.first)] = *entry.second;
+                    key = reverseExternalNames.at(entry.first);
                 } else {
-                    state.data[entry.first] = *entry.second;
+                    key = entry.first;
+                }
+                if (snapshots || everyTS) {
+                    state.data[key] = *entry.second;
+                } else {
+                    /* Averaging the DG components doesn't make sense, so we only take the mean
+                     * component. This does require an extra copy, though. The DG components are not
+                     * masked ether, so we apply the mask to the copy. */
+                    ModelArray data;
+                    if (entry.second->getType() == ModelArray::Type::DG) {
+                        data = ModelArray(ModelArray::Type::H);
+                        data.setData(entry.second->component(0));
+                    } else {
+                        data = *entry.second;
+                    }
+                    if (resetState)
+                        state.data[key] = mask(data) * averagingFactor;
+                    else
+                        state.data.at(key) += mask(data) * averagingFactor;
                 }
             }
         }
@@ -189,7 +218,25 @@ void ConfigOutput::outputState(const ModelState& diagState)
         for (const auto& fieldExtName : fieldsForOutput) {
             if (externalNames.count(fieldExtName) && storeData.count(externalNames.at(fieldExtName))
                 && storeData.at(externalNames.at(fieldExtName))) {
-                state.data[fieldExtName] = *storeData.at(externalNames.at(fieldExtName));
+                if (snapshots || everyTS) {
+                    state.data[fieldExtName] = *storeData.at(externalNames.at(fieldExtName));
+                } else {
+                    /* Averaging the DG components doesn't make sense, so we only take the mean
+                     * component. This does require an extra copy, though. The DG components are not
+                     * masked ether, so we apply the mask to the copy. */
+                    const std::string& key = externalNames.at(fieldExtName);
+                    ModelArray data;
+                    if (storeData.at(key)->getType() == ModelArray::Type::DG) {
+                        data = ModelArray(ModelArray::Type::H);
+                        data.setData(storeData.at(key)->component(0));
+                    } else {
+                        data = *storeData.at(key);
+                    }
+                    if (resetState)
+                        state.data[fieldExtName] = mask(data) * averagingFactor;
+                    else
+                        state.data.at(fieldExtName) += mask(data) * averagingFactor;
+                }
             }
         }
     }
@@ -208,6 +255,9 @@ void ConfigOutput::outputState(const ModelState& diagState)
         meta.affixCoordinates(state);
         StructureFactory::fileFromState(state, currentFileName, false);
         lastOutput = meta.time();
+        resetState = true;
+    } else {
+        resetState = false;
     }
 }
 

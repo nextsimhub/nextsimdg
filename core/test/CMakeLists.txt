@@ -12,7 +12,7 @@ set(ModulesRoot "../src/modules")
 
 # Generate netCDF files for tests
 execute_process(
-    COMMAND "${Python_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/old_names.py"
+    COMMAND "${Python_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/alt_names.py"
     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
 )
 execute_process(
@@ -112,15 +112,21 @@ if(ENABLE_MPI)
         set(XIOS_INCLUDE_LIST
             "${xios_INCLUDES}"
             "${xios_EXTERNS}/blitz/"
+            "${xios_EXTERNS}/boost_extraction/include"
             "${xios_EXTERNS}/rapidxml/include"
         )
         set(MODEL_INCLUDE_DIR "${MODEL_INCLUDE_DIR}" "${XIOS_INCLUDE_LIST}")
-        file(
-            CREATE_LINK
-                "${CMAKE_SOURCE_DIR}/core/test/iodef.xml"
-                "${CMAKE_CURRENT_BINARY_DIR}/iodef.xml"
-            SYMBOLIC
+
+        # Generate XML file for XIOS configuration
+        add_custom_command(
+            OUTPUT iodef.xml
+            COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/../src/generate_iodef.py
+                    ${DGComp} ${DGStressComp}
+                    ${CMAKE_CURRENT_SOURCE_DIR}/../src/iodef.xml.jinja
+                    ${CMAKE_CURRENT_BINARY_DIR}/iodef.xml
+            DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/../src/iodef.xml.jinja
         )
+        add_custom_target(generate_xios_iodef_file ALL DEPENDS iodef.xml)
 
         # Generate input and partition files needed for XIOS tests from respective cdl files
         add_custom_command(
@@ -130,6 +136,13 @@ if(ENABLE_MPI)
             DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/xios_test_input.cdl
         )
         add_custom_target(generate_xios_input_file ALL DEPENDS xios_test_input.nc)
+        add_custom_command(
+            OUTPUT xios_test_forcing.nc
+            COMMAND ncgen -k netCDF-4 -o xios_test_forcing.nc
+                    ${CMAKE_CURRENT_SOURCE_DIR}/xios_test_forcing.cdl
+            DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/xios_test_forcing.cdl
+        )
+        add_custom_target(generate_xios_forcing_file ALL DEPENDS xios_test_forcing.nc)
         add_custom_command(
             OUTPUT xios_test_mask.nc
             COMMAND ncgen -b -o xios_test_mask.nc ${CMAKE_CURRENT_SOURCE_DIR}/xios_test_mask.cdl
@@ -188,20 +201,12 @@ if(ENABLE_MPI)
         )
         target_link_libraries(testXiosAxis_MPI3 PRIVATE nextsimlib doctest::doctest)
 
-        add_executable(testXiosGrid_MPI2 "XiosGrid_test.cpp" "MainMPI.cpp")
-        target_compile_definitions(testXiosGrid_MPI2 PRIVATE USE_XIOS)
-        target_include_directories(
-            testXiosGrid_MPI2
-            PRIVATE
-                ${PHYSICS_INCLUDE_DIRS}
-                "${MODEL_INCLUDE_DIR}"
-                "${XIOS_INCLUDE_LIST}"
-                "${ModulesRoot}/StructureModule"
-        )
-        target_link_libraries(testXiosGrid_MPI2 PRIVATE nextsimlib doctest::doctest)
-
         add_executable(testXiosField_MPI3 "XiosField_test.cpp" "MainMPI.cpp")
-        target_compile_definitions(testXiosField_MPI3 PRIVATE USE_XIOS)
+        target_compile_definitions(testXiosField_MPI3
+            PRIVATE
+                USE_XIOS
+                TEST_FILES_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\"
+        )
         target_include_directories(
             testXiosField_MPI3
             PRIVATE
@@ -241,7 +246,11 @@ if(ENABLE_MPI)
         target_link_libraries(testXiosRead_MPI2 PRIVATE nextsimlib doctest::doctest)
 
         add_executable(testXiosWrite_MPI2 "XiosWrite_test.cpp" "MainMPI.cpp")
-        target_compile_definitions(testXiosWrite_MPI2 PRIVATE USE_XIOS)
+        target_compile_definitions(testXiosWrite_MPI2
+            PRIVATE
+                USE_XIOS
+                TEST_FILES_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\"
+        )
         target_include_directories(
             testXiosWrite_MPI2
             PRIVATE
@@ -255,7 +264,6 @@ if(ENABLE_MPI)
         set(XIOS_TESTS
             testXiosCalendar_MPI1
             testXiosAxis_MPI3
-            testXiosGrid_MPI2
             testXiosField_MPI3
             testXiosFile_MPI2
             testXiosRead_MPI2
@@ -263,6 +271,9 @@ if(ENABLE_MPI)
         )
 
         add_mpi_test("${XIOS_TESTS}")
+
+        # Ensure XiosWrite_test is run before XiosRead_test
+        set_tests_properties(testXiosRead_MPI2 PROPERTIES DEPENDS testXiosWrite_MPI2)
     else()
         add_executable(testHaloExchangeCB_MPI3
             "HaloExchangeCB_test.cpp"

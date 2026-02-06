@@ -65,6 +65,7 @@ limitations under the License.
    numerical-implementation
    outputs-diagnostics
    xios
+   halo-exchange
 
 .. toctree::
    :caption: INSTALLATION
