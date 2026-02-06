@@ -174,7 +174,7 @@ public:
         return getHostRW();
 #endif
     }
-    
+
     template <typename ExecSpace> ModelArrayAuto& getAutoRW(ExecSpace execSpace)
     {
 #ifdef USE_KOKKOS

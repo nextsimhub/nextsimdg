@@ -136,7 +136,7 @@ public:
         = { -std::numeric_limits<double>::max(), std::numeric_limits<double>::max() });
     //! Copy constructor
     ModelArray(const ModelArray&);
-    virtual ~ModelArray() { };
+    virtual ~ModelArray() {};
 
     //! Copy assignment operator
     ModelArray& operator=(const ModelArray&);
