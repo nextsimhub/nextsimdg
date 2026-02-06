@@ -79,7 +79,7 @@ void TOPAZOcean::updateBefore(const TimestepTime& tst)
         ssh = 0.;
     }
 
-    auto cpml = cpmlAccessor.getAutoRW();
+    auto& cpml = cpmlAccessor.getAutoRW();
     const auto& mld = mldAccessor.getAutoRO();
     overElementsAuto(OVER_ELEMENTS_LAMBDA(
         const ElementIndex i) { cpml[i] = Water::rhoOcean * Water::cp * mld[i]; });
@@ -97,11 +97,8 @@ void TOPAZOcean::updateAfter(const TimestepTime& tst)
     mergeFluxes(tst);
     slabOcean.update(tst);
 
-    static KokkosTimer<true> timer("====>assignData");
-    timer.start();
     sstAccessor.getAutoRW().assignData(sstSlabAccessor.getAutoRO());
     sssAccessor.getAutoRW().assignData(sssSlabAccessor.getAutoRO());
-    timer.stop();
 
     try {
         checkFields();
