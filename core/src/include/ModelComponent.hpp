@@ -1,6 +1,7 @@
 /*!
  * @author  Tim Spain <timothy.spain@nersc.no>
  * @author  Einar Ólason <einar.olason@nersc.no>
+ * @author  Robert Jendersie <robert.jendersie@ovgu.de>
  */
 
 #ifndef MODELCOMPONENT_HPP
@@ -269,11 +270,13 @@ private:
 
         if (!storePtr) {
             if (columnPhysicsStoreIsDestroyed) {
-                Logged::warning("Trying to access the ModelArray store after it was destroyed.");
-            } else {
-                storePtr = std::make_unique<ModelArrayStore>();
-                Finalizer::registerUnique(destroyModelArrayStore);
+                Logged::warning("Accessing the ModelComponent::getStore() after it was destroyed. "
+                                "A new store will be constructed. In a test with multiple cases "
+                                "this is the desired behaviour.");
             }
+            storePtr = std::make_unique<ModelArrayStore>();
+            Finalizer::registerUnique(destroyModelArrayStore);
+            columnPhysicsStoreIsDestroyed = false;
         }
         return storePtr;
     }
