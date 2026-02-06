@@ -5,6 +5,7 @@
 #include "include/ConfigOutput.hpp"
 #include "include/FileCallbackCloser.hpp"
 #include "include/Logged.hpp"
+#include "include/ModelArrayAccessor.hpp"
 #include "include/StructureFactory.hpp"
 
 #include <cmath>
@@ -162,7 +163,7 @@ void ConfigOutput::outputState(const ModelState& diagState)
     double averagingFactor = meta.stepLength().seconds() / outputPeriod.seconds();
     if (resetState)
         state = { {}, diagState.config };
-    auto storeData = ModelComponent::getStore().getAllData();
+    auto storeData = ModelArrayAccessorBase<RO>::getAll(ModelComponent::getStore());
     if (outputAllTheFields) {
         // If the internal to external name lookup table is still empty, fill it
         if (reverseExternalNames.empty()) {
@@ -178,7 +179,8 @@ void ConfigOutput::outputState(const ModelState& diagState)
         // Output every entry in storeData, as either its external name if
         // defined, or as its internal name.
         for (auto entry : storeData) {
-            if (entry.second && entry.second->trueSize()) {
+            const ModelArray& modelArray = entry.second.getHostRO();
+            if (modelArray.trueSize()) {
                 std::string key;
                 if (reverseExternalNames.count(entry.first)) {
                     key = reverseExternalNames.at(entry.first);
@@ -186,17 +188,17 @@ void ConfigOutput::outputState(const ModelState& diagState)
                     key = entry.first;
                 }
                 if (snapshots || everyTS) {
-                    state.data[key] = *entry.second;
+                    state.data[key] = modelArray;
                 } else {
                     /* Averaging the DG components doesn't make sense, so we only take the mean
                      * component. This does require an extra copy, though. The DG components are not
                      * masked ether, so we apply the mask to the copy. */
                     ModelArray data;
-                    if (entry.second->getType() == ModelArray::Type::DG) {
+                    if (modelArray.getType() == ModelArray::Type::DG) {
                         data = ModelArray(ModelArray::Type::H);
-                        data.setData(entry.second->component(0));
+                        data.setData(modelArray.component(0));
                     } else {
-                        data = *entry.second;
+                        data = modelArray;
                     }
                     if (resetState)
                         state.data[key] = mask(data) * averagingFactor;
@@ -216,21 +218,26 @@ void ConfigOutput::outputState(const ModelState& diagState)
         // Get data from the data store for any named fields that have an external name that
         // matches.
         for (const auto& fieldExtName : fieldsForOutput) {
-            if (externalNames.count(fieldExtName) && storeData.count(externalNames.at(fieldExtName))
-                && storeData.at(externalNames.at(fieldExtName))) {
+            auto keyIt = externalNames.find(fieldExtName);
+            if (keyIt == externalNames.end()) {
+                continue;
+            }
+
+            const std::string& key = keyIt->second;
+            if (externalNames.count(fieldExtName) && storeData.count(key)) {
+                const ModelArray& modelArray = storeData.at(key).getHostRO();
                 if (snapshots || everyTS) {
-                    state.data[fieldExtName] = *storeData.at(externalNames.at(fieldExtName));
+                    state.data[fieldExtName] = modelArray;
                 } else {
                     /* Averaging the DG components doesn't make sense, so we only take the mean
                      * component. This does require an extra copy, though. The DG components are not
                      * masked ether, so we apply the mask to the copy. */
-                    const std::string& key = externalNames.at(fieldExtName);
                     ModelArray data;
-                    if (storeData.at(key)->getType() == ModelArray::Type::DG) {
+                    if (modelArray.getType() == ModelArray::Type::DG) {
                         data = ModelArray(ModelArray::Type::H);
-                        data.setData(storeData.at(key)->component(0));
+                        data.setData(modelArray.component(0));
                     } else {
-                        data = *storeData.at(key);
+                        data = modelArray;
                     }
                     if (resetState)
                         state.data[fieldExtName] = mask(data) * averagingFactor;

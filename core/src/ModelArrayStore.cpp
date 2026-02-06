@@ -4,6 +4,7 @@
 
 #include "include/ModelArrayStore.hpp"
 #include "include/Logged.hpp"
+#include "include/ModelArrayAccessor.hpp"
 #include <iostream>
 namespace Nextsim {
 
@@ -44,7 +45,7 @@ ModelArrayStore::ExtModelArrayFlagged::ExtModelArrayFlagged(
 }
 
 /*************************************************************/
-std::unordered_map<std::string, const ModelArray*> ModelArrayStore::getAllData() const
+/*std::unordered_map<std::string, const ModelArray*> ModelArrayStore::getAllData() const
 {
     std::unordered_map<std::string, const ModelArray*> dataMap;
 
@@ -55,6 +56,22 @@ std::unordered_map<std::string, const ModelArray*> ModelArrayStore::getAllData()
     return dataMap;
 }
 
+std::unordered_map<std::string, ModelArrayAccessorBase<RO>> ModelArrayStore::getAllData() const
+{
+    std::unordered_map<std::string, ModelArrayAccessorBase<RO>> dataMap;
+
+    for (const auto& [name, extArrFlagged] : store) {
+        // Internally ModelArrayAccessor always holds a mutable reference but the RO variant only
+exposes
+        // the data as const so this is safe.
+        dataMap.emplace(name,
+ModelArrayAccessorBase<RO>(const_cast<ExtModelArrayFlagged&>(extArrFlagged)));
+    }
+
+    return dataMap;
+}*/
+
+/*************************************************************/
 bool ModelArrayStore::checkAllRegistered() const
 {
     bool b = true;

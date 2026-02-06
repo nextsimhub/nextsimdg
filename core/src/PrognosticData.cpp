@@ -56,13 +56,13 @@ void PrognosticData::configure()
     checkFast
         = Configured::getConfiguration(keyMap.at(CHECKFIELDSFAST_KEY), checkFieldsFastDefault);
     if (checkAll()) {
-        for (const auto& field : getStore().getAllData()) {
+        for (const auto& field : ModelArrayAccessorBase<RO>::getAll(getStore())) {
             addChecks({ { field.first, field.second } });
         }
     } else if (checkFast) {
         addChecks({
-            { "thickness", &hiceAccessor.getHostRO() },
-            { "concentration", &ciceAccessor.getHostRO() },
+            { "thickness", hiceAccessor },
+            { "concentration", ciceAccessor },
         });
     }
 }

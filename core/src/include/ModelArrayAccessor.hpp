@@ -21,11 +21,13 @@ using ModelArrayAuto = ModelArray;
 using ConstModelArrayAuto = const ModelArray;
 #endif
 
+template <bool isReadWrite = RO> class ModelArrayAccessorBase;
+
 template <const TextTag& fieldName, bool isReadWrite = RO> class ModelArrayAccessor;
 
-template <const TextTag& fieldName> class ModelArrayAccessor<fieldName, RO> {
+template <> class ModelArrayAccessorBase<RO> {
 public:
-    ModelArrayAccessor(ModelArrayStore& store)
+    ModelArrayAccessorBase(ModelArrayStore& store, const std::string& fieldName)
         : target(store.getRO(fieldName))
     {
     }
@@ -96,28 +98,60 @@ public:
 #endif
     }
 
+    static std::unordered_map<std::string, ModelArrayAccessorBase<RO>> getAll(
+        const ModelArrayStore& store)
+    {
+        std::unordered_map<std::string, ModelArrayAccessorBase<RO>> dataMap;
+
+        for (const auto& [name, extArrFlagged] : store.store) {
+            // skip fields that don't actually exist
+            if (!extArrFlagged.isRegistered) {
+                continue;
+            }
+            // Internally ModelArrayAccessor always holds a mutable reference but the RO variant
+            // only exposes the data as const so this is safe.
+            dataMap.emplace(name,
+                ModelArrayAccessorBase<RO>(
+                    const_cast<ModelArrayStore::ExtModelArray&>(extArrFlagged.extModelArray)));
+        }
+
+        return dataMap;
+    }
+
 protected:
     // for the RW version
-    ModelArrayAccessor(ModelArrayStore::ExtModelArray& _target)
+    ModelArrayAccessorBase(ModelArrayStore::ExtModelArray& _target)
         : target(_target)
     {
     }
     // lifetime and persistent address are enforced by ModelArrayStore
     ModelArrayStore::ExtModelArray& target;
+
+    // getAllData() uses the protected constructor
+    friend class ModelArrayStore;
 };
 
 template <const TextTag& fieldName>
-class ModelArrayAccessor<fieldName, RW> : public ModelArrayAccessor<fieldName, RO> {
-    using Base = ModelArrayAccessor<fieldName, RO>;
-
+class ModelArrayAccessor<fieldName, RO> : public ModelArrayAccessorBase<RO> {
 public:
     ModelArrayAccessor(ModelArrayStore& store)
+        : ModelArrayAccessorBase<RO>(store, fieldName)
+    {
+    }
+};
+
+template <> class ModelArrayAccessorBase<RW> : public ModelArrayAccessorBase<RO> {
+    using Base = ModelArrayAccessorBase<RO>;
+
+public:
+    ModelArrayAccessorBase(ModelArrayStore& store, const std::string& fieldName)
         : Base(store.getRW(fieldName))
     {
     }
 
     template <typename... Args>
-    ModelArrayAccessor(ModelArrayStore& store, bool isReadWriteExternal, Args&&... args)
+    ModelArrayAccessorBase(ModelArrayStore& store, const std::string& fieldName,
+        bool isReadWriteExternal, Args&&... args)
         // using ModelArrayAccessor<fieldName, RO> directly instead of Base here leads to a compiler
         // error in ModelArrayAccessor_test.cpp
         : Base(store.registerArray(fieldName, isReadWriteExternal, std::forward<Args>(args)...))
@@ -184,6 +218,24 @@ public:
 #endif
     }
 };
+
+template <const TextTag& fieldName>
+class ModelArrayAccessor<fieldName, RW> : public ModelArrayAccessorBase<RW> {
+    using Base = ModelArrayAccessorBase<RW>;
+
+public:
+    ModelArrayAccessor(ModelArrayStore& store)
+        : Base(store, fieldName)
+    {
+    }
+
+    template <typename... Args>
+    ModelArrayAccessor(ModelArrayStore& store, bool isReadWriteExternal, Args&&... args)
+        : Base(store, fieldName, isReadWriteExternal, std::forward<Args>(args)...)
+    {
+    }
+};
+
 }
 
 #endif /* MODELARRAYACCESSOR_HPP */

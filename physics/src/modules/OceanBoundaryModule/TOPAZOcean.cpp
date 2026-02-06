@@ -131,8 +131,8 @@ void TOPAZOcean::setData(const ModelState::DataMap& ms)
     sssExt.resize();
 
     addChecks({
-        { "sstExt", &sstExt },
-        { "sssExt", &sssExt },
+        { "sstExt", sstExtAccessor },
+        { "sssExt", sssExtAccessor },
     });
 
     slabOcean.setData(ms);

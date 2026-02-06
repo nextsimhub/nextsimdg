@@ -139,13 +139,13 @@ void BBMDynamics::update(const TimestepTime& tst)
     kernel.setDGArray(damageName, damageAccessor.getAutoRW());
 
     // set the forcing velocities
-    static KokkosTimer<DETAILED_MEASUREMENTS> timer("setData");
+    static KokkosTimer<DETAILED_MEASUREMENTS> timer("BBMDynamics::update::setData");
     timer.start();
-    kernel.setData(uWindName, uwindAccessor.getHostRO());
-    kernel.setData(vWindName, vwindAccessor.getHostRO());
-    kernel.setData(uOceanName, uoceanAccessor.getHostRO());
-    kernel.setData(vOceanName, voceanAccessor.getHostRO());
-    kernel.setData(sshName, sshAccessor.getHostRO());
+    kernel.setData(uWindName, uwindAccessor.getAutoRO());
+    kernel.setData(vWindName, vwindAccessor.getAutoRO());
+    kernel.setData(uOceanName, uoceanAccessor.getAutoRO());
+    kernel.setData(vOceanName, voceanAccessor.getAutoRO());
+    kernel.setData(sshName, sshAccessor.getAutoRO());
     timer.stop();
 
     /*

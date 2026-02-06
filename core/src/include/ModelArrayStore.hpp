@@ -20,9 +20,12 @@ namespace Nextsim {
 enum struct SyncState { SYNCED, HOST_CHANGED, DEVICE_CHANGED };
 #endif
 
+template <bool isReadWrite> class ModelArrayAccessorBase;
+
 class ModelArrayStore {
 public:
-    std::unordered_map<std::string, const ModelArray*> getAllData() const;
+    //  std::unordered_map<std::string, const ModelArray*> getAllData() const;
+    //  std::unordered_map<std::string, ModelArrayAccessorBase<RO>> getAllData() const;
 
     // Checks that all known fields have been properly registered with an Accessor that provided the
     // constructor arguments.
@@ -101,7 +104,7 @@ private:
 
     std::unordered_map<std::string, ExtModelArrayFlagged> store;
 
-    template <const TextTag& fieldName, bool isReadWrite> friend class ModelArrayAccessor;
+    template <bool isReadWrite> friend class ModelArrayAccessorBase;
 };
 
 }

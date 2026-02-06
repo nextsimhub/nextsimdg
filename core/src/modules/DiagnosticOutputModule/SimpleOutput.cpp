@@ -5,6 +5,7 @@
 #include "include/SimpleOutput.hpp"
 
 #include "include/Logged.hpp"
+#include "include/ModelArrayAccessor.hpp"
 #include "include/StructureFactory.hpp"
 
 #include <sstream>
@@ -25,10 +26,9 @@ void SimpleOutput::outputState(const ModelState& diagState)
     // Take the passed state, and add the files in the data store
     ModelState state = diagState;
     // Create the output by iterating over all fields referenced in ModelState
-    auto storeData = ModelComponent::getStore().getAllData();
+    auto storeData = ModelArrayAccessorBase<RO>::getAll(ModelComponent::getStore());
     for (auto entry : storeData) {
-        if (entry.second)
-            state.data.at(entry.first) = *entry.second;
+        state.data.at(entry.first) = entry.second.getHostRO();
     }
     StructureFactory::fileFromState(state, timeFileName);
 }

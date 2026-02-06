@@ -51,12 +51,12 @@ void ERA5Atmosphere::configure()
     tryConfigure(fluxImpl);
 
     addChecks({
-        { "tair", &tairAccessor.getHostRO() },
-        { "tdew", &tdewAccessor.getHostRO() },
-        { "pair", &pairAccessor.getHostRO() },
-        { "sw_in", &sw_inAccessor.getHostRO() },
-        { "lw_in", &lw_inAccessor.getHostRO() },
-        { "wind", &windAccessor.getHostRO() },
+        { "tair", tairAccessor },
+        { "tdew", tdewAccessor },
+        { "pair", pairAccessor },
+        { "sw_in", sw_inAccessor },
+        { "lw_in", lw_inAccessor },
+        { "wind", windAccessor },
     });
 }
 

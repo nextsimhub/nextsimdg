@@ -61,15 +61,15 @@ public:
         tauYOW.resize();
 
         addChecks({
-            { "qia", &qia },
-            { "qow", &qow },
-            { "snow", &snow },
-            { "rain", &rain },
-            { "evap", &evap },
-            { "uwind", &uwind },
-            { "vwind", &vwind },
-            { "tauXOW", &tauXOW },
-            { "tauYOW", &tauYOW },
+            { "qia", qiaAccessor },
+            { "qow", qowAccessor },
+            { "snow", snowAccessor },
+            { "rain", rainAccessor },
+            { "evap", evapAccessor },
+            { "uwind", uwindAccessor },
+            { "vwind", vwindAccessor },
+            { "tauXOW", tauXOWAccessor },
+            { "tauYOW", tauYOWAccessor },
         });
     }
     virtual void update(const TimestepTime& tst) { }
