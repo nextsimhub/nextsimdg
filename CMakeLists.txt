@@ -1,5 +1,10 @@
 cmake_minimum_required(VERSION 3.12)
 
+# set globally because we have a number of independent targets
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
 project(nextsim_dg)
 
 # user definable build options
@@ -180,6 +185,7 @@ IF (WITH_KOKKOS)
     endif ()
 
     target_link_libraries(nextsimlib PUBLIC Kokkos::kokkos)
+    # define to use for conditional code inclusion
     target_compile_definitions(nextsimlib PUBLIC USE_KOKKOS)
     
     if (Kokkos_ENABLE_CUDA OR Kokkos_ENABLE_ROCM)
