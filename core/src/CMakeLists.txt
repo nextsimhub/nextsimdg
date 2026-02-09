@@ -1,11 +1,8 @@
 # Sources for the main neXtSIM model
 
 if(ENABLE_XIOS)
-    set(XIOS_INCLUDE_LIST
-        "${xios_INCLUDES}"
-        "${xios_EXTERNS}/blitz/"
-        "${xios_EXTERNS}/rapidxml/include"
-    )
+    set(XIOS_INCLUDE_LIST "${xios_INCLUDES}" "${xios_EXTERNS}/blitz/"
+                          "${xios_EXTERNS}/rapidxml/include")
     set(NextsimIncludeDirs "${NextsimIncludeDirs}" "${XIOS_INCLUDE_LIST}")
     set(ParaGridIOImplSource "${CMAKE_CURRENT_SOURCE_DIR}/ParaGridIO_Xios.cpp")
 else()
@@ -38,8 +35,7 @@ set(BaseSources
     "PDWriter.cpp"
     "Time.cpp"
     "${ModelArrayStructure}/ModelArrayDetails.cpp"
-    "Xios.cpp"
-)
+    "Xios.cpp")
 
 set(ParallelNetCDFSources "${CMAKE_CURRENT_SOURCE_DIR}/ParallelNetcdfFile.cpp")
 
@@ -51,30 +47,23 @@ add_subdirectory("${ModuleDir}")
 
 list(TRANSFORM ModuleSources PREPEND "${ModuleDir}/")
 
-set(NextsimSourcesTemp
-    "${BaseSources}"
-    "${NextsimSources}"
-    "${ModuleSources}"
-    "${ParaGridIOImplSource}"
-)
+set(NextsimSourcesTemp "${BaseSources}" "${NextsimSources}" "${ModuleSources}"
+                       "${ParaGridIOImplSource}")
 
 if(ENABLE_MPI)
     list(APPEND NextsimSourcesTemp "${ParallelNetCDFSources}")
 endif()
 
 if(WITH_KOKKOS)
-    list(APPEND NextsimSourcesTemp 
-        "${CMAKE_CURRENT_SOURCE_DIR}/kokkos/KokkosUtils.cpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/kokkos/KokkosModelArray.cpp"
-    )
+    list(APPEND NextsimSourcesTemp "${CMAKE_CURRENT_SOURCE_DIR}/kokkos/KokkosUtils.cpp"
+         "${CMAKE_CURRENT_SOURCE_DIR}/kokkos/KokkosModelArray.cpp")
 endif()
 
-set(NextsimSources "${NextsimSourcesTemp}" PARENT_SCOPE)
+set(NextsimSources
+    "${NextsimSourcesTemp}"
+    PARENT_SCOPE)
 
 set(NextsimIncludeDirs
-    "${NextsimIncludeDirs}"
-    "${ModuleDir}"
-    "${CMAKE_CURRENT_SOURCE_DIR}"
+    "${NextsimIncludeDirs}" "${ModuleDir}" "${CMAKE_CURRENT_SOURCE_DIR}"
     "${CMAKE_CURRENT_SOURCE_DIR}/${ModelArrayStructure}"
-    PARENT_SCOPE
-)
+    PARENT_SCOPE)

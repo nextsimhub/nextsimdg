@@ -1,6 +1,5 @@
-FILE(GLOB KokkosSources *.cpp)
+file(GLOB KokkosSources *.cpp)
 
 set(NextsimSources
-	"${NextsimSources}"
-    "${KokkosSources}"
+    "${NextsimSources}" "${KokkosSources}"
     PARENT_SCOPE)

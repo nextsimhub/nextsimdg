@@ -24,17 +24,19 @@ if(NOT ENABLE_MPI)
     target_link_libraries(testTOPAZOcn PRIVATE nextsimlib doctest::doctest)
 
     add_executable(testNSColumnPhysics "NSColumnPhysics_test.cpp" "../../core/test/MainTest.cpp")
-    target_include_directories(testNSColumnPhysics PRIVATE "${ModulesRoot}/OceanBoundaryModule"
-                                                     "${ModulesRoot}/ColumnPhysicsModule"
-                                                     "${CoreModulesRoot}/FreezingPointModule")
+    target_include_directories(
+        testNSColumnPhysics
+        PRIVATE "${ModulesRoot}/OceanBoundaryModule" "${ModulesRoot}/ColumnPhysicsModule"
+                "${CoreModulesRoot}/FreezingPointModule")
     target_link_libraries(testNSColumnPhysics PRIVATE nextsimlib doctest::doctest)
 
-    add_executable(testThermoWinton "ThermoWintonTemperature_test.cpp" "../../core/test/MainTest.cpp")
+    add_executable(testThermoWinton "ThermoWintonTemperature_test.cpp"
+                                    "../../core/test/MainTest.cpp")
     target_include_directories(testThermoWinton PRIVATE "${ModulesRoot}/IceThermodynamicsModule"
                                                         "${ModulesRoot}/OceanBoundaryModule")
     target_link_libraries(testThermoWinton PRIVATE nextsimlib doctest::doctest)
 
-    add_executable(testFEFluxes "FiniteElementFluxes_test.cpp"  "../../core/test/MainTest.cpp")
+    add_executable(testFEFluxes "FiniteElementFluxes_test.cpp" "../../core/test/MainTest.cpp")
     target_include_directories(
         testFEFluxes
         PRIVATE "${ModulesRoot}/FluxCalculationModule" "${ModulesRoot}/OceanBoundaryModule"
