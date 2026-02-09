@@ -4,8 +4,8 @@
  */
 
 #include "include/HiblerSpread.hpp"
-#include "kokkos/include/KokkosTimer.hpp"
 #include "include/KernelAlternatives.hpp"
+#include "kokkos/include/KokkosTimer.hpp"
 
 #include "include/IceMinima.hpp"
 #include "include/constants.hpp"
@@ -95,7 +95,8 @@ void HiblerSpread::update(const TimestepTime& tstep)
     auto& newice = newiceAccessor.getAutoRW(execSpace);
     auto& hice = hiceAccessor.getAutoRW(execSpace);
     auto& deltaCIce = deltaCIceAccessor.getAutoRW(execSpace);
-    const auto& mixedLayerBulkHeatCapacity = mixedLayerBulkHeatCapacityAccessor.getAutoRO(execSpace);
+    const auto& mixedLayerBulkHeatCapacity
+        = mixedLayerBulkHeatCapacityAccessor.getAutoRO(execSpace);
     const auto& deltaHi = deltaHiAccessor.getAutoRO(execSpace);
     const auto& tf = tfAccessor.getAutoRO(execSpace);
     const auto& sst = sstAccessor.getAutoRO(execSpace);
@@ -107,61 +108,60 @@ void HiblerSpread::update(const TimestepTime& tstep)
     const double cMin = IceMinima::c();
     const double hMin = IceMinima::h();
 
-    overElementsAuto(
-        OVER_ELEMENTS_LAMBDA (const ElementIndex i) {
-            // newIceFormation
-            // Flux cooling the ocean from open water
-            // TODO Add assimilation fluxes here
-            double coolingFlux = qow[i];
-            // Temperature change of the mixed layer during this timestep
-            double deltaTml = -coolingFlux / mixedLayerBulkHeatCapacity[i] * dt;
-            // Initial temperature
-            double t0 = sst[i];
-            // Freezing point temperature
-            double tf0 = tf[i];
-            // Final temperature
-            double t1 = t0 + deltaTml;
+    overElementsAuto(OVER_ELEMENTS_LAMBDA(const ElementIndex i) {
+        // newIceFormation
+        // Flux cooling the ocean from open water
+        // TODO Add assimilation fluxes here
+        double coolingFlux = qow[i];
+        // Temperature change of the mixed layer during this timestep
+        double deltaTml = -coolingFlux / mixedLayerBulkHeatCapacity[i] * dt;
+        // Initial temperature
+        double t0 = sst[i];
+        // Freezing point temperature
+        double tf0 = tf[i];
+        // Final temperature
+        double t1 = t0 + deltaTml;
 
-            // deal with cooling below the freezing point
-            if (t1 < tf0) {
-                // Heat lost cooling the mixed layer to freezing point
-                double sensibleFlux = (tf0 - t0) / deltaTml * coolingFlux;
-                // Any heat beyond that is latent heat forming new ice
-                double latentFlux = coolingFlux - sensibleFlux;
+        // deal with cooling below the freezing point
+        if (t1 < tf0) {
+            // Heat lost cooling the mixed layer to freezing point
+            double sensibleFlux = (tf0 - t0) / deltaTml * coolingFlux;
+            // Any heat beyond that is latent heat forming new ice
+            double latentFlux = coolingFlux - sensibleFlux;
 
-                qow[i] = sensibleFlux;
-                newice[i] = latentFlux * dt * (1 - cice[i]) / (Ice::Lf * Ice::rho);
-            } else {
-                newice[i] = 0;
-            }
+            qow[i] = sensibleFlux;
+            newice[i] = latentFlux * dt * (1 - cice[i]) / (Ice::Lf * Ice::rho);
+        } else {
+            newice[i] = 0;
+        }
 
-            // lateralIceSpread
-            const double deltaCMelt = melt(deltaHi[i], cice[i], hice[i], phiM);
-            const double deltaCFreeze = freeze(newice[i], h0);
+        // lateralIceSpread
+        const double deltaCMelt = melt(deltaHi[i], cice[i], hice[i], phiM);
+        const double deltaCFreeze = freeze(newice[i], h0);
 
-            deltaCIce[i] = deltaCFreeze + deltaCMelt;
-            cice[i] = (hice[i] > 0 || newice[i] > 0) ? cice[i] + deltaCIce[i] : 0;
-            if (cice[i] >= cMin) {
-                // The updated ice thickness must conserve volume
-                hice[i] += newice[i];
-                if (deltaCIce[i] < 0) {
-                    /* Snow is lost if the concentration decreases, and energy is returned
-                     * to the ocean. We reduce the snow volume by a "slice" of snow with the
-                     * dimensions hs * deltaCIce. */
-                    const double hs = hsnow[i] / (cice[i] - deltaCIce[i]);
-                    qow[i] -= deltaCIce[i] * hs * Water::Lf * Ice::rhoSnow / dt;
-                    hsnow[i] += hs * deltaCIce[i];
-                } // else: Snow volume is conserved, so no change to hsnow[i]
-            }
+        deltaCIce[i] = deltaCFreeze + deltaCMelt;
+        cice[i] = (hice[i] > 0 || newice[i] > 0) ? cice[i] + deltaCIce[i] : 0;
+        if (cice[i] >= cMin) {
+            // The updated ice thickness must conserve volume
+            hice[i] += newice[i];
+            if (deltaCIce[i] < 0) {
+                /* Snow is lost if the concentration decreases, and energy is returned
+                 * to the ocean. We reduce the snow volume by a "slice" of snow with the
+                 * dimensions hs * deltaCIce. */
+                const double hs = hsnow[i] / (cice[i] - deltaCIce[i]);
+                qow[i] -= deltaCIce[i] * hs * Water::Lf * Ice::rhoSnow / dt;
+                hsnow[i] += hs * deltaCIce[i];
+            } // else: Snow volume is conserved, so no change to hsnow[i]
+        }
 
-            // applyLimits
-            if (cice[i] < cMin || hice[i] < hMin) {
-                qow[i] += Water::Lf * (hice[i] * Ice::rho + hsnow[i] * Ice::rhoSnow) / dt;
-                hice[i] = 0;
-                cice[i] = 0;
-                hsnow[i] = 0;
-            }
-        });
+        // applyLimits
+        if (cice[i] < cMin || hice[i] < hMin) {
+            qow[i] += Water::Lf * (hice[i] * Ice::rho + hsnow[i] * Ice::rhoSnow) / dt;
+            hice[i] = 0;
+            cice[i] = 0;
+            hsnow[i] = 0;
+        }
+    });
     timer.stop();
 }
 }

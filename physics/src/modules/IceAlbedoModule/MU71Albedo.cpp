@@ -16,9 +16,7 @@ double MU71Albedo::i0;
 static const std::string pfx = "MU71Albedo";
 static const std::string i0Key = pfx + ".i0";
 
-std::string MU71Albedo::getName() const {
-    return pfx;
-}
+std::string MU71Albedo::getName() const { return pfx; }
 
 void MU71Albedo::configure() { i0 = Configured::getConfiguration(i0Key, I0_DEFAULT); }
 

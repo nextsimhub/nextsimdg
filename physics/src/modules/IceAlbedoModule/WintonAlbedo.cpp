@@ -30,9 +30,7 @@ static const std::string snowAlbedoKey = pfx + ".snowAlbedo";
 static const std::string meltAlbedoKey = pfx + ".meltAlbedo";
 static const std::string i0Key = pfx + ".i0";
 
-std::string WintonAlbedo::getName() const {
-    return pfx;
-}
+std::string WintonAlbedo::getName() const { return pfx; }
 
 void WintonAlbedo::configure()
 {

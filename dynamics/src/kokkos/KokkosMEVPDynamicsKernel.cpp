@@ -3,8 +3,8 @@
  */
 
 #include "include/KokkosMEVPDynamicsKernel.hpp"
-#include "include/KokkosMesh.hpp"
 #include "../../../core/src/kokkos/include/KokkosTimer.hpp"
+#include "include/KokkosMesh.hpp"
 #include <include/constants.hpp>
 
 namespace Nextsim {
@@ -174,8 +174,8 @@ void KokkosMEVPDynamicsKernel<DGadvection>::updateStressHighOrderDevice(
                         * (PDelta.array()
                                 * ((5.0 / 8.0) * e11Gauss.array() + (3.0 / 8.0) * e22Gauss.array())
                             - 0.5 * P.array())
-                            .matrix()
-                            .transpose()))
+                              .matrix()
+                              .transpose()))
                       .transpose();
             s22.row(i) = fac * s22.row(i)
                 + (map
@@ -183,8 +183,8 @@ void KokkosMEVPDynamicsKernel<DGadvection>::updateStressHighOrderDevice(
                         * (PDelta.array()
                                 * ((5.0 / 8.0) * e22Gauss.array() + (3.0 / 8.0) * e11Gauss.array())
                             - 0.5 * P.array())
-                            .matrix()
-                            .transpose()))
+                              .matrix()
+                              .transpose()))
                       .transpose();
             s12.row(i) = fac * s12.row(i)
                 + (map

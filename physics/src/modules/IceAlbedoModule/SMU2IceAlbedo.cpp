@@ -17,9 +17,7 @@ double SMU2IceAlbedo::i0;
 static const std::string pfx = "SMU2IceAlbedo";
 static const std::string i0Key = pfx + ".i0";
 
-std::string SMU2IceAlbedo::getName() const {
-    return pfx;
-}
+std::string SMU2IceAlbedo::getName() const { return pfx; }
 
 void SMU2IceAlbedo::configure() { i0 = Configured::getConfiguration(i0Key, I0_DEFAULT); }
 

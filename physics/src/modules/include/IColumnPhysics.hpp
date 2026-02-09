@@ -22,6 +22,7 @@ public:
     virtual ~IColumnPhysics() = default;
 
     virtual void update(const TimestepTime&) = 0;
+
 protected:
     IColumnPhysics() = default;
 

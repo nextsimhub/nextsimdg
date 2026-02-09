@@ -31,9 +31,7 @@ static const std::string iceAlbedoKey = pfx + ".iceAlbedo";
 static const std::string snowAlbedoKey = pfx + ".snowAlbedo";
 static const std::string i0Key = pfx + ".I0";
 
-std::string CCSMIceAlbedo::getName() const {
-    return pfx;
-}
+std::string CCSMIceAlbedo::getName() const { return pfx; }
 
 void CCSMIceAlbedo::configure()
 {
@@ -90,11 +88,11 @@ CCSMIceAlbedo::HelpMap& CCSMIceAlbedo::getHelpText(HelpMap& map, bool getAll)
         { snowAlbedoKey, ConfigType::NUMERIC, { "0", "1" },
             ConfigurationHelp::toString(SNOW_ALBEDO0), "", "Albedo of snow." },
         // From the former documentation of IIceAlbedo::surfaceShortWaveBalance:
-        // Fraction of short-wave radiation that can penetrate bare ice (not taking snow cover into account)
+        // Fraction of short-wave radiation that can penetrate bare ice (not taking snow cover into
+        // account)
         { i0Key, ConfigType::NUMERIC, { "0", "1" }, ConfigurationHelp::toString(I0_DEFAULT), "",
             "Transmissivity of ice." },
 
-            
     };
     return map;
 }

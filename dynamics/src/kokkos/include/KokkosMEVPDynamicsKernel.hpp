@@ -7,9 +7,9 @@
 #if !defined(KOKKOSMEVPDYNAMICSKERNEL_HPP) && defined(USE_KOKKOS)
 #define KOKKOSMEVPDYNAMICSKERNEL_HPP
 
+#include "../../../core/src/kokkos/include/KokkosUtils.hpp"
 #include "../../include/VPParameters.hpp"
 #include "KokkosCGDynamicsKernel.hpp"
-#include "../../../core/src/kokkos/include/KokkosUtils.hpp"
 
 namespace Nextsim {
 

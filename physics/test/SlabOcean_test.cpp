@@ -186,7 +186,7 @@ TEST_CASE("Test Fdw")
     REQUIRE(fdw[0]
         == doctest::Approx(
             -sOffset / sss[0] * mld[0] * Water::rho / SlabOcean::defaultRelaxationTime)
-            .epsilon(prec));
+               .epsilon(prec));
     // Test that the finiteelement.cpp calculation of fdw is not being used
     double delS = -sOffset;
     double timeS = SlabOcean::defaultRelaxationTime;
@@ -200,7 +200,7 @@ TEST_CASE("Test Fdw")
     REQUIRE(sssSlab[0] != doctest::Approx(sss[0]).epsilon(prec / dt));
     REQUIRE(sssSlab[0]
         == doctest::Approx(sss[0] - (fdw[0] * dt) / (mld[0] * Water::rho + fdw[0] * dt))
-            .epsilon(prec));
+               .epsilon(prec));
 
     ModelArrayAccessor<CouplingFields::FWFLUX, RW> snowMeltFluxAccessor(
         couplingArrays, RW, ModelArray::Type::H);
@@ -212,7 +212,7 @@ TEST_CASE("Test Fdw")
     REQUIRE(sssSlab[0]
         == doctest::Approx(sss[0]
             + (snowMeltVol - fdw[0] * dt) / (mld[0] * Water::rho - snowMeltVol + fdw[0] * dt))
-            .epsilon(prec));
+               .epsilon(prec));
 }
 TEST_SUITE_END();
 } /* namespace Nextsim */

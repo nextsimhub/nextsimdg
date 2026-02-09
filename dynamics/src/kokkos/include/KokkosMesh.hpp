@@ -5,8 +5,8 @@
 #ifndef KOKKOSPARAMETRICMESH_HPP
 #define KOKKOSPARAMETRICMESH_HPP
 
-#include "../../include/ParametricMesh.hpp"
 #include "../../../core/src/kokkos/include/KokkosUtils.hpp"
+#include "../../include/ParametricMesh.hpp"
 
 namespace Nextsim {
 

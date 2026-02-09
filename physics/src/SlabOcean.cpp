@@ -108,7 +108,7 @@ void SlabOcean::update(const TimestepTime& tst)
     const double dt = tst.step.seconds();
     const double relaxationTimeT = SlabOcean::relaxationTimeT;
     const double relaxationTimeS = SlabOcean::relaxationTimeS;
-    
+
     overElementsAuto(OVER_ELEMENTS_LAMBDA(const ElementIndex i) {
         // Slab SST update
         qdw[i] = (sstExt[i] - sst[i]) * cpml[i] / relaxationTimeT;

@@ -40,6 +40,7 @@ public:
     static HelpMap& getHelpRecursive(HelpMap&, bool getAll);
 
     void update(const TimestepTime& tstep) override;
+
 private:
     static double h0;
     static double phiM;

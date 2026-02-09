@@ -321,7 +321,7 @@ template <int DGadvection> void CGDynamicsKernel<DGadvection>::projectVelocityTo
         int cgi = CGdegree * cgshift * row; //!< Lower left index of cg vector
 
         for (size_t col = 0; col < smesh->nx;
-            ++col, ++dgi, cgi += CGdegree) { // loop over all elements
+             ++col, ++dgi, cgi += CGdegree) { // loop over all elements
 
             if (smesh->landmask[dgi] == 0) // only on ice
                 continue;

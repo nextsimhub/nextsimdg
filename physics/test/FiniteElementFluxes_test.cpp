@@ -146,7 +146,6 @@ TEST_CASE("Melting conditions")
     ModelArrayAccessor<Shared::OW_STRESS_Y, RW> tauYAccessor(ModelComponent::getStore(), RW);
     tauYAccessor.getHostRW().resize();
 
-
     TimestepTime tst = { TimePoint("2000-001"), Duration("P0-0T0:10:0") };
     // OceanState is independently updated
     FiniteElementFluxes fef;

@@ -231,7 +231,7 @@ template <int DG> void KokkosSlopeLimiter<DG>::limit(const DeviceViewDG& phi)
         limitAlphas(alpha, alphaX, alphaY);
     }
 
-	limitHigherOrder(phi, alpha, alphaX);
+    limitHigherOrder(phi, alpha, alphaX);
 }
 
 template class KokkosSlopeLimiter<DGCOMP>;

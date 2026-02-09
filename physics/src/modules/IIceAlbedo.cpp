@@ -12,8 +12,8 @@ IIceAlbedo::IIceAlbedo()
 }
 
 void IIceAlbedo::setData(const ModelState::DataMap&)
-    {
-        iceAlbedoAccessor.getHostRW().resize();
-        icePenSWAccessor.getHostRW().resize();
-    }
+{
+    iceAlbedoAccessor.getHostRW().resize();
+    icePenSWAccessor.getHostRW().resize();
+}
 }

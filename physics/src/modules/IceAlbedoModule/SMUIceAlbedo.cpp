@@ -15,9 +15,7 @@ double SMUIceAlbedo::i0;
 static const std::string pfx = "SMUIceAlbedo";
 static const std::string i0Key = pfx + ".i0";
 
-std::string SMUIceAlbedo::getName() const {
-    return pfx;
-}
+std::string SMUIceAlbedo::getName() const { return pfx; }
 
 void SMUIceAlbedo::configure() { i0 = Configured::getConfiguration(i0Key, I0_DEFAULT); }
 

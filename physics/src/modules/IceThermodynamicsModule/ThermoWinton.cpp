@@ -6,9 +6,9 @@
 #include "include/ThermoWinton.hpp"
 #include "include/IceMinima.hpp"
 
+#include "include/KernelAlternatives.hpp"
 #include "include/constants.hpp"
 #include "include/gridNames.hpp"
-#include "include/KernelAlternatives.hpp"
 #include "kokkos/include/KokkosTimer.hpp"
 
 #include <cmath>
@@ -223,7 +223,7 @@ void ThermoWinton::update(const TimestepTime& tst)
     const double hMin = IceMinima::h();
     const double dt = tst.step.seconds();
 
-    overElementsAuto(OVER_ELEMENTS_LAMBDA (const ElementIndex i) {
+    overElementsAuto(OVER_ELEMENTS_LAMBDA(const ElementIndex i) {
         static const double bulkLHFusionSnow = Water::Lf * Ice::rhoSnow;
         static const double bulkLHFusionIce = Water::Lf * Ice::rho;
 

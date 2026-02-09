@@ -58,8 +58,8 @@ private:
     }
 
     template <bool doDeriv>
-    KERNEL_IMPL_FUNCTION auto calculate(double temperature, double pressure, double salinity) const
-        -> std::conditional_t<doDeriv, Utils::pair<double, double>, double>
+    KERNEL_IMPL_FUNCTION auto calculate(double temperature, double pressure,
+        double salinity) const -> std::conditional_t<doDeriv, Utils::pair<double, double>, double>
     {
         const double estCalc = est(temperature, salinity);
         const double fCalc = f(temperature, pressure);
