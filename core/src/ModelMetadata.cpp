@@ -1,16 +1,23 @@
 /*!
  * @author  Tim Spain <timothy.spain@nersc.no>
  * @author  Tom Meltzer <tdm39@cam.ac.uk>
+ * @author  Joe Wallwork <jw2423@cam.ac.uk>
  */
 
 #include "include/ModelMetadata.hpp"
 
 #include "include/Finalizer.hpp"
 #include "include/IStructure.hpp"
+#include "include/Logged.hpp"
 #include "include/ModelMPI.hpp"
 #include "include/NextsimModule.hpp"
+#ifdef USE_MPI
+#include "include/ParallelNetcdfFile.hpp"
 #ifdef USE_XIOS
 #include "include/Xios.hpp"
+#else
+#include "include/Halo.hpp"
+#endif
 #endif
 #include "include/gridNames.hpp"
 #include <array>
@@ -18,9 +25,9 @@
 #include <functional>
 #include <vector>
 
+#include <ncDim.h>
 #ifdef USE_MPI
 #include "mpi.h"
-#include <ncDim.h>
 #include <ncFile.h>
 #include <ncGroup.h>
 #include <ncVar.h>
@@ -119,8 +126,18 @@ void ModelMetadata::getPartitionMetadata(std::string partitionFile)
             + std::to_string(nBoxes) + "\n";
         throw std::runtime_error(errorMsg);
     }
-    globalExtentX = ncFile.getDim("NX").getSize();
-    globalExtentY = ncFile.getDim("NY").getSize();
+    if (!globalExtentX) {
+        globalExtentX = ncFile.getDim("NX").getSize();
+    } else if (globalExtentX != ncFile.getDim("NX").getSize()) {
+        throw std::runtime_error("ModelMetadata: Inconsistent global x-extent between "
+                                 "partition and input files.");
+    }
+    if (!globalExtentY) {
+        globalExtentY = ncFile.getDim("NY").getSize();
+    } else if (globalExtentX != ncFile.getDim("NY").getSize()) {
+        throw std::runtime_error("ModelMetadata: Inconsistent global y-extent between "
+                                 "partition and input files.");
+    }
     netCDF::NcGroup bboxGroup(ncFile.getGroup(bboxName));
 
     std::vector<size_t> rank(1, modelMPI.getRank());
@@ -149,6 +166,97 @@ ModelMetadata::ModelMetadata()
 }
 
 #endif
+
+void ModelMetadata::setDimensionsFromFile(const std::string& filename)
+{
+    if (filename.empty()) {
+        throw std::runtime_error(
+            "ModelMetadata :: setDimensionsFromFile() called without input file.");
+    }
+
+    // Set to record the names of dimensions found in the file
+    std::set<std::string> dimNames;
+
+    try {
+#ifdef USE_MPI
+        auto& modelMPI = ModelMPI::getInstance();
+        netCDF::NcFilePar ncFile(filename, netCDF::NcFile::read, modelMPI.getComm());
+#else
+        netCDF::NcFile ncFile(filename, netCDF::NcFile::read);
+#endif
+
+        // Dimensions and DG components
+        std::multimap<std::string, netCDF::NcDim> dimMap = ncFile.getDims();
+        for (auto& entry : ModelArray::definedDimensions) {
+            const ModelArray::Dimension& dimType = entry.first;
+            if (dimType == ModelArray::Dimension::DG || dimType == ModelArray::Dimension::DGSTRESS
+                || dimType == ModelArray::Dimension::NCOORDS) {
+                // TODO: Assert that DG in the file equals the compile time DG in the model (#205)
+                continue;
+            }
+
+            const ModelArray::DimensionSpec& dimensionSpec = entry.second;
+            // Find dimensions in the netCDF file by their name in the ModelArray details
+            netCDF::NcDim dim = ncFile.getDim(dimensionSpec.name);
+            // Also check the old name
+            if (dim.isNull()) {
+                dim = ncFile.getDim(dimensionSpec.altName);
+            }
+            if (dim.isNull()) {
+                Logged::warning(
+                    "ModelMetadata: No netCDF dimension found corresponding to the dimension named "
+                    + dimensionSpec.name + " or " + dimensionSpec.altName);
+                continue;
+            } else {
+                dimNames.insert(dimensionSpec.name);
+            }
+#ifdef USE_MPI
+            size_t localLength;
+            size_t start;
+            if (dimType == ModelArray::Dimension::X) {
+                localLength = getLocalExtentX();
+                start = getLocalCornerX();
+            } else if (dimType == ModelArray::Dimension::Y) {
+                localLength = getLocalExtentY();
+                start = getLocalCornerY();
+            } else if (dimType == ModelArray::Dimension::XVERTEX) {
+                localLength = getLocalExtentX() + 1;
+                start = getLocalCornerX();
+            } else if (dimType == ModelArray::Dimension::YVERTEX) {
+                localLength = getLocalExtentY() + 1;
+                start = getLocalCornerY();
+            } else if (dimType == ModelArray::Dimension::XCG) {
+                localLength = CGDEGREE * getLocalExtentX() + 1;
+                start = CGDEGREE * getLocalCornerX();
+            } else if (dimType == ModelArray::Dimension::YCG) {
+                localLength = CGDEGREE * getLocalExtentY() + 1;
+                start = CGDEGREE * getLocalCornerY();
+            } else {
+                localLength = dim.getSize();
+                start = 0;
+            }
+#if USE_XIOS
+            ModelArray::setDimension(dimType, dim.getSize(), localLength, start);
+#else
+            ModelArray::setDimension(
+                dimType, dim.getSize(), localLength + 2 * Halo::haloWidth, start);
+#endif
+#else
+            ModelArray::setDimension(dimType, dim.getSize());
+#endif
+        }
+    } catch (const netCDF::exceptions::NcException& nce) {
+        std::string ncWhat(nce.what());
+        ncWhat += ": " + filename;
+        throw std::runtime_error(ncWhat);
+    }
+
+    // Throw an error if we didn't find any dimensions
+    if (dimNames.empty()) {
+        throw std::out_of_range(
+            "ModelMetadata: No netCDF dimensions in input file '" + filename + "'");
+    }
+}
 
 const ModelState& ModelMetadata::extractCoordinates(const ModelState& state)
 {
@@ -214,9 +322,6 @@ void ModelMetadata::setTime(const TimePoint& time)
     m_time = time;
 #ifdef USE_XIOS
     Xios& xiosHandler = Xios::getInstance();
-    if (!xiosHandler.isInitialized()) {
-        throw std::runtime_error("ModelMetadata: Xios handler has not been initialized");
-    }
     xiosHandler.setCalendarStart(time);
 #endif
 }
@@ -226,9 +331,6 @@ void ModelMetadata::incrementTime(const Duration& step)
     m_time += step;
 #ifdef USE_XIOS
     Xios& xiosHandler = Xios::getInstance();
-    if (!xiosHandler.isInitialized()) {
-        throw std::runtime_error("ModelMetadata: Xios handler has not been initialized");
-    }
     xiosHandler.incrementCalendar();
 #endif
 }

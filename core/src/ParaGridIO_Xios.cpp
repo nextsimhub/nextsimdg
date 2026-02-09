@@ -30,78 +30,32 @@
 
 namespace Nextsim {
 
-// TODO: XIOS implementation
 ParaGridIO::ParaGridIO(ParametricGrid& grid)
     : IParaGridIO(grid)
-    , openFilesAndIndices(getOpenFilesAndIndices())
-    , dimensionKeys({
-          // clang-format off
-          // Accept post-May 2024 (xdim, ydim, zdim) dimension names and pre-May 2024 (x, y, z)
-        { "yx", ModelArray::Type::H },
-        { "ydimxdim", ModelArray::Type::H },
-        { "yxdg_comp", ModelArray::Type::DG },
-        { "ydimxdimdg_comp", ModelArray::Type::DG },
-        { "yxdgstress_comp", ModelArray::Type::DGSTRESS },
-        { "ydimxdimdgstress_comp", ModelArray::Type::DGSTRESS },
-        { "ycgxcg", ModelArray::Type::CG },
-        { "yvertexxvertexncoords", ModelArray::Type::VERTEX },
-          // clang-format on
-      })
-    , isDG({
-          // clang-format off
-        { ModelArray::Dimension::X, false },
-        { ModelArray::Dimension::Y, false },
-        { ModelArray::Dimension::XCG, true },
-        { ModelArray::Dimension::YCG, true },
-        { ModelArray::Dimension::DG, true },
-        { ModelArray::Dimension::DGSTRESS, true },
-        // NCOORDS is a number of components, but not in the same way as the DG components.
-        { ModelArray::Dimension::NCOORDS, false },
-          // clang-format on
-      })
-    , dimCompMap({
-          // clang-format off
-        { ModelArray::componentMap.at(ModelArray::Type::DG), ModelArray::Type::DG },
-        { ModelArray::componentMap.at(ModelArray::Type::DGSTRESS), ModelArray::Type::DGSTRESS },
-        { ModelArray::componentMap.at(ModelArray::Type::VERTEX), ModelArray::Type::VERTEX },
-          // clang-format on
-      })
-{
-    Logged::warning("XIOS integration has not yet been completed");
-    static bool doneOnce = doOnce();
-}
-
-bool ParaGridIO::doOnce()
 {
     Xios& xiosHandler = Xios::getInstance();
-    // NOTE: getInstance will call the constructor for the Xios handler class the first time it is
-    // called. This will automatically:
-    // * Create XIOS input and output files if the XiosInput.filename and XiosOutput.filename
-    //   entries are set in the config.
-    // * Create all fields found in the config based off the field names found in the
-    //   XiosInput.field_names and XiosOutput.field_names entries in the config.
-
-    // TODO: Register XIOS finalization and drop the following in that case.
-    // Register the finalization function here
-    Finalizer::registerUnique(closeAllFiles);
-    // Since it should only ever run once, do further one-off initialization: allow distant
-    // classes to close files via a callback.
-    FileCallbackCloser::onClose(close);
-
-    return true;
+    xiosHandler.setupDomains();
+    xiosHandler.setupGrids();
 }
 
 ParaGridIO::~ParaGridIO() = default;
 
 ModelState ParaGridIO::getModelState(const std::string& filePath)
 {
-    ModelState state;
+    // Close the XIOS context definition, if it hasn't already been closed
     Xios& xiosHandler = Xios::getInstance();
+    xiosHandler.close_context_definition();
+
+    ModelMetadata& metadata = ModelMetadata::getInstance();
+    if (metadata.initialFileName != filePath) {
+        throw std::runtime_error("ParaGridIO::getModelState: file path '" + filePath
+            + "' is inconsistent with model.init_file '" + metadata.initialFileName + "'");
+    }
 
     // Get all variables in the file and load them into a new ModelState
-    const bool readAccess = true;
-    for (std::string fieldId : xiosHandler.configGetInputRestartFieldNames()) {
-        ModelArray::Type type = xiosHandler.getFieldType(fieldId);
+    ModelState state;
+    for (const std::string& fieldId : xiosHandler.configGetInputRestartFieldNames()) {
+        const ModelArray::Type& type = xiosHandler.getFieldType(fieldId);
         if (type == ModelArray::Type::H) {
             HField field(ModelArray::Type::H);
             field.resize();
@@ -114,20 +68,29 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
             DGField field(ModelArray::Type::DG);
             field.resize();
             state.merge(ModelState { { { fieldId, field } }, {} });
+        } else if (type == ModelArray::Type::DGSTRESS) {
+            DGSField field(ModelArray::Type::DGSTRESS);
+            field.resize();
+            state.merge(ModelState { { { fieldId, field } }, {} });
+        } else if (type == ModelArray::Type::CG) {
+            CGField field(ModelArray::Type::CG);
+            field.resize();
+            state.merge(ModelState { { { fieldId, field } }, {} });
         } else {
-            throw std::runtime_error(
-                "ParaGridIO::getModelState: field type for field" + fieldId + " is not supported.");
+            throw std::runtime_error("ParaGridIO::getModelState: field type for field " + fieldId
+                + " is not supported.");
         }
     }
 
     // Assume that all fields in the supplied ModelState are necessary, and so read them from file.
-    for (auto& entry : state.data) {
-        const std::string fieldId = entry.first;
-        if (!xiosHandler.getFieldReadAccess(fieldId)) {
-            throw std::runtime_error("ParaGridIO::getModelState: field " + fieldId
-                + " is not configured for reading, but is being read from file.");
-        };
-        xiosHandler.read(fieldId, entry.second);
+    const std::set<std::string> inputFieldIds = xiosHandler.configGetInputRestartFieldNames();
+    for (auto& [fieldId, modelarray] : state.data) {
+        const std::string inputFieldId = fieldId + "_input";
+        if (inputFieldIds.count(fieldId) == 0) {
+            throw std::runtime_error(
+                "ParaGridIO::getModelState: field " + fieldId + " is not configured as a restart.");
+        }
+        xiosHandler.read(inputFieldId, modelarray);
     }
     return state;
 }
@@ -135,26 +98,32 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
 ModelState ParaGridIO::readForcingTimeStatic(
     const std::set<std::string>& forcings, const TimePoint& time, const std::string& filePath)
 {
-    ModelState state;
+    // Close the XIOS context definition, if it hasn't already been closed
     Xios& xiosHandler = Xios::getInstance();
+    xiosHandler.close_context_definition();
+
+    if (xiosHandler.forcingFilename != filePath) {
+        throw std::runtime_error("ParaGridIO::readForcingTimeStatic: file path '" + filePath
+            + "' is inconsistent with XiosForcing.filename '" + xiosHandler.forcingFilename + "'");
+    }
 
     // Increment the XIOS calendar until it reaches the requested time
     while (xiosHandler.getCurrentDate() < time) {
         xiosHandler.incrementCalendar();
     }
-    TimePoint xiosTime = xiosHandler.getCurrentDate();
+    const TimePoint xiosTime = xiosHandler.getCurrentDate();
     if (xiosTime > time) {
         throw std::runtime_error("ParaGridIO::readForcingTimeStatic: requested time point does"
                                  " not align with the calendar and timestep used by XIOS.");
     }
 
     // Get all forcings and load them into a new ModelState
-    const bool readAccess = true;
-    std::set<std::string> forcingFieldIds = xiosHandler.configGetForcingFieldNames();
+    ModelState state;
+    const std::set<std::string> forcingFieldIds = xiosHandler.configGetForcingFieldNames();
     for (const std::string& fieldId : forcings) {
-        if (forcingFieldIds.count(fieldId) == 0 || !xiosHandler.getFieldReadAccess(fieldId)) {
-            throw std::runtime_error("ParaGridIO::readForcingTimeStatic: forcing " + fieldId
-                + " is not configured for reading, but is being read from file.");
+        if (forcingFieldIds.count(fieldId) == 0) {
+            throw std::runtime_error("ParaGridIO::readForcingTimeStatic: field " + fieldId
+                + " is not configured as a forcing.");
         }
         // ASSUME all forcings are HFields: finite volume fields on the same
         // grid as ice thickness
@@ -164,10 +133,10 @@ ModelState ParaGridIO::readForcingTimeStatic(
     }
 
     // Read all forcings from file
-    for (auto& entry : state.data) {
-        const std::string fieldId = entry.first;
+    for (auto& [fieldId, modelarray] : state.data) {
+        const std::string forcingFieldId = fieldId + "_forcing";
         if (forcings.count(fieldId)) {
-            xiosHandler.read(fieldId, entry.second);
+            xiosHandler.read(forcingFieldId, modelarray);
         }
     }
     return state;
@@ -175,175 +144,49 @@ ModelState ParaGridIO::readForcingTimeStatic(
 
 void ParaGridIO::dumpModelState(const ModelState& state, const std::string& filePath)
 {
+    // Close the XIOS context definition, if it hasn't already been closed
     Xios& xiosHandler = Xios::getInstance();
+    xiosHandler.close_context_definition();
 
-    // Assume that all fields in the supplied ModelState are necessary, and so write them to
-    // file.
-    for (auto entry : state.data) {
-        const std::string fieldId = entry.first;
-        if (xiosHandler.getFieldReadAccess(fieldId)) {
+    ModelMetadata& metadata = ModelMetadata::getInstance();
+    if (metadata.finalFileName != filePath) {
+        throw std::runtime_error("ParaGridIO::dumpModelState: file path '" + filePath
+            + "' is inconsistent with model.restart_file '" + metadata.finalFileName + "'");
+    }
+
+    // Assume that all fields in the supplied ModelState are necessary, and so write them to file.
+    const std::set<std::string> outputFieldIds = xiosHandler.configGetOutputRestartFieldNames();
+    for (const auto& [fieldId, modelarray] : state.data) {
+        const std::string outputFieldId = fieldId;
+        if (outputFieldIds.count(fieldId) == 0) {
             throw std::runtime_error("ParaGridIO::dumpModelState: field " + fieldId
-                + " is not configured for writing, but is being written to file.");
-        };
-        xiosHandler.write(fieldId, entry.second);
+                + " is not configured as a restart.");
+        }
+        xiosHandler.write(outputFieldId, modelarray);
     }
 }
 
 void ParaGridIO::writeDiagnosticTime(const ModelState& state, const std::string& filePath)
 {
-    // TODO: XIOS implementation
+    // Close the XIOS context definition, if it hasn't already been closed
+    Xios& xiosHandler = Xios::getInstance();
+    xiosHandler.close_context_definition();
 
-    bool isNew = openFilesAndIndices.count(filePath) <= 0;
-    size_t nt = (isNew) ? 0 : ++openFilesAndIndices.at(filePath).second;
-    if (isNew) {
-        // Open a new file and emplace it in the map of open files.
-        // Set the initial time to be zero (assigned above)
-        // Piecewise construction is necessary to correctly construct the file handle/time index
-        // pair
-        auto& modelMPI = ModelMPI::getInstance();
-        openFilesAndIndices.emplace(std::piecewise_construct, std::make_tuple(filePath),
-            std::forward_as_tuple(std::piecewise_construct,
-                std::forward_as_tuple(filePath, netCDF::NcFile::replace, modelMPI.getComm()),
-                std::forward_as_tuple(nt)));
-    }
-    // Get the file handle
-    NetCDFFileType& ncFile = openFilesAndIndices.at(filePath).first;
-
-    if (isNew) {
-        // Write the common structure and time metadata
-        CommonRestartMetadata::writeStructureType(ncFile);
-    }
-    // Get the unlimited time dimension, creating it if necessary
-    netCDF::NcDim timeDim = (isNew) ? ncFile.addDim(timeName) : ncFile.getDim(timeName);
-
-    // All of the dimensions defined by the data at a particular timestep.
-    std::map<ModelArray::Dimension, netCDF::NcDim> ncFromMAMap;
-    for (auto entry : ModelArray::definedDimensions) {
-        ModelArray::Dimension dim = entry.first;
-        size_t dimSz = (dimCompMap.count(dim)) ? ModelArray::nComponents(dimCompMap.at(dim))
-                                               : dimSz = entry.second.globalLength;
-        ncFromMAMap[dim]
-            = (isNew) ? ncFile.addDim(entry.second.name, dimSz) : ncFile.getDim(entry.second.name);
+    if (xiosHandler.diagnosticFilename != filePath) {
+        throw std::runtime_error("ParaGridIO::writeDiagnosticTime: file path '" + filePath
+            + "' is inconsistent with XiosDiagnostic.filename '" + xiosHandler.diagnosticFilename
+            + "'");
     }
 
-    // Also create the sets of dimensions to be connected to the data fields
-    std::map<ModelArray::Type, std::vector<netCDF::NcDim>> dimMap;
-    // Create the index and size arrays
-    std::map<ModelArray::Type, std::vector<size_t>> startMap;
-    std::map<ModelArray::Type, std::vector<size_t>> countMap;
-    for (auto entry : ModelArray::typeDimensions) {
-        ModelArray::Type type = entry.first;
-        std::vector<netCDF::NcDim> ncDims;
-        std::vector<size_t> start;
-        std::vector<size_t> count;
-
-        // Everything that has components needs that dimension, too
-        if (ModelArray::hasDoF(type)) {
-            if (type == ModelArray::Type::VERTEX && !isNew)
-                continue;
-            auto ncomps = ModelArray::nComponents(type);
-            auto dim = ModelArray::componentMap.at(type);
-            ncDims.push_back(ncFromMAMap.at(dim));
-            start.push_back(0);
-            count.push_back(ncomps);
+    // Assume that all fields in the supplied ModelState are necessary, and so write them to file.
+    const std::set<std::string> diagnosticFieldIds = xiosHandler.configGetDiagnosticFieldNames();
+    for (const auto& [fieldId, modelarray] : state.data) {
+        const std::string diagnosticFieldId = fieldId;
+        if (diagnosticFieldIds.count(fieldId) == 0) {
+            throw std::runtime_error("ParaGridIO::writeDiagnosticTime: field " + fieldId
+                + " is not configured as a diagnostic.");
         }
-        for (auto dt : entry.second) {
-            auto dim = ModelArray::definedDimensions.at(dt);
-            ncDims.push_back(ncFromMAMap.at(dt));
-            start.push_back(dim.start);
-            count.push_back(dim.localLength);
-        }
-
-        // Deal with VERTEX in each case
-        // Add the time dimension for all types that are not VERTEX
-        if (type != ModelArray::Type::VERTEX) {
-            ncDims.push_back(timeDim);
-            start.push_back(nt);
-            count.push_back(1UL);
-        } else if (!isNew) {
-            // For VERTEX in an existing file, there is nothing more to be done
-            continue;
-        }
-
-        std::reverse(ncDims.begin(), ncDims.end());
-        std::reverse(start.begin(), start.end());
-        std::reverse(count.begin(), count.end());
-
-        dimMap[type] = ncDims;
-        startMap[type] = start;
-        countMap[type] = count;
-    }
-
-    // Create a special timeless set of dimensions for the landmask
-    std::vector<netCDF::NcDim> maskDims;
-    std::vector<size_t> maskIndexes;
-    std::vector<size_t> maskExtents;
-    if (isNew) {
-        for (ModelArray::Dimension& maDim : ModelArray::typeDimensions.at(ModelArray::Type::H)) {
-            maskDims.push_back(ncFromMAMap.at(maDim));
-        }
-        maskIndexes = { 0, 0 };
-        maskExtents = { ModelArray::definedDimensions
-                            .at(ModelArray::typeDimensions.at(ModelArray::Type::H)[0])
-                            .localLength,
-            ModelArray::definedDimensions.at(ModelArray::typeDimensions.at(ModelArray::Type::H)[1])
-                .localLength };
-    }
-
-    // Put the time axis variable
-    std::vector<netCDF::NcDim> timeDimVec = { timeDim };
-    netCDF::NcVar timeVar(
-        (isNew) ? ncFile.addVar(timeName, netCDF::ncDouble, timeDimVec) : ncFile.getVar(timeName));
-    auto& metadata = ModelMetadata::getInstance();
-    double secondsSinceEpoch = (metadata.time() - TimePoint()).seconds();
-    netCDF::setVariableCollective(timeVar, ncFile);
-    timeVar.putVar({ nt }, { 1 }, &secondsSinceEpoch);
-
-    if (isNew)
-        timeVar.putAtt("units", "seconds since 1970-01-01 00:00:00");
-
-    // Write the data
-    for (auto entry : state.data) {
-        ModelArray::Type type = entry.second.getType();
-        // Skip timeless fields (mask, coordinates) on existing files
-        if (!isNew && (entry.first == maskName || type == ModelArray::Type::VERTEX))
-            continue;
-        if (entry.first == maskName) {
-            // Land mask in a new file (since it was skipped above in existing files)
-            netCDF::NcVar var(ncFile.addVar(maskName, netCDF::ncDouble, maskDims));
-            // No missing data
-            netCDF::setVariableCollective(var, ncFile);
-            var.putVar(maskIndexes, maskExtents, entry.second.getData());
-
-        } else {
-            std::vector<netCDF::NcDim>& ncDims = dimMap.at(type);
-            // Get the variable object, either creating a new one or getting the existing one
-            netCDF::NcVar var((isNew) ? ncFile.addVar(entry.first, netCDF::ncDouble, ncDims)
-                                      : ncFile.getVar(entry.first));
-            if (isNew)
-                var.putAtt(mdiName, netCDF::ncDouble, MissingData::value());
-            netCDF::setVariableCollective(var, ncFile);
-            var.putVar(startMap.at(type), countMap.at(type), entry.second.getData());
-        }
-    }
-}
-
-// TODO: This method will likely be dropped in the XIOS implementation
-void ParaGridIO::close(const std::string& filePath)
-{
-    if (getOpenFilesAndIndices().count(filePath) > 0) {
-        getOpenFilesAndIndices().at(filePath).first.close();
-        getOpenFilesAndIndices().erase(filePath);
-    }
-}
-
-// TODO: This method will likely be dropped in the XIOS implementation
-void ParaGridIO::closeAllFiles()
-{
-    std::cout << "ParaGridIO::closeAllFiles: closing " << getOpenFilesAndIndices().size()
-              << " files" << std::endl;
-    while (getOpenFilesAndIndices().size() > 0) {
-        close(getOpenFilesAndIndices().begin()->first);
+        xiosHandler.write(diagnosticFieldId, modelarray);
     }
 }
 

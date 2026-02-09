@@ -5,12 +5,12 @@
 #ifndef PROGNOSTICDATA_HPP
 #define PROGNOSTICDATA_HPP
 
-#include "CheckingModelComponent.hpp"
+#include "include/CheckingModelComponent.hpp"
 #include "include/Configured.hpp"
 #include "include/IAtmosphereBoundary.hpp"
+#include "include/IColumnPhysics.hpp"
 #include "include/IDynamics.hpp"
 #include "include/IOceanBoundary.hpp"
-#include "include/IceGrowth.hpp"
 #include "include/ModelMetadata.hpp"
 #include "include/Time.hpp"
 
@@ -56,10 +56,10 @@ private:
     double m_dt;
 
     // Full DG component arrays of thickness and concentration
-    AdvectedField hice;
-    AdvectedField cice;
-    AdvectedField damage;
-    AdvectedField hsnow; // cell averaged snow thickness
+    ModelArrayAccessor<Shared::H_ICE_DG, RW> hiceAccessor;
+    ModelArrayAccessor<Shared::C_ICE_DG, RW> ciceAccessor;
+    ModelArrayAccessor<Shared::DAMAGE, RW> damageAccessor;
+    ModelArrayAccessor<Shared::H_SNOW_DG, RW> hsnowAccessor; // cell averaged snow thickness
 
     IAtmosphereBoundary* pAtmBdy;
     IOceanBoundary* pOcnBdy;
@@ -70,7 +70,7 @@ private:
     };
 
     IDynamics* pDynamics;
-    IceGrowth iceGrowth;
+    IColumnPhysics* pColumnPhysics;
 };
 
 } /* namespace Nextsim */

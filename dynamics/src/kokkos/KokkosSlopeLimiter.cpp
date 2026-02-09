@@ -109,7 +109,7 @@ void KokkosSlopeLimiter<DG>::computeAlphas(const DeviceViewDG1& alpha, const Con
     // relative indices of the four vertices in minV/maxV
     const Kokkos::Array<DeviceIndex, 4> cgIndices = { 0, 1, nx + 1, nx + 2 };
 
-    assert(alpha.extend(0) == nx * ny);
+    assert(alpha.extent(0) == nx * ny);
     Kokkos::parallel_for(
         "computeAlphas", alpha.extent(0), KOKKOS_LAMBDA(const DeviceIndex c) {
             const DeviceIndex cx = c % nx;
@@ -139,7 +139,7 @@ void KokkosSlopeLimiter<DG>::computeAlphasX(const DeviceViewDG1& alphaX,
     // relative indices of the four vertices in minV/maxV
     const Kokkos::Array<DeviceIndex, 4> cgIndices = { 0, 1, nx + 1, nx + 2 };
 
-    assert(alphaX.extend(0) == nx * ny);
+    assert(alphaX.extent(0) == nx * ny);
     Kokkos::parallel_for(
         "computeAlphasX", alphaX.extent(0), KOKKOS_LAMBDA(const DeviceIndex c) {
             const DeviceIndex cx = c % nx;
@@ -167,7 +167,7 @@ void KokkosSlopeLimiter<DG>::computeAlphasY(const DeviceViewDG1& alphaY,
     // relative indices of the four vertices in minV/maxV
     const Kokkos::Array<DeviceIndex, 4> cgIndices = { 0, 1, nx + 1, nx + 2 };
 
-    assert(alphaX.extend(0) == nx * ny);
+    assert(alphaY.extent(0) == nx * ny);
     Kokkos::parallel_for(
         "computeAlphasY", alphaY.extent(0), KOKKOS_LAMBDA(const DeviceIndex c) {
             const DeviceIndex cx = c % nx;
@@ -231,7 +231,7 @@ template <int DG> void KokkosSlopeLimiter<DG>::limit(const DeviceViewDG& phi)
         limitAlphas(alpha, alphaX, alphaY);
     }
 
-	limitHigherOrder(phi, alpha, alphaX);
+    limitHigherOrder(phi, alpha, alphaX);
 }
 
 template class KokkosSlopeLimiter<DGCOMP>;

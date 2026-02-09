@@ -1,5 +1,10 @@
 """Configuration file for cmake-lint and cmake-format."""
 
+# NOTE: We ignore C0103, which would enforce that variables are all-caps
+# NOTE: We ignore C0113, which would enforce that comments are used
+# NOTE: We set the tab size to 4
+# NOTE: We set the maximum line length to 100
+
 # ----------------------------------
 # Options affecting listfile parsing
 # ----------------------------------

@@ -71,6 +71,16 @@ public:
     }
 #endif
 
+    /*!
+     * @brief   Set dimensions information based on the contents of an input file.
+     *
+     * @param   filename the name of the file
+     * @details If an input file hasn't been read yet, the dimensions are read from the file and
+     *          set. Otherwise, a consistency check is made against the dimensions read from file
+     *          and already set.
+     */
+    void setDimensionsFromFile(const std::string& filename);
+
     // finalize ModelMetadata
     static void finalize();
 
@@ -197,6 +207,11 @@ public:
     neighbourArray neighbourHaloSendPeriodic;
     neighbourArray neighbourHaloRecvPeriodic;
 #endif
+
+    std::string initialFileName;
+    std::string finalFileName;
+    // Period between restart file outputs
+    Duration restartPeriod;
 
 private:
     /*!

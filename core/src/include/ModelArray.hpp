@@ -90,6 +90,12 @@ public:
             this->start = 0;
         }
 #endif
+        bool operator==(const DimensionSpec& other)
+        {
+            return ((name == other.name) && (altName == other.altName)
+                && (globalLength == other.globalLength) && (localLength == other.localLength)
+                && (start == other.start));
+        }
     };
 
     using TypeDimensions = std::map<Type, std::vector<Dimension>>;
@@ -408,6 +414,18 @@ public:
      * @param source The object to be copied from.
      */
     void setData(const ModelArray& source);
+
+    /*!
+     * @brief Sets data from another ModelArray, respecting the type of this.
+     *
+     * @details This function copies the data from the source but keeps the
+     * the type and size of this. In case the number of components does not match, only the 0th
+     * component is copied.
+     * @param source The object to be copied from.
+     */
+    void assignData(const ModelArray& source);
+    // Move variant that takes the buffer of source if the number of components match.
+    void assignData(ModelArray&& source);
 
 private:
     // Fast special case for 1-d indexing

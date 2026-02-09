@@ -175,6 +175,7 @@ ModelArray& ModelArray::clampBelow(const ModelArray& minArr)
     return *this;
 }
 
+/*************************************************************/
 void ModelArray::setData(double value)
 {
     resize();
@@ -191,6 +192,26 @@ void ModelArray::setData(const DataType& from) { m_data = from; } // setData(fro
 
 void ModelArray::setData(const ModelArray& from) { setData(from.m_data.data()); }
 
+/*************************************************************/
+void ModelArray::assignData(const ModelArray& source)
+{
+    if (source.nComponents() != nComponents()) {
+        component(0) = source.component(0);
+    } else {
+        m_data = source.m_data;
+    }
+}
+
+void ModelArray::assignData(ModelArray&& source)
+{
+    if (source.nComponents() != nComponents()) {
+        component(0) = source.component(0);
+    } else {
+        m_data = std::move(source.m_data);
+    }
+}
+
+/*************************************************************/
 void ModelArray::setDimensions(Type type, const MultiDim& newDims)
 {
     std::vector<Dimension>& dimSpecs = typeDimensions.at(type);

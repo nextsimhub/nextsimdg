@@ -23,6 +23,9 @@ public:
     {
         IDynamics::setData(state);
 
+        HField& uice = uiceAccessor.getHostRW();
+        HField& vice = viceAccessor.getHostRW();
+
         // Set the ice velocity to zero so that we don't trip the PrognosticData field checks.
         uice = 0.;
         vice = 0.;

@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+<simulation>
+
+  <!-- Context for XIOS concepts used in nextSIM-DG -->
+  <context id="nextSIM-DG">
+
+    <!-- Gregorian calendar beginning with the Unix epoch -->
+    <calendar type="Gregorian" time_origin="1970-01-01" />
+
+    <!-- Axes defining extrusions for certain fields based on degrees of freedom per node -->
+    <axis_definition>
+      <axis id="DGAxis" n_glo="{{ DGCOMP }}" name="dg_comp" dim_name="dg_comp"/>
+      <axis id="DGSAxis" n_glo="{{ DGSTRESSCOMP }}" name="dgstress_comp" dim_name="dgstress_comp"/>
+      <axis id="VertexAxis" n_glo="2" name="ncoords" dim_name="ncoords"/>
+    </axis_definition>
+
+    <grid_definition>
+      <grid id="HGrid" name="HGrid"/>
+      <grid id="DGGrid" name="DGGrid">
+        <axis axis_ref="DGAxis"/>
+      </grid>
+      <grid id="DGSGrid" name="DGSGrid">
+        <axis axis_ref="DGSAxis"/>
+      </grid>
+      <grid id="VertexGrid" name="VertexGrid">
+        <axis axis_ref="VertexAxis"/>
+      </grid>
+      <grid id="CGGrid" name="CGGrid"/>
+    </grid_definition>
+
+  </context>
+
+  <!-- Context for handling XIOS errors and logs -->
+  <context id="xios">
+    <variable_definition>
+      <variable_group id="parameters">
+        <variable id="print_file" type="bool">true</variable>
+      </variable_group>
+    </variable_definition>
+  </context>
+
+</simulation>

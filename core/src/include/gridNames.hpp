@@ -40,8 +40,8 @@ static const std::string vIOStressName = "viostress";
 static const std::string coordsName = "coords";
 static const std::string latitudeName = "latitude";
 static const std::string longitudeName = "longitude";
-static const std::string xName = "x";
-static const std::string yName = "y";
+static const std::string xName = "x_dim";
+static const std::string yName = "y_dim";
 static const std::string gridAzimuthName = "grid_azimuth";
 
 static const std::string mdiName = "missing_value";

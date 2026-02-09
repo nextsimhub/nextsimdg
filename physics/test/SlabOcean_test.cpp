@@ -2,7 +2,6 @@
  * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
-#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include <doctest/doctest.h>
 
 #include "include/SlabOcean.hpp"
@@ -25,68 +24,94 @@ TEST_CASE("Test Qdw")
 
     ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
 
-    ModelArrayReferenceStore couplingArrays;
+    ModelArrayStore couplingArrays;
 
     double tOffset = 0.001;
     // Supply the data to the slab ocean
-    HField sss(ModelArray::Type::H);
+    ModelArrayAccessor<Protected::SSS, RW> sssAccessor(
+        ModelComponent::getStore(), RO, ModelArray::Type::H);
+    HField& sss = sssAccessor.getHostRW();
     sss = 32.;
-    ModelComponent::getStore().registerArray(Protected::SSS, &sss, RO);
 
-    HField sst(ModelArray::Type::H);
+    ModelArrayAccessor<Protected::SST, RW> sstAccessor(
+        ModelComponent::getStore(), RO, ModelArray::Type::H);
+    HField& sst = sstAccessor.getHostRW();
     sst = LinearFreezing()(sss[0]);
-    ModelComponent::getStore().registerArray(Protected::SST, &sst, RO);
 
-    HField mld(ModelArray::Type::H);
+    ModelArrayAccessor<Protected::MLD, RW> mldAccessor(
+        ModelComponent::getStore(), RO, ModelArray::Type::H);
+    HField& mld = mldAccessor.getHostRW();
     mld = 6.48;
-    ModelComponent::getStore().registerArray(Protected::MLD, &mld, RO);
 
-    HField cpml(ModelArray::Type::H);
+    ModelArrayAccessor<Protected::ML_BULK_CP, RW> cpmlAccessor(
+        ModelComponent::getStore(), RO, ModelArray::Type::H);
+    HField& cpml = cpmlAccessor.getHostRW();
     cpml = Water::cp * Water::rho * mld;
-    ModelComponent::getStore().registerArray(Protected::ML_BULK_CP, &cpml, RO);
 
-    HField cice(ModelArray::Type::H);
+    ModelArrayAccessor<Shared::C_ICE_DG, RW> ciceAccessor(
+        ModelComponent::getStore(), RO, ModelArray::Type::H);
+    HField& cice = ciceAccessor.getHostRW();
     double cice0 = 0.5;
     cice = cice0;
-    ModelComponent::getStore().registerArray(Shared::C_ICE_DG, &cice, RO);
 
-    HField data0(ModelArray::Type::H);
+    /*
+    ModelArrayAccessor<CouplingFields::Q_SS_NO_SW, RW> data0Accessor(
+        couplingArrays, RO, ModelArray::Type::H);
+    HField& data0 = data0Accessor.getHostRW();
     data0 = 0;
-    couplingArrays.registerArray(CouplingFields::Q_SS_NO_SW, &data0, RO);
-    couplingArrays.registerArray(CouplingFields::Q_SS_SW, &data0, RO);
-    couplingArrays.registerArray(CouplingFields::FWFLUX, &data0, RO);
-    couplingArrays.registerArray(CouplingFields::SFLUX, &data0, RO);
+    ModelArrayAccessor<CouplingFields::Q_SS_SW, RW> data1Accessor(
+        couplingArrays, RO, ModelArray::Type::H);
+    data1Accessor.getHostRW() = data0;
+    ModelArrayAccessor<CouplingFields::FWFLUX, RW> data2Accessor(
+        couplingArrays, RO, ModelArray::Type::H);
+    data2Accessor.getHostRW() = data0;
+    ModelArrayAccessor<CouplingFields::SFLUX, RW> data3Accessor(
+        couplingArrays, RO, ModelArray::Type::H);
+    data3Accessor.getHostRW() = data0;*/
 
     // External SS* data
-    HField sssExt(ModelArray::Type::H);
+    ModelArrayAccessor<Protected::EXT_SSS, RW> sssExtAccessor(
+        ModelComponent::getStore(), RO, ModelArray::Type::H);
+    HField& sssExt = sssExtAccessor.getHostRW();
     sssExt = sss;
-    ModelComponent::getStore().registerArray(Protected::EXT_SSS, &sssExt, RO);
 
-    HField sstExt(ModelArray::Type::H);
+    ModelArrayAccessor<Protected::EXT_SST, RW> sstExtAccessor(
+        ModelComponent::getStore(), RO, ModelArray::Type::H);
+    HField& sstExt = sstExtAccessor.getHostRW();
     sstExt = sst + tOffset;
-    ModelComponent::getStore().registerArray(Protected::EXT_SST, &sstExt, RO);
 
     SlabOcean slabOcean(couplingArrays);
     slabOcean.configure();
     slabOcean.update(tst);
 
-    ModelArrayRef<Protected::SLAB_QDW> qdw(ModelComponent::getStore());
+    ModelArrayAccessor<Protected::SLAB_QDW> qdwAccessor(ModelComponent::getStore());
+    const HField& qdw = qdwAccessor.getHostRO();
+
     double prec = 1e-8;
     REQUIRE(qdw[0]
         == doctest::Approx(tOffset * cpml[0] / SlabOcean::defaultRelaxationTime).epsilon(prec));
 
-    ModelArrayRef<Protected::SLAB_SST> sstSlab(ModelComponent::getStore());
-    REQUIRE(sstSlab[0] != doctest::Approx(sst[0]).epsilon(prec / dt));
-    REQUIRE(sstSlab[0] == doctest::Approx(sst[0] + dt * qdw[0] / cpml[0]).epsilon(prec));
+    ModelArrayAccessor<Protected::SLAB_SST> sstSlabAccessor(ModelComponent::getStore());
+    // scope needed because we have to access sstSlab again after update
+    {
+        const HField& sstSlab = sstSlabAccessor.getHostRO();
 
-    HField qswNet(ModelArray::Type::H);
+        REQUIRE(sstSlab[0] != doctest::Approx(sst[0]).epsilon(prec / dt));
+        REQUIRE(sstSlab[0] == doctest::Approx(sst[0] + dt * qdw[0] / cpml[0]).epsilon(prec));
+    }
+
+    ModelArrayAccessor<CouplingFields::Q_SS_SW, RW> qswNetAccessor(
+        couplingArrays, RW, ModelArray::Type::H);
+    HField& qswNet = qswNetAccessor.getHostRW();
     qswNet[0] = 15;
-    couplingArrays.registerArray(CouplingFields::Q_SS_SW, &qswNet, RW);
-    HField qNoSun(ModelArray::Type::H);
+    ModelArrayAccessor<CouplingFields::Q_SS_NO_SW, RW> qNoSunAccessor(
+        couplingArrays, RW, ModelArray::Type::H);
+    HField& qNoSun = qNoSunAccessor.getHostRW();
     qNoSun[0] = -17.5;
-    couplingArrays.registerArray(CouplingFields::Q_SS_NO_SW, &qNoSun, RW);
+
     // Should not need to update anything else, as the slabOcean update only changes SLAB_SST
     slabOcean.update(tst);
+    const HField& sstSlab = sstSlabAccessor.getHostRO();
     REQUIRE(sstSlab[0]
         == doctest::Approx(sst[0] - dt * (qswNet[0] + qNoSun[0] - qdw[0]) / cpml[0]).epsilon(prec));
 }
@@ -100,47 +125,63 @@ TEST_CASE("Test Fdw")
 
     ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
 
-    ModelArrayReferenceStore couplingArrays;
+    ModelArrayStore couplingArrays;
 
     double sOffset = 0.1;
     // Supply the data to the slab ocean
-    HField sss(ModelArray::Type::H);
+    ModelArrayAccessor<Protected::SSS, RW> sssAccessor(
+        ModelComponent::getStore(), RO, ModelArray::Type::H);
+    HField& sss = sssAccessor.getHostRW();
     sss = 32.;
-    ModelComponent::getStore().registerArray(Protected::SSS, &sss, RO);
 
-    HField sst(ModelArray::Type::H);
+    ModelArrayAccessor<Protected::SST, RW> sstAccessor(
+        ModelComponent::getStore(), RO, ModelArray::Type::H);
+    HField& sst = sstAccessor.getHostRW();
     sst = LinearFreezing()(sss[0]);
-    ModelComponent::getStore().registerArray(Protected::SST, &sst, RO);
 
-    HField mld(ModelArray::Type::H);
+    ModelArrayAccessor<Protected::MLD, RW> mldAccessor(
+        ModelComponent::getStore(), RO, ModelArray::Type::H);
+    HField& mld = mldAccessor.getHostRW();
     mld = 6.48;
-    ModelComponent::getStore().registerArray(Protected::MLD, &mld, RO);
 
-    HField cpml(ModelArray::Type::H);
+    ModelArrayAccessor<Protected::ML_BULK_CP, RW> cpmlAccessor(
+        ModelComponent::getStore(), RO, ModelArray::Type::H);
+    HField& cpml = cpmlAccessor.getHostRW();
     cpml = Water::cp * Water::rho * mld;
-    ModelComponent::getStore().registerArray(Protected::ML_BULK_CP, &cpml, RO);
 
-    HField data0(ModelArray::Type::H);
+    /*
+    ModelArrayAccessor<CouplingFields::Q_SS_NO_SW, RW> data0Accessor(
+        couplingArrays, RO, ModelArray::Type::H);
+    HField& data0 = data0Accessor.getHostRW();
     data0 = 0;
-    couplingArrays.registerArray(CouplingFields::Q_SS_NO_SW, &data0, RO);
-    couplingArrays.registerArray(CouplingFields::Q_SS_SW, &data0, RO);
-    couplingArrays.registerArray(CouplingFields::FWFLUX, &data0, RO);
-    couplingArrays.registerArray(CouplingFields::SFLUX, &data0, RO);
+    ModelArrayAccessor<CouplingFields::Q_SS_SW, RW> data1Accessor(
+        couplingArrays, RO, ModelArray::Type::H);
+    data1Accessor.getHostRW() = data0;
+    ModelArrayAccessor<CouplingFields::FWFLUX, RW> data2Accessor(
+        couplingArrays, RO, ModelArray::Type::H);
+    data2Accessor.getHostRW() = data0;
+    ModelArrayAccessor<CouplingFields::SFLUX, RW> data3Accessor(
+        couplingArrays, RO, ModelArray::Type::H);
+    data3Accessor.getHostRW() = data0;*/
 
     // External SS* data
-    HField sssExt(ModelArray::Type::H);
+    ModelArrayAccessor<Protected::EXT_SSS, RW> sssExtAccessor(
+        ModelComponent::getStore(), RO, ModelArray::Type::H);
+    HField& sssExt = sssExtAccessor.getHostRW();
     sssExt = sss + sOffset;
-    ModelComponent::getStore().registerArray(Protected::EXT_SSS, &sssExt, RO);
 
-    HField sstExt(ModelArray::Type::H);
+    ModelArrayAccessor<Protected::EXT_SST, RW> sstExtAccessor(
+        ModelComponent::getStore(), RO, ModelArray::Type::H);
+    HField& sstExt = sstExtAccessor.getHostRW();
     sstExt = sst;
-    ModelComponent::getStore().registerArray(Protected::EXT_SST, &sstExt, RO);
 
     SlabOcean slabOcean(couplingArrays);
     slabOcean.configure();
     slabOcean.update(tst);
 
-    ModelArrayRef<Protected::SLAB_FDW> fdw(ModelComponent::getStore());
+    ModelArrayAccessor<Protected::SLAB_FDW> fdwAccessor(ModelComponent::getStore());
+    const HField& fdw = fdwAccessor.getHostRO();
+
     double prec = 1e-6;
     REQUIRE(fdw[0]
         == doctest::Approx(
@@ -153,17 +194,20 @@ TEST_CASE("Test Fdw")
     double oldFdw = delS * mld[0] * Water::rho / (timeS * sss[0] - ddt * delS);
     REQUIRE(fdw[0] != doctest::Approx(oldFdw).epsilon(prec * 1e-6));
 
-    ModelArrayRef<Protected::SLAB_SSS> sssSlab(ModelComponent::getStore());
+    ModelArrayAccessor<Protected::SLAB_SSS> sssSlabAccessor(ModelComponent::getStore());
+    const HField& sssSlab = sssSlabAccessor.getHostRO();
+
     REQUIRE(sssSlab[0] != doctest::Approx(sss[0]).epsilon(prec / dt));
     REQUIRE(sssSlab[0]
         == doctest::Approx(sss[0] - (fdw[0] * dt) / (mld[0] * Water::rho + fdw[0] * dt))
                .epsilon(prec));
 
-    HField snowMeltFlux(ModelArray::Type::H);
+    ModelArrayAccessor<CouplingFields::FWFLUX, RW> snowMeltFluxAccessor(
+        couplingArrays, RW, ModelArray::Type::H);
+    HField& snowMeltFlux = snowMeltFluxAccessor.getHostRW();
     double snowMelt = -1e-4;
     double snowMeltVol = snowMelt * Ice::rhoSnow;
     snowMeltFlux = snowMeltVol / dt;
-    couplingArrays.registerArray(CouplingFields::FWFLUX, &snowMeltFlux, RW);
     slabOcean.update(tst);
     REQUIRE(sssSlab[0]
         == doctest::Approx(sss[0]

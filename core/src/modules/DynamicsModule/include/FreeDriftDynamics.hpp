@@ -38,13 +38,13 @@ public:
         std::cout << tst.start << std::endl;
 
         // set the forcing velocities
-        kernel.setData(uOceanName, uocean);
-        kernel.setData(vOceanName, vocean);
+        kernel.setData(uOceanName, uoceanAccessor.getHostRO());
+        kernel.setData(vOceanName, voceanAccessor.getHostRO());
 
         kernel.update(tst);
 
-        uice = kernel.getDG0Data(uName);
-        vice = kernel.getDG0Data(vName);
+        uiceAccessor.getHostRW() = kernel.getDG0Data(uName);
+        viceAccessor.getHostRW() = kernel.getDG0Data(vName);
     }
 
     void setData(const ModelState::DataMap& ms) override
@@ -53,9 +53,9 @@ public:
 
         // Set the DG field data. Needs to be done before initialise() because the Kokkos kernel
         // requires the actual vectors to init its views.
-        kernel.setDGArray(hiceName, hiceDG.allComponents());
-        kernel.setDGArray(ciceName, ciceDG.allComponents());
-        kernel.setDGArray(hsnowName, hsnowDG.allComponents());
+        kernel.setDGArray(hiceName, hiceDGAccessor.getHostRW());
+        kernel.setDGArray(ciceName, ciceDGAccessor.getHostRW());
+        kernel.setDGArray(hsnowName, hsnowDGAccessor.getHostRW());
 
         bool isSpherical = checkSpherical(ms);
 
@@ -70,10 +70,6 @@ public:
         for (const auto& fieldName : namedFields) {
             kernel.setData(fieldName, ms.at(fieldName));
         }
-
-        // Set the DG field data
-        kernel.setDGArray(hiceName, hiceDG.allComponents());
-        kernel.setDGArray(ciceName, ciceDG.allComponents());
     }
 
     void advectField(double timestep, ModelArray& field,

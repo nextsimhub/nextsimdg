@@ -5,8 +5,8 @@
 #ifndef __KOKKOSSLOPELIMITER_HPP
 #define __KOKKOSSLOPELIMITER_HPP
 
+#include "../../../core/src/kokkos/include/KokkosUtils.hpp"
 #include "KokkosMesh.hpp"
-#include "KokkosUtils.hpp"
 #include "ParametricMesh.hpp"
 #include "cgVector.hpp"
 #include "dgVector.hpp"

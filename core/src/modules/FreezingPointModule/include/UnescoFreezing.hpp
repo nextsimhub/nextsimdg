@@ -1,6 +1,6 @@
 /*!
- *
  * @author  Tim Spain <timothy.spain@nersc.no>
+ * @author  Robert Jendersie <robert.jendersie@ovgu.de>
  */
 
 #ifndef UNESCOFREEZING_HPP
@@ -14,8 +14,10 @@ namespace Nextsim {
 
 //! The implementation class of the UNESCO model of the freezing point of
 // seawater.
-class UnescoFreezing : public IFreezingPoint {
+class UnescoFreezingImpl : public IFreezingPoint {
 public:
+    std::string getName() const override { return "UnescoFreezing"; }
+
     /*!
      * @brief Calculates the freezing point of seawater.
      *
@@ -24,18 +26,20 @@ public:
      *
      * @param sss Sea surface salinity [PSU]
      */
-    inline double operator()(double sss) const override
+    KERNEL_IMPL_FUNCTION double calculate(double sss) const
     {
         // Fofonoff and Millard, Unesco technical papers in marine science 44, (1983)
-        const double a0 = -0.0575;
-        const double a1 = +1.710523e-3;
-        const double a2 = -2.154996e-4;
-        const double b = -7.53e-4;
-        const double p0 = 0; // Zero hydrostatic pressure
+        constexpr double a0 = -0.0575;
+        constexpr double a1 = +1.710523e-3;
+        constexpr double a2 = -2.154996e-4;
+        constexpr double b = -7.53e-4;
+        constexpr double p0 = 0; // Zero hydrostatic pressure
 
-        return sss * (a0 + a1 * std::sqrt(sss) + a2 * sss) + b * p0;
+        return sss * (a0 + a1 * Utils::sqrt(sss) + a2 * sss) + b * p0;
     }
 };
+
+using UnescoFreezing = FreezingPointImpl<UnescoFreezingImpl>;
 }
 
 #endif /* UNESCOFREEZING_HPP */

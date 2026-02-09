@@ -3,24 +3,20 @@
  * @author  Einar Ólason <einar.olason@nersc.no>
  */
 
-#ifndef ICEGROWTH_HPP
-#define ICEGROWTH_HPP
+#ifndef NSCOLUMNPHYSICS_HPP
+#define NSCOLUMNPHYSICS_HPP
 
-#include "include/Configured.hpp"
-#include "include/IDamageHealing.hpp"
-#include "include/IIceThermodynamics.hpp"
-#include "include/ILateralIceSpread.hpp"
-#include "include/IceMinima.hpp"
-#include "include/ModelArrayRef.hpp"
-#include "include/ModelComponent.hpp"
-#include "include/Time.hpp"
+#include "include/IColumnPhysics.hpp"
 
 namespace Nextsim {
 
-class IceGrowth : public ModelComponent, public Configured<IceGrowth> {
+/*!
+ * The column physics package derived from neXtSIM-Lagrangian
+ */
+class NSColumnPhysics : public IColumnPhysics, public Configured<NSColumnPhysics> {
 public:
-    IceGrowth();
-    virtual ~IceGrowth() = default;
+    NSColumnPhysics();
+    virtual ~NSColumnPhysics() = default;
 
     enum {
         ICE_THERMODYNAMICS_KEY,
@@ -33,7 +29,7 @@ public:
     void configure() override;
     ConfigMap getConfiguration() const override;
 
-    std::string getName() const override { return "IceGrowth"; }
+    std::string getName() const override { return "NSColumnPhysics"; }
 
     void setData(const ModelState::DataMap&) override;
     ModelState getStateDiagnostic() const override;
@@ -42,7 +38,7 @@ public:
     static HelpMap& getHelpText(HelpMap& map, bool getAll);
     static HelpMap& getHelpRecursive(HelpMap& map, bool getAll);
 
-    void update(const TimestepTime&);
+    void update(const TimestepTime&) override;
 
 private:
     // Vertical Growth ModelComponent & Module
@@ -53,15 +49,17 @@ private:
     std::unique_ptr<IDamageHealing> iHealing;
 
     // Data fields
-    ModelArrayRef<Shared::H_ICE_DG> hice; // Timestep initial cell averaged ice thickness, m
-    ModelArrayRef<Shared::H_SNOW_DG> hsnow; // Timestep initial cell averaged snow thickness, m
-    ModelArrayRef<Shared::C_ICE_DG> cice; // Timestep initial ice concentration
-    ModelArrayRef<Shared::Q_OW, RW> qow; // open water heat flux, from FluxCalculation
-    ModelArrayRef<Shared::DELTA_HICE> deltaHi; // New ice thickness this timestep, m
+    ModelArrayAccessor<Shared::H_ICE_DG>
+        hiceAccessor; // Timestep initial cell averaged ice thickness, m
+    ModelArrayAccessor<Shared::H_SNOW_DG>
+        hsnowAccessor; // Timestep initial cell averaged snow thickness, m
+    ModelArrayAccessor<Shared::C_ICE_DG> ciceAccessor; // Timestep initial ice concentration
+    ModelArrayAccessor<Shared::Q_OW, RW> qowAccessor; // open water heat flux, from FluxCalculation
+    ModelArrayAccessor<Shared::DELTA_HICE> deltaHiAccessor; // New ice thickness this timestep, m
 
     bool doThermo = true; // Perform any thermodynamics calculations at all
 };
 
 } /* namespace Nextsim */
 
-#endif /* ICEGROWTH_HPP */
+#endif /* NSCOLUMNPHYSICS_HPP */

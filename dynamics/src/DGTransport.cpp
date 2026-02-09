@@ -304,7 +304,7 @@ void boundary_lower(const ParametricMesh& smesh, const double dt, DGVector<DG>& 
     // block<1, 2>(e, 0) * PSIe<2,2>;
     LocalEdgeVector<EDGEDOFS(DG)> tmp
         = ((bottomedgeofcell<DG>(phi, c) * PSIe<EDGEDOFS(DG), EDGEDOFS(DG)>).array()
-            * (-vel_gauss.array()).max(0));
+            * (-vel_gauss).cwiseMax(0).array());
     phiup.row(c) -= dt * tmp * PSIe_w<DG, EDGEDOFS(DG), 0>;
 }
 template <int DG>
@@ -315,7 +315,7 @@ void boundary_upper(const ParametricMesh& smesh, const double dt, DGVector<DG>& 
     LocalEdgeVector<EDGEDOFS(DG)> vel_gauss = normalvel_X.row(e) * PSIe<EDGEDOFS(DG), EDGEDOFS(DG)>;
     LocalEdgeVector<EDGEDOFS(DG)> tmp
         = ((topedgeofcell<DG>(phi, c) * PSIe<EDGEDOFS(DG), EDGEDOFS(DG)>).array()
-            * (vel_gauss.array()).max(0));
+            * vel_gauss.cwiseMax(0).array());
     phiup.row(c) -= dt * tmp * PSIe_w<DG, EDGEDOFS(DG), 2>;
 }
 template <int DG>
@@ -326,7 +326,7 @@ void boundary_left(const ParametricMesh& smesh, const double dt, DGVector<DG>& p
     LocalEdgeVector<EDGEDOFS(DG)> vel_gauss = normalvel_Y.row(e) * PSIe<EDGEDOFS(DG), EDGEDOFS(DG)>;
     LocalEdgeVector<EDGEDOFS(DG)> tmp
         = ((leftedgeofcell<DG>(phi, c) * PSIe<EDGEDOFS(DG), EDGEDOFS(DG)>).array()
-            * (-vel_gauss.array()).max(0));
+            * (-vel_gauss).cwiseMax(0).array());
     phiup.row(c) -= dt * tmp * PSIe_w<DG, EDGEDOFS(DG), 3>;
 }
 template <int DG>
@@ -337,7 +337,7 @@ void boundary_right(const ParametricMesh& smesh, const double dt, DGVector<DG>& 
     LocalEdgeVector<EDGEDOFS(DG)> vel_gauss = normalvel_Y.row(e) * PSIe<EDGEDOFS(DG), EDGEDOFS(DG)>;
     LocalEdgeVector<EDGEDOFS(DG)> tmp
         = ((rightedgeofcell<DG>(phi, c) * PSIe<EDGEDOFS(DG), EDGEDOFS(DG)>).array()
-            * (vel_gauss.array().max(0)));
+            * vel_gauss.cwiseMax(0).array());
     phiup.row(c) -= dt * tmp * PSIe_w<DG, EDGEDOFS(DG), 1>;
 }
 
@@ -391,9 +391,9 @@ inline void DGTransport<DG>::edge_term_X(const ParametricMesh& smesh, const doub
     const LocalEdgeVector<GAUSSPOINTS1D(DG)> vel_gauss
         = normalvel_X.row(ie) * PSIe<EDGEDOFS(DG), GAUSSPOINTS1D(DG)>;
 
-    const LocalEdgeVector<GAUSSPOINTS1D(DG)> tmp = (vel_gauss.array().max(0)
+    const LocalEdgeVector<GAUSSPOINTS1D(DG)> tmp = (vel_gauss.cwiseMax(0).array()
             * (topedgeofcell<DG>(phi, c1) * PSIe<EDGEDOFS(DG), GAUSSPOINTS1D(DG)>).array()
-        + vel_gauss.array().min(0)
+        + vel_gauss.cwiseMin(0).array()
             * (bottomedgeofcell<DG>(phi, c2) * PSIe<EDGEDOFS(DG), GAUSSPOINTS1D(DG)>).array());
 
     phiup.row(c1) -= dt * tmp * PSIe_w<DG, GAUSSPOINTS1D(DG), 2>;
@@ -413,9 +413,9 @@ inline void DGTransport<DG>::edge_term_Y(const ParametricMesh& smesh, const doub
     const LocalEdgeVector<GAUSSPOINTS1D(DG)> vel_gauss
         = normalvel_Y.row(ie) * PSIe<EDGEDOFS(DG), GAUSSPOINTS1D(DG)>;
 
-    const LocalEdgeVector<EDGEDOFS(DG)> tmp = (vel_gauss.array().max(0)
+    const LocalEdgeVector<EDGEDOFS(DG)> tmp = (vel_gauss.cwiseMax(0).array()
             * (rightedgeofcell<DG>(phi, c1) * PSIe<EDGEDOFS(DG), EDGEDOFS(DG)>).array()
-        + vel_gauss.array().min(0)
+        + vel_gauss.cwiseMin(0).array()
             * (leftedgeofcell<DG>(phi, c2) * PSIe<EDGEDOFS(DG), EDGEDOFS(DG)>).array());
 
     // - [[psi]] sind we're on the left side

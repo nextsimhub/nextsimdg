@@ -25,7 +25,7 @@ enum class Type {
 
 enum class Base { Cell, Vertex };
 
-static const Type AdvectionType = Type::DG;
+static constexpr Type AdvectionType = Type::DG;
 
 static ModelArray HField() { return ModelArray(Type::H); }
 static ModelArray VertexField() { return ModelArray(Type::VERTEX); }

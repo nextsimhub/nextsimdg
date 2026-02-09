@@ -45,14 +45,14 @@ const static std::map<int, std::string> keyMap = {
 };
 
 ConfiguredAtmosphere::ConfiguredAtmosphere()
-    : fluxImpl(0)
+    : tairAccessor(getStore(), RO, ModelArray::Type::H)
+    , tdewAccessor(getStore(), RO, ModelArray::Type::H)
+    , pairAccessor(getStore(), RO, ModelArray::Type::H)
+    , sw_inAccessor(getStore(), RO, ModelArray::Type::H)
+    , lw_inAccessor(getStore(), RO, ModelArray::Type::H)
+    , windAccessor(getStore(), RO, ModelArray::Type::H)
+    , fluxImpl(nullptr)
 {
-    getStore().registerArray(Protected::T_AIR, &tair, RO);
-    getStore().registerArray(Protected::DEW_2M, &tdew, RO);
-    getStore().registerArray(Protected::P_AIR, &pair, RO);
-    getStore().registerArray(Protected::SW_IN, &sw_in, RO);
-    getStore().registerArray(Protected::LW_IN, &lw_in, RO);
-    getStore().registerArray(Protected::WIND_SPEED, &wind, RO);
 }
 
 ConfigurationHelp::HelpMap& ConfiguredAtmosphere::getHelpRecursive(HelpMap& map, bool getAll)
@@ -118,11 +118,17 @@ void ConfiguredAtmosphere::setData(const ModelState::DataMap& dm)
 {
 
     IAtmosphereBoundary::setData(dm);
+    HField& tair = tairAccessor.getHostRW();
     tair.resize();
+    HField& tdew = tdewAccessor.getHostRW();
     tdew.resize();
+    HField& pair = pairAccessor.getHostRW();
     pair.resize();
+    HField& sw_in = sw_inAccessor.getHostRW();
     sw_in.resize();
+    HField& lw_in = lw_inAccessor.getHostRW();
     lw_in.resize();
+    HField& wind = windAccessor.getHostRW();
     wind.resize();
 
     tair = tair0;
@@ -130,12 +136,12 @@ void ConfiguredAtmosphere::setData(const ModelState::DataMap& dm)
     pair = pair0;
     sw_in = sw0;
     lw_in = lw0;
-    snow = snowfall0;
-    rain = rain0;
+    snowAccessor.getHostRW() = snowfall0;
+    rainAccessor.getHostRW() = rain0;
     wind = std::hypot(uWind0, vWind0);
 
-    uwind = uWind0;
-    vwind = vWind0;
+    uwindAccessor.getHostRW() = uWind0;
+    vwindAccessor.getHostRW() = vWind0;
 
     fluxImpl->setData(dm);
 }

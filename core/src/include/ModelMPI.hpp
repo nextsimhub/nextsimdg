@@ -27,7 +27,7 @@ private:
     static bool doOnce();
 
 public:
-    inline static ModelMPI& getInstance(MPI_Comm comm = nullptr)
+    inline static ModelMPI& getInstance(MPI_Comm comm = MPI_COMM_NULL)
     {
         static ModelMPI instance = ModelMPI(comm);
         if (instance.isInitialized) {

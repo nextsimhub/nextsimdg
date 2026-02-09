@@ -7,7 +7,6 @@
 
 #include "include/FieldAdvection.hpp"
 #include "include/Finalizer.hpp"
-#include "include/ModelArrayRef.hpp"
 #include "include/NextsimModule.hpp"
 #include "include/gridNames.hpp"
 
@@ -23,18 +22,15 @@ static constexpr bool checkFieldsFastDefault = true;
 
 PrognosticData::PrognosticData()
     : m_dt(1)
-    , hice(ModelArray::AdvectionType, { 0, 50 })
-    , cice(ModelArray::AdvectionType, { 0, 1 })
-    , damage(ModelArray::AdvectionType, { 0, 1 })
-    , hsnow(ModelArray::AdvectionType, { 0, 10 })
+    , hiceAccessor(getStore(), RW, ModelArray::AdvectionType, std::pair(0.0, 50.0))
+    , ciceAccessor(getStore(), RW, ModelArray::AdvectionType, std::pair(0.0, 1.0))
+    , damageAccessor(getStore(), RW, ModelArray::AdvectionType, std::pair(0.0, 1.0))
+    , hsnowAccessor(getStore(), RW, ModelArray::AdvectionType, std::pair(0.0, 10.0))
     , pAtmBdy(nullptr)
     , pOcnBdy(nullptr)
     , pDynamics(nullptr)
+    , pColumnPhysics(nullptr)
 {
-    getStore().registerArray(Shared::DAMAGE, &damage, RW);
-    getStore().registerArray(Shared::H_ICE_DG, &hice, RW);
-    getStore().registerArray(Shared::C_ICE_DG, &cice, RW);
-    getStore().registerArray(Shared::H_SNOW_DG, &hsnow, RW);
 }
 
 void PrognosticData::configure()
@@ -53,19 +49,20 @@ void PrognosticData::configure()
     pDynamics = &Module::getImplementation<IDynamics>();
     tryConfigure(pDynamics);
 
-    tryConfigure(iceGrowth);
+    pColumnPhysics = &Module::getImplementation<IColumnPhysics>();
+    tryConfigure(pColumnPhysics);
 
     checkAll() = Configured::getConfiguration(keyMap.at(CHECKFIELDS_KEY), checkFieldsDefault);
     checkFast
         = Configured::getConfiguration(keyMap.at(CHECKFIELDSFAST_KEY), checkFieldsFastDefault);
     if (checkAll()) {
-        for (const auto& field : getStore().getAllData()) {
+        for (const auto& field : ModelArrayAccessorBase<RO>::getAll(getStore())) {
             addChecks({ { field.first, field.second } });
         }
     } else if (checkFast) {
         addChecks({
-            { "thickness", &hice },
-            { "concentration", &cice },
+            { "thickness", hiceAccessor },
+            { "concentration", ciceAccessor },
         });
     }
 }
@@ -82,6 +79,10 @@ void copyMeanComponent(const ModelArray& source, ModelArray& sink)
 
 void PrognosticData::setData(const ModelState::DataMap& ms)
 {
+    AdvectedField& hice = hiceAccessor.getHostRW();
+    AdvectedField& cice = ciceAccessor.getHostRW();
+    AdvectedField& hsnow = hsnowAccessor.getHostRW();
+    AdvectedField& damage = damageAccessor.getHostRW();
 
     if (ms.count(maskName)) {
         setOceanMask(ms.at(maskName));
@@ -108,7 +109,7 @@ void PrognosticData::setData(const ModelState::DataMap& ms)
     pAtmBdy->setData(ms);
     pOcnBdy->setData(ms);
     pDynamics->setData(ms);
-    iceGrowth.setData(ms);
+    pColumnPhysics->setData(ms);
 }
 
 void PrognosticData::update(const TimestepTime& tst)
@@ -119,8 +120,8 @@ void PrognosticData::update(const TimestepTime& tst)
     pDynamics->prepareAdvection();
 
     // Take the updated values of the true ice and snow thicknesses, and reset hice0 and hsnow0
-    // IceGrowth updates its own fields during update
-    iceGrowth.update(tst);
+    // ColumnPhysics updates its own fields during update
+    pColumnPhysics->update(tst);
 
     // Dynamics
     pDynamics->update(tst);
@@ -142,7 +143,7 @@ ModelState PrognosticData::getStateDiagnostic() const
 
     // Get the prognostic data from the dynamics, including the full dynamics state
     state.merge(pDynamics->getStateDiagnostic());
-    state.merge(iceGrowth.getStateDiagnostic());
+    state.merge(pColumnPhysics->getStateDiagnostic());
     state.merge(pAtmBdy->getStateDiagnostic());
     state.merge(pOcnBdy->getStateDiagnostic());
 
@@ -154,15 +155,15 @@ ModelState PrognosticData::getStatePrognostic() const
 {
     ModelState state = { {
                              { maskName, ModelArray(oceanMask()) }, // make a copy
-                             { hiceName, hice },
-                             { ciceName, cice },
-                             { hsnowName, hsnow },
+                             { hiceName, hiceAccessor.getHostRO() },
+                             { ciceName, ciceAccessor.getHostRO() },
+                             { hsnowName, hsnowAccessor.getHostRO() },
                          },
         ModelComponent::getConfiguration() };
 
     // Get the prognostic data from the dynamics, including the full dynamics state
     state.merge(pDynamics->getStatePrognostic());
-    state.merge(iceGrowth.getStatePrognostic());
+    state.merge(pColumnPhysics->getStatePrognostic());
     state.merge(pAtmBdy->getStatePrognostic());
     state.merge(pOcnBdy->getStatePrognostic());
 
@@ -189,7 +190,7 @@ PrognosticData::HelpMap& PrognosticData::getHelpRecursive(HelpMap& map, bool get
     Module::getHelpRecursive<IAtmosphereBoundary>(map, getAll);
     Module::getHelpRecursive<IOceanBoundary>(map, getAll);
     Module::getHelpRecursive<IDynamics>(map, getAll);
-    IceGrowth::getHelpRecursive(map, getAll);
+    Module::getHelpRecursive<IColumnPhysics>(map, getAll);
     getHelpText(map, getAll);
     return map;
 }

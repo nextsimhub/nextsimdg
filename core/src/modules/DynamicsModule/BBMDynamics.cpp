@@ -91,13 +91,6 @@ void BBMDynamics::setData(const ModelState::DataMap& ms)
 {
     IDynamics::setData(ms);
 
-    // Set the DG field data. Needs to be done before initialise() because the Kokkos kernel
-    // requires the actual vectors to init its views.
-    kernel.setDGArray(hiceName, hiceDG.allComponents());
-    kernel.setDGArray(ciceName, ciceDG.allComponents());
-    kernel.setDGArray(hsnowName, hsnowDG.allComponents());
-    kernel.setDGArray(damageName, damage.allComponents());
-
     const bool isSpherical = checkSpherical(ms);
 
     ModelArray coords = ms.at(coordsName);
@@ -107,8 +100,8 @@ void BBMDynamics::setData(const ModelState::DataMap& ms)
     // TODO: Some encoding of the periodic edge boundary conditions
     kernel.initialise(coords, isSpherical, ms.at(maskName));
 
-    uice = ms.at(uName);
-    vice = ms.at(vName);
+    uiceAccessor.getHostRW() = ms.at(uName);
+    viceAccessor.getHostRW() = ms.at(vName);
 
     // Set the data in the kernel arrays.
     // Required data
@@ -137,12 +130,23 @@ void BBMDynamics::update(const TimestepTime& tst)
 {
     std::cout << tst.start << std::endl;
 
+    // set dg fields
+    // Needs to be done every step even so the field references do not change to ensure that the
+    // write accesses are registered and that needed host-device data transfers can take place.
+    kernel.setDGArray(hiceName, hiceDGAccessor.getAutoRW());
+    kernel.setDGArray(ciceName, ciceDGAccessor.getAutoRW());
+    kernel.setDGArray(hsnowName, hsnowDGAccessor.getAutoRW());
+    kernel.setDGArray(damageName, damageAccessor.getAutoRW());
+
     // set the forcing velocities
-    kernel.setData(uWindName, uwind);
-    kernel.setData(vWindName, vwind);
-    kernel.setData(uOceanName, uocean);
-    kernel.setData(vOceanName, vocean);
-    kernel.setData(sshName, ssh);
+    static KokkosTimer<DETAILED_MEASUREMENTS> timer("BBMDynamics::update::setData");
+    timer.start();
+    kernel.setData(uWindName, uwindAccessor.getAutoRO());
+    kernel.setData(vWindName, vwindAccessor.getAutoRO());
+    kernel.setData(uOceanName, uoceanAccessor.getAutoRO());
+    kernel.setData(vOceanName, voceanAccessor.getAutoRO());
+    kernel.setData(sshName, sshAccessor.getAutoRO());
+    timer.stop();
 
     /*
      * Ice velocity components are stored in the dynamics, and not changed by the model outside the
@@ -151,16 +155,19 @@ void BBMDynamics::update(const TimestepTime& tst)
 
     kernel.update(tst);
 
-    uice = kernel.getDG0Data(uName);
-    vice = kernel.getDG0Data(vName);
+    static KokkosTimer<DETAILED_MEASUREMENTS> timerGet("getData");
+    timerGet.start();
+    uiceAccessor.getHostRW() = kernel.getDG0Data(uName);
+    viceAccessor.getHostRW() = kernel.getDG0Data(vName);
 
-    taux = kernel.getDG0Data(uIOStressName);
-    tauy = kernel.getDG0Data(vIOStressName);
+    tauxAccessor.getHostRW() = kernel.getDG0Data(uIOStressName);
+    tauyAccessor.getHostRW() = kernel.getDG0Data(vIOStressName);
 
-    shear = kernel.getDG0Data(shearName);
-    divergence = kernel.getDG0Data(divergenceName);
-    sigmaI = kernel.getDG0Data(sigmaIName);
-    sigmaII = kernel.getDG0Data(sigmaIIName);
+    shearAccessor.getHostRW() = kernel.getDG0Data(shearName);
+    divergenceAccessor.getHostRW() = kernel.getDG0Data(divergenceName);
+    sigmaIAccessor.getHostRW() = kernel.getDG0Data(sigmaIName);
+    sigmaIIAccessor.getHostRW() = kernel.getDG0Data(sigmaIIName);
+    timerGet.stop();
 }
 
 void BBMDynamics::prepareAdvection() { kernel.prepareAdvection(); }
@@ -170,6 +177,14 @@ void BBMDynamics::advectField(
 {
     kernel.advectField(timestep, field, lowerLimit, upperLimit);
 }
+
+#ifdef USE_KOKKOS
+void BBMDynamics::advectField(
+    double timestep, const DeviceViewMA& field, double lowerLimit, double upperLimit)
+{
+    kernel.advectDGVFieldDevice(timestep, field, lowerLimit, upperLimit);
+}
+#endif
 
 BBMDynamics::HelpMap& BBMDynamics::getHelpText(HelpMap& map, bool getAll)
 {

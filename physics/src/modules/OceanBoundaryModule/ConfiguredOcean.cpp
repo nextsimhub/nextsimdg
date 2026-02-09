@@ -7,7 +7,6 @@
 #include "include/Finalizer.hpp"
 #include "include/IFreezingPoint.hpp"
 #include "include/IIceOceanHeatFlux.hpp"
-#include "include/ModelArrayRef.hpp"
 #include "include/NextsimModule.hpp"
 #include "include/constants.hpp"
 
@@ -35,8 +34,10 @@ static const std::map<int, std::string> keyMap = {
 };
 
 ConfiguredOcean::ConfiguredOcean()
-    : sstExt(ModelArray::Type::H)
-    , sssExt(ModelArray::Type::H)
+    : sstExtAccessor(getStore(), RO, ModelArray::Type::H)
+    , sssExtAccessor(getStore(), RO, ModelArray::Type::H)
+    , sstSlabAccessor(getStore())
+    , sssSlabAccessor(getStore())
     , slabOcean(m_couplingArrays)
 {
 }
@@ -72,8 +73,6 @@ void ConfiguredOcean::configure()
     v0 = Configured<ConfiguredOcean>::getConfiguration(keyMap.at(CURRENTV_KEY), v0);
 
     // set the external SS* arrays as part of configuration, as opposed to at construction as normal
-    getStore().registerArray(Protected::EXT_SST, &sstExt, RO);
-    getStore().registerArray(Protected::EXT_SSS, &sssExt, RO);
 
     slabOcean.configure();
 
@@ -106,20 +105,23 @@ ModelState ConfiguredOcean::getStateDiagnostic() const
 void ConfiguredOcean::setData(const ModelState::DataMap& ms)
 {
     IOceanBoundary::setData(ms);
+    HField& sstExt = sstExtAccessor.getHostRW();
     sstExt.resize();
+    HField& sssExt = sssExtAccessor.getHostRW();
     sssExt.resize();
 
     sstExt = sst0;
     sssExt = sss0;
+    HField& mld = mldAccessor.getHostRW();
     mld = mld0;
-    u = u0;
-    v = v0;
-    tf = Module::getImplementation<IFreezingPoint>()(sssExt[0]);
-    cpml = Water::rho * Water::cp * mld[0];
+    uAccessor.getHostRW() = u0;
+    vAccessor.getHostRW() = v0;
+    tfAccessor.getHostRW() = Module::getImplementation<IFreezingPoint>()(sssExt[0]);
+    cpmlAccessor.getHostRW() = Water::rho * Water::cp * mld[0];
 
     /* It's only the SSH gradient which has an effect, so being able to set a constant SSH is
      * useless. */
-    ssh = 0.;
+    sshAccessor.getHostRW() = 0.;
 
     slabOcean.setData(ms);
 
@@ -135,7 +137,7 @@ void ConfiguredOcean::updateAfter(const TimestepTime& tst)
 {
     mergeFluxes(tst);
     slabOcean.update(tst);
-    sst = ModelArrayRef<Protected::SLAB_SST, RO>(getStore());
-    sss = ModelArrayRef<Protected::SLAB_SSS, RO>(getStore());
+    sstAccessor.getAutoRW().assignData(sstSlabAccessor.getAutoRO());
+    sssAccessor.getAutoRW().assignData(sssSlabAccessor.getAutoRO());
 }
 } /* namespace Nextsim */

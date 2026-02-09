@@ -1,12 +1,15 @@
 /*!
  *
  * @author  Tim Spain <timothy.spain@nersc.no>
+ * @author  Robert Jendersie <robert.jendersie@ovgu.de>
  */
 
 #ifndef IOCEANBOUNDARY_HPP
 #define IOCEANBOUNDARY_HPP
 
 #include "include/CheckingModelComponent.hpp"
+#include "include/KernelAlternatives.hpp"
+#include "include/ModelArrayAccessor.hpp"
 #include "include/constants.hpp"
 #include "include/gridNames.hpp"
 
@@ -16,103 +19,94 @@ namespace Nextsim {
 class IOceanBoundary : public CheckingModelComponent {
 public:
     IOceanBoundary()
-        : qio(ModelArray::Type::H, { -1e8, 1e8 })
-        , sst(ModelArray::Type::H, { -5, 50 })
-        , sss(ModelArray::Type::H, { 0, 50 })
-        , mld(ModelArray::Type::H, { 1e-3, 12e3 })
-        , cpml(ModelArray::Type::H, { 0, 1e11 })
-        , tf(ModelArray::Type::H, { -5, 0 })
-        , u(ModelArray::Type::H, { -1, 1 })
-        , v(ModelArray::Type::H, { -1, 1 })
-        , ssh(ModelArray::Type::H, { -10, 10 })
-        , qNoSun(ModelArray::Type::H, { -1e6, 1e6 })
-        , qswNet(ModelArray::Type::H, { -1e3, 1e3 })
-        , fwFlux(ModelArray::Type::H)
-        , sFlux(ModelArray::Type::H)
-        , qswow(ModelArray::Type::H, { -1e3, 1e-6 })
-        , qswBase(ModelArray::Type::H, { -1e3, 1e-6 })
-        , tauX(ModelArray::Type::H, { -10, 10 })
-        , tauY(ModelArray::Type::H, { -10, 10 })
-        , cice(getStore())
-        , evap(getStore())
-        , rain(getStore())
-        , newIce(getStore())
-        , deltaHice(getStore())
-        , deltaSmelt(getStore())
-        , qow(getStore())
-        , tauXIO(getStore())
-        , tauYIO(getStore())
-        , tauXOW(getStore())
-        , tauYOW(getStore())
+        : qioAccessor(getStore(), RW, ModelArray::Type::H, std::pair(-1e8, 1e8))
+        , sstAccessor(getStore(), RO, ModelArray::Type::H, std::pair(-5.0, 50.0))
+        , sssAccessor(getStore(), RO, ModelArray::Type::H, std::pair(0.0, 50.0))
+        , mldAccessor(getStore(), RO, ModelArray::Type::H, std::pair(1e-3, 12e3))
+        , cpmlAccessor(getStore(), RO, ModelArray::Type::H, std::pair(0.0, 1e11))
+        , tfAccessor(getStore(), RO, ModelArray::Type::H, std::pair(-5.0, 0.0))
+        , uAccessor(getStore(), RO, ModelArray::Type::H, std::pair(-1.0, 1.0))
+        , vAccessor(getStore(), RO, ModelArray::Type::H, std::pair(-1.0, 1.0))
+        , sshAccessor(getStore(), RO, ModelArray::Type::H, std::pair(-10.0, 10.0))
+        , qNoSunAccessor(m_couplingArrays, RO, ModelArray::Type::H, std::pair(-1e6, 1e6))
+        , qswNetAccessor(m_couplingArrays, RO, ModelArray::Type::H, std::pair(-1e3, 1e3))
+        , fwFluxAccessor(m_couplingArrays, RO, ModelArray::Type::H)
+        , sFluxAccessor(m_couplingArrays, RO, ModelArray::Type::H)
+        , qswowAccessor(getStore(), RW, ModelArray::Type::H, std::pair(-1e3, 1e-6))
+        , qswBaseAccessor(getStore(), RW, ModelArray::Type::H, std::pair(-1e3, 1e-6))
+        , tauXAccessor(m_couplingArrays, RO, ModelArray::Type::H, std::pair(-10.0, 10.0))
+        , tauYAccessor(m_couplingArrays, RO, ModelArray::Type::H, std::pair(-10.0, 10.0))
+        , ciceAccessor(getStore())
+        , evapAccessor(getStore())
+        , rainAccessor(getStore())
+        , newIceAccessor(getStore())
+        , deltaHiceAccessor(getStore())
+        , deltaSmeltAccessor(getStore())
+        , qowAccessor(getStore())
+        , tauXIOAccessor(getStore())
+        , tauYIOAccessor(getStore())
+        , tauXOWAccessor(getStore())
+        , tauYOWAccessor(getStore())
     {
-        // Receive
-        m_couplingArrays.registerArray(CouplingFields::MLD, &mld, RW);
-        m_couplingArrays.registerArray(CouplingFields::OCEAN_U, &u, RW);
-        m_couplingArrays.registerArray(CouplingFields::OCEAN_V, &v, RW);
-        m_couplingArrays.registerArray(CouplingFields::SSH, &ssh, RW);
-        m_couplingArrays.registerArray(CouplingFields::SSS, &sss, RW);
-        m_couplingArrays.registerArray(CouplingFields::SST, &sst, RW);
-        // Send
-        m_couplingArrays.registerArray(CouplingFields::FWFLUX, &fwFlux, RO);
-        m_couplingArrays.registerArray(CouplingFields::O_STRESS_X, &tauX, RO);
-        m_couplingArrays.registerArray(CouplingFields::O_STRESS_Y, &tauY, RO);
-        m_couplingArrays.registerArray(CouplingFields::Q_SS_NO_SW, &qNoSun, RO);
-        m_couplingArrays.registerArray(CouplingFields::Q_SS_SW, &qswNet, RO);
-        m_couplingArrays.registerArray(CouplingFields::SFLUX, &sFlux, RO);
-
-        getStore().registerArray(Shared::Q_IO, &qio, RW);
-        getStore().registerArray(Protected::SST, &sst, RO);
-        getStore().registerArray(Protected::SSS, &sss, RO);
-        getStore().registerArray(Protected::MLD, &mld, RO);
-        getStore().registerArray(Protected::ML_BULK_CP, &cpml, RO);
-        getStore().registerArray(Protected::TF, &tf, RO);
-        getStore().registerArray(Protected::OCEAN_U, &u, RO);
-        getStore().registerArray(Protected::OCEAN_V, &v, RO);
-        getStore().registerArray(Protected::SSH, &ssh, RO);
-        getStore().registerArray(Shared::Q_SW_OW, &qswow, RW);
-        getStore().registerArray(Shared::Q_SW_BASE, &qswBase, RW);
     }
     virtual ~IOceanBoundary() = default;
 
     std::string getName() const override { return "IOceanBoundary"; }
     void setData(const ModelState::DataMap& ms) override
     {
+        HField& qio = qioAccessor.getHostRW();
         qio.resize();
+        HField& sst = sstAccessor.getHostRW();
         sst.resize();
+        HField& sss = sssAccessor.getHostRW();
         sss.resize();
+        HField& mld = mldAccessor.getHostRW();
         mld.resize();
+        HField& cpml = cpmlAccessor.getHostRW();
         cpml.resize();
+        HField& tf = tfAccessor.getHostRW();
         tf.resize();
+        UField& u = uAccessor.getHostRW();
         u.resize();
+        VField& v = vAccessor.getHostRW();
         v.resize();
+        HField& ssh = sshAccessor.getHostRW();
         ssh.resize();
+        HField& qNoSun = qNoSunAccessor.getHostRW();
         qNoSun.resize();
+        HField& qswNet = qswNetAccessor.getHostRW();
         qswNet.resize();
+        HField& fwFlux = fwFluxAccessor.getHostRW();
         fwFlux.resize();
+        HField& sFlux = sFluxAccessor.getHostRW();
         sFlux.resize();
+        HField& qswow = qswowAccessor.getHostRW();
         qswow.resize();
+        HField& qswBase = qswBaseAccessor.getHostRW();
         qswBase.resize();
+        HField& tauX = tauXAccessor.getHostRW();
         tauX.resize();
+        HField& tauY = tauYAccessor.getHostRW();
         tauY.resize();
 
         addChecks({
-            { "qio", &qio },
-            { "sst", &sst },
-            { "sss", &sss },
-            { "mld", &mld },
-            { "cpml", &cpml },
-            { "tf", &tf },
-            { "u", &u },
-            { "v", &v },
-            { "ssh", &ssh },
-            { "qNoSun", &qNoSun },
-            { "qswNet", &qswNet },
-            { "fwFlux", &fwFlux },
-            { "sFlux", &sFlux },
-            { "qswow", &qswow },
-            { "qswBase", &qswBase },
-            { "tauX", &tauX },
-            { "tauY", &tauY },
+            { "qio", qioAccessor },
+            { "sst", sstAccessor },
+            { "sss", sssAccessor },
+            { "mld", mldAccessor },
+            { "cpml", cpmlAccessor },
+            { "tf", tfAccessor },
+            { "u", uAccessor },
+            { "v", vAccessor },
+            { "ssh", sshAccessor },
+            { "qNoSun", qNoSunAccessor },
+            { "qswNet", qswNetAccessor },
+            { "fwFlux", fwFluxAccessor },
+            { "sFlux", sFluxAccessor },
+            { "qswow", qswowAccessor },
+            { "qswBase", qswBaseAccessor },
+            { "tauX", tauXAccessor },
+            { "tauY", tauYAccessor },
         });
 
         if (ms.count(sstName)) {
@@ -143,73 +137,104 @@ public:
      */
     void mergeFluxes(const TimestepTime& tst)
     {
-        dt = tst.step.seconds();
-        overElements([this](const size_t i,
-                         const TimestepTime& tsTime) { this->mergeFluxesElement(i, tsTime); },
-            tst);
+        assert(m_couplingArrays.checkAllRegistered());
+
+        auto& fwFlux = fwFluxAccessor.getAutoRW();
+        auto& qNoSun = qNoSunAccessor.getAutoRW();
+        auto& tauX = tauXAccessor.getAutoRW();
+        auto& tauY = tauYAccessor.getAutoRW();
+        auto& sFlux = sFluxAccessor.getAutoRW();
+        auto& qswNet = qswNetAccessor.getAutoRW();
+        const auto& tauXIO = tauXIOAccessor.getAutoRO();
+        const auto& cice = ciceAccessor.getAutoRO();
+        const auto& deltaHice = deltaHiceAccessor.getAutoRO();
+        const auto& rain = rainAccessor.getAutoRO();
+        const auto& sss = sssAccessor.getAutoRO();
+        const auto& qswow = qswowAccessor.getAutoRO();
+        const auto& tauYIO = tauYIOAccessor.getAutoRO();
+        const auto& evap = evapAccessor.getAutoRO();
+        const auto& qio = qioAccessor.getAutoRO();
+        const auto& newIce = newIceAccessor.getAutoRO();
+        const auto& tauYOW = tauYOWAccessor.getAutoRO();
+        const auto& qow = qowAccessor.getAutoRO();
+        const auto& qswBase = qswBaseAccessor.getAutoRO();
+        const auto& deltaSmelt = deltaSmeltAccessor.getAutoRO();
+        const auto& tauXOW = tauXOWAccessor.getAutoRO();
+
+        const double dt = tst.step.seconds();
+
+        overElementsAuto(OVER_ELEMENTS_LAMBDA(const ElementIndex i) {
+            // Heat fluxes - partitioned in solar and non-solar
+            qswNet[i] = cice[i] * qswBase[i] + (1 - cice[i]) * qswow[i];
+            qNoSun[i] = cice[i] * qio[i] + (1 - cice[i]) * qow[i] - qswNet[i];
+
+            // Mass fluxes - fresh water and salt
+            // ice volume change, both laterally and vertically
+            const double deltaIceVol = newIce[i] + deltaHice[i] * cice[i];
+            // change in snow volume due to melting (should be < 0)
+            const double meltSnowVol = deltaSmelt[i] * cice[i];
+            // the device compiler does not like a global constant appearing in the argument list of
+            // a template function: "identifier "Ice::s" is undefined in device code"
+            const double s = Ice::s;
+            // Effective ice salinity is always less than or equal to the SSS, and here we use
+            // the right units too
+            const double effectiveIceSal = 1e-3 * Utils::min(s, sss[i]);
+
+            // Positive flux is up!
+            fwFlux[i]
+                = ((1 - effectiveIceSal) * Ice::rho * deltaIceVol + Ice::rhoSnow * meltSnowVol) / dt
+                + (evap[i] - rain[i]) * (1 - cice[i]);
+            sFlux[i] = effectiveIceSal * Ice::rho * deltaIceVol / dt;
+
+            // Momentum fluxes
+            tauX[i] = cice[i] * tauXIO[i] + (1 - cice[i]) * tauXOW[i];
+            tauY[i] = cice[i] * tauYIO[i] + (1 - cice[i]) * tauYOW[i];
+        });
     }
 
 private:
-    double dt;
-
-    void mergeFluxesElement(size_t i, const TimestepTime& tst)
-    {
-        // Heat fluxes - partitioned in solar and non-solar
-        qswNet[i] = cice[i] * qswBase[i] + (1 - cice[i]) * qswow[i];
-        qNoSun[i] = cice[i] * qio[i] + (1 - cice[i]) * qow[i] - qswNet[i];
-
-        // Mass fluxes - fresh water and salt
-        // ice volume change, both laterally and vertically
-        const double deltaIceVol = newIce[i] + deltaHice[i] * cice[i];
-        // change in snow volume due to melting (should be < 0)
-        const double meltSnowVol = deltaSmelt[i] * cice[i];
-        // Effective ice salinity is always less than or equal to the SSS, and here we use the right
-        // units too
-        const double effectiveIceSal = 1e-3 * std::min(Ice::s, sss[i]);
-
-        // Positive flux is up!
-        fwFlux[i]
-            = ((1 - effectiveIceSal) * Ice::rho * deltaIceVol + Ice::rhoSnow * meltSnowVol) / dt
-            + (evap[i] - rain[i]) * (1 - cice[i]);
-        sFlux[i] = effectiveIceSal * Ice::rho * deltaIceVol / dt;
-
-        // Momentum fluxes
-        tauX[i] = cice[i] * tauXIO[i] + (1 - cice[i]) * tauXOW[i];
-        tauY[i] = cice[i] * tauYIO[i] + (1 - cice[i]) * tauYOW[i];
-    }
-
 protected:
-    HField qio; // Ice-ocean heat flux, W m⁻²
-    HField sst; // Coupled or slab ocean sea surface temperature, ˚C
-    HField sss; // Coupled or slab ocean sea surface salinity, PSU
-    HField mld; // Mixed layer or slab ocean depth m
-    HField tf; // Freezing point of the mixed layer, ˚C
-    HField cpml; // Heat capacity of the mixed layer, J K⁻¹ m²
-    UField u; // x(east)-ward ocean current, m s⁻¹
-    VField v; // y(north)-ward ocean current, m s⁻¹
-    HField ssh; // sea surface height, m
-    HField qNoSun; // Net surface ocean heat flux, except short wave, W m⁻²
-    HField qswNet; // Net surface ocean shortwave flux, W m⁻²
-    HField fwFlux; // Net surface ocean fresh-water flux, kg m⁻²
-    HField sFlux; // Net surface ocean salt flux, kg m⁻²
-    HField qswow; // Shortwave flux in open water W m⁻²
-    HField qswBase; // Shortwave flux at the base of the ice W m⁻²
-    HField tauX; // x(east)-ward total ocean stress, Pa
-    HField tauY; // y(north)-ward total ocean stress, Pa
+    ModelArrayStore m_couplingArrays;
 
-    ModelArrayReferenceStore m_couplingArrays;
+    ModelArrayAccessor<Shared::Q_IO, RW> qioAccessor; // Ice-ocean heat flux, W m⁻²
+    ModelArrayAccessor<Protected::SST, RW>
+        sstAccessor; // Coupled or slab ocean sea surface temperature, ˚C
+    ModelArrayAccessor<Protected::SSS, RW>
+        sssAccessor; // Coupled or slab ocean sea surface salinity, PSU
+    ModelArrayAccessor<Protected::MLD, RW> mldAccessor; // Mixed layer or slab ocean depth m
+    ModelArrayAccessor<Protected::TF, RW> tfAccessor; // Freezing point of the mixed layer, ˚C
+    ModelArrayAccessor<Protected::ML_BULK_CP, RW>
+        cpmlAccessor; // Heat capacity of the mixed layer, J K⁻¹ m²
+    ModelArrayAccessor<Protected::OCEAN_U, RW> uAccessor; // x(east)-ward ocean current, m s⁻¹
+    ModelArrayAccessor<Protected::OCEAN_V, RW> vAccessor; // y(north)-ward ocean current, m s⁻¹
+    ModelArrayAccessor<Protected::SSH, RW> sshAccessor; // sea surface height, m
+    ModelArrayAccessor<CouplingFields::Q_SS_NO_SW, RW>
+        qNoSunAccessor; // Net surface ocean heat flux, except short wave, W m⁻²
+    ModelArrayAccessor<CouplingFields::Q_SS_SW, RW>
+        qswNetAccessor; // Net surface ocean shortwave flux, W m⁻²
+    ModelArrayAccessor<CouplingFields::FWFLUX, RW>
+        fwFluxAccessor; // Net surface ocean fresh-water flux, kg m⁻²
+    ModelArrayAccessor<CouplingFields::SFLUX, RW>
+        sFluxAccessor; // Net surface ocean salt flux, kg m⁻²
+    ModelArrayAccessor<Shared::Q_SW_OW, RW> qswowAccessor; // Shortwave flux in open water W m⁻²
+    ModelArrayAccessor<Shared::Q_SW_BASE, RW>
+        qswBaseAccessor; // Shortwave flux at the base of the ice W m⁻²
+    ModelArrayAccessor<CouplingFields::O_STRESS_X, RW>
+        tauXAccessor; // x(east)-ward total ocean stress, Pa
+    ModelArrayAccessor<CouplingFields::O_STRESS_Y, RW>
+        tauYAccessor; // y(north)-ward total ocean stress, Pa
 
-    ModelArrayRef<Shared::C_ICE_DG, RO> cice;
-    ModelArrayRef<Protected::IO_STRESS_X> tauXIO;
-    ModelArrayRef<Protected::IO_STRESS_X> tauYIO;
-    ModelArrayRef<Shared::EVAP, RW> evap;
-    ModelArrayRef<Shared::RAIN, RO> rain;
-    ModelArrayRef<Shared::NEW_ICE, RW> newIce;
-    ModelArrayRef<Shared::DELTA_HICE, RW> deltaHice;
-    ModelArrayRef<Shared::HSNOW_MELT, RW> deltaSmelt;
-    ModelArrayRef<Shared::Q_OW, RW> qow;
-    ModelArrayRef<Shared::OW_STRESS_X, RW> tauXOW;
-    ModelArrayRef<Shared::OW_STRESS_Y, RW> tauYOW;
+    ModelArrayAccessor<Shared::C_ICE_DG, RO> ciceAccessor;
+    ModelArrayAccessor<Protected::IO_STRESS_X> tauXIOAccessor;
+    ModelArrayAccessor<Protected::IO_STRESS_X> tauYIOAccessor;
+    ModelArrayAccessor<Shared::EVAP, RW> evapAccessor;
+    ModelArrayAccessor<Shared::RAIN, RO> rainAccessor;
+    ModelArrayAccessor<Shared::NEW_ICE, RW> newIceAccessor;
+    ModelArrayAccessor<Shared::DELTA_HICE, RW> deltaHiceAccessor;
+    ModelArrayAccessor<Shared::HSNOW_MELT, RW> deltaSmeltAccessor;
+    ModelArrayAccessor<Shared::Q_OW, RW> qowAccessor;
+    ModelArrayAccessor<Shared::OW_STRESS_X, RW> tauXOWAccessor;
+    ModelArrayAccessor<Shared::OW_STRESS_Y, RW> tauYOWAccessor;
 };
 } /* namespace Nextsim */
 

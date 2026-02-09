@@ -5,8 +5,13 @@
 #include <Kokkos_Core.hpp>
 #endif
 
+#include <iostream>
+
 namespace Nextsim {
 
+// The KokkosTimer introduces fences to measure the actual execution time for async operations. This
+// has a non-trivial overhead so fewer timers should be used for accurate measurements of larger
+// code segments.
 constexpr bool DETAILED_MEASUREMENTS = true;
 
 template <bool Active> class KokkosTimer {

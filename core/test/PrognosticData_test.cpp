@@ -2,7 +2,6 @@
  * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
-#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include <doctest/doctest.h>
 
 #include "include/PrognosticData.hpp"
@@ -53,13 +52,14 @@ TEST_CASE("PrognosticData call order test")
         void updateBefore(const TimestepTime& tst) override
         {
             UnescoFreezing uf;
-            sst = -1.;
-            sss = 32.;
+            sstAccessor.getHostRW() = -1.;
+            sssAccessor.getHostRW() = 32.;
+            HField& mld = mldAccessor.getHostRW();
             mld = 10.25;
-            tf = uf(sss[0]);
-            cpml = Water::cp * Water::rho * mld[0];
-            u = 0;
-            v = 0;
+            uf.update(tfAccessor.getAutoRW(), sssAccessor.getAutoRO());
+            cpmlAccessor.getHostRW() = Water::cp * Water::rho * mld[0];
+            uAccessor.getHostRW() = 0;
+            vAccessor.getHostRW() = 0;
         }
         void updateAfter(const TimestepTime& tst) override { }
     } ocnBdy;
@@ -85,7 +85,8 @@ TEST_CASE("PrognosticData call order test")
     TimestepTime tst = { TimePoint("2000-01-01T00:00:00Z"), Duration("P0-0T0:10:0") };
     pData.update(tst);
 
-    ModelArrayRef<Shared::Q_OW> qow(ModelComponent::getStore());
+    ModelArrayAccessor<Shared::Q_OW> qowAccessor(ModelComponent::getStore());
+    const HField& qow = qowAccessor.getHostRO();
 
     double prec = 1e-5;
     // Correct value

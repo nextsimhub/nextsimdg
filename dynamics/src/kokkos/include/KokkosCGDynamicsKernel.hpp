@@ -5,8 +5,10 @@
 #ifndef KOKKOSCGDYNAMICSKERNEL_HPP
 #define KOKKOSCGDYNAMICSKERNEL_HPP
 
+#include "../../../core/src/kokkos/include/KokkosModelArray.hpp"
+#include "../../../core/src/kokkos/include/KokkosUtils.hpp"
 #include "../../include/CGDynamicsKernel.hpp"
-#include "KokkosUtils.hpp"
+#include "KokkosDGModelArray.hpp"
 
 namespace Nextsim {
 
@@ -24,11 +26,17 @@ template <int DG> constexpr int NGP_DG = ((DG == 8) || (DG == 6)) ? 3 : (DG == 3
 
 template <int DGadvection> class KokkosCGDynamicsKernel : public CGDynamicsKernel<DGadvection> {
 public:
+    using Base = CGDynamicsKernel<DGadvection>;
     // common types for Kokkos buffers
     // cG components
     using DeviceViewCG = KokkosDeviceView<CGVector<CGdegree>>;
     using HostViewCG = KokkosHostView<CGVector<CGdegree>>;
     using ConstDeviceViewCG = ConstKokkosDeviceView<CGVector<CGdegree>>;
+    using DeviceViewCG1 = KokkosDeviceView<CGVector<1>>;
+    using ConstDeviceViewCG1 = ConstKokkosDeviceView<CGVector<1>>;
+
+    using DeviceViewDG1 = KokkosDeviceView<DGVector<1>>;
+    using HostViewDG1 = KokkosHostView<DGVector<1>>;
 
     // strain and stress components
     using DeviceViewStress = KokkosDeviceView<DGVector<DGstressComp>>;
@@ -60,6 +68,8 @@ public:
         typename ParametricMomentumMap<CGdegree, DGadvection>::GaussMapMatrix>;
     using GaussMapAdvectDevice = KokkosDeviceMapView<
         typename ParametricMomentumMap<CGdegree, DGadvection>::GaussMapAdvectMatrix>;
+    using DSSHDevice
+        = KokkosDeviceMapView<typename ParametricMomentumMap<CGdegree, DGadvection>::DSSHMatrix>;
 
     KokkosCGDynamicsKernel(const DynamicsParameters& params);
     // still defaulted but explicitly defined in the source file to allow for pimpl with unique_ptr
@@ -68,6 +78,15 @@ public:
     void initialise(const ModelArray& coords, bool isSpherical, const ModelArray& mask) override;
 
     ModelArray getDG0Data(const std::string& name) const override;
+
+    // The host variant is needed in IDynamics:setData where data does not come out of the
+    // ModelArrayStore.
+    void setData(const std::string& name, const ModelArray& data) override;
+    // Use this to directly set the data of kernel's internal device buffers.
+    virtual void setData(const std::string& name, const ConstDeviceViewMA& data);
+    void setDGArray(const std::string& name, ModelArray::DataType& dgData) override;
+    virtual void setDGArray(
+        const std::string& name, const KokkosDeviceView<ModelArray::DataType>& dgData);
 
     void prepareAdvection() override;
     void advectDynamicsFields(double timestep) override;
@@ -130,6 +149,22 @@ protected:
     // currently not used
     void updateMomentum(const TimestepTime& tst) override { }
 
+    // copy data from a ModelArray view to a cG-field on device
+    template <typename... Args>
+    void mA2CG(const DeviceViewCG& dest,
+        const ConstKokkosEigenView<ModelArray::DataType, Args...>& src) const
+    {
+        Kokkos::deep_copy(tempDataAdvectDevice, 0.0);
+        kokkosMA2DG<DGadvection>(tempDataAdvectDevice, src);
+        (*dG2CGAdvectInterpolator)(dest, tempDataAdvectDevice);
+    }
+
+    // copy data from a dg field on device to a host ModelArray
+    ModelArray& dG2MA(ModelArray& ma, const ConstDeviceViewAdvect& dg) const;
+
+    // named fields for setData
+    std::unordered_map<std::string, DeviceViewCG> namedCGFields;
+
     // cG (velocity) components
     DeviceViewCG uDevice;
     HostViewCG uHost;
@@ -145,6 +180,8 @@ protected:
     HostViewCG xGradSeaSurfaceHeightHost;
     DeviceViewCG yGradSeaSurfaceHeightDevice;
     HostViewCG yGradSeaSurfaceHeightHost;
+    DeviceViewDG1 seaSurfaceHeightDevice;
+    HostViewDG1 seaSurfaceHeightHost;
 
     DeviceViewCG dStressXDevice;
     HostViewCG dStressXHost;
@@ -187,6 +224,7 @@ protected:
     DGVector<DGadvection> tempDataAdvect;
     DeviceViewAdvect tempDataAdvectDevice;
     HostViewAdvect tempDataAdvectHost;
+    DeviceViewMA tempDataMADevice;
 
     // precomputed parametric map
     DivMapDevice divS1Device;
@@ -199,11 +237,11 @@ protected:
 
     // data that is needed by the child classes implementing stress and momentum
     DeviceViewAdvect hiceDevice;
-    HostViewAdvect hiceHost;
+    // HostViewAdvect hiceHost;
     DeviceViewAdvect ciceDevice;
-    HostViewAdvect ciceHost;
+    // HostViewAdvect ciceHost;
     DeviceViewAdvect hsnowDevice;
-    HostViewAdvect hsnowHost;
+    // HostViewAdvect hsnowHost;
 
     // constant matrices also need to be available on the GPU
     PSIAdvectView PSIAdvectDevice;
@@ -224,6 +262,15 @@ protected:
         dG2CGAdvectInterpolator;
     std::unique_ptr<KokkosDGTransport<DGadvection>> dGTransportDevice;
     std::unique_ptr<KokkosSlopeLimiter<DGadvection>> slopeLimiterDevice;
+
+    // sea surface height is always computed in first order
+    // parts are only initialized if cG2DGAdvectInterpolator has a different order from <1,1>
+    std::unique_ptr<Interpolations::KokkosDG2CGInterpolator<1, 1>> dG2CGFirstOrderInterpolator;
+    DSSHDevice _dXSSHDevice;
+    DSSHDevice _dYSSHDevice;
+    ConstDeviceViewCG1 _lumpedCG1MassDevice;
+    DeviceViewCG1 _uGradDevice;
+    DeviceViewCG1 _vGradDevice;
 };
 
 }
