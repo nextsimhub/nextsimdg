@@ -1583,6 +1583,15 @@ void Xios::write(const std::string& fieldId, const ModelArray& modelarray)
     auto& dims = modelarray.dimensions();
     const ModelArray::Type& type = modelarray.getType();
     domainWritten[domainIds[type]] = true;
+
+    // Check the field type
+    const ModelArray::Type& expectedType = getFieldType(fieldId);
+    if (expectedType != type) {
+        throw std::runtime_error(
+            "Xios::read: field '" + fieldId + "' does not have the expected type");
+    }
+
+    // Write out according to field type
     if ((type == ModelArray::Type::H) || (type == ModelArray::Type::CG)) {
         cxios_write_data_k82(
             fieldId.c_str(), fieldId.length(), modelarray.getData(), dims[0], dims[1], -1);
