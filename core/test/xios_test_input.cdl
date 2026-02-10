@@ -51,10 +51,10 @@ variables:
 	float mask(y_dim, x_dim) ;
 		mask:online_operation = "once" ;
 		mask:coordinates = "lat lon" ;
-  // DGField variables
-  float cice(y_dim, x_dim, dg_comp) ;
+  float cice(y_dim, x_dim) ;
 		cice:online_operation = "once" ;
-		cice:coordinates = "lat lon dg_comp" ;
+		cice:coordinates = "lat lon" ;
+  // DGField variables
   float hice(y_dim, x_dim, dg_comp) ;
 		hice:online_operation = "once" ;
 		hice:coordinates = "lat lon dg_comp" ;
@@ -100,17 +100,11 @@ data:
   0, 0, 0, 0,
   1, 1, 1, 1 ;
 
- // DGField variables
-
  cice =
-  0, 1, 2, 3, 4, 5,
-  6, 7, 8, 9, 10, 11,
-  0, 1, 2, 3, 4, 5,
-  6, 7, 8, 9, 10, 11,
-  12, 13, 14, 15, 16, 17,
-  18, 19, 20, 21, 22, 23,
-  12, 13, 14, 15, 16, 17,
-  18, 19, 20, 21, 22, 23 ;
+  0, 1, 2, 3,
+  4, 5, 6, 7 ;
+
+ // DGField variables
 
  hice =
   0, 1, 2, 3, 4, 5,
