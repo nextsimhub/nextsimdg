@@ -69,8 +69,6 @@ MPI_TEST_CASE("TestXiosReadWriteRestart", 2)
     REQUIRE(xiosHandler.getCalendarStep() == 0);
 
     // Set ModelArray dimensions
-    const size_t nx = ModelArray::size(ModelArray::Dimension::X);
-    const size_t ny = ModelArray::size(ModelArray::Dimension::Y);
     REQUIRE(ModelArray::nComponents(ModelArray::Type::DG) == DGCOMP);
     REQUIRE(ModelArray::size(ModelArray::Dimension::DG) == DGCOMP);
 
