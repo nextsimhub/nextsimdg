@@ -43,6 +43,10 @@ MPI_TEST_CASE("TestXiosWriteRestart", 2)
     config << "restart_file = " << outputFilename << std::endl;
     config << "partition_file = xios_test_partition_metadata_2.nc" << std::endl;
     config << "restart_period = P0-0T03:00:00" << std::endl;
+    config << "[XiosInput]" << std::endl;
+    config << "field_names = " << maskName << "," << longitudeName << "," << latitudeName << ","
+           << gridAzimuthName << "," << ciceName << "," << hiceName << "," << damageName << ","
+           << hsnowName << "," << ticeName << "," << uName << "," << std::endl;
     config << "[XiosOutput]" << std::endl;
     config << "field_names = " << maskName << "," << longitudeName << "," << latitudeName << ","
            << gridAzimuthName << "," << ciceName << "," << hiceName << "," << damageName << ","
@@ -55,8 +59,7 @@ MPI_TEST_CASE("TestXiosWriteRestart", 2)
 
     // Create a Model and configure it so that time options are parsed
     Model model;
-    model.configureRestarts();
-    model.configureTime();
+    model.configure();
 
     // Get the Xios singleton instance and check it's initialized
     // NOTE: The singleton is created when Xios::getInstance() is first called. In this test, this
