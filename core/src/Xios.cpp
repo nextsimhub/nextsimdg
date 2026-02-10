@@ -187,7 +187,7 @@ void Xios::close_context_definition()
                         getField(inputFieldId), fieldId.c_str(), fieldId.length());
                 } else if (baseType == ModelArray::Type::DG && inputType == ModelArray::Type::H) {
                     // Record fields read in as HField but treated as DGField
-                    inputFieldsToConvert.insert(fieldId);
+                    inputFieldsToConvert.insert(inputFieldId);
                 } else {
                     throw std::runtime_error(
                         "Xios: Inconsistent field types for reading and writing field '" + fieldId
@@ -1621,11 +1621,11 @@ void Xios::read(const std::string& fieldId, ModelArray& modelarray)
 
     // Account for fields to be read in as HField but converted to DGField
     if (inputFieldsToConvert.count(fieldId)) {
-        if (type != ModelArray::Type::H) {
+        if (expectedType != ModelArray::Type::H) {
             throw std::runtime_error(
                 "Xios::read: field '" + fieldId + "' was expected to be read as a HField");
         }
-        if (expectedType != ModelArray::Type::DG) {
+        if (type != ModelArray::Type::DG) {
             throw std::runtime_error(
                 "Xios::read: field '" + fieldId + "' was expected to be converted to a DGField");
         }

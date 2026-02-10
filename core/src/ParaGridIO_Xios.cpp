@@ -55,8 +55,7 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
     // Get all variables in the file and load them into a new ModelState
     ModelState state;
     for (const std::string& fieldId : xiosHandler.configGetInputRestartFieldNames()) {
-        const std::string inputFieldId = fieldId + "_input";
-        const ModelArray::Type& type = xiosHandler.getFieldType(inputFieldId);
+        const ModelArray::Type& type = xiosHandler.getFieldType(fieldId);
         if (type == ModelArray::Type::H) {
             HField field(ModelArray::Type::H);
             field.resize();
@@ -165,12 +164,11 @@ void ParaGridIO::dumpModelState(const ModelState& state, const std::string& file
     // Assume that all fields in the supplied ModelState are necessary, and so write them to file.
     const std::set<std::string> outputFieldIds = xiosHandler.configGetOutputRestartFieldNames();
     for (const auto& [fieldId, modelarray] : state.data) {
-        const std::string outputFieldId = fieldId;
         if (outputFieldIds.count(fieldId) == 0) {
             throw std::runtime_error("ParaGridIO::dumpModelState: field " + fieldId
                 + " is not configured as a restart.");
         }
-        xiosHandler.write(outputFieldId, modelarray);
+        xiosHandler.write(fieldId, modelarray);
     }
 }
 
@@ -189,12 +187,11 @@ void ParaGridIO::writeDiagnosticTime(const ModelState& state, const std::string&
     // Assume that all fields in the supplied ModelState are necessary, and so write them to file.
     const std::set<std::string> diagnosticFieldIds = xiosHandler.configGetDiagnosticFieldNames();
     for (const auto& [fieldId, modelarray] : state.data) {
-        const std::string diagnosticFieldId = fieldId;
         if (diagnosticFieldIds.count(fieldId) == 0) {
             throw std::runtime_error("ParaGridIO::writeDiagnosticTime: field " + fieldId
                 + " is not configured as a diagnostic.");
         }
-        xiosHandler.write(diagnosticFieldId, modelarray);
+        xiosHandler.write(fieldId, modelarray);
     }
 }
 
