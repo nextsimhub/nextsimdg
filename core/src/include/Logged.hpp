@@ -26,7 +26,8 @@ public:
         CRITICAL,
         ALERT,
         EMERGENCY,
-        NONE
+        NONE,
+        count // special element to get the number of levels
     };
 
     static const std::map<std::string, level> levelNames;

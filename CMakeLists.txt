@@ -12,14 +12,12 @@ option(ENABLE_XIOS "Enable XIOS library for IO" OFF)
 option(BUILD_TESTS "Build the tests" ON)
 set(DynamicsType
     "DG2"
-    CACHE STRING
-    "Set the discretization order for the dynamics, either DG1 or DG2"
-)
+    CACHE STRING "Set the discretization order for the dynamics, either DG1 or DG2")
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
-# all nextsim code is collected in a library to allow for reuse in the tests
-# the code is added after processing the subdirectories
+# all nextsim code is collected in a library to allow for reuse in the tests the code is added after
+# processing the subdirectories
 add_library(nextsimlib SHARED)
 # modern way to set the standard is redundant since we also do it globally
 target_compile_features(nextsimlib PUBLIC cxx_std_17)
@@ -32,7 +30,10 @@ if(NETCDF_CXX4_FOUND)
     set(netCDF_INCLUDE_DIR "${NETCDF_CXX4_INCLUDE_DIRS}")
     set(netCDF_LIB_DIR "${NETCDF_CXX4_LIBRARY_DIRS}")
 else()
-    find_package(NetCDF COMPONENTS C CXX REQUIRED)
+    find_package(
+        NetCDF
+        COMPONENTS C CXX
+        REQUIRED)
     set(NSDG_NetCDF_Library "${NetCDF_LIBRARIES}")
     set(netCDF_INCLUDE_DIR "${NetCDF_INCLUDE_DIRS}")
 endif()
@@ -45,10 +46,8 @@ if(BUILD_TESTS)
     # Add the doctest header library
     set(DOCTEST_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lib)
     add_library(doctest::doctest IMPORTED INTERFACE)
-    set_property(
-        TARGET doctest::doctest
-        PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${DOCTEST_INCLUDE_DIR}"
-    )
+    set_property(TARGET doctest::doctest PROPERTY INTERFACE_INCLUDE_DIRECTORIES
+                                                  "${DOCTEST_INCLUDE_DIR}")
     enable_testing() # Enable ctest
 endif()
 
@@ -57,22 +56,21 @@ find_package(Eigen3 3.4 REQUIRED)
 target_link_libraries(nextsimlib PUBLIC Eigen3::Eigen)
 
 if(DEFINED PYTHON_EXECUTABLE)
-    set(Python_EXECUTABLE PYTHON_EXECUTABLE CACHE STRING "")
+    set(Python_EXECUTABLE
+        PYTHON_EXECUTABLE
+        CACHE STRING "")
 else()
     set(Python_FIND_VIRTUALENV FIRST)
     find_package(Python COMPONENTS Interpreter)
 endif()
-
 
 # The location of the module_builder.py scripts
 set(ScriptDirectory "${PROJECT_SOURCE_DIR}/scripts")
 set(ModuleBuilderScript "${ScriptDirectory}/module_builder.py")
 set(ModuleHeaderScript "${ScriptDirectory}/module_header.py")
 
-# Dynamics type. Defaults to DG1.
-# Available options are:
-# DG1 Discontinuous Galerkin, degree 1 (3 components)
-# DG2 Discontinuous Galerkin, degree 2 (6 components)
+# Dynamics type. Defaults to DG1. Available options are: DG1 Discontinuous Galerkin, degree 1 (3
+# components) DG2 Discontinuous Galerkin, degree 2 (6 components)
 set(isDG FALSE)
 
 message("Dynamics is set to ${DynamicsType}")
@@ -109,21 +107,19 @@ if(isDG)
     set(ModelArrayStructure "discontinuousgalerkin")
 endif()
 # set degree / component parameters
-target_compile_definitions(
-    nextsimlib
-    PRIVATE DGCOMP=${DGComp} DGSTRESSCOMP=${DGStressComp} CGDEGREE=${CGDegree}
-)
+target_compile_definitions(nextsimlib PRIVATE DGCOMP=${DGComp} DGSTRESSCOMP=${DGStressComp}
+                                              CGDEGREE=${CGDegree})
 
 # boost
-find_package(Boost COMPONENTS program_options log REQUIRED)
-target_link_libraries(nextsimlib PUBLIC Boost::program_options Boost::log)
-# Regarding Boost.Log, if our application consists of more
-# than one modules that use it, we must link to the shared
-# version. If we have a single executable or a single module
-# that works, we may use the static version.
-# By default, it is assumed that the library is built in
-# static mode. Use the following definition to indicate that
-# the code will be linked against dynamically loaded boost
+find_package(
+    Boost
+    COMPONENTS program_options log_setup log
+    REQUIRED)
+target_link_libraries(nextsimlib PUBLIC Boost::program_options Boost::log_setup Boost::log)
+# Regarding Boost.Log, if our application consists of more than one modules that use it, we must
+# link to the shared version. If we have a single executable or a single module that works, we may
+# use the static version. By default, it is assumed that the library is built in static mode. Use
+# the following definition to indicate that the code will be linked against dynamically loaded boost
 # libraries.
 target_compile_definitions(nextsimlib PUBLIC BOOST_ALL_DYN_LINK)
 
@@ -146,11 +142,10 @@ if(ENABLE_XIOS)
     target_include_directories(
         nextsimlib
         PRIVATE ${xios_INCLUDES} ${xios_EXTERNS}/blitz ${xios_EXTERNS}/boost_extraction/include
-                ${xios_EXTERNS}/rapidxml/include
-    )
-    if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+                ${xios_EXTERNS}/rapidxml/include)
+    if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
         set(FORTRAN_RUNTIME_LIB "-lgfortran")
-    elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
+    elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
         set(FORTRAN_RUNTIME_LIB "-lifcore")
     endif()
     target_link_libraries(nextsimlib PUBLIC "${FORTRAN_RUNTIME_LIB}")
