@@ -1633,6 +1633,7 @@ void Xios::read(const std::string& fieldId, ModelArray& modelarray)
         auto& dims = inputarray.dimensions();
         cxios_read_data_k82(
             fieldId.c_str(), fieldId.length(), inputarray.getData(), dims[0], dims[1]);
+        modelarray = 0;
         // FIXME: Conversion with overloaded '=' operator is known to be problematic
         modelarray = inputarray;
         return;
