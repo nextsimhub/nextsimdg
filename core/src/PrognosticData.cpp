@@ -82,10 +82,10 @@ void PrognosticData::configure()
     xiosHandler.setPrognosticFieldType(latitudeName, ModelArray::Type::H);
     xiosHandler.setPrognosticFieldType(gridAzimuthName, ModelArray::Type::H);
     xiosHandler.setPrognosticFieldType(maskName, ModelArray::Type::H);
-    xiosHandler.setPrognosticFieldType(hiceName, ModelArray::Type::DG);
-    xiosHandler.setPrognosticFieldType(ciceName, ModelArray::Type::DG);
-    xiosHandler.setPrognosticFieldType(damageName, ModelArray::Type::DG);
-    xiosHandler.setPrognosticFieldType(hsnowName, ModelArray::Type::DG);
+    xiosHandler.setPrognosticFieldType(hiceName, ModelArray::AdvectionType);
+    xiosHandler.setPrognosticFieldType(ciceName, ModelArray::AdvectionType);
+    xiosHandler.setPrognosticFieldType(damageName, ModelArray::AdvectionType);
+    xiosHandler.setPrognosticFieldType(hsnowName, ModelArray::AdvectionType);
 #endif
 }
 
