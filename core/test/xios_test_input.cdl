@@ -65,9 +65,9 @@ variables:
 		hsnow:online_operation = "once" ;
 		hsnow:coordinates = "lat lon dg_comp" ;
   // VertexField variables
-	float grid_azimuth(y_vertex, x_vertex, ncoords) ;
-		grid_azimuth:online_operation = "once" ;
-		grid_azimuth:coordinates = "lat lon ncoords" ;
+	float coords(y_vertex, x_vertex, ncoords) ;
+		coords:online_operation = "once" ;
+		coords:coordinates = "lat lon ncoords" ;
   // DGStressField variables
 	float tice(y_dim, x_dim, dgstress_comp) ;
 		tice:online_operation = "once" ;
@@ -138,7 +138,7 @@ data:
 
  // VertexField variables
 
- grid_azimuth =
+ coords =
   0, 0,
   1, 0,
   2, 0,
