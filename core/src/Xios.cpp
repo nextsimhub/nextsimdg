@@ -1116,6 +1116,9 @@ void Xios::setFieldType(
         return;
     }
     const std::string ioFieldId = getFieldIOId(fieldId, ioType);
+    if (fieldTypes.count(ioFieldId) > 0) {
+        Logged::warning("Xios::setFieldType: Overwriting field type for field '" + ioFieldId + "'");
+    }
     fieldTypes[ioFieldId] = fieldType;
     setFieldGridRef(ioFieldId, gridIds[fieldType]);
 }
