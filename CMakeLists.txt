@@ -169,6 +169,16 @@ set(NextsimIncludeDirs "")
 # At least one test shell script runs the full binary. This variable contains the path to it.
 set(NEXTSIM_BINARY_PATH "${CMAKE_CURRENT_BINARY_DIR}/nextsim")
 
+# Add XIOS includes if enabled
+if(ENABLE_XIOS)
+    set(XIOS_INCLUDE_LIST
+        "${xios_INCLUDES}"
+        "${xios_EXTERNS}/blitz/"
+        "${xios_EXTERNS}/rapidxml/include"
+    )
+    set(NextsimIncludeDirs "${NextsimIncludeDirs}" "${XIOS_INCLUDE_LIST}")
+endif()
+
 # Build the core model. Defines the 'parse_modules' target
 add_subdirectory("core")
 
