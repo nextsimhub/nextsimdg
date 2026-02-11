@@ -45,12 +45,12 @@ MPI_TEST_CASE("TestXiosWriteRestart", 2)
     config << "restart_period = P0-0T03:00:00" << std::endl;
     config << "[XiosInput]" << std::endl;
     config << "field_names = " << maskName << "," << longitudeName << "," << latitudeName << ","
-           << coordsName << "," << ciceName << "," << hiceName << "," << damageName << ","
-           << hsnowName << "," << ticeName << "," << uName << "," << std::endl;
+           << coordsName << "," << gridAzimuthName << "," << ciceName << "," << hiceName << ","
+           << damageName << "," << hsnowName << "," << ticeName << "," << uName << "," << std::endl;
     config << "[XiosOutput]" << std::endl;
     config << "field_names = " << maskName << "," << longitudeName << "," << latitudeName << ","
-           << coordsName << "," << ciceName << "," << hiceName << "," << damageName << ","
-           << hsnowName << "," << ticeName << "," << uName << "," << std::endl;
+           << coordsName << "," << gridAzimuthName << "," << ciceName << "," << hiceName << ","
+           << damageName << "," << hsnowName << "," << ticeName << "," << uName << "," << std::endl;
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
 
@@ -79,6 +79,7 @@ MPI_TEST_CASE("TestXiosWriteRestart", 2)
     // Set field types for restarts
     // TODO: Set these in modules rather than here
     xiosHandler.setPrognosticFieldType(coordsName, ModelArray::Type::VERTEX);
+    xiosHandler.setPrognosticFieldType(gridAzimuthName, ModelArray::Type::H);
     xiosHandler.setPrognosticFieldType(ticeName, ModelArray::Type::DGSTRESS);
     xiosHandler.setPrognosticFieldType(uName, ModelArray::Type::CG);
 
@@ -97,6 +98,9 @@ MPI_TEST_CASE("TestXiosWriteRestart", 2)
             latitude(i, j) = j;
         }
     }
+    HField grid_azimuth(ModelArray::Type::H);
+    grid_azimuth.resize();
+    grid_azimuth = 0;
     HField mask(ModelArray::Type::H);
     mask.resize();
     for (size_t j = 0; j < ny; ++j) {
@@ -183,6 +187,7 @@ MPI_TEST_CASE("TestXiosWriteRestart", 2)
                                     { maskName, mask },
                                     { longitudeName, longitude },
                                     { latitudeName, latitude },
+                                    { gridAzimuthName, grid_azimuth },
                                     { ciceName, cice },
                                     { hiceName, hice },
                                     { damageName, damage },

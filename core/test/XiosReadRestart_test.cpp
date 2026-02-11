@@ -43,8 +43,8 @@ MPI_TEST_CASE("TestXiosReadRestart", 2)
     config << "partition_file = xios_test_partition_metadata_2.nc" << std::endl;
     config << "[XiosInput]" << std::endl;
     config << "field_names = " << maskName << "," << longitudeName << "," << latitudeName << ","
-           << coordsName << "," << ciceName << "," << hiceName << "," << damageName << ","
-           << hsnowName << "," << ticeName << "," << uName << "," << std::endl;
+           << coordsName << "," << gridAzimuthName << "," << ciceName << "," << hiceName << ","
+           << damageName << "," << hsnowName << "," << ticeName << "," << uName << "," << std::endl;
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
 
@@ -92,6 +92,12 @@ MPI_TEST_CASE("TestXiosReadRestart", 2)
             for (size_t j = 0; j < ny; ++j) {
                 for (size_t i = 0; i < nx; ++i) {
                     REQUIRE(modelarray(i, j) == doctest::Approx(j));
+                }
+            }
+        } else if (fieldName == gridAzimuthName) {
+            for (size_t j = 0; j < ny; ++j) {
+                for (size_t i = 0; i < nx; ++i) {
+                    REQUIRE(modelarray(i, j) == doctest::Approx(0.0));
                 }
             }
         } else if (fieldName == maskName) {

@@ -48,6 +48,9 @@ variables:
   float latitude(y_dim, x_dim) ;
     latitude:online_operation = "once" ;
     latitude:coordinates = "lat lon" ;
+  float grid_azimuth(y_dim, x_dim) ;
+    grid_azimuth:online_operation = "once" ;
+    grid_azimuth:coordinates = "lat lon" ;
 	float mask(y_dim, x_dim) ;
 		mask:online_operation = "once" ;
 		mask:coordinates = "lat lon" ;
@@ -95,6 +98,10 @@ data:
  latitude =
   0, 0, 0, 0,
   1, 1, 1, 1 ;
+
+ grid_azimuth =
+  0, 0, 0, 0,
+  0, 0, 0, 0 ;
 
  mask =
   0, 0, 0, 0,
