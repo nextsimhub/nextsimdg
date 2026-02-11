@@ -45,12 +45,12 @@ MPI_TEST_CASE("TestXiosWriteRestart", 2)
     config << "restart_period = P0-0T03:00:00" << std::endl;
     config << "[XiosInput]" << std::endl;
     config << "field_names = " << maskName << "," << longitudeName << "," << latitudeName << ","
-           << gridAzimuthName << "," << ciceName << "," << hiceName << "," << damageName << ","
-           << hsnowName << "," << ticeName << "," << uName << "," << std::endl;
+           << coordsName << "," << gridAzimuthName << "," << ciceName << "," << hiceName << ","
+           << damageName << "," << hsnowName << "," << ticeName << "," << uName << "," << std::endl;
     config << "[XiosOutput]" << std::endl;
     config << "field_names = " << maskName << "," << longitudeName << "," << latitudeName << ","
-           << gridAzimuthName << "," << ciceName << "," << hiceName << "," << damageName << ","
-           << hsnowName << "," << ticeName << "," << uName << "," << std::endl;
+           << coordsName << "," << gridAzimuthName << "," << ciceName << "," << hiceName << ","
+           << damageName << "," << hsnowName << "," << ticeName << "," << uName << "," << std::endl;
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
 
@@ -103,6 +103,10 @@ MPI_TEST_CASE("TestXiosWriteRestart", 2)
             latitude(i, j) = j;
         }
     }
+    HField grid_azimuth(ModelArray::Type::H);
+    grid_azimuth.resize();
+    grid_azimuth = 0;
+
     /*
      * Mask definition, where 0 indicates land and 1 indicates ocean:
      *
@@ -130,8 +134,8 @@ MPI_TEST_CASE("TestXiosWriteRestart", 2)
     damage.resize();
     DGField hsnow(ModelArray::Type::DG);
     hsnow.resize();
-    VertexField grid_azimuth(ModelArray::Type::VERTEX);
-    grid_azimuth.resize();
+    VertexField coords(ModelArray::Type::VERTEX);
+    coords.resize();
     DGSField tice(ModelArray::Type::DGSTRESS);
     tice.resize();
     CGField uice(ModelArray::Type::CG);
@@ -169,11 +173,11 @@ MPI_TEST_CASE("TestXiosWriteRestart", 2)
         for (size_t j = 0; j < ny + 1; ++j) {
             for (size_t i = 0; i < nx + 1; ++i) {
                 if (rank == 0) {
-                    grid_azimuth.components({ i, j })[0] = 1.0 * ts * i;
-                    grid_azimuth.components({ i, j })[1] = 1.0 * ts * j;
+                    coords.components({ i, j })[0] = 1.0 * ts * i;
+                    coords.components({ i, j })[1] = 1.0 * ts * j;
                 } else {
-                    grid_azimuth.components({ i, j })[0] = 1.0 * ts * (i + 2);
-                    grid_azimuth.components({ i, j })[1] = 1.0 * ts * j;
+                    coords.components({ i, j })[0] = 1.0 * ts * (i + 2);
+                    coords.components({ i, j })[1] = 1.0 * ts * j;
                 }
             }
         }
@@ -233,11 +237,12 @@ MPI_TEST_CASE("TestXiosWriteRestart", 2)
                                     { maskName, mask },
                                     { longitudeName, longitude },
                                     { latitudeName, latitude },
+                                    { gridAzimuthName, grid_azimuth },
                                     { ciceName, cice },
                                     { hiceName, hice },
                                     { damageName, damage },
                                     { hsnowName, hsnow },
-                                    { gridAzimuthName, grid_azimuth },
+                                    { coordsName, coords },
                                     { ticeName, tice },
                                     { uName, uice },
                                 },

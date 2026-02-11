@@ -48,6 +48,9 @@ variables:
   float latitude(y_dim, x_dim) ;
     latitude:online_operation = "once" ;
     latitude:coordinates = "lat lon" ;
+  float grid_azimuth(y_dim, x_dim) ;
+    grid_azimuth:online_operation = "once" ;
+    grid_azimuth:coordinates = "lat lon" ;
 	float mask(y_dim, x_dim) ;
 		mask:online_operation = "once" ;
 		mask:coordinates = "lat lon" ;
@@ -65,9 +68,9 @@ variables:
 		hsnow:online_operation = "once" ;
 		hsnow:coordinates = "lat lon dg_comp" ;
   // VertexField variables
-	float grid_azimuth(y_vertex, x_vertex, ncoords) ;
-		grid_azimuth:online_operation = "once" ;
-		grid_azimuth:coordinates = "lat lon ncoords" ;
+	float coords(y_vertex, x_vertex, ncoords) ;
+		coords:online_operation = "once" ;
+		coords:coordinates = "lat lon ncoords" ;
   // DGStressField variables
 	float tice(y_dim, x_dim, dgstress_comp) ;
 		tice:online_operation = "once" ;
@@ -95,6 +98,10 @@ data:
  latitude =
   0, 0, 0, 0,
   1, 1, 1, 1 ;
+
+ grid_azimuth =
+  0, 0, 0, 0,
+  0, 0, 0, 0 ;
 
  mask =
   0, 1, 0, 1,
@@ -144,7 +151,7 @@ data:
 
  // VertexField variables
 
- grid_azimuth =
+ coords =
   0, 0,
   1, 0,
   2, 0,
