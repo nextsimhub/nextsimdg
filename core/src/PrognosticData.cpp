@@ -77,8 +77,10 @@ void PrognosticData::configure()
 #ifdef USE_XIOS
     // Set XIOS field types
     Xios& xiosHandler = Xios::getInstance();
+    xiosHandler.setPrognosticFieldType(coordsName, ModelArray::Type::VERTEX);
     xiosHandler.setPrognosticFieldType(longitudeName, ModelArray::Type::H);
     xiosHandler.setPrognosticFieldType(latitudeName, ModelArray::Type::H);
+    xiosHandler.setPrognosticFieldType(gridAzimuthName, ModelArray::Type::H);
     xiosHandler.setPrognosticFieldType(maskName, ModelArray::Type::H);
     xiosHandler.setPrognosticFieldType(hiceName, ModelArray::Type::DG);
     xiosHandler.setPrognosticFieldType(ciceName, ModelArray::Type::DG);

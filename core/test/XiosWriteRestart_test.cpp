@@ -78,8 +78,6 @@ MPI_TEST_CASE("TestXiosWriteRestart", 2)
 
     // Set field types for restarts
     // TODO: Set these in modules rather than here
-    xiosHandler.setPrognosticFieldType(coordsName, ModelArray::Type::VERTEX);
-    xiosHandler.setPrognosticFieldType(gridAzimuthName, ModelArray::Type::H);
     xiosHandler.setPrognosticFieldType(ticeName, ModelArray::Type::DGSTRESS);
     xiosHandler.setPrognosticFieldType(uName, ModelArray::Type::CG);
 
