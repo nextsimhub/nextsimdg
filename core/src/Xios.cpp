@@ -153,9 +153,8 @@ void Xios::close_context_definition()
 
         // Special handling of input fields
         for (int ioType : { INPUT_RESTART, FORCING }) {
-            const std::set<std::string> fieldIds = (ioType == INPUT_RESTART)
-                ? configGetInputRestartFieldNames()
-                : configGetForcingFieldNames();
+            const std::set<std::string> fieldIds
+                = (ioType == INPUT_RESTART) ? inputRestartFieldNames : forcingFieldNames;
             for (const std::string& fieldId : fieldIds) {
                 const std::string inputFieldId
                     = (ioType == INPUT_RESTART) ? fieldId + "_input" : fieldId + "_forcing";
@@ -229,17 +228,53 @@ void Xios::finalize()
  * Overrides `Configure` method from `Configured`
  *
  * Configure the XIOS server if XIOS is enabled in the settings.
- *
  */
 void Xios::configure()
 {
     if (isEnabled) {
+        parseConfig();
         setupClient();
         setupContext();
         setupCalendar();
         setupFiles();
         setupFields();
     }
+}
+
+// Split a string into a set by some delimiter.
+std::set<std::string> str2set(const std::string& asStr, const char& delim = ',')
+{
+    std::set<std::string> asSet;
+    if (asStr.length() > 0) {
+        const char delim = ',';
+        std::istringstream iss(asStr);
+        std::string item;
+        while (std::getline(iss, item, delim)) {
+            asSet.insert(item);
+        }
+    }
+    return asSet;
+}
+
+/*!
+ * Parse the config and stores the field names for each I/O type.
+ */
+void Xios::parseConfig()
+{
+    inputRestartFieldNames
+        = str2set(Configured::getConfiguration(keyMap.at(INPUT_FIELD_NAMES_KEY), std::string()));
+    outputRestartFieldNames
+        = str2set(Configured::getConfiguration(keyMap.at(OUTPUT_FIELD_NAMES_KEY), std::string()));
+    forcingFieldNames
+        = str2set(Configured::getConfiguration(keyMap.at(FORCING_FIELD_NAMES_KEY), std::string()));
+    diagnosticFieldNames = str2set(
+        Configured::getConfiguration(keyMap.at(DIAGNOSTIC_FIELD_NAMES_KEY), std::string()));
+
+    // Combine all field names into a single set for easier checking later on
+    fieldNames = inputRestartFieldNames;
+    fieldNames.insert(outputRestartFieldNames.begin(), outputRestartFieldNames.end());
+    fieldNames.insert(forcingFieldNames.begin(), forcingFieldNames.end());
+    fieldNames.insert(diagnosticFieldNames.begin(), diagnosticFieldNames.end());
 }
 
 //! Initialize the XIOS context with ID contextId
@@ -751,46 +786,6 @@ xios::CField* Xios::getField(const std::string& fieldId)
     return field;
 }
 
-// Split a string into a set by some delimiter.
-std::set<std::string> str2set(const std::string& asStr, const char& delim = ',')
-{
-    std::set<std::string> asSet;
-    if (asStr.length() > 0) {
-        const char delim = ',';
-        std::istringstream iss(asStr);
-        std::string item;
-        while (std::getline(iss, item, delim)) {
-            asSet.insert(item);
-        }
-    }
-    return asSet;
-}
-
-// Extract the field_names entry from the XiosInput section of the config.
-std::set<std::string> Xios::configGetInputRestartFieldNames()
-{
-    return str2set(Configured::getConfiguration(keyMap.at(INPUT_FIELD_NAMES_KEY), std::string()));
-}
-
-// Extract the field_names entry from the XiosForcing section of the config.
-std::set<std::string> Xios::configGetForcingFieldNames()
-{
-    return str2set(Configured::getConfiguration(keyMap.at(FORCING_FIELD_NAMES_KEY), std::string()));
-}
-
-// Extract the field_names entry from the XiosOutput section of the config.
-std::set<std::string> Xios::configGetOutputRestartFieldNames()
-{
-    return str2set(Configured::getConfiguration(keyMap.at(OUTPUT_FIELD_NAMES_KEY), std::string()));
-}
-
-// Extract the field_names entry from the XiosDiagnostic section of the config.
-std::set<std::string> Xios::configGetDiagnosticFieldNames()
-{
-    return str2set(
-        Configured::getConfiguration(keyMap.at(DIAGNOSTIC_FIELD_NAMES_KEY), std::string()));
-}
-
 /*!
  * Create a field with some ID
  *
@@ -805,16 +800,16 @@ void Xios::createField(const std::string& fieldId, const std::string& fileId)
     std::set<std::string> fieldNames;
     std::string ioName;
     if (ioType == INPUT_RESTART) {
-        fieldNames = configGetInputRestartFieldNames();
+        fieldNames = inputRestartFieldNames;
         ioName = "input restart";
     } else if (ioType == OUTPUT_RESTART) {
-        fieldNames = configGetOutputRestartFieldNames();
+        fieldNames = outputRestartFieldNames;
         ioName = "output restart";
     } else if (ioType == FORCING) {
-        fieldNames = configGetForcingFieldNames();
+        fieldNames = forcingFieldNames;
         ioName = "forcing";
     } else if (ioType == DIAGNOSTIC) {
-        fieldNames = configGetDiagnosticFieldNames();
+        fieldNames = diagnosticFieldNames;
         ioName = "diagnostic";
     } else {
         throw std::runtime_error("Xios: Unknown I/O type for field '" + fieldId + "'");
@@ -1144,10 +1139,10 @@ void Xios::setupFields()
         std::set<std::string> configFieldIds;
         int ioType;
         if (filename == metadata.initialFileName) {
-            configFieldIds = configGetInputRestartFieldNames();
+            configFieldIds = inputRestartFieldNames;
             ioType = INPUT_RESTART;
         } else {
-            configFieldIds = configGetForcingFieldNames();
+            configFieldIds = forcingFieldNames;
             ioType = FORCING;
         }
         try {
@@ -1313,13 +1308,13 @@ void Xios::createFile(const std::string& fileId)
     // Get the fieldIds
     std::set<std::string> fieldIds;
     if (ioType == INPUT_RESTART) {
-        fieldIds = configGetInputRestartFieldNames();
+        fieldIds = inputRestartFieldNames;
     } else if (ioType == OUTPUT_RESTART) {
-        fieldIds = configGetOutputRestartFieldNames();
+        fieldIds = outputRestartFieldNames;
     } else if (ioType == FORCING) {
-        fieldIds = configGetForcingFieldNames();
+        fieldIds = forcingFieldNames;
     } else if (ioType == DIAGNOSTIC) {
-        fieldIds = configGetDiagnosticFieldNames();
+        fieldIds = diagnosticFieldNames;
     }
 
     // Determine the file output frequency

@@ -88,14 +88,13 @@ MPI_TEST_CASE("TestXiosReadForcing", 2)
     // Simulate 4 iterations (timesteps), reading forcing data at each
     ModelMetadata& metadata = ModelMetadata::getInstance();
     const Duration& timestep = metadata.stepLength();
-    // TODO: Avoid making configGetForcingFieldNames public?
-    auto forcingFieldNames = xiosHandler.configGetForcingFieldNames();
     for (int ts = 0; ts <= 4; ts++) {
 
         // Read forcings from file and check they take the expected values
+        // TODO: Avoid making forcingFieldNames public?
         const TimePoint& time = xiosHandler.getCurrentDate();
         const ModelState forcings
-            = pio->readForcingTimeStatic(forcingFieldNames, time, forcingFilename);
+            = pio->readForcingTimeStatic(xiosHandler.forcingFieldNames, time, forcingFilename);
         for (const auto& [fieldName, modelarray] : forcings.data) {
             REQUIRE(fieldName == hsnowName);
             for (size_t j = 0; j < ny; ++j) {
