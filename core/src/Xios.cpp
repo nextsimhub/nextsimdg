@@ -1084,6 +1084,9 @@ void Xios::setFieldType(
     } else if (ioType == FORCING) {
         ioFieldId += "_forcing";
     }
+    if (fieldTypes.count(ioFieldId) > 0) {
+        Logged::warning("Xios::setFieldType: Overwriting field type for field '" + ioFieldId + "'");
+    }
     fieldTypes[ioFieldId] = fieldType;
     setFieldGridRef(ioFieldId, gridIds[fieldType]);
 }
