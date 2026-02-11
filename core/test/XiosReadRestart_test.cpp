@@ -51,7 +51,7 @@ MPI_TEST_CASE("TestXiosReadRestart", 2)
     // Check the input file exists
     if (!std::filesystem::exists(restartFilename)) {
         throw std::runtime_error(
-            "XiosReadRestart_test: Input file not found. Did you run XiosWrite_test?");
+            "XiosReadRestart_test: Input file not found. Did you run XiosWriteRestart_test?");
     }
 
     // Create ModelMPI instance based off the test communicator
