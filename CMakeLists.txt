@@ -69,8 +69,10 @@ set(ScriptDirectory "${PROJECT_SOURCE_DIR}/scripts")
 set(ModuleBuilderScript "${ScriptDirectory}/module_builder.py")
 set(ModuleHeaderScript "${ScriptDirectory}/module_header.py")
 
-# Dynamics type. Defaults to DG1. Available options are: DG1 Discontinuous Galerkin, degree 1 (3
-# components) DG2 Discontinuous Galerkin, degree 2 (6 components)
+# Dynamics type. Defaults to DG1. Available options are:
+#
+# * "DG1" Discontinuous Galerkin, degree 1 (3 components)
+# * "DG2" Discontinuous Galerkin, degree 2 (6 components)
 set(isDG FALSE)
 
 message("Dynamics is set to ${DynamicsType}")
