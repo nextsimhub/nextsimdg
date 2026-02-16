@@ -8,6 +8,7 @@
  * - VertexField
  * - DGField
  * - DGVector
+ * - CGVector
  */
 
 #include <doctest/extensions/doctest_mpi.h>
