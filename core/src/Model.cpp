@@ -191,15 +191,25 @@ Model::HelpMap& Model::getHelpRecursive(HelpMap& map, bool getAll)
 
 void Model::run()
 {
+#ifdef USE_XIOS
+    Xios& xiosHandler = Xios::getInstance();
+#endif
+
     try {
         iterator.run();
     } catch (const std::exception& e) {
         writeRestartFile();
+#ifdef USE_XIOS
+        xiosHandler.context_finalize();
+#endif
         Finalizer::finalize();
         throw;
     }
 
     writeRestartFile();
+#ifdef USE_XIOS
+    xiosHandler.context_finalize();
+#endif
     Finalizer::finalize();
 }
 
