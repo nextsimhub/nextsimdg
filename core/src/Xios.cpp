@@ -1588,7 +1588,7 @@ void Xios::write(const std::string& fieldId, const ModelArray& modelarray)
     const ModelArray::Type& expectedType = getFieldType(fieldId);
     if (expectedType != type) {
         throw std::runtime_error(
-            "Xios::read: field '" + fieldId + "' does not have the expected type");
+            "Xios::write: field '" + fieldId + "' does not have the expected type");
     }
 
     // Write out according to field type
