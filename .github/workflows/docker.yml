@@ -5,6 +5,11 @@ on:
   # Build the Docker container upon merging into main or develop
   push:
     branches: [ main, develop ]
+    paths:
+      - .github/workflows/docker.yml
+      - Dockerfiles/Dockerfile.devenv
+      - Dockerfiles/install-xios.sh
+      - Dockerfiles/spack.yaml
 
   # Build the Docker container whenever commits are pushed to an open PR that changes one of the files listed
   pull_request:
