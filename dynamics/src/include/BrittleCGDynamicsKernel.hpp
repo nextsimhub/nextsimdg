@@ -15,6 +15,10 @@
 #include "include/constants.hpp"
 #include <cmath>
 
+#ifdef USE_MPI
+#include "include/Halo.hpp"
+#endif
+
 namespace Nextsim {
 
 // The brittle momentum solver for CG velocity fields
@@ -116,6 +120,20 @@ public:
     {
         advectDynamicsFields(tst.step.seconds());
 
+        // halo exchange
+        //  - damage, hice, cice
+        //  - s11, s12, s22
+        //  - e11, e12, e22
+        //  - dStressY, dStressX
+        //  - u, v
+        // Note: only need to create one halo object per array type, dimensionality and size.
+#ifdef USE_MPI
+        Halo halo(hice);
+        halo.exchangeHalos(static_cast<DGVector<DGadvection>&>(hice));
+        halo.exchangeHalos(static_cast<DGVector<DGadvection>&>(cice));
+        halo.exchangeHalos(static_cast<DGVector<DGadvection>&>(damage));
+#endif
+
         prepareIteration({ { hiceName, hice }, { ciceName, cice } });
 
         // The timestep for the brittle solver is the solver subtimestep
@@ -128,17 +146,41 @@ public:
 
             projectVelocityToStrain();
 
+#ifdef USE_MPI
+            Halo haloDGVector(e11);
+            haloDGVector.exchangeHalos(e11);
+            haloDGVector.exchangeHalos(e12);
+            haloDGVector.exchangeHalos(e22);
+#endif
+
             std::array<std::reference_wrapper<DGVector<DGstressComp>>, N_TENSOR_ELEMENTS> stress
                 = { s11, s12, s22 }; // Call the step function on the StressUpdateStep class
             // Call the step function on the StressUpdateStep class
             stressStep.stressUpdateHighOrder(
                 params, *smesh, stress, { e11, e12, e22 }, hice, cice, deltaT);
 
+#ifdef USE_MPI
+            haloDGVector.exchangeHalos(s11);
+            haloDGVector.exchangeHalos(s12);
+            haloDGVector.exchangeHalos(s22);
+#endif
+
             stressDivergence(); // Compute divergence of stress tensor
+
+#ifdef USE_MPI
+            Halo haloCGVector(dStressX);
+            haloCGVector.exchangeHalos(dStressX);
+            haloCGVector.exchangeHalos(dStressY);
+#endif
 
             updateMomentum(tst);
 
             applyBoundaries();
+
+#ifdef USE_MPI
+            haloCGVector.exchangeHalos(u);
+            haloCGVector.exchangeHalos(v);
+#endif
 
             // Land mask
         }
