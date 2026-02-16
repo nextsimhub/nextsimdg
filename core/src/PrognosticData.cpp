@@ -78,10 +78,13 @@ void PrognosticData::configure()
     // Set XIOS field types
     Xios& xiosHandler = Xios::getInstance();
     xiosHandler.setPrognosticFieldType(coordsName, ModelArray::Type::VERTEX);
-    xiosHandler.setPrognosticFieldType(hiceName, hice.getType());
-    xiosHandler.setPrognosticFieldType(ciceName, cice.getType());
-    xiosHandler.setPrognosticFieldType(damageName, damage.getType());
-    xiosHandler.setPrognosticFieldType(hsnowName, hsnow.getType());
+    auto AdvectionType = hice.getType();
+    xiosHandler.setPrognosticFieldType(hiceName, AdvectionType);
+    xiosHandler.setPrognosticFieldType(ciceName, AdvectionType);
+    xiosHandler.setPrognosticFieldType(damageName, AdvectionType);
+    xiosHandler.setPrognosticFieldType(hsnowName, AdvectionType);
+    // NOTE: We can't call getType on tsurf here because we don't have access to it
+    xiosHandler.setPrognosticFieldType(tsurfName, AdvectionType);
 #endif
 }
 
