@@ -86,8 +86,9 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
     for (auto& [fieldId, modelarray] : state.data) {
         const std::string inputFieldId = fieldId + "_input";
         if (xiosHandler.inputRestartFieldNames.count(fieldId) == 0) {
-            throw std::runtime_error(
+            Logged::warning(
                 "ParaGridIO::getModelState: field " + fieldId + " is not configured as a restart.");
+            continue;
         }
         xiosHandler.read(inputFieldId, modelarray);
     }
@@ -162,8 +163,9 @@ void ParaGridIO::dumpModelState(const ModelState& state, const std::string& file
     // Assume that all fields in the supplied ModelState are necessary, and so write them to file.
     for (const auto& [fieldId, modelarray] : state.data) {
         if (xiosHandler.outputRestartFieldNames.count(fieldId) == 0) {
-            throw std::runtime_error("ParaGridIO::dumpModelState: field " + fieldId
+            Logged::warning("ParaGridIO::dumpModelState: field " + fieldId
                 + " is not configured as a restart.");
+            continue;
         }
         xiosHandler.write(fieldId, modelarray);
     }
