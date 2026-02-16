@@ -16,9 +16,7 @@
 #define HALO_HPP
 
 #include <cstddef>
-#include <iostream>
 #include <numeric>
-#include <ostream>
 #include <vector>
 
 #include "Slice.hpp"
@@ -44,6 +42,7 @@ class Halo {
 public:
     /*!
      * @brief Constructs a halo object from ModelArray
+     * @param ma ModelArray object to create halo from
      */
     Halo(ModelArray& ma)
     {
@@ -55,6 +54,7 @@ public:
 
     /*!
      * @brief Constructs a halo object from DGVector
+     * @param dgvh DGVectorHolder object to create halo from
      */
     template <int N> Halo(DGVectorHolder<N>& dgvh)
     {
@@ -65,6 +65,7 @@ public:
 
     /*!
      * @brief Constructs a halo object from DGVector
+     * @param dgv DGVector object to create halo from
      */
     template <int N> Halo(DGVector<N>& dgv)
     {
@@ -75,6 +76,7 @@ public:
 
     /*!
      * @brief Constructs a halo object from CGVector
+     * @param cgv CGVector object to create halo from
      */
     template <int N> Halo(CGVector<N>& cgv)
     {
@@ -224,6 +226,8 @@ private:
      *
      * @details this is not intended to be used manually. It should only be called as part of the
      * update method.
+     *
+     * @param idx Component index for which to open the memory window
      */
     void openMemoryWindow(size_t idx)
     {
@@ -293,8 +297,17 @@ private:
     }
 
     /**
-     * @brief Calculate recv buffer positions and offsets for halo transfer
+     * @brief Calculate recv buffer positions and offsets (count, disp and recvOffset) for halo
+     * transfer
      *
+     * @param fromRank Rank from which to receive data
+     * @param count Number of elements to receive
+     * @param disp Displacement in the send buffer
+     * @param recvOffset Offset in the receive buffer
+     * @param edge Edge for which to calculate positions
+     * @param neighbourIndex Index of the current neighbor
+     * @param cell Cell index for CGVector fields
+     * @param isPeriodic Whether the boundary is periodic
      */
     void recvPositions(int& fromRank, size_t& count, size_t& disp, size_t& recvOffset, Edge edge,
         const size_t neighbourIndex, const size_t cell, bool isPeriodic)
@@ -337,7 +350,17 @@ private:
     }
 
     /**
-     * @brief Calculate recv buffer positions and offsets for halo transfer of corner cells
+     * @brief Calculate recv buffer positions and offsets (count, disp and recvOffset) for halo
+     * transfer of corner cells
+     *
+     * @param fromRank Rank from which to receive data
+     * @param count Number of elements to receive
+     * @param disp Displacement in the send buffer
+     * @param recvOffset Offset in the receive buffer
+     * @param corner Corner for which to calculate positions
+     * @param neighbourIndex Index of the current neighbor
+     * @param cell Cell index for CGVector fields
+     * @param isPeriodic Whether the boundary is periodic
      */
     void recvPositions(int& fromRank, size_t& count, size_t& disp, size_t& recvOffset,
         Corner corner, const size_t cell, bool isPeriodic)
@@ -492,6 +515,14 @@ public:
      */
     size_t getInnerSize() { return m_innerNx * m_innerNy; }
 
+    /*!
+     * @brief Calculate send buffer positions for a given edge
+     *
+     * @param idx_a Starting index along given edge
+     * @param idx_b Ending index along given edge
+     * @param offset Offset position in the send buffer
+     * @param edge Edge for which to calculate positions
+     */
     void sendBufferPositions(int& idx_a, int& idx_b, int& offset, const Edge edge)
     {
         int vertexOffset = 0;
@@ -521,6 +552,15 @@ public:
         }
     }
 
+    /**
+     * @brief Populate send buffer with data from source array for a given edge
+     *
+     * Buffer maps are used to get both arrays in the same format.
+     *
+     * @param edge Edge for which to populate the send buffer
+     * @param buffer_map maps send arrays to Eigen::Arrays
+     * @param source_map maps source to similar Eigen::Array as buffer_map
+     */
     template <typename S, typename T>
     void sourceToSendBuffer(const Edge edge, Eigen::Map<T>& buffer_map,
         Eigen::Map<S, 0, Eigen::InnerStride<Eigen::Dynamic>>& source_map)
@@ -536,6 +576,14 @@ public:
         }
     }
 
+    /*!
+     * @brief Calculate receive buffer positions for a given edge
+     *
+     * @param idx_a Starting index along given edge
+     * @param idx_b Ending index along given edge
+     * @param offset Offset position in the receive buffer
+     * @param edge Edge for which to calculate positions
+     */
     void recvBufferPositions(int& idx_a, int& idx_b, int& offset, const Edge edge)
     {
         offset = std::accumulate(m_edgeLengths.begin(), m_edgeLengths.begin() + edge, 0);
@@ -561,6 +609,15 @@ public:
         }
     }
 
+    /**
+     * @brief Copy data from receive buffer to target array for a given edge
+     *
+     * Buffer maps are used to get both arrays in the same format.
+     *
+     * @param edge Edge for which to copy data from receive buffer to target
+     * @param buffer_map Mapped receive buffer containing the data
+     * @param target_map Mapped target array to store the received data
+     */
     template <typename S, typename T>
     void recvBufferToTarget(const Edge edge, Eigen::Map<T>& buffer_map,
         Eigen::Map<S, 0, Eigen::InnerStride<Eigen::Dynamic>>& target_map)
@@ -576,6 +633,15 @@ public:
         }
     }
 
+    /**
+     * @brief Copy data from receive buffer to target array for a given corner
+     *
+     * Buffer maps are used to get both arrays in the same format.
+     *
+     * @param corner Corner for which to copy data from receive buffer to target
+     * @param buffer_map Mapped receive buffer containing the data
+     * @param target_map Mapped target array to store the received data
+     */
     template <typename S, typename T>
     void recvBufferToTarget(const Corner corner, Eigen::Map<T>& buffer_map,
         Eigen::Map<S, 0, Eigen::InnerStride<Eigen::Dynamic>>& target_map)
@@ -606,13 +672,12 @@ public:
         }
     }
 
-    /*
-     * @brief transpose corners received from vertical edges
+    /*!
+     * @brief Transpose corners received from vertical edges
      *
      * If the sending edge was from a vertical side (e.g., LEFT or RIGHT) then it has been
      * transposed when flattened into the 1D send buffer. We need to account for that.
-     *
-     * */
+     */
     void transposeCorners()
     {
         auto& metadata = ModelMetadata::getInstance();
@@ -676,9 +741,10 @@ public:
     }
 
     /*!
-     * @brief Get inner block of ModelArray from tempData
+     * @brief Get inner block from source array and copy into target
      *
-     * @params ma ModelArray which we intend to update across MPI ranks
+     * @param source Source ModelArray-like object to extract inner block from
+     * @param target Target ModelArray-like object to store the extracted inner block
      */
     template <typename S, typename T = S> void getInnerBlock(S& source, T& target)
     {
@@ -691,6 +757,12 @@ public:
         ModelArraySlice::copySliceWithIters(source, sourceIter, target, targetIter);
     }
 
+    /*!
+     * @brief Set inner block of the target array from a given source
+     *
+     * @param source Source ModelArray-like object containing data to set in the inner block
+     * @param target Target ModelArray-like object to have its inner block set
+     */
     template <typename S, typename T = S> void setInnerBlock(S& source, T& target)
     {
         ArraySlicer::Slice::VBounds sourceSlice, targetSlice;
