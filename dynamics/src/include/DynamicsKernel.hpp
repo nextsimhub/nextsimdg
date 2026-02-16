@@ -28,6 +28,10 @@
 #include <string>
 #include <unordered_map>
 
+#ifdef USE_MPI
+#include "include/Halo.hpp"
+#endif
+
 namespace Nextsim {
 
 // forward declare the class holding the potentially non-DG parts
@@ -162,6 +166,10 @@ public:
         double upperLimit = std::numeric_limits<double>::infinity())
     {
         DGVectorHolder<DGadvection> holder(field);
+#ifdef USE_MPI
+        Halo halo(holder);
+        halo.exchangeHalos(static_cast<DGVector<DGadvection>&>(holder));
+#endif
         advectDGVField(timestep, holder, lowerLimit, upperLimit);
         return field;
     }
