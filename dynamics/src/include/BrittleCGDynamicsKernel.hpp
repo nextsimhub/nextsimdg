@@ -15,6 +15,10 @@
 #include "include/constants.hpp"
 #include <cmath>
 
+#ifdef USE_MPI
+#include "include/Halo.hpp"
+#endif
+
 namespace Nextsim {
 
 // The brittle momentum solver for CG velocity fields
@@ -124,6 +128,12 @@ public:
         avgU.zero();
         avgV.zero();
 
+#ifdef USE_MPI
+        // Note: we only need to create one halo object per array type,
+        // dimensionality and size.
+        Halo halo(u);
+#endif
+
         for (size_t subStep = 0; subStep < params.nSteps; ++subStep) {
 
             projectVelocityToStrain();
@@ -139,6 +149,11 @@ public:
             updateMomentum(tst);
 
             applyBoundaries();
+
+#ifdef USE_MPI
+            halo.exchangeHalos(u);
+            halo.exchangeHalos(v);
+#endif
 
             // Land mask
         }
