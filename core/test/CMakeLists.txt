@@ -60,10 +60,16 @@ if(ENABLE_MPI)
             ncgen -b -o paragrid_test_mask.nc ${CMAKE_CURRENT_SOURCE_DIR}/paragrid_test_mask.cdl
         DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/paragrid_test_mask.cdl
     )
+    add_custom_command(
+        OUTPUT halo_test_mask.nc
+        COMMAND
+            ncgen -b -o halo_test_mask.nc ${CMAKE_CURRENT_SOURCE_DIR}/halo_test_mask.cdl
+        DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/halo_test_mask.cdl
+    )
     add_custom_target(
         generate_masks
         ALL
-        DEPENDS rectgrid_test_mask.nc paragrid_test_mask.nc
+        DEPENDS rectgrid_test_mask.nc paragrid_test_mask.nc halo_test_mask.nc
     )
 
     # Generate partition files using domain_decomp
@@ -81,31 +87,27 @@ if(ENABLE_MPI)
                 -g paragrid_test_mask.nc --output-prefix paragrid_test
         DEPENDS paragrid_test_mask.nc
     )
+    add_custom_command(
+        OUTPUT halo_cb_test_partition_metadata_3.nc
+        COMMAND
+            ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} 3 decomp -m mask -o xy
+                -g halo_test_mask.nc --output-prefix halo_cb_test
+        DEPENDS halo_test_mask.nc
+    )
+    add_custom_command(
+        OUTPUT halo_pb_test_partition_metadata_3.nc
+        COMMAND
+            ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} 3 decomp -m mask -o xy
+                -g halo_test_mask.nc --output-prefix halo_pb_test --px --py
+        DEPENDS halo_test_mask.nc
+    )
     add_custom_target(
         generate_partition_files
         ALL
-        DEPENDS rectgrid_test_partition_metadata_3.nc paragrid_test_partition_metadata_2.nc
-    )
-
-    # Generate partition files needed for MPI test from respective cdl files
-    add_custom_command(
-        OUTPUT partition_metadata_3_cb.nc partition_metadata_3_pb.nc
-        COMMAND
-        ncgen -b -o partition_metadata_3_cb.nc
-        ${CMAKE_CURRENT_SOURCE_DIR}/partition_metadata_3_cb.cdl
-        COMMAND
-        ncgen -b -o partition_metadata_3_pb.nc
-        ${CMAKE_CURRENT_SOURCE_DIR}/partition_metadata_3_pb.cdl
-        DEPENDS
-        ${CMAKE_CURRENT_SOURCE_DIR}/partition_metadata_3_cb.cdl
-        ${CMAKE_CURRENT_SOURCE_DIR}/partition_metadata_3_pb.cdl
-    )
-    add_custom_target(
-        generate_partition_files_b
-        ALL
-        DEPENDS
-        partition_metadata_3_cb.nc
-        partition_metadata_3_pb.nc
+        DEPENDS rectgrid_test_partition_metadata_3.nc
+        paragrid_test_partition_metadata_2.nc
+        halo_cb_test_partition_metadata_3.nc
+        halo_pb_test_partition_metadata_3.nc
     )
 
     if(ENABLE_XIOS)
