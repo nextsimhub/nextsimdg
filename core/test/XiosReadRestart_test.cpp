@@ -80,8 +80,14 @@ MPI_TEST_CASE("TestXiosReadRestart", 2)
     int rank;
     MPI_Comm_rank(test_comm, &rank);
     float ts = 2; // Corresponds to 2023-03-17T20:10:59Z
-    for (const auto [fieldName, modelarray] :
-        StructureFactory::stateFromFile(restartFilename).data) {
+    ModelState modelstate = StructureFactory::stateFromFile(restartFilename);
+    ModelArray& mask = modelstate.data.at(maskName);
+    for (size_t j = 0; j < ny; ++j) {
+        for (size_t i = 0; i < nx; ++i) {
+            REQUIRE(mask(i, j) == doctest::Approx(i == 0 && j == 0 ? 0.0 : 1.0));
+        }
+    }
+    for (const auto& [fieldName, modelarray] : modelstate.data) {
         if (fieldName == longitudeName) {
             for (size_t j = 0; j < ny; ++j) {
                 for (size_t i = 0; i < nx; ++i) {
@@ -92,12 +98,6 @@ MPI_TEST_CASE("TestXiosReadRestart", 2)
             for (size_t j = 0; j < ny; ++j) {
                 for (size_t i = 0; i < nx; ++i) {
                     REQUIRE(modelarray(i, j) == doctest::Approx(j));
-                }
-            }
-        } else if (fieldName == maskName) {
-            for (size_t j = 0; j < ny; ++j) {
-                for (size_t i = 0; i < nx; ++i) {
-                    REQUIRE(modelarray(i, j) == doctest::Approx(j >= 1 ? 1.0 : 0.0));
                 }
             }
         } else if (fieldName == gridAzimuthName) {
@@ -119,8 +119,13 @@ MPI_TEST_CASE("TestXiosReadRestart", 2)
             for (size_t j = 0; j < ny; ++j) {
                 for (size_t i = 0; i < nx; ++i) {
                     for (size_t d = 0; d < DGCOMP; ++d) {
-                        const float expected = ts * (d + DGCOMP * (i + nx * j));
-                        REQUIRE(modelarray.components({ i, j })[d] == doctest::Approx(expected));
+                        if (i == 0 && j == 0) {
+                            REQUIRE(std::isnan(modelarray.components({ i, j })[d]));
+                        } else {
+                            const float expected = ts * (d + DGCOMP * (i + nx * j));
+                            REQUIRE(
+                                modelarray.components({ i, j })[d] == doctest::Approx(expected));
+                        }
                     }
                 }
             }
@@ -128,21 +133,32 @@ MPI_TEST_CASE("TestXiosReadRestart", 2)
             for (size_t j = 0; j < ny; ++j) {
                 for (size_t i = 0; i < nx; ++i) {
                     for (size_t d = 0; d < DGSTRESSCOMP; ++d) {
-                        const float expected = 2.0 * ts * (d + DGSTRESSCOMP * (i + nx * j));
-                        REQUIRE(modelarray.components({ i, j })[d] == doctest::Approx(expected));
+                        if (i == 0 && j == 0) {
+                            REQUIRE(std::isnan(modelarray.components({ i, j })[d]));
+                        } else {
+                            const float expected = 2.0 * ts * (d + DGSTRESSCOMP * (i + nx * j));
+                            REQUIRE(
+                                modelarray.components({ i, j })[d] == doctest::Approx(expected));
+                        }
                     }
                 }
             }
         } else if (fieldName == uName) {
             for (size_t j = 0; j < CGDEGREE * ny + 1; ++j) {
                 for (size_t i = 0; i < CGDEGREE * nx + 1; ++i) {
-                    float expected;
                     if (rank == 0) {
-                        expected = ts * (i + 1) * (j + 1);
+                        if (i <= 1 && j <= 1) {
+                            REQUIRE(std::isnan(modelarray(i, j)));
+                        } else {
+                            REQUIRE(modelarray(i, j) == doctest::Approx(ts * (i + 1) * (j + 1)));
+                        }
                     } else {
-                        expected = ts * (i + 5) * (j + 1);
+                        if (i == 1 && j == 1) {
+                            REQUIRE(std::isnan(modelarray(i, j)));
+                        } else {
+                            REQUIRE(modelarray(i, j) == doctest::Approx(ts * (i + 5) * (j + 1)));
+                        }
                     }
-                    REQUIRE(modelarray(i, j) == doctest::Approx(expected));
                 }
             }
         }
