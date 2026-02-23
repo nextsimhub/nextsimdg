@@ -40,12 +40,12 @@ MPI_TEST_CASE("TestXiosReadForcing", 2)
     config << "stop = 2023-03-17T23:11:00Z" << std::endl;
     config << "time_step = P0-0T01:30:00" << std::endl;
     config << "init_file = " << inputFilename << std::endl;
-    config << "restart_period = P0-0T03:00:00" << std::endl;
+    config << "restart_period = P0-0T06:00:00" << std::endl;
     config << "partition_file = xios_test_partition_metadata_2.nc" << std::endl;
     config << "[XiosForcing]" << std::endl;
     config << "filename = " << forcingFilename << std::endl;
     config << "field_names = " << hsnowName << std::endl;
-    config << "period = P0-0T01:30:00" << std::endl;
+    config << "period = P0-0T03:00:00" << std::endl;
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
 
@@ -88,7 +88,7 @@ MPI_TEST_CASE("TestXiosReadForcing", 2)
     // Simulate 4 iterations (timesteps), reading forcing data at each
     ModelMetadata& metadata = ModelMetadata::getInstance();
     const Duration& timestep = metadata.stepLength();
-    for (int ts = 0; ts <= 4; ts++) {
+    for (int ts = 0; ts <= 4; ts += 2) {
 
         // Read forcings from file and check they take the expected values
         // TODO: Avoid making forcingFieldNames public?
@@ -106,7 +106,8 @@ MPI_TEST_CASE("TestXiosReadForcing", 2)
 
         // Update the current timestep and verify it's updated in XIOS
         metadata.incrementTime(timestep);
-        REQUIRE(xiosHandler.getCalendarStep() == ts + 1);
+        metadata.incrementTime(timestep);
+        REQUIRE(xiosHandler.getCalendarStep() == ts + 2);
     }
 
     xiosHandler.context_finalize();

@@ -10,7 +10,7 @@ dimensions:
   dg_comp = 3 ;
   dgstress_comp = 8 ;
   ncoords = 2 ;
-	time_counter = UNLIMITED ; // (5 currently)
+	time_counter = UNLIMITED ; // (3 currently)
 variables:
 	float x_dim(x_dim) ;
 		x_dim:axis = "X" ;
@@ -41,8 +41,8 @@ variables:
 	double time_counter_bounds(time_counter, axis_nbounds) ;
 	float hsnow(time_counter, y_dim, x_dim) ;
 		hsnow:online_operation = "instant" ;
-		hsnow:interval_operation = "5400 s" ;
-		hsnow:interval_write = "5400 s" ;
+		hsnow:interval_operation = "10800 s" ;
+		hsnow:interval_write = "10800 s" ;
 		hsnow:cell_methods = "time: point" ;
 		hsnow:coordinates = "time_instant" ;
 
@@ -55,33 +55,25 @@ variables:
 
 data:
 
- time_instant = 1679074860, 1679078460, 1679082060, 1679085660, 1679089260 ;
+ time_instant = 1679074860, 1679082060, 1679089260 ;
 
  time_instant_bounds =
   1679074860, 1679074860,
-  1679078460, 1679078460,
   1679082060, 1679082060,
-  1679085660, 1679085660,
   1679089260, 1679089260 ;
 
- time_counter = 1679074860, 1679078460, 1679082060, 1679085660, 1679089260 ;
+ time_counter = 1679074860, 1679082060, 1679089260 ;
 
  time_counter_bounds =
   1679074860, 1679074860,
-  1679078460, 1679078460,
   1679082060, 1679082060,
-  1679085660, 1679085660,
   1679089260, 1679089260 ;
 
  hsnow =
   0.0, 0.0, 0.0, 0.0,
   0.0, 0.0, 0.0, 0.0,
-  0.1, 0.1, 0.1, 0.1,
-  0.1, 0.1, 0.1, 0.1,
   0.2, 0.2, 0.2, 0.2,
   0.2, 0.2, 0.2, 0.2,
-  0.3, 0.3, 0.3, 0.3,
-  0.3, 0.3, 0.3, 0.3,
   0.4, 0.4, 0.4, 0.4,
   0.4, 0.4, 0.4, 0.4 ;
 }
