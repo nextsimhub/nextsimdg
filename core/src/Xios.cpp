@@ -165,14 +165,14 @@ void Xios::close_context_definition()
                     cxios_set_field_operation(field, "instant", strlen("instant"));
                 }
 
-                // Ensure that base fields have a grid reference if not already defined
-                if (!cxios_is_defined_field_grid_ref(field)) {
-                    setFieldGridRef(fieldId, getFieldGridRef(inputFieldId));
-                }
-
                 // Check the field types
                 const ModelArray::Type& inputType = getFieldType(inputFieldId);
+                if (fieldTypes.count(inputFieldId) == 0) {
+                    // getFieldType defaults to HField but doesn't set that as field type
+                    setFieldType(inputFieldId, inputType, ioType);
+                }
                 if (fieldTypes.count(fieldId) == 0) {
+                    // Unused base fields still need a field type
                     setFieldType(fieldId, inputType, NOT_READ);
                 }
                 const ModelArray::Type& baseType = getFieldType(fieldId);
