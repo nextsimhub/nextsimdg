@@ -107,16 +107,6 @@ ModelState ParaGridIO::readForcingTimeStatic(
             + "' is inconsistent with XiosForcing.filename '" + xiosHandler.forcingFilename + "'");
     }
 
-    // Increment the XIOS calendar until it reaches the requested time
-    while (xiosHandler.getCurrentDate() < time) {
-        xiosHandler.incrementCalendar();
-    }
-    const TimePoint xiosTime = xiosHandler.getCurrentDate();
-    if (xiosTime > time) {
-        throw std::runtime_error("ParaGridIO::readForcingTimeStatic: requested time point does"
-                                 " not align with the calendar and timestep used by XIOS.");
-    }
-
     // Get all forcings and load them into a new ModelState
     ModelState state;
     for (const std::string& fieldId : forcings) {
