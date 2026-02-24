@@ -146,6 +146,9 @@ void Xios::close_context_definition()
 
         // Special handling of input fields
         for (int ioType : { INPUT_RESTART, ERA5_FORCING, TOPAZ_FORCING }) {
+            if (fileMap.at(ioType).empty()) {
+                continue;
+            }
             std::set<std::string> fieldIds;
             if (ioType == INPUT_RESTART) {
                 fieldIds = inputRestartFieldNames;
