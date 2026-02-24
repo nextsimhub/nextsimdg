@@ -74,7 +74,8 @@ public:
 
     /* Field */
     std::set<std::string> configGetForcingFieldNames();
-    void setFieldType(const std::string& fieldId, const ModelArray::Type& type);
+    void setPrognosticFieldType(const std::string& fieldId, const ModelArray::Type& type);
+    void setDiagnosticFieldType(const std::string& fieldId, const ModelArray::Type& type);
 
     enum {
         ENABLED_KEY,
@@ -167,7 +168,7 @@ private:
     std::set<std::string> configGetInputRestartFieldNames();
     std::set<std::string> configGetDiagnosticFieldNames();
     void createField(const std::string& fieldId, const std::string& fileId);
-    std::string createInheritedField(const std::string& fieldId, const int ioType);
+    std::string createInputField(const std::string& fieldId, const int ioType);
     void setFieldOperation(const std::string& fieldId, const int ioType);
     void setFieldReadAccess(const std::string& fieldId, const bool& readAccess);
     void setFieldGridRef(const std::string& fieldId, const std::string& gridRef);
@@ -178,6 +179,8 @@ private:
     ModelArray::Type getFieldType(const std::string& fieldId);
     std::map<std::string, ModelArray::Type> fieldTypes;
     void setupFields();
+    void setFieldType(const std::string& fieldId, const ModelArray::Type& type, const int ioType);
+    std::set<std::string> inputFieldsToConvert;
 
     /* File */
     xios::CFileGroup* getFileGroup();
@@ -192,10 +195,11 @@ private:
     std::string forcingFilename;
     std::string forcingFileId;
     enum {
-        OUTPUT_RESTART,
-        INPUT_RESTART,
-        DIAGNOSTIC,
-        FORCING,
+        NOT_READ, // Either unused or generically written but not read
+        OUTPUT_RESTART, // Written as restart
+        INPUT_RESTART, // Read as restart
+        DIAGNOSTIC, // Written as diagnostic
+        FORCING, // Read as forcing
     };
     const std::map<int, std::string&> fileMap = {
         { OUTPUT_RESTART, outputFileId },

@@ -74,16 +74,16 @@ MPI_TEST_CASE("TestXiosWriteRestart", 2)
     Module::setImplementation<IStructure>("Nextsim::ParametricGrid");
 
     // Set field types for restarts
-    xiosHandler.setFieldType(longitudeName, ModelArray::Type::H);
-    xiosHandler.setFieldType(latitudeName, ModelArray::Type::H);
-    xiosHandler.setFieldType(maskName, ModelArray::Type::H);
-    xiosHandler.setFieldType(ciceName, ModelArray::Type::DG);
-    xiosHandler.setFieldType(hiceName, ModelArray::Type::DG);
-    xiosHandler.setFieldType(damageName, ModelArray::Type::DG);
-    xiosHandler.setFieldType(hsnowName, ModelArray::Type::DG);
-    xiosHandler.setFieldType(gridAzimuthName, ModelArray::Type::VERTEX);
-    xiosHandler.setFieldType(ticeName, ModelArray::Type::DGSTRESS);
-    xiosHandler.setFieldType(uName, ModelArray::Type::CG);
+    xiosHandler.setPrognosticFieldType(longitudeName, ModelArray::Type::H);
+    xiosHandler.setPrognosticFieldType(latitudeName, ModelArray::Type::H);
+    xiosHandler.setPrognosticFieldType(maskName, ModelArray::Type::H);
+    xiosHandler.setPrognosticFieldType(ciceName, ModelArray::Type::DG);
+    xiosHandler.setPrognosticFieldType(hiceName, ModelArray::Type::DG);
+    xiosHandler.setPrognosticFieldType(damageName, ModelArray::Type::DG);
+    xiosHandler.setPrognosticFieldType(hsnowName, ModelArray::Type::DG);
+    xiosHandler.setPrognosticFieldType(gridAzimuthName, ModelArray::Type::VERTEX);
+    xiosHandler.setPrognosticFieldType(ticeName, ModelArray::Type::DGSTRESS);
+    xiosHandler.setPrognosticFieldType(uName, ModelArray::Type::CG);
 
     // Create some fake data to test writing methods
     HField longitude(ModelArray::Type::H);

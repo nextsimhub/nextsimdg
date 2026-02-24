@@ -77,7 +77,7 @@ MPI_TEST_CASE("TestXiosWriteDiagnostic", 2)
     grid.setIO(pio);
 
     // Set field type for diagnostics
-    xiosHandler.setFieldType(hsnowName, ModelArray::Type::H);
+    xiosHandler.setDiagnosticFieldType(hsnowName, ModelArray::Type::H);
 
     // Create some fake data to test writing methods
     HField mask(ModelArray::Type::H);

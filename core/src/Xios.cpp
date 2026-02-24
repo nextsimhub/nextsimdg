@@ -151,14 +151,48 @@ void Xios::close_context_definition()
 {
     if (isEnabled && contextStatus == DEFINITION_OPEN) {
 
-        // Ensure that base fields have operation type 'instant' if not already defined
-        std::set<std::string> fieldIds = configGetInputRestartFieldNames();
-        std::set<std::string> forcingFieldIds = configGetForcingFieldNames();
-        fieldIds.insert(forcingFieldIds.begin(), forcingFieldIds.end());
-        for (const std::string& fieldId : fieldIds) {
-            xios::CField* field = getField(fieldId);
-            if (!cxios_is_defined_field_operation(field)) {
-                cxios_set_field_operation(field, "instant", strlen("instant"));
+        // Special handling of input fields
+        for (int ioType : { INPUT_RESTART, FORCING }) {
+            const std::set<std::string> fieldIds = (ioType == INPUT_RESTART)
+                ? configGetInputRestartFieldNames()
+                : configGetForcingFieldNames();
+            for (const std::string& fieldId : fieldIds) {
+                const std::string inputFieldId
+                    = (ioType == INPUT_RESTART) ? fieldId + "_input" : fieldId + "_forcing";
+
+                // Ensure that base fields have operation type 'instant' if not already defined
+                xios::CField* field = getField(fieldId);
+                if (!cxios_is_defined_field_operation(field)) {
+                    cxios_set_field_operation(field, "instant", strlen("instant"));
+                }
+
+                // Ensure that base fields have a grid reference if not already defined
+                if (!cxios_is_defined_field_grid_ref(field)) {
+                    setFieldGridRef(fieldId, getFieldGridRef(inputFieldId));
+                }
+
+                // Check the field types
+                const ModelArray::Type& inputType = getFieldType(inputFieldId);
+                if (fieldTypes.count(fieldId) == 0) {
+                    setFieldType(fieldId, inputType, NOT_READ);
+                }
+                const ModelArray::Type& baseType = getFieldType(fieldId);
+                if (ioType == FORCING && baseType != ModelArray::Type::H) {
+                    throw std::runtime_error("Xios: Forcing fields must be treated as HFields");
+                }
+
+                if (inputType == baseType) {
+                    // Link the input field to the base field if their types align
+                    cxios_set_field_field_ref(
+                        getField(inputFieldId), fieldId.c_str(), fieldId.length());
+                } else if (baseType == ModelArray::Type::DG && inputType == ModelArray::Type::H) {
+                    // Record fields read in as HField but treated as DGField
+                    inputFieldsToConvert.insert(inputFieldId);
+                } else {
+                    throw std::runtime_error(
+                        "Xios: Inconsistent field types for reading and writing field '" + fieldId
+                        + "'");
+                }
             }
         }
 
@@ -815,12 +849,12 @@ void Xios::createField(const std::string& fieldId, const std::string& fileId)
     }
 
     if (ioType == INPUT_RESTART || ioType == FORCING) {
-        // Create an inherited field and set it's operation type and read access and associate it
+        // Create an input field and set it's operation type and read access and associate it
         // with the file
-        const std::string inheritedFieldId = createInheritedField(fieldId, ioType);
-        setFieldOperation(inheritedFieldId, ioType);
-        setFieldReadAccess(inheritedFieldId, true);
-        fileAddField(fileId, inheritedFieldId);
+        const std::string inputFieldId = createInputField(fieldId, ioType);
+        setFieldOperation(inputFieldId, ioType);
+        setFieldReadAccess(inputFieldId, true);
+        fileAddField(fileId, inputFieldId);
     } else {
         // Set the field operation type and read access and associate the field with the file
         setFieldOperation(fieldId, ioType);
@@ -859,71 +893,56 @@ void Xios::setFieldOperation(const std::string& fieldId, const int ioType)
 }
 
 /*
- * Create an inherited field for reading.
+ * Create an input field for reading.
  *
  * @param   fieldId the base field ID
  * @param   ioType the enum for the I/O type
- * @return  inheritedFieldId the inherited field ID
+ * @return  inputFieldId the input field ID
  * @details When reading a field from file, we need to define a separate field that references the
  *          'base' field, but has it's own I/O operation mode and read access properties.
  */
-std::string Xios::createInheritedField(const std::string& fieldId, const int ioType)
+std::string Xios::createInputField(const std::string& fieldId, const int ioType)
 {
-    std::string inheritedFieldId;
+    std::string inputFieldId;
     if (ioType == INPUT_RESTART) {
-        inheritedFieldId = fieldId + "_input";
+        inputFieldId = fieldId + "_input";
     } else if (ioType == FORCING) {
-        inheritedFieldId = fieldId + "_forcing";
+        inputFieldId = fieldId + "_forcing";
     } else if (ioType == OUTPUT_RESTART || ioType == DIAGNOSTIC) {
-        throw std::runtime_error(
-            "Xios: Inherited output field not needed for field '" + fieldId + "'");
+        throw std::runtime_error("Xios: Input field inconsistent with I/O type");
     } else {
         throw std::runtime_error("Xios: Unknown I/O type for field '" + fieldId + "'");
     }
 
-    // Check if the inherited field already exists
+    // Check if the input field already exists
     bool exists;
-    cxios_field_valid_id(&exists, inheritedFieldId.c_str(), inheritedFieldId.length());
+    cxios_field_valid_id(&exists, inputFieldId.c_str(), inputFieldId.length());
     if (exists) {
-        throw std::runtime_error("Xios: Inherited field '" + inheritedFieldId + "' already exists");
+        throw std::runtime_error("Xios: input field '" + inputFieldId + "' already exists");
     }
 
-    // Attempt to create the inherited field
-    xios::CField* inheritedField = NULL;
+    // Attempt to create the input field
+    xios::CField* inputField = NULL;
     cxios_xml_tree_add_field(
-        getFieldGroup(), &inheritedField, inheritedFieldId.c_str(), inheritedFieldId.length());
-    if (!inheritedField) {
-        throw std::runtime_error(
-            "Xios: Null pointer for inherited field '" + inheritedFieldId + "'");
+        getFieldGroup(), &inputField, inputFieldId.c_str(), inputFieldId.length());
+    if (!inputField) {
+        throw std::runtime_error("Xios: Null pointer for input field '" + inputFieldId + "'");
     }
-    cxios_field_valid_id(&exists, inheritedFieldId.c_str(), inheritedFieldId.length());
+    cxios_field_valid_id(&exists, inputFieldId.c_str(), inputFieldId.length());
     if (!exists) {
-        throw std::runtime_error(
-            "Xios: Failed to create inherited field '" + inheritedFieldId + "'");
+        throw std::runtime_error("Xios: Failed to create input field '" + inputFieldId + "'");
     }
 
-    // Set inherited field name
-    if (cxios_is_defined_field_name(inheritedField)) {
-        Logged::warning("Xios: Overwriting name for inherited field '" + inheritedFieldId + "'");
+    // Set input field name
+    if (cxios_is_defined_field_name(inputField)) {
+        Logged::warning("Xios: Overwriting name for input field '" + inputFieldId + "'");
     }
-    cxios_set_field_name(inheritedField, fieldId.c_str(), fieldId.length());
-    if (!cxios_is_defined_field_name(inheritedField)) {
-        throw std::runtime_error(
-            "Xios: Failed to set name for inherited field '" + inheritedFieldId + "'");
-    }
-
-    // Link the inherited field back to the base field with a field reference
-    if (cxios_is_defined_field_field_ref(inheritedField)) {
-        throw std::runtime_error(
-            "Xios: Field reference already exists for inherited field '" + inheritedFieldId + "'");
-    }
-    cxios_set_field_field_ref(inheritedField, fieldId.c_str(), fieldId.length());
-    if (!cxios_is_defined_field_field_ref(inheritedField)) {
-        throw std::runtime_error(
-            "Xios: Failed to set reference for inherited field '" + inheritedFieldId + "'");
+    cxios_set_field_name(inputField, fieldId.c_str(), fieldId.length());
+    if (!cxios_is_defined_field_name(inputField)) {
+        throw std::runtime_error("Xios: Failed to set name for input field '" + inputFieldId + "'");
     }
 
-    return inheritedFieldId;
+    return inputFieldId;
 }
 
 /*!
@@ -1040,18 +1059,55 @@ Duration Xios::getFieldFreqOffset(const std::string& fieldId)
  * @param the field ID
  * @return ModelArray::Type used for the corresponding field
  */
-ModelArray::Type Xios::getFieldType(const std::string& fieldId) { return fieldTypes[fieldId]; }
+ModelArray::Type Xios::getFieldType(const std::string& fieldId)
+{
+    if (fieldTypes.count(fieldId) == 0) {
+        throw std::runtime_error(
+            "Xios::getFieldType: Undefined field type for field '" + fieldId + "'");
+    }
+    return fieldTypes[fieldId];
+}
 
 /*!
  * Set the field type associated with a field with a given ID
  *
- * @param the field ID
- * @param ModelArray::Type used for the corresponding field
+ * @param fieldId the field ID
+ * @param fieldType ModelArray::Type used for the corresponding field
+ * @param ioType the enum for the I/O type
  */
-void Xios::setFieldType(const std::string& fieldId, const ModelArray::Type& fieldType)
+void Xios::setFieldType(
+    const std::string& fieldId, const ModelArray::Type& fieldType, const int ioType)
 {
-    fieldTypes[fieldId] = fieldType;
-    setFieldGridRef(fieldId, gridIds[fieldType]);
+    std::string ioFieldId = fieldId;
+    if (ioType == INPUT_RESTART) {
+        ioFieldId += "_input";
+    } else if (ioType == FORCING) {
+        ioFieldId += "_forcing";
+    }
+    fieldTypes[ioFieldId] = fieldType;
+    setFieldGridRef(ioFieldId, gridIds[fieldType]);
+}
+
+/*!
+ * Set the field type associated with a field to be written as a restart
+ *
+ * @param fieldId the field ID
+ * @param fieldType ModelArray::Type used for the corresponding field
+ */
+void Xios::setPrognosticFieldType(const std::string& fieldId, const ModelArray::Type& fieldType)
+{
+    setFieldType(fieldId, fieldType, OUTPUT_RESTART);
+}
+
+/*!
+ * Set the field type associated with a field to be written as a diagnostic
+ *
+ * @param fieldId the field ID
+ * @param fieldType ModelArray::Type used for the corresponding field
+ */
+void Xios::setDiagnosticFieldType(const std::string& fieldId, const ModelArray::Type& fieldType)
+{
+    setFieldType(fieldId, fieldType, DIAGNOSTIC);
 }
 
 /*!
@@ -1086,10 +1142,13 @@ void Xios::setupFields()
 
         // Determine field types
         std::set<std::string> configFieldIds;
+        int ioType;
         if (filename == metadata.initialFileName) {
             configFieldIds = configGetInputRestartFieldNames();
+            ioType = INPUT_RESTART;
         } else {
             configFieldIds = configGetForcingFieldNames();
+            ioType = FORCING;
         }
         try {
             auto& modelMPI = ModelMPI::getInstance();
@@ -1114,7 +1173,7 @@ void Xios::setupFields()
                 if (!dimensionKeys.count(dimKey)) {
                     continue;
                 }
-                setFieldType(fieldId, dimensionKeys.at(dimKey));
+                setFieldType(fieldId, dimensionKeys.at(dimKey), ioType);
             }
             ncFile.close();
         } catch (const netCDF::exceptions::NcException& nce) {
@@ -1524,6 +1583,15 @@ void Xios::write(const std::string& fieldId, const ModelArray& modelarray)
     auto& dims = modelarray.dimensions();
     const ModelArray::Type& type = modelarray.getType();
     domainWritten[domainIds[type]] = true;
+
+    // Check the field type
+    const ModelArray::Type& expectedType = getFieldType(fieldId);
+    if (expectedType != type) {
+        throw std::runtime_error(
+            "Xios::write: field '" + fieldId + "' does not have the expected type");
+    }
+
+    // Write out according to field type
     if ((type == ModelArray::Type::H) || (type == ModelArray::Type::CG)) {
         cxios_write_data_k82(
             fieldId.c_str(), fieldId.length(), modelarray.getData(), dims[0], dims[1], -1);
@@ -1551,14 +1619,41 @@ void Xios::write(const std::string& fieldId, const ModelArray& modelarray)
 void Xios::read(const std::string& fieldId, ModelArray& modelarray)
 {
     if (!getFieldReadAccess(fieldId)) {
-        throw std::runtime_error("Xios::read: field " + fieldId
-            + " is not configured for reading, but is being read from file.");
+        throw std::runtime_error("Xios::read: field '" + fieldId
+            + "' is not configured for reading, but is being read from file.");
     };
     if (modelarray.nDimensions() != 2) {
         throw std::invalid_argument("Only ModelArrays of dimension 2 are supported");
     }
-    auto& dims = modelarray.dimensions();
     const ModelArray::Type& type = modelarray.getType();
+    const ModelArray::Type& expectedType = getFieldType(fieldId);
+
+    // Account for fields to be read in as HField but converted to DGField
+    if (inputFieldsToConvert.count(fieldId)) {
+        if (expectedType != ModelArray::Type::H) {
+            throw std::runtime_error(
+                "Xios::read: field '" + fieldId + "' was expected to be read as a HField");
+        }
+        if (type != ModelArray::Type::DG) {
+            throw std::runtime_error(
+                "Xios::read: field '" + fieldId + "' was expected to be converted to a DGField");
+        }
+        HField inputarray(ModelArray::Type::H);
+        auto& dims = inputarray.dimensions();
+        cxios_read_data_k82(
+            fieldId.c_str(), fieldId.length(), inputarray.getData(), dims[0], dims[1]);
+        modelarray = 0;
+        // FIXME: Conversion with overloaded '=' operator is known to be problematic
+        modelarray = inputarray;
+        return;
+    }
+
+    // Other field types should not need converting
+    auto& dims = modelarray.dimensions();
+    if (type != expectedType) {
+        throw std::runtime_error(
+            "Xios::read: field '" + fieldId + "' does not have the expected type");
+    }
     if ((type == ModelArray::Type::H) || (type == ModelArray::Type::CG)) {
         cxios_read_data_k82(
             fieldId.c_str(), fieldId.length(), modelarray.getData(), dims[0], dims[1]);

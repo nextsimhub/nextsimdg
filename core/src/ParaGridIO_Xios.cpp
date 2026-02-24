@@ -125,11 +125,18 @@ ModelState ParaGridIO::readForcingTimeStatic(
             throw std::runtime_error("ParaGridIO::readForcingTimeStatic: field " + fieldId
                 + " is not configured as a forcing.");
         }
+        const std::string forcingFieldId = fieldId + "_forcing";
+        const ModelArray::Type& type = xiosHandler.getFieldType(forcingFieldId);
         // ASSUME all forcings are HFields: finite volume fields on the same
         // grid as ice thickness
-        HField field(ModelArray::Type::H);
-        field.resize();
-        state.merge(ModelState { { { fieldId, field } }, {} });
+        if (type == ModelArray::Type::H) {
+            HField field(ModelArray::Type::H);
+            field.resize();
+            state.merge(ModelState { { { fieldId, field } }, {} });
+        } else {
+            throw std::runtime_error("ParaGridIO::readForcingTimeStatic: field type for field "
+                + fieldId + " is not supported.");
+        }
     }
 
     // Read all forcings from file
@@ -157,12 +164,11 @@ void ParaGridIO::dumpModelState(const ModelState& state, const std::string& file
     // Assume that all fields in the supplied ModelState are necessary, and so write them to file.
     const std::set<std::string> outputFieldIds = xiosHandler.configGetOutputRestartFieldNames();
     for (const auto& [fieldId, modelarray] : state.data) {
-        const std::string outputFieldId = fieldId;
         if (outputFieldIds.count(fieldId) == 0) {
             throw std::runtime_error("ParaGridIO::dumpModelState: field " + fieldId
                 + " is not configured as a restart.");
         }
-        xiosHandler.write(outputFieldId, modelarray);
+        xiosHandler.write(fieldId, modelarray);
     }
 }
 
@@ -181,12 +187,11 @@ void ParaGridIO::writeDiagnosticTime(const ModelState& state, const std::string&
     // Assume that all fields in the supplied ModelState are necessary, and so write them to file.
     const std::set<std::string> diagnosticFieldIds = xiosHandler.configGetDiagnosticFieldNames();
     for (const auto& [fieldId, modelarray] : state.data) {
-        const std::string diagnosticFieldId = fieldId;
         if (diagnosticFieldIds.count(fieldId) == 0) {
             throw std::runtime_error("ParaGridIO::writeDiagnosticTime: field " + fieldId
                 + " is not configured as a diagnostic.");
         }
-        xiosHandler.write(diagnosticFieldId, modelarray);
+        xiosHandler.write(fieldId, modelarray);
     }
 }
 
