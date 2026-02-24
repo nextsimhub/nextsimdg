@@ -102,20 +102,23 @@ ModelState ParaGridIO::readForcingTimeStatic(
     Xios& xiosHandler = Xios::getInstance();
     xiosHandler.close_context_definition();
 
-    if (xiosHandler.forcingFilename != filePath) {
-        throw std::runtime_error("ParaGridIO::readForcingTimeStatic: file path '" + filePath
-            + "' is inconsistent with XiosForcing.filename '" + xiosHandler.forcingFilename + "'");
+    // TODO: Handle TOPAZ forcings
+
+    if (xiosHandler.era5ForcingFilename != filePath) {
+        throw std::runtime_error("ParaGridIO::readForcingTimeStatic: ERA5 file path '" + filePath
+            + "' is inconsistent with ERA5Atmosphere.file '" + xiosHandler.era5ForcingFilename
+            + "'");
     }
 
     // Get all forcings and load them into a new ModelState
     ModelState state;
     for (const std::string& fieldId : forcings) {
-        if (xiosHandler.forcingFieldNames.count(fieldId) == 0) {
+        if (xiosHandler.era5ForcingFieldNames.count(fieldId) == 0) {
             throw std::runtime_error("ParaGridIO::readForcingTimeStatic: field " + fieldId
-                + " is not configured as a forcing.");
+                + " is not configured as an ERA5 forcing.");
         }
-        const std::string forcingFieldId = fieldId + "_forcing";
-        const ModelArray::Type& type = xiosHandler.getFieldType(forcingFieldId);
+        const std::string era5ForcingFieldId = fieldId + "_era5_forcing";
+        const ModelArray::Type& type = xiosHandler.getFieldType(era5ForcingFieldId);
         // ASSUME all forcings are HFields: finite volume fields on the same
         // grid as ice thickness
         if (type == ModelArray::Type::H) {
@@ -130,9 +133,9 @@ ModelState ParaGridIO::readForcingTimeStatic(
 
     // Read all forcings from file
     for (auto& [fieldId, modelarray] : state.data) {
-        const std::string forcingFieldId = fieldId + "_forcing";
+        const std::string era5ForcingFieldId = fieldId + "_era5_forcing";
         if (forcings.count(fieldId)) {
-            xiosHandler.read(forcingFieldId, modelarray);
+            xiosHandler.read(era5ForcingFieldId, modelarray);
         }
     }
     return state;

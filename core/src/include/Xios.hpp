@@ -73,7 +73,8 @@ public:
     size_t getAxisSize(const std::string& axisId);
 
     /* Field */
-    std::set<std::string> forcingFieldNames;
+    // TODO: Forcing field names are known
+    std::set<std::string> era5ForcingFieldNames;
     void setPrognosticFieldType(const std::string& fieldId, const ModelArray::Type& type);
     void setDiagnosticFieldType(const std::string& fieldId, const ModelArray::Type& type);
 
@@ -84,9 +85,9 @@ public:
         DIAGNOSTIC_PERIOD_KEY,
         DIAGNOSTIC_FILE_KEY,
         DIAGNOSTIC_FIELD_NAMES_KEY,
-        FORCING_PERIOD_KEY,
-        FORCING_FILE_KEY,
-        FORCING_FIELD_NAMES_KEY,
+        ERA5_FORCING_PERIOD_KEY,
+        ERA5_FORCING_FILE_KEY,
+        ERA5_FORCING_FIELD_NAMES_KEY,
     };
 
 protected:
@@ -196,20 +197,20 @@ private:
     std::string diagnosticFilename;
     std::string diagnosticFileId;
     std::string diagnosticFormatStr = "%y-%mo-%dT%h:%mi:%sZ";
-    std::string forcingFilename;
-    std::string forcingFileId;
+    std::string era5ForcingFilename;
+    std::string era5ForcingFileId;
     enum {
         NOT_READ, // Either unused or generically written but not read
         OUTPUT_RESTART, // Written as restart
         INPUT_RESTART, // Read as restart
         DIAGNOSTIC, // Written as diagnostic
-        FORCING, // Read as forcing
+        ERA5_FORCING, // Read as ERA5 forcing
     };
     const std::map<int, std::string&> fileMap = {
         { OUTPUT_RESTART, outputFileId },
         { INPUT_RESTART, inputFileId },
         { DIAGNOSTIC, diagnosticFileId },
-        { FORCING, forcingFileId },
+        { ERA5_FORCING, era5ForcingFileId },
     };
     void setupFiles();
     void createFile(const std::string& fileId);
