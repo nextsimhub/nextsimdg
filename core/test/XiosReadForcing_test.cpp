@@ -19,7 +19,7 @@
 
 const std::string testFilesDir = TEST_FILES_DIR;
 const std::string inputFilename = testFilesDir + "/xios_test_input.nc";
-const std::string era5ForcingFilename = testFilesDir + "/xios_test_forcing.nc";
+const std::string era5ForcingFilename = testFilesDir + "/xios_test_era5_forcing.nc";
 
 static const int DGCOMP = 6;
 static const int DGSTRESSCOMP = 8;
@@ -36,12 +36,13 @@ MPI_TEST_CASE("TestXiosReadForcing", 2)
 {
     std::stringstream config;
     config << "[model]" << std::endl;
-    config << "start = 2023-03-17T17:11:00Z" << std::endl;
-    config << "stop = 2023-03-17T19:11:00Z" << std::endl;
+    config << "start = 2023-03-17T00:00:00Z" << std::endl;
+    config << "stop = 2023-03-17T02:00:00Z" << std::endl;
     config << "time_step = P0-0T00:30:00" << std::endl;
     config << "init_file = " << inputFilename << std::endl;
     config << "restart_period = P0-0T02:00:00" << std::endl;
     config << "partition_file = xios_test_partition_metadata_2.nc" << std::endl;
+    // NOTE: Assumed ERA5 period of 1 hour
     config << "[ERA5Atmosphere]" << std::endl;
     config << "file = " << era5ForcingFilename << std::endl;
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
@@ -86,8 +87,8 @@ MPI_TEST_CASE("TestXiosReadForcing", 2)
     // Simulate 4 iterations (timesteps), reading forcing data at each
     ModelMetadata& metadata = ModelMetadata::getInstance();
     const Duration& timestep = metadata.stepLength();
-    const std::set<std::string> era5ForcingFieldNames = { "dew2m" };
-    // TODO: Test TOPAZ, too
+    const std::set<std::string> era5ForcingFieldNames
+        = { "tair", "dew2m", "pair", "sw_in", "lw_in", "wind_speed", "u", "v" };
     for (int ts = 0; ts <= 4; ts += 2) {
 
         // Read forcings from file and check they take the expected values
@@ -95,7 +96,6 @@ MPI_TEST_CASE("TestXiosReadForcing", 2)
         const ModelState era5Forcings
             = pio->readForcingTimeStatic(era5ForcingFieldNames, time, era5ForcingFilename);
         for (const auto& [fieldName, modelarray] : era5Forcings.data) {
-            REQUIRE(fieldName == hsnowName);
             for (size_t j = 0; j < ny; ++j) {
                 for (size_t i = 0; i < nx; ++i) {
                     REQUIRE(modelarray(i, j) == doctest::Approx(0.1 * ts));
