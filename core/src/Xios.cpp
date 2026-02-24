@@ -1620,7 +1620,7 @@ void Xios::read(const std::string& fieldId, ModelArray& modelarray)
 {
     if (!getFieldReadAccess(fieldId)) {
         throw std::runtime_error("Xios::read: field '" + fieldId
-            + "'' is not configured for reading, but is being read from file.");
+            + "' is not configured for reading, but is being read from file.");
     };
     if (modelarray.nDimensions() != 2) {
         throw std::invalid_argument("Only ModelArrays of dimension 2 are supported");
