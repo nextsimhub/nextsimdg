@@ -37,15 +37,14 @@ MPI_TEST_CASE("TestXiosReadForcing", 2)
     std::stringstream config;
     config << "[model]" << std::endl;
     config << "start = 2023-03-17T17:11:00Z" << std::endl;
-    config << "stop = 2023-03-17T23:11:00Z" << std::endl;
-    config << "time_step = P0-0T01:30:00" << std::endl;
+    config << "stop = 2023-03-17T19:11:00Z" << std::endl;
+    config << "time_step = P0-0T00:30:00" << std::endl;
     config << "init_file = " << inputFilename << std::endl;
-    config << "restart_period = P0-0T06:00:00" << std::endl;
+    config << "restart_period = P0-0T02:00:00" << std::endl;
     config << "partition_file = xios_test_partition_metadata_2.nc" << std::endl;
     config << "[ERA5Atmosphere]" << std::endl;
     config << "file = " << era5ForcingFilename << std::endl;
     config << "field_names = " << hsnowName << std::endl;
-    config << "period = P0-0T03:00:00" << std::endl;
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
 

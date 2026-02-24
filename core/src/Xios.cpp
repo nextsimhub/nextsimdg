@@ -58,10 +58,8 @@ static const std::map<int, std::string> keyMap = { { Xios::ENABLED_KEY, "xios.en
     { Xios::DIAGNOSTIC_PERIOD_KEY, xDiagnosticPfx + ".period" },
     { Xios::DIAGNOSTIC_FILE_KEY, xDiagnosticPfx + ".filename" },
     { Xios::DIAGNOSTIC_FIELD_NAMES_KEY, xDiagnosticPfx + ".field_names" },
-    { Xios::ERA5_FORCING_PERIOD_KEY, xERA5ForcingPfx + ".period" },
     { Xios::ERA5_FORCING_FILE_KEY, xERA5ForcingPfx + ".file" },
     { Xios::ERA5_FORCING_FIELD_NAMES_KEY, xERA5ForcingPfx + ".field_names" },
-    { Xios::TOPAZ_FORCING_PERIOD_KEY, xTOPAZForcingPfx + ".period" },
     { Xios::TOPAZ_FORCING_FILE_KEY, xTOPAZForcingPfx + ".file" },
     { Xios::TOPAZ_FORCING_FIELD_NAMES_KEY, xTOPAZForcingPfx + ".field_names" } };
 
@@ -94,11 +92,6 @@ Xios::HelpMap& Xios::getHelpText(HelpMap& map, bool getAll)
             "file." },
     };
     map["ERA5Atmosphere"] = {
-        // TODO: The period is known
-        { keyMap.at(ERA5_FORCING_PERIOD_KEY), ConfigType::STRING, {}, "0", "",
-            "The period between forcing file outputs expected in a file to be "
-            "read, formatted as an ISO8601 duration (P prefix) or number of "
-            "seconds. A value of zero assumes no intermediate forcing files." },
         { keyMap.at(ERA5_FORCING_FILE_KEY), ConfigType::STRING, {}, "", "",
             "Path to the processed NetCDF file providing the ERA5 forcings." },
         // TODO: The fields are known
@@ -107,11 +100,6 @@ Xios::HelpMap& Xios::getHelpText(HelpMap& map, bool getAll)
             "file." },
     };
     map["TOPAZOcean"] = {
-        // TODO: The period is known
-        { keyMap.at(TOPAZ_FORCING_PERIOD_KEY), ConfigType::STRING, {}, "0", "",
-            "The period between forcing file outputs expected in a file to be "
-            "read, formatted as an ISO8601 duration (P prefix) or number of "
-            "seconds. A value of zero assumes no intermediate forcing files." },
         { keyMap.at(TOPAZ_FORCING_FILE_KEY), ConfigType::STRING, {}, "", "",
             "Path to the processed NetCDF file providing the TOPAZ forcings." },
         // TODO: The fields are known
@@ -1360,20 +1348,18 @@ void Xios::createFile(const std::string& fileId)
     } else {
         std::string periodStr;
         if (ioType == ERA5_FORCING) {
-            periodStr
-                = Configured::getConfiguration(keyMap.at(ERA5_FORCING_PERIOD_KEY), std::string());
+            outputFreq = convertDurationToXios(Duration("P0-0T01:00:00"));
         } else if (ioType == TOPAZ_FORCING) {
-            periodStr
-                = Configured::getConfiguration(keyMap.at(TOPAZ_FORCING_PERIOD_KEY), std::string());
+            outputFreq = convertDurationToXios(Duration("P0-1T00:00:00"));
         } else {
             periodStr
                 = Configured::getConfiguration(keyMap.at(DIAGNOSTIC_PERIOD_KEY), std::string());
             cxios_set_file_split_freq(file, convertDurationToXios(Duration(periodStr)));
-        }
-        if (periodStr.empty() || periodStr == "0") {
-            outputFreq = convertDurationToXios(metadata.runLength());
-        } else {
-            outputFreq = convertDurationToXios(Duration(periodStr));
+            if (periodStr.empty() || periodStr == "0") {
+                outputFreq = convertDurationToXios(metadata.runLength());
+            } else {
+                outputFreq = convertDurationToXios(Duration(periodStr));
+            }
         }
     }
 
