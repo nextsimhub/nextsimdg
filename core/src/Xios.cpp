@@ -167,7 +167,7 @@ void Xios::close_context_definition()
                 const ModelArray::Type& inputType = getFieldType(inputFieldId);
                 if (fieldTypes.count(inputFieldId) == 0) {
                     // getFieldType defaults to HField but doesn't set that as field type
-                    setFieldType(inputFieldId, inputType, ioType);
+                    setFieldType(fieldId, inputType, ioType);
                 }
                 if (fieldTypes.count(fieldId) == 0) {
                     // Unused base fields still need a field type
