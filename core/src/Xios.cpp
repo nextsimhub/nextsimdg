@@ -1062,8 +1062,7 @@ Duration Xios::getFieldFreqOffset(const std::string& fieldId)
 ModelArray::Type Xios::getFieldType(const std::string& fieldId)
 {
     if (fieldTypes.count(fieldId) == 0) {
-        throw std::runtime_error(
-            "Xios::getFieldType: Undefined field type for field '" + fieldId + "'");
+        return ModelArray::Type::H;
     }
     return fieldTypes[fieldId];
 }
@@ -1500,10 +1499,13 @@ void Xios::postprocessOutputFiles()
 
     // If a single domain was written then modify x and y dimensions and variables in the output
     // files
-    if (sum == 1 && mpi_rank == 0) {
+    if (sum == 1) {
 
         // Consider both restart files and diagnostic files
         for (std::string fileId : { outputFileId, diagnosticFileId }) {
+            if (fileId.empty()) {
+                continue;
+            }
             bool exists;
             cxios_file_valid_id(&exists, fileId.c_str(), fileId.length());
             if (!exists) {
@@ -1547,22 +1549,25 @@ void Xios::postprocessOutputFiles()
                     continue;
                 }
 
-                try {
-                    // Open the netCDF file for both reading and writing
-                    netCDF::NcFile ncFile(filename, netCDF::NcFile::write);
+                // Only allow one MPI rank to modify the file
+                if (mpi_rank == 0) {
+                    try {
+                        // Open the netCDF file for both reading and writing
+                        netCDF::NcFile ncFile(filename, netCDF::NcFile::write);
 
-                    // Rename the x and y dimensions with x_dim and y_dim, respectively
-                    ncFile.getDim("x").rename("x_dim");
-                    ncFile.getDim("y").rename("y_dim");
+                        // Rename the x and y dimensions with x_dim and y_dim, respectively
+                        ncFile.getDim("x").rename("x_dim");
+                        ncFile.getDim("y").rename("y_dim");
 
-                    // Rename the x and y variables with x_dim and y_dim, respectively
-                    ncFile.getVar("x").rename("x_dim");
-                    ncFile.getVar("y").rename("y_dim");
+                        // Rename the x and y variables with x_dim and y_dim, respectively
+                        ncFile.getVar("x").rename("x_dim");
+                        ncFile.getVar("y").rename("y_dim");
 
-                    // Ensure changes are flushed to disk before closing
-                    ncFile.sync();
-                } catch (const netCDF::exceptions::NcException& e) {
-                    std::cerr << "Error processing NetCDF file: " << e.what() << std::endl;
+                        // Ensure changes are flushed to disk before closing
+                        ncFile.sync();
+                    } catch (const netCDF::exceptions::NcException& e) {
+                        std::cerr << "Error processing NetCDF file: " << e.what() << std::endl;
+                    }
                 }
             }
         }

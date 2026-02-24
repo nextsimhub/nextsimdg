@@ -87,8 +87,9 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
     for (auto& [fieldId, modelarray] : state.data) {
         const std::string inputFieldId = fieldId + "_input";
         if (inputFieldIds.count(fieldId) == 0) {
-            throw std::runtime_error(
+            Logged::warning(
                 "ParaGridIO::getModelState: field " + fieldId + " is not configured as a restart.");
+            continue;
         }
         xiosHandler.read(inputFieldId, modelarray);
     }
@@ -156,7 +157,8 @@ void ParaGridIO::dumpModelState(const ModelState& state, const std::string& file
     xiosHandler.close_context_definition();
 
     ModelMetadata& metadata = ModelMetadata::getInstance();
-    if (metadata.finalFileName != filePath) {
+
+    if (filePath.find(xiosHandler.outputFileId) == std::string::npos) {
         throw std::runtime_error("ParaGridIO::dumpModelState: file path '" + filePath
             + "' is inconsistent with model.restart_file '" + metadata.finalFileName + "'");
     }
@@ -165,8 +167,9 @@ void ParaGridIO::dumpModelState(const ModelState& state, const std::string& file
     const std::set<std::string> outputFieldIds = xiosHandler.configGetOutputRestartFieldNames();
     for (const auto& [fieldId, modelarray] : state.data) {
         if (outputFieldIds.count(fieldId) == 0) {
-            throw std::runtime_error("ParaGridIO::dumpModelState: field " + fieldId
+            Logged::warning("ParaGridIO::dumpModelState: field " + fieldId
                 + " is not configured as a restart.");
+            continue;
         }
         xiosHandler.write(fieldId, modelarray);
     }
@@ -178,7 +181,7 @@ void ParaGridIO::writeDiagnosticTime(const ModelState& state, const std::string&
     Xios& xiosHandler = Xios::getInstance();
     xiosHandler.close_context_definition();
 
-    if (xiosHandler.diagnosticFilename != filePath) {
+    if (filePath.find(xiosHandler.diagnosticFileId) == std::string::npos) {
         throw std::runtime_error("ParaGridIO::writeDiagnosticTime: file path '" + filePath
             + "' is inconsistent with XiosDiagnostic.filename '" + xiosHandler.diagnosticFilename
             + "'");
