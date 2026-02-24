@@ -99,11 +99,24 @@ MPI_TEST_CASE("TestXiosWriteRestart", 2)
     HField grid_azimuth(ModelArray::Type::H);
     grid_azimuth.resize();
     grid_azimuth = 0;
+  
+    /*
+     * Mask definition, where 0 indicates land and 1 indicates ocean:
+     *
+     * Rank 0:  Rank 1:
+     * -----    -----
+     * |0|1|    |0|1|
+     * -----    -----
+     * |1|1|    |1|1|
+     * -----    -----
+     *
+     * That is, mask is zero when i = 0 and j = 0 and one otherwise.
+     */
     HField mask(ModelArray::Type::H);
     mask.resize();
     for (size_t j = 0; j < ny; ++j) {
         for (size_t i = 0; i < nx; ++i) {
-            mask(i, j) = j >= 1 ? 1.0 : 0.0;
+            mask(i, j) = (i == 0 && j == 0 ? 0.0 : 1.0);
         }
     }
     DGField cice(ModelArray::Type::DG);
@@ -135,10 +148,12 @@ MPI_TEST_CASE("TestXiosWriteRestart", 2)
     for (int ts = 0; ts <= 4; ts++) {
 
         // Update DGField restarts
+        // NOTE: NaN values for mask when i = 0 and j = 0
         for (size_t j = 0; j < ny; ++j) {
             for (size_t i = 0; i < nx; ++i) {
                 for (size_t d = 0; d < DGCOMP; ++d) {
-                    const float value = 1.0 * ts * (d + DGCOMP * (i + nx * j));
+                    const float value
+                        = (i == 0 && j == 0) ? NAN : 1.0 * ts * (d + DGCOMP * (i + nx * j));
                     cice.components({ i, j })[d] = value;
                     hice.components({ i, j })[d] = value;
                     damage.components({ i, j })[d] = value;
@@ -161,22 +176,52 @@ MPI_TEST_CASE("TestXiosWriteRestart", 2)
         }
 
         // Update DGSField restarts
+        // NOTE: NaN values for mask when i = 0 and j = 0
         for (size_t j = 0; j < ny; ++j) {
             for (size_t i = 0; i < nx; ++i) {
                 for (size_t d = 0; d < DGSTRESSCOMP; ++d) {
-                    tice.components({ i, j })[d] = 2.0 * ts * (d + DGSTRESSCOMP * (i + nx * j));
+                    const float value
+                        = (i == 0 && j == 0) ? NAN : 2.0 * ts * (d + DGSTRESSCOMP * (i + nx * j));
+                    tice.components({ i, j })[d] = value;
                 }
             }
         }
 
-        // Update CGField restarts
+        /*
+         * Update CGField restarts
+         *
+         * In this test, the CG field has degree 2, so there are 9 DoFs associated with each cell,
+         * although many of these are shared with neighbouring cells.
+         *
+         * On rank 0, the top-left cell is land, so the nodal values are masked except for those
+         * shared with ocean cells, which effectively become boundary nodes.
+         *
+         * On rank 1, we also need to account for the the shared nodes on the left-hand-side between
+         * the two subdomains, which must take consistent values on either side. Again, these
+         * effectively become boundary nodes.
+         *
+         * Rank 0:    Rank 1:
+         * 0-0-1-1-1  1-0-1-1-1
+         * | | | | |  | | | | |
+         * 0-0-1-1-1  1-0-1-1-1
+         * | | | | |  | | | | |
+         * 1-1-1-1-1  1-1-1-1-1
+         * | | | | |  | | | | |
+         * 1-1-1-1-1  1-1-1-1-1
+         * | | | | |  | | | | |
+         * 1-1-1-1-1  1-1-1-1-1
+         *
+         * That is, mask is zero when i <= 1 and j <= 1 on rank 0 and when i = j = 1 on rank 1.
+         */
         for (size_t j = 0; j < CGDEGREE * ny + 1; ++j) {
             for (size_t i = 0; i < CGDEGREE * nx + 1; ++i) {
+                float value;
                 if (rank == 0) {
-                    uice(i, j) = 1.0 * ts * ((i + 1) * (j + 1));
+                    value = (i <= 1 && j <= 1) ? NAN : 1.0 * ts * ((i + 1) * (j + 1));
                 } else {
-                    uice(i, j) = 1.0 * ts * ((i + 5) * (j + 1));
+                    value = (i == 1 && j == 1) ? NAN : 1.0 * ts * ((i + 5) * (j + 1));
                 }
+                uice(i, j) = value;
             }
         }
 
