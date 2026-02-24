@@ -51,6 +51,7 @@ static const std::string xOutputPfx = "XiosOutput";
 static const std::string xInputPfx = "XiosInput";
 static const std::string xDiagnosticPfx = "XiosDiagnostic";
 static const std::string xERA5ForcingPfx = "ERA5Atmosphere";
+static const std::string xTOPAZForcingPfx = "TOPAZOcean";
 static const std::map<int, std::string> keyMap = { { Xios::ENABLED_KEY, "xios.enable" },
     { Xios::OUTPUT_FIELD_NAMES_KEY, xOutputPfx + ".field_names" },
     { Xios::INPUT_FIELD_NAMES_KEY, xInputPfx + ".field_names" },
@@ -59,7 +60,10 @@ static const std::map<int, std::string> keyMap = { { Xios::ENABLED_KEY, "xios.en
     { Xios::DIAGNOSTIC_FIELD_NAMES_KEY, xDiagnosticPfx + ".field_names" },
     { Xios::ERA5_FORCING_PERIOD_KEY, xERA5ForcingPfx + ".period" },
     { Xios::ERA5_FORCING_FILE_KEY, xERA5ForcingPfx + ".file" },
-    { Xios::ERA5_FORCING_FIELD_NAMES_KEY, xERA5ForcingPfx + ".field_names" } };
+    { Xios::ERA5_FORCING_FIELD_NAMES_KEY, xERA5ForcingPfx + ".field_names" },
+    { Xios::TOPAZ_FORCING_PERIOD_KEY, xTOPAZForcingPfx + ".period" },
+    { Xios::TOPAZ_FORCING_FILE_KEY, xTOPAZForcingPfx + ".file" },
+    { Xios::TOPAZ_FORCING_FIELD_NAMES_KEY, xTOPAZForcingPfx + ".field_names" } };
 
 Xios::HelpMap& Xios::getHelpText(HelpMap& map, bool getAll)
 {
@@ -102,7 +106,19 @@ Xios::HelpMap& Xios::getHelpText(HelpMap& map, bool getAll)
             "Comma-separated list of field names to be read from the ERA5 forcings "
             "file." },
     };
-    // TODO: Add TOPAZOcean, too
+    map["TOPAZOcean"] = {
+        // TODO: The period is known
+        { keyMap.at(TOPAZ_FORCING_PERIOD_KEY), ConfigType::STRING, {}, "0", "",
+            "The period between forcing file outputs expected in a file to be "
+            "read, formatted as an ISO8601 duration (P prefix) or number of "
+            "seconds. A value of zero assumes no intermediate forcing files." },
+        { keyMap.at(TOPAZ_FORCING_FILE_KEY), ConfigType::STRING, {}, "", "",
+            "Path to the processed NetCDF file providing the TOPAZ forcings." },
+        // TODO: The fields are known
+        { keyMap.at(TOPAZ_FORCING_FIELD_NAMES_KEY), ConfigType::STRING, {}, "", "",
+            "Comma-separated list of field names to be read from the TOPAZ forcings "
+            "file." },
+    };
 
     return map;
 }
@@ -155,7 +171,7 @@ void Xios::close_context_definition()
     if (isEnabled && contextStatus == DEFINITION_OPEN) {
 
         // Special handling of input fields
-        for (int ioType : { INPUT_RESTART, ERA5_FORCING }) {
+        for (int ioType : { INPUT_RESTART, ERA5_FORCING, TOPAZ_FORCING }) {
             const std::set<std::string> fieldIds
                 = (ioType == INPUT_RESTART) ? inputRestartFieldNames : era5ForcingFieldNames;
             for (const std::string& fieldId : fieldIds) {
@@ -179,7 +195,8 @@ void Xios::close_context_definition()
                     setFieldType(fieldId, inputType, NOT_READ);
                 }
                 const ModelArray::Type& baseType = getFieldType(fieldId);
-                if (ioType == ERA5_FORCING && baseType != ModelArray::Type::H) {
+                if ((ioType == ERA5_FORCING || ioType == TOPAZ_FORCING)
+                    && baseType != ModelArray::Type::H) {
                     throw std::runtime_error("Xios: Forcing fields must be treated as HFields");
                 }
 
@@ -270,6 +287,8 @@ void Xios::parseConfig()
         = str2set(Configured::getConfiguration(keyMap.at(OUTPUT_FIELD_NAMES_KEY), std::string()));
     era5ForcingFieldNames = str2set(
         Configured::getConfiguration(keyMap.at(ERA5_FORCING_FIELD_NAMES_KEY), std::string()));
+    topazForcingFieldNames = str2set(
+        Configured::getConfiguration(keyMap.at(TOPAZ_FORCING_FIELD_NAMES_KEY), std::string()));
     diagnosticFieldNames = str2set(
         Configured::getConfiguration(keyMap.at(DIAGNOSTIC_FIELD_NAMES_KEY), std::string()));
 
@@ -811,6 +830,9 @@ void Xios::createField(const std::string& fieldId, const std::string& fileId)
     } else if (ioType == ERA5_FORCING) {
         fieldNames = era5ForcingFieldNames;
         ioName = "era5_forcing";
+    } else if (ioType == TOPAZ_FORCING) {
+        fieldNames = topazForcingFieldNames;
+        ioName = "topaz_forcing";
     } else if (ioType == DIAGNOSTIC) {
         fieldNames = diagnosticFieldNames;
         ioName = "diagnostic";
@@ -846,7 +868,7 @@ void Xios::createField(const std::string& fieldId, const std::string& fileId)
         }
     }
 
-    if (ioType == INPUT_RESTART || ioType == ERA5_FORCING) {
+    if (ioType == INPUT_RESTART || ioType == ERA5_FORCING || ioType == TOPAZ_FORCING) {
         // Create an input field and set it's operation type and read access and associate it
         // with the file
         const std::string inputFieldId = createInputField(fieldId, ioType);
@@ -906,6 +928,8 @@ std::string Xios::createInputField(const std::string& fieldId, const int ioType)
         inputFieldId = fieldId + "_input";
     } else if (ioType == ERA5_FORCING) {
         inputFieldId = fieldId + "_era5_forcing";
+    } else if (ioType == TOPAZ_FORCING) {
+        inputFieldId = fieldId + "_topaz_forcing";
     } else if (ioType == OUTPUT_RESTART || ioType == DIAGNOSTIC) {
         throw std::runtime_error("Xios: Input field inconsistent with I/O type");
     } else {
@@ -1080,6 +1104,8 @@ void Xios::setFieldType(
         ioFieldId += "_input";
     } else if (ioType == ERA5_FORCING) {
         ioFieldId += "_era5_forcing";
+    } else if (ioType == TOPAZ_FORCING) {
+        ioFieldId += "_topaz_forcing";
     }
     fieldTypes[ioFieldId] = fieldType;
     setFieldGridRef(ioFieldId, gridIds[fieldType]);
@@ -1118,7 +1144,8 @@ void Xios::setupFields()
 {
     ModelMetadata& metadata = ModelMetadata::getInstance();
 
-    for (const std::string& filename : { metadata.initialFileName, era5ForcingFilename }) {
+    for (const std::string& filename :
+        { metadata.initialFileName, era5ForcingFilename, topazForcingFilename }) {
         if (filename.empty()) {
             break;
         }
@@ -1143,9 +1170,12 @@ void Xios::setupFields()
         if (filename == metadata.initialFileName) {
             configFieldIds = inputRestartFieldNames;
             ioType = INPUT_RESTART;
-        } else {
+        } else if (filename == era5ForcingFilename) {
             configFieldIds = era5ForcingFieldNames;
             ioType = ERA5_FORCING;
+        } else {
+            configFieldIds = topazForcingFieldNames;
+            ioType = TOPAZ_FORCING;
         }
         try {
             auto& modelMPI = ModelMPI::getInstance();
@@ -1242,7 +1272,7 @@ int Xios::getFileIOType(const std::string& fileId)
 void Xios::createFile(const std::string& fileId)
 {
     if (!(fileId == outputFileId || fileId == inputFileId || fileId == diagnosticFileId
-            || fileId == era5ForcingFileId)) {
+            || fileId == era5ForcingFileId || fileId == topazForcingFileId)) {
         throw std::runtime_error("Xios::createFile: Invalid fileId '" + fileId + "'");
     }
 
@@ -1270,7 +1300,8 @@ void Xios::createFile(const std::string& fileId)
 
     // Determine whether the file is configured for reading or writing
     int ioType = getFileIOType(fileId);
-    bool readAccess = (ioType == INPUT_RESTART || ioType == ERA5_FORCING);
+    bool readAccess
+        = (ioType == INPUT_RESTART || ioType == ERA5_FORCING || ioType == TOPAZ_FORCING);
 
     // Set the file mode
     std::string fileMode;
@@ -1315,6 +1346,8 @@ void Xios::createFile(const std::string& fileId)
         fieldIds = outputRestartFieldNames;
     } else if (ioType == ERA5_FORCING) {
         fieldIds = era5ForcingFieldNames;
+    } else if (ioType == TOPAZ_FORCING) {
+        fieldIds = topazForcingFieldNames;
     } else if (ioType == DIAGNOSTIC) {
         fieldIds = diagnosticFieldNames;
     }
@@ -1329,6 +1362,9 @@ void Xios::createFile(const std::string& fileId)
         if (ioType == ERA5_FORCING) {
             periodStr
                 = Configured::getConfiguration(keyMap.at(ERA5_FORCING_PERIOD_KEY), std::string());
+        } else if (ioType == TOPAZ_FORCING) {
+            periodStr
+                = Configured::getConfiguration(keyMap.at(TOPAZ_FORCING_PERIOD_KEY), std::string());
         } else {
             periodStr
                 = Configured::getConfiguration(keyMap.at(DIAGNOSTIC_PERIOD_KEY), std::string());
@@ -1449,6 +1485,26 @@ void Xios::setupFiles()
         }
     }
 
+    // Get TOPAZ forcing file name and ID from the configuration
+    topazForcingFilename
+        = Configured::getConfiguration(keyMap.at(TOPAZ_FORCING_FILE_KEY), std::string());
+    topazForcingFileId
+        = ((std::filesystem::path)topazForcingFilename).filename().replace_extension();
+    if (!topazForcingFileId.empty()) {
+        if (inputFileId == topazForcingFileId) {
+            throw std::runtime_error(
+                "Xios::setupFiles: Input and TOPAZ forcing file names must differ.");
+        }
+        if (outputFileId == topazForcingFileId) {
+            throw std::runtime_error(
+                "Xios::setupFiles: Restart and TOPAZ forcing file names must differ.");
+        }
+        if (era5ForcingFileId == topazForcingFileId) {
+            throw std::runtime_error(
+                "Xios::setupFiles: ERA5 and TOPAZ forcing file names must differ.");
+        }
+    }
+
     // Get diagnostic file name and ID from the configuration
     diagnosticFilename
         = Configured::getConfiguration(keyMap.at(DIAGNOSTIC_FILE_KEY), std::string());
@@ -1471,11 +1527,15 @@ void Xios::setupFiles()
             throw std::runtime_error(
                 "Xios::setupFiles: ERA5 forcing and diagnostic file names must differ.");
         }
+        if (topazForcingFileId == diagnosticFileId) {
+            throw std::runtime_error(
+                "Xios::setupFiles: TOPAZ forcing and diagnostic file names must differ.");
+        }
     }
 
     // Create files for any non-empty file IDs
     for (const std::string& fileId :
-        { outputFileId, inputFileId, diagnosticFileId, era5ForcingFileId }) {
+        { outputFileId, inputFileId, diagnosticFileId, era5ForcingFileId, topazForcingFileId }) {
         if (!fileId.empty()) {
             createFile(fileId);
         }

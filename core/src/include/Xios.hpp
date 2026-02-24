@@ -75,6 +75,7 @@ public:
     /* Field */
     // TODO: Forcing field names are known
     std::set<std::string> era5ForcingFieldNames;
+    std::set<std::string> topazForcingFieldNames;
     void setPrognosticFieldType(const std::string& fieldId, const ModelArray::Type& type);
     void setDiagnosticFieldType(const std::string& fieldId, const ModelArray::Type& type);
 
@@ -88,6 +89,9 @@ public:
         ERA5_FORCING_PERIOD_KEY,
         ERA5_FORCING_FILE_KEY,
         ERA5_FORCING_FIELD_NAMES_KEY,
+        TOPAZ_FORCING_PERIOD_KEY,
+        TOPAZ_FORCING_FILE_KEY,
+        TOPAZ_FORCING_FIELD_NAMES_KEY,
     };
 
 protected:
@@ -199,18 +203,22 @@ private:
     std::string diagnosticFormatStr = "%y-%mo-%dT%h:%mi:%sZ";
     std::string era5ForcingFilename;
     std::string era5ForcingFileId;
+    std::string topazForcingFilename;
+    std::string topazForcingFileId;
     enum {
         NOT_READ, // Either unused or generically written but not read
         OUTPUT_RESTART, // Written as restart
         INPUT_RESTART, // Read as restart
         DIAGNOSTIC, // Written as diagnostic
         ERA5_FORCING, // Read as ERA5 forcing
+        TOPAZ_FORCING, // Read as TOPAZ forcing
     };
     const std::map<int, std::string&> fileMap = {
         { OUTPUT_RESTART, outputFileId },
         { INPUT_RESTART, inputFileId },
         { DIAGNOSTIC, diagnosticFileId },
         { ERA5_FORCING, era5ForcingFileId },
+        { TOPAZ_FORCING, topazForcingFileId },
     };
     void setupFiles();
     void createFile(const std::string& fileId);

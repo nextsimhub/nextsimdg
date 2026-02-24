@@ -102,23 +102,33 @@ ModelState ParaGridIO::readForcingTimeStatic(
     Xios& xiosHandler = Xios::getInstance();
     xiosHandler.close_context_definition();
 
-    // TODO: Handle TOPAZ forcings
-
-    if (xiosHandler.era5ForcingFilename != filePath) {
-        throw std::runtime_error("ParaGridIO::readForcingTimeStatic: ERA5 file path '" + filePath
-            + "' is inconsistent with ERA5Atmosphere.file '" + xiosHandler.era5ForcingFilename
-            + "'");
+    // Determine which forcing type we have
+    bool era5 = (xiosHandler.era5ForcingFilename == filePath);
+    if (!era5 && xiosHandler.topazForcingFilename != filePath) {
+        throw std::runtime_error("ParaGridIO::readForcingTimeStatic: file path '" + filePath
+            + "' is inconsistent with config.");
     }
+
+    const std::set<std::string> forcingFieldNames
+        = era5 ? xiosHandler.era5ForcingFieldNames : xiosHandler.topazForcingFieldNames;
 
     // Get all forcings and load them into a new ModelState
     ModelState state;
     for (const std::string& fieldId : forcings) {
-        if (xiosHandler.era5ForcingFieldNames.count(fieldId) == 0) {
-            throw std::runtime_error("ParaGridIO::readForcingTimeStatic: field " + fieldId
-                + " is not configured as an ERA5 forcing.");
+        if (era5) {
+            if (xiosHandler.era5ForcingFieldNames.count(fieldId) == 0) {
+                throw std::runtime_error("ParaGridIO::readForcingTimeStatic: field " + fieldId
+                    + " is not configured as an ERA5 forcing.");
+            }
+        } else {
+
+            if (xiosHandler.topazForcingFieldNames.count(fieldId) == 0) {
+                throw std::runtime_error("ParaGridIO::readForcingTimeStatic: field " + fieldId
+                    + " is not configured as an TOPAZ forcing.");
+            }
         }
-        const std::string era5ForcingFieldId = fieldId + "_era5_forcing";
-        const ModelArray::Type& type = xiosHandler.getFieldType(era5ForcingFieldId);
+        const std::string forcingFieldId = fieldId + (era5 ? "_era5_forcing" : "_topaz_forcing");
+        const ModelArray::Type& type = xiosHandler.getFieldType(forcingFieldId);
         // ASSUME all forcings are HFields: finite volume fields on the same
         // grid as ice thickness
         if (type == ModelArray::Type::H) {
@@ -133,9 +143,9 @@ ModelState ParaGridIO::readForcingTimeStatic(
 
     // Read all forcings from file
     for (auto& [fieldId, modelarray] : state.data) {
-        const std::string era5ForcingFieldId = fieldId + "_era5_forcing";
+        const std::string forcingFieldId = fieldId + (era5 ? "_era5_forcing" : "_topaz_forcing");
         if (forcings.count(fieldId)) {
-            xiosHandler.read(era5ForcingFieldId, modelarray);
+            xiosHandler.read(forcingFieldId, modelarray);
         }
     }
     return state;
@@ -154,7 +164,8 @@ void ParaGridIO::dumpModelState(const ModelState& state, const std::string& file
             + "' is inconsistent with model.restart_file '" + metadata.finalFileName + "'");
     }
 
-    // Assume that all fields in the supplied ModelState are necessary, and so write them to file.
+    // Assume that all fields in the supplied ModelState are necessary, and so write them to
+    // file.
     for (const auto& [fieldId, modelarray] : state.data) {
         if (xiosHandler.outputRestartFieldNames.count(fieldId) == 0) {
             Logged::warning("ParaGridIO::dumpModelState: field " + fieldId
@@ -177,7 +188,8 @@ void ParaGridIO::writeDiagnosticTime(const ModelState& state, const std::string&
             + "'");
     }
 
-    // Assume that all fields in the supplied ModelState are necessary, and so write them to file.
+    // Assume that all fields in the supplied ModelState are necessary, and so write them to
+    // file.
     for (const auto& [fieldId, modelarray] : state.data) {
         if (xiosHandler.diagnosticFieldNames.count(fieldId) == 0) {
             throw std::runtime_error("ParaGridIO::writeDiagnosticTime: field " + fieldId
