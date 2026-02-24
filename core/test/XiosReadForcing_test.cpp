@@ -20,6 +20,7 @@
 const std::string testFilesDir = TEST_FILES_DIR;
 const std::string inputFilename = testFilesDir + "/xios_test_input.nc";
 const std::string era5ForcingFilename = testFilesDir + "/xios_test_era5_forcing.nc";
+const std::string topazForcingFilename = testFilesDir + "/xios_test_topaz_forcing.nc";
 
 static const int DGCOMP = 6;
 static const int DGSTRESSCOMP = 8;
@@ -45,6 +46,9 @@ MPI_TEST_CASE("TestXiosReadForcing", 2)
     // NOTE: Assumed ERA5 period of 1 hour
     config << "[ERA5Atmosphere]" << std::endl;
     config << "file = " << era5ForcingFilename << std::endl;
+    // NOTE: Assumed TOPAZ period of 1 day
+    config << "[TOPAZOcean]" << std::endl;
+    config << "file = " << topazForcingFilename << std::endl;
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
 
@@ -89,16 +93,31 @@ MPI_TEST_CASE("TestXiosReadForcing", 2)
     const Duration& timestep = metadata.stepLength();
     const std::set<std::string> era5ForcingFieldNames
         = { "tair", "dew2m", "pair", "sw_in", "lw_in", "wind_speed", "u", "v" };
+    const std::set<std::string> topazForcingFieldNames
+        = { sssName, sstName, mldName, sshName, uName, vName };
     for (int ts = 0; ts <= 4; ts += 2) {
-
-        // Read forcings from file and check they take the expected values
         const TimePoint& time = xiosHandler.getCurrentDate();
-        const ModelState era5Forcings
-            = pio->readForcingTimeStatic(era5ForcingFieldNames, time, era5ForcingFilename);
-        for (const auto& [fieldName, modelarray] : era5Forcings.data) {
+
+        // Read ERA5 forcings from file and check they take the expected values
+        for (const auto& [fieldName, modelarray] :
+            pio->readForcingTimeStatic(era5ForcingFieldNames, time, era5ForcingFilename).data) {
             for (size_t j = 0; j < ny; ++j) {
                 for (size_t i = 0; i < nx; ++i) {
                     REQUIRE(modelarray(i, j) == doctest::Approx(0.1 * ts));
+                }
+            }
+        }
+
+        // Read TOPAZ forcings from file and check they take the expected values
+        // NOTE: Only the first timestep has TOPAZ data
+        if (ts == 0) {
+            for (const auto& [fieldName, modelarray] :
+                pio->readForcingTimeStatic(topazForcingFieldNames, time, topazForcingFilename)
+                    .data) {
+                for (size_t j = 0; j < ny; ++j) {
+                    for (size_t i = 0; i < nx; ++i) {
+                        REQUIRE(modelarray(i, j) == doctest::Approx(ts + 1));
+                    }
                 }
             }
         }
