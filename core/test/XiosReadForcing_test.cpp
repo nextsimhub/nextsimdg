@@ -44,7 +44,6 @@ MPI_TEST_CASE("TestXiosReadForcing", 2)
     config << "partition_file = xios_test_partition_metadata_2.nc" << std::endl;
     config << "[ERA5Atmosphere]" << std::endl;
     config << "file = " << era5ForcingFilename << std::endl;
-    config << "field_names = " << hsnowName << std::endl;
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
 
@@ -87,13 +86,14 @@ MPI_TEST_CASE("TestXiosReadForcing", 2)
     // Simulate 4 iterations (timesteps), reading forcing data at each
     ModelMetadata& metadata = ModelMetadata::getInstance();
     const Duration& timestep = metadata.stepLength();
+    const std::set<std::string> era5ForcingFieldNames = { "dew2m" };
+    // TODO: Test TOPAZ, too
     for (int ts = 0; ts <= 4; ts += 2) {
 
         // Read forcings from file and check they take the expected values
-        // TODO: Avoid making forcingFieldNames public?
         const TimePoint& time = xiosHandler.getCurrentDate();
-        const ModelState era5Forcings = pio->readForcingTimeStatic(
-            xiosHandler.era5ForcingFieldNames, time, era5ForcingFilename);
+        const ModelState era5Forcings
+            = pio->readForcingTimeStatic(era5ForcingFieldNames, time, era5ForcingFilename);
         for (const auto& [fieldName, modelarray] : era5Forcings.data) {
             REQUIRE(fieldName == hsnowName);
             for (size_t j = 0; j < ny; ++j) {

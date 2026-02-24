@@ -47,21 +47,15 @@
 
 namespace Nextsim {
 
-static const std::string xOutputPfx = "XiosOutput";
-static const std::string xInputPfx = "XiosInput";
 static const std::string xDiagnosticPfx = "XiosDiagnostic";
-static const std::string xERA5ForcingPfx = "ERA5Atmosphere";
-static const std::string xTOPAZForcingPfx = "TOPAZOcean";
 static const std::map<int, std::string> keyMap = { { Xios::ENABLED_KEY, "xios.enable" },
-    { Xios::OUTPUT_FIELD_NAMES_KEY, xOutputPfx + ".field_names" },
-    { Xios::INPUT_FIELD_NAMES_KEY, xInputPfx + ".field_names" },
+    { Xios::OUTPUT_FIELD_NAMES_KEY, "XiosOutput.field_names" },
+    { Xios::INPUT_FIELD_NAMES_KEY, "XiosInput.field_names" },
     { Xios::DIAGNOSTIC_PERIOD_KEY, xDiagnosticPfx + ".period" },
     { Xios::DIAGNOSTIC_FILE_KEY, xDiagnosticPfx + ".filename" },
     { Xios::DIAGNOSTIC_FIELD_NAMES_KEY, xDiagnosticPfx + ".field_names" },
-    { Xios::ERA5_FORCING_FILE_KEY, xERA5ForcingPfx + ".file" },
-    { Xios::ERA5_FORCING_FIELD_NAMES_KEY, xERA5ForcingPfx + ".field_names" },
-    { Xios::TOPAZ_FORCING_FILE_KEY, xTOPAZForcingPfx + ".file" },
-    { Xios::TOPAZ_FORCING_FIELD_NAMES_KEY, xTOPAZForcingPfx + ".field_names" } };
+    { Xios::ERA5_FORCING_FILE_KEY, "ERA5Atmosphere.file" },
+    { Xios::TOPAZ_FORCING_FILE_KEY, "TOPAZOcean.file" } };
 
 Xios::HelpMap& Xios::getHelpText(HelpMap& map, bool getAll)
 {
@@ -94,18 +88,10 @@ Xios::HelpMap& Xios::getHelpText(HelpMap& map, bool getAll)
     map["ERA5Atmosphere"] = {
         { keyMap.at(ERA5_FORCING_FILE_KEY), ConfigType::STRING, {}, "", "",
             "Path to the processed NetCDF file providing the ERA5 forcings." },
-        // TODO: The fields are known
-        { keyMap.at(ERA5_FORCING_FIELD_NAMES_KEY), ConfigType::STRING, {}, "", "",
-            "Comma-separated list of field names to be read from the ERA5 forcings "
-            "file." },
     };
     map["TOPAZOcean"] = {
         { keyMap.at(TOPAZ_FORCING_FILE_KEY), ConfigType::STRING, {}, "", "",
             "Path to the processed NetCDF file providing the TOPAZ forcings." },
-        // TODO: The fields are known
-        { keyMap.at(TOPAZ_FORCING_FIELD_NAMES_KEY), ConfigType::STRING, {}, "", "",
-            "Comma-separated list of field names to be read from the TOPAZ forcings "
-            "file." },
     };
 
     return map;
@@ -160,11 +146,16 @@ void Xios::close_context_definition()
 
         // Special handling of input fields
         for (int ioType : { INPUT_RESTART, ERA5_FORCING, TOPAZ_FORCING }) {
-            const std::set<std::string> fieldIds
-                = (ioType == INPUT_RESTART) ? inputRestartFieldNames : era5ForcingFieldNames;
+            std::set<std::string> fieldIds;
+            if (ioType == INPUT_RESTART) {
+                fieldIds = inputRestartFieldNames;
+            } else if (ioType == ERA5_FORCING) {
+                fieldIds = era5ForcingFieldNames;
+            } else {
+                fieldIds = topazForcingFieldNames;
+            }
             for (const std::string& fieldId : fieldIds) {
-                const std::string inputFieldId
-                    = (ioType == INPUT_RESTART) ? fieldId + "_input" : fieldId + "_era5_forcing";
+                const std::string inputFieldId = getFieldIOId(fieldId, ioType);
 
                 // Ensure that base fields have operation type 'instant' if not already defined
                 xios::CField* field = getField(fieldId);
@@ -273,10 +264,6 @@ void Xios::parseConfig()
         = str2set(Configured::getConfiguration(keyMap.at(INPUT_FIELD_NAMES_KEY), std::string()));
     outputRestartFieldNames
         = str2set(Configured::getConfiguration(keyMap.at(OUTPUT_FIELD_NAMES_KEY), std::string()));
-    era5ForcingFieldNames = str2set(
-        Configured::getConfiguration(keyMap.at(ERA5_FORCING_FIELD_NAMES_KEY), std::string()));
-    topazForcingFieldNames = str2set(
-        Configured::getConfiguration(keyMap.at(TOPAZ_FORCING_FIELD_NAMES_KEY), std::string()));
     diagnosticFieldNames = str2set(
         Configured::getConfiguration(keyMap.at(DIAGNOSTIC_FIELD_NAMES_KEY), std::string()));
 
@@ -901,6 +888,39 @@ void Xios::setFieldOperation(const std::string& fieldId, const int ioType)
 }
 
 /*
+ * @brief Get the field's I/O ID.
+ *
+ * @details The I/O ID is the field ID appended as appropriate if an input.
+ * @param fieldId The base field ID
+ * @param ioType The I/O type
+ * @return The correspondingI/O ID
+ */
+std::string Xios::getFieldIOId(const std::string& fieldId, const int ioType)
+{
+    std::string ioFieldId = fieldId;
+    if (fieldId.find("_input") != std::string::npos) {
+        throw std::runtime_error(
+            "Xios::getFieldIOId: fieldId '" + fieldId + "' seems to already be an input field ID");
+    }
+    if (fieldId.find("_era5") != std::string::npos) {
+        throw std::runtime_error("Xios::getFieldIOId: fieldId '" + fieldId
+            + "' seems to already be an ERA5 forcing field ID");
+    }
+    if (fieldId.find("_topaz") != std::string::npos) {
+        throw std::runtime_error("Xios::getFieldIOId: fieldId '" + fieldId
+            + "' seems to already be an TOPAZ forcing field ID");
+    }
+    if (ioType == INPUT_RESTART) {
+        ioFieldId += "_input";
+    } else if (ioType == ERA5_FORCING) {
+        ioFieldId += "_era5_forcing";
+    } else if (ioType == TOPAZ_FORCING) {
+        ioFieldId += "_topaz_forcing";
+    }
+    return ioFieldId;
+}
+
+/*
  * Create an input field for reading.
  *
  * @param   fieldId the base field ID
@@ -911,18 +931,12 @@ void Xios::setFieldOperation(const std::string& fieldId, const int ioType)
  */
 std::string Xios::createInputField(const std::string& fieldId, const int ioType)
 {
-    std::string inputFieldId;
-    if (ioType == INPUT_RESTART) {
-        inputFieldId = fieldId + "_input";
-    } else if (ioType == ERA5_FORCING) {
-        inputFieldId = fieldId + "_era5_forcing";
-    } else if (ioType == TOPAZ_FORCING) {
-        inputFieldId = fieldId + "_topaz_forcing";
-    } else if (ioType == OUTPUT_RESTART || ioType == DIAGNOSTIC) {
+    if (ioType == OUTPUT_RESTART || ioType == DIAGNOSTIC) {
         throw std::runtime_error("Xios: Input field inconsistent with I/O type");
-    } else {
+    } else if (ioType != INPUT_RESTART && ioType != ERA5_FORCING && ioType != TOPAZ_FORCING) {
         throw std::runtime_error("Xios: Unknown I/O type for field '" + fieldId + "'");
     }
+    const std::string inputFieldId = getFieldIOId(fieldId, ioType);
 
     // Check if the input field already exists
     bool exists;
@@ -1087,14 +1101,7 @@ ModelArray::Type Xios::getFieldType(const std::string& fieldId)
 void Xios::setFieldType(
     const std::string& fieldId, const ModelArray::Type& fieldType, const int ioType)
 {
-    std::string ioFieldId = fieldId;
-    if (ioType == INPUT_RESTART) {
-        ioFieldId += "_input";
-    } else if (ioType == ERA5_FORCING) {
-        ioFieldId += "_era5_forcing";
-    } else if (ioType == TOPAZ_FORCING) {
-        ioFieldId += "_topaz_forcing";
-    }
+    const std::string ioFieldId = getFieldIOId(fieldId, ioType);
     fieldTypes[ioFieldId] = fieldType;
     setFieldGridRef(ioFieldId, gridIds[fieldType]);
 }

@@ -39,12 +39,12 @@ variables:
 		time_counter:time_origin = "1970-01-01 00:00:00" ;
 		time_counter:bounds = "time_counter_bounds" ;
 	double time_counter_bounds(time_counter, axis_nbounds) ;
-	float hsnow(time_counter, y_dim, x_dim) ;
-		hsnow:online_operation = "instant" ;
-		hsnow:interval_operation = "3600 s" ;
-		hsnow:interval_write = "3600 s" ;
-		hsnow:cell_methods = "time: point" ;
-		hsnow:coordinates = "time_instant" ;
+	float dew2m(time_counter, y_dim, x_dim) ;
+		dew2m:online_operation = "instant" ;
+		dew2m:interval_operation = "3600 s" ;
+		dew2m:interval_write = "3600 s" ;
+		dew2m:cell_methods = "time: point" ;
+		dew2m:coordinates = "time_instant" ;
 
 // global attributes:
 		:structure_name = "parametric_rectangular" ;
@@ -69,7 +69,7 @@ data:
   1679078460, 1679078460,
   1679082060, 1679082060 ;
 
- hsnow =
+ dew2m =
   0.0, 0.0, 0.0, 0.0,
   0.0, 0.0, 0.0, 0.0,
   0.2, 0.2, 0.2, 0.2,

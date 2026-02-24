@@ -16,6 +16,7 @@
 #include "include/Logged.hpp"
 #include "include/ModelArray.hpp"
 #include "include/Time.hpp"
+#include "include/gridNames.hpp"
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/format.hpp>
 #include <boost/format/group.hpp>
@@ -73,9 +74,10 @@ public:
     size_t getAxisSize(const std::string& axisId);
 
     /* Field */
-    // TODO: Forcing field names are known
-    std::set<std::string> era5ForcingFieldNames;
-    std::set<std::string> topazForcingFieldNames;
+    const std::set<std::string> era5ForcingFieldNames
+        = { "tair", "dew2m", "pair", "sw_in", "lw_in", "wind_speed", "u", "v" };
+    const std::set<std::string> topazForcingFieldNames
+        = { sstName, sssName, mldName, uName, vName, sshName };
     void setPrognosticFieldType(const std::string& fieldId, const ModelArray::Type& type);
     void setDiagnosticFieldType(const std::string& fieldId, const ModelArray::Type& type);
 
@@ -87,9 +89,7 @@ public:
         DIAGNOSTIC_FILE_KEY,
         DIAGNOSTIC_FIELD_NAMES_KEY,
         ERA5_FORCING_FILE_KEY,
-        ERA5_FORCING_FIELD_NAMES_KEY,
         TOPAZ_FORCING_FILE_KEY,
-        TOPAZ_FORCING_FIELD_NAMES_KEY,
     };
 
 protected:
@@ -175,6 +175,7 @@ private:
     std::set<std::string> diagnosticFieldNames;
     std::set<std::string> fieldNames;
     void createField(const std::string& fieldId, const std::string& fileId);
+    std::string getFieldIOId(const std::string& fieldId, const int ioType);
     std::string createInputField(const std::string& fieldId, const int ioType);
     void setFieldOperation(const std::string& fieldId, const int ioType);
     void setFieldReadAccess(const std::string& fieldId, const bool& readAccess);
