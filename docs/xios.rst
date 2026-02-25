@@ -95,20 +95,19 @@ building without XIOS. That is, the ``model`` section should include
   restart_period = P0-0T02:00:00
 
 Information related to fields to be read from and written to files are
-configured via the ``XiosInput``, ``XiosOutput``, ``XiosForcing``, and
-``XiosDiagnostic`` sections, where the first two refer to restarts. Note that
-all of these sections are optional.
+configured via the ``XiosInput``, ``XiosOutput``, and ``XiosDiagnostic``
+sections, where the first two refer to restarts. Note that all of these sections
+are optional.
 
 For restart files, the filename is determined from the ``restart_file`` entry in
-the ``model`` section mentioned above. In the cases of forcing and diagnostics
-files, the file names are configured differently, via the ``filename`` entry in
-the ``XiosForcing`` and/or ``XiosDiagnostic`` sections, respectively. For
-example,
+the ``model`` section mentioned above. In the case of diagnostics files, the
+file names are configured differently, via the ``filename`` entry in the
+``XiosDiagnostic`` section. For example,
 
 .. code-block::
 
-   [XiosForcing]
-   filename = my_forcing_file.nc
+   [XiosDiagnostic]
+   filename = my_diag_file.nc
 
 Restart and diagnostic file names may include format strings such as
 ``restart%Y-%m-%dT%H:%M:%SZ.nc`` or ``diagnostic%Y-%m-%dT%H:%M:%SZ.nc`` (in
@@ -141,6 +140,17 @@ will need to ensure that variables defining the grid are read here, i.e.,
 ``longitude`` and ``latitude`` and possibly ``coords`` and ``grid_azimuth``. The
 XIOS I/O implementation does not currently support Cartesian grids (based on
 ``x_dim`` and ``y_dim``).
+
+Forcing files
+-------------
+
+Forcing files are handled in a pre-defined fashion. The ``ERA5Atmosphere``
+config section is used for atmospheric forcings and the ``TOPAZOcean`` config
+section is used for ocean forcings. The only entry that they support is ``file``
+to indicate the corresponding forcing file name. For ERA5 forcings, there is an
+assumed 1 hour frequency within which data are available, whilst for TOPAZ there
+is an assumed 1 day frequency. The field names correspond to those available in
+such forcing file types.
 
 Order of operations for XIOS setup
 ----------------------------------
