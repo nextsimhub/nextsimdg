@@ -44,6 +44,8 @@ private:
     // be static.
     static std::string filePath;
 
+    ModelState forcingState;
+
     HField tair;
     HField tdew;
     HField pair;

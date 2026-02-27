@@ -79,15 +79,18 @@ void ERA5Atmosphere::update(const TimestepTime& tst)
     std::set<std::string> forcings
         = { "tair", "dew2m", "pair", "sw_in", "lw_in", "wind_speed", "u", "v" };
 
-    ModelState state = ParaGridIO::readForcingTimeStatic(forcings, tst.start, filePath);
-    tair = state.data.at("tair");
-    tdew = state.data.at("dew2m");
-    pair = state.data.at("pair");
-    sw_in = state.data.at("sw_in");
-    lw_in = state.data.at("lw_in");
-    wind = state.data.at("wind_speed");
-    uwind = state.data.at("u");
-    vwind = state.data.at("v");
+    // Read ERA5 forcings at the top of the hour
+    if (tst.start.format(TimePoint::msFormat) == "T00:00Z") {
+        forcingState = ParaGridIO::readForcingTimeStatic(forcings, tst.start, filePath);
+    }
+    tair = forcingState.data.at("tair");
+    tdew = forcingState.data.at("dew2m");
+    pair = forcingState.data.at("pair");
+    sw_in = forcingState.data.at("sw_in");
+    lw_in = forcingState.data.at("lw_in");
+    wind = forcingState.data.at("wind_speed");
+    uwind = forcingState.data.at("u");
+    vwind = forcingState.data.at("v");
     snow = 0; // FIXME get snow data
     rain = 0; // FIXME get rain data
 
