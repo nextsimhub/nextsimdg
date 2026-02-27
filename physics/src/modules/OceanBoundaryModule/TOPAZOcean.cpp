@@ -63,14 +63,17 @@ void TOPAZOcean::updateBefore(const TimestepTime& tst)
 {
     std::set<std::string> forcings = { sstName, sssName, mldName, uName, vName, sshName };
 
-    ModelState state = ParaGridIO::readForcingTimeStatic(forcings, tst.start, filePath);
-    sstExt = state.data.at(sstName);
-    sssExt = state.data.at(sssName);
-    mld = state.data.at(mldName);
-    u = state.data.at(uName);
-    v = state.data.at(vName);
-    if (state.data.count(sshName)) {
-        ssh = state.data.at(sshName);
+    // Read TOPAZ forcings at midnight
+    if (tst.start.format(TimePoint::hmsFormat) == "T00:00:00Z") {
+        forcingState = ParaGridIO::readForcingTimeStatic(forcings, tst.start, filePath);
+    }
+    sstExt = forcingState.data.at(sstName);
+    sssExt = forcingState.data.at(sssName);
+    mld = forcingState.data.at(mldName);
+    u = forcingState.data.at(uName);
+    v = forcingState.data.at(vName);
+    if (forcingState.data.count(sshName)) {
+        ssh = forcingState.data.at(sshName);
     } else {
         ssh = 0.;
     }
