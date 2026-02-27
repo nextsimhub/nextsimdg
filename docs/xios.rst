@@ -147,10 +147,21 @@ Forcing files
 Forcing files are handled in a pre-defined fashion. The ``ERA5Atmosphere``
 config section is used for atmospheric forcings and the ``TOPAZOcean`` config
 section is used for ocean forcings. The only entry that they support is ``file``
-to indicate the corresponding forcing file name. For ERA5 forcings, there is an
-assumed 1 hour frequency within which data are available, whilst for TOPAZ there
-is an assumed 1 day frequency. The field names correspond to those available in
-such forcing file types.
+to indicate the corresponding forcing file name. In both cases, pre-processed
+files are currently expected, with the following properties:
+
+* Pre-processed ERA5 forcing files use a 1 hour frequency and include variables
+  ``dew2m``, ``lw_in``, ``sw_in``, ``pair``, ``tair``, ``wind_speed``, ``u``,
+  and ``v``.
+* Pre-processed TOPAZ forcing files use a 1 day frequency and include variables
+  ``mld``, ``sss``, ``sst``, ``ssh``, ``u``, and ``v``.
+
+In both cases, it is assumed that the variables are defined to have ``HField``
+type based on the same grid as used in the model.
+
+Note that this is an interim approach. Eventually, it will be possible to read
+forcing data with XIOS directly from original climatology files defined on
+different grids.
 
 Order of operations for XIOS setup
 ----------------------------------
