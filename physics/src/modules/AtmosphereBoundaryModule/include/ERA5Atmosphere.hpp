@@ -44,6 +44,8 @@ private:
     // be static.
     static std::string filePath;
 
+    ModelState forcingState;
+
     ModelArrayAccessor<Protected::T_AIR, RW> tairAccessor;
     ModelArrayAccessor<Protected::DEW_2M, RW> tdewAccessor;
     ModelArrayAccessor<Protected::P_AIR, RW> pairAccessor;
