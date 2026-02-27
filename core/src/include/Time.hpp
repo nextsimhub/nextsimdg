@@ -253,6 +253,7 @@ public:
     static const std::string ymdhmsFormat;
     static const std::string doyhmsFormat;
     static const std::string hmsFormat;
+    static const std::string msFormat;
 
     friend Duration;
 
