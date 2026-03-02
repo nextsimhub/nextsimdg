@@ -53,15 +53,10 @@ public:
     }
 
     /*!
-     * @brief Constructs a halo object from DGVector
+     * @brief Constructs a halo object from DGVectorHolder
      * @param dgvh DGVectorHolder object to create halo from
      */
-    template <int N> Halo(DGVectorHolder<N>& dgvh)
-    {
-        m_numComps = N;
-        setSpatialDims();
-        intializeHaloMetadata();
-    }
+    template <int N> Halo(DGVectorHolder<N>& dgvh) { Halo(static_cast<DGVector<N>&>(dgvh)); }
 
     /*!
      * @brief Constructs a halo object from DGVector
