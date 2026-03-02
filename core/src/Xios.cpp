@@ -1169,9 +1169,10 @@ void Xios::setupFields()
                 for (netCDF::NcDim& dim : varDims) {
                     const std::string name = dim.getName();
                     // Skip the time_counter dim as it's handled differently
-                    if (name != "time_counter") {
-                        dimKey += dim.getName();
+                    if (name == "time_counter" || name == "time") {
+                        continue;
                     }
+                    dimKey += name;
                 }
 
                 // Skip invalid dimension keys, otherwise add to the corresponding config section
