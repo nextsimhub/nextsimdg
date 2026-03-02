@@ -97,6 +97,12 @@ MPI_TEST_CASE("TestXiosReadRestart", 2)
                 }
             }
         } else if (fieldName == gridAzimuthName) {
+            for (size_t j = 0; j < ny; ++j) {
+                for (size_t i = 0; i < nx; ++i) {
+                    REQUIRE(modelarray(i, j) == doctest::Approx(0.0));
+                }
+            }
+        } else if (fieldName == coordsName) {
             for (size_t j = 0; j < ny + 1; ++j) {
                 for (size_t i = 0; i < nx + 1; ++i) {
                     float expected_x;
@@ -139,7 +145,7 @@ MPI_TEST_CASE("TestXiosReadRestart", 2)
                     }
                 }
             }
-        } else if (fieldName == uName) {
+        } else if (fieldName == shearName) {
             for (size_t j = 0; j < CGDEGREE * ny + 1; ++j) {
                 for (size_t i = 0; i < CGDEGREE * nx + 1; ++i) {
                     if (rank == 0) {

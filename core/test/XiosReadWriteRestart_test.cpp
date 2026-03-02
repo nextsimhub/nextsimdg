@@ -45,8 +45,9 @@ MPI_TEST_CASE("TestXiosReadWriteRestart", 2)
     config << "restart_period = P0-0T03:00:00" << std::endl;
     config << "[XiosOutput]" << std::endl;
     config << "field_names = " << maskName << "," << longitudeName << "," << latitudeName << ","
-           << gridAzimuthName << "," << ciceName << "," << hiceName << "," << damageName << ","
-           << hsnowName << "," << ticeName << "," << uName << "," << std::endl;
+           << coordsName << "," << gridAzimuthName << "," << ciceName << "," << hiceName << ","
+           << damageName << "," << hsnowName << "," << ticeName << "," << shearName << ","
+           << std::endl;
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
 

@@ -45,8 +45,9 @@ MPI_TEST_CASE("TestXiosWriteRestart", 2)
     config << "restart_period = P0-0T03:00:00" << std::endl;
     config << "[XiosOutput]" << std::endl;
     config << "field_names = " << maskName << "," << longitudeName << "," << latitudeName << ","
-           << gridAzimuthName << "," << ciceName << "," << hiceName << "," << damageName << ","
-           << hsnowName << "," << ticeName << "," << uName << "," << std::endl;
+           << coordsName << "," << gridAzimuthName << "," << ciceName << "," << hiceName << ","
+           << damageName << "," << hsnowName << "," << ticeName << "," << shearName << ","
+           << std::endl;
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
 
@@ -77,13 +78,14 @@ MPI_TEST_CASE("TestXiosWriteRestart", 2)
     xiosHandler.setPrognosticFieldType(longitudeName, ModelArray::Type::H);
     xiosHandler.setPrognosticFieldType(latitudeName, ModelArray::Type::H);
     xiosHandler.setPrognosticFieldType(maskName, ModelArray::Type::H);
+    xiosHandler.setPrognosticFieldType(gridAzimuthName, ModelArray::Type::H);
     xiosHandler.setPrognosticFieldType(ciceName, ModelArray::Type::DG);
     xiosHandler.setPrognosticFieldType(hiceName, ModelArray::Type::DG);
     xiosHandler.setPrognosticFieldType(damageName, ModelArray::Type::DG);
     xiosHandler.setPrognosticFieldType(hsnowName, ModelArray::Type::DG);
-    xiosHandler.setPrognosticFieldType(gridAzimuthName, ModelArray::Type::VERTEX);
+    xiosHandler.setPrognosticFieldType(coordsName, ModelArray::Type::VERTEX);
     xiosHandler.setPrognosticFieldType(ticeName, ModelArray::Type::DGSTRESS);
-    xiosHandler.setPrognosticFieldType(uName, ModelArray::Type::CG);
+    xiosHandler.setPrognosticFieldType(shearName, ModelArray::Type::CG);
 
     // Create some fake data to test writing methods
     HField longitude(ModelArray::Type::H);
@@ -119,6 +121,9 @@ MPI_TEST_CASE("TestXiosWriteRestart", 2)
             mask(i, j) = (i == 0 && j == 0 ? 0.0 : 1.0);
         }
     }
+    HField grid_azimuth(ModelArray::Type::H);
+    grid_azimuth.resize();
+    grid_azimuth = 0.0;
     DGField cice(ModelArray::Type::DG);
     cice.resize();
     DGField hice(ModelArray::Type::DG);
@@ -127,12 +132,12 @@ MPI_TEST_CASE("TestXiosWriteRestart", 2)
     damage.resize();
     DGField hsnow(ModelArray::Type::DG);
     hsnow.resize();
-    VertexField grid_azimuth(ModelArray::Type::VERTEX);
-    grid_azimuth.resize();
+    VertexField coords(ModelArray::Type::VERTEX);
+    coords.resize();
     DGSField tice(ModelArray::Type::DGSTRESS);
     tice.resize();
-    CGField uice(ModelArray::Type::CG);
-    uice.resize();
+    CGField shear(ModelArray::Type::CG);
+    shear.resize();
 
     // Check files with the expected names don't exist yet
     REQUIRE_FALSE(std::filesystem::exists("restart*.nc"));
@@ -166,11 +171,11 @@ MPI_TEST_CASE("TestXiosWriteRestart", 2)
         for (size_t j = 0; j < ny + 1; ++j) {
             for (size_t i = 0; i < nx + 1; ++i) {
                 if (rank == 0) {
-                    grid_azimuth.components({ i, j })[0] = 1.0 * ts * i;
-                    grid_azimuth.components({ i, j })[1] = 1.0 * ts * j;
+                    coords.components({ i, j })[0] = 1.0 * ts * i;
+                    coords.components({ i, j })[1] = 1.0 * ts * j;
                 } else {
-                    grid_azimuth.components({ i, j })[0] = 1.0 * ts * (i + 2);
-                    grid_azimuth.components({ i, j })[1] = 1.0 * ts * j;
+                    coords.components({ i, j })[0] = 1.0 * ts * (i + 2);
+                    coords.components({ i, j })[1] = 1.0 * ts * j;
                 }
             }
         }
@@ -221,7 +226,7 @@ MPI_TEST_CASE("TestXiosWriteRestart", 2)
                 } else {
                     value = (i == 1 && j == 1) ? NAN : 1.0 * ts * ((i + 5) * (j + 1));
                 }
-                uice(i, j) = value;
+                shear(i, j) = value;
             }
         }
 
@@ -230,13 +235,14 @@ MPI_TEST_CASE("TestXiosWriteRestart", 2)
                                     { maskName, mask },
                                     { longitudeName, longitude },
                                     { latitudeName, latitude },
+                                    { gridAzimuthName, grid_azimuth },
                                     { ciceName, cice },
                                     { hiceName, hice },
                                     { damageName, damage },
                                     { hsnowName, hsnow },
-                                    { gridAzimuthName, grid_azimuth },
+                                    { coordsName, coords },
                                     { ticeName, tice },
-                                    { uName, uice },
+                                    { shearName, shear },
                                 },
             {} };
         StructureFactory::fileFromState(restarts, outputFilename, true);
