@@ -44,7 +44,7 @@ MPI_TEST_CASE("TestXiosWriteDiagnostic", 2)
     config << "restart_period = P0-0T03:00:00" << std::endl;
     config << "[XiosDiagnostic]" << std::endl;
     config << "filename = " << diagnosticFilename << std::endl;
-    config << "field_names = " << hsnowName << std::endl;
+    config << "field_names = " << sssName << std::endl;
     config << "period = P0-0T03:00:00" << std::endl;
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
@@ -76,27 +76,9 @@ MPI_TEST_CASE("TestXiosWriteDiagnostic", 2)
     ParaGridIO* pio = new ParaGridIO(grid);
     grid.setIO(pio);
 
-    // Set field type for diagnostics
-    xiosHandler.setDiagnosticFieldType(hsnowName, ModelArray::Type::H);
-
     // Create some fake data to test writing methods
-    HField mask(ModelArray::Type::H);
-    mask.resize();
-    for (size_t j = 0; j < ny; ++j) {
-        for (size_t i = 0; i < nx; ++i) {
-            mask(i, j) = j >= 1 ? 1.0 : 0.0;
-        }
-    }
-    VertexField coordinates(ModelArray::Type::VERTEX);
-    coordinates.resize();
-    DGField hice(ModelArray::Type::DG);
-    hice.resize();
-    DGSField tice(ModelArray::Type::DGSTRESS);
-    tice.resize();
-    CGField uice(ModelArray::Type::CG);
-    uice.resize();
-    HField hsnow(ModelArray::Type::H);
-    hsnow.resize();
+    HField sss(ModelArray::Type::H);
+    sss.resize();
 
     // Check files with the expected names don't exist yet
     REQUIRE_FALSE(std::filesystem::exists("diagnostic*.nc"));
@@ -114,13 +96,13 @@ MPI_TEST_CASE("TestXiosWriteDiagnostic", 2)
         // Update diagnostics
         for (size_t j = 0; j < ny; ++j) {
             for (size_t i = 0; i < nx; ++i) {
-                hsnow(i, j) = 0.1 * ts;
+                sss(i, j) = 0.1 * ts;
             }
         }
 
         // Set up ModelStates for diagnostics and write out
         ModelState diagnostics = { {
-                                       { hsnowName, hsnow },
+                                       { sssName, sss },
                                    },
             {} };
         pio->writeDiagnosticTime(diagnostics, diagnosticFilename);

@@ -76,7 +76,7 @@ MPI_TEST_CASE("TestXiosReadDiagnostic", 3)
     //       StructureFactory::stateFromFile()
     for (const auto [fieldName, modelarray] :
         StructureFactory::stateFromFile(diagnosticFilename).data) {
-        REQUIRE(fieldName == hsnowName);
+        REQUIRE(fieldName == sssName);
         for (size_t j = 0; j < ny; ++j) {
             for (size_t i = 0; i < nx; ++i) {
                 REQUIRE(modelarray(i, j) == doctest::Approx(0.15));
