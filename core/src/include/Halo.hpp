@@ -376,9 +376,11 @@ private:
             count = 1;
             disp = disp + sendEdge;
             recvOffset = recvOffset + 4;
-            // this is messy
-            // Essentially account for the fact that the vertex field is split differently to the
-            // face centered fields
+            // Account for the fact that the vertex field is split differently to the face centered
+            // fields. We dont take the data directly adjacent to the halo, but the one after that.
+            // e.g., if you have two adjacent domains, the vertex on the far right of the left-hand
+            // domain is the same as the vertex on the far left of the right-hand domain. We need
+            // the vertex which is the next one along for halo exchange.
             if ((sendEdge == Edge::TOP or sendEdge == Edge::BOTTOM)
                 and (corner == Corner::TOP_RIGHT or corner == Corner::BOTTOM_RIGHT)) {
                 disp = disp + 1;
