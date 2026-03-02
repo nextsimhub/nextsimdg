@@ -813,6 +813,10 @@ void Xios::createField(const std::string& fieldId, const std::string& fileId)
         if (!cxios_is_defined_field_name(baseField)) {
             throw std::runtime_error("Xios: Failed to set name for field '" + fieldId + "'");
         }
+
+        // Set grid reference
+        ModelArray::Type& fieldType = fieldTypes[fieldId];
+        setFieldGridRef(fieldId, gridIds[fieldType]);
     }
 
     int ioType = getFileIOType(fileId);
@@ -940,6 +944,10 @@ std::string Xios::createInputField(const std::string& fieldId, const int ioType)
     if (!cxios_is_defined_field_name(inputField)) {
         throw std::runtime_error("Xios: Failed to set name for input field '" + inputFieldId + "'");
     }
+
+    // Set grid reference
+    ModelArray::Type& fieldType = fieldTypes[inputFieldId];
+    setFieldGridRef(inputFieldId, gridIds[fieldType]);
 
     return inputFieldId;
 }
