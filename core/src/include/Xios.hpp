@@ -16,7 +16,6 @@
 #include "include/Logged.hpp"
 #include "include/ModelArray.hpp"
 #include "include/Time.hpp"
-#include "include/gridNames.hpp"
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/format.hpp>
 #include <boost/format/group.hpp>
@@ -74,17 +73,14 @@ public:
     size_t getAxisSize(const std::string& axisId);
 
     /* Field */
-    const std::set<std::string> era5ForcingFieldNames
-        = { "tair", "dew2m", "pair", "sw_in", "lw_in", "wind_speed", "u", "v" };
-    const std::set<std::string> topazForcingFieldNames
-        = { sstName, sssName, mldName, uName, vName, sshName };
+    std::set<std::string> era5ForcingFieldNames;
+    std::set<std::string> topazForcingFieldNames;
     void setPrognosticFieldType(const std::string& fieldId, const ModelArray::Type& type);
     void setDiagnosticFieldType(const std::string& fieldId, const ModelArray::Type& type);
 
     enum {
         ENABLED_KEY,
         OUTPUT_FIELD_NAMES_KEY,
-        INPUT_FIELD_NAMES_KEY,
         DIAGNOSTIC_PERIOD_KEY,
         DIAGNOSTIC_FILE_KEY,
         DIAGNOSTIC_FIELD_NAMES_KEY,
@@ -181,7 +177,6 @@ private:
     void setFieldReadAccess(const std::string& fieldId, const bool& readAccess);
     void setFieldGridRef(const std::string& fieldId, const std::string& gridRef);
     void setFieldFreqOffset(const std::string& fieldId, const Duration& freqOffset);
-    std::string getFieldGridRef(const std::string& fieldId);
     bool getFieldReadAccess(const std::string& fieldId);
     Duration getFieldFreqOffset(const std::string& fieldId);
     ModelArray::Type getFieldType(const std::string& fieldId);
