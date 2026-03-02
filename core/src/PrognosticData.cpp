@@ -163,8 +163,8 @@ ModelState PrognosticData::getStatePrognostic() const
         ModelComponent::getConfiguration() };
 
     // Get the prognostic data from the dynamics, including the full dynamics state
-    state.merge(pDynamics->getStatePrognostic());
-    state.merge(pColumnPhysics->getStatePrognostic());
+    state.merge(pDynamics->getStatePrognostic()); // NOTE: Pulls in u and v
+    state.merge(pColumnPhysics->getStatePrognostic()); // NOTE: Pulls in tsurf
     state.merge(pAtmBdy->getStatePrognostic());
     state.merge(pOcnBdy->getStatePrognostic());
 
