@@ -80,10 +80,6 @@ MPI_TEST_CASE("TestXiosWriteRestart", 2)
     xiosHandler.setPrognosticFieldType(longitudeName, ModelArray::Type::H);
     xiosHandler.setPrognosticFieldType(latitudeName, ModelArray::Type::H);
     xiosHandler.setPrognosticFieldType(maskName, ModelArray::Type::H);
-    xiosHandler.setPrognosticFieldType(ciceName, ModelArray::Type::DG);
-    xiosHandler.setPrognosticFieldType(hiceName, ModelArray::Type::DG);
-    xiosHandler.setPrognosticFieldType(damageName, ModelArray::Type::DG);
-    xiosHandler.setPrognosticFieldType(hsnowName, ModelArray::Type::DG);
     xiosHandler.setPrognosticFieldType(gridAzimuthName, ModelArray::Type::VERTEX);
     xiosHandler.setPrognosticFieldType(ticeName, ModelArray::Type::DGSTRESS);
     xiosHandler.setPrognosticFieldType(uName, ModelArray::Type::CG);
