@@ -1070,7 +1070,7 @@ Duration Xios::getFieldFreqOffset(const std::string& fieldId)
 ModelArray::Type Xios::getFieldType(const std::string& fieldId)
 {
     if (fieldTypes.count(fieldId) == 0) {
-        return ModelArray::Type::H;
+        throw std::runtime_error("Xios::getFieldType: Field type not set for '" + fieldId + "'");
     }
     return fieldTypes[fieldId];
 }
