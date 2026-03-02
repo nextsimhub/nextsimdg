@@ -43,10 +43,6 @@ MPI_TEST_CASE("TestXiosReadWriteRestart", 2)
     config << "restart_file = " << outputFilename << std::endl;
     config << "partition_file = xios_test_partition_metadata_2.nc" << std::endl;
     config << "restart_period = P0-0T03:00:00" << std::endl;
-    config << "[XiosInput]" << std::endl;
-    config << "field_names = " << maskName << "," << longitudeName << "," << latitudeName << ","
-           << gridAzimuthName << "," << ciceName << "," << hiceName << "," << damageName << ","
-           << hsnowName << "," << ticeName << "," << uName << "," << std::endl;
     config << "[XiosOutput]" << std::endl;
     config << "field_names = " << maskName << "," << longitudeName << "," << latitudeName << ","
            << gridAzimuthName << "," << ciceName << "," << hiceName << "," << damageName << ","
