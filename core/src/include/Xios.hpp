@@ -73,8 +73,6 @@ public:
     size_t getAxisSize(const std::string& axisId);
 
     /* Field */
-    std::set<std::string> era5ForcingFieldNames;
-    std::set<std::string> topazForcingFieldNames;
     void setPrognosticFieldType(const std::string& fieldId, const ModelArray::Type& type);
     void setDiagnosticFieldType(const std::string& fieldId, const ModelArray::Type& type);
 
@@ -169,6 +167,8 @@ private:
     std::set<std::string> outputRestartFieldNames;
     std::set<std::string> inputRestartFieldNames;
     std::set<std::string> diagnosticFieldNames;
+    std::set<std::string> era5ForcingFieldNames;
+    std::set<std::string> topazForcingFieldNames;
     std::set<std::string> fieldNames;
     void createField(const std::string& fieldId, const std::string& fileId);
     std::string getFieldIOId(const std::string& fieldId, const int ioType);
