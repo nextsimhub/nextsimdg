@@ -54,6 +54,9 @@ variables:
 	float mask(y_dim, x_dim) ;
 		mask:online_operation = "once" ;
 		mask:coordinates = "lat lon" ;
+	float grid_azimuth(y_dim, x_dim) ;
+		grid_azimuth:online_operation = "once" ;
+		grid_azimuth:coordinates = "lat lon" ;
 	float sss(y_dim, x_dim) ;
 		sss:online_operation = "once" ;
 		sss:coordinates = "lat lon" ;
@@ -79,9 +82,9 @@ variables:
 		tice:online_operation = "once" ;
 		tice:coordinates = "lat lon dgstress_comp" ;
   // CGField variables
-	float u(y_cg, x_cg) ;
-		u:online_operation = "once" ;
-		u:coordinates = "lat lon" ;
+	float shear(y_cg, x_cg) ;
+		shear:online_operation = "once" ;
+		shear:coordinates = "lat lon" ;
 
 // global attributes:
 		:structure_name = "parametric_rectangular" ;
@@ -109,6 +112,10 @@ data:
  mask =
   0, 1, 0, 1,
   1, 1, 1, 1 ;
+
+ grid_azimuth =
+  0, 0, 0, 0,
+  0, 0, 0, 0 ;
 
  sss =
   _, _, _, _,
@@ -189,7 +196,7 @@ data:
 
  // CGField variables
 
- u =
+ shear =
   NaN, NaN, 3, 4, 5, NaN, 7, 8, 9,
   NaN, NaN, 6, 8, 10, NaN, 14, 16, 18,
   3, 6, 9, 12, 15, 18, 21, 24, 27,
