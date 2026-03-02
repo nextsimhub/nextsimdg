@@ -54,6 +54,9 @@ variables:
 	float mask(y_dim, x_dim) ;
 		mask:online_operation = "once" ;
 		mask:coordinates = "lat lon" ;
+	float sss(y_dim, x_dim) ;
+		sss:online_operation = "once" ;
+		sss:coordinates = "lat lon" ;
   // DGField variables
   float cice(y_dim, x_dim, dg_comp) ;
 		cice:online_operation = "once" ;
@@ -106,6 +109,10 @@ data:
  mask =
   0, 1, 0, 1,
   1, 1, 1, 1 ;
+
+ sss =
+  _, _, _, _,
+  _, _, _, _ ;
 
  // DGField variables
 
