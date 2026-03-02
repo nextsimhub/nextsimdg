@@ -1133,12 +1133,16 @@ void Xios::setupFields()
 {
     ModelMetadata& metadata = ModelMetadata::getInstance();
 
+    // Set dimensions based on those found in input file
+    if (!metadata.initialFileName.empty()) {
+        metadata.setDimensionsFromFile(metadata.initialFileName);
+    }
+
     for (const std::string& filename :
         { metadata.initialFileName, era5ForcingFilename, topazForcingFilename }) {
         if (filename.empty()) {
-            break;
+            continue;
         }
-        metadata.setDimensionsFromFile(filename);
 
         // Create map for field types
         const std::map<std::string, ModelArray::Type> dimensionKeys = {
