@@ -12,27 +12,30 @@
 #include <string>
 #include <unordered_map>
 
-struct TextTag;
-
 namespace Nextsim {
 
 #ifdef USE_KOKKOS
 enum struct SyncState { SYNCED, HOST_CHANGED, DEVICE_CHANGED };
 #endif
 
-template <bool isReadWrite> class ModelArrayAccessorBase;
-
 class ModelArrayStore {
 public:
-    //  std::unordered_map<std::string, const ModelArray*> getAllData() const;
-    //  std::unordered_map<std::string, ModelArrayAccessorBase<RO>> getAllData() const;
-
-    // Checks that all known fields have been properly registered with an Accessor that provided the
-    // constructor arguments.
-    // @return True iff all fields are registered.
+    /*!
+     * @brief Checks that all known fields have been properly registered with an Accessor that
+     * provided the constructor arguments.
+     *
+     * @details The purpose of this function is to detect a faulty initialization early. The
+     * results can be ignored and may not indicate that the program does not work. However, a field
+     * that was not properly registered is just default constructed and may have an unexpected type
+     * or size that can cause subtle bugs later on. If a field is not used, it should not be
+     * registered at all.
+     *
+     * @return True iff all fields are properly registered.
+     */
     bool checkAllRegistered() const;
 
 private:
+    // extended ModelArray with compatible KokkosView and name
     struct ExtModelArray {
         std::string name;
         ModelArray modelArray;
@@ -51,14 +54,16 @@ private:
 #endif
     };
 
+    // ModelArray with additional internal flags to track the registration state
     struct ExtModelArrayFlagged {
         ExtModelArrayFlagged(const std::string& name, bool _isReadWrite, bool _isRegistered);
 
         bool isReadWrite;
-        bool isRegistered;
+        bool isRegistered; // extModelArray was created through a call of registerArray
         ExtModelArray extModelArray;
     };
 
+    // (re)create a ModelArray in the store
     template <typename... Args>
     ExtModelArray& registerArray(const std::string& field, bool isReadWrite, Args&&... args)
     {
@@ -99,11 +104,13 @@ private:
         return extArr;
     }
 
+    // access to existing fields
     ExtModelArray& getRW(const std::string& field);
     ExtModelArray& getRO(const std::string& field);
 
     std::unordered_map<std::string, ExtModelArrayFlagged> store;
 
+    // give access to the getters and registerArray
     template <bool isReadWrite> friend class ModelArrayAccessorBase;
 };
 

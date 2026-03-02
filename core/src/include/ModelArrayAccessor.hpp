@@ -21,17 +21,30 @@ using ModelArrayAuto = ModelArray;
 using ConstModelArrayAuto = const ModelArray;
 #endif
 
+// A handle that controls accesses through the underlying field
 template <bool isReadWrite = RO> class ModelArrayAccessorBase;
-
+// Variant with a compile-time name
 template <const TextTag& fieldName, bool isReadWrite = RO> class ModelArrayAccessor;
 
+// read-only implementation
 template <> class ModelArrayAccessorBase<RO> {
 public:
+    /*!
+     * @brief Construct a read-only accessor for a field in the given store.
+     *
+     * @details This does not create the actual field in the store. While the accessor may be
+     * created beforehand, accesses to the field are only possible after it has been constructed
+     * via the forwarding constructor of the read-write accessor.
+     *
+     * @param store The store in which the field is registered.
+     * @param fieldName Identifier of the field in the store.
+     */
     ModelArrayAccessorBase(ModelArrayStore& store, const std::string& fieldName)
         : target(store.getRO(fieldName))
     {
     }
 
+    /// @brief Get read-only access to the field on the CPU.
     const ModelArray& getHostRO() const
     {
 #ifdef USE_KOKKOS
@@ -43,6 +56,15 @@ public:
         return target.modelArray;
     }
 
+    /*!
+     * @brief Get read-only access to the field on the CPU (asynchronous).
+     *
+     * @details With Kokkos enabled, the provided execution space is used for host-device data
+     * transfers. This results in an asynchronous copy that is not necessarily finished by the time
+     * this function returns.
+     *
+     * @param execSpace The Kokkos execution space or a dummy object.
+     */
 #ifdef USE_KOKKOS
     template <typename ExecSpace> const ModelArray& getHostRO(ExecSpace execSpace) const
     {
@@ -53,7 +75,7 @@ public:
         return target.modelArray;
     }
 
-    // returns a copy because target.deviceView has mutable data
+    /// @brief Get read-only access to the field on the GPU.
     const ConstDeviceModelArray& getDeviceRO() const
     {
         assert(target.modelArray.trueSize() > 0 && "ModelArray is allocated");
@@ -67,6 +89,15 @@ public:
         return target.deviceModelArray();
     }
 
+    /*!
+     * @brief Get read-only access to the field on the GPU (asynchronous).
+     *
+     * @details With Kokkos enabled, the provided execution space is used for host-device data
+     * transfers. This results in an asynchronous copy that is not necessarily finished by the time
+     * this function returns.
+     *
+     * @param execSpace The Kokkos execution space or a dummy object.
+     */
     template <typename ExecSpace>
     const ConstDeviceModelArray& getDeviceRO(ExecSpace execSpace) const
     {
@@ -81,6 +112,7 @@ public:
     }
 #endif
 
+    /// @brief Get read-only access to the field on the GPU (Kokkos enabled) or the CPU.
     const ConstModelArrayAuto& getAutoRO() const
     {
 #ifdef USE_KOKKOS
@@ -89,6 +121,9 @@ public:
         return getHostRO();
 #endif
     }
+
+    /// @brief Get read-only access to the field on the GPU (Kokkos enabled) or the CPU
+    /// (asynchronous).
     template <typename ExecSpace> const ConstModelArrayAuto& getAutoRO(ExecSpace execSpace) const
     {
 #ifdef USE_KOKKOS
@@ -98,6 +133,12 @@ public:
 #endif
     }
 
+    /*!
+     * @brief Collects read-only accessors for every field in the given store.
+     *
+     * @param store The model array store to read from.
+     * @return A map of field names to accessors.
+     */
     static std::unordered_map<std::string, ModelArrayAccessorBase<RO>> getAll(
         const ModelArrayStore& store)
     {
@@ -126,11 +167,9 @@ protected:
     }
     // lifetime and persistent address are enforced by ModelArrayStore
     ModelArrayStore::ExtModelArray& target;
-
-    // getAllData() uses the protected constructor
-    friend class ModelArrayStore;
 };
 
+// read-only implementation with added compile-time field name
 template <const TextTag& fieldName>
 class ModelArrayAccessor<fieldName, RO> : public ModelArrayAccessorBase<RO> {
 public:
@@ -140,15 +179,39 @@ public:
     }
 };
 
+// read-write implementation
 template <> class ModelArrayAccessorBase<RW> : public ModelArrayAccessorBase<RO> {
     using Base = ModelArrayAccessorBase<RO>;
 
 public:
+    /*!
+     * @brief Construct a read-write accessor for a field in the given store.
+     *
+     * @details This does not create the actual field in the store. While the accessor may be
+     * created beforehand, accesses to the field are only possible after it has been constructed
+     * via the forwarding constructor of the read-write accessor.
+     *
+     * @param store The store in which the field is registered.
+     * @param fieldName Identifier of the field in the store.
+     */
     ModelArrayAccessorBase(ModelArrayStore& store, const std::string& fieldName)
         : Base(store.getRW(fieldName))
     {
     }
 
+    /*!
+     * @brief Construct a field and a read-write accessor for it in the given store.
+     *
+     * @details For every field in a given store this constructor has to be used at least once to
+     * actually allocate and construct the field. Repeated calls are allowed if isReadWriteExternal
+     * is the same and will cause the field to be recreated inplace.
+     *
+     * @param store The store in which the field is registered.
+     * @param fieldName Identifier of the field in the store.
+     * @param isReadWriteExternal Determines whether non-constructing read-write accessors can be
+     * created for this field.
+     * @param args Arguments that are forwarded to the constructor of ModelArray.
+     */
     template <typename... Args>
     ModelArrayAccessorBase(ModelArrayStore& store, const std::string& fieldName,
         bool isReadWriteExternal, Args&&... args)
@@ -158,6 +221,7 @@ public:
     {
     }
 
+    /// @brief Get read-only access to the field on the GPU (Kokkos enabled) or the CPU.
     ModelArray& getHostRW()
     {
 #ifdef USE_KOKKOS
@@ -170,6 +234,7 @@ public:
         return this->target.modelArray;
     }
 
+    /// @brief Get read-write access to the field on the CPU (asynchronous).
 #ifdef USE_KOKKOS
     template <typename ExecSpace> ModelArray& getHostRW(ExecSpace execSpace)
     {
@@ -181,6 +246,7 @@ public:
         return this->target.modelArray;
     }
 
+    /// @brief Get read-only access to the field on the GPU.
     DeviceModelArray& getDeviceRW()
     {
         if (this->target.syncState == SyncState::HOST_CHANGED)
@@ -190,6 +256,7 @@ public:
         return this->target.deviceModelArray();
     }
 
+    /// @brief Get read-write access to the field on the GPU (asynchronous).
     template <typename ExecSpace> DeviceModelArray& getDeviceRW(ExecSpace execSpace)
     {
         if (this->target.syncState == SyncState::HOST_CHANGED)
@@ -200,6 +267,7 @@ public:
     }
 #endif
 
+    /// @brief Get read-write access to the field on the GPU (Kokkos enabled) or the CPU.
     ModelArrayAuto& getAutoRW()
     {
 #ifdef USE_KOKKOS
@@ -209,6 +277,8 @@ public:
 #endif
     }
 
+    /// @brief Get read-only access to the field on the GPU (Kokkos enabled) or the CPU
+    /// (asynchronous).
     template <typename ExecSpace> ModelArrayAuto& getAutoRW(ExecSpace execSpace)
     {
 #ifdef USE_KOKKOS
@@ -219,6 +289,7 @@ public:
     }
 };
 
+// read-write implementation with added compile-time field name
 template <const TextTag& fieldName>
 class ModelArrayAccessor<fieldName, RW> : public ModelArrayAccessorBase<RW> {
     using Base = ModelArrayAccessorBase<RW>;
