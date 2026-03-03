@@ -43,9 +43,6 @@ MPI_TEST_CASE("TestXiosReadDiagnostic", 3)
     config << "init_file = " << diagnosticFilename << std::endl;
     config << "restart_period = P0-0T03:00:00" << std::endl;
     config << "partition_file = xios_test_partition_metadata_3.nc" << std::endl;
-    config << "[XiosInput]" << std::endl;
-    config << "field_names = " << hsnowName << std::endl;
-    config << "period = P0-0T03:00:00" << std::endl;
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
 
@@ -79,7 +76,7 @@ MPI_TEST_CASE("TestXiosReadDiagnostic", 3)
     //       StructureFactory::stateFromFile()
     for (const auto [fieldName, modelarray] :
         StructureFactory::stateFromFile(diagnosticFilename).data) {
-        REQUIRE(fieldName == hsnowName);
+        REQUIRE(fieldName == sssName);
         for (size_t j = 0; j < ny; ++j) {
             for (size_t i = 0; i < nx; ++i) {
                 REQUIRE(modelarray(i, j) == doctest::Approx(0.15));

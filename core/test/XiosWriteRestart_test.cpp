@@ -50,7 +50,8 @@ MPI_TEST_CASE("TestXiosWriteRestart", 2)
     config << "[XiosOutput]" << std::endl;
     config << "field_names = " << maskName << "," << longitudeName << "," << latitudeName << ","
            << coordsName << "," << gridAzimuthName << "," << ciceName << "," << hiceName << ","
-           << damageName << "," << hsnowName << "," << ticeName << "," << uName << "," << std::endl;
+           << damageName << "," << hsnowName << "," << ticeName << "," << shearName << ","
+           << std::endl;
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
 
@@ -78,7 +79,7 @@ MPI_TEST_CASE("TestXiosWriteRestart", 2)
 
     // Set field types for restarts
     xiosHandler.setPrognosticFieldType(ticeName, ModelArray::Type::DGSTRESS);
-    xiosHandler.setPrognosticFieldType(uName, ModelArray::Type::CG);
+    xiosHandler.setPrognosticFieldType(shearName, ModelArray::Type::CG);
 
     // Create some fake data to test writing methods
     HField longitude(ModelArray::Type::H);
@@ -118,6 +119,9 @@ MPI_TEST_CASE("TestXiosWriteRestart", 2)
             mask(i, j) = (i == 0 && j == 0 ? 0.0 : 1.0);
         }
     }
+    HField grid_azimuth(ModelArray::Type::H);
+    grid_azimuth.resize();
+    grid_azimuth = 0.0;
     DGField cice(ModelArray::Type::DG);
     cice.resize();
     DGField hice(ModelArray::Type::DG);
@@ -130,8 +134,8 @@ MPI_TEST_CASE("TestXiosWriteRestart", 2)
     coords.resize();
     DGSField tice(ModelArray::Type::DGSTRESS);
     tice.resize();
-    CGField uice(ModelArray::Type::CG);
-    uice.resize();
+    CGField shear(ModelArray::Type::CG);
+    shear.resize();
 
     // Check files with the expected names don't exist yet
     REQUIRE_FALSE(std::filesystem::exists("restart*.nc"));
@@ -220,7 +224,7 @@ MPI_TEST_CASE("TestXiosWriteRestart", 2)
                 } else {
                     value = (i == 1 && j == 1) ? NAN : 1.0 * ts * ((i + 5) * (j + 1));
                 }
-                uice(i, j) = value;
+                shear(i, j) = value;
             }
         }
 
@@ -236,7 +240,7 @@ MPI_TEST_CASE("TestXiosWriteRestart", 2)
                                     { hsnowName, hsnow },
                                     { coordsName, coords },
                                     { ticeName, tice },
-                                    { uName, uice },
+                                    { shearName, shear },
                                 },
             {} };
         StructureFactory::fileFromState(restarts, outputFilename, true);
