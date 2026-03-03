@@ -16,6 +16,7 @@
 #include "include/Logged.hpp"
 #include "include/ModelArray.hpp"
 #include "include/Time.hpp"
+#include "include/gridNames.hpp"
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/format.hpp>
 #include <boost/format/group.hpp>
@@ -73,7 +74,10 @@ public:
     size_t getAxisSize(const std::string& axisId);
 
     /* Field */
-    std::set<std::string> forcingFieldNames;
+    const std::set<std::string> era5ForcingFieldNames
+        = { "tair", "dew2m", "pair", "sw_in", "lw_in", "wind_speed", "u", "v" };
+    const std::set<std::string> topazForcingFieldNames
+        = { sstName, sssName, mldName, uName, vName, sshName };
     void setPrognosticFieldType(const std::string& fieldId, const ModelArray::Type& type);
     void setDiagnosticFieldType(const std::string& fieldId, const ModelArray::Type& type);
 
@@ -84,9 +88,8 @@ public:
         DIAGNOSTIC_PERIOD_KEY,
         DIAGNOSTIC_FILE_KEY,
         DIAGNOSTIC_FIELD_NAMES_KEY,
-        FORCING_PERIOD_KEY,
-        FORCING_FILE_KEY,
-        FORCING_FIELD_NAMES_KEY,
+        ERA5_FORCING_FILE_KEY,
+        TOPAZ_FORCING_FILE_KEY,
     };
 
 protected:
@@ -172,6 +175,7 @@ private:
     std::set<std::string> diagnosticFieldNames;
     std::set<std::string> fieldNames;
     void createField(const std::string& fieldId, const std::string& fileId);
+    std::string getFieldIOId(const std::string& fieldId, const int ioType);
     std::string createInputField(const std::string& fieldId, const int ioType);
     void setFieldOperation(const std::string& fieldId, const int ioType);
     void setFieldReadAccess(const std::string& fieldId, const bool& readAccess);
@@ -196,20 +200,24 @@ private:
     std::string diagnosticFilename;
     std::string diagnosticFileId;
     std::string diagnosticFormatStr = "%y-%mo-%dT%h:%mi:%sZ";
-    std::string forcingFilename;
-    std::string forcingFileId;
+    std::string era5ForcingFilename;
+    std::string era5ForcingFileId;
+    std::string topazForcingFilename;
+    std::string topazForcingFileId;
     enum {
         NOT_READ, // Either unused or generically written but not read
         OUTPUT_RESTART, // Written as restart
         INPUT_RESTART, // Read as restart
         DIAGNOSTIC, // Written as diagnostic
-        FORCING, // Read as forcing
+        ERA5_FORCING, // Read as ERA5 forcing
+        TOPAZ_FORCING, // Read as TOPAZ forcing
     };
     const std::map<int, std::string&> fileMap = {
         { OUTPUT_RESTART, outputFileId },
         { INPUT_RESTART, inputFileId },
         { DIAGNOSTIC, diagnosticFileId },
-        { FORCING, forcingFileId },
+        { ERA5_FORCING, era5ForcingFileId },
+        { TOPAZ_FORCING, topazForcingFileId },
     };
     void setupFiles();
     void createFile(const std::string& fileId);

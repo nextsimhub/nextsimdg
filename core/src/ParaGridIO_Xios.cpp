@@ -102,29 +102,32 @@ ModelState ParaGridIO::readForcingTimeStatic(
     Xios& xiosHandler = Xios::getInstance();
     xiosHandler.close_context_definition();
 
-    if (xiosHandler.forcingFilename != filePath) {
+    // Determine which forcing type we have
+    bool era5 = (xiosHandler.era5ForcingFilename == filePath);
+    if (!era5 && xiosHandler.topazForcingFilename != filePath) {
         throw std::runtime_error("ParaGridIO::readForcingTimeStatic: file path '" + filePath
-            + "' is inconsistent with XiosForcing.filename '" + xiosHandler.forcingFilename + "'");
+            + "' is inconsistent with config.");
     }
 
-    // Increment the XIOS calendar until it reaches the requested time
-    while (xiosHandler.getCurrentDate() < time) {
-        xiosHandler.incrementCalendar();
-    }
-    const TimePoint xiosTime = xiosHandler.getCurrentDate();
-    if (xiosTime > time) {
-        throw std::runtime_error("ParaGridIO::readForcingTimeStatic: requested time point does"
-                                 " not align with the calendar and timestep used by XIOS.");
-    }
+    const std::set<std::string> forcingFieldNames
+        = era5 ? xiosHandler.era5ForcingFieldNames : xiosHandler.topazForcingFieldNames;
 
     // Get all forcings and load them into a new ModelState
     ModelState state;
     for (const std::string& fieldId : forcings) {
-        if (xiosHandler.forcingFieldNames.count(fieldId) == 0) {
-            throw std::runtime_error("ParaGridIO::readForcingTimeStatic: field " + fieldId
-                + " is not configured as a forcing.");
+        if (era5) {
+            if (xiosHandler.era5ForcingFieldNames.count(fieldId) == 0) {
+                throw std::runtime_error("ParaGridIO::readForcingTimeStatic: field " + fieldId
+                    + " is not configured as an ERA5 forcing.");
+            }
+        } else {
+
+            if (xiosHandler.topazForcingFieldNames.count(fieldId) == 0) {
+                throw std::runtime_error("ParaGridIO::readForcingTimeStatic: field " + fieldId
+                    + " is not configured as an TOPAZ forcing.");
+            }
         }
-        const std::string forcingFieldId = fieldId + "_forcing";
+        const std::string forcingFieldId = fieldId + (era5 ? "_era5_forcing" : "_topaz_forcing");
         const ModelArray::Type& type = xiosHandler.getFieldType(forcingFieldId);
         // ASSUME all forcings are HFields: finite volume fields on the same
         // grid as ice thickness
@@ -140,7 +143,7 @@ ModelState ParaGridIO::readForcingTimeStatic(
 
     // Read all forcings from file
     for (auto& [fieldId, modelarray] : state.data) {
-        const std::string forcingFieldId = fieldId + "_forcing";
+        const std::string forcingFieldId = fieldId + (era5 ? "_era5_forcing" : "_topaz_forcing");
         if (forcings.count(fieldId)) {
             xiosHandler.read(forcingFieldId, modelarray);
         }
@@ -161,7 +164,8 @@ void ParaGridIO::dumpModelState(const ModelState& state, const std::string& file
             + "' is inconsistent with model.restart_file '" + metadata.finalFileName + "'");
     }
 
-    // Assume that all fields in the supplied ModelState are necessary, and so write them to file.
+    // Assume that all fields in the supplied ModelState are necessary, and so write them to
+    // file.
     for (const auto& [fieldId, modelarray] : state.data) {
         if (xiosHandler.outputRestartFieldNames.count(fieldId) == 0) {
             Logged::warning("ParaGridIO::dumpModelState: field " + fieldId
@@ -184,7 +188,8 @@ void ParaGridIO::writeDiagnosticTime(const ModelState& state, const std::string&
             + "'");
     }
 
-    // Assume that all fields in the supplied ModelState are necessary, and so write them to file.
+    // Assume that all fields in the supplied ModelState are necessary, and so write them to
+    // file.
     for (const auto& [fieldId, modelarray] : state.data) {
         if (xiosHandler.diagnosticFieldNames.count(fieldId) == 0) {
             throw std::runtime_error("ParaGridIO::writeDiagnosticTime: field " + fieldId
