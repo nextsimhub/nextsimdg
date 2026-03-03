@@ -94,7 +94,8 @@ MPI_TEST_CASE("TestXiosWriteRestart", 2)
     }
     HField grid_azimuth(ModelArray::Type::H);
     grid_azimuth.reinitialize();
-    grid_azimuth = 0;
+    grid_azimuth = 0.0;
+
     /*
      * Mask definition, where 0 indicates land and 1 indicates ocean:
      *
