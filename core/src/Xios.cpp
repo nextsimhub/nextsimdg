@@ -280,6 +280,7 @@ void Xios::parseConfig()
     fieldNames = inputRestartFieldNames;
     fieldNames.insert(outputRestartFieldNames.begin(), outputRestartFieldNames.end());
     fieldNames.insert(era5ForcingFieldNames.begin(), era5ForcingFieldNames.end());
+    fieldNames.insert(topazForcingFieldNames.begin(), topazForcingFieldNames.end());
     fieldNames.insert(diagnosticFieldNames.begin(), diagnosticFieldNames.end());
 }
 
