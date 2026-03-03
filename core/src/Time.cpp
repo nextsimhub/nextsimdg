@@ -13,6 +13,7 @@ namespace Nextsim {
 const std::string TimePoint::ymdFormat = "%Y-%m-%d";
 const std::string TimePoint::doyFormat = "%Y-%j";
 const std::string TimePoint::hmsFormat = "T%H:%M:%SZ";
+const std::string TimePoint::msFormat = "T%M:%SZ";
 const std::string TimePoint::ymdhmsFormat = ymdFormat + hmsFormat;
 const std::string TimePoint::doyhmsFormat = doyFormat + hmsFormat;
 std::array<bool, TimeOptions::COUNT> TimeOptions::m_opt = { false, false };

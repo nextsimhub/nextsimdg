@@ -49,6 +49,8 @@ private:
     // be static.
     static std::string filePath;
 
+    ModelState forcingState;
+
     HField sstExt;
     HField sssExt;
 
