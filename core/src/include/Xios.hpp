@@ -73,7 +73,7 @@ public:
     size_t getAxisSize(const std::string& axisId);
 
     /* Field */
-    std::set<std::string> configGetForcingFieldNames();
+    std::set<std::string> forcingFieldNames;
     void setPrognosticFieldType(const std::string& fieldId, const ModelArray::Type& type);
     void setDiagnosticFieldType(const std::string& fieldId, const ModelArray::Type& type);
 
@@ -100,6 +100,9 @@ private:
     int mpi_rank { 0 };
     int mpi_size { 0 };
     int cStrLen { 20 }; // Length of C-strings passed to XIOS
+
+    /* Configuration */
+    void parseConfig();
 
     /* Client */
     const std::string clientId = "client";
@@ -164,9 +167,10 @@ private:
     /* Field */
     xios::CFieldGroup* getFieldGroup();
     xios::CField* getField(const std::string& fieldId);
-    std::set<std::string> configGetOutputRestartFieldNames();
-    std::set<std::string> configGetInputRestartFieldNames();
-    std::set<std::string> configGetDiagnosticFieldNames();
+    std::set<std::string> outputRestartFieldNames;
+    std::set<std::string> inputRestartFieldNames;
+    std::set<std::string> diagnosticFieldNames;
+    std::set<std::string> fieldNames;
     void createField(const std::string& fieldId, const std::string& fileId);
     std::string createInputField(const std::string& fieldId, const int ioType);
     void setFieldOperation(const std::string& fieldId, const int ioType);

@@ -54,7 +54,7 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
 
     // Get all variables in the file and load them into a new ModelState
     ModelState state;
-    for (const std::string& fieldId : xiosHandler.configGetInputRestartFieldNames()) {
+    for (const std::string& fieldId : xiosHandler.inputRestartFieldNames) {
         const ModelArray::Type& type = xiosHandler.getFieldType(fieldId);
         if (type == ModelArray::Type::H) {
             HField field(ModelArray::Type::H);
@@ -83,10 +83,9 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
     }
 
     // Assume that all fields in the supplied ModelState are necessary, and so read them from file.
-    const std::set<std::string> inputFieldIds = xiosHandler.configGetInputRestartFieldNames();
     for (auto& [fieldId, modelarray] : state.data) {
         const std::string inputFieldId = fieldId + "_input";
-        if (inputFieldIds.count(fieldId) == 0) {
+        if (xiosHandler.inputRestartFieldNames.count(fieldId) == 0) {
             Logged::warning(
                 "ParaGridIO::getModelState: field " + fieldId + " is not configured as a restart.");
             continue;
@@ -120,9 +119,8 @@ ModelState ParaGridIO::readForcingTimeStatic(
 
     // Get all forcings and load them into a new ModelState
     ModelState state;
-    const std::set<std::string> forcingFieldIds = xiosHandler.configGetForcingFieldNames();
     for (const std::string& fieldId : forcings) {
-        if (forcingFieldIds.count(fieldId) == 0) {
+        if (xiosHandler.forcingFieldNames.count(fieldId) == 0) {
             throw std::runtime_error("ParaGridIO::readForcingTimeStatic: field " + fieldId
                 + " is not configured as a forcing.");
         }
@@ -164,9 +162,8 @@ void ParaGridIO::dumpModelState(const ModelState& state, const std::string& file
     }
 
     // Assume that all fields in the supplied ModelState are necessary, and so write them to file.
-    const std::set<std::string> outputFieldIds = xiosHandler.configGetOutputRestartFieldNames();
     for (const auto& [fieldId, modelarray] : state.data) {
-        if (outputFieldIds.count(fieldId) == 0) {
+        if (xiosHandler.outputRestartFieldNames.count(fieldId) == 0) {
             Logged::warning("ParaGridIO::dumpModelState: field " + fieldId
                 + " is not configured as a restart.");
             continue;
@@ -188,9 +185,8 @@ void ParaGridIO::writeDiagnosticTime(const ModelState& state, const std::string&
     }
 
     // Assume that all fields in the supplied ModelState are necessary, and so write them to file.
-    const std::set<std::string> diagnosticFieldIds = xiosHandler.configGetDiagnosticFieldNames();
     for (const auto& [fieldId, modelarray] : state.data) {
-        if (diagnosticFieldIds.count(fieldId) == 0) {
+        if (xiosHandler.diagnosticFieldNames.count(fieldId) == 0) {
             throw std::runtime_error("ParaGridIO::writeDiagnosticTime: field " + fieldId
                 + " is not configured as a diagnostic.");
         }
