@@ -12,6 +12,17 @@ else()
     set(ParaGridIOImplSource "${CMAKE_CURRENT_SOURCE_DIR}/ParaGridIO.cpp")
 endif()
 
+# Create a stable generated include dir and copy the chosen ModelArrayDetails.hpp
+# This ensures a single canonical header, which can be included as
+# "include/ModelArrayDetails.hpp" from any target.
+file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/include")
+configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/${ModelArrayStructure}/include/ModelArrayDetails.hpp"
+    "${CMAKE_CURRENT_BINARY_DIR}/include/ModelArrayDetails.hpp"
+    COPYONLY
+)
+set(NextsimIncludeDirs "${NextsimIncludeDirs}" "${CMAKE_CURRENT_BINARY_DIR}/include")
+
 set(BaseSources
     "ModelMPI.cpp"
     "Logged.cpp"
@@ -68,5 +79,6 @@ set(NextsimIncludeDirs
     "${ModuleDir}"
     "${CMAKE_CURRENT_SOURCE_DIR}"
     "${CMAKE_CURRENT_SOURCE_DIR}/${ModelArrayStructure}"
+    "${CMAKE_CURRENT_BINARY_DIR}/include"
     PARENT_SCOPE
 )
