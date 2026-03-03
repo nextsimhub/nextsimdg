@@ -49,10 +49,13 @@ namespace Nextsim {
 
 static const std::string xDiagnosticPfx = "XiosDiagnostic";
 static const std::map<int, std::string> keyMap = { { Xios::ENABLED_KEY, "xios.enable" },
+    // TODO: Avoid having to parse restart fields (#1056)
     { Xios::OUTPUT_FIELD_NAMES_KEY, "XiosOutput.field_names" },
+    // TODO: Avoid having to parse input fields (#1056)
     { Xios::INPUT_FIELD_NAMES_KEY, "XiosInput.field_names" },
     { Xios::DIAGNOSTIC_PERIOD_KEY, xDiagnosticPfx + ".period" },
     { Xios::DIAGNOSTIC_FILE_KEY, xDiagnosticPfx + ".filename" },
+    // TODO: Avoid having to parse diagnostic fields for XIOS specifically (#981)
     { Xios::DIAGNOSTIC_FIELD_NAMES_KEY, xDiagnosticPfx + ".field_names" },
     { Xios::ERA5_FORCING_FILE_KEY, "ERA5Atmosphere.file" },
     { Xios::TOPAZ_FORCING_FILE_KEY, "TOPAZOcean.file" } };
@@ -263,8 +266,10 @@ std::set<std::string> str2set(const std::string& asStr, const char& delim = ',')
  */
 void Xios::parseConfig()
 {
+    // TODO: Avoid having to parse input fields (#1056)
     inputRestartFieldNames
         = str2set(Configured::getConfiguration(keyMap.at(INPUT_FIELD_NAMES_KEY), std::string()));
+    // TODO: Avoid having to parse restart fields (#1056)
     outputRestartFieldNames
         = str2set(Configured::getConfiguration(keyMap.at(OUTPUT_FIELD_NAMES_KEY), std::string()));
     diagnosticFieldNames = str2set(
