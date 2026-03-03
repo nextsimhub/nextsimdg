@@ -52,13 +52,17 @@ static const std::string xInputPfx = "XiosInput";
 static const std::string xDiagnosticPfx = "XiosDiagnostic";
 static const std::string xForcingPfx = "XiosForcing";
 static const std::map<int, std::string> keyMap = { { Xios::ENABLED_KEY, "xios.enable" },
+    // TODO: Avoid having to parse restart fields (#1056)
     { Xios::OUTPUT_FIELD_NAMES_KEY, xOutputPfx + ".field_names" },
+    // TODO: Avoid having to parse input fields (#1056)
     { Xios::INPUT_FIELD_NAMES_KEY, xInputPfx + ".field_names" },
     { Xios::DIAGNOSTIC_PERIOD_KEY, xDiagnosticPfx + ".period" },
     { Xios::DIAGNOSTIC_FILE_KEY, xDiagnosticPfx + ".filename" },
+    // TODO: Avoid having to parse diagnostic fields for XIOS specifically (#981)
     { Xios::DIAGNOSTIC_FIELD_NAMES_KEY, xDiagnosticPfx + ".field_names" },
     { Xios::FORCING_PERIOD_KEY, xForcingPfx + ".period" },
     { Xios::FORCING_FILE_KEY, xForcingPfx + ".filename" },
+    // TODO: Avoid having to parse forcing fields (#1045)
     { Xios::FORCING_FIELD_NAMES_KEY, xForcingPfx + ".field_names" } };
 
 Xios::HelpMap& Xios::getHelpText(HelpMap& map, bool getAll)
@@ -261,12 +265,16 @@ std::set<std::string> str2set(const std::string& asStr, const char& delim = ',')
  */
 void Xios::parseConfig()
 {
+    // TODO: Avoid having to parse input fields (#1056)
     inputRestartFieldNames
         = str2set(Configured::getConfiguration(keyMap.at(INPUT_FIELD_NAMES_KEY), std::string()));
+    // TODO: Avoid having to parse restart fields (#1056)
     outputRestartFieldNames
         = str2set(Configured::getConfiguration(keyMap.at(OUTPUT_FIELD_NAMES_KEY), std::string()));
+    // TODO: Avoid having to parse forcing fields (#1045)
     forcingFieldNames
         = str2set(Configured::getConfiguration(keyMap.at(FORCING_FIELD_NAMES_KEY), std::string()));
+    // TODO: Avoid having to parse diagnostic fields for XIOS specifically (#981)
     diagnosticFieldNames = str2set(
         Configured::getConfiguration(keyMap.at(DIAGNOSTIC_FIELD_NAMES_KEY), std::string()));
 
