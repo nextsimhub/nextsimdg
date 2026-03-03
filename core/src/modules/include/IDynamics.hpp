@@ -53,6 +53,7 @@ public:
 #ifdef USE_XIOS
         // Set XIOS field types
         Xios& xiosHandler = Xios::getInstance();
+        xiosHandler.setPrognosticFieldType(coordsName, ModelArray::Type::VERTEX);
         xiosHandler.setPrognosticFieldType(hiceName, ModelArray::AdvectionType);
         xiosHandler.setPrognosticFieldType(ciceName, ModelArray::AdvectionType);
         xiosHandler.setPrognosticFieldType(damageName, ModelArray::AdvectionType);
