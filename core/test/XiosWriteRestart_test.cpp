@@ -77,10 +77,6 @@ MPI_TEST_CASE("TestXiosWriteRestart", 2)
     Module::setImplementation<IStructure>("Nextsim::ParametricGrid");
 
     // Set field types for restarts
-    xiosHandler.setPrognosticFieldType(longitudeName, ModelArray::Type::H);
-    xiosHandler.setPrognosticFieldType(latitudeName, ModelArray::Type::H);
-    xiosHandler.setPrognosticFieldType(maskName, ModelArray::Type::H);
-    xiosHandler.setPrognosticFieldType(gridAzimuthName, ModelArray::Type::H);
     xiosHandler.setPrognosticFieldType(ticeName, ModelArray::Type::DGSTRESS);
     xiosHandler.setPrognosticFieldType(uName, ModelArray::Type::CG);
 
