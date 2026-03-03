@@ -1084,11 +1084,6 @@ ModelArray::Type Xios::getFieldType(const std::string& fieldId)
 void Xios::setFieldType(
     const std::string& fieldId, const ModelArray::Type& fieldType, const int ioType)
 {
-    if (fieldNames.count(fieldId) == 0) {
-        Logged::warning("Xios::setFieldType: Cannot set field type for field '" + fieldId
-            + "' because it is not in the config.");
-        return;
-    }
     const std::string ioFieldId = getFieldIOId(fieldId, ioType);
     if (fieldTypes.count(ioFieldId) > 0) {
         Logged::warning("Xios::setFieldType: Overwriting field type for field '" + ioFieldId + "'");
