@@ -803,29 +803,27 @@ void Xios::createField(const std::string& fieldId, const std::string& fileId)
     int ioType = getFileIOType(fileId);
 
     // Check that the field is in the expected config section
-    std::set<std::string> fieldNames;
     std::string ioName;
-    if (ioType == INPUT_RESTART) {
-        fieldNames = inputRestartFieldNames;
-        ioName = "input restart";
-    } else if (ioType == OUTPUT_RESTART) {
-        fieldNames = outputRestartFieldNames;
-        ioName = "output restart";
-    } else if (ioType == ERA5_FORCING) {
-        fieldNames = era5ForcingFieldNames;
-        ioName = "era5_forcing";
-    } else if (ioType == TOPAZ_FORCING) {
-        fieldNames = topazForcingFieldNames;
-        ioName = "topaz_forcing";
-    } else if (ioType == DIAGNOSTIC) {
-        fieldNames = diagnosticFieldNames;
-        ioName = "diagnostic";
-    } else {
-        throw std::runtime_error("Xios: Unknown I/O type for field '" + fieldId + "'");
-    }
-    if (fieldNames.find(fieldId) == fieldNames.end()) {
+    if (ioType == INPUT_RESTART
+        && inputRestartFieldNames.find(fieldId) == inputRestartFieldNames.end()) {
         throw std::runtime_error(
-            "Xios: Field '" + fieldId + "' cannot be found in the " + ioName + " config section");
+            "Xios: Field '" + fieldId + "' cannot be found in the input restart config section");
+    } else if (ioType == OUTPUT_RESTART
+        && outputRestartFieldNames.find(fieldId) == outputRestartFieldNames.end()) {
+        throw std::runtime_error(
+            "Xios: Field '" + fieldId + "' cannot be found in the output restart config section");
+    } else if (ioType == ERA5_FORCING
+        && era5ForcingFieldNames.find(fieldId) == era5ForcingFieldNames.end()) {
+        throw std::runtime_error(
+            "Xios: Field '" + fieldId + "' cannot be found in the ERA5 forcing config section");
+    } else if (ioType == TOPAZ_FORCING
+        && topazForcingFieldNames.find(fieldId) == topazForcingFieldNames.end()) {
+        throw std::runtime_error(
+            "Xios: Field '" + fieldId + "' cannot be found in the TOPAZ forcing config section");
+    } else if (ioType == DIAGNOSTIC
+        && diagnosticFieldNames.find(fieldId) == diagnosticFieldNames.end()) {
+        throw std::runtime_error(
+            "Xios: Field '" + fieldId + "' cannot be found in the diagnostic config section");
     }
 
     // Attempt to create the base field (if it doesn't already exist)
@@ -859,11 +857,13 @@ void Xios::createField(const std::string& fieldId, const std::string& fileId)
         setFieldOperation(inputFieldId, ioType);
         setFieldReadAccess(inputFieldId, true);
         fileAddField(fileId, inputFieldId);
-    } else {
+    } else if (ioType == OUTPUT_RESTART || ioType == DIAGNOSTIC) {
         // Set the field operation type and read access and associate the field with the file
         setFieldOperation(fieldId, ioType);
         setFieldReadAccess(fieldId, false);
         fileAddField(fileId, fieldId);
+    } else {
+        throw std::runtime_error("Xios: Unknown I/O type for field '" + fieldId + "'");
     }
 }
 
