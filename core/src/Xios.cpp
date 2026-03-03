@@ -272,6 +272,7 @@ void Xios::parseConfig()
     // TODO: Avoid having to parse restart fields (#1056)
     outputRestartFieldNames
         = str2set(Configured::getConfiguration(keyMap.at(OUTPUT_FIELD_NAMES_KEY), std::string()));
+    // TODO: Avoid having to parse diagnostic fields for XIOS specifically (#981)
     diagnosticFieldNames = str2set(
         Configured::getConfiguration(keyMap.at(DIAGNOSTIC_FIELD_NAMES_KEY), std::string()));
 
