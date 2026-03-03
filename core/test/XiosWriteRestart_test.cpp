@@ -119,9 +119,6 @@ MPI_TEST_CASE("TestXiosWriteRestart", 2)
             mask(i, j) = (i == 0 && j == 0 ? 0.0 : 1.0);
         }
     }
-    HField grid_azimuth(ModelArray::Type::H);
-    grid_azimuth.resize();
-    grid_azimuth = 0.0;
     DGField cice(ModelArray::Type::DG);
     cice.resize();
     DGField hice(ModelArray::Type::DG);

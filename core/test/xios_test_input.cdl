@@ -54,9 +54,6 @@ variables:
 	float mask(y_dim, x_dim) ;
 		mask:online_operation = "once" ;
 		mask:coordinates = "lat lon" ;
-	float grid_azimuth(y_dim, x_dim) ;
-		grid_azimuth:online_operation = "once" ;
-		grid_azimuth:coordinates = "lat lon" ;
 	float sss(y_dim, x_dim) ;
 		sss:online_operation = "once" ;
 		sss:coordinates = "lat lon" ;
@@ -112,10 +109,6 @@ data:
  mask =
   0, 1, 0, 1,
   1, 1, 1, 1 ;
-
- grid_azimuth =
-  0, 0, 0, 0,
-  0, 0, 0, 0 ;
 
  sss =
   _, _, _, _,
