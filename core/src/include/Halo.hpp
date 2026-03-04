@@ -258,8 +258,27 @@ private:
             buffer_len = sendBufferSize / CGdegree;
         }
         for (size_t comp = 0; comp < m_numComps; ++comp) {
+
+            // sourceToSendBuffer requires the `buffer_map` and `source_map` to have a similar
+            // memory layout to take advantage of Eigen notation for copying the data, and they both
+            // need to be eigen array-like objects. `Eigen::Map` allow us to represent a pointer to
+            // an array of data as an Eigen::ArrayXXd with specified dimensions.
+            //
+            // `source_map` maps the raw data pointer from `source` to a 2D Eigen array with
+            // dimensions m_Nx x m_Ny Uses dynamic inner stride of m_numComps to handle column-major
+            // storage format
             Eigen::Map<Eigen::ArrayXXd, 0, Eigen::InnerStride<Eigen::Dynamic>> source_map(
                 source.col(comp).data(), m_Nx, m_Ny, Eigen::InnerStride<>(m_numComps));
+
+            // The `send` buffers are stored as a vector of vectors. There is a send buffer for each
+            // component (e.g., DG, CG etc.). Each component will be of length `sendBufferSize`.
+            //
+            // In most cases `send` buffer is 1D, because we have a halo width of 1. But for
+            // CGVectors we have `nCells = CGdegree` which effectively means our effective halo
+            // width is `CGdegree`. This means the send buffer will be of dimensions:
+            // buffer_len x nCells
+            //
+            // buffer_map maps the raw data pointer to a 2D Eigen array with the correct dimensions.
             Eigen::Map<Eigen::ArrayXXd> buffer_map(send[comp].data(), buffer_len, nCells);
             for (auto edge : edges) {
                 // populate edge data into send buffer
