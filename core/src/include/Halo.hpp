@@ -707,6 +707,14 @@ public:
             bool hasCorner = false;
             bool isPeriodic = false;
 
+            // Check if both periodic and non-periodic corner neighbours exist
+            if (metadata.cornerRanksPeriodic[corner].size() > 0
+                && metadata.cornerRanks[corner].size() > 0) {
+                throw std::runtime_error(
+                    "It is not possible to have a non-periodic corner neighbour that is also "
+                    "periodic. Please check your partition metadata file.");
+            }
+
             if (metadata.cornerRanks[corner].size() > 0) {
                 // non-periodic case
                 hasCorner = true;
