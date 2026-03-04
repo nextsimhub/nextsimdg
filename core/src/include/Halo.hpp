@@ -290,6 +290,9 @@ private:
     /**
      * @brief Calculate which edge the send position sendPos would fall under in the send buffer
      *
+     * @param sendPos Position in the send buffer
+     * @param fromRank Rank from which the data is being sent
+     * @return Edge enum indicating which edge the position corresponds to
      */
     Edge edgeFromSendPos(int sendPos, int fromRank)
     {
