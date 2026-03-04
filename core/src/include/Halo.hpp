@@ -748,6 +748,11 @@ public:
         }
     }
 
+    /**
+     * @brief Populate target array with data from the receive buffer
+     *
+     * @param target Target array to populate with received halo data
+     */
     template <typename T> void populateTarget(T& target)
     {
         size_t buffer_len = recvBufferSize;
