@@ -52,7 +52,7 @@ MPI_TEST_CASE("TestXiosReadDiagnostic", 3)
     // Check the input file exists
     if (!std::filesystem::exists(diagnosticFilename)) {
         throw std::runtime_error(
-            "XiosReadDiagnostic_test: Input file not found. Did you run XiosWrite_test?");
+            "XiosReadDiagnostic_test: Input file not found. Did you run XiosWriteDiagnostic_test?");
     }
 
     // Create ModelMPI instance based off the test communicator

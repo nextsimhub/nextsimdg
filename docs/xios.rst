@@ -180,10 +180,15 @@ following:
 4. Associate the ``ParaGridIO`` pointer with the ``ParametricGrid`` instance
    using the latter's ``setIO`` member function.
 5. Get the ``Xios`` handler singleton using ``Xios::getInstance``.
-6. For each field to be written to file with XIOS, call the
-   ``setPrognosticFieldType`` or ``setDiagnosticFieldType`` member function of
-   ``Xios`` as appropriate, providing the field name as the first argument
-   and the ``ModelArray::Type::<TYPE>`` enum as the second argument (replacing
+6. For each field to be written to file with XIOS, the field type needs to be
+   set. By default, ``coords`` is set to ``ModelArray::Type::VERTEX`` and
+   ``hice``, ``cice``, ``damage``, and ``hsnow`` are all determined based on the
+   ``ModelArray::AdvectionType`` set in the grid implementation. All other
+   fields default to ``ModelArray::Type::H``. If you want to customise any other
+   field types then call the ``setPrognosticFieldType`` or
+   ``setDiagnosticFieldType`` member function of ``Xios`` as appropriate,
+   providing the field name as the first argument and the
+   ``ModelArray::Type::<TYPE>`` enum as the second argument (replacing
    ``<TYPE>>`` with the desired type).
 
 There is no need to explicitly close the XIOS context definition because this

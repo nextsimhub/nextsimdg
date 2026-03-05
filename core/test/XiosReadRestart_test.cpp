@@ -43,15 +43,15 @@ MPI_TEST_CASE("TestXiosReadRestart", 2)
     config << "partition_file = xios_test_partition_metadata_2.nc" << std::endl;
     config << "[XiosInput]" << std::endl;
     config << "field_names = " << maskName << "," << longitudeName << "," << latitudeName << ","
-           << gridAzimuthName << "," << ciceName << "," << hiceName << "," << damageName << ","
-           << hsnowName << "," << ticeName << "," << uName << "," << std::endl;
+           << coordsName << "," << gridAzimuthName << "," << ciceName << "," << hiceName << ","
+           << damageName << "," << hsnowName << "," << ticeName << "," << uName << "," << std::endl;
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
 
     // Check the input file exists
     if (!std::filesystem::exists(restartFilename)) {
         throw std::runtime_error(
-            "XiosReadRestart_test: Input file not found. Did you run XiosWrite_test?");
+            "XiosReadRestart_test: Input file not found. Did you run XiosWriteRestart_test?");
     }
 
     // Create ModelMPI instance based off the test communicator
@@ -101,6 +101,12 @@ MPI_TEST_CASE("TestXiosReadRestart", 2)
                 }
             }
         } else if (fieldName == gridAzimuthName) {
+            for (size_t j = 0; j < ny; ++j) {
+                for (size_t i = 0; i < nx; ++i) {
+                    REQUIRE(modelarray(i, j) == doctest::Approx(0.0));
+                }
+            }
+        } else if (fieldName == coordsName) {
             for (size_t j = 0; j < ny + 1; ++j) {
                 for (size_t i = 0; i < nx + 1; ++i) {
                     float expected_x;

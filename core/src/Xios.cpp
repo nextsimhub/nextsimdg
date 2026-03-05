@@ -280,6 +280,7 @@ void Xios::parseConfig()
     fieldNames = inputRestartFieldNames;
     fieldNames.insert(outputRestartFieldNames.begin(), outputRestartFieldNames.end());
     fieldNames.insert(era5ForcingFieldNames.begin(), era5ForcingFieldNames.end());
+    fieldNames.insert(topazForcingFieldNames.begin(), topazForcingFieldNames.end());
     fieldNames.insert(diagnosticFieldNames.begin(), diagnosticFieldNames.end());
 }
 
@@ -800,34 +801,6 @@ xios::CField* Xios::getField(const std::string& fieldId)
  */
 void Xios::createField(const std::string& fieldId, const std::string& fileId)
 {
-    int ioType = getFileIOType(fileId);
-
-    // Check that the field is in the expected config section
-    std::set<std::string> fieldNames;
-    std::string ioName;
-    if (ioType == INPUT_RESTART) {
-        fieldNames = inputRestartFieldNames;
-        ioName = "input restart";
-    } else if (ioType == OUTPUT_RESTART) {
-        fieldNames = outputRestartFieldNames;
-        ioName = "output restart";
-    } else if (ioType == ERA5_FORCING) {
-        fieldNames = era5ForcingFieldNames;
-        ioName = "era5_forcing";
-    } else if (ioType == TOPAZ_FORCING) {
-        fieldNames = topazForcingFieldNames;
-        ioName = "topaz_forcing";
-    } else if (ioType == DIAGNOSTIC) {
-        fieldNames = diagnosticFieldNames;
-        ioName = "diagnostic";
-    } else {
-        throw std::runtime_error("Xios: Unknown I/O type for field '" + fieldId + "'");
-    }
-    if (fieldNames.find(fieldId) == fieldNames.end()) {
-        throw std::runtime_error(
-            "Xios: Field '" + fieldId + "' cannot be found in the " + ioName + " config section");
-    }
-
     // Attempt to create the base field (if it doesn't already exist)
     bool exists;
     cxios_field_valid_id(&exists, fieldId.c_str(), fieldId.length());
@@ -852,6 +825,7 @@ void Xios::createField(const std::string& fieldId, const std::string& fileId)
         }
     }
 
+    int ioType = getFileIOType(fileId);
     if (ioType == INPUT_RESTART || ioType == ERA5_FORCING || ioType == TOPAZ_FORCING) {
         // Create an input field and set it's operation type and read access and associate it
         // with the file
@@ -859,11 +833,14 @@ void Xios::createField(const std::string& fieldId, const std::string& fileId)
         setFieldOperation(inputFieldId, ioType);
         setFieldReadAccess(inputFieldId, true);
         fileAddField(fileId, inputFieldId);
-    } else {
+    } else if (ioType == OUTPUT_RESTART || ioType == DIAGNOSTIC) {
         // Set the field operation type and read access and associate the field with the file
         setFieldOperation(fieldId, ioType);
         setFieldReadAccess(fieldId, false);
         fileAddField(fileId, fieldId);
+    } else {
+        // TODO: Allow unused fields in input files (#1060)
+        throw std::runtime_error("Xios: Unknown I/O type for field '" + fieldId + "'");
     }
 }
 
@@ -1110,7 +1087,15 @@ ModelArray::Type Xios::getFieldType(const std::string& fieldId)
 void Xios::setFieldType(
     const std::string& fieldId, const ModelArray::Type& fieldType, const int ioType)
 {
+    if (fieldNames.count(fieldId) == 0) {
+        Logged::warning("Xios::setFieldType: Cannot set field type for field '" + fieldId
+            + "' because it is not in the config.");
+        return;
+    }
     const std::string ioFieldId = getFieldIOId(fieldId, ioType);
+    if (fieldTypes.count(ioFieldId) > 0) {
+        Logged::warning("Xios::setFieldType: Overwriting field type for field '" + ioFieldId + "'");
+    }
     fieldTypes[ioFieldId] = fieldType;
     setFieldGridRef(ioFieldId, gridIds[fieldType]);
 }
@@ -1342,20 +1327,6 @@ void Xios::createFile(const std::string& fileId)
         throw std::runtime_error("Xios: Failed to set parallel access for file '" + fileId + "'");
     }
 
-    // Get the fieldIds
-    std::set<std::string> fieldIds;
-    if (ioType == INPUT_RESTART) {
-        fieldIds = inputRestartFieldNames;
-    } else if (ioType == OUTPUT_RESTART) {
-        fieldIds = outputRestartFieldNames;
-    } else if (ioType == ERA5_FORCING) {
-        fieldIds = era5ForcingFieldNames;
-    } else if (ioType == TOPAZ_FORCING) {
-        fieldIds = topazForcingFieldNames;
-    } else if (ioType == DIAGNOSTIC) {
-        fieldIds = diagnosticFieldNames;
-    }
-
     // Determine the file output frequency
     cxios_duration outputFreq;
     ModelMetadata& metadata = ModelMetadata::getInstance();
@@ -1418,6 +1389,20 @@ void Xios::createFile(const std::string& fileId)
             throw std::runtime_error(
                 "Xios: Failed to set split frequency format for file '" + fileId + "'");
         }
+    }
+
+    // Get the fieldIds
+    std::set<std::string> fieldIds;
+    if (ioType == INPUT_RESTART) {
+        fieldIds = inputRestartFieldNames;
+    } else if (ioType == OUTPUT_RESTART) {
+        fieldIds = outputRestartFieldNames;
+    } else if (ioType == ERA5_FORCING) {
+        fieldIds = era5ForcingFieldNames;
+    } else if (ioType == TOPAZ_FORCING) {
+        fieldIds = topazForcingFieldNames;
+    } else if (ioType == DIAGNOSTIC) {
+        fieldIds = diagnosticFieldNames;
     }
 
     // Loop over field_names entries in the config

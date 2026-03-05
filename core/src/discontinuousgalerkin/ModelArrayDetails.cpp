@@ -139,4 +139,7 @@ const ModelArray::TypeMap ModelArray::definedComp0Map()
         { Type::DGSTRESS, Type::H },
     };
 };
+
+const ModelArray::Type ModelArray::AdvectionType = ModelArray::Type::DG;
+
 }
