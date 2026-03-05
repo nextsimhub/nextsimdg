@@ -360,7 +360,6 @@ private:
             // for each cell
             auto extentX = CGdegree * metadata.getRankExtentsX()[fromRank] + 1;
             auto extentY = CGdegree * metadata.getRankExtentsY()[fromRank] + 1;
-            // TODO this is too big. Should only be 2 x CGdegree * haloWidth (extentX + extentY)
             auto fromRankSendBufferSize = 2 * haloWidth * CGdegree * (extentX + extentY);
             disp = disp + fromRankSendBufferSize / nCells * cell;
         }
