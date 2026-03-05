@@ -222,8 +222,8 @@ int ModelMetadata::getLocalExtentX() const { return localExtentX; }
 int ModelMetadata::getLocalExtentY() const { return localExtentY; }
 int ModelMetadata::getGlobalExtentX() const { return globalExtentX; }
 int ModelMetadata::getGlobalExtentY() const { return globalExtentY; }
-std::vector<int> ModelMetadata::getRankExtentsX() const { return rankExtentsX; }
-std::vector<int> ModelMetadata::getRankExtentsY() const { return rankExtentsY; }
+const std::vector<int>& ModelMetadata::getRankExtentsX() const { return rankExtentsX; }
+const std::vector<int>& ModelMetadata::getRankExtentsY() const { return rankExtentsY; }
 #else
 
 ModelMetadata::ModelMetadata()
