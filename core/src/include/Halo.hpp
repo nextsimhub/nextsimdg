@@ -299,8 +299,8 @@ private:
         auto& metadata = ModelMetadata::getInstance();
 
         // extents of sending domain
-        auto extentX = metadata.getRankExtentsX()[fromRank];
-        auto extentY = metadata.getRankExtentsY()[fromRank];
+        int extentX = metadata.getRankExtentsX()[fromRank];
+        int extentY = metadata.getRankExtentsY()[fromRank];
 
         if (sendPos - (2 * extentX + extentY) >= 0) {
             return Edge::LEFT;
