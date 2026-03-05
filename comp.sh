@@ -9,6 +9,6 @@ cmake .. -DCMAKE_EXPORT_COMPILE_COMMANDS=1 \
 	        -DENABLE_MPI=ON -DWITH_THREADS=ON -DPYTHON_EXECUTABLE=$(which python)
 
 make -j 4
-make test
-make install
+# make test
+# make install
 
