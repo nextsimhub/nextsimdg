@@ -213,23 +213,23 @@ public:
     std::array<std::string, N_CORNER> cornerNames
         = { "top_left", "top_right", "bottom_right", "bottom_left" };
 
-    typedef std::array<std::vector<int>, N_EDGE> neighbourArray;
-    neighbourArray neighbourRanks;
-    neighbourArray neighbourExtents;
-    neighbourArray neighbourHaloSend;
-    neighbourArray neighbourHaloRecv;
-    neighbourArray neighbourRanksPeriodic;
-    neighbourArray neighbourExtentsPeriodic;
-    neighbourArray neighbourHaloSendPeriodic;
-    neighbourArray neighbourHaloRecvPeriodic;
+    using NeighbourArray = std::array<std::vector<int>, N_EDGE>;
+    NeighbourArray neighbourRanks;
+    NeighbourArray neighbourExtents;
+    NeighbourArray neighbourHaloSend;
+    NeighbourArray neighbourHaloRecv;
+    NeighbourArray neighbourRanksPeriodic;
+    NeighbourArray neighbourExtentsPeriodic;
+    NeighbourArray neighbourHaloSendPeriodic;
+    NeighbourArray neighbourHaloRecvPeriodic;
 
-    typedef std::array<std::vector<int>, N_CORNER> cornerArray;
-    cornerArray cornerRanks;
-    cornerArray cornerHaloSend;
-    cornerArray cornerHaloRecv;
-    cornerArray cornerRanksPeriodic;
-    cornerArray cornerHaloSendPeriodic;
-    cornerArray cornerHaloRecvPeriodic;
+    using CornerArray = std::array<std::vector<int>, N_CORNER>;
+    CornerArray cornerRanks;
+    CornerArray cornerHaloSend;
+    CornerArray cornerHaloRecv;
+    CornerArray cornerRanksPeriodic;
+    CornerArray cornerHaloSendPeriodic;
+    CornerArray cornerHaloRecvPeriodic;
 #endif
 
     std::string initialFileName;
