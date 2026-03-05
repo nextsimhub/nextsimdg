@@ -142,7 +142,7 @@ public:
         }
 
         // need send / recv buffers for each component (e.g., each DGCOMP)
-        sendBufferSize = m_numHaloCells - 4 * nCells * nCells;
+        sendBufferSize = m_numHaloCells - Corner::N_CORNER * nCells * nCells;
         recvBufferSize = m_numHaloCells;
         send.resize(m_numComps);
         recv.resize(m_numComps);
@@ -397,7 +397,7 @@ private:
         if (isVertex) {
             count = 1;
             disp = disp + sendEdge;
-            recvOffset = recvOffset + 4;
+            recvOffset = recvOffset + Edge::N_EDGE;
             // Account for the fact that the vertex field is split differently to the face centered
             // fields. We dont take the data directly adjacent to the halo, but the one after that.
             // e.g., if you have two adjacent domains, the vertex on the far right of the left-hand
@@ -415,7 +415,7 @@ private:
         if (isCG) {
             count = CGdegree * count;
             disp = (disp > 0) ? CGdegree * disp + sendEdge : 0;
-            recvOffset = CGdegree * recvOffset + 4;
+            recvOffset = CGdegree * recvOffset + Edge::N_EDGE;
 
             // recvOffset is the offset in the recv buffer and this belongs to the current rank
             recvOffset = recvOffset + recvBufferSize / nCells * cell;
@@ -740,7 +740,7 @@ public:
                     auto buffer_len = recvBufferSize / CGdegree;
                     for (size_t comp = 0; comp < m_numComps; ++comp) {
                         Eigen::Map<Eigen::ArrayXXd> rmap(recv[comp].data(), buffer_len, nCells);
-                        auto offset = buffer_len - (4 - corner) * nCells;
+                        auto offset = buffer_len - (Corner::N_CORNER - corner) * nCells;
                         rmap.block(offset, 0, nCells, nCells).transposeInPlace();
                     }
                 }
