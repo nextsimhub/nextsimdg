@@ -8,6 +8,7 @@
 /docs/latex/
 /docs/xml/
 /docs/_build/
+/.venv
 
 # ignore all files in docs/api except for manually maintained rst files
 /docs/api/*
@@ -28,6 +29,7 @@ __pycache__/
 /run/*.nc
 /run/nextsim
 /.settings/*
+/run/run_june23
 
 # File types
 *.DS_Store

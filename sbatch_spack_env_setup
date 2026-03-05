@@ -1,0 +1,26 @@
+#!/bin/bash
+#SBATCH -J spack_env_icelake_interactive
+#SBATCH -A ICCS-SL2-CPU
+#SBATCH --output=test_job_%A_%a.out
+#SBATCH --error=test_job_%A_%a.err
+
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --time=3:00:00
+#SBATCH --mem=3420mb
+
+#SBATCH -p icelake
+#SBATCH --mail-type=ALL
+
+module purge
+module load gcc/11
+source ../fenics_branch/share/spack/setup-env.sh
+spack env create nextsimdg_env_icelake_interactive spack.yaml
+spack env activate nextsimdg_env_icelake_interactive
+spack env status
+module load python/3.11.0-icl
+pip3 install netCDF4
+spack add scorep
+spack concretize
+spack install
+
