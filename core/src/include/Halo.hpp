@@ -700,8 +700,6 @@ public:
     void transposeCorners()
     {
         auto& metadata = ModelMetadata::getInstance();
-        int fromRank;
-        size_t disp;
         for (auto corner : corners) {
             // non-periodic corners
             bool hasCorner = false;
@@ -726,6 +724,8 @@ public:
             }
 
             if (hasCorner) {
+                int fromRank;
+                size_t disp;
                 if (isPeriodic) {
                     fromRank = metadata.cornerRanksPeriodic[corner][0];
                     disp = metadata.cornerHaloSendPeriodic[corner][0];
