@@ -83,6 +83,15 @@ used to configure the calendar used by XIOS. For example,
   stop = 1970-01-01T01:00:00Z
   time_step = P0-0T01:00:00
 
+.. note::
+
+  The XIOS I/O implementation makes two assumptions:
+
+  1. The simulation starts at midnight.
+  2. The timestep aligns with the hour.
+
+  If these conditions aren't met then an error will be thrown.
+
 The filename and period for restart files is configured in the same way as when
 building without XIOS. That is, the ``model`` section should include
 ``init_file``, ``restart_file`` and ``restart_period`` entries:
