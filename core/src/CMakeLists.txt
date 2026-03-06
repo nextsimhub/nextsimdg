@@ -38,6 +38,7 @@ set(BaseSources
     "Time.cpp"
     "${ModelArrayStructure}/ModelArrayDetails.cpp"
     "Xios.cpp"
+    "Halo.cpp"
 )
 
 set(ParallelNetCDFSources "${CMAKE_CURRENT_SOURCE_DIR}/ParallelNetcdfFile.cpp")
