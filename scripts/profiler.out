@@ -1,0 +1,390 @@
+==> Package scorep was already added to nextsimdg_test_env
+==> All of the packages are already installed
+-- The CXX compiler identification is GNU 11.3.0
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /home/nvs31/fenics_branch/var/spack/environments/nextsimdg_test_env/.spack-env/view/bin/mpicxx - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Found MPI_CXX: /home/nvs31/fenics_branch/var/spack/environments/nextsimdg_test_env/.spack-env/view/bin/mpicxx (found version "3.1") 
+-- Found MPI: TRUE (found version "3.1") found components: CXX 
+-- Found PkgConfig: /home/nvs31/fenics_branch/var/spack/environments/nextsimdg_test_env/.spack-env/view/bin/pkg-config (found version "1.9.5") 
+-- Checking for one of the modules 'netcdf'
+-- Found Boost: /home/nvs31/fenics_branch/var/spack/environments/nextsimdg_test_env/.spack-env/view/lib/cmake/Boost-1.80.0/BoostConfig.cmake (found version "1.80.0") found components: program_options 
+-- Performing Test COMPILER_HAS_HIDDEN_VISIBILITY
+-- Performing Test COMPILER_HAS_HIDDEN_VISIBILITY - Success
+-- Performing Test COMPILER_HAS_HIDDEN_INLINE_VISIBILITY
+-- Performing Test COMPILER_HAS_HIDDEN_INLINE_VISIBILITY - Success
+-- Performing Test COMPILER_HAS_DEPRECATED_ATTR
+-- Performing Test COMPILER_HAS_DEPRECATED_ATTR - Success
+-- Configuring done (2.3s)
+-- Generating done (1.0s)
+-- Build files have been written to: /home/nvs31/domain_decomp/build
+[  9%] Generating test_1.nc
+[  9%] Generating test_0.nc
+[  9%] Building CXX object CMakeFiles/domain_decomp.dir/Grid.cpp.o
+[  9%] Building CXX object CMakeFiles/decomp.dir/DomainUtils.cpp.o
+[ 14%] Building CXX object CMakeFiles/domain_decomp.dir/DomainUtils.cpp.o
+[ 14%] Generating test_3.nc
+[ 16%] Generating test_4.nc
+[ 19%] Generating test_2.nc
+[ 19%] Built target generate_input_files
+[ 21%] Building CXX object CMakeFiles/domain_decomp.dir/Partitioner.cpp.o
+[ 26%] Building CXX object CMakeFiles/decomp.dir/Grid.cpp.o
+[ 26%] Building CXX object CMakeFiles/decomp.dir/Partitioner.cpp.o
+[ 28%] Building CXX object CMakeFiles/domain_decomp.dir/ZoltanPartitioner.cpp.o
+[ 30%] Building CXX object CMakeFiles/decomp.dir/ZoltanPartitioner.cpp.o
+[ 33%] Building CXX object CMakeFiles/decomp.dir/main.cpp.o
+[ 35%] Linking CXX shared library libdomain_decomp.so
+[ 35%] Built target domain_decomp
+[ 40%] Building CXX object test/CMakeFiles/test_grid_1.dir/test_grid_1.cpp.o
+[ 40%] Building CXX object test/CMakeFiles/test_grid_0.dir/test_grid_0.cpp.o
+[ 42%] Building CXX object test/CMakeFiles/test_grid_0.dir/MainMPI.cpp.o
+[ 45%] Building CXX object test/CMakeFiles/test_grid_1.dir/MainMPI.cpp.o
+[ 47%] Building CXX object test/CMakeFiles/test_grid_2.dir/test_grid_2.cpp.o
+[ 50%] Building CXX object test/CMakeFiles/test_grid_2.dir/MainMPI.cpp.o
+[ 52%] Linking CXX executable decomp
+[ 52%] Built target decomp
+[ 54%] Building CXX object test/CMakeFiles/test_zoltan_0.dir/test_zoltan_partitioner_0.cpp.o
+[ 57%] Building CXX object test/CMakeFiles/test_zoltan_0.dir/MainMPI.cpp.o
+[ 59%] Linking CXX executable test_grid_0
+[ 59%] Built target test_grid_0
+[ 61%] Building CXX object test/CMakeFiles/test_zoltan_1.dir/test_zoltan_partitioner_1.cpp.o
+[ 64%] Linking CXX executable test_grid_1
+[ 64%] Built target test_grid_1
+[ 66%] Building CXX object test/CMakeFiles/test_zoltan_2.dir/test_zoltan_partitioner_2.cpp.o
+[ 69%] Building CXX object test/CMakeFiles/test_zoltan_1.dir/MainMPI.cpp.o
+[ 71%] Linking CXX executable test_grid_2
+[ 71%] Built target test_grid_2
+[ 73%] Building CXX object test/CMakeFiles/test_zoltan_2.dir/MainMPI.cpp.o
+[ 76%] Building CXX object test/CMakeFiles/test_haloCornerBufferPositions.dir/test_haloCornerBufferPositions.cpp.o
+[ 78%] Building CXX object test/CMakeFiles/test_haloCornerBufferPositions.dir/MainMPI.cpp.o
+[ 80%] Linking CXX executable test_zoltan_0
+[ 80%] Built target test_zoltan_0
+[ 83%] Building CXX object test/CMakeFiles/test_haloEdgeBufferPositions.dir/test_haloEdgeBufferPositions.cpp.o
+[ 85%] Linking CXX executable test_zoltan_1
+[ 88%] Building CXX object test/CMakeFiles/test_haloEdgeBufferPositions.dir/MainMPI.cpp.o
+[ 88%] Built target test_zoltan_1
+[ 90%] Building CXX object examples/CMakeFiles/zoltan_comm.dir/zoltan_comm.cpp.o
+[ 92%] Linking CXX executable test_zoltan_2
+[ 92%] Built target test_zoltan_2
+[ 95%] Linking CXX executable test_haloCornerBufferPositions
+[ 95%] Built target test_haloCornerBufferPositions
+[ 97%] Linking CXX executable zoltan_comm
+[ 97%] Built target zoltan_comm
+[100%] Linking CXX executable test_haloEdgeBufferPositions
+[100%] Built target test_haloEdgeBufferPositions
+Running tests...
+Test project /home/nvs31/domain_decomp/build
+    Start 1: test_grid_0
+1/9 Test #1: test_grid_0 ......................   Passed    0.52 sec
+    Start 2: test_grid_1
+2/9 Test #2: test_grid_1 ......................   Passed    0.52 sec
+    Start 3: test_grid_2
+3/9 Test #3: test_grid_2 ......................   Passed    0.51 sec
+    Start 4: test_zoltan_0
+4/9 Test #4: test_zoltan_0 ....................   Passed    0.49 sec
+    Start 5: test_zoltan_1
+5/9 Test #5: test_zoltan_1 ....................   Passed    0.49 sec
+    Start 6: test_zoltan_2
+6/9 Test #6: test_zoltan_2 ....................   Passed    0.98 sec
+    Start 7: test_haloCornerBufferPositions
+7/9 Test #7: test_haloCornerBufferPositions ...   Passed    0.47 sec
+    Start 8: test_haloEdgeBufferPositions
+8/9 Test #8: test_haloEdgeBufferPositions .....   Passed    0.48 sec
+    Start 9: integration
+9/9 Test #9: integration ......................   Passed   12.55 sec
+
+100% tests passed, 0 tests failed out of 9
+
+Total Test time (real) =  17.05 sec
+[ 11%] Built target domain_decomp
+[ 26%] Built target decomp
+[ 33%] Built target test_grid_0
+[ 40%] Built target test_grid_1
+[ 47%] Built target test_grid_2
+[ 54%] Built target test_zoltan_0
+[ 61%] Built target test_zoltan_1
+[ 69%] Built target test_zoltan_2
+[ 76%] Built target test_haloCornerBufferPositions
+[ 83%] Built target test_haloEdgeBufferPositions
+[ 95%] Built target generate_input_files
+[100%] Built target zoltan_comm
+Install the project...
+-- Install configuration: ""
+-- Installing: /home/nvs31/domain_decomp/build/lib64/libdomain_decomp.so.1.0
+-- Installing: /home/nvs31/domain_decomp/build/lib64/libdomain_decomp.so.1
+-- Set runtime path of "/home/nvs31/domain_decomp/build/lib64/libdomain_decomp.so.1.0" to "$ORIGIN/../lib64:$ORIGIN/../../lib64:/rds/user/nvs31/hpc-work/spack/install/linux-rocky8-icelake/gcc-11.3.0/netcdf-c-4.9.2-2seaiwx2vqsdp6gumohwacf2yud2w3vo/lib:/home/nvs31/fenics_branch/var/spack/environments/nextsimdg_test_env/.spack-env/view/lib"
+-- Installing: /home/nvs31/domain_decomp/build/lib64/libdomain_decomp.so
+-- Installing: /home/nvs31/domain_decomp/build/include/Grid.hpp
+-- Installing: /home/nvs31/domain_decomp/build/include/Partitioner.hpp
+-- Installing: /home/nvs31/domain_decomp/build/include/DomainUtils.hpp
+-- Installing: /home/nvs31/domain_decomp/build/lib64/cmake/nextSIMutilsConfig.cmake
+-- Installing: /home/nvs31/domain_decomp/build/lib64/cmake/nextSIMutilsConfig-noconfig.cmake
+-- Installing: /home/nvs31/domain_decomp/build/bin/decomp
+-- Set runtime path of "/home/nvs31/domain_decomp/build/bin/decomp" to "$ORIGIN/../lib64:$ORIGIN/../../lib64:/rds/user/nvs31/hpc-work/spack/install/linux-rocky8-icelake/gcc-11.3.0/netcdf-c-4.9.2-2seaiwx2vqsdp6gumohwacf2yud2w3vo/lib:/home/nvs31/fenics_branch/var/spack/environments/nextsimdg_test_env/.spack-env/view/lib:/home/nvs31/fenics_branch/var/spack/environments/nextsimdg_test_env/.spack-env/._view/swtytcgz6iioy4ex6s44w5g6r33jfpn6/lib"
+-- Installing: /home/nvs31/domain_decomp/build/bin/examples/zoltan_comm
+-- Set runtime path of "/home/nvs31/domain_decomp/build/bin/examples/zoltan_comm" to "$ORIGIN/../lib64:$ORIGIN/../../lib64:/home/nvs31/fenics_branch/var/spack/environments/nextsimdg_test_env/.spack-env/._view/swtytcgz6iioy4ex6s44w5g6r33jfpn6/lib"
+MPI Size: 4
+Partitioning total time: 0.00170544 (secs)
+Partitioning Statistics:
+ Total weight of dots = 13904
+ Weight on each proc: ave = 3476, max = 3517, min = 3428
+ Maximum weight of single dot = 1
+ Send count: ave = 388, min = 136, max = 946
+ Recv count: ave = 388, min = 0, max = 795
+ Max dots: ave = 3758.75, min = 3498, max = 4374
+ Max memory: ave = 4365.25, min = 3639, max = 5249
+ # of OverAlloc: ave = 0.25, min = 0, max = 1
+ Median find iteration counts:
+   Serial iterations per process: avg 0.000000 min 0 max 0
+   Parallel iterations:
+     Per process: avg 4.000000 min 4 max 4
+     Total for all parallel cuts: 6
+     Detail of first cuts:
+       Level 1 cut count: avg 2.000000 variance 0.000000 actual: 2 
+       Level 2 cut count: avg 2.000000 variance 0.000000 actual: 2 2 
+ Start-up time (secs): ave = 0.00126413, min = 0.00126372, max = 0.0012646
+ Start-up time (%): ave = 74.1231, min = 74.099, max = 74.1508
+ Pre-median time (secs): ave = 3.14665e-05, min = 3.068e-05, max = 3.2156e-05
+ Pre-median time (%): ave = 1.84506, min = 1.79895, max = 1.88549
+ Median time (secs): ave = 0.000133251, min = 0.00012849, max = 0.000137787
+ Median time (%): ave = 7.8133, min = 7.53411, max = 8.07925
+ Comm time (secs): ave = 0.000259159, min = 0.000246123, max = 0.000272291
+ Comm time (%): ave = 15.196, min = 14.4316, max = 15.966
+ STATS Runs 1  bal  CURRENT 1.011795  MAX 1.011795  MIN 1.011795  AVG 1.011795
+ STATS Runs 1  moveCnt CURRENT 1416.000000  MAX 1416.000000  MIN 1416.000000  AVG 1416.000000
+ STATS DETAIL count:  min 3428  max 3517  avg 3476.000000  imbal 1.011795
+ STATS DETAIL wdim = 0; no detail available
+MPI Size: 4; Number of threads 1
+2010-01-01T00:00:00Z
+2010-01-01T00:00:00Z
+2010-01-01T00:00:00Z
+2010-01-01T00:00:00Z
+2010-01-01T00:15:00Z
+2010-01-01T00:15:00Z
+2010-01-01T00:15:00Z
+2010-01-01T00:15:00Z
+2010-01-01T00:30:00Z
+2010-01-01T00:30:00Z
+2010-01-01T00:30:00Z
+2010-01-01T00:30:00Z
+ParaGridIO::closeAllFiles: closing 1 files
+ParaGridIO::closeAllFiles: closing 1 files
+ParaGridIO::closeAllFiles: closing 1 files
+ParaGridIO::closeAllFiles: closing 1 files
+MPI Size: 4; Number of threads 2
+2010-01-01T00:00:00Z
+2010-01-01T00:00:00Z
+2010-01-01T00:00:00Z
+2010-01-01T00:00:00Z
+2010-01-01T00:15:00Z
+2010-01-01T00:15:00Z
+2010-01-01T00:15:00Z
+2010-01-01T00:15:00Z
+2010-01-01T00:30:00Z
+2010-01-01T00:30:00Z
+2010-01-01T00:30:00Z
+2010-01-01T00:30:00Z
+ParaGridIO::closeAllFiles: closing 1 files
+ParaGridIO::closeAllFiles: closing 1 files
+ParaGridIO::closeAllFiles: closing 1 files
+ParaGridIO::closeAllFiles: closing 1 files
+MPI Size: 4; Number of threads 4
+2010-01-01T00:00:00Z
+2010-01-01T00:00:00Z
+2010-01-01T00:00:00Z
+2010-01-01T00:00:00Z
+2010-01-01T00:15:00Z
+2010-01-01T00:15:00Z
+2010-01-01T00:15:00Z
+2010-01-01T00:15:00Z
+2010-01-01T00:30:00Z
+2010-01-01T00:30:00Z
+2010-01-01T00:30:00Z
+2010-01-01T00:30:00Z
+ParaGridIO::closeAllFiles: closing 1 files
+ParaGridIO::closeAllFiles: closing 1 files
+ParaGridIO::closeAllFiles: closing 1 files
+ParaGridIO::closeAllFiles: closing 1 files
+MPI Size: 4; Number of threads 8
+2010-01-01T00:00:00Z
+2010-01-01T00:00:00Z
+2010-01-01T00:00:00Z
+2010-01-01T00:00:00Z
+2010-01-01T00:15:00Z
+2010-01-01T00:15:00Z
+2010-01-01T00:15:00Z
+2010-01-01T00:15:00Z
+2010-01-01T00:30:00Z
+2010-01-01T00:30:00Z
+2010-01-01T00:30:00Z
+2010-01-01T00:30:00Z
+ParaGridIO::closeAllFiles: closing 1 files
+ParaGridIO::closeAllFiles: closing 1 files
+ParaGridIO::closeAllFiles: closing 1 files
+ParaGridIO::closeAllFiles: closing 1 files
+MPI Size: 8
+Partitioning total time: 0.001722 (secs)
+Partitioning Statistics:
+ Total weight of dots = 13904
+ Weight on each proc: ave = 1738, max = 1771, min = 1704
+ Maximum weight of single dot = 1
+ Send count: ave = 1829.12, min = 1265, max = 2265
+ Recv count: ave = 1829.12, min = 1444, max = 2456
+ Max dots: ave = 1968.5, min = 1707, max = 2364
+ Max memory: ave = 2331.38, min = 1883, max = 2837
+ # of OverAlloc: ave = 0.375, min = 0, max = 2
+ Median find iteration counts:
+   Serial iterations per process: avg 0.000000 min 0 max 0
+   Parallel iterations:
+     Per process: avg 6.000000 min 6 max 6
+     Total for all parallel cuts: 14
+     Detail of first cuts:
+       Level 1 cut count: avg 2.000000 variance 0.000000 actual: 2 
+       Level 2 cut count: avg 2.000000 variance 0.000000 actual: 2 2 
+       Level 3 cut count: avg 2.000000 variance 0.000000 actual: 2 2 2 2 
+ Start-up time (secs): ave = 0.000860181, min = 0.000859724, max = 0.000860777
+ Start-up time (%): ave = 49.9526, min = 49.926, max = 49.9871
+ Pre-median time (secs): ave = 8.49503e-05, min = 8.3488e-05, max = 8.6441e-05
+ Pre-median time (%): ave = 4.93324, min = 4.84832, max = 5.01981
+ Median time (secs): ave = 0.000229123, min = 0.000199892, max = 0.000248174
+ Median time (%): ave = 13.3057, min = 11.6082, max = 14.412
+ Comm time (secs): ave = 0.000528937, min = 0.000516846, max = 0.000547333
+ Comm time (%): ave = 30.7165, min = 30.0143, max = 31.7848
+ STATS Runs 1  bal  CURRENT 1.018987  MAX 1.018987  MIN 1.018987  AVG 1.018987
+ STATS Runs 1  moveCnt CURRENT 11045.000000  MAX 11045.000000  MIN 11045.000000  AVG 11045.000000
+ STATS DETAIL count:  min 1704  max 1771  avg 1738.000000  imbal 1.018987
+ STATS DETAIL wdim = 0; no detail available
+MPI Size: 8; Number of threads 1
+2010-01-01T00:00:00Z
+2010-01-01T00:00:00Z
+2010-01-01T00:00:00Z
+2010-01-01T00:00:00Z
+2010-01-01T00:00:00Z
+2010-01-01T00:00:00Z
+2010-01-01T00:00:00Z
+2010-01-01T00:00:00Z
+2010-01-01T00:15:00Z
+2010-01-01T00:15:00Z
+2010-01-01T00:15:00Z
+2010-01-01T00:15:00Z
+2010-01-01T00:15:00Z
+2010-01-01T00:15:00Z
+2010-01-01T00:15:00Z
+2010-01-01T00:15:00Z
+2010-01-01T00:30:00Z
+2010-01-01T00:30:00Z
+2010-01-01T00:30:00Z
+2010-01-01T00:30:00Z
+2010-01-01T00:30:00Z
+2010-01-01T00:30:00Z
+2010-01-01T00:30:00Z
+2010-01-01T00:30:00Z
+ParaGridIO::closeAllFiles: closing 1 files
+ParaGridIO::closeAllFiles: closing 1 files
+ParaGridIO::closeAllFiles: closing 1 files
+ParaGridIO::closeAllFiles: closing 1 files
+ParaGridIO::closeAllFiles: closing 1 files
+ParaGridIO::closeAllFiles: closing 1 files
+ParaGridIO::closeAllFiles: closing 1 files
+ParaGridIO::closeAllFiles: closing 1 files
+MPI Size: 8; Number of threads 2
+2010-01-01T00:00:00Z
+2010-01-01T00:00:00Z
+2010-01-01T00:00:00Z
+2010-01-01T00:00:00Z
+2010-01-01T00:00:00Z
+2010-01-01T00:00:00Z
+2010-01-01T00:00:00Z
+2010-01-01T00:00:00Z
+2010-01-01T00:15:00Z
+2010-01-01T00:15:00Z
+2010-01-01T00:15:00Z
+2010-01-01T00:15:00Z
+2010-01-01T00:15:00Z
+2010-01-01T00:15:00Z
+2010-01-01T00:15:00Z
+2010-01-01T00:15:00Z
+2010-01-01T00:30:00Z
+2010-01-01T00:30:00Z
+2010-01-01T00:30:00Z
+2010-01-01T00:30:00Z
+2010-01-01T00:30:00Z
+2010-01-01T00:30:00Z
+2010-01-01T00:30:00Z
+2010-01-01T00:30:00Z
+ParaGridIO::closeAllFiles: closing 1 files
+ParaGridIO::closeAllFiles: closing 1 files
+ParaGridIO::closeAllFiles: closing 1 files
+ParaGridIO::closeAllFiles: closing 1 files
+ParaGridIO::closeAllFiles: closing 1 files
+ParaGridIO::closeAllFiles: closing 1 files
+ParaGridIO::closeAllFiles: closing 1 files
+ParaGridIO::closeAllFiles: closing 1 files
+MPI Size: 8; Number of threads 4
+2010-01-01T00:00:00Z
+2010-01-01T00:00:00Z
+2010-01-01T00:00:00Z
+2010-01-01T00:00:00Z
+2010-01-01T00:00:00Z
+2010-01-01T00:00:00Z
+2010-01-01T00:00:00Z
+2010-01-01T00:00:00Z
+2010-01-01T00:15:00Z
+2010-01-01T00:15:00Z
+2010-01-01T00:15:00Z
+2010-01-01T00:15:00Z
+2010-01-01T00:15:00Z
+2010-01-01T00:15:00Z
+2010-01-01T00:15:00Z
+2010-01-01T00:15:00Z
+2010-01-01T00:30:00Z
+2010-01-01T00:30:00Z
+2010-01-01T00:30:00Z
+2010-01-01T00:30:00Z
+2010-01-01T00:30:00Z
+2010-01-01T00:30:00Z
+2010-01-01T00:30:00Z
+2010-01-01T00:30:00Z
+ParaGridIO::closeAllFiles: closing 1 files
+ParaGridIO::closeAllFiles: closing 1 files
+ParaGridIO::closeAllFiles: closing 1 files
+ParaGridIO::closeAllFiles: closing 1 files
+ParaGridIO::closeAllFiles: closing 1 files
+ParaGridIO::closeAllFiles: closing 1 files
+ParaGridIO::closeAllFiles: closing 1 files
+ParaGridIO::closeAllFiles: closing 1 files
+MPI Size: 8; Number of threads 8
+2010-01-01T00:00:00Z
+2010-01-01T00:00:00Z
+2010-01-01T00:00:00Z
+2010-01-01T00:00:00Z
+2010-01-01T00:00:00Z
+2010-01-01T00:00:00Z
+2010-01-01T00:00:00Z
+2010-01-01T00:00:00Z
+2010-01-01T00:15:00Z
+2010-01-01T00:15:00Z
+2010-01-01T00:15:00Z
+2010-01-01T00:15:00Z
+2010-01-01T00:15:00Z
+2010-01-01T00:15:00Z
+2010-01-01T00:15:00Z
+2010-01-01T00:15:00Z
+2010-01-01T00:30:00Z
+2010-01-01T00:30:00Z
+2010-01-01T00:30:00Z
+2010-01-01T00:30:00Z
+2010-01-01T00:30:00Z
+2010-01-01T00:30:00Z
+2010-01-01T00:30:00Z
+2010-01-01T00:30:00Z
+ParaGridIO::closeAllFiles: closing 1 files
+ParaGridIO::closeAllFiles: closing 1 files
+ParaGridIO::closeAllFiles: closing 1 files
+ParaGridIO::closeAllFiles: closing 1 files
+ParaGridIO::closeAllFiles: closing 1 files
+ParaGridIO::closeAllFiles: closing 1 files
+ParaGridIO::closeAllFiles: closing 1 files
+ParaGridIO::closeAllFiles: closing 1 files

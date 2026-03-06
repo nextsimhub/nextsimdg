@@ -1,0 +1,58 @@
+CMake Warning:
+  Ignoring extra path from command line:
+
+   ".."
+
+
+CMake Error: The source directory "/home/nvs31/nextsimdg/scripts" does not appear to contain CMakeLists.txt.
+Specify --help for usage, or press the help button on the CMake GUI.
+make: *** No targets specified and no makefile found.  Stop.
+CMake Warning at CMakeLists.txt:58 (find_package):
+  By not providing "FindZoltan.cmake" in CMAKE_MODULE_PATH this project has
+  asked CMake to find a package configuration file provided by "Zoltan", but
+  CMake did not find one.
+
+  Could not find a package configuration file provided by "Zoltan" with any
+  of the following names:
+
+    ZoltanConfig.cmake
+    zoltan-config.cmake
+
+  Add the installation prefix of "Zoltan" to CMAKE_PREFIX_PATH or set
+  "Zoltan_DIR" to a directory containing one of the above files.  If "Zoltan"
+  provides a separate development package or SDK, be sure it has been
+  installed.
+
+
+
+real	9m35.851s
+user	32m46.063s
+sys	0m1.870s
+
+real	7m7.015s
+user	35m59.583s
+sys	0m1.860s
+
+real	4m27.951s
+user	35m44.626s
+sys	0m1.969s
+
+real	3m1.644s
+user	36m18.300s
+sys	0m2.194s
+
+real	5m56.443s
+user	36m38.561s
+sys	0m4.538s
+
+real	4m57.146s
+user	42m38.198s
+sys	0m4.696s
+
+real	3m23.450s
+user	41m17.816s
+sys	0m4.734s
+
+real	2m35.813s
+user	44m24.333s
+sys	0m5.132s
