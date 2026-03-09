@@ -18,15 +18,19 @@ const std::string partitionFilenamePB = testFilesDir + "/halo_pb_test_partition_
 
 namespace Nextsim {
 
-constexpr ModelMetadata::Edge BOTTOM = ModelMetadata::Edge::BOTTOM;
-constexpr ModelMetadata::Edge RIGHT = ModelMetadata::Edge::RIGHT;
-constexpr ModelMetadata::Edge TOP = ModelMetadata::Edge::TOP;
-constexpr ModelMetadata::Edge LEFT = ModelMetadata::Edge::LEFT;
+using Edge = ModelMetadata::Edge;
 
-constexpr ModelMetadata::Corner TOP_LEFT = ModelMetadata::Corner::TOP_LEFT;
-constexpr ModelMetadata::Corner TOP_RIGHT = ModelMetadata::Corner::TOP_RIGHT;
-constexpr ModelMetadata::Corner BOTTOM_RIGHT = ModelMetadata::Corner::BOTTOM_RIGHT;
-constexpr ModelMetadata::Corner BOTTOM_LEFT = ModelMetadata::Corner::BOTTOM_LEFT;
+constexpr auto BOTTOM = Edge::BOTTOM;
+constexpr auto RIGHT = Edge::RIGHT;
+constexpr auto TOP = Edge::TOP;
+constexpr auto LEFT = Edge::LEFT;
+
+using Corner = ModelMetadata::Corner;
+
+constexpr auto TOP_LEFT = Corner::TOP_LEFT;
+constexpr auto TOP_RIGHT = Corner::TOP_RIGHT;
+constexpr auto BOTTOM_RIGHT = Corner::BOTTOM_RIGHT;
+constexpr auto BOTTOM_LEFT = Corner::BOTTOM_LEFT;
 
 typedef std::vector<int> vec;
 
