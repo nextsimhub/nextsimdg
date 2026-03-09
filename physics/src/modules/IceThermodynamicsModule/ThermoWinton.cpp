@@ -3,10 +3,13 @@
  * @author  Robert Jendersie <robert.jendersie@ovgu.de>
  */
 
-#include "include/ThermoWinton.hpp"
 #include "include/IceMinima.hpp"
+#include "include/ThermoWinton.hpp"
 
 #include "include/KernelAlternatives.hpp"
+#ifdef USE_XIOS
+#include "include/Xios.hpp"
+#endif
 #include "include/constants.hpp"
 #include "include/gridNames.hpp"
 #include "kokkos/include/KokkosTimer.hpp"
@@ -42,6 +45,13 @@ ThermoWinton::ThermoWinton()
     topMeltAccessor.getHostRW().reinitialize();
     botMeltAccessor.getHostRW().reinitialize();
     snowToIceAccessor.getHostRW().reinitialize();
+
+#ifdef USE_XIOS
+    // Set XIOS field types
+    Xios& xiosHandler = Xios::getInstance();
+    xiosHandler.setPrognosticFieldType(tInteriorName, ModelArray::AdvectionType);
+    xiosHandler.setPrognosticFieldType(tBottomName, ModelArray::AdvectionType);
+#endif
 }
 
 static const std::map<int, std::string> keyMap = {

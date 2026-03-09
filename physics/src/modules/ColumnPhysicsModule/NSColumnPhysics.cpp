@@ -3,8 +3,8 @@
  * @author  Einar Ólason <einar.olason@nersc.no>
  */
 
-#include "include/NSColumnPhysics.hpp"
 #include "include/Finalizer.hpp"
+#include "include/NSColumnPhysics.hpp"
 #include "include/NextsimModule.hpp"
 #include "include/constants.hpp"
 
@@ -19,7 +19,8 @@ static const std::map<int, std::string> keyMap = {
 };
 
 NSColumnPhysics::NSColumnPhysics()
-    : hiceAccessor(getStore())
+    : IColumnPhysics()
+    , hiceAccessor(getStore())
     , ciceAccessor(getStore())
     , hsnowAccessor(getStore())
     , qowAccessor(getStore())
