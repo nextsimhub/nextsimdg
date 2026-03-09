@@ -78,7 +78,6 @@ public:
 
     enum {
         ENABLED_KEY,
-        OUTPUT_FIELD_NAMES_KEY,
         DIAGNOSTIC_PERIOD_KEY,
         DIAGNOSTIC_FILE_KEY,
         DIAGNOSTIC_FIELD_NAMES_KEY,

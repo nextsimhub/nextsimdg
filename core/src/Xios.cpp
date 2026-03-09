@@ -49,8 +49,6 @@ namespace Nextsim {
 
 static const std::string xDiagnosticPfx = "XiosDiagnostic";
 static const std::map<int, std::string> keyMap = { { Xios::ENABLED_KEY, "xios.enable" },
-    // TODO: Avoid having to parse restart fields (#1056)
-    { Xios::OUTPUT_FIELD_NAMES_KEY, "XiosOutput.field_names" },
     { Xios::DIAGNOSTIC_PERIOD_KEY, xDiagnosticPfx + ".period" },
     { Xios::DIAGNOSTIC_FILE_KEY, xDiagnosticPfx + ".filename" },
     // TODO: Avoid having to parse diagnostic fields for XIOS specifically (#981)
@@ -66,10 +64,6 @@ Xios::HelpMap& Xios::getHelpText(HelpMap& map, bool getAll)
             "to be modifed by the user. Build nextSIM-DG with XIOS support with the CMake argument "
             "-DENABLE_XIOS=ON, passing the path to your XIOS installation with "
             "-Dxios_DIR=/path/to/xios." },
-    };
-    map["XiosOutput"] = {
-        { keyMap.at(OUTPUT_FIELD_NAMES_KEY), ConfigType::STRING, {}, "", "",
-            "Comma-separated list of field names to be written to the output file." },
     };
     map["XiosDiagnostic"] = {
         { keyMap.at(DIAGNOSTIC_PERIOD_KEY), ConfigType::STRING, {}, "0", "",
@@ -266,9 +260,6 @@ std::set<std::string> str2set(const std::string& asStr, const char& delim = ',')
  */
 void Xios::parseConfig()
 {
-    // TODO: Avoid having to parse restart fields (#1056)
-    outputRestartFieldNames
-        = str2set(Configured::getConfiguration(keyMap.at(OUTPUT_FIELD_NAMES_KEY), std::string()));
     // TODO: Avoid having to parse diagnostic fields for XIOS specifically (#981)
     diagnosticFieldNames = str2set(
         Configured::getConfiguration(keyMap.at(DIAGNOSTIC_FIELD_NAMES_KEY), std::string()));
@@ -1075,6 +1066,7 @@ void Xios::setFieldType(
 void Xios::setPrognosticFieldType(const std::string& fieldId, const ModelArray::Type& fieldType)
 {
     setFieldType(fieldId, fieldType, OUTPUT_RESTART);
+    outputRestartFieldNames.insert(fieldId);
 }
 
 /*!
