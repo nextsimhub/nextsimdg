@@ -48,7 +48,7 @@ ConfigOutput::ConfigOutput()
     , lastOutput(defaultLastOutput)
     , fieldsForOutput()
     , currentFileName()
-    , snapshots(false)
+    , snapshots(true)
     , resetState(true)
 {
 }
@@ -160,8 +160,7 @@ void ConfigOutput::outputState(const ModelState& diagState)
     }
 
     double averagingFactor = meta.stepLength().seconds() / outputPeriod.seconds();
-    if (resetState)
-        state = { {}, diagState.config };
+    ModelState state = { {}, diagState.config };
     auto storeData = ModelComponent::getStore().getAllData();
     if (outputAllTheFields) {
         // If the internal to external name lookup table is still empty, fill it
@@ -181,27 +180,9 @@ void ConfigOutput::outputState(const ModelState& diagState)
             if (entry.second && entry.second->trueSize()) {
                 std::string key;
                 if (reverseExternalNames.count(entry.first)) {
-                    key = reverseExternalNames.at(entry.first);
+                    state.data[reverseExternalNames.at(entry.first)] = *entry.second;
                 } else {
-                    key = entry.first;
-                }
-                if (snapshots || everyTS) {
-                    state.data[key] = *entry.second;
-                } else {
-                    /* Averaging the DG components doesn't make sense, so we only take the mean
-                     * component. This does require an extra copy, though. The DG components are not
-                     * masked ether, so we apply the mask to the copy. */
-                    ModelArray data;
-                    if (entry.second->getType() == ModelArray::Type::DG) {
-                        data = ModelArray(ModelArray::Type::H);
-                        data.setData(entry.second->component(0));
-                    } else {
-                        data = *entry.second;
-                    }
-                    if (resetState)
-                        state.data[key] = mask(data) * averagingFactor;
-                    else
-                        state.data.at(key) += mask(data) * averagingFactor;
+                    state.data[entry.first] = *entry.second;
                 }
             }
         }
@@ -218,25 +199,7 @@ void ConfigOutput::outputState(const ModelState& diagState)
         for (const auto& fieldExtName : fieldsForOutput) {
             if (externalNames.count(fieldExtName) && storeData.count(externalNames.at(fieldExtName))
                 && storeData.at(externalNames.at(fieldExtName))) {
-                if (snapshots || everyTS) {
-                    state.data[fieldExtName] = *storeData.at(externalNames.at(fieldExtName));
-                } else {
-                    /* Averaging the DG components doesn't make sense, so we only take the mean
-                     * component. This does require an extra copy, though. The DG components are not
-                     * masked ether, so we apply the mask to the copy. */
-                    const std::string& key = externalNames.at(fieldExtName);
-                    ModelArray data;
-                    if (storeData.at(key)->getType() == ModelArray::Type::DG) {
-                        data = ModelArray(ModelArray::Type::H);
-                        data.setData(storeData.at(key)->component(0));
-                    } else {
-                        data = *storeData.at(key);
-                    }
-                    if (resetState)
-                        state.data[fieldExtName] = mask(data) * averagingFactor;
-                    else
-                        state.data.at(fieldExtName) += mask(data) * averagingFactor;
-                }
+                state.data[fieldExtName] = *storeData.at(externalNames.at(fieldExtName));
             }
         }
     }
@@ -255,9 +218,6 @@ void ConfigOutput::outputState(const ModelState& diagState)
         meta.affixCoordinates(state);
         StructureFactory::fileFromState(state, currentFileName, false);
         lastOutput = meta.time();
-        resetState = true;
-    } else {
-        resetState = false;
     }
 }
 

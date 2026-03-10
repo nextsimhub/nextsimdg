@@ -67,8 +67,6 @@ private:
 
     std::map<std::string, std::string> reverseExternalNames;
 
-    ModelState state;
-
     bool snapshots;
     bool resetState;
 };
