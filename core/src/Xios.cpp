@@ -1175,7 +1175,9 @@ void Xios::setupFields()
                 // Set the input field type and default the base field type correspondingly
                 ModelArray::Type fieldType = dimensionKeys.at(dimKey);
                 setFieldType(fieldId, fieldType, ioType);
-                setFieldType(fieldId, fieldType, NOT_READ);
+                if (fieldTypes.count(fieldId) == 0) {
+                    setFieldType(fieldId, fieldType, NOT_READ);
+                }
             }
             ncFile.close();
         } catch (const netCDF::exceptions::NcException& nce) {
