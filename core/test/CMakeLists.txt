@@ -467,6 +467,14 @@ else()
     target_include_directories(testConfigOutput PRIVATE ${MODEL_INCLUDE_DIR})
     target_link_libraries(testConfigOutput PRIVATE nextsimlib doctest::doctest)
 
+    add_executable(testSnapshotOutput "SnapshotOutput_test.cpp")
+    target_compile_definitions(
+        testSnapshotOutput
+        PRIVATE TEST_FILES_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\"
+    )
+    target_include_directories(testSnapshotOutput PRIVATE ${MODEL_INCLUDE_DIR})
+    target_link_libraries(testSnapshotOutput PRIVATE nextsimlib doctest::doctest)
+
     add_executable(testIterator "Iterator_test.cpp")
     target_link_libraries(testIterator PRIVATE nextsimlib doctest::doctest)
 
