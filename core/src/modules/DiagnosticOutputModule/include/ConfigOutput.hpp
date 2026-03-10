@@ -28,7 +28,6 @@ public:
     enum {
         PERIOD_KEY,
         START_KEY,
-        SNAPSHOT_KEY,
         FIELDNAMES_KEY,
         FILENAME_KEY,
         FILEPERIOD_KEY,

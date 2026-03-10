@@ -32,7 +32,6 @@ static const std::string modelStartKey = "model.start";
 static const std::map<int, std::string> keyMap = {
     { ConfigOutput::PERIOD_KEY, periodKey },
     { ConfigOutput::START_KEY, startKey },
-    { ConfigOutput::SNAPSHOT_KEY, snapshotKey },
     { ConfigOutput::FIELDNAMES_KEY, fieldNamesKey },
     { ConfigOutput::FILENAME_KEY, fileNameKey },
     { ConfigOutput::FILEPERIOD_KEY, filePeriodKey },
@@ -99,8 +98,6 @@ void ConfigOutput::configure()
             lastOutput -= outputPeriod;
         }
     }
-
-    snapshots = Configured::getConfiguration(keyMap.at(SNAPSHOT_KEY), false);
 
     std::string outputFields
         = Configured::getConfiguration(keyMap.at(FIELDNAMES_KEY), std::string(""));
@@ -219,15 +216,6 @@ void ConfigOutput::outputState(const ModelState& diagState)
         StructureFactory::fileFromState(state, currentFileName, false);
         lastOutput = meta.time();
     }
-}
-
-std::string concatenateFields(const std::set<std::string>& strSet)
-{
-    std::string outStr = "";
-    for (auto& str : strSet) {
-        outStr += str + ",";
-    }
-    return outStr;
 }
 
 } /* namespace Nextsim */
