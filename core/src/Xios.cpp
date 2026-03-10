@@ -134,6 +134,8 @@ Xios::~Xios() { finalize(); }
 void Xios::close_context_definition()
 {
     if (isEnabled && contextStatus == DEFINITION_OPEN) {
+        // TODO: Check moving this here doesn't break anything else
+        setupFiles();
 
         // Special handling of input fields
         for (int ioType : { INPUT_RESTART, ERA5_FORCING, TOPAZ_FORCING }) {
@@ -195,6 +197,27 @@ void Xios::close_context_definition()
             }
         }
 
+        // Special handling of output fields
+        for (int ioType : { OUTPUT_RESTART, DIAGNOSTIC }) {
+            if (fileMap.at(ioType).empty()) {
+                continue;
+            }
+            const std::set<std::string> fieldIds
+                = (ioType == OUTPUT_RESTART) ? outputRestartFieldNames : diagnosticFieldNames;
+            for (const std::string& fieldId : fieldIds) {
+
+                // Ensure that fields have operation type 'instant' if not already defined
+                xios::CField* field = getField(fieldId);
+                if (!cxios_is_defined_field_operation(field)) {
+                    cxios_set_field_operation(field, "instant", strlen("instant"));
+                }
+
+                // Set grid references
+                const ModelArray::Type& type = getFieldType(fieldId);
+                setFieldGridRef(fieldId, gridIds[type]);
+            }
+        }
+
         cxios_context_close_definition();
         contextStatus = DEFINITION_CLOSED;
     }
@@ -236,7 +259,6 @@ void Xios::configure()
         setupClient();
         setupContext();
         setupCalendar();
-        setupFiles();
     }
 }
 
