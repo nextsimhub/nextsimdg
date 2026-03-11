@@ -222,14 +222,14 @@ void ConfigOutput::outputState(const ModelState& diagState)
         && (everyTS || std::fmod(timeSinceOutput.seconds(), outputPeriod.seconds()) == 0.)) {
         Logged::info("ConfigOutput: Outputting " + std::to_string(state.data.size()) + " fields to "
             + currentFileName + " at " + meta.time().format() + "\n");
-        meta.affixCoordinates(state);
         double div = 1./n_accum;
         for (auto &entry : accumulator) {
             entry.second *= div;
         }
         n_accum = 0;
         ModelState outputState = { accumulator, {} };
-
+        // Merge in fields that are not already in the accumulator (coordinates, mainly).
+        meta.affixCoordinates(outputState);
         StructureFactory::fileFromState(outputState, currentFileName, false);
         lastOutput = meta.time();
         for (auto &entry : accumulator) {
