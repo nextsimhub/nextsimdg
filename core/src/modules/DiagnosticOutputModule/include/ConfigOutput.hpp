@@ -66,8 +66,8 @@ private:
 
     std::map<std::string, std::string> reverseExternalNames;
 
-    bool snapshots;
-    bool resetState;
+    ModelState::DataMap accumulator;
+    size_t n_accum;
 };
 
 } /* namespace Nextsim */

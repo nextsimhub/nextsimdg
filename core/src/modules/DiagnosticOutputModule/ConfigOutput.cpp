@@ -47,8 +47,8 @@ ConfigOutput::ConfigOutput()
     , lastOutput(defaultLastOutput)
     , fieldsForOutput()
     , currentFileName()
-    , snapshots(true)
-    , resetState(true)
+    , accumulator()
+    , n_accum(0)
 {
 }
 
@@ -201,6 +201,16 @@ void ConfigOutput::outputState(const ModelState& diagState)
         }
     }
 
+    // Accumulate data. Assumes the same data is received every time.
+    for (auto& entry: state.data) {
+        if (accumulator.count(entry.first) <= 0) {
+            accumulator[entry.first] = entry.second;
+        } else {
+            accumulator.at(entry.first) += entry.second;
+        }
+    }
+    ++n_accum;
+
     /*
      * Produce output either:
      *    • on every timestep after the start time initially stored in lastOutput
@@ -213,8 +223,18 @@ void ConfigOutput::outputState(const ModelState& diagState)
         Logged::info("ConfigOutput: Outputting " + std::to_string(state.data.size()) + " fields to "
             + currentFileName + " at " + meta.time().format() + "\n");
         meta.affixCoordinates(state);
-        StructureFactory::fileFromState(state, currentFileName, false);
+        double div = 1./n_accum;
+        for (auto &entry : accumulator) {
+            entry.second *= div;
+        }
+        n_accum = 0;
+        ModelState outputState = { accumulator, {} };
+
+        StructureFactory::fileFromState(outputState, currentFileName, false);
         lastOutput = meta.time();
+        for (auto &entry : accumulator) {
+            entry.second *= 0.;
+        }
     }
 }
 
