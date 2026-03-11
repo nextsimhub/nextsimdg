@@ -574,6 +574,7 @@ else()
         testRectGrid
         testParaGrid
         testConfigOutput
+        testSnapshotOutput
         testIterator
         testCommandLineParser
         testConfigurator
