@@ -50,7 +50,7 @@ public:
         // Advected fields
         xiosHandler.setPrognosticFieldType(hiceName, ModelArray::AdvectionType);
         xiosHandler.setPrognosticFieldType(ciceName, ModelArray::AdvectionType);
-        xiosHandler.setPrognosticFieldType(damageName, ModelArray::AdvectionType);
+        xiosHandler.setPrognosticFieldType(damageName, ModelArray::Type::H);
         xiosHandler.setPrognosticFieldType(hsnowName, ModelArray::AdvectionType);
 #endif
     }
