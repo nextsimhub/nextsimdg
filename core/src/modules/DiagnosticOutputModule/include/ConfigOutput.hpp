@@ -9,7 +9,6 @@
 #include "include/IDiagnosticOutput.hpp"
 
 #include "include/Configured.hpp"
-#include "include/ModelComponent.hpp"
 #include "include/Time.hpp"
 
 #include <set>

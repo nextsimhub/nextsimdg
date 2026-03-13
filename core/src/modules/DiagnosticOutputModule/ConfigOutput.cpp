@@ -156,7 +156,6 @@ void ConfigOutput::outputState(const ModelState& diagState)
         lastFileChange = time;
     }
 
-    double averagingFactor = meta.stepLength().seconds() / outputPeriod.seconds();
     ModelState state = { {}, diagState.config };
     auto storeData = ModelComponent::getStore().getAllData();
     if (outputAllTheFields) {
