@@ -20,7 +20,6 @@ static const std::regex ncSuffix(".nc$");
 
 static const std::string pfx = "ConfigOutput";
 static const std::string periodKey = pfx + ".period";
-static const std::string snapshotKey = pfx + ".snapshots";
 static const std::string startKey = pfx + ".start";
 static const std::string fieldNamesKey = pfx + ".field_names";
 static const std::string fileNameKey = pfx + ".filename";
