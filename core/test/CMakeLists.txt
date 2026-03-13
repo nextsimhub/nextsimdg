@@ -475,7 +475,7 @@ else()
         "../src/Time.cpp"
         "testmodelarraydetails/ModelArrayDetails.cpp"
     )
-    target_include_directories(testConfigOutputAve BEFORE PRIVATE 
+    target_include_directories(testConfigOutputAve BEFORE PRIVATE
         mock_includes/ConfigOutputAve
         testmodelarraydetails
     )
