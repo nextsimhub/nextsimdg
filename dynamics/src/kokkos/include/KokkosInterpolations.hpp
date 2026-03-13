@@ -9,7 +9,6 @@
 #include "../include/cgVector.hpp"
 #include "../include/codeGenerationDGinGauss.hpp"
 #include "../include/dgVector.hpp"
-// #include "../include/ParametricMesh.hpp"
 
 namespace Nextsim {
 namespace Interpolations {

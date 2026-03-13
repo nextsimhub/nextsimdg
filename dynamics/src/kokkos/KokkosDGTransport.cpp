@@ -53,55 +53,10 @@ KokkosDGTransport<DG>::KokkosDGTransport(const ParametricMesh& smesh, const Kokk
  */
 
 template <int DG> using ConstDeviceViewDG = ConstKokkosDeviceView<DGVector<DG>>;
-/*
-template <int DG>
-LocalVec<EDGE_DOFS> leftEdgeOfCell(
-    const ConstDeviceViewDG<DG>& cv, DeviceIndex eid);
-template <int DG>
-LocalVec<EDGE_DOFS> rightEdgeOfCell(
-    const ConstDeviceViewDG<DG>& cv, DeviceIndex eid);
-template <int DG>
-LocalVec<EDGE_DOFS> bottomEdgeOfCell(
-    const ConstDeviceViewDG<DG>& cv, DeviceIndex eid);
-template <int DG>
-LocalVec<EDGE_DOFS> topEdgeOfCell(
-    const ConstDeviceViewDG<DG>& cv, DeviceIndex eid);*/
-/*
-namespace Details {
-    // extract the DGDegree from an Eigen or Kokkos array
-    template <typename DGVec> struct DGDegree;
-
-    // Kokkos
-    template <typename T, int DG, class... Properties>
-    struct DGDegree<Kokkos::View<T* [DG], Properties...>> {
-        static constexpr int value = DG;
-    };
-
-    // Eigen
-    template <typename T, int DG, int Options>
-    struct DGDegree<Eigen::Map<Eigen::Matrix<T, Eigen::Dynamic, DG, Options>> {
-        static constexpr int value = DG;
-    };
-}
-
-template <typename DGVec>
-static KOKKOS_IMPL_FUNCTION auto leftEdgeOfCell(const DGVec& cv, DeviceIndex eid)
-{
-    constexpr int DG = Details::DGDegree<DGVec>::value;
-    if constexpr (DG == 1) {
-        return LocalVec<1>(cv(eid, 0));
-    } else if constexpr (DG == 3){
-        return LocalVec<2>(cv(eid, 0) - 0.5 * cv(eid, 1), cv(eid, 2));
-    } else if constexpr (DG == 6) {
-    }
-    } else {
-        return LocalVec<1>(cv(eid, 0));
-    }
-}*/
-
-// dG0 (1 in cell, 1 on edge)
 
 template <int Comps> using LocalVec = Eigen::Matrix<FloatType, 1, Comps>;
+
+// dG0 (1 in cell, 1 on edge)
 
 KOKKOS_IMPL_FUNCTION LocalVec<1> leftEdgeOfCell(const ConstDeviceViewDG<1>& cv, DeviceIndex eid)
 {
@@ -809,17 +764,4 @@ template class KokkosDGTransport<1>;
 template class KokkosDGTransport<3>;
 template class KokkosDGTransport<6>;
 template class KokkosDGTransport<8>;
-/*
-template void KokkosDGTransport<1>::prepareAdvection(const CGVector<CGdegree>& cgU,
-    const CGVector<CGdegree>& cgV, const KokkosDeviceView<CGVector<CGdegree>>& cgUDevice,
-    const KokkosDeviceView<CGVector<CGdegree>>& cgVDevice);
-template void KokkosDGTransport<3>::prepareAdvection(const CGVector<CGdegree>& cgU,
-    const CGVector<CGdegree>& cgV, const KokkosDeviceView<CGVector<CGdegree>>& cgUDevice,
-    const KokkosDeviceView<CGVector<CGdegree>>& cgVDevice);
-template void KokkosDGTransport<6>::prepareAdvection(const CGVector<CGdegree>& cgU,
-    const CGVector<CGdegree>& cgV, const KokkosDeviceView<CGVector<CGdegree>>& cgUDevice,
-    const KokkosDeviceView<CGVector<CGdegree>>& cgVDevice);
-template void KokkosDGTransport<8>::prepareAdvection(const CGVector<CGdegree>& cgU,
-    const CGVector<CGdegree>& cgV, const KokkosDeviceView<CGVector<CGdegree>>& cgUDevice,
-    const KokkosDeviceView<CGVector<CGdegree>>& cgVDevice);*/
 }

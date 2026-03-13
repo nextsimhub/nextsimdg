@@ -82,14 +82,6 @@ void KokkosCGDynamicsKernel<DGadvection>::initialise(
         = makeKokkosDeviceViewMap("iMgradY", this->pmap->iMgradY, MakeViewOptions::DEVICE_COPY);
     iMMDevice = makeKokkosDeviceViewMap("iMM", this->pmap->iMM, MakeViewOptions::DEVICE_COPY);
 
-    // this fields are given from outside the kernel now with setDGVector
-    // std::tie(hiceHost, hiceDevice)
-    //     = makeKokkosDualView("hice", static_cast<DGVector<DGadvection>&>(this->hice));
-    // std::tie(ciceHost, ciceDevice)
-    //     = makeKokkosDualView("cice", static_cast<DGVector<DGadvection>&>(this->cice));
-    // std::tie(hsnowHost, hsnowDevice)
-    //     = makeKokkosDualView("hsnow", static_cast<DGVector<DGadvection>&>(this->hsnow));
-
     PSIAdvectDevice = makeKokkosDeviceView(
         "PSI<DGadvection, NGP>", PSI<DGadvection, NGP>, MakeViewOptions::DEVICE_COPY);
     PSIStressDevice = makeKokkosDeviceView(
@@ -583,18 +575,11 @@ void KokkosCGDynamicsKernel<DGadvection>::computeStressDivergenceDevice(
     DeviceIndex ny, COORDINATES coordinates)
 {
     using CGVec = Eigen::Vector<Nextsim::FloatType, CGdof>;
-    //    static PerfTimer timerDivZero("divZeroGPU");
-    // static PerfTimer timerDivComp("divCompGPU");
-    //   static PerfTimer timerDivDirichlet("divDirichletGPU");
-    // zero buffers
-    //   timerDivZero.start();
+
     auto execSpace = Kokkos::DefaultExecutionSpace();
     Kokkos::deep_copy(execSpace, dStressXDevice, 0.0);
     Kokkos::deep_copy(execSpace, dStressYDevice, 0.0);
-    //  execSpace.fence();
-    //    timerDivZero.stop();
 
-    //   timerDivComp.start();
     Kokkos::parallel_for(
         "computeStressDivergence", nx * ny, KOKKOS_LAMBDA(const DeviceIndex idx) {
             // only on ice!
@@ -635,16 +620,9 @@ void KokkosCGDynamicsKernel<DGadvection>::computeStressDivergenceDevice(
                 }
             }
         });
-    //    timerDivComp.stop();
     // set zero on the Dirichlet boundaries
-    //   timerDivDirichlet.start();
     dirichletZero(dStressXDevice, cgLandMaskDevice);
     dirichletZero(dStressYDevice, cgLandMaskDevice);
-    //  timerDivDirichlet.stop();
-
-    // todo: add the contributions on the periodic boundaries
-    // VectorManipulations::CGAveragePeriodic(*smesh, tx);
-    //   VectorManipulations::CGAveragePeriodic(*smesh, ty);
 }
 
 /*************************************************************/
@@ -655,8 +633,6 @@ void KokkosCGDynamicsKernel<DGadvection>::applyBoundariesDevice(const DeviceView
 {
     dirichletZero(uDevice, cgLandMaskDevice);
     dirichletZero(vDevice, cgLandMaskDevice);
-
-    // TODO Periodic boundary conditions.
 }
 
 /*************************************************************/
@@ -767,7 +743,5 @@ ModelArray& KokkosCGDynamicsKernel<DGadvection>::dG2MA(
 // can only build this version since the switch is implemented in compile-time we dont really need
 // the other versions anyway
 template class KokkosCGDynamicsKernel<DGCOMP>;
-// template class KokkosCGDynamicsKernel<1>;
-// template class KokkosCGDynamicsKernel<3>;
-// template class KokkosCGDynamicsKernel<6>;
+
 }

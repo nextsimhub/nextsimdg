@@ -42,7 +42,6 @@ public:
     using DeviceViewStress = KokkosDeviceView<DGVector<DGstressComp>>;
     using HostViewStress = KokkosHostView<DGVector<DGstressComp>>;
     using ConstDeviceViewStress = ConstKokkosDeviceView<DGVector<DGstressComp>>;
-    // using DeviceSymmetricTensorVector = std::array<DeviceViewStress, 3>;
 
     using DeviceViewAdvect = KokkosDeviceView<DGVector<DGadvection>>;
     using HostViewAdvect = KokkosHostView<DGVector<DGadvection>>;

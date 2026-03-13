@@ -279,11 +279,6 @@ namespace Details {
     template <class DataType, class Layout> struct ToEigenMap {
         using Type = Eigen::Map<typename ToEigenMatrix<DataType, Layout>::Type>;
     };
-
-    /*    template <class DataType, class Layout> struct ToEigenMap<const
-       std::remove_pointer_t<std::remove_all_extents_t<DataType>>, Layout> { using Type =
-       Eigen::Map<const typename Details::ToEigenMatrix<DataType, Layout>::Type>;
-        };*/
 }
 
 /*!

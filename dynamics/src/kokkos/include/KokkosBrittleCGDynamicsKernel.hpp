@@ -82,7 +82,6 @@ protected:
     HostViewCG avgVHost;
 
     DeviceViewAdvect damageDevice;
-    // HostViewAdvect damageHost;
 };
 
 } /* namespace Nextsim */

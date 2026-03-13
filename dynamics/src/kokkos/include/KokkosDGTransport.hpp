@@ -132,10 +132,6 @@ private:
 
     //! The inverse of the dG mass matrix
     KokkosDeviceMapView<Eigen::Matrix<FloatType, DG, DG>> inverseDGMassMatrixDevice;
-
-    // using PSI1DView = ConstKokkosDeviceView<decltype(PSI<DG, GAUSSPOINTS1D(DG)>)>;
-    // using PSIeView = ConstKokkosDeviceView<decltype(PSI<DG, GAUSSPOINTS1D(DG)>)>;
-    // using PSIewView = ConstKokkosDeviceView<decltype(PSI<DG, GAUSSPOINTS1D(DG)>)>;
 };
 }
 

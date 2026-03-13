@@ -40,9 +40,6 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::initialise(
 
     std::tie(avgUHost, avgUDevice) = makeKokkosDualView("avgU", this->avgU);
     std::tie(avgVHost, avgVDevice) = makeKokkosDualView("avgV", this->avgV);
-
-    // std::tie(damageHost, damageDevice)
-    //     = makeKokkosDualView("damage", static_cast<DGVector<DGadvection>&>(this->damage));
 }
 
 /*************************************************************/
@@ -175,18 +172,6 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::setData(
         KokkosCGDynamicsKernel<DGadvection>::setData(name, data);
     }
 }
-
-/*
-template <int DGadvection>
-void KokkosBrittleCGDynamicsKernel<DGadvection>::setDGArray(
-    const std::string& name, ModelArray::DataType& dgData)
-{
-    if (name == damageName) {
-        damage = DGVectorHolder<DGadvection>(dgData);
-    } else {
-        CGDynamicsKernel<DGadvection>::setDGArray(name, dgData);
-    }
-}*/
 
 template <int DGadvection>
 void KokkosBrittleCGDynamicsKernel<DGadvection>::setDGArray(
