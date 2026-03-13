@@ -121,7 +121,7 @@ MPI_TEST_CASE("TestXiosWriteRestart", 2)
     cice.reinitialize();
     DGField hice(ModelArray::Type::DG);
     hice.reinitialize();
-    DGField damage(ModelArray::Type::DG);
+    HField damage(ModelArray::Type::H);
     damage.reinitialize();
     DGField hsnow(ModelArray::Type::DG);
     hsnow.reinitialize();
@@ -145,6 +145,13 @@ MPI_TEST_CASE("TestXiosWriteRestart", 2)
     MPI_Comm_rank(test_comm, &rank);
     for (int ts = 0; ts <= 4; ts++) {
 
+        // Update HField restarts
+        for (size_t j = 0; j < ny; ++j) {
+            for (size_t i = 0; i < nx; ++i) {
+                damage(i, j) = 1.0 * ts * (i + nx * j);
+            }
+        }
+
         // Update DGField restarts
         // NOTE: NaN values for mask when i = 0 and j = 0
         for (size_t j = 0; j < ny; ++j) {
@@ -154,7 +161,6 @@ MPI_TEST_CASE("TestXiosWriteRestart", 2)
                         = (i == 0 && j == 0) ? NAN : 1.0 * ts * (d + DGCOMP * (i + nx * j));
                     cice.components({ i, j })[d] = value;
                     hice.components({ i, j })[d] = value;
-                    damage.components({ i, j })[d] = value;
                     hsnow.components({ i, j })[d] = value;
                 }
             }

@@ -114,6 +114,12 @@ MPI_TEST_CASE("TestXiosReadRestart", 2)
                     REQUIRE(modelarray(i, j) == doctest::Approx(0.0));
                 }
             }
+        } else if (fieldName == damageName) {
+            for (size_t j = 0; j < ny; ++j) {
+                for (size_t i = 0; i < nx; ++i) {
+                    REQUIRE(modelarray(i, j) == doctest::Approx(1.0 * ts * (i + nx * j)));
+                }
+            }
         } else if (fieldName == coordsName) {
             for (size_t j = 0; j < ny + 1; ++j) {
                 for (size_t i = 0; i < nx + 1; ++i) {
@@ -128,8 +134,7 @@ MPI_TEST_CASE("TestXiosReadRestart", 2)
                     REQUIRE(modelarray.components({ i, j })[1] == doctest::Approx(expected_y));
                 }
             }
-        } else if (fieldName == ciceName || fieldName == hiceName || fieldName == damageName
-            || fieldName == hsnowName) {
+        } else if (fieldName == ciceName || fieldName == hiceName || fieldName == hsnowName) {
             for (size_t j = 0; j < ny; ++j) {
                 for (size_t i = 0; i < nx; ++i) {
                     for (size_t d = 0; d < DGCOMP; ++d) {
