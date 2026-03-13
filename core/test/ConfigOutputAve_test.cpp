@@ -33,14 +33,21 @@ const auto ny = 1;
 
 TEST_SUITE_BEGIN("ConfigOutput");
 TEST_CASE("Test single output") {
+    Nextsim::ModelArray::setDimensions(Nextsim::ModelArray::Type::TWOD, {nx, ny});
     Nextsim::TwoDField cice(Nextsim::ModelArray::Type::TWOD);
     cice.resize();
-    cice = 1.0;
     Nextsim::ModelState state;
-    state.data["cice"] = cice;
     Nextsim::ConfigOutput co;
+    co.configure();
+    auto t = Nextsim::TimePoint("2000-01-01T01:00:00Z");
+    ModelMetadata::getInstance().time() = t;
+    std::string cice_name = "cice";
+    double cice_val = 1.;
+    cice = cice_val;
+    state.data[cice_name] = cice;
     co.outputState(state);
     auto oState = StructureFactory::getState();
-    std::cout << oState.data.size() << std::endl;
+    REQUIRE(oState.data.size() == 1);
+    REQUIRE(oState.data[cice_name][0] == cice_val);
 }
 TEST_SUITE_END();
