@@ -180,7 +180,7 @@ public:
     TimePoint()
         : m_t() {};
     TimePoint(const std::string& str) { this->parse(str); }
-    TimePoint(const TimePoint&, const Duration&);
+    TimePoint(const TimePoint& t, const Duration& d) { m_t = (t + d).m_t; }
 
     //! Calculate the Duration between two TimePoints.
     Duration operator-(const TimePoint& a) const { return Duration(m_t - a.m_t); }
