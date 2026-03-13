@@ -479,6 +479,10 @@ else()
         mock_includes/ConfigOutputAve
         testmodelarraydetails
     )
+    target_include_directories(testConfigOutputAve AFTER PRIVATE
+        mock_includes/ConfigOutputAve
+        testmodelarraydetails
+    )
     target_link_libraries(testConfigOutputAve PRIVATE doctest::doctest Eigen3::Eigen)
 
     add_executable(testSnapshotOutput "SnapshotOutput_test.cpp")
