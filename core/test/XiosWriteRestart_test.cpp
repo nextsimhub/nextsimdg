@@ -49,15 +49,26 @@ MPI_TEST_CASE("TestXiosWriteRestart", 2)
     // Create ModelMPI instance based off the test communicator
     auto& modelMPI = ModelMPI::getInstance(test_comm);
 
-    // Create a Model and configure it so that time options are parsed
+    // Create a Model
     Model model;
-    model.configure();
+    model.configureRestarts();
+    model.configureTime();
 
-    // Get the Xios singleton instance and check it's initialized
+    // Get the Xios singleton instance
     // NOTE: The singleton is created when Xios::getInstance() is first called. In this test, this
     //       happens when the time sets set by ModelMetadata::setTime(). This occurs in the call to
     //       Model::configureTime() above.
     Xios& xiosHandler = Xios::getInstance();
+
+    // Custom XIOS configuration to ensure the unit test covers all discretisation types
+    // NOTE: This needs to happen after Model::configureTime() but before the rest of
+    //       Model::configure() so is placed here. Doing this is a non-standard approach purely for
+    //       testing purposes.
+    xiosHandler.setPrognosticFieldType(ticeName, ModelArray::Type::DGSTRESS);
+    xiosHandler.setPrognosticFieldType(shearName, ModelArray::Type::CG);
+
+    // Continue configuration
+    model.configure();
 
     // Set ModelArray dimensions
     const size_t nx = ModelArray::size(ModelArray::Dimension::X);
@@ -67,10 +78,6 @@ MPI_TEST_CASE("TestXiosWriteRestart", 2)
 
     // The ParametricGrid structure is required by XIOS
     Module::setImplementation<IStructure>("Nextsim::ParametricGrid");
-
-    // Set field types for restarts
-    xiosHandler.setPrognosticFieldType(ticeName, ModelArray::Type::DGSTRESS);
-    xiosHandler.setPrognosticFieldType(shearName, ModelArray::Type::CG);
 
     // Create some fake data to test writing methods
     HField longitude(ModelArray::Type::H);

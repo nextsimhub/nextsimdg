@@ -70,13 +70,25 @@ MPI_TEST_CASE("TestXiosReadRestart", 2)
     REQUIRE(ModelArray::nComponents(ModelArray::Type::DG) == DGCOMP);
     REQUIRE(ModelArray::size(ModelArray::Dimension::DG) == DGCOMP);
 
-    // Read restarts from file and check they take the expected values
+    // Read restarts from file, checking that the expected fields are included and that they take
+    // the expected values
     // NOTE: The ParametricGrid is created and the XIOS context definition is closed in the call to
     //       StructureFactory::stateFromFile()
     int rank;
     MPI_Comm_rank(test_comm, &rank);
     float ts = 2; // Corresponds to 2023-03-17T20:10:59Z
     ModelState modelstate = StructureFactory::stateFromFile(restartFilename);
+    REQUIRE(modelstate.data.count(maskName) > 0);
+    REQUIRE(modelstate.data.count(longitudeName) > 0);
+    REQUIRE(modelstate.data.count(latitudeName) > 0);
+    REQUIRE(modelstate.data.count(gridAzimuthName) > 0);
+    REQUIRE(modelstate.data.count(coordsName) > 0);
+    REQUIRE(modelstate.data.count(ciceName) > 0);
+    REQUIRE(modelstate.data.count(hiceName) > 0);
+    REQUIRE(modelstate.data.count(damageName) > 0);
+    REQUIRE(modelstate.data.count(hsnowName) > 0);
+    REQUIRE(modelstate.data.count(ticeName) > 0);
+    REQUIRE(modelstate.data.count(shearName) > 0);
     ModelArray& mask = modelstate.data.at(maskName);
     for (size_t j = 0; j < ny; ++j) {
         for (size_t i = 0; i < nx; ++i) {
