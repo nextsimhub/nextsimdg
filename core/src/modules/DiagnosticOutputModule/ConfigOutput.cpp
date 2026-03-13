@@ -57,8 +57,6 @@ ConfigurationHelp::HelpMap& ConfigOutput::getHelpText(HelpMap& map, bool getAll)
         { periodKey, ConfigType::STRING, {}, "", "", "Time between samples of the output data." },
         { startKey, ConfigType::STRING, {}, "model.start", "",
             "Date at which to start outputting data." },
-        { snapshotKey, ConfigType::BOOLEAN, { "true", "false" }, "false", "",
-            "Output snapshots. Otherwise, output-period averages are output." },
         { fieldNamesKey, ConfigType::STRING, {}, "ALL", "",
             "Comma separated, space free list of fields to be output. "
             "The special value \""
