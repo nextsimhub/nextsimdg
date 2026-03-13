@@ -41,7 +41,7 @@ TEST_CASE("Test single output") {
     co.configure();
     auto t = Nextsim::TimePoint("2000-01-01T01:00:00Z");
     ModelMetadata::getInstance().time() = t;
-    std::string cice_name = "cice";
+    const std::string cice_name = "cice";
     double cice_val = 1.;
     cice = cice_val;
     state.data[cice_name] = cice;
@@ -49,5 +49,31 @@ TEST_CASE("Test single output") {
     auto oState = StructureFactory::getState();
     REQUIRE(oState.data.size() == 1);
     REQUIRE(oState.data[cice_name][0] == cice_val);
+}
+
+TEST_CASE("Averaging output") {
+    Nextsim::ModelArray::setDimensions(Nextsim::ModelArray::Type::TWOD, {nx, ny});
+    Nextsim::TwoDField cice(Nextsim::ModelArray::Type::TWOD);
+    cice.resize();
+    Nextsim::ModelState state;
+    Nextsim::ConfigOutput co;
+    co.configure();
+    const std::string cice_name = "cice";
+    double accum = 0.;
+    const size_t nt = 4;
+    for (auto i = 1; i <= nt; ++i) {
+        auto t = Nextsim::TimePoint(std::string("2000-01-01T0")+std::to_string((i*15)/60)+":"+std::to_string((i*15) % 60)+":00Z");
+        ModelMetadata::getInstance().time() = t;
+        double cice_val = i;
+        cice = cice_val;
+        accum += cice_val;
+        state.data[cice_name] = cice;
+        co.outputState(state);
+
+    }
+    accum /= nt;
+    auto oState = StructureFactory::getState();
+    REQUIRE(oState.data.size() == 1);
+    REQUIRE(oState.data[cice_name][0] == accum);
 }
 TEST_SUITE_END();
