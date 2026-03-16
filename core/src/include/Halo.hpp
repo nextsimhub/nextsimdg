@@ -7,7 +7,8 @@
  *
  * All functionality for halo exchange between MPI ranks is contained in this class.
  *
- * Halo supports the main data structures of NextSim e.g., ModelArray, DGVector and CGVector.
+ * Halo supports the main data structures of NextSim e.g., ModelArray, DGVector, DGVectorHolder and
+ * CGVector.
  *
  * The halos are exchange via one-sided MPI communication using Remote Memory Access (RMA).
  */
@@ -49,14 +50,18 @@ public:
         m_numComps = ma.nComponents();
         isVertex = ma.getType() == ModelArray::Type::VERTEX;
         setSpatialDims();
-        intializeHaloMetadata();
+        initializeHaloMetadata();
     }
 
     /*!
      * @brief Constructs a halo object from DGVectorHolder
      * @param dgvh DGVectorHolder object to create halo from
      */
-    template <int N> Halo(DGVectorHolder<N>& dgvh) { Halo(static_cast<DGVector<N>&>(dgvh)); }
+    template <int N>
+    Halo(DGVectorHolder<N>& dgvh)
+        : Halo(static_cast<DGVector<N>&>(dgvh))
+    {
+    }
 
     /*!
      * @brief Constructs a halo object from DGVector
@@ -66,7 +71,7 @@ public:
     {
         m_numComps = N;
         setSpatialDims();
-        intializeHaloMetadata();
+        initializeHaloMetadata();
     }
 
     /*!
@@ -80,7 +85,7 @@ public:
         CGdegree = N;
         nCells = CGdegree;
         setSpatialDims();
-        intializeHaloMetadata();
+        initializeHaloMetadata();
     }
 
     static const size_t haloWidth = HALOWIDTH; // how many cells wide is the halo region
@@ -128,7 +133,7 @@ private:
      * - Defines edge lengths
      * - Sets up inner and outer slices for Bottom, Right, Top, Left edges
      */
-    void intializeHaloMetadata();
+    void initializeHaloMetadata();
 
     /**
      * @brief Return true if the provided edge is vertical (LEFT or RIGHT).
