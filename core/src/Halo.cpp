@@ -212,7 +212,6 @@ void Halo::recvPositions(int& fromRank, size_t& count, size_t& disp, size_t& rec
 
 void Halo::populateRecvBuffers()
 {
-
     int fromRank;
     size_t count, disp, recvOffset;
     // do halo exchange for each component

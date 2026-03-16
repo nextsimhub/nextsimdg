@@ -9,7 +9,7 @@
  *
  * Halo supports the main data structures of NextSim e.g., ModelArray, DGVector and CGVector.
  *
- * The halos are exchange via one-sided MPI communication using RMA.
+ * The halos are exchange via one-sided MPI communication using Remote Memory Access (RMA).
  */
 
 #ifndef HALO_HPP
@@ -465,6 +465,17 @@ public:
         ModelArraySlice::copySliceWithIters(source, sourceIter, target, targetIter);
     }
 
+    /**
+     * @brief Exchanges halo regions between neighboring MPI ranks
+     *
+     * Performs a complete halo exchange operation by:
+     * 1. Populating send buffers with local halo data
+     * 2. Receiving halo data from neighboring ranks into receive buffers
+     * 3. Transposing corner data for CGVector fields (if needed)
+     * 4. Populating the target array with the received halo data
+     *
+     * @param target The target array to update with exchanged halo data
+     */
     template <typename T> void exchangeHalos(T& target)
     {
         populateSendBuffers(target);
