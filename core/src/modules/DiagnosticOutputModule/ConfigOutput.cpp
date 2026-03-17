@@ -146,7 +146,6 @@ void ConfigOutput::outputState(const ModelState& diagState)
     if (currentFileName == "" || (lastFileChange + fileChangePeriod <= time)) {
         std::string newFileName = time.format(m_filePrefix) + ".nc";
         if (newFileName != currentFileName) {
-            // TODO: Close the file currentFileName
             FileCallbackCloser::close(currentFileName);
             currentFileName = newFileName;
         }
