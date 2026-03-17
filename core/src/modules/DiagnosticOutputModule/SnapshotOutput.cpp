@@ -26,9 +26,6 @@ static const std::string fieldNamesKey = pfx + ".field_names";
 static const std::string fileNameKey = pfx + ".filename";
 static const std::string filePeriodKey = pfx + ".file_period";
 
-// Access the model.start key. There's no clean way of getting this from Model, I think.
-static const std::string modelStartKey = "model.start";
-
 static const std::map<int, std::string> keyMap = {
     { SnapshotOutput::PERIOD_KEY, periodKey },
     { SnapshotOutput::START_KEY, startKey },
@@ -85,10 +82,7 @@ void SnapshotOutput::configure()
     }
     std::string startString = Configured::getConfiguration(keyMap.at(START_KEY), std::string(""));
     if (startString.empty()) {
-        startString = Configured::getConfiguration(modelStartKey, std::string(""));
-        if (startString.empty())
-            // If you start the model before 1st January year 0, tough.
-            lastOutput.parse(defaultLastOutput);
+        lastOutput = ModelMetadata::getInstance().startTime();
     } else {
         lastOutput.parse(startString);
         if (!everyTS) {

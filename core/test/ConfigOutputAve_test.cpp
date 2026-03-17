@@ -36,9 +36,9 @@ TEST_CASE("Test single output") {
     Nextsim::ModelState state;
     Nextsim::ConfigOutput co;
     co.configure();
-    auto t = Nextsim::TimePoint("2000-01-01T01:00:00Z");
     // Set the time in the mock ModelMetadata class
-    ModelMetadata::getInstance().time() = t;
+    ModelMetadata::getInstance().startTime() = Nextsim::TimePoint("2000-01-01T00:00:00Z");
+    ModelMetadata::getInstance().time() = Nextsim::TimePoint("2000-01-01T01:00:00Z");
     const std::string cice_name = "cice";
     double cice_val = 1.;
     cice = cice_val;
@@ -56,6 +56,7 @@ TEST_CASE("Averaging output") {
     Nextsim::ModelState state;
     Nextsim::ConfigOutput co;
     co.configure();
+    ModelMetadata::getInstance().startTime() = Nextsim::TimePoint("2000-01-01T00:00:00Z");
     const std::string cice_name = "cice";
     double accum = 0.;
     const size_t nt = 4;

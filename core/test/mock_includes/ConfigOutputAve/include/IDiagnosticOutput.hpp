@@ -34,6 +34,11 @@ public:
         static Nextsim::TimePoint m_time;
         return m_time;
     };
+    Nextsim::TimePoint& startTime()
+    {
+        static Nextsim::TimePoint m_start;
+        return m_start;
+    }
     void affixCoordinates(Nextsim::ModelState& ms) { };
     static ModelMetadata& getInstance()
     {
