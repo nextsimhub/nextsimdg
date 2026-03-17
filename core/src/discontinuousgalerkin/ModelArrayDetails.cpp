@@ -91,6 +91,8 @@ const std::map<ModelArray::Type, std::string> ModelArray::typeNames = {
 std::map<ModelArray::Type, ModelArray::Base> ModelArray::baseTypes = {
     { ModelArray::Type::H, ModelArray::Base::Cell },
     { ModelArray::Type::VERTEX, ModelArray::Base::Vertex },
+    { ModelArray::Type::U, ModelArray::Base::Cell },
+    { ModelArray::Type::V, ModelArray::Base::Cell },
     { ModelArray::Type::DG, ModelArray::Base::Cell },
     { ModelArray::Type::DGSTRESS, ModelArray::Base::Cell },
     { ModelArray::Type::CG, ModelArray::Base::Vertex },

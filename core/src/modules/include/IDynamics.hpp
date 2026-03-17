@@ -48,8 +48,8 @@ public:
         Xios& xiosHandler = Xios::getInstance();
 
         // Advective velocities
-        xiosHandler.setPrognosticFieldType(uName, ModelArray::Type::H);
-        xiosHandler.setPrognosticFieldType(vName, ModelArray::Type::H);
+        xiosHandler.setPrognosticFieldType(uName, ModelArray::Type::U);
+        xiosHandler.setPrognosticFieldType(vName, ModelArray::Type::V);
 
         // Advected fields
         xiosHandler.setPrognosticFieldType(hiceName, ModelArray::AdvectionType);

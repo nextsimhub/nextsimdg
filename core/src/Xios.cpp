@@ -172,16 +172,20 @@ void Xios::close_context_definition()
                     setFieldType(fieldId, inputType, NOT_READ);
                 }
                 const ModelArray::Type& baseType = getFieldType(fieldId);
-                if ((ioType == ERA5_FORCING || ioType == TOPAZ_FORCING)
-                    && baseType != ModelArray::Type::H) {
-                    throw std::runtime_error("Xios: Forcing fields must be treated as HFields");
+                if (ioType == ERA5_FORCING || ioType == TOPAZ_FORCING) {
+                    if (baseType != ModelArray::Type::H && baseType != ModelArray::Type::U
+                        && baseType != ModelArray::Type::V) {
+                        throw std::runtime_error("Xios: Forcing fields must be treated as HFields");
+                    }
                 }
 
                 // Set grid references
                 setFieldGridRef(fieldId, gridIds[baseType]);
                 setFieldGridRef(inputFieldId, gridIds[inputType]);
 
-                if (inputType == baseType) {
+                if ((inputType == baseType)
+                    || (inputType == ModelArray::Type::H
+                        && (baseType == ModelArray::Type::U || baseType == ModelArray::Type::V))) {
                     // Link the input field to the base field if their types align
                     cxios_set_field_field_ref(
                         getField(inputFieldId), fieldId.c_str(), fieldId.length());
@@ -1665,7 +1669,8 @@ void Xios::write(const std::string& fieldId, const ModelArray& modelarray)
     }
 
     // Write out according to field type
-    if ((type == ModelArray::Type::H) || (type == ModelArray::Type::CG)) {
+    if (type == ModelArray::Type::H || type == ModelArray::Type::U || type == ModelArray::Type::V
+        || type == ModelArray::Type::CG) {
         cxios_write_data_k82(
             fieldId.c_str(), fieldId.length(), modelarray.getData(), dims[0], dims[1], -1);
     } else if (type == ModelArray::Type::VERTEX) {
@@ -1727,7 +1732,8 @@ void Xios::read(const std::string& fieldId, ModelArray& modelarray)
         throw std::runtime_error(
             "Xios::read: field '" + fieldId + "' does not have the expected type");
     }
-    if ((type == ModelArray::Type::H) || (type == ModelArray::Type::CG)) {
+    if (type == ModelArray::Type::H || type == ModelArray::Type::U || type == ModelArray::Type::V
+        || type == ModelArray::Type::CG) {
         cxios_read_data_k82(
             fieldId.c_str(), fieldId.length(), modelarray.getData(), dims[0], dims[1]);
     } else if (type == ModelArray::Type::VERTEX) {
