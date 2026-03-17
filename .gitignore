@@ -43,6 +43,8 @@ __pycache__/
 .clangd
 compile_commands.json
 *.vtk
+/scripts/*.err
+/scripts/*.out
 
 # Specific files
 Results

@@ -25,34 +25,8 @@ CMake Warning at CMakeLists.txt:58 (find_package):
 
 
 
-real	9m35.851s
-user	32m46.063s
-sys	0m1.870s
+============================================================
+Allinea Sampler [80968]: Error loading custom metrics library:
+libpapi.so.5.2.0.0: cannot open shared object file: No such file or directory
+============================================================
 
-real	7m7.015s
-user	35m59.583s
-sys	0m1.860s
-
-real	4m27.951s
-user	35m44.626s
-sys	0m1.969s
-
-real	3m1.644s
-user	36m18.300s
-sys	0m2.194s
-
-real	5m56.443s
-user	36m38.561s
-sys	0m4.538s
-
-real	4m57.146s
-user	42m38.198s
-sys	0m4.696s
-
-real	3m23.450s
-user	41m17.816s
-sys	0m4.734s
-
-real	2m35.813s
-user	44m24.333s
-sys	0m5.132s
