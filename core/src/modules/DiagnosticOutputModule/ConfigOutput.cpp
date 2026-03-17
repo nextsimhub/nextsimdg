@@ -51,12 +51,14 @@ ConfigOutput::ConfigOutput()
 ConfigurationHelp::HelpMap& ConfigOutput::getHelpText(HelpMap& map, bool getAll)
 {
     map[pfx] = {
-        { periodKey, ConfigType::STRING, {}, "", "", "Time between samples of the output data." },
+        { periodKey, ConfigType::STRING, {}, "", "", "Time between samples of the averaged data."
+                " Also the averaging period over which data is accumulated." },
         { startKey, ConfigType::STRING, {}, "model.start", "",
-            "Date at which to start outputting data." },
+            "Date at which to start averaging data."
+            " The first output will occur " + periodKey + " later." },
         { fieldNamesKey, ConfigType::STRING, {}, "ALL", "",
             "Comma separated, space free list of fields to be output. "
-            "The special value \""
+            " The special value \""
                 + all + "\" will output all available fields." },
         { fileNameKey, ConfigType::STRING, {}, "", "",
             "Filename pattern for the output diagnostic files. Date and time elements can be "
@@ -86,9 +88,6 @@ void ConfigOutput::configure()
         lastOutput = ModelMetadata::getInstance().startTime();
     } else {
         lastOutput.parse(startString);
-        if (!everyTS) {
-            lastOutput -= outputPeriod;
-        }
     }
 
     std::string outputFields
@@ -190,16 +189,17 @@ void ConfigOutput::outputState(const ModelState& diagState)
             }
         }
     }
-
-    // Accumulate data. Assumes the same data is received every time.
-    for (auto& entry: state.data) {
-        if (accumulator.count(entry.first) <= 0) {
-            accumulator[entry.first] = entry.second;
-        } else {
-            accumulator.at(entry.first) += entry.second;
+    // Accumulate data after the output start time. Assumes the same data is received every time.
+    if (meta.time() > lastOutput) {
+        for (auto& entry: state.data) {
+            if (accumulator.count(entry.first) <= 0) {
+                accumulator[entry.first] = entry.second;
+            } else {
+                accumulator.at(entry.first) += entry.second;
+            }
         }
+        ++n_accum;
     }
-    ++n_accum;
 
     /*
      * Produce output either:
@@ -222,9 +222,7 @@ void ConfigOutput::outputState(const ModelState& diagState)
         meta.affixCoordinates(outputState);
         StructureFactory::fileFromState(outputState, currentFileName, false);
         lastOutput = meta.time();
-        for (auto &entry : accumulator) {
-            entry.second *= 0.;
-        }
+        accumulator.clear();
     }
 }
 
