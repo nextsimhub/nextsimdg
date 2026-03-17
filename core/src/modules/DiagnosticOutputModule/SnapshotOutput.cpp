@@ -61,8 +61,9 @@ ConfigurationHelp::HelpMap& SnapshotOutput::getHelpText(HelpMap& map, bool getAl
         { fileNameKey, ConfigType::STRING, {}, "", "",
             "Filename pattern for the output diagnostic files. Date and time elements can be "
             "included as in std::put_time()." },
-        { filePeriodKey, ConfigType::STRING, {}, "", "",
-            "The period with which diagnostic files are created." },
+        { filePeriodKey, ConfigType::STRING, {}, "315360000000", "",
+            "The period with which diagnostic files are created. Defaults to a very long time "
+            "(10000 years)." },
     };
     return map;
 }
@@ -118,7 +119,7 @@ void SnapshotOutput::configure()
     std::regex_search(rawFileName, match, ncSuffix);
     m_filePrefix = match.empty() ? rawFileName : match.prefix();
 
-    // The default string is the number of seconds in 10000 years of 365 days
+    // The default string is the number of seconds in 10000 common years (i.e. a very long time)
     std::string newFilePeriodStr
         = Configured::getConfiguration(keyMap.at(FILEPERIOD_KEY), std::string("315360000000"));
     fileChangePeriod = Duration(newFilePeriodStr);
