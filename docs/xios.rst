@@ -206,7 +206,7 @@ Different domains are used for different field types, depending on the number of
 degrees of freedom (DoFs) they have in the horizontal. The ``HDomain`` has one
 DoF per cell and is used for the ``HField``, ``DGField``, and ``DGSField``
 types. The ``VertexDomain`` has one DoF per vertex and is used for the
-``VertexField`` type. Finally, the ``CGDomain`` has the same (degree-dependant)
+``VertexField`` type. Finally, the ``CGDomain`` has the same (degree-dependent)
 number of DoFs as the continuous Galerkin discretisation and is used by
 ``CGField``.
 
@@ -230,19 +230,22 @@ XIOS Field concept
 ^^^^^^^^^^^^^^^^^^
 
 An instance of the Field type is based on a Grid and is associated with a
-``ModelArray::Type``. Fields are created automatically upon configuring the
-``Model``. For fields that are read from file, the field type is determined
-automatically during the file read. For fields that are written, it's required
-to call the ``setPrognosticFieldType`` or ``setDiagnosticFieldType`` member
-function of the ``Xios`` singleton, providing the field name and
-``ModelArray::Type``.
+``ModelArray::Type``. For fields that are read from file, the field type is
+determined automatically during the file read. For fields that are written, it's
+required to call the ``setPrognosticFieldType`` or ``setDiagnosticFieldType``
+member function of the ``Xios`` singleton, providing the field name and
+``ModelArray::Type``. Fields are created automatically upon closing the XIOS
+context definition, so calls to ``setPrognosticFieldType`` and
+``setDiagnosticFieldType`` must be made before this (i.e., before any files are
+read from or written).
 
 XIOS File concept
 ^^^^^^^^^^^^^^^^^
 
 The File concept holds metadata related to input and output files, including
 which Fields are associated with it and whether it is to be used for reading or
-writing. Files are created automatically upon configuring the ``Model``.
+writing. Files are created automatically upon closing the XIOS context
+definition.
 
 Developer notes
 ---------------

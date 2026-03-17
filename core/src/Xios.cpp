@@ -134,7 +134,6 @@ Xios::~Xios() { finalize(); }
 void Xios::close_context_definition()
 {
     if (isEnabled && contextStatus == DEFINITION_OPEN) {
-        // TODO: Check moving this here doesn't break anything else
         setupFiles();
 
         // Special handling of input fields
