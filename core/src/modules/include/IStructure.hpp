@@ -38,14 +38,6 @@ public:
         Xios& xiosHandler = Xios::getInstance();
         xiosHandler.setPrognosticFieldType(coordsName, ModelArray::Type::VERTEX);
         xiosHandler.setPrognosticFieldType(gridAzimuthName, ModelArray::Type::H);
-        const bool spherical = true; // TODO: determine this
-        if (spherical) {
-            xiosHandler.setPrognosticFieldType(latitudeName, ModelArray::Type::H);
-            xiosHandler.setPrognosticFieldType(longitudeName, ModelArray::Type::H);
-        } else {
-            xiosHandler.setPrognosticFieldType(xName, ModelArray::Type::H);
-            xiosHandler.setPrognosticFieldType(yName, ModelArray::Type::H);
-        }
         xiosHandler.setPrognosticFieldType(maskName, ModelArray::Type::H);
 #endif
     }
