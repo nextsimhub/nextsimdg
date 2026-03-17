@@ -1,7 +1,4 @@
 /*!
- * @file Logged.hpp
- *
- * @date Mar 13, 2026
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 

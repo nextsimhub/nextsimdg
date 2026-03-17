@@ -1,7 +1,4 @@
 /*!
- * @file StructureFactory.hpp
- *
- * @date Mar 11, 2026
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 

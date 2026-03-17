@@ -1,7 +1,4 @@
 /*!
- * @file ModelMetadata.hpp
- *
- * @date Mar 12, 2026
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 

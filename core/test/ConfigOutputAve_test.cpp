@@ -1,7 +1,4 @@
 /*!
- * @file ConfigOutputAve_test.cpp
- *
- * @date Mar 12, 2026
  * @author Tim Spain <timothy.spain@nersc.no>
  */
 
