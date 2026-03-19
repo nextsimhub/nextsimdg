@@ -158,11 +158,11 @@ private:
     xios::CGrid* getGrid(const std::string& gridId);
     std::map<ModelArray::Type, std::string> gridIds = {
         { ModelArray::Type::H, "HGrid" },
-        { ModelArray::Type::U, "HGrid" },
-        { ModelArray::Type::V, "HGrid" },
-        { ModelArray::Type::VERTEX, "VertexGrid" },
+        { ModelArray::Type::U, "UGrid" },
+        { ModelArray::Type::V, "VGrid" },
         { ModelArray::Type::DG, "DGGrid" },
         { ModelArray::Type::DGSTRESS, "DGSGrid" },
+        { ModelArray::Type::VERTEX, "VertexGrid" },
         { ModelArray::Type::CG, "CGGrid" },
     };
     void setupGrids();
