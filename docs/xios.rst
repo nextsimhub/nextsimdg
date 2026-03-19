@@ -203,12 +203,13 @@ indices (corner) in each dimension for each MPI rank. This information is
 provided to XIOS automatically upon configuring the ``Model``.
 
 Different domains are used for different field types, depending on the number of
-degrees of freedom (DoFs) they have in the horizontal. The ``HDomain`` has one
-DoF per cell and is used for the ``HField``, ``DGField``, and ``DGSField``
-types. The ``VertexDomain`` has one DoF per vertex and is used for the
-``VertexField`` type. Finally, the ``CGDomain`` has the same (degree-dependent)
+degrees of freedom (DoFs) they have in the horizontal. The ``dim`` has one DoF
+per cell and is used for the ``HField``, ``UField``, ``VField``, ``DGField``,
+and ``DGSField`` types. The ``vertex`` has one DoF per vertex and is used for
+the ``VertexField`` type. Finally, the ``cg`` has the same (degree-dependent)
 number of DoFs as the continuous Galerkin discretisation and is used by
-``CGField``.
+``CGField``. When prepended by ``x`` or ``y``, the domain names give rise to the
+dimension names used in NetCDF files, e.g., ``x_dim`` and ``y_cg``.
 
 XIOS Axis concept
 ^^^^^^^^^^^^^^^^^
