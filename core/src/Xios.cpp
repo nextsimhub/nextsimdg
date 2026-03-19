@@ -1654,32 +1654,35 @@ void Xios::postprocessOutputFiles()
  */
 void Xios::write(const std::string& fieldId, const ModelArray& modelarray)
 {
+    using Type = ModelArray::Type;
+
     if (modelarray.nDimensions() != 2) {
         throw std::invalid_argument("Only ModelArrays of dimension 2 are supported");
     }
     auto& dims = modelarray.dimensions();
-    const ModelArray::Type& type = modelarray.getType();
+    const Type& type = modelarray.getType();
     domainWritten[domainIds[type]] = true;
 
     // Check the field type
-    const ModelArray::Type& expectedType = getFieldType(fieldId);
+    const Type& expectedType = getFieldType(fieldId);
     if (expectedType != type) {
         throw std::runtime_error(
             "Xios::write: field '" + fieldId + "' does not have the expected type");
     }
 
     // Write out according to field type
-    if (type == ModelArray::Type::H || type == ModelArray::Type::U || type == ModelArray::Type::V
-        || type == ModelArray::Type::CG) {
+    // Provide dimension information to XIOS so that it can write the ModelArray into the NetCDF
+    // file appropriately
+    if (type == Type::H || type == Type::U || type == Type::V || type == Type::CG) {
         cxios_write_data_k82(
             fieldId.c_str(), fieldId.length(), modelarray.getData(), dims[0], dims[1], -1);
-    } else if (type == ModelArray::Type::VERTEX) {
+    } else if (type == Type::VERTEX) {
         cxios_write_data_k83(fieldId.c_str(), fieldId.length(), modelarray.getData(), dims[0],
             dims[1], ModelArray::size(ModelArray::Dimension::NCOORDS), -1);
-    } else if (type == ModelArray::Type::DG) {
+    } else if (type == Type::DG) {
         cxios_write_data_k83(fieldId.c_str(), fieldId.length(), modelarray.getData(), dims[0],
             dims[1], ModelArray::size(ModelArray::Dimension::DG), -1);
-    } else if (type == ModelArray::Type::DGSTRESS) {
+    } else if (type == Type::DGSTRESS) {
         cxios_write_data_k83(fieldId.c_str(), fieldId.length(), modelarray.getData(), dims[0],
             dims[1], ModelArray::size(ModelArray::Dimension::DGSTRESS), -1);
     } else {
@@ -1696,6 +1699,8 @@ void Xios::write(const std::string& fieldId, const ModelArray& modelarray)
  */
 void Xios::read(const std::string& fieldId, ModelArray& modelarray)
 {
+    using Type = ModelArray::Type;
+
     if (!getFieldReadAccess(fieldId)) {
         throw std::runtime_error("Xios::read: field '" + fieldId
             + "' is not configured for reading, but is being read from file.");
@@ -1703,20 +1708,21 @@ void Xios::read(const std::string& fieldId, ModelArray& modelarray)
     if (modelarray.nDimensions() != 2) {
         throw std::invalid_argument("Only ModelArrays of dimension 2 are supported");
     }
-    const ModelArray::Type& type = modelarray.getType();
-    const ModelArray::Type& expectedType = getFieldType(fieldId);
+    const Type& type = modelarray.getType();
+    const Type& expectedType = getFieldType(fieldId);
 
     // Account for fields to be read in as HField but converted to DGField
+    // Other field types should not need converting
     if (inputFieldsToConvert.count(fieldId)) {
-        if (expectedType != ModelArray::Type::H) {
+        if (expectedType != Type::H) {
             throw std::runtime_error(
                 "Xios::read: field '" + fieldId + "' was expected to be read as a HField");
         }
-        if (type != ModelArray::Type::DG) {
+        if (type != Type::DG) {
             throw std::runtime_error(
                 "Xios::read: field '" + fieldId + "' was expected to be converted to a DGField");
         }
-        HField inputarray(ModelArray::Type::H);
+        HField inputarray(Type::H);
         auto& dims = inputarray.dimensions();
         cxios_read_data_k82(
             fieldId.c_str(), fieldId.length(), inputarray.getData(), dims[0], dims[1]);
@@ -1726,23 +1732,26 @@ void Xios::read(const std::string& fieldId, ModelArray& modelarray)
         return;
     }
 
-    // Other field types should not need converting
+    // Provide dimension information to XIOS so that it can read NetCDF data into the ModelArray
+    // appropriately
+    // NOTE: Here we assume that the U and V types are duplicates of H. This may not be the case in
+    //       the future.
     auto& dims = modelarray.dimensions();
-    if (type != expectedType) {
+    if (type != expectedType
+        && !(expectedType == Type::H && (type == Type::U || type == Type::V))) {
         throw std::runtime_error(
             "Xios::read: field '" + fieldId + "' does not have the expected type");
     }
-    if (type == ModelArray::Type::H || type == ModelArray::Type::U || type == ModelArray::Type::V
-        || type == ModelArray::Type::CG) {
+    if (type == Type::H || type == Type::U || type == Type::V || type == Type::CG) {
         cxios_read_data_k82(
             fieldId.c_str(), fieldId.length(), modelarray.getData(), dims[0], dims[1]);
-    } else if (type == ModelArray::Type::VERTEX) {
+    } else if (type == Type::VERTEX) {
         cxios_read_data_k83(fieldId.c_str(), fieldId.length(), modelarray.getData(), dims[0],
             dims[1], ModelArray::size(ModelArray::Dimension::NCOORDS));
-    } else if (type == ModelArray::Type::DG) {
+    } else if (type == Type::DG) {
         cxios_read_data_k83(fieldId.c_str(), fieldId.length(), modelarray.getData(), dims[0],
             dims[1], ModelArray::size(ModelArray::Dimension::DG));
-    } else if (type == ModelArray::Type::DGSTRESS) {
+    } else if (type == Type::DGSTRESS) {
         cxios_read_data_k83(fieldId.c_str(), fieldId.length(), modelarray.getData(), dims[0],
             dims[1], ModelArray::size(ModelArray::Dimension::DGSTRESS));
     } else {

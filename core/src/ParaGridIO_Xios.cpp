@@ -60,6 +60,14 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
             HField field(ModelArray::Type::H);
             field.reinitialize();
             state.merge(ModelState { { { fieldId, field } }, {} });
+        } else if (type == ModelArray::Type::U) {
+            UField field(ModelArray::Type::U);
+            field.reinitialize();
+            state.merge(ModelState { { { fieldId, field } }, {} });
+        } else if (type == ModelArray::Type::V) {
+            VField field(ModelArray::Type::V);
+            field.reinitialize();
+            state.merge(ModelState { { { fieldId, field } }, {} });
         } else if (type == ModelArray::Type::VERTEX) {
             VertexField field(ModelArray::Type::VERTEX);
             field.reinitialize();
