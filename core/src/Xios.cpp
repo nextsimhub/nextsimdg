@@ -47,6 +47,8 @@
 
 namespace Nextsim {
 
+using Type = ModelArray::Type;
+
 static const std::string xDiagnosticPfx = "XiosDiagnostic";
 static const std::map<int, std::string> keyMap = { { Xios::ENABLED_KEY, "xios.enable" },
     { Xios::DIAGNOSTIC_PERIOD_KEY, xDiagnosticPfx + ".period" },
@@ -163,18 +165,17 @@ void Xios::close_context_definition()
                     if (fieldTypes.count(fieldId) > 0) {
                         setFieldType(fieldId, getFieldType(fieldId), ioType);
                     } else {
-                        setFieldType(fieldId, ModelArray::Type::H, ioType);
+                        setFieldType(fieldId, Type::H, ioType);
                     }
                 }
-                const ModelArray::Type& inputType = getFieldType(inputFieldId);
+                const Type& inputType = getFieldType(inputFieldId);
                 if (fieldTypes.count(fieldId) == 0) {
                     // Unused base fields still need a field type
                     setFieldType(fieldId, inputType, NOT_READ);
                 }
-                const ModelArray::Type& baseType = getFieldType(fieldId);
+                const Type& baseType = getFieldType(fieldId);
                 if (ioType == ERA5_FORCING || ioType == TOPAZ_FORCING) {
-                    if (baseType != ModelArray::Type::H && baseType != ModelArray::Type::U
-                        && baseType != ModelArray::Type::V) {
+                    if (baseType != Type::H && baseType != Type::U && baseType != Type::V) {
                         throw std::runtime_error("Xios: Forcing fields must be treated as HFields");
                     }
                 }
@@ -184,12 +185,13 @@ void Xios::close_context_definition()
                 setFieldGridRef(inputFieldId, gridIds[inputType]);
 
                 if ((inputType == baseType)
-                    || (inputType == ModelArray::Type::H
-                        && (baseType == ModelArray::Type::U || baseType == ModelArray::Type::V))) {
+                    || (inputType == Type::H && (baseType == Type::U || baseType == Type::V))) {
                     // Link the input field to the base field if their types align
+                    // NOTE: Here we assume that the U and V types are duplicates of H. This may not
+                    //       be the case in the future.
                     cxios_set_field_field_ref(
                         getField(inputFieldId), fieldId.c_str(), fieldId.length());
-                } else if (baseType == ModelArray::Type::DG && inputType == ModelArray::Type::H) {
+                } else if (baseType == Type::DG && inputType == Type::H) {
                     // Record fields read in as HField but treated as DGField
                     inputFieldsToConvert.insert(inputFieldId);
                 } else {
@@ -216,7 +218,7 @@ void Xios::close_context_definition()
                 }
 
                 // Set grid references
-                const ModelArray::Type& type = getFieldType(fieldId);
+                const Type& type = getFieldType(fieldId);
                 setFieldGridRef(fieldId, gridIds[type]);
             }
         }
@@ -1654,8 +1656,6 @@ void Xios::postprocessOutputFiles()
  */
 void Xios::write(const std::string& fieldId, const ModelArray& modelarray)
 {
-    using Type = ModelArray::Type;
-
     if (modelarray.nDimensions() != 2) {
         throw std::invalid_argument("Only ModelArrays of dimension 2 are supported");
     }
@@ -1673,6 +1673,8 @@ void Xios::write(const std::string& fieldId, const ModelArray& modelarray)
     // Write out according to field type
     // Provide dimension information to XIOS so that it can write the ModelArray into the NetCDF
     // file appropriately
+    // NOTE: Here we assume that the U and V types are duplicates of H. This may not be the case in
+    //       the future.
     if (type == Type::H || type == Type::U || type == Type::V || type == Type::CG) {
         cxios_write_data_k82(
             fieldId.c_str(), fieldId.length(), modelarray.getData(), dims[0], dims[1], -1);
@@ -1699,8 +1701,6 @@ void Xios::write(const std::string& fieldId, const ModelArray& modelarray)
  */
 void Xios::read(const std::string& fieldId, ModelArray& modelarray)
 {
-    using Type = ModelArray::Type;
-
     if (!getFieldReadAccess(fieldId)) {
         throw std::runtime_error("Xios::read: field '" + fieldId
             + "' is not configured for reading, but is being read from file.");
