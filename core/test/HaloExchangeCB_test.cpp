@@ -8,6 +8,7 @@
  * - VertexField
  * - DGField
  * - DGVector
+ * - DGVectorHolder
  * - CGVector
  */
 
@@ -19,6 +20,7 @@
 #include "include/DGModelArray.hpp"
 #include "include/Halo.hpp"
 #include "include/Interpolations.hpp"
+#include "include/dgVectorHolder.hpp"
 
 namespace Nextsim {
 
@@ -218,6 +220,54 @@ MPI_TEST_CASE("DGVector", 3)
     halo.exchangeHalos(testData);
 
     verifyTestData(testData, localNx, localNy, offsetX, offsetY, nx, ny);
+}
+
+MPI_TEST_CASE("DGVectorHolder", 3)
+{
+    auto& modelMPI = ModelMPI::getInstance();
+    auto& metadata = ModelMetadata::getInstance();
+
+    const size_t nx = metadata.getGlobalExtentX();
+    const size_t ny = metadata.getGlobalExtentY();
+    const size_t localNx = metadata.getLocalExtentX() + 2 * Halo::haloWidth;
+    const size_t localNy = metadata.getLocalExtentY() + 2 * Halo::haloWidth;
+    const size_t offsetX = metadata.getLocalCornerX();
+    const size_t offsetY = metadata.getLocalCornerY();
+
+    ModelArray::setDimension(ModelArray::Dimension::X, nx, localNx, offsetX);
+    ModelArray::setDimension(ModelArray::Dimension::Y, ny, localNy, offsetY);
+    ModelArray::setNComponents(ModelArray::Type::DG, DG);
+
+    ParametricMesh smesh(CARTESIAN);
+    smesh.nx = localNx;
+    smesh.ny = localNy;
+    smesh.nelements = localNx * localNy;
+    smesh.nnodes = (localNx + 1) * (localNy + 1);
+    smesh.vertices.resize(smesh.nnodes, Eigen::NoChange);
+    for (size_t i = 0; i < localNx + 1; ++i) {
+        for (size_t j = 0; j < localNy + 1; ++j) {
+            smesh.vertices(i * (localNy + 1) + j, 0) = i;
+            smesh.vertices(i * (localNy + 1) + j, 1) = j;
+        }
+    }
+
+    // create example DGVector
+    DGVector<DG> testData(smesh);
+    testData.zero();
+
+    DGVectorHolder<DG> testHolder;
+    testHolder = DGVectorHolder<DG>(testData);
+
+    // create halo for testData model array
+    Halo halo(testHolder);
+
+    initializeTestData(static_cast<DGVector<DG>&>(testHolder), localNx, localNy, offsetX, offsetY);
+
+    // exchange halos
+    halo.exchangeHalos(static_cast<DGVector<DG>&>(testHolder));
+
+    verifyTestData(
+        static_cast<DGVector<DG>&>(testHolder), localNx, localNy, offsetX, offsetY, nx, ny);
 }
 
 MPI_TEST_CASE("CGVector", 3)

@@ -50,7 +50,7 @@ void Halo::setSpatialDims()
     }
 }
 
-void Halo::intializeHaloMetadata()
+void Halo::initializeHaloMetadata()
 {
     // number of halo cells (should be general for any halo width)
     if (not isCG) {
