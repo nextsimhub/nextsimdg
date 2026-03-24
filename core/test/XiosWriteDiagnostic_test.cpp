@@ -77,9 +77,22 @@ MPI_TEST_CASE("TestXiosWriteDiagnostic", 2)
     grid.setIO(pio);
 
     // Create some fake data to test writing methods
+    HField longitude(ModelArray::Type::H);
+    longitude.reinitialize();
+    for (size_t j = 0; j < ny; ++j) {
+        for (size_t i = 0; i < nx; ++i) {
+            longitude(i, j) = i;
+        }
+    }
+    HField latitude(ModelArray::Type::H);
+    latitude.reinitialize();
+    for (size_t j = 0; j < ny; ++j) {
+        for (size_t i = 0; i < nx; ++i) {
+            latitude(i, j) = j;
+        }
+    }
     HField sss(ModelArray::Type::H);
     sss.reinitialize();
-    sss.resize();
 
     // Check files with the expected names don't exist yet
     REQUIRE_FALSE(std::filesystem::exists("diagnostic*.nc"));
@@ -103,6 +116,8 @@ MPI_TEST_CASE("TestXiosWriteDiagnostic", 2)
 
         // Set up ModelStates for diagnostics and write out
         ModelState diagnostics = { {
+                                       { longitudeName, longitude },
+                                       { latitudeName, latitude },
                                        { sssName, sss },
                                    },
             {} };

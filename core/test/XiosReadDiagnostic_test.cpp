@@ -74,11 +74,15 @@ MPI_TEST_CASE("TestXiosReadDiagnostic", 3)
     REQUIRE(modelstate.data.count(sssName) > 0);
     const size_t nx = ModelArray::size(ModelArray::Dimension::X);
     const size_t ny = ModelArray::size(ModelArray::Dimension::Y);
+    REQUIRE(modelstate.data.count(sssName) > 0);
+    REQUIRE(modelstate.data.count(latitudeName) > 0);
+    REQUIRE(modelstate.data.count(longitudeName) > 0);
     for (const auto [fieldName, modelarray] : modelstate.data) {
-        REQUIRE(fieldName == sssName);
-        for (size_t j = 0; j < ny; ++j) {
-            for (size_t i = 0; i < nx; ++i) {
-                REQUIRE(modelarray(i, j) == doctest::Approx(0.15));
+        if (fieldName == sssName) {
+            for (size_t j = 0; j < ny; ++j) {
+                for (size_t i = 0; i < nx; ++i) {
+                    REQUIRE(modelarray(i, j) == doctest::Approx(0.15));
+                }
             }
         }
     }
