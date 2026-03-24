@@ -336,8 +336,6 @@ template <int DGadvection> void CGDynamicsKernel<DGadvection>::projectVelocityTo
             // by integrating rhs and inverting with dG(stress) mass matrix
             //
             e11.row(dgi) = pmap->iMgradX[dgi] * vx_local;
-            //    for(int i = 0; i < 8; ++i)
-            //        e11.row(dgi)(i) = pmap->iMgradX[dgi](i,0);
             e22.row(dgi) = pmap->iMgradY[dgi] * vy_local;
             e12.row(dgi) = 0.5 * (pmap->iMgradX[dgi] * vy_local + pmap->iMgradY[dgi] * vx_local);
 

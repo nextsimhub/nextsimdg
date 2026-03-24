@@ -615,7 +615,7 @@ void KokkosDGTransport<DG>::addEdgeYTermsDevice(FloatType dt,
         const auto PSIew1 = PSIe_w<DG, GP1D, 1>;
         const auto PSIew3 = PSIe_w<DG, GP1D, 3>;
         Kokkos::parallel_for(
-            "edgeTermX", phiDevice.extent(0), KOKKOS_LAMBDA(const DeviceIndex eid) {
+            "edgeTermY", phiDevice.extent(0), KOKKOS_LAMBDA(const DeviceIndex eid) {
                 const DeviceIndex ix = eid % nx;
                 const DeviceIndex iy = eid / nx;
                 const DeviceIndex c1 = eid;
