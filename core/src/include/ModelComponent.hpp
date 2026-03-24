@@ -142,7 +142,6 @@ namespace CouplingFields {
 class ModelComponent {
 public:
     typedef Logged::level OutputLevel;
-    typedef std::function<void(size_t, const TimestepTime&)> IteratedFn;
 
     ModelComponent();
     virtual ~ModelComponent() = default;
