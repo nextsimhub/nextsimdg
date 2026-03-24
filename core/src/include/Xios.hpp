@@ -60,6 +60,8 @@ public:
 
     /* Configuration */
     void configure() override;
+    static void setSphericalCoordinates(const bool isSpherical) { spherical = isSpherical; }
+    static bool sphericalCoordinates() { return spherical; }
 
     /* Calendar, date and duration */
     void setCalendarStart(const TimePoint& start);
@@ -99,6 +101,7 @@ private:
 
     /* Configuration */
     void parseConfig();
+    inline static bool spherical = false;
 
     /* Client */
     const std::string clientId = "client";

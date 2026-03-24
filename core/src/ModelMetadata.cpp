@@ -320,6 +320,13 @@ void ModelMetadata::setDimensionsFromFile(const std::string& filename)
 #else
             ModelArray::setDimension(dimType, dim.getSize());
 #endif
+
+#if USE_XIOS
+            // Determine coordinate system and communicate to XIOS
+            const bool isSpherical
+                = (!ncFile.getVar("longitude").isNull() && !ncFile.getVar("latitude").isNull());
+            Xios::setSphericalCoordinates(isSpherical);
+#endif
         }
     } catch (const netCDF::exceptions::NcException& nce) {
         std::string ncWhat(nce.what());
