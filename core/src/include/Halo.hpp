@@ -54,6 +54,18 @@ public:
     }
 
     /*!
+     * @brief Constructs a halo object from constant ModelArray
+     * @param ma ModelArray object to create halo from
+     */
+    Halo(const ModelArray& ma)
+    {
+        m_numComps = ma.nComponents();
+        isVertex = ma.getType() == ModelArray::Type::VERTEX;
+        setSpatialDims();
+        initializeHaloMetadata();
+    }
+
+    /*!
      * @brief Constructs a halo object from DGVectorHolder
      * @param dgvh DGVectorHolder object to create halo from
      */
