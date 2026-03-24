@@ -8,7 +8,6 @@
 
 #include "include/LinearFreezing.hpp"
 #include "include/ModelArray.hpp"
-#include "include/ModelArrayRef.hpp"
 #include "include/ModelComponent.hpp"
 #include "include/constants.hpp"
 

@@ -321,10 +321,6 @@ else()
     target_include_directories(testModelComponent PRIVATE ${MODEL_INCLUDE_DIR})
     target_link_libraries(testModelComponent PRIVATE nextsimlib doctest::doctest)
 
-    add_executable(testModelArrayRef "ModelArrayRef_test.cpp")
-    target_include_directories(testModelArrayRef PRIVATE ${MODEL_INCLUDE_DIR})
-    target_link_libraries(testModelArrayRef PRIVATE nextsimlib doctest::doctest)
-
     add_executable(testModelArrayAccessor "ModelArrayAccessor_test.cpp")
     target_include_directories(testModelArrayAccessor PRIVATE ${MODEL_INCLUDE_DIR})
     target_link_libraries(testModelArrayAccessor PRIVATE nextsimlib doctest::doctest)
@@ -386,7 +382,7 @@ else()
         testConfiguredModule
         testTimeClasses
         testModelComponent
-        testModelArrayRef
+        testModelArrayAccessor
         testPrognosticData
         testPrognosticDataIO
         testMonthlyCubicBSpline

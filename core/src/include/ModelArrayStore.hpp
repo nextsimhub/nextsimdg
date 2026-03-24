@@ -7,12 +7,15 @@
 
 #include "../kokkos/include/KokkosModelArray.hpp"
 #include "ModelArray.hpp"
-#include "ModelArrayRef.hpp" // for RW,RO globals
+#include "TextTag.hpp"
 
 #include <string>
 #include <unordered_map>
 
 namespace Nextsim {
+
+constexpr bool RW = true;
+constexpr bool RO = false;
 
 #ifdef USE_KOKKOS
 enum struct SyncState { SYNCED, HOST_CHANGED, DEVICE_CHANGED };

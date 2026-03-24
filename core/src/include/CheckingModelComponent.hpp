@@ -42,7 +42,7 @@ protected:
      * @brief Add all the fields listed to the vector fieldsToCheck so they will be checked by
      * checkFields()
      *
-     * @param fieldsToAdd An std::map of string-s and ModelArrayReference-s with field names and
+     * @param fieldsToAdd An std::map of string-s and ModelArrayAccessors-s with field names and
      * references to check.
      */
     void addChecks(const std::map<const std::string, ModelArrayAccessorBase<RO>>& fieldsToAdd)

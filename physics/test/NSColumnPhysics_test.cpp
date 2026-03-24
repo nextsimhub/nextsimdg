@@ -11,7 +11,6 @@
 #include "include/IAtmosphereBoundary.hpp"
 #include "include/IFreezingPoint.hpp"
 #include "include/ModelArray.hpp"
-#include "include/ModelArrayRef.hpp"
 #include "include/ModelComponent.hpp"
 #include "include/NextsimModule.hpp"
 #include "include/Time.hpp"

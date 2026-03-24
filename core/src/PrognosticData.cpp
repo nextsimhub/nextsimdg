@@ -172,16 +172,15 @@ ModelState PrognosticData::getStatePrognostic() const
 
 PrognosticData::HelpMap& PrognosticData::getHelpText(HelpMap& map, bool getAll)
 {
-    map["debug"] = {
-        { checkFieldsKey, ConfigType::BOOLEAN, { "true", "false" },
-            ConfigurationHelp::toString(checkFieldsDefault), "",
-            "Set to true to check if all variables in the ModelArrayReferenceStore fall within a "
-            "reasonable physical range." },
-        { checkFieldsFastKey, ConfigType::BOOLEAN, { "true", "false" },
-            ConfigurationHelp::toString(checkFieldsFastDefault), "",
-            "Set to true to check if thickness, concentration, and velocities fall within a "
-            "reasonable physical range." }
-    };
+    map["debug"]
+        = { { checkFieldsKey, ConfigType::BOOLEAN, { "true", "false" },
+                ConfigurationHelp::toString(checkFieldsDefault), "",
+                "Set to true to check if all variables in the ModelArrayStore fall within a "
+                "reasonable physical range." },
+              { checkFieldsFastKey, ConfigType::BOOLEAN, { "true", "false" },
+                  ConfigurationHelp::toString(checkFieldsFastDefault), "",
+                  "Set to true to check if thickness, concentration, and velocities fall within a "
+                  "reasonable physical range." } };
 
     return map;
 }

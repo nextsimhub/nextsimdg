@@ -8,7 +8,6 @@
 #include "include/ERA5Atmosphere.hpp"
 
 #include "include/IFluxCalculation.hpp"
-#include "include/ModelArrayRef.hpp"
 #include "include/NextsimModule.hpp"
 #include "include/Time.hpp"
 

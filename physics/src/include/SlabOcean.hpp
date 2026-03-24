@@ -75,7 +75,7 @@ private:
     ModelArrayAccessor<CouplingFields::Q_SS_NO_SW, RO> qNoSunAccessor;
     ModelArrayAccessor<CouplingFields::FWFLUX, RO> fwFluxAccessor;
     ModelArrayAccessor<CouplingFields::SFLUX, RO> sFluxAccessor;
-    // TODO ModelArrayRef to assimilation flux
+    // TODO ModelArrayAccessor to assimilation flux
 
     double relaxationTimeT = defaultRelaxationTime;
     double relaxationTimeS = defaultRelaxationTime;

@@ -7,7 +7,6 @@
 #include "include/TOPAZOcean.hpp"
 
 #include "include/IFluxCalculation.hpp"
-#include "include/ModelArrayRef.hpp"
 #include "include/Time.hpp"
 
 #include <filesystem>
