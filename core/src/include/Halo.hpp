@@ -435,6 +435,11 @@ public:
     size_t getInnerSize() { return m_innerNx * m_innerNy; }
 
     /*!
+     * @brief Returns shape of the inner array
+     */
+    const MultiDim getInnerShape() const { return std::vector({ m_innerNx, m_innerNy }); }
+
+    /*!
      * @brief Get inner block from source array and copy into target
      *
      * @param source Source ModelArray-like object to extract inner block from

@@ -1698,7 +1698,7 @@ void Xios::read(const std::string& fieldId, ModelArray& modelarray)
         ModelArray::DataType& inputData = inputarray.getDataRef();
         halo.getInnerBlock(modelarray.getDataRef(), inputData);
         inputData.resize(halo.getInnerSize(), modelarray.nComponents());
-        auto& dims = inputarray.dimensions();
+        auto& dims = halo.getInnerShape();
         cxios_read_data_k82(fieldId.c_str(), fieldId.length(), inputData.data(), dims[0], dims[1]);
         modelarray = 0;
         // FIXME: Conversion with overloaded '=' operator is known to be problematic
@@ -1716,21 +1716,21 @@ void Xios::read(const std::string& fieldId, ModelArray& modelarray)
         ModelArray::DataType& inputData = inputarray.getDataRef();
         halo.getInnerBlock(modelarray.getDataRef(), inputData);
         inputData.resize(halo.getInnerSize(), modelarray.nComponents());
-        auto& dims = inputarray.dimensions();
+        auto& dims = halo.getInnerShape();
         cxios_read_data_k82(fieldId.c_str(), fieldId.length(), inputData.data(), dims[0], dims[1]);
     } else if (type == ModelArray::Type::CG) {
         CGField inputarray(ModelArray::Type::CG);
         ModelArray::DataType& inputData = inputarray.getDataRef();
         halo.getInnerBlock(modelarray.getDataRef(), inputData);
         inputData.resize(halo.getInnerSize(), modelarray.nComponents());
-        auto& dims = inputarray.dimensions();
+        auto& dims = halo.getInnerShape();
         cxios_read_data_k82(fieldId.c_str(), fieldId.length(), inputData.data(), dims[0], dims[1]);
     } else if (type == ModelArray::Type::VERTEX) {
         VertexField inputarray(ModelArray::Type::VERTEX);
         ModelArray::DataType& inputData = inputarray.getDataRef();
         halo.getInnerBlock(modelarray.getDataRef(), inputData);
         inputData.resize(halo.getInnerSize(), modelarray.nComponents());
-        auto& dims = inputarray.dimensions();
+        auto& dims = halo.getInnerShape();
         cxios_read_data_k83(fieldId.c_str(), fieldId.length(), inputData.data(), dims[0], dims[1],
             ModelArray::size(ModelArray::Dimension::NCOORDS));
     } else if (type == ModelArray::Type::DG) {
@@ -1738,7 +1738,7 @@ void Xios::read(const std::string& fieldId, ModelArray& modelarray)
         ModelArray::DataType& inputData = inputarray.getDataRef();
         halo.getInnerBlock(modelarray.getDataRef(), inputData);
         inputData.resize(halo.getInnerSize(), modelarray.nComponents());
-        auto& dims = inputarray.dimensions();
+        auto& dims = halo.getInnerShape();
         cxios_read_data_k83(fieldId.c_str(), fieldId.length(), inputData.data(), dims[0], dims[1],
             ModelArray::size(ModelArray::Dimension::DG));
     } else if (type == ModelArray::Type::DGSTRESS) {
