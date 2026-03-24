@@ -19,6 +19,7 @@
 
 #include "StructureModule/include/ParametricGrid.hpp"
 #include "include/Finalizer.hpp"
+#include "include/Halo.hpp"
 #include "include/ModelMPI.hpp"
 #include "include/ModelMetadata.hpp"
 #include "include/ParallelNetcdfFile.hpp"
@@ -1681,6 +1682,8 @@ void Xios::read(const std::string& fieldId, ModelArray& modelarray)
     const ModelArray::Type& type = modelarray.getType();
     const ModelArray::Type& expectedType = getFieldType(fieldId);
 
+    Halo halo(modelarray);
+
     // Account for fields to be read in as HField but converted to DGField
     if (inputFieldsToConvert.count(fieldId)) {
         if (expectedType != ModelArray::Type::H) {
@@ -1692,9 +1695,11 @@ void Xios::read(const std::string& fieldId, ModelArray& modelarray)
                 "Xios::read: field '" + fieldId + "' was expected to be converted to a DGField");
         }
         HField inputarray(ModelArray::Type::H);
+        ModelArray::DataType& inputData = inputarray.getDataRef();
+        halo.getInnerBlock(modelarray.getDataRef(), inputData);
+        inputData.resize(halo.getInnerSize(), modelarray.nComponents());
         auto& dims = inputarray.dimensions();
-        cxios_read_data_k82(
-            fieldId.c_str(), fieldId.length(), inputarray.getData(), dims[0], dims[1]);
+        cxios_read_data_k82(fieldId.c_str(), fieldId.length(), inputData.data(), dims[0], dims[1]);
         modelarray = 0;
         // FIXME: Conversion with overloaded '=' operator is known to be problematic
         modelarray = inputarray;
@@ -1702,23 +1707,48 @@ void Xios::read(const std::string& fieldId, ModelArray& modelarray)
     }
 
     // Other field types should not need converting
-    auto& dims = modelarray.dimensions();
     if (type != expectedType) {
         throw std::runtime_error(
             "Xios::read: field '" + fieldId + "' does not have the expected type");
     }
-    if ((type == ModelArray::Type::H) || (type == ModelArray::Type::CG)) {
-        cxios_read_data_k82(
-            fieldId.c_str(), fieldId.length(), modelarray.getData(), dims[0], dims[1]);
+    if (type == ModelArray::Type::H) {
+        HField inputarray(ModelArray::Type::H);
+        ModelArray::DataType& inputData = inputarray.getDataRef();
+        halo.getInnerBlock(modelarray.getDataRef(), inputData);
+        inputData.resize(halo.getInnerSize(), modelarray.nComponents());
+        auto& dims = inputarray.dimensions();
+        cxios_read_data_k82(fieldId.c_str(), fieldId.length(), inputData.data(), dims[0], dims[1]);
+    } else if (type == ModelArray::Type::CG) {
+        CGField inputarray(ModelArray::Type::CG);
+        ModelArray::DataType& inputData = inputarray.getDataRef();
+        halo.getInnerBlock(modelarray.getDataRef(), inputData);
+        inputData.resize(halo.getInnerSize(), modelarray.nComponents());
+        auto& dims = inputarray.dimensions();
+        cxios_read_data_k82(fieldId.c_str(), fieldId.length(), inputData.data(), dims[0], dims[1]);
     } else if (type == ModelArray::Type::VERTEX) {
-        cxios_read_data_k83(fieldId.c_str(), fieldId.length(), modelarray.getData(), dims[0],
-            dims[1], ModelArray::size(ModelArray::Dimension::NCOORDS));
+        VertexField inputarray(ModelArray::Type::VERTEX);
+        ModelArray::DataType& inputData = inputarray.getDataRef();
+        halo.getInnerBlock(modelarray.getDataRef(), inputData);
+        inputData.resize(halo.getInnerSize(), modelarray.nComponents());
+        auto& dims = inputarray.dimensions();
+        cxios_read_data_k83(fieldId.c_str(), fieldId.length(), inputData.data(), dims[0], dims[1],
+            ModelArray::size(ModelArray::Dimension::NCOORDS));
     } else if (type == ModelArray::Type::DG) {
-        cxios_read_data_k83(fieldId.c_str(), fieldId.length(), modelarray.getData(), dims[0],
-            dims[1], ModelArray::size(ModelArray::Dimension::DG));
+        DGField inputarray(ModelArray::Type::DG);
+        ModelArray::DataType& inputData = inputarray.getDataRef();
+        halo.getInnerBlock(modelarray.getDataRef(), inputData);
+        inputData.resize(halo.getInnerSize(), modelarray.nComponents());
+        auto& dims = inputarray.dimensions();
+        cxios_read_data_k83(fieldId.c_str(), fieldId.length(), inputData.data(), dims[0], dims[1],
+            ModelArray::size(ModelArray::Dimension::DG));
     } else if (type == ModelArray::Type::DGSTRESS) {
-        cxios_read_data_k83(fieldId.c_str(), fieldId.length(), modelarray.getData(), dims[0],
-            dims[1], ModelArray::size(ModelArray::Dimension::DGSTRESS));
+        DGSField inputarray(ModelArray::Type::DGSTRESS);
+        ModelArray::DataType& inputData = inputarray.getDataRef();
+        halo.getInnerBlock(modelarray.getDataRef(), inputData);
+        inputData.resize(halo.getInnerSize(), modelarray.nComponents());
+        auto& dims = inputarray.dimensions();
+        cxios_read_data_k83(fieldId.c_str(), fieldId.length(), inputData.data(), dims[0], dims[1],
+            ModelArray::size(ModelArray::Dimension::DGSTRESS));
     } else {
         throw std::invalid_argument(
             "Only HFields, VertexFields, DGFields, DGSFields, and CGFields are supported");
