@@ -119,14 +119,17 @@ void Model::configure()
 
     configureRestarts();
 
+    // Configure parameters related to the temporal discretisation
+    configureTime();
+
+    // Configure prognostic data
     pData.configure();
 
     auto& metadata = ModelMetadata::getInstance();
     modelStep.init();
     modelStep.setInitFile(metadata.initialFileName);
 
-    configureTime();
-
+    // Read the initial state from file
     ModelState initialState(StructureFactory::stateFromFile(metadata.initialFileName));
 
     // Get the coordinates from the ModelState for persistence
@@ -188,15 +191,25 @@ Model::HelpMap& Model::getHelpRecursive(HelpMap& map, bool getAll)
 
 void Model::run()
 {
+#ifdef USE_XIOS
+    Xios& xiosHandler = Xios::getInstance();
+#endif
+
     try {
         iterator.run();
     } catch (const std::exception& e) {
         writeRestartFile();
+#ifdef USE_XIOS
+        xiosHandler.context_finalize();
+#endif
         Finalizer::finalize();
         throw;
     }
 
     writeRestartFile();
+#ifdef USE_XIOS
+    xiosHandler.context_finalize();
+#endif
     Finalizer::finalize();
 }
 

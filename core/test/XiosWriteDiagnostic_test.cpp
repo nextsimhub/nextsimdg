@@ -77,24 +77,9 @@ MPI_TEST_CASE("TestXiosWriteDiagnostic", 2)
     grid.setIO(pio);
 
     // Set field type for diagnostics
-    xiosHandler.setFieldType(hsnowName, ModelArray::Type::H);
+    xiosHandler.setDiagnosticFieldType(hsnowName, ModelArray::Type::H);
 
     // Create some fake data to test writing methods
-    HField mask(ModelArray::Type::H);
-    mask.resize();
-    for (size_t j = 0; j < ny; ++j) {
-        for (size_t i = 0; i < nx; ++i) {
-            mask(i, j) = j >= 1 ? 1.0 : 0.0;
-        }
-    }
-    VertexField coordinates(ModelArray::Type::VERTEX);
-    coordinates.resize();
-    DGField hice(ModelArray::Type::DG);
-    hice.resize();
-    DGSField tice(ModelArray::Type::DGSTRESS);
-    tice.resize();
-    CGField uice(ModelArray::Type::CG);
-    uice.resize();
     HField hsnow(ModelArray::Type::H);
     hsnow.resize();
 

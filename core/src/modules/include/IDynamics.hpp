@@ -7,6 +7,9 @@
 
 #include "include/ModelComponent.hpp"
 #include "include/Time.hpp"
+#ifdef USE_XIOS
+#include "include/Xios.hpp"
+#endif
 #include "include/gridNames.hpp"
 
 #include <limits>
@@ -46,6 +49,16 @@ public:
         getStore().registerArray(Protected::SHEAR, &shear, RO);
         getStore().registerArray(Protected::SIGMAI, &sigmaI, RO);
         getStore().registerArray(Protected::SIGMAII, &sigmaII, RO);
+
+#ifdef USE_XIOS
+        // Set XIOS field types
+        Xios& xiosHandler = Xios::getInstance();
+        xiosHandler.setPrognosticFieldType(coordsName, ModelArray::Type::VERTEX);
+        xiosHandler.setPrognosticFieldType(hiceName, ModelArray::AdvectionType);
+        xiosHandler.setPrognosticFieldType(ciceName, ModelArray::AdvectionType);
+        xiosHandler.setPrognosticFieldType(damageName, ModelArray::AdvectionType);
+        xiosHandler.setPrognosticFieldType(hsnowName, ModelArray::AdvectionType);
+#endif
     }
     virtual ~IDynamics() = default;
 

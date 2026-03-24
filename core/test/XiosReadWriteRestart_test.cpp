@@ -45,12 +45,12 @@ MPI_TEST_CASE("TestXiosReadWriteRestart", 2)
     config << "restart_period = P0-0T03:00:00" << std::endl;
     config << "[XiosInput]" << std::endl;
     config << "field_names = " << maskName << "," << longitudeName << "," << latitudeName << ","
-           << gridAzimuthName << "," << ciceName << "," << hiceName << "," << damageName << ","
-           << hsnowName << "," << ticeName << "," << uName << "," << std::endl;
+           << coordsName << "," << gridAzimuthName << "," << ciceName << "," << hiceName << ","
+           << damageName << "," << hsnowName << "," << ticeName << "," << uName << "," << std::endl;
     config << "[XiosOutput]" << std::endl;
     config << "field_names = " << maskName << "," << longitudeName << "," << latitudeName << ","
-           << gridAzimuthName << "," << ciceName << "," << hiceName << "," << damageName << ","
-           << hsnowName << "," << ticeName << "," << uName << "," << std::endl;
+           << coordsName << "," << gridAzimuthName << "," << ciceName << "," << hiceName << ","
+           << damageName << "," << hsnowName << "," << ticeName << "," << uName << "," << std::endl;
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
 
@@ -69,8 +69,6 @@ MPI_TEST_CASE("TestXiosReadWriteRestart", 2)
     REQUIRE(xiosHandler.getCalendarStep() == 0);
 
     // Set ModelArray dimensions
-    const size_t nx = ModelArray::size(ModelArray::Dimension::X);
-    const size_t ny = ModelArray::size(ModelArray::Dimension::Y);
     REQUIRE(ModelArray::nComponents(ModelArray::Type::DG) == DGCOMP);
     REQUIRE(ModelArray::size(ModelArray::Dimension::DG) == DGCOMP);
 
