@@ -284,6 +284,23 @@ void Xios::parseConfig()
     // TODO: Avoid having to parse diagnostic fields for XIOS specifically (#981)
     diagnosticFieldNames = str2set(
         Configured::getConfiguration(keyMap.at(DIAGNOSTIC_FIELD_NAMES_KEY), std::string()));
+
+    // Ensure the coordinate variables are included in diagnostic files
+    if (spherical) {
+        if (diagnosticFieldNames.count(longitudeName) == 0) {
+            diagnosticFieldNames.insert(longitudeName);
+        }
+        if (diagnosticFieldNames.count(latitudeName) == 0) {
+            diagnosticFieldNames.insert(latitudeName);
+        }
+    } else {
+        if (diagnosticFieldNames.count(xName) == 0) {
+            diagnosticFieldNames.insert(xName);
+        }
+        if (diagnosticFieldNames.count(yName) == 0) {
+            diagnosticFieldNames.insert(yName);
+        }
+    }
 }
 
 //! Initialize the XIOS context with ID contextId
