@@ -74,39 +74,37 @@ void MU71Atmosphere::update(const Nextsim::TimestepTime& tst)
     const HField& iceAlbedo = iceAlbedoAccessor.getHostRO();
     const HField& icePenSW = icePenSWAccessor.getHostRO();
 
-    overElements(
-        [&](size_t i, const TimestepTime& tsTime) {
-            const double Tsurf_K = kelvin(tsurf[i]);
+    overElements([&](size_t i) {
+        const double Tsurf_K = kelvin(tsurf[i]);
 
-            double sw_in = convFactor * q_sw(dayOfYear, isLeap);
-            const double hs = cice[i] > 0 ? hsnow[i] / cice[i] : 0.;
-            const double albedoValue = iceAlbedo[i];
-            const double i0 = icePenSW[i];
-            double qsw = -sw_in * (1. - albedoValue) * (1. - i0);
-            penSW[i] = sw_in * (1. - albedoValue) * i0;
-            qia[i] = -convFactor
-                    * (q_sh(dayOfYear, isLeap) + q_lh(dayOfYear, isLeap) + q_lw(dayOfYear, isLeap))
-                // LW is tabulated + black body radiation
-                + Ice::epsilon * PhysicalConstants::sigma * std::pow(Tsurf_K, 4) + qsw;
+        double sw_in = convFactor * q_sw(dayOfYear, isLeap);
+        const double hs = cice[i] > 0 ? hsnow[i] / cice[i] : 0.;
+        const double albedoValue = iceAlbedo[i];
+        const double i0 = icePenSW[i];
+        double qsw = -sw_in * (1. - albedoValue) * (1. - i0);
+        penSW[i] = sw_in * (1. - albedoValue) * i0;
+        qia[i] = -convFactor
+                * (q_sh(dayOfYear, isLeap) + q_lh(dayOfYear, isLeap) + q_lw(dayOfYear, isLeap))
+            // LW is tabulated + black body radiation
+            + Ice::epsilon * PhysicalConstants::sigma * std::pow(Tsurf_K, 4) + qsw;
 
-            // Just the derivative of the black body radiation
-            dqia_dt[i] = 4. * Ice::epsilon * PhysicalConstants::sigma * std::pow(Tsurf_K, 3);
+        // Just the derivative of the black body radiation
+        dqia_dt[i] = 4. * Ice::epsilon * PhysicalConstants::sigma * std::pow(Tsurf_K, 3);
 
-            // Only snowfall if we're not melting
-            if ((hs > 0 && tsurf[i] < 0.) || (hs == 0 && tsurf[i] < -Ice::s * Water::mu))
-                snow[i] = snowfall();
-            else
-                snow[i] = 0.;
+        // Only snowfall if we're not melting
+        if ((hs > 0 && tsurf[i] < 0.) || (hs == 0 && tsurf[i] < -Ice::s * Water::mu))
+            snow[i] = snowfall();
+        else
+            snow[i] = 0.;
 
-            // Not needed/specified by M&U '71
-            qow[i] = 0.;
-            subl[i] = 0.;
-            rain[i] = 0.;
-            evap[i] = 0.;
-            uwind[i] = 0.;
-            vwind[i] = 0.;
-        },
-        tst);
+        // Not needed/specified by M&U '71
+        qow[i] = 0.;
+        subl[i] = 0.;
+        rain[i] = 0.;
+        evap[i] = 0.;
+        uwind[i] = 0.;
+        vwind[i] = 0.;
+    });
 }
 
 // Snowfall according to M&U '71 (in m/s water equivalent)

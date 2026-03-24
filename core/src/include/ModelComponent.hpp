@@ -218,14 +218,6 @@ public:
     }
 
 protected:
-    inline static void overElements(IteratedFn fn, const TimestepTime& tst)
-    {
-#pragma omp parallel for
-        for (size_t i = 0; i < nOcean; ++i) {
-            fn(oceanIndex[i], tst);
-        }
-    }
-
     /*!
      * @brief Sets the model-wide land-ocean mask (for HField arrays).
      * @param mask The HField ModelArray containing the mask data.
