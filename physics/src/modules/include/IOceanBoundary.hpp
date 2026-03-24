@@ -11,9 +11,6 @@
 #include "include/KernelAlternatives.hpp"
 #include "include/ModelArrayAccessor.hpp"
 #include "include/constants.hpp"
-#ifdef USE_XIOS
-#include "include/Xios.hpp"
-#endif
 #include "include/gridNames.hpp"
 
 namespace Nextsim {
@@ -51,13 +48,6 @@ public:
         , tauXOWAccessor(getStore())
         , tauYOWAccessor(getStore())
     {
-
-#ifdef USE_XIOS
-        // Set XIOS field types
-        Xios& xiosHandler = Xios::getInstance();
-        xiosHandler.setPrognosticFieldType(sssName, ModelArray::Type::H);
-        xiosHandler.setPrognosticFieldType(sstName, ModelArray::Type::H);
-#endif
     }
     virtual ~IOceanBoundary() = default;
 
