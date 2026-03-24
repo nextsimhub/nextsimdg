@@ -1634,7 +1634,6 @@ void Xios::write(const std::string& fieldId, const ModelArray& modelarray)
     if (modelarray.nDimensions() != 2) {
         throw std::invalid_argument("Only ModelArrays of dimension 2 are supported");
     }
-    auto& dims = modelarray.dimensions();
     const ModelArray::Type& type = modelarray.getType();
     domainWritten[domainIds[type]] = true;
 
@@ -1645,19 +1644,28 @@ void Xios::write(const std::string& fieldId, const ModelArray& modelarray)
             "Xios::write: field '" + fieldId + "' does not have the expected type");
     }
 
+    // Create a halo object based on the input array
+    Halo halo(modelarray);
+
+    // Copy data into a temporary array without the halo
+    ModelArray::DataType tempData;
+    tempData.resize(halo.getInnerSize(), modelarray.nComponents());
+    halo.getInnerBlock(modelarray.data(), tempData);
+    auto& dims = halo.getInnerShape();
+
     // Write out according to field type
     if ((type == ModelArray::Type::H) || (type == ModelArray::Type::CG)) {
         cxios_write_data_k82(
-            fieldId.c_str(), fieldId.length(), modelarray.getData(), dims[0], dims[1], -1);
+            fieldId.c_str(), fieldId.length(), tempData.data(), dims[0], dims[1], -1);
     } else if (type == ModelArray::Type::VERTEX) {
-        cxios_write_data_k83(fieldId.c_str(), fieldId.length(), modelarray.getData(), dims[0],
-            dims[1], ModelArray::size(ModelArray::Dimension::NCOORDS), -1);
+        cxios_write_data_k83(fieldId.c_str(), fieldId.length(), tempData.data(), dims[0], dims[1],
+            ModelArray::size(ModelArray::Dimension::NCOORDS), -1);
     } else if (type == ModelArray::Type::DG) {
-        cxios_write_data_k83(fieldId.c_str(), fieldId.length(), modelarray.getData(), dims[0],
-            dims[1], ModelArray::size(ModelArray::Dimension::DG), -1);
+        cxios_write_data_k83(fieldId.c_str(), fieldId.length(), tempData.data(), dims[0], dims[1],
+            ModelArray::size(ModelArray::Dimension::DG), -1);
     } else if (type == ModelArray::Type::DGSTRESS) {
-        cxios_write_data_k83(fieldId.c_str(), fieldId.length(), modelarray.getData(), dims[0],
-            dims[1], ModelArray::size(ModelArray::Dimension::DGSTRESS), -1);
+        cxios_write_data_k83(fieldId.c_str(), fieldId.length(), tempData.data(), dims[0], dims[1],
+            ModelArray::size(ModelArray::Dimension::DGSTRESS), -1);
     } else {
         throw std::invalid_argument(
             "Only HFields, VertexFields, DGFields, DGSFields, and CGFields are supported");
