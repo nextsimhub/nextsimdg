@@ -1688,8 +1688,8 @@ void Xios::write(const std::string& fieldId, const ModelArray& modelarray)
         cxios_write_data_k83(fieldId.c_str(), fieldId.length(), modelarray.getData(), dims[0],
             dims[1], ModelArray::size(ModelArray::Dimension::DGSTRESS), -1);
     } else {
-        throw std::invalid_argument(
-            "Only HFields, VertexFields, DGFields, DGSFields, and CGFields are supported");
+        throw std::invalid_argument("Only HFields, UFields, VFields, VertexFields, DGFields, "
+                                    "DGSFields, and CGFields are supported");
     }
 }
 
@@ -1755,8 +1755,8 @@ void Xios::read(const std::string& fieldId, ModelArray& modelarray)
         cxios_read_data_k83(fieldId.c_str(), fieldId.length(), modelarray.getData(), dims[0],
             dims[1], ModelArray::size(ModelArray::Dimension::DGSTRESS));
     } else {
-        throw std::invalid_argument(
-            "Only HFields, VertexFields, DGFields, DGSFields, and CGFields are supported");
+        throw std::invalid_argument("Only HFields, UFields, VFields, VertexFields, DGFields, "
+                                    "DGSFields, and CGFields are supported");
     }
 }
 }
