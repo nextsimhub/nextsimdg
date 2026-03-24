@@ -139,14 +139,11 @@ void BBMDynamics::update(const TimestepTime& tst)
     kernel.setDGArray(damageName, damageAccessor.getAutoRW());
 
     // set the forcing velocities
-    static KokkosTimer<DETAILED_MEASUREMENTS> timer("BBMDynamics::update::setData");
-    timer.start();
     kernel.setData(uWindName, uwindAccessor.getAutoRO());
     kernel.setData(vWindName, vwindAccessor.getAutoRO());
     kernel.setData(uOceanName, uoceanAccessor.getAutoRO());
     kernel.setData(vOceanName, voceanAccessor.getAutoRO());
     kernel.setData(sshName, sshAccessor.getAutoRO());
-    timer.stop();
 
     /*
      * Ice velocity components are stored in the dynamics, and not changed by the model outside the
@@ -155,8 +152,6 @@ void BBMDynamics::update(const TimestepTime& tst)
 
     kernel.update(tst);
 
-    static KokkosTimer<DETAILED_MEASUREMENTS> timerGet("getData");
-    timerGet.start();
     uiceAccessor.getHostRW() = kernel.getDG0Data(uName);
     viceAccessor.getHostRW() = kernel.getDG0Data(vName);
 
@@ -167,7 +162,6 @@ void BBMDynamics::update(const TimestepTime& tst)
     divergenceAccessor.getHostRW() = kernel.getDG0Data(divergenceName);
     sigmaIAccessor.getHostRW() = kernel.getDG0Data(sigmaIName);
     sigmaIIAccessor.getHostRW() = kernel.getDG0Data(sigmaIIName);
-    timerGet.stop();
 }
 
 void BBMDynamics::prepareAdvection() { kernel.prepareAdvection(); }
