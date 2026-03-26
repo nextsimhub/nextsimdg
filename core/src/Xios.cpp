@@ -1344,7 +1344,7 @@ void Xios::createFile(const std::string& fileId)
         } else {
             periodStr
                 = Configured::getConfiguration(keyMap.at(DIAGNOSTIC_PERIOD_KEY), std::string());
-            period = Duration(periodStr);
+            Duration period = periodStr;
             if (metadata.period.seconds() <= 0) {
                 throw std::runtime_error("Xios: Diagnostic period must be positive");
             }
