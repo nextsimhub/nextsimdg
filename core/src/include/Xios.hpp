@@ -80,6 +80,7 @@ public:
         = { sstName, sssName, mldName, uName, vName, sshName };
     void setPrognosticFieldType(const std::string& fieldId, const ModelArray::Type& type);
     void setDiagnosticFieldType(const std::string& fieldId, const ModelArray::Type& type);
+    const ModelArray::MultiDim getFieldLocalDoFs(const ModelArray& modelarray);
 
     enum {
         ENABLED_KEY,

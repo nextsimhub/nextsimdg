@@ -1124,6 +1124,24 @@ void Xios::setDiagnosticFieldType(const std::string& fieldId, const ModelArray::
 }
 
 /*!
+ * Get the rank-local degrees of freedom for a given ModelArray.
+ *
+ * @param modelarray The ModelArray to get DoF information for
+ * @return MultiDim vector containing the number of DoFs in each direction
+ */
+const ModelArray::MultiDim Xios::getFieldLocalDoFs(const ModelArray& modelarray)
+{
+    const ModelArray::Type& type = modelarray.getType();
+    const std::string& domainId = domainIds[type];
+    xios::CDomain* domain = getDomain(domainId);
+    int ni;
+    cxios_get_domain_ni(domain, &ni);
+    int nj;
+    cxios_get_domain_nj(domain, &nj);
+    return std::vector<size_t> { (size_t)ni, (size_t)nj };
+}
+
+/*!
  * @brief   Do an initial read of input files to deduce field dimensions.
  *
  * @details This function will read the dimension information from any NetCDF input files (restarts
