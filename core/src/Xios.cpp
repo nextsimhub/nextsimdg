@@ -829,7 +829,6 @@ void Xios::createField(const std::string& fieldId, const std::string& fileId)
         setFieldReadAccess(fieldId, false);
         fileAddField(fileId, fieldId);
     } else {
-        // TODO: Allow unused fields in input files (#1060)
         throw std::runtime_error("Xios: Unknown I/O type for field '" + fieldId + "'");
     }
 }
