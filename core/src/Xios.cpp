@@ -1331,6 +1331,9 @@ void Xios::createFile(const std::string& fileId)
     cxios_duration outputFreq;
     ModelMetadata& metadata = ModelMetadata::getInstance();
     if (ioType == INPUT_RESTART || ioType == OUTPUT_RESTART) {
+        if (metadata.restartPeriod.seconds() <= 0) {
+            throw std::runtime_error("Xios: Restart period must be positive");
+        }
         outputFreq = convertDurationToXios(metadata.restartPeriod);
     } else {
         std::string periodStr;
@@ -1341,7 +1344,11 @@ void Xios::createFile(const std::string& fileId)
         } else {
             periodStr
                 = Configured::getConfiguration(keyMap.at(DIAGNOSTIC_PERIOD_KEY), std::string());
-            cxios_set_file_split_freq(file, convertDurationToXios(Duration(periodStr)));
+            period = Duration(periodStr);
+            if (metadata.period.seconds() <= 0) {
+                throw std::runtime_error("Xios: Diagnostic period must be positive");
+            }
+            cxios_set_file_split_freq(file, convertDurationToXios(period);
             if (periodStr.empty() || periodStr == "0") {
                 outputFreq = convertDurationToXios(metadata.runLength());
             } else {

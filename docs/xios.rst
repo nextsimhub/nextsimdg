@@ -94,6 +94,8 @@ building without XIOS. That is, the ``model`` section should include
   restart_file = my_restart_file.nc
   restart_period = P0-0T02:00:00
 
+Note that the restart period must be positive under XIOS.
+
 Information related to fields to be read from and written to files are
 configured via the ``XiosInput``, ``XiosOutput``, and ``XiosDiagnostic``
 sections, where the first two refer to restarts. Note that all of these sections
