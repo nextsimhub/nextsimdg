@@ -64,8 +64,6 @@ MPI_TEST_CASE("TestXiosWriteDiagnostic", 2)
     Xios& xiosHandler = Xios::getInstance();
 
     // Set ModelArray dimensions
-    const size_t nx = ModelArray::size(ModelArray::Dimension::X);
-    const size_t ny = ModelArray::size(ModelArray::Dimension::Y);
     REQUIRE(ModelArray::nComponents(ModelArray::Type::DG) == DGCOMP);
     REQUIRE(ModelArray::size(ModelArray::Dimension::DG) == DGCOMP);
 
@@ -92,11 +90,15 @@ MPI_TEST_CASE("TestXiosWriteDiagnostic", 2)
     // Simulate 4 iterations (timesteps)
     ModelMetadata& metadata = ModelMetadata::getInstance();
     const Duration& timestep = metadata.stepLength();
+    const size_t nx = ModelArray::size(ModelArray::Dimension::X);
+    const size_t ny = ModelArray::size(ModelArray::Dimension::Y);
     int rank;
     MPI_Comm_rank(test_comm, &rank);
     for (int ts = 0; ts <= 4; ts++) {
 
         // Update diagnostics
+        // NOTE: This example writes the (spatially constant) value into the halo region as well as
+        //       the interior. It doesn't matter because the halo values get discarded.
         for (size_t j = 0; j < ny; ++j) {
             for (size_t i = 0; i < nx; ++i) {
                 hsnow(i, j) = 0.1 * ts;

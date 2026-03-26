@@ -241,6 +241,9 @@ if(ENABLE_MPI)
                 "${MODEL_INCLUDE_DIR}"
                 "${XIOS_INCLUDE_LIST}"
                 "${ModulesRoot}/StructureModule"
+                "${ModulesRoot}/StructureModule"
+                "../../dynamics/src"
+                "../../dynamics/src/include"
         )
         target_link_libraries(testXiosReadDiagnostic_MPI3 PRIVATE nextsimlib doctest::doctest)
 
