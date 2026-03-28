@@ -10,7 +10,11 @@
 namespace Nextsim {
 
 static const std::vector<std::string> namedFields = { uName, vName };
-static const std::map<std::string, std::pair<ModelArray::Type, double>> defaultFields = {};
+static const std::map<std::string, std::pair<ModelArray::Type, double>> defaultFields = {
+//        { stress11Name, { ModelArray::Type::DG, 0. } },
+//        { stress12Name, { ModelArray::Type::DG, 0. } },
+//        { stress22Name, { ModelArray::Type::DG, 0. } },
+};
 
 // TODO: We should use getName() here, but it isn't static.
 static const std::string prefix = "BBMDynamics"; // MEVPDynamics::getName();
@@ -103,6 +107,16 @@ void BBMDynamics::setData(const ModelState::DataMap& ms)
     uice = ms.at(uName);
     vice = ms.at(vName);
 
+    if (ms.count(stress11Name)) {
+        stress11 = ms.at(stress11Name);
+        stress12 = ms.at(stress12Name);
+        stress22 = ms.at(stress22Name);
+    } else {
+        stress11 = 0.;
+        stress12 = 0.;
+        stress22 = 0.;
+    }
+
     // Set the data in the kernel arrays.
     // Required data
     for (const auto& fieldName : namedFields) {
@@ -130,6 +144,9 @@ void BBMDynamics::setData(const ModelState::DataMap& ms)
     kernel.setDGArray(ciceName, ciceDG.allComponents());
     kernel.setDGArray(hsnowName, hsnowDG.allComponents());
     kernel.setDGArray(damageName, damage.allComponents());
+    kernel.setDGArray(stress11Name, stress11);
+    kernel.setDGArray(stress12Name, stress12);
+    kernel.setDGArray(stress22Name, stress22);
 }
 
 void BBMDynamics::update(const TimestepTime& tst)
@@ -160,6 +177,19 @@ void BBMDynamics::update(const TimestepTime& tst)
     divergence = kernel.getDG0Data(divergenceName);
     sigmaI = kernel.getDG0Data(sigmaIName);
     sigmaII = kernel.getDG0Data(sigmaIIName);
+}
+
+ModelState BBMDynamics::getStatePrognostic() const
+{
+    ModelState state = { {
+            { stress11Name, stress11 },
+            { stress12Name, stress12 },
+            { stress22Name, stress22 },
+    },
+            getConfiguration()
+    };
+    state.merge(IDynamics::getStatePrognostic());
+    return state;
 }
 
 void BBMDynamics::prepareAdvection() { kernel.prepareAdvection(); }

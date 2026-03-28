@@ -57,20 +57,20 @@ public:
 
         seaSurfaceHeight.resize_by_mesh(*smesh);
 
-        e11.resize_by_mesh(*smesh);
-        e12.resize_by_mesh(*smesh);
-        e22.resize_by_mesh(*smesh);
-        s11.resize_by_mesh(*smesh);
-        s12.resize_by_mesh(*smesh);
-        s22.resize_by_mesh(*smesh);
+        //        e11.resize_by_mesh(*smesh);
+        //        e12.resize_by_mesh(*smesh);
+        //        e22.resize_by_mesh(*smesh);
+        //        s11.resize_by_mesh(*smesh);
+        //        s12.resize_by_mesh(*smesh);
+        //        s22.resize_by_mesh(*smesh);
 
         // Set initial values to zero. Prognostic fields will be filled from the restart file.
-        e11.zero();
-        e12.zero();
-        e22.zero();
-        s11.zero();
-        s12.zero();
-        s22.zero();
+        //        e11.zero();
+        //        e12.zero();
+        //        e22.zero();
+        //        s11.zero();
+        //        s12.zero();
+        //        s22.zero();
     }
 
     /*!
@@ -91,9 +91,16 @@ public:
      */
     virtual void setData(const std::string& name, const ModelArray& data)
     {
-
+        static const std::set<std::string> vectorHolderNames = {
+            hiceName,
+            ciceName,
+            hsnowName,
+            stress11Name,
+            stress12Name,
+            stress22Name,
+        };
         // Special cases: hice, cice, (damage, stress) <- not yet implemented
-        if (name == hiceName || name == ciceName || name == hsnowName) {
+        if (vectorHolderNames.count(name)) {
             throw std::runtime_error(std::string("Use setDGArray() to set the data for ") + name);
         } else if (name == sshName) {
             DGModelArray::ma2dg(data, seaSurfaceHeight);
@@ -125,14 +132,6 @@ public:
         if (name == hiceName || name == ciceName || name == hsnowName) {
             throw std::runtime_error(
                 std::string("DynamicsKernel::getDG0Data: Use array sharing for ") + name);
-        } else if (name == shearName) {
-            return DGModelArray::dg2ma(Tools::Shear(*smesh, e11, e12, e22), data);
-        } else if (name == divergenceName) {
-            return DGModelArray::dg2ma(Tools::TensorInvI(*smesh, e11, e12, e22), data);
-        } else if (name == sigmaIName) {
-            return DGModelArray::dg2ma(Tools::TensorInvI(*smesh, s11, s12, s22), data);
-        } else if (name == sigmaIIName) {
-            return DGModelArray::dg2ma(Tools::TensorInvII(*smesh, s11, s12, s22), data);
         } else {
             // Any other named field must exist
             return ModelArray(ModelArray::component0Type(ModelArray::AdvectionType));
@@ -199,8 +198,9 @@ protected:
     DGVector<1> seaSurfaceHeight;
 
     //! Vectors storing strain and stress components
-    DGVector<DGstress> e11, e12, e22;
-    DGVector<DGstress> s11, s12, s22;
+    //    DGVector<DGstress> e11, e12, e22;
+    //    DGVector<DGstress> /*s11,*/ s12, s22;
+    //    DGVectorHolder<DGstress> s11, s12, s22;
 
     size_t stepNumber = 0;
 

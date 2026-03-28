@@ -30,6 +30,9 @@ public:
         , divergence(ModelArray::Type::H)
         , sigmaI(ModelArray::Type::H)
         , sigmaII(ModelArray::Type::H)
+        , stress11(ModelArray::Type::DGSTRESS)
+        , stress12(ModelArray::Type::DGSTRESS)
+        , stress22(ModelArray::Type::DGSTRESS)
         , damage(getStore())
         , uwind(getStore())
         , vwind(getStore())
@@ -89,6 +92,9 @@ public:
                                  { divergenceName, divergence },
                                  { sigmaIName, sigmaI },
                                  { sigmaIIName, sigmaII },
+                                 { stress11Name, stress11 },
+                                 { stress11Name, stress12 },
+                                 { stress11Name, stress22 },
                              },
             {} };
         return state.merge(getStatePrognostic());
@@ -103,6 +109,9 @@ public:
         divergence.resize();
         sigmaI.resize();
         sigmaII.resize();
+        stress11.resize();
+        stress12.resize();
+        stress22.resize();
     }
 
     virtual void update(const TimestepTime& tst) = 0;
@@ -132,6 +141,10 @@ protected:
     HField divergence;
     HField sigmaI;
     HField sigmaII;
+    // Stress components. Diagnostic for some dynamics, prognostic for brittle and others.
+    DGSField stress11;
+    DGSField stress12;
+    DGSField stress22;
     // References to the DG0 finite volume data arrays
     ModelArrayRef<Shared::DAMAGE, RW> damage;
 
