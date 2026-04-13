@@ -6,7 +6,9 @@
 #include <doctest/extensions/doctest_mpi.h>
 #undef INFO
 
+#include "cgVector.hpp"
 #include "include/Finalizer.hpp"
+#include "include/Halo.hpp"
 #include "include/Model.hpp"
 #include "include/ModelMPI.hpp"
 #include "include/NextsimModule.hpp"
@@ -70,19 +72,24 @@ MPI_TEST_CASE("TestXiosReadDiagnostic", 3)
     Xios& xiosHandler = Xios::getInstance();
     REQUIRE(xiosHandler.getCalendarStep() == 0);
 
-    // Deduce the local lengths of the two dimensions
-    const size_t nx = ModelArray::size(ModelArray::Dimension::X);
-    const size_t ny = ModelArray::size(ModelArray::Dimension::Y);
-
     // Read restarts from file and check they take the expected values
     // NOTE: The ParametricGrid is created and the XIOS context definition is closed in the call to
     //       StructureFactory::stateFromFile()
     for (const auto [fieldName, modelarray] :
         StructureFactory::stateFromFile(diagnosticFilename).data) {
         REQUIRE(fieldName == hsnowName);
+        // Extract the inner block of the ModelArray
+        Halo halo(modelarray);
+        ModelArray::DataType tempData;
+        tempData.resize(halo.getInnerSize(), modelarray.nComponents());
+        halo.getInnerBlock(modelarray.data(), tempData);
+        // Check that the inner block has the expected values
+        auto& ndofs = xiosHandler.getFieldLocalDoFs(modelarray);
+        auto nx = ndofs[0];
+        auto ny = ndofs[1];
         for (size_t j = 0; j < ny; ++j) {
             for (size_t i = 0; i < nx; ++i) {
-                REQUIRE(modelarray(i, j) == doctest::Approx(0.15));
+                REQUIRE(tempData(i, j) == doctest::Approx(0.15));
             }
         }
     }

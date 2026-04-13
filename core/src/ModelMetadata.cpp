@@ -15,9 +15,8 @@
 #include "include/ParallelNetcdfFile.hpp"
 #ifdef USE_XIOS
 #include "include/Xios.hpp"
-#else
-#include "include/Halo.hpp"
 #endif
+#include "include/Halo.hpp"
 #endif
 #include "include/gridNames.hpp"
 #include <array>
@@ -311,12 +310,8 @@ void ModelMetadata::setDimensionsFromFile(const std::string& filename)
                 localLength = dim.getSize();
                 start = 0;
             }
-#if USE_XIOS
-            ModelArray::setDimension(dimType, dim.getSize(), localLength, start);
-#else
             ModelArray::setDimension(
                 dimType, dim.getSize(), localLength + 2 * Halo::haloWidth, start);
-#endif
 #else
             ModelArray::setDimension(dimType, dim.getSize());
 #endif

@@ -19,6 +19,7 @@
 
 #include "StructureModule/include/ParametricGrid.hpp"
 #include "include/Finalizer.hpp"
+#include "include/Halo.hpp"
 #include "include/ModelMPI.hpp"
 #include "include/ModelMetadata.hpp"
 #include "include/ParallelNetcdfFile.hpp"
@@ -1123,6 +1124,24 @@ void Xios::setDiagnosticFieldType(const std::string& fieldId, const ModelArray::
 }
 
 /*!
+ * Get the rank-local degrees of freedom for a given ModelArray.
+ *
+ * @param modelarray The ModelArray to get DoF information for
+ * @return MultiDim vector containing the number of DoFs in each direction
+ */
+const ModelArray::MultiDim Xios::getFieldLocalDoFs(const ModelArray& modelarray)
+{
+    const ModelArray::Type& type = modelarray.getType();
+    const std::string& domainId = domainIds[type];
+    xios::CDomain* domain = getDomain(domainId);
+    int ni;
+    cxios_get_domain_ni(domain, &ni);
+    int nj;
+    cxios_get_domain_nj(domain, &nj);
+    return std::vector<size_t> { (size_t)ni, (size_t)nj };
+}
+
+/*!
  * @brief   Do an initial read of input files to deduce field dimensions.
  *
  * @details This function will read the dimension information from any NetCDF input files (restarts
@@ -1633,7 +1652,6 @@ void Xios::write(const std::string& fieldId, const ModelArray& modelarray)
     if (modelarray.nDimensions() != 2) {
         throw std::invalid_argument("Only ModelArrays of dimension 2 are supported");
     }
-    auto& dims = modelarray.dimensions();
     const ModelArray::Type& type = modelarray.getType();
     domainWritten[domainIds[type]] = true;
 
@@ -1644,19 +1662,28 @@ void Xios::write(const std::string& fieldId, const ModelArray& modelarray)
             "Xios::write: field '" + fieldId + "' does not have the expected type");
     }
 
+    // Create a halo object based on the input array
+    Halo halo(modelarray);
+
+    // Copy data into a temporary array without the halo
+    ModelArray::DataType tempData;
+    tempData.resize(halo.getInnerSize(), modelarray.nComponents());
+    halo.getInnerBlock(modelarray.data(), tempData);
+    auto& dims = halo.getInnerShape();
+
     // Write out according to field type
     if ((type == ModelArray::Type::H) || (type == ModelArray::Type::CG)) {
         cxios_write_data_k82(
-            fieldId.c_str(), fieldId.length(), modelarray.getData(), dims[0], dims[1], -1);
+            fieldId.c_str(), fieldId.length(), tempData.data(), dims[0], dims[1], -1);
     } else if (type == ModelArray::Type::VERTEX) {
-        cxios_write_data_k83(fieldId.c_str(), fieldId.length(), modelarray.getData(), dims[0],
-            dims[1], ModelArray::size(ModelArray::Dimension::NCOORDS), -1);
+        cxios_write_data_k83(fieldId.c_str(), fieldId.length(), tempData.data(), dims[0], dims[1],
+            ModelArray::size(ModelArray::Dimension::NCOORDS), -1);
     } else if (type == ModelArray::Type::DG) {
-        cxios_write_data_k83(fieldId.c_str(), fieldId.length(), modelarray.getData(), dims[0],
-            dims[1], ModelArray::size(ModelArray::Dimension::DG), -1);
+        cxios_write_data_k83(fieldId.c_str(), fieldId.length(), tempData.data(), dims[0], dims[1],
+            ModelArray::size(ModelArray::Dimension::DG), -1);
     } else if (type == ModelArray::Type::DGSTRESS) {
-        cxios_write_data_k83(fieldId.c_str(), fieldId.length(), modelarray.getData(), dims[0],
-            dims[1], ModelArray::size(ModelArray::Dimension::DGSTRESS), -1);
+        cxios_write_data_k83(fieldId.c_str(), fieldId.length(), tempData.data(), dims[0], dims[1],
+            ModelArray::size(ModelArray::Dimension::DGSTRESS), -1);
     } else {
         throw std::invalid_argument(
             "Only HFields, VertexFields, DGFields, DGSFields, and CGFields are supported");
@@ -1681,6 +1708,9 @@ void Xios::read(const std::string& fieldId, ModelArray& modelarray)
     const ModelArray::Type& type = modelarray.getType();
     const ModelArray::Type& expectedType = getFieldType(fieldId);
 
+    // Create a halo object based on the input array
+    Halo halo(modelarray);
+
     // Account for fields to be read in as HField but converted to DGField
     if (inputFieldsToConvert.count(fieldId)) {
         if (expectedType != ModelArray::Type::H) {
@@ -1691,10 +1721,21 @@ void Xios::read(const std::string& fieldId, ModelArray& modelarray)
             throw std::runtime_error(
                 "Xios::read: field '" + fieldId + "' was expected to be converted to a DGField");
         }
+
+        // Create a HField to read into
         HField inputarray(ModelArray::Type::H);
-        auto& dims = inputarray.dimensions();
-        cxios_read_data_k82(
-            fieldId.c_str(), fieldId.length(), inputarray.getData(), dims[0], dims[1]);
+
+        // Read into a temporary array without the halo
+        ModelArray::DataType tempData;
+        tempData.resize(halo.getInnerSize(), inputarray.nComponents());
+        auto& dims = halo.getInnerShape();
+        cxios_read_data_k82(fieldId.c_str(), fieldId.length(), tempData.data(), dims[0], dims[1]);
+
+        // Set the inner block of the array based on what was read and exchange halos
+        halo.setInnerBlock(tempData, inputarray.getDataRef());
+        halo.exchangeHalos(inputarray.getDataRef());
+
+        // Set the DGField based on the contents of the HField
         modelarray = 0;
         // FIXME: Conversion with overloaded '=' operator is known to be problematic
         modelarray = inputarray;
@@ -1702,27 +1743,36 @@ void Xios::read(const std::string& fieldId, ModelArray& modelarray)
     }
 
     // Other field types should not need converting
-    auto& dims = modelarray.dimensions();
     if (type != expectedType) {
         throw std::runtime_error(
             "Xios::read: field '" + fieldId + "' does not have the expected type");
     }
-    if ((type == ModelArray::Type::H) || (type == ModelArray::Type::CG)) {
-        cxios_read_data_k82(
-            fieldId.c_str(), fieldId.length(), modelarray.getData(), dims[0], dims[1]);
+
+    // Read into a temporary array without the halo
+    ModelArray::DataType tempData;
+    tempData.resize(halo.getInnerSize(), modelarray.nComponents());
+    auto& dims = halo.getInnerShape();
+    if (type == ModelArray::Type::H) {
+        cxios_read_data_k82(fieldId.c_str(), fieldId.length(), tempData.data(), dims[0], dims[1]);
+    } else if (type == ModelArray::Type::CG) {
+        cxios_read_data_k82(fieldId.c_str(), fieldId.length(), tempData.data(), dims[0], dims[1]);
     } else if (type == ModelArray::Type::VERTEX) {
-        cxios_read_data_k83(fieldId.c_str(), fieldId.length(), modelarray.getData(), dims[0],
-            dims[1], ModelArray::size(ModelArray::Dimension::NCOORDS));
+        cxios_read_data_k83(fieldId.c_str(), fieldId.length(), tempData.data(), dims[0], dims[1],
+            ModelArray::size(ModelArray::Dimension::NCOORDS));
     } else if (type == ModelArray::Type::DG) {
-        cxios_read_data_k83(fieldId.c_str(), fieldId.length(), modelarray.getData(), dims[0],
-            dims[1], ModelArray::size(ModelArray::Dimension::DG));
+        cxios_read_data_k83(fieldId.c_str(), fieldId.length(), tempData.data(), dims[0], dims[1],
+            ModelArray::size(ModelArray::Dimension::DG));
     } else if (type == ModelArray::Type::DGSTRESS) {
-        cxios_read_data_k83(fieldId.c_str(), fieldId.length(), modelarray.getData(), dims[0],
-            dims[1], ModelArray::size(ModelArray::Dimension::DGSTRESS));
+        cxios_read_data_k83(fieldId.c_str(), fieldId.length(), tempData.data(), dims[0], dims[1],
+            ModelArray::size(ModelArray::Dimension::DGSTRESS));
     } else {
         throw std::invalid_argument(
             "Only HFields, VertexFields, DGFields, DGSFields, and CGFields are supported");
     }
+
+    // Set the inner block of the array based on what was read and exchange halos
+    halo.setInnerBlock(tempData, modelarray.getDataRef());
+    halo.exchangeHalos(modelarray.getDataRef());
 }
 }
 

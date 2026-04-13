@@ -7,7 +7,9 @@
 #undef INFO
 
 #include "StructureModule/include/ParametricGrid.hpp"
+#include "cgVector.hpp"
 #include "include/Finalizer.hpp"
+#include "include/Halo.hpp"
 #include "include/Model.hpp"
 #include "include/ModelMPI.hpp"
 #include "include/NextsimModule.hpp"
@@ -83,8 +85,6 @@ MPI_TEST_CASE("TestXiosReadForcing", 2)
     REQUIRE(xiosHandler.getCalendarStep() == 0);
 
     // Deduce the local lengths of the two dimensions
-    const size_t nx = ModelArray::size(ModelArray::Dimension::X);
-    const size_t ny = ModelArray::size(ModelArray::Dimension::Y);
     REQUIRE(ModelArray::nComponents(ModelArray::Type::DG) == DGCOMP);
     REQUIRE(ModelArray::size(ModelArray::Dimension::DG) == DGCOMP);
 
@@ -101,9 +101,18 @@ MPI_TEST_CASE("TestXiosReadForcing", 2)
         // Read ERA5 forcings from file and check they take the expected values
         for (const auto& [fieldName, modelarray] :
             pio->readForcingTimeStatic(era5ForcingFieldNames, time, era5ForcingFilename).data) {
+            // Extract the inner block of the ModelArray
+            Halo halo(modelarray);
+            ModelArray::DataType tempData;
+            tempData.resize(halo.getInnerSize(), modelarray.nComponents());
+            halo.getInnerBlock(modelarray.data(), tempData);
+            // Check that the inner block has the expected values
+            auto& ndofs = xiosHandler.getFieldLocalDoFs(modelarray);
+            auto nx = ndofs[0];
+            auto ny = ndofs[1];
             for (size_t j = 0; j < ny; ++j) {
                 for (size_t i = 0; i < nx; ++i) {
-                    REQUIRE(modelarray(i, j) == doctest::Approx(0.1 * ts));
+                    REQUIRE(tempData(i, j) == doctest::Approx(0.1 * ts));
                 }
             }
         }
@@ -114,9 +123,18 @@ MPI_TEST_CASE("TestXiosReadForcing", 2)
             for (const auto& [fieldName, modelarray] :
                 pio->readForcingTimeStatic(topazForcingFieldNames, time, topazForcingFilename)
                     .data) {
+                // Extract the inner block of the ModelArray
+                Halo halo(modelarray);
+                ModelArray::DataType tempData;
+                tempData.resize(halo.getInnerSize(), modelarray.nComponents());
+                halo.getInnerBlock(modelarray.data(), tempData);
+                // Check that the inner block has the expected values
+                auto& ndofs = xiosHandler.getFieldLocalDoFs(modelarray);
+                auto nx = ndofs[0];
+                auto ny = ndofs[1];
                 for (size_t j = 0; j < ny; ++j) {
                     for (size_t i = 0; i < nx; ++i) {
-                        REQUIRE(modelarray(i, j) == doctest::Approx(ts + 1));
+                        REQUIRE(tempData(i, j) == doctest::Approx(ts + 1));
                     }
                 }
             }
