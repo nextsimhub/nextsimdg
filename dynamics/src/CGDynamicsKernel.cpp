@@ -19,6 +19,10 @@
 
 #include <limits>
 
+#ifdef USE_MPI
+#include "include/Halo.hpp"
+#endif
+
 namespace Nextsim {
 
 template <int DGadvection>
@@ -272,6 +276,14 @@ template <int DGadvection> void CGDynamicsKernel<DGadvection>::prepareIteration(
     Interpolations::DG2CG(*smesh, cgA, data.at(ciceName));
     VectorManipulations::CGAveragePeriodic(*smesh, cgA);
 
+#ifdef USE_MPI
+    // Halo object only depends on shape of the array, so we can share it for all CGVectors of the
+    // same shape
+    Halo halo(cgH);
+    halo.exchangeHalos(cgH);
+    halo.exchangeHalos(cgA);
+#endif
+
     // Reinit the gradient of the sea surface height. Not done by
     // DataMap as seaSurfaceHeight is always dG(0)
     computeGradientOfSeaSurfaceHeight(DynamicsKernel<DGadvection, DGstressComp>::seaSurfaceHeight);
@@ -431,6 +443,12 @@ template <int DGadvection>
 DGVector<DGadvection>& CGDynamicsKernel<DGadvection>::advectDGVField(
     double timestep, DGVector<DGadvection>& field, double lowerLimit, double upperLimit)
 {
+
+#ifdef USE_MPI
+    Halo halo(field);
+    halo.exchangeHalos(field);
+#endif
+
     dgtransport->step(timestep, field);
 
     //! Slope Limiting
