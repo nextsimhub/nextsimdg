@@ -163,6 +163,12 @@ endif()
 
 # Kokkos
 if(WITH_KOKKOS)
+    if(ENABLE_MPI)
+        message(
+            SEND_ERROR
+                "Trying to use both MPI and Kokkos which is currently not supported. Disable either ENABLE_MPI or WITH_KOKKOS."
+        )
+    endif()
     # If nextsimlib is a shared library than kokkos need to be build with position independent code.
     get_target_property(target_type nextsimlib TYPE)
     if(${target_type} STREQUAL "SHARED_LIBRARY")
