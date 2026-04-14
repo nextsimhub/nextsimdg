@@ -143,11 +143,9 @@ if(ENABLE_XIOS)
     target_link_directories(nextsimlib PUBLIC ${xios_LIBRARIES})
     target_link_libraries(nextsimlib PUBLIC xios HDF5::HDF5)
     target_include_directories(
-        nextsimlib
-        PUBLIC ${xios_INCLUDES} ${xios_EXTERNS}/blitz ${xios_EXTERNS}/boost_extraction/include
-                ${xios_EXTERNS}/rapidxml/include
-    )
-    if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+        nextsimlib PUBLIC ${xios_INCLUDES} ${xios_EXTERNS}/blitz
+                          ${xios_EXTERNS}/boost_extraction/include ${xios_EXTERNS}/rapidxml/include)
+    if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
         set(FORTRAN_RUNTIME_LIB "-lgfortran")
     elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
         set(FORTRAN_RUNTIME_LIB "-lifcore")
@@ -164,10 +162,8 @@ endif()
 # Kokkos
 if(WITH_KOKKOS)
     if(ENABLE_MPI)
-        message(
-            SEND_ERROR
-                "Trying to use both MPI and Kokkos which is currently not supported. Disable either ENABLE_MPI or WITH_KOKKOS."
-        )
+        message(SEND_ERROR "Trying to use both MPI and Kokkos which is currently not supported. \
+                Disable either ENABLE_MPI or WITH_KOKKOS.")
     endif()
     # If nextsimlib is a shared library than kokkos need to be build with position independent code.
     get_target_property(target_type nextsimlib TYPE)
