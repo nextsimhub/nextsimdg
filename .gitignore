@@ -31,7 +31,9 @@ __pycache__/
 
 # File types
 *.DS_Store
+*.err
 *.log
+*.out
 *.nc
 /.vscode
 *__pycache__*

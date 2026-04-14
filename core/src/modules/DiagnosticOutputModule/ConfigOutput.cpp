@@ -49,7 +49,7 @@ ConfigOutput::ConfigOutput()
     , lastOutput(defaultLastOutput)
     , fieldsForOutput()
     , currentFileName()
-    , snapshots(false)
+    , snapshots(true)
     , resetState(true)
 {
 }
@@ -161,8 +161,7 @@ void ConfigOutput::outputState(const ModelState& diagState)
     }
 
     double averagingFactor = meta.stepLength().seconds() / outputPeriod.seconds();
-    if (resetState)
-        state = { {}, diagState.config };
+    ModelState state = { {}, diagState.config };
     auto storeData = ModelArrayAccessorBase<RO>::getAll(ModelComponent::getStore());
     if (outputAllTheFields) {
         // If the internal to external name lookup table is still empty, fill it
@@ -181,29 +180,10 @@ void ConfigOutput::outputState(const ModelState& diagState)
         for (auto entry : storeData) {
             const ModelArray& modelArray = entry.second.getHostRO();
             if (modelArray.trueSize()) {
-                std::string key;
                 if (reverseExternalNames.count(entry.first)) {
-                    key = reverseExternalNames.at(entry.first);
+                    state.data[reverseExternalNames.at(entry.first)] = modelArray;
                 } else {
-                    key = entry.first;
-                }
-                if (snapshots || everyTS) {
-                    state.data[key] = modelArray;
-                } else {
-                    /* Averaging the DG components doesn't make sense, so we only take the mean
-                     * component. This does require an extra copy, though. The DG components are not
-                     * masked ether, so we apply the mask to the copy. */
-                    ModelArray data;
-                    if (modelArray.getType() == ModelArray::Type::DG) {
-                        data = ModelArray(ModelArray::Type::H);
-                        data.setData(modelArray.component(0));
-                    } else {
-                        data = modelArray;
-                    }
-                    if (resetState)
-                        state.data[key] = mask(data) * averagingFactor;
-                    else
-                        state.data.at(key) += mask(data) * averagingFactor;
+                    state.data[entry.first] = modelArray;
                 }
             }
         }
@@ -218,32 +198,9 @@ void ConfigOutput::outputState(const ModelState& diagState)
         // Get data from the data store for any named fields that have an external name that
         // matches.
         for (const auto& fieldExtName : fieldsForOutput) {
-            auto keyIt = externalNames.find(fieldExtName);
-            if (keyIt == externalNames.end()) {
-                continue;
-            }
-
-            const std::string& key = keyIt->second;
-            if (externalNames.count(fieldExtName) && storeData.count(key)) {
-                const ModelArray& modelArray = storeData.at(key).getHostRO();
-                if (snapshots || everyTS) {
-                    state.data[fieldExtName] = modelArray;
-                } else {
-                    /* Averaging the DG components doesn't make sense, so we only take the mean
-                     * component. This does require an extra copy, though. The DG components are not
-                     * masked ether, so we apply the mask to the copy. */
-                    ModelArray data;
-                    if (modelArray.getType() == ModelArray::Type::DG) {
-                        data = ModelArray(ModelArray::Type::H);
-                        data.setData(modelArray.component(0));
-                    } else {
-                        data = modelArray;
-                    }
-                    if (resetState)
-                        state.data[fieldExtName] = mask(data) * averagingFactor;
-                    else
-                        state.data.at(fieldExtName) += mask(data) * averagingFactor;
-                }
+            if (externalNames.count(fieldExtName)
+                && storeData.count(externalNames.at(fieldExtName))) {
+                state.data[fieldExtName] = storeData.at(externalNames.at(fieldExtName)).getHostRO();
             }
         }
     }
@@ -262,9 +219,6 @@ void ConfigOutput::outputState(const ModelState& diagState)
         meta.affixCoordinates(state);
         StructureFactory::fileFromState(state, currentFileName, false);
         lastOutput = meta.time();
-        resetState = true;
-    } else {
-        resetState = false;
     }
 }
 

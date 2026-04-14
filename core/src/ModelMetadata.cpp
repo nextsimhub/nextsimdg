@@ -111,44 +111,118 @@ void ModelMetadata::readNeighbourData(netCDF::NcFile& ncFile)
                 }
             }
         }
+
+        std::array<std::string, 2> cornerSuffixes = { "_neighbour_ids", "_neighbour_send" };
+        if (btype == periodic) {
+            for (auto& suffix : cornerSuffixes) {
+                suffix += "_periodic";
+            }
+        }
+
+        for (auto corner : corners) {
+            size_t nStart = 0; // start index in the netCDF variable
+            size_t count = 0; // number of elements to read for this rank
+            std::vector<int> numCorners = std::vector<int>(mpiSize, 0);
+            std::vector<int> offsets = std::vector<int>(mpiSize, 0);
+            std::vector<std::reference_wrapper<std::vector<int>>> arrays;
+
+            // pick the correct set of corner arrays (periodic / non‑periodic)
+            if (btype == nonPeriodic) {
+                arrays = { cornerRanks[corner], cornerHaloSend[corner] };
+            } else { // periodic
+                arrays = { cornerRanksPeriodic[corner], cornerHaloSendPeriodic[corner] };
+            }
+
+            // variable that stores *how many* corner entries each rank has
+            varName = cornerNames[corner] + "_neighbours";
+            if (btype == periodic) {
+                varName += "_periodic";
+            }
+            neighbourGroup.getVar(varName).getVar(
+                { 0 }, { static_cast<size_t>(mpiSize) }, numCorners.data());
+
+            // compute the global offset for this rank
+            MPI_Exscan(&numCorners[mpiMyRank], &nStart, 1, MPI_INT, MPI_SUM, modelMPI.getComm());
+            if (mpiMyRank == 0) {
+                nStart = 0; // MPI_Exscan undefined on rank 0 → set manually
+            }
+            count = numCorners[mpiMyRank];
+
+            if (count) {
+                // allocate and read each corner‑related array
+                for (size_t i = 0; i < arrays.size(); ++i) {
+                    arrays[i].get().resize(count, 0);
+                    varName = cornerNames[corner] + cornerSuffixes[i];
+                    neighbourGroup.getVar(varName).getVar(
+                        { nStart }, { count }, arrays[i].get().data());
+                }
+            }
+        }
     }
 }
 
 void ModelMetadata::getPartitionMetadata(std::string partitionFile)
 {
-    netCDF::NcFile ncFile(partitionFile, netCDF::NcFile::read);
-    int sizes = ncFile.getDim("L").getSize();
-    int nBoxes = ncFile.getDim("P").getSize();
-    auto& modelMPI = ModelMPI::getInstance();
-    auto mpiSize = modelMPI.getSize();
-    if (nBoxes != mpiSize) {
-        std::string errorMsg = "Number of MPI ranks " + std::to_string(mpiSize) + " <> "
-            + std::to_string(nBoxes) + "\n";
-        throw std::runtime_error(errorMsg);
-    }
-    if (!globalExtentX) {
-        globalExtentX = ncFile.getDim("NX").getSize();
-    } else if (globalExtentX != ncFile.getDim("NX").getSize()) {
-        throw std::runtime_error("ModelMetadata: Inconsistent global x-extent between "
-                                 "partition and input files.");
-    }
-    if (!globalExtentY) {
-        globalExtentY = ncFile.getDim("NY").getSize();
-    } else if (globalExtentX != ncFile.getDim("NY").getSize()) {
-        throw std::runtime_error("ModelMetadata: Inconsistent global y-extent between "
-                                 "partition and input files.");
-    }
-    netCDF::NcGroup bboxGroup(ncFile.getGroup(bboxName));
+    try {
+        netCDF::NcFile ncFile(partitionFile, netCDF::NcFile::read);
+        int sizes = ncFile.getDim("L").getSize();
+        int nBoxes = ncFile.getDim("P").getSize();
+        auto& modelMPI = ModelMPI::getInstance();
+        auto mpiSize = modelMPI.getSize();
+        if (nBoxes != mpiSize) {
+            std::string errorMsg = "Number of MPI ranks " + std::to_string(mpiSize) + " <> "
+                + std::to_string(nBoxes) + "\n";
+            throw std::runtime_error(errorMsg);
+        }
+        if (!globalExtentX) {
+            globalExtentX = ncFile.getDim("NX").getSize();
+        } else if (globalExtentX != ncFile.getDim("NX").getSize()) {
+            throw std::runtime_error("ModelMetadata: Inconsistent global x-extent between "
+                                     "partition and input files.");
+        }
+        if (!globalExtentY) {
+            globalExtentY = ncFile.getDim("NY").getSize();
+        } else if (globalExtentX != ncFile.getDim("NY").getSize()) {
+            throw std::runtime_error("ModelMetadata: Inconsistent global y-extent between "
+                                     "partition and input files.");
+        }
+        netCDF::NcGroup bboxGroup(ncFile.getGroup(bboxName));
 
-    std::vector<size_t> rank(1, modelMPI.getRank());
-    bboxGroup.getVar("domain_x").getVar(rank, &localCornerX);
-    bboxGroup.getVar("domain_y").getVar(rank, &localCornerY);
-    bboxGroup.getVar("domain_extent_x").getVar(rank, &localExtentX);
-    bboxGroup.getVar("domain_extent_y").getVar(rank, &localExtentY);
+        std::vector<size_t> rank(1, modelMPI.getRank());
+        bboxGroup.getVar("domain_x").getVar(rank, &localCornerX);
+        bboxGroup.getVar("domain_y").getVar(rank, &localCornerY);
+        bboxGroup.getVar("domain_extent_x").getVar(rank, &localExtentX);
+        bboxGroup.getVar("domain_extent_y").getVar(rank, &localExtentY);
 
-    readNeighbourData(ncFile);
+        readNeighbourData(ncFile);
 
-    ncFile.close();
+        // cornerHaloRecv doesn't need to be read because it can be easily calculated.
+        for (auto corner : corners) {
+            if (cornerRanks[corner].size()) {
+                cornerHaloRecv[corner].resize(1);
+                cornerHaloRecv[corner][0] = 2 * (localExtentX + localExtentY) + corner;
+            }
+            if (cornerRanksPeriodic[corner].size()) {
+                cornerHaloRecvPeriodic[corner].resize(1);
+                cornerHaloRecvPeriodic[corner][0] = 2 * (localExtentX + localExtentY) + corner;
+            }
+        }
+
+        // gather rank extents in X & Y direction for all processes
+        rankExtentsX.resize(modelMPI.getSize(), 0);
+        rankExtentsY.resize(modelMPI.getSize(), 0);
+        MPI_Allgather(
+            &localExtentX, 1, MPI_INT, rankExtentsX.data(), 1, MPI_INT, modelMPI.getComm());
+        MPI_Allgather(
+            &localExtentY, 1, MPI_INT, rankExtentsY.data(), 1, MPI_INT, modelMPI.getComm());
+
+        ncFile.close();
+    } catch (netCDF::exceptions::NcException& e) {
+        std::cerr << "Failed to open partition file [" << partitionFile << "] :: " << e.what()
+                  << std::endl;
+        auto& modelMPI = ModelMPI::getInstance();
+        MPI_Abort(modelMPI.getComm(), 1);
+    }
 }
 
 int ModelMetadata::getLocalCornerX() const { return localCornerX; }
@@ -157,6 +231,8 @@ int ModelMetadata::getLocalExtentX() const { return localExtentX; }
 int ModelMetadata::getLocalExtentY() const { return localExtentY; }
 int ModelMetadata::getGlobalExtentX() const { return globalExtentX; }
 int ModelMetadata::getGlobalExtentY() const { return globalExtentY; }
+const std::vector<int>& ModelMetadata::getRankExtentsX() const { return rankExtentsX; }
+const std::vector<int>& ModelMetadata::getRankExtentsY() const { return rankExtentsY; }
 #else
 
 ModelMetadata::ModelMetadata()

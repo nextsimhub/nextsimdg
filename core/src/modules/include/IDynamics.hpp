@@ -8,6 +8,9 @@
 #include "include/ModelArrayAccessor.hpp"
 #include "include/ModelComponent.hpp"
 #include "include/Time.hpp"
+#ifdef USE_XIOS
+#include "include/Xios.hpp"
+#endif
 #include "include/gridNames.hpp"
 
 #include <limits>
@@ -39,6 +42,16 @@ public:
         , ciceDGAccessor(getStore())
         , hsnowDGAccessor(getStore())
     {
+
+#ifdef USE_XIOS
+        // Set XIOS field types
+        Xios& xiosHandler = Xios::getInstance();
+        xiosHandler.setPrognosticFieldType(coordsName, ModelArray::Type::VERTEX);
+        xiosHandler.setPrognosticFieldType(hiceName, ModelArray::AdvectionType);
+        xiosHandler.setPrognosticFieldType(ciceName, ModelArray::AdvectionType);
+        xiosHandler.setPrognosticFieldType(damageName, ModelArray::AdvectionType);
+        xiosHandler.setPrognosticFieldType(hsnowName, ModelArray::AdvectionType);
+#endif
     }
     virtual ~IDynamics() = default;
 
