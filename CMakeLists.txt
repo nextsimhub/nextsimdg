@@ -143,11 +143,13 @@ if(ENABLE_XIOS)
     target_link_directories(nextsimlib PUBLIC ${xios_LIBRARIES})
     target_link_libraries(nextsimlib PUBLIC xios HDF5::HDF5)
     target_include_directories(
-        nextsimlib PUBLIC ${xios_INCLUDES} ${xios_EXTERNS}/blitz
-                          ${xios_EXTERNS}/boost_extraction/include ${xios_EXTERNS}/rapidxml/include)
-    if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-        set(FORTRAN_RUNTIME_LIB "-lgfortran")
-    elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
+        nextsimlib
+        PUBLIC ${xios_INCLUDES} ${xios_EXTERNS}/blitz ${xios_EXTERNS}/boost_extraction/include
+                ${xios_EXTERNS}/rapidxml/include
+    )
+    if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+        set(FORTRAN_RUNTIME_LIB "-lgfortran -lmpi_mpifh")
+    elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
         set(FORTRAN_RUNTIME_LIB "-lifcore")
     endif()
     target_link_libraries(nextsimlib PUBLIC "${FORTRAN_RUNTIME_LIB}")
