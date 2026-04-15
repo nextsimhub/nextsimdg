@@ -87,7 +87,6 @@ TEST_CASE("PrognosticData write test, including DG components")
     // Loop for coords
     for (size_t j = 0; j < ModelArray::size(ModelArray::Dimension::YVERTEX); ++j) {
         for (size_t i = 0; i < ModelArray::size(ModelArray::Dimension::XVERTEX); ++i) {
-            size_t c = i * xMul + j * yMul;
             size_t idx = coords.indexFromLocation({ i, j });
             coords.components(idx) << resn * i, resn * j;
         }

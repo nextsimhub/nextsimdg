@@ -44,7 +44,7 @@ const std::string partitionFilename = testFilesDir + "/paragrid_test_partition_m
 
 static const int DG = 3;
 static const int DGSTRESS = 6;
-static const int CG = 2;
+// static const int CG = 2;
 
 const size_t nx = 10;
 const size_t ny = 9;
@@ -135,9 +135,7 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file")
     auto& metadata = ModelMetadata::getInstance();
 
     const auto localNX = nx;
-    const size_t offsetX = 0;
     const auto localNY = ny;
-    const size_t offsetY = 0;
     ModelArray::setDimension(ModelArray::Dimension::X, nx);
     ModelArray::setDimension(ModelArray::Dimension::Y, ny);
     ModelArray::setDimension(ModelArray::Dimension::XVERTEX, nx + 1);
@@ -294,11 +292,6 @@ TEST_CASE("Write a diagnostic ParaGrid file")
 #else
     auto& metadata = ModelMetadata::getInstance();
 
-    const auto localNX = nx;
-    const size_t offsetX = 0;
-    const auto localNY = ny;
-    const size_t offsetY = 0;
-
     ModelArray::setDimension(ModelArray::Dimension::X, nx);
     ModelArray::setDimension(ModelArray::Dimension::Y, ny);
     ModelArray::setDimension(ModelArray::Dimension::XVERTEX, nx + 1);
@@ -438,10 +431,7 @@ TEST_CASE("Test array ordering")
 #else
     auto& metadata = ModelMetadata::getInstance();
 
-    const auto localNX = nx;
     const size_t offsetX = 0;
-    const auto localNY = ny;
-    const size_t offsetY = 0;
     ModelArray::setDimension(ModelArray::Dimension::X, nx);
     ModelArray::setDimension(ModelArray::Dimension::Y, ny);
 #endif
