@@ -27,8 +27,8 @@ public:
     }
     void configure()
     {
-        hiceAccessor.getHostRW().resize();
-        swinAccessor.getHostRW().resize();
+        hiceAccessor.getHostRW().reinitialize();
+        swinAccessor.getHostRW().reinitialize();
     }
     void setData(const std::vector<double>& values)
     {
@@ -66,7 +66,7 @@ public:
         , thermo(store)
     {
     }
-    void configure() { hiceAccessor.getHostRW().resize(); }
+    void configure() { hiceAccessor.getHostRW().reinitialize(); }
     void update(int tStep)
     {
         ModelArray& hice = hiceAccessor.getHostRW();
@@ -116,7 +116,7 @@ TEST_CASE("(Not) getting write access to a read only field")
     ModelArrayStore store;
     ModelArrayAccessor<MiniModelComponent::H_ICE0, RW> hice0SrcAccessor(store, RO);
     HField& hice0Src = hice0SrcAccessor.getHostRW();
-    hice0Src.resize();
+    hice0Src.reinitialize();
     hice0Src[0] = 1.0;
     REQUIRE_THROWS_AS(
         (ModelArrayAccessor<MiniModelComponent::H_ICE0, RW>(store)), std::logic_error);
@@ -158,8 +158,8 @@ public:
     }
     void configure()
     {
-        hiceAccessor.getHostRW().resize();
-        swinAccessor.getHostRW().resize();
+        hiceAccessor.getHostRW().reinitialize();
+        swinAccessor.getHostRW().reinitialize();
     }
     void setData()
     {
@@ -203,7 +203,7 @@ TEST_CASE("Full component access")
     ModelArray::setDimension(ModelArray::Dimension::Y, ny);
     ModelArray::setDimension(ModelArray::Dimension::DG, nDG);
     ModelArray dgSrc(ModelArray::Type::DG);
-    dgSrc.resize();
+    dgSrc.reinitialize();
     dgSrc = 5.;
     static constexpr TextTag DG_SRC = { "DG_SRC" };
     ModelArrayAccessor<DG_SRC, RW> dgRefAccessor(store, RO, ModelArray::Type::DG);
@@ -230,7 +230,7 @@ TEST_CASE("Host device data syncing")
         ModelArrayAccessor<MiniModelComponent::H_ICE, RW> hiceSrcAccessor(store, RW);
         {
             ModelArray& hice = hiceSrcAccessor.getHostRW();
-            hice.resize();
+            hice.reinitialize();
             hice = 2.0;
             hice[IDX] = 5.0;
         }

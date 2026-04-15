@@ -55,39 +55,39 @@ public:
     void setData(const ModelState::DataMap& ms) override
     {
         HField& qio = qioAccessor.getHostRW();
-        qio.resize();
+        qio.reinitialize();
         HField& sst = sstAccessor.getHostRW();
-        sst.resize();
+        sst.reinitialize();
         HField& sss = sssAccessor.getHostRW();
-        sss.resize();
+        sss.reinitialize();
         HField& mld = mldAccessor.getHostRW();
-        mld.resize();
+        mld.reinitialize();
         HField& cpml = cpmlAccessor.getHostRW();
-        cpml.resize();
+        cpml.reinitialize();
         HField& tf = tfAccessor.getHostRW();
-        tf.resize();
+        tf.reinitialize();
         UField& u = uAccessor.getHostRW();
-        u.resize();
+        u.reinitialize();
         VField& v = vAccessor.getHostRW();
-        v.resize();
+        v.reinitialize();
         HField& ssh = sshAccessor.getHostRW();
-        ssh.resize();
+        ssh.reinitialize();
         HField& qNoSun = qNoSunAccessor.getHostRW();
-        qNoSun.resize();
+        qNoSun.reinitialize();
         HField& qswNet = qswNetAccessor.getHostRW();
-        qswNet.resize();
+        qswNet.reinitialize();
         HField& fwFlux = fwFluxAccessor.getHostRW();
-        fwFlux.resize();
+        fwFlux.reinitialize();
         HField& sFlux = sFluxAccessor.getHostRW();
-        sFlux.resize();
+        sFlux.reinitialize();
         HField& qswow = qswowAccessor.getHostRW();
-        qswow.resize();
+        qswow.reinitialize();
         HField& qswBase = qswBaseAccessor.getHostRW();
-        qswBase.resize();
+        qswBase.reinitialize();
         HField& tauX = tauXAccessor.getHostRW();
-        tauX.resize();
+        tauX.reinitialize();
         HField& tauY = tauYAccessor.getHostRW();
-        tauY.resize();
+        tauY.reinitialize();
 
         addChecks({
             { "qio", qioAccessor },

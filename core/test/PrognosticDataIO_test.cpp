@@ -58,9 +58,9 @@ TEST_CASE("PrognosticData write test, including DG components")
     ModelArray latitude(ModelArray::Type::H);
     ModelArray longitude(ModelArray::Type::H);
     ModelArray coords(ModelArray::Type::VERTEX);
-    baseData.resize();
-    dgData.resize();
-    coords.resize();
+    baseData.reinitialize();
+    dgData.reinitialize();
+    coords.reinitialize();
     size_t xMul = 1000;
     size_t yMul = 100;
     size_t resn = 2;

@@ -349,7 +349,7 @@ public:
     void setDimensions(const MultiDim& dims)
     {
         setDimensions(type, dims);
-        resize();
+        reinitialize();
     }
 
     /*!
@@ -365,17 +365,14 @@ public:
     static void setDimension(Dimension dim, size_t globalLength);
 #endif
 
-    //! Conditionally updates the size of the object data buffer to match the
-    //! class specification.
-    void resize()
+    //! Updates the size of the object data buffer to match the class specification and sets every
+    //! element to 0.
+    void reinitialize()
     {
-        if (size() != trueSize()) {
-            if (hasDoF(type)) {
-                m_data.setZero(
-                    m_sz.at(type), definedDimensions.at(componentMap.at(type)).localLength);
-            } else {
-                m_data.setZero(m_sz.at(type), Eigen::NoChange);
-            }
+        if (hasDoF(type)) {
+            m_data.setZero(m_sz.at(type), definedDimensions.at(componentMap.at(type)).localLength);
+        } else {
+            m_data.setZero(m_sz.at(type), Eigen::NoChange);
         }
     }
 

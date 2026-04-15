@@ -158,7 +158,7 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file")
     // Initialize (resize and set to zero) all ModelArrays
     ModelArray* arrays[] = { &fractional, &fractionalDG, &mask, &coordinates, &x, &y };
     for (auto arr : arrays) {
-        arr->resize();
+        arr->reinitialize();
         *arr = 0.;
     }
 
@@ -319,7 +319,7 @@ TEST_CASE("Write a diagnostic ParaGrid file")
     // Initialize (resize and set to zero) all ModelArrays
     ModelArray* arrays[] = { &fractional, &fractionalDG, &mask, &coordinates, &x, &y };
     for (auto arr : arrays) {
-        arr->resize();
+        arr->reinitialize();
         *arr = 0.;
     }
 
@@ -447,7 +447,7 @@ TEST_CASE("Test array ordering")
 #endif
 
     HField index2d(ModelArray::Type::H);
-    index2d.resize();
+    index2d.reinitialize();
     index2d = 0.;
     std::string fieldName = "index2d";
     std::set<std::string> fields = { fieldName };

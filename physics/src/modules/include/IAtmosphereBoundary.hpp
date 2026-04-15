@@ -36,29 +36,29 @@ public:
     void setData(const ModelState::DataMap& ms) override
     {
         HField& qia = qiaAccessor.getHostRW();
-        qia.resize();
+        qia.reinitialize();
         HField& dqia_dt = dqia_dtAccessor.getHostRW();
-        dqia_dt.resize();
+        dqia_dt.reinitialize();
         HField& qow = qowAccessor.getHostRW();
-        qow.resize();
+        qow.reinitialize();
         HField& subl = sublAccessor.getHostRW();
-        subl.resize();
+        subl.reinitialize();
         HField& snow = snowAccessor.getHostRW();
-        snow.resize();
+        snow.reinitialize();
         HField& rain = rainAccessor.getHostRW();
-        rain.resize();
+        rain.reinitialize();
         HField& evap = evapAccessor.getHostRW();
-        evap.resize();
+        evap.reinitialize();
         UField& uwind = uwindAccessor.getHostRW();
-        uwind.resize();
+        uwind.reinitialize();
         VField& vwind = vwindAccessor.getHostRW();
-        vwind.resize();
+        vwind.reinitialize();
         HField& penSW = penSWAccessor.getHostRW();
-        penSW.resize();
+        penSW.reinitialize();
         HField& tauXOW = tauXOWAccessor.getHostRW();
-        tauXOW.resize();
+        tauXOW.reinitialize();
         HField& tauYOW = tauYOWAccessor.getHostRW();
-        tauYOW.resize();
+        tauYOW.reinitialize();
 
         addChecks({
             { "qia", qiaAccessor },

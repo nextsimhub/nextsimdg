@@ -69,7 +69,7 @@ TEST_CASE("PrognosticData call order test")
         Module::newImpl<IOceanBoundary, OceanData>);
 
     HField zeroData;
-    zeroData.resize();
+    zeroData.reinitialize();
     zeroData[0] = 0.;
 
     ModelState::DataMap initialData = {

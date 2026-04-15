@@ -126,9 +126,9 @@ void TOPAZOcean::setData(const ModelState::DataMap& ms)
     IOceanBoundary::setData(ms);
 
     HField& sstExt = sstExtAccessor.getHostRW();
-    sstExt.resize();
+    sstExt.reinitialize();
     HField& sssExt = sssExtAccessor.getHostRW();
-    sssExt.resize();
+    sssExt.reinitialize();
 
     addChecks({
         { "sstExt", sstExtAccessor },

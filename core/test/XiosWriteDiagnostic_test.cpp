@@ -81,7 +81,7 @@ MPI_TEST_CASE("TestXiosWriteDiagnostic", 2)
 
     // Create some fake data to test writing methods
     HField hsnow(ModelArray::Type::H);
-    hsnow.resize();
+    hsnow.reinitialize();
 
     // Check files with the expected names don't exist yet
     REQUIRE_FALSE(std::filesystem::exists("diagnostic*.nc"));

@@ -105,11 +105,11 @@ void runMe(const bool snapshot)
     // An internal diagnostic field, not made available through the data store
     HField topMelt(ModelArray::Type::H);
 
-    hice.resize();
-    cice.resize();
-    hsnow.resize();
-    tsurf.resize();
-    topMelt.resize();
+    hice.reinitialize();
+    cice.reinitialize();
+    hsnow.reinitialize();
+    tsurf.reinitialize();
+    topMelt.reinitialize();
 
     hice = 0.;
     cice = 0.;

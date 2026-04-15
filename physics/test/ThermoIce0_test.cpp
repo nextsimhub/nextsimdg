@@ -92,11 +92,11 @@ TEST_CASE("Threshold ice")
     // IAtmosphereBoundary implementation
     ModelArrayAccessor<Shared::Q_IC, RW> qicAccessor(ModelComponent::getStore(), RW);
     HField& qic = qicAccessor.getHostRW();
-    qic.resize();
+    qic.reinitialize();
 
     ModelArrayAccessor<Shared::Q_SW_BASE, RW> qswbaseAccessor(ModelComponent::getStore(), RW);
     HField& qswbase = qswbaseAccessor.getHostRW();
-    qswbase.resize();
+    qswbase.reinitialize();
 
     // An implementation of IFluxCalculation that returns zero fluxes
     class FluxData : public IFluxCalculation {

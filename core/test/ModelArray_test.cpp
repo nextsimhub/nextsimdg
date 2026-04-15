@@ -274,7 +274,7 @@ TEST_CASE("Components")
     REQUIRE(ModelArray::nComponents(ModelArray::Type::TWOCOMP) == nComp);
 
     ModelArray src(ModelArray::Type::TWOCOMP);
-    src.resize();
+    src.reinitialize();
     REQUIRE(src.nComponents() == nComp);
     // Fill src with ones
     src = 1.;
@@ -284,7 +284,7 @@ TEST_CASE("Components")
     REQUIRE(src.components(0)[0] == 2.);
     REQUIRE(src.components(0)[1] == 1.);
     ModelArray sink(ModelArray::Type::TWOD);
-    sink.resize();
+    sink.reinitialize();
     ModelArray::Type origType = sink.getType();
     sink = 3.;
     REQUIRE(sink[0] == 3.);
@@ -318,7 +318,7 @@ TEST_CASE("Direct DataType access")
     ModelArray::setDimension(ModelArray::Dimension::Y, ny);
     ModelArray::setDimension(ModelArray::Dimension::COMP, nComp);
     ModelArray twocomp(ModelArray::Type::TWOCOMP);
-    twocomp.resize();
+    twocomp.reinitialize();
     twocomp = 1.;
     REQUIRE(twocomp.components(0)[1] == 1.);
     ModelArray::DataType& tcRef = twocomp;

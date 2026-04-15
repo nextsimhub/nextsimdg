@@ -76,13 +76,13 @@ SlabOcean::HelpMap& SlabOcean::getHelpText(HelpMap& map, bool getAll)
 void SlabOcean::setData(const ModelState::DataMap& ms)
 {
     HField& qdw = qdwAccessor.getHostRW();
-    qdw.resize();
+    qdw.reinitialize();
     HField& fdw = fdwAccessor.getHostRW();
-    fdw.resize();
+    fdw.reinitialize();
     HField& sstSlab = sstSlabAccessor.getHostRW();
-    sstSlab.resize();
+    sstSlab.reinitialize();
     HField& sssSlab = sssSlabAccessor.getHostRW();
-    sssSlab.resize();
+    sssSlab.reinitialize();
 }
 
 void SlabOcean::update(const TimestepTime& tst)

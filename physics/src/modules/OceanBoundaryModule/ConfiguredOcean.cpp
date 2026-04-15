@@ -106,9 +106,9 @@ void ConfiguredOcean::setData(const ModelState::DataMap& ms)
 {
     IOceanBoundary::setData(ms);
     HField& sstExt = sstExtAccessor.getHostRW();
-    sstExt.resize();
+    sstExt.reinitialize();
     HField& sssExt = sssExtAccessor.getHostRW();
-    sssExt.resize();
+    sssExt.reinitialize();
 
     sstExt = sst0;
     sssExt = sss0;

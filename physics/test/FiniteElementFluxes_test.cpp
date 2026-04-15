@@ -57,21 +57,21 @@ TEST_CASE("Melting conditions")
         void setData(const ModelState::DataMap& state) override
         {
             HField& tair = tairAccessor.getHostRW();
-            tair.resize();
+            tair.reinitialize();
             HField& tdew = tdewAccessor.getHostRW();
-            tdew.resize();
+            tdew.reinitialize();
             HField& pair = pairAccessor.getHostRW();
-            pair.resize();
+            pair.reinitialize();
             HField& windSpeed = windSpeedAccessor.getHostRW();
-            windSpeed.resize();
+            windSpeed.reinitialize();
             HField& u_air = u_airAccessor.getHostRW();
-            u_air.resize();
+            u_air.reinitialize();
             HField& v_air = v_airAccessor.getHostRW();
-            v_air.resize();
+            v_air.reinitialize();
             HField& sw_in = sw_inAccessor.getHostRW();
-            sw_in.resize();
+            sw_in.reinitialize();
             HField& lw_in = lw_inAccessor.getHostRW();
-            lw_in.resize();
+            lw_in.reinitialize();
 
             tair = 3;
             tdew = 2;
@@ -125,26 +125,26 @@ TEST_CASE("Melting conditions")
     iceState.setData(ModelState().data);
 
     ModelArrayAccessor<Shared::Q_OW, RW> qowAccessor(ModelComponent::getStore(), RW);
-    qowAccessor.getHostRW().resize();
+    qowAccessor.getHostRW().reinitialize();
     ModelArrayAccessor<Shared::Q_IA, RW> qiaAccessor(ModelComponent::getStore(), RW);
-    qiaAccessor.getHostRW().resize();
+    qiaAccessor.getHostRW().reinitialize();
     ModelArrayAccessor<Shared::Q_PEN_SW, RW> penSWAccessor(ModelComponent::getStore(), RW);
-    penSWAccessor.getHostRW().resize();
+    penSWAccessor.getHostRW().reinitialize();
     ModelArrayAccessor<Shared::Q_SW_OW, RW> qsw_owAccessor(ModelComponent::getStore(), RW);
-    qsw_owAccessor.getHostRW().resize();
+    qsw_owAccessor.getHostRW().reinitialize();
     ModelArrayAccessor<Shared::Q_SW_BASE, RW> qsw_baseAccessor(ModelComponent::getStore(), RW);
-    qsw_baseAccessor.getHostRW().resize();
+    qsw_baseAccessor.getHostRW().reinitialize();
     ModelArrayAccessor<Shared::DQIA_DT, RW> dqia_dtAccessor(ModelComponent::getStore(), RW);
-    dqia_dtAccessor.getHostRW().resize();
+    dqia_dtAccessor.getHostRW().reinitialize();
     ModelArrayAccessor<Shared::SUBLIM, RW> sublAccessor(ModelComponent::getStore(), RW);
-    sublAccessor.getHostRW().resize();
+    sublAccessor.getHostRW().reinitialize();
     ModelArrayAccessor<Shared::EVAP, RW> evapAccessor(ModelComponent::getStore(), RW);
-    evapAccessor.getHostRW().resize();
+    evapAccessor.getHostRW().reinitialize();
 
     ModelArrayAccessor<Shared::OW_STRESS_X, RW> tauXAccessor(ModelComponent::getStore(), RW);
-    tauXAccessor.getHostRW().resize();
+    tauXAccessor.getHostRW().reinitialize();
     ModelArrayAccessor<Shared::OW_STRESS_Y, RW> tauYAccessor(ModelComponent::getStore(), RW);
-    tauYAccessor.getHostRW().resize();
+    tauYAccessor.getHostRW().reinitialize();
 
     TimestepTime tst = { TimePoint("2000-001"), Duration("P0-0T0:10:0") };
     // OceanState is independently updated
@@ -198,21 +198,21 @@ TEST_CASE("Freezing conditions")
         void setData(const ModelState::DataMap& state) override
         {
             HField& tair = tairAccessor.getHostRW();
-            tair.resize();
+            tair.reinitialize();
             HField& tdew = tdewAccessor.getHostRW();
-            tdew.resize();
+            tdew.reinitialize();
             HField& pair = pairAccessor.getHostRW();
-            pair.resize();
+            pair.reinitialize();
             HField& windSpeed = windSpeedAccessor.getHostRW();
-            windSpeed.resize();
+            windSpeed.reinitialize();
             HField& u_air = u_airAccessor.getHostRW();
-            u_air.resize();
+            u_air.reinitialize();
             HField& v_air = v_airAccessor.getHostRW();
-            v_air.resize();
+            v_air.reinitialize();
             HField& sw_in = sw_inAccessor.getHostRW();
-            sw_in.resize();
+            sw_in.reinitialize();
             HField& lw_in = lw_inAccessor.getHostRW();
-            lw_in.resize();
+            lw_in.reinitialize();
             tair = -12;
             tdew = -12;
             pair = 100000.;
@@ -266,21 +266,21 @@ TEST_CASE("Freezing conditions")
     iceState.setData(ModelState().data);
 
     ModelArrayAccessor<Shared::Q_OW, RW> qowAccessor(ModelComponent::getStore(), RW);
-    qowAccessor.getHostRW().resize();
+    qowAccessor.getHostRW().reinitialize();
     ModelArrayAccessor<Shared::Q_IA, RW> qiaAccessor(ModelComponent::getStore(), RW);
-    qiaAccessor.getHostRW().resize();
+    qiaAccessor.getHostRW().reinitialize();
     ModelArrayAccessor<Shared::Q_PEN_SW, RW> penSWAccessor(ModelComponent::getStore(), RW);
-    penSWAccessor.getHostRW().resize();
+    penSWAccessor.getHostRW().reinitialize();
     ModelArrayAccessor<Shared::DQIA_DT, RW> dqia_dtAccessor(ModelComponent::getStore(), RW);
-    dqia_dtAccessor.getHostRW().resize();
+    dqia_dtAccessor.getHostRW().reinitialize();
     ModelArrayAccessor<Shared::SUBLIM, RW> sublAccessor(ModelComponent::getStore(), RW);
-    sublAccessor.getHostRW().resize();
+    sublAccessor.getHostRW().reinitialize();
     ModelArrayAccessor<Shared::EVAP, RW> evapAccessor(ModelComponent::getStore(), RW);
-    evapAccessor.getHostRW().resize();
+    evapAccessor.getHostRW().reinitialize();
     ModelArrayAccessor<Shared::OW_STRESS_X, RW> tauXAccessor(ModelComponent::getStore(), RW);
-    tauXAccessor.getHostRW().resize();
+    tauXAccessor.getHostRW().reinitialize();
     ModelArrayAccessor<Shared::OW_STRESS_Y, RW> tauYAccessor(ModelComponent::getStore(), RW);
-    tauYAccessor.getHostRW().resize();
+    tauYAccessor.getHostRW().reinitialize();
 
     TimestepTime tst = { TimePoint("2000-001"), Duration("P0-0T0:10:0") };
     // OceanState is independently updated

@@ -91,17 +91,17 @@ public:
     virtual void setData(const ModelState::DataMap& ms) override
     {
         HField& uice = uiceAccessor.getHostRW();
-        uice.resize();
+        uice.reinitialize();
         HField& vice = viceAccessor.getHostRW();
-        vice.resize();
+        vice.reinitialize();
         HField& shear = shearAccessor.getHostRW();
-        shear.resize();
+        shear.reinitialize();
         HField& divergence = divergenceAccessor.getHostRW();
-        divergence.resize();
+        divergence.reinitialize();
         HField& sigmaI = sigmaIAccessor.getHostRW();
-        sigmaI.resize();
+        sigmaI.reinitialize();
         HField& sigmaII = sigmaIIAccessor.getHostRW();
-        sigmaII.resize();
+        sigmaII.reinitialize();
     }
 
     virtual void update(const TimestepTime& tst) = 0;

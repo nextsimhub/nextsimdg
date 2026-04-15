@@ -53,7 +53,7 @@ void ModelComponent::setOceanMask(const ModelArray& mask)
 void ModelComponent::noLandMask()
 {
     ModelArray newOceanMask(ModelArray::Type::H);
-    newOceanMask.resize();
+    newOceanMask.reinitialize();
     newOceanMask = 1.; // All ocean
     oceanMaskSingleton() = newOceanMask;
 

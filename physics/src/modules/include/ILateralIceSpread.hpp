@@ -21,11 +21,11 @@ public:
     void setData(const ModelState::DataMap& ms) override
     {
         HField& deltaCIce = deltaCIceAccessor.getHostRW();
-        deltaCIce.resize();
+        deltaCIce.reinitialize();
         HField& newice = newiceAccessor.getHostRW();
-        newice.resize();
+        newice.reinitialize();
         HField& snowMelt = snowMeltAccessor.getHostRW();
-        snowMelt.resize();
+        snowMelt.reinitialize();
 
         /*
          * Set these to zero, so we don't have uninitialized values floating around.

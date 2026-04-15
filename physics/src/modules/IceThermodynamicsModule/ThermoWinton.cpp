@@ -36,12 +36,12 @@ ThermoWinton::ThermoWinton()
     , sw_inAccessor(getStore())
     , sublAccessor(getStore())
 {
-    tInternalAccessor.getHostRW().resize();
-    tBottomAccessor.getHostRW().resize();
-    snowMeltAccessor.getHostRW().resize();
-    topMeltAccessor.getHostRW().resize();
-    botMeltAccessor.getHostRW().resize();
-    snowToIceAccessor.getHostRW().resize();
+    tInternalAccessor.getHostRW().reinitialize();
+    tBottomAccessor.getHostRW().reinitialize();
+    snowMeltAccessor.getHostRW().reinitialize();
+    topMeltAccessor.getHostRW().reinitialize();
+    botMeltAccessor.getHostRW().reinitialize();
+    snowToIceAccessor.getHostRW().reinitialize();
 }
 
 static const std::map<int, std::string> keyMap = {
@@ -106,12 +106,12 @@ void ThermoWinton::setData(const ModelState::DataMap& state)
 
     AdvectedField& tInternal = tInternalAccessor.getHostRW();
     AdvectedField& tBottom = tBottomAccessor.getHostRW();
-    tInternalAccessor.getHostRW().resize();
-    tBottomAccessor.getHostRW().resize();
-    snowMeltAccessor.getHostRW().resize();
-    topMeltAccessor.getHostRW().resize();
-    botMeltAccessor.getHostRW().resize();
-    snowToIceAccessor.getHostRW().resize();
+    tInternalAccessor.getHostRW().reinitialize();
+    tBottomAccessor.getHostRW().reinitialize();
+    snowMeltAccessor.getHostRW().reinitialize();
+    topMeltAccessor.getHostRW().reinitialize();
+    botMeltAccessor.getHostRW().reinitialize();
+    snowToIceAccessor.getHostRW().reinitialize();
 
     /* If the internal temperature is not in the restart file, then we simply set it to the freezing
      * point of seawater. It's a safe approximation, and it seems the user doesn't really care! */

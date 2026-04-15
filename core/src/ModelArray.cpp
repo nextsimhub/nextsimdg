@@ -20,7 +20,7 @@ bool ModelArray::areMapsInvalid = true;
 ModelArray::ModelArray(const Type type, const std::pair<double, double>& bounds)
     : type(type)
 {
-    m_data.resize(std::max(std::size_t { 0 }, m_sz.at(type)), nComponents());
+    m_data.resize(m_sz.at(type), nComponents());
     validateMaps();
     setLimits(bounds.first, bounds.second);
 }
@@ -178,13 +178,13 @@ ModelArray& ModelArray::clampBelow(const ModelArray& minArr)
 /*************************************************************/
 void ModelArray::setData(double value)
 {
-    resize();
+    reinitialize();
     m_data = value;
 }
 
 void ModelArray::setData(const double* pData)
 {
-    resize();
+    reinitialize();
     auto out = std::copy(pData, pData + m_sz.at(type) * nComponents(), m_data.data());
 }
 

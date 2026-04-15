@@ -24,10 +24,10 @@ ThermoIce0::ThermoIce0()
     , botMeltAccessor(getStore(), RO, ModelArray::Type::H)
     , qicAccessor(getStore(), RW, ModelArray::Type::H)
 {
-    snowMeltAccessor.getHostRW().resize();
-    topMeltAccessor.getHostRW().resize();
-    botMeltAccessor.getHostRW().resize();
-    qicAccessor.getHostRW().resize();
+    snowMeltAccessor.getHostRW().reinitialize();
+    topMeltAccessor.getHostRW().reinitialize();
+    botMeltAccessor.getHostRW().reinitialize();
+    qicAccessor.getHostRW().reinitialize();
 }
 
 void ThermoIce0::update(const TimestepTime& tsTime)
@@ -219,10 +219,10 @@ void ThermoIce0::setData(const ModelState::DataMap& ms)
 {
     IIceThermodynamics::setData(ms);
 
-    snowMeltAccessor.getHostRW().resize();
-    topMeltAccessor.getHostRW().resize();
-    botMeltAccessor.getHostRW().resize();
-    qicAccessor.getHostRW().resize();
+    snowMeltAccessor.getHostRW().reinitialize();
+    topMeltAccessor.getHostRW().reinitialize();
+    botMeltAccessor.getHostRW().reinitialize();
+    qicAccessor.getHostRW().reinitialize();
 }
 
 } /* namespace Nextsim */

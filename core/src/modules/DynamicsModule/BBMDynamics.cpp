@@ -117,7 +117,7 @@ void BBMDynamics::setData(const ModelState::DataMap& ms)
         } else {
             // Fill data that is not supplied, masking if the mask is available
             ModelArray data(entry.second.first);
-            data.resize();
+            data.reinitialize();
             // Fill the default value
             data = entry.second.second;
             // Mask the default data

@@ -118,7 +118,7 @@ MPI_TEST_CASE("test halo exchange on 3 proc grid", 3)
 
     // create example 2D field on each process
     auto testData = ModelArray::HField();
-    testData.resize();
+    testData.reinitialize();
     testData = 0.;
 
     // create halo for testData model array
@@ -133,7 +133,7 @@ MPI_TEST_CASE("test halo exchange on 3 proc grid", 3)
     verifyTestData(testData.getDataRef(), localNx, localNy, offsetX, offsetY, nx, ny);
 
     VertexField coordinates = ModelArray::VertexField();
-    coordinates.resize();
+    coordinates.reinitialize();
     coordinates = 0.;
 
     Halo haloVertex(coordinates);
@@ -164,7 +164,7 @@ MPI_TEST_CASE("DGField", 3)
 
     // create example 2D field on each process
     auto testData = ModelArray::DGField();
-    testData.resize();
+    testData.reinitialize();
     testData = 0.;
 
     // create halo for testData model array

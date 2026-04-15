@@ -80,19 +80,19 @@ ModelState FiniteElementFluxes::getStateDiagnostic() const
 void FiniteElementFluxes::setData(const ModelState::DataMap& ms)
 {
     // Data arrays can now be set to the correct size
-    Q_lh_owAccessor.getHostRW().resize();
-    Q_sh_owAccessor.getHostRW().resize();
-    Q_lw_owAccessor.getHostRW().resize();
-    Q_lh_iaAccessor.getHostRW().resize();
-    Q_sh_iaAccessor.getHostRW().resize();
-    Q_sw_iaAccessor.getHostRW().resize();
-    Q_lw_iaAccessor.getHostRW().resize();
-    rho_airAccessor.getHostRW().resize();
-    cp_airAccessor.getHostRW().resize();
-    sh_airAccessor.getHostRW().resize();
-    sh_waterAccessor.getHostRW().resize();
-    sh_iceAccessor.getHostRW().resize();
-    dshice_dTAccessor.getHostRW().resize();
+    Q_lh_owAccessor.getHostRW().reinitialize();
+    Q_sh_owAccessor.getHostRW().reinitialize();
+    Q_lw_owAccessor.getHostRW().reinitialize();
+    Q_lh_iaAccessor.getHostRW().reinitialize();
+    Q_sh_iaAccessor.getHostRW().reinitialize();
+    Q_sw_iaAccessor.getHostRW().reinitialize();
+    Q_lw_iaAccessor.getHostRW().reinitialize();
+    rho_airAccessor.getHostRW().reinitialize();
+    cp_airAccessor.getHostRW().reinitialize();
+    sh_airAccessor.getHostRW().reinitialize();
+    sh_waterAccessor.getHostRW().reinitialize();
+    sh_iceAccessor.getHostRW().reinitialize();
+    dshice_dTAccessor.getHostRW().reinitialize();
 
     iIceAlbedoImpl->setData(ms);
 }

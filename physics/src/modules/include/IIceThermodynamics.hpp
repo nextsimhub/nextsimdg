@@ -30,10 +30,10 @@ public:
     void setData(const ModelState::DataMap& ms) override
     {
         AdvectedField& tsurf = tsurfAccessor.getHostRW();
-        tsurf.resize();
+        tsurf.reinitialize();
         HField& deltaHi = deltaHiAccessor.getHostRW();
-        deltaHi.resize();
-        snowToIceAccessor.getHostRW().resize();
+        deltaHi.reinitialize();
+        snowToIceAccessor.getHostRW().reinitialize();
 
         /* If the surface temperature is not in the restart file, then we simply set it to the
          * zero. It's a safe approximation, and it seems the user doesn't

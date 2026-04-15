@@ -119,17 +119,17 @@ void ConfiguredAtmosphere::setData(const ModelState::DataMap& dm)
 
     IAtmosphereBoundary::setData(dm);
     HField& tair = tairAccessor.getHostRW();
-    tair.resize();
+    tair.reinitialize();
     HField& tdew = tdewAccessor.getHostRW();
-    tdew.resize();
+    tdew.reinitialize();
     HField& pair = pairAccessor.getHostRW();
-    pair.resize();
+    pair.reinitialize();
     HField& sw_in = sw_inAccessor.getHostRW();
-    sw_in.resize();
+    sw_in.reinitialize();
     HField& lw_in = lw_inAccessor.getHostRW();
-    lw_in.resize();
+    lw_in.reinitialize();
     HField& wind = windAccessor.getHostRW();
-    wind.resize();
+    wind.reinitialize();
 
     tair = tair0;
     tdew = tdew0;

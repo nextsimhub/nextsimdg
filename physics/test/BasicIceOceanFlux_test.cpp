@@ -55,7 +55,7 @@ TEST_CASE("Melting conditions")
     iceState.setData(ModelState().data);
 
     ModelArrayAccessor<Shared::Q_IO, RW> qioAccessor(ModelComponent::getStore());
-    qioAccessor.getHostRW().resize();
+    qioAccessor.getHostRW().reinitialize();
     TimestepTime tst = { TimePoint("2000-001"), Duration("P0-0T0:10:0") };
     BasicIceOceanHeatFlux biohf;
     biohf.update(tst);
@@ -98,7 +98,7 @@ TEST_CASE("Freezing conditions")
     iceState.setData(ModelState().data);
 
     ModelArrayAccessor<Shared::Q_IO, RW> qioAccessor(ModelComponent::getStore());
-    qioAccessor.getHostRW().resize();
+    qioAccessor.getHostRW().reinitialize();
 
     TimestepTime tst = { TimePoint("2000-001"), Duration("P0-0T0:10:0") };
     BasicIceOceanHeatFlux biohf;
