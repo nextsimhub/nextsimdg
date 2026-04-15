@@ -149,7 +149,7 @@ if(ENABLE_XIOS)
                 ${xios_EXTERNS}/rapidxml/include
     )
     if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-        set(FORTRAN_RUNTIME_LIB "-lgfortran")
+        set(FORTRAN_RUNTIME_LIB "-lgfortran -lmpi_mpifh")
     elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
         set(FORTRAN_RUNTIME_LIB "-lifcore")
     endif()
