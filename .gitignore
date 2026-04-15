@@ -35,6 +35,9 @@ __pycache__/
 *.log
 *.out
 *.nc
+/.vscode
+*__pycache__*
+lib/kokkos
 *.sif
 *.smesh
 .*sw?

@@ -13,6 +13,7 @@
 #include "ParametricMap.hpp"
 #include "StressUpdateStep.hpp"
 #include "include/constants.hpp"
+#include "kokkos/include/KokkosTimer.hpp"
 #include <cmath>
 
 #ifdef USE_MPI
@@ -118,10 +119,19 @@ public:
 
     void update(const TimestepTime& tst) override
     {
+        static KokkosTimer<true> timerBBM("bbm");
+        static KokkosTimer<true> timerAdvection("advection");
+        static KokkosTimer<true> timerPrepIt("prepIt");
+
+        timerAdvection.start();
         advectDynamicsFields(tst.step.seconds());
+        timerAdvection.stop();
 
+        timerPrepIt.start();
         prepareIteration({ { hiceName, hice }, { ciceName, cice } });
+        timerPrepIt.stop();
 
+        timerBBM.start();
         // The timestep for the brittle solver is the solver subtimestep
         deltaT = tst.step.seconds() / params.nSteps;
 
@@ -157,6 +167,7 @@ public:
 
             // Land mask
         }
+        timerBBM.stop();
 
         updateIceOceanStress(avgU, avgV);
 

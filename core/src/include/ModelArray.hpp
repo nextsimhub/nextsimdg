@@ -349,7 +349,7 @@ public:
     void setDimensions(const MultiDim& dims)
     {
         setDimensions(type, dims);
-        resize();
+        reinitialize();
     }
 
     /*!
@@ -365,17 +365,14 @@ public:
     static void setDimension(Dimension dim, size_t globalLength);
 #endif
 
-    //! Conditionally updates the size of the object data buffer to match the
-    //! class specification.
-    void resize()
+    //! Updates the size of the object data buffer to match the class specification and sets every
+    //! element to 0.
+    void reinitialize()
     {
-        if (size() != trueSize()) {
-            if (hasDoF(type)) {
-                m_data.setZero(
-                    m_sz.at(type), definedDimensions.at(componentMap.at(type)).localLength);
-            } else {
-                m_data.setZero(m_sz.at(type), Eigen::NoChange);
-            }
+        if (hasDoF(type)) {
+            m_data.setZero(m_sz.at(type), definedDimensions.at(componentMap.at(type)).localLength);
+        } else {
+            m_data.setZero(m_sz.at(type), Eigen::NoChange);
         }
     }
 
@@ -414,6 +411,18 @@ public:
      * @param source The object to be copied from.
      */
     void setData(const ModelArray& source);
+
+    /*!
+     * @brief Sets data from another ModelArray, respecting the type of this.
+     *
+     * @details This function copies the data from the source but keeps the
+     * the type and size of this. In case the number of components does not match, only the 0th
+     * component is copied.
+     * @param source The object to be copied from.
+     */
+    void assignData(const ModelArray& source);
+    // Move variant that takes the buffer of source if the number of components match.
+    void assignData(ModelArray&& source);
 
 private:
     // Fast special case for 1-d indexing

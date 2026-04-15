@@ -21,16 +21,17 @@ void ConstantOceanBoundary::setData(const ModelState::DataMap& ms)
 
     IOceanBoundary::setData(ms);
     // Directly set the array values
-    sss = 32.;
-    u = 0;
-    v = 0;
+    sssAccessor.getHostRW() = 32.;
+    uAccessor.getHostRW() = 0;
+    vAccessor.getHostRW() = 0;
+    HField& mld = mldAccessor.getHostRW();
     mld = 10.;
     double tf32 = -1.751; // Hand calculated from S = 32 using UNESCO
-    tf = tf32;
-    sst = tf32; // Tf == SST ensures that there is no ice-ocean heat flux
-    cpml = Water::cp * Water::rho * mld;
-    qio = 0.;
-    ssh = 0.;
+    tfAccessor.getHostRW() = tf32;
+    sstAccessor.getHostRW() = tf32; // Tf == SST ensures that there is no ice-ocean heat flux
+    cpmlAccessor.getHostRW() = Water::cp * Water::rho * mld;
+    qioAccessor.getHostRW() = 0.;
+    sshAccessor.getHostRW() = 0.;
 }
 
 void ConstantOceanBoundary::updateBefore(const TimestepTime& tst)

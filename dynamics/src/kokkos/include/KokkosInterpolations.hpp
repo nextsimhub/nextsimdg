@@ -1,0 +1,54 @@
+/*!
+ * @author  Robert Jendersie <robert.jendersie@ovgu.de>
+ */
+
+#ifndef __KOKKOSINTERPOLATIONS_HPP
+#define __KOKKOSINTERPOLATIONS_HPP
+
+#include "../../../core/src/kokkos/include/KokkosUtils.hpp"
+#include "../include/cgVector.hpp"
+#include "../include/codeGenerationDGinGauss.hpp"
+#include "../include/dgVector.hpp"
+
+namespace Nextsim {
+namespace Interpolations {
+
+    // This functor keeps its own precomputed map that could be very large.
+    // Therefore you should use only one instance of this.
+    template <int DG, int CG> class KokkosCG2DGInterpolator {
+    public:
+        KokkosCG2DGInterpolator(const ParametricMesh& smesh);
+
+        void operator()(const KokkosDeviceView<DGVector<DG>>& dgDevice,
+            const ConstKokkosDeviceView<CGVector<CG>>& cgDevice) const;
+
+    private:
+        using CG2DGMatrix = Eigen::Matrix<FloatType, DG, CG == 2 ? 9 : 4>;
+        KokkosDeviceMapView<CG2DGMatrix> cG2DGMatrixDevice;
+        DeviceIndex nx;
+        DeviceIndex ny;
+        DeviceIndex nelements;
+    };
+
+    template <int CG, int DG> class KokkosDG2CGInterpolator {
+    public:
+        KokkosDG2CGInterpolator(const ParametricMesh& smesh);
+
+        void operator()(const KokkosDeviceView<CGVector<CG>>& dest,
+            const ConstKokkosDeviceView<DGVector<DG>>& src) const;
+
+    private:
+        // make a copy so that the matrix is captured by value as part of this object
+        using PSILagrangeDGCGType = decltype(PSILagrange<DG, CG + 1>);
+        PSILagrangeDGCGType PSILagrangeDGCG;
+        DeviceIndex nx;
+        DeviceIndex ny;
+    };
+
+    // Interpolate CG1 to CG2. This is a free function because it does not use precomputed maps.
+    void kokkosCG12CG2(const KokkosDeviceView<CGVector<2>>& dest,
+        const ConstKokkosDeviceView<CGVector<1>>& src, const DeviceIndex nx, const DeviceIndex ny);
+}
+}
+
+#endif // __KOKKOSINTERPOLATIONS_HPP

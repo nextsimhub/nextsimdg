@@ -113,7 +113,7 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
             ModelArray::Type type = dimensionKeys.at(dimKey);
             state.data[varName] = ModelArray(type);
             ModelArray& data = state.data.at(varName);
-            data.resize();
+            data.reinitialize();
 
             std::vector<size_t> start;
             std::vector<size_t> count;
@@ -227,7 +227,7 @@ ModelState ParaGridIO::readForcingTimeStatic(
             netCDF::NcVar var = ncFile.getVar(varName);
             state.data[varName] = ModelArray(ModelArray::Type::H);
             ModelArray& data = state.data.at(varName);
-            data.resize();
+            data.reinitialize();
 
 #ifdef USE_MPI
             Halo halo(data);

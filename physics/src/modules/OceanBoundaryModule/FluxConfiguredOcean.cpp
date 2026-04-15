@@ -78,18 +78,20 @@ ConfigMap FluxConfiguredOcean::getConfiguration() const
 void FluxConfiguredOcean::setData(const ModelState::DataMap& ms)
 {
     IOceanBoundary::setData(ms);
-    qio = qio0;
-    sst = sst0;
+    qioAccessor.getHostRW() = qio0;
+    sstAccessor.getHostRW() = sst0;
+    HField& sss = sssAccessor.getHostRW();
     sss = sss0;
+    HField& mld = mldAccessor.getHostRW();
     mld = mld0;
-    u = u0;
-    v = v0;
-    tf = Module::getImplementation<IFreezingPoint>()(sss[0]);
-    cpml = Water::rho * Water::cp * mld[0];
+    uAccessor.getHostRW() = u0;
+    vAccessor.getHostRW() = v0;
+    tfAccessor.getHostRW() = Module::getImplementation<IFreezingPoint>()(sss[0]);
+    cpmlAccessor.getHostRW() = Water::rho * Water::cp * mld[0];
 
     /* It's only the SSH gradient which has an effect, so being able to set a constant SSH is
      * useless. */
-    ssh = 0.;
+    sshAccessor.getHostRW() = 0.;
 }
 
 } /* namespace Nextsim */

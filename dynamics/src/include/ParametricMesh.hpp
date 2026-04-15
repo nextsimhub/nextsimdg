@@ -71,10 +71,10 @@ public:
     ParametricMesh(const COORDINATES coords, int loglevel = -1)
         : CoordinateSystem(coords)
         , statuslog(loglevel)
-        , nx(-1)
-        , ny(-1)
-        , nnodes(-1)
-        , nelements(-1)
+        , nx(0)
+        , ny(0)
+        , nnodes(0)
+        , nelements(0)
     {
     }
 

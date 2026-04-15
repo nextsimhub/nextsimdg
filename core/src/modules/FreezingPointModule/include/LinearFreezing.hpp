@@ -12,25 +12,26 @@
 namespace Nextsim {
 
 //! The implementation class of the linear model of seawater freezing point.
-class LinearFreezing : public IFreezingPoint {
+class LinearFreezingImpl : public IFreezingPoint {
 public:
-    // ~LinearFreezing() = default;
+    std::string getName() const override { return "LinearFreezing"; }
 
     /*!
-     * @brief Calculates the freezing point of
-     * seawater.
+     * @brief Calculates the freezing point of seawater.
      *
      * @details Freezing point in ˚C of water with the given salinity at
      * standard pressure.
      *
      * @param sss Sea surface salinity [PSU]
      */
-    inline double operator()(double sss) const override
+    KERNEL_IMPL_FUNCTION double calculate(double sss) const
     {
         // μ is positive, so a negative sign is needed so that the freezing point is below zero.
         return -Water::mu * sss;
     }
 };
+
+using LinearFreezing = FreezingPointImpl<LinearFreezingImpl>;
 }
 
 #endif /* LINEARFREEZING_HPP */

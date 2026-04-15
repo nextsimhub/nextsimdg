@@ -20,6 +20,14 @@ template <> const Module<Nextsim::IDynamics>::Map& Module<Nextsim::IDynamics>::f
     return theMap;
 }
 
+// Needed so that the finalizer works correctly because getGenerationFunction() looks up the
+// generator function under this name. For some reason the PDTestDynamics module is only registered
+// in a build without debug symbols, so this issue only appears in a release build.
+template <> std::string Module<Nextsim::IDynamics>::getDefaultImplementationName()
+{
+    return PDTESTDYNAMICS;
+}
+
 template <> Module<Nextsim::IDynamics>::Fn& Module<Nextsim::IDynamics>::getGenerationFunction()
 {
     static Fn thePtr = functionMap().at(PDTESTDYNAMICS);

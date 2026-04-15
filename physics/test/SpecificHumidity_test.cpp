@@ -12,7 +12,7 @@ namespace Nextsim {
 TEST_SUITE_BEGIN("FiniteElementSpecHum");
 TEST_CASE("Specific humidity test")
 {
-    double tair = -3;
+    //   double tair = -3;
     double tdew = 0.1;
     double pair = 100000; // Slightly low pressure
     double sst = -1;

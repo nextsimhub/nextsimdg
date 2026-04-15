@@ -191,6 +191,8 @@ Model::HelpMap& Model::getHelpRecursive(HelpMap& map, bool getAll)
 
 void Model::run()
 {
+    Nextsim::ModelComponent::getStore().checkAllRegistered();
+
 #ifdef USE_XIOS
     Xios& xiosHandler = Xios::getInstance();
 #endif

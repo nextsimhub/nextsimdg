@@ -20,8 +20,8 @@ void BenchmarkCoordinates::setData()
         m_nx = ModelArray::dimensions(ModelArray::Type::H)[0];
         m_ny = ModelArray::dimensions(ModelArray::Type::H)[1];
 
-        m_x.resize();
-        m_y.resize();
+        m_x.reinitialize();
+        m_y.reinitialize();
 
         dx = 512e3 / m_nx;
         dy = 512e3 / m_ny;

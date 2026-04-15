@@ -3,9 +3,9 @@
  * @author  Einar Ólason <einar.olason@nersc.no>
  */
 
+#include "include/NSColumnPhysics.hpp"
 #include "include/Finalizer.hpp"
 #include "include/NextsimModule.hpp"
-#include "include/NSColumnPhysics.hpp"
 #include "include/constants.hpp"
 
 namespace Nextsim {
@@ -19,11 +19,11 @@ static const std::map<int, std::string> keyMap = {
 };
 
 NSColumnPhysics::NSColumnPhysics()
-    : hice(getStore())
-    , cice(getStore())
-    , hsnow(getStore())
-    , qow(getStore())
-    , deltaHi(getStore())
+    : hiceAccessor(getStore())
+    , ciceAccessor(getStore())
+    , hsnowAccessor(getStore())
+    , qowAccessor(getStore())
+    , deltaHiAccessor(getStore())
 {
 }
 
@@ -86,8 +86,10 @@ void NSColumnPhysics::configure()
     // Configure whether we actually do anything here
     doThermo = Configured::getConfiguration(keyMap.at(USE_THERMO_KEY), true);
     // Configure constants. Negative values trigger the default values in IColumnPhysics
-    IColumnPhysics::setCMin(Configured::getConfiguration(keyMap.at(MINC_KEY), IceMinima::cMinDefault));
-    IColumnPhysics::setHMin(Configured::getConfiguration(keyMap.at(MINH_KEY), IceMinima::hMinDefault));
+    IColumnPhysics::setCMin(
+        Configured::getConfiguration(keyMap.at(MINC_KEY), IceMinima::cMinDefault));
+    IColumnPhysics::setHMin(
+        Configured::getConfiguration(keyMap.at(MINH_KEY), IceMinima::hMinDefault));
 
     // Configure the vertical and lateral growth modules
     iVertical = std::move(Module::getInstance<IIceThermodynamics>());

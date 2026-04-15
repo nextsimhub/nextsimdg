@@ -24,7 +24,7 @@ TEST_CASE("Assign scalar to slice")
     ModelArray::setDimension(ModelArray::Dimension::Y, ny);
 
     TwoDField target(ModelArray::Type::TWOD);
-    target.resize();
+    target.reinitialize();
     double orig = 0.;
     target = orig;
     Slice patch { { { 5, 14 }, { 8, 15 } } };
@@ -52,9 +52,9 @@ TEST_CASE("Slice to Slice")
     ModelArray::setDimension(ModelArray::Dimension::Y, ny);
 
     TwoDField source(ModelArray::Type::TWOD);
-    source.resize();
+    source.reinitialize();
     TwoDField target(ModelArray::Type::TWOD);
-    target.resize();
+    target.reinitialize();
     double targetv = -1.;
     target = targetv;
 
@@ -137,11 +137,11 @@ TEST_CASE("ModelArray to Slice")
     ModelArray::setDimension(ModelArray::Dimension::Z, nz);
 
     TwoDField source(ModelArray::Type::TWOD);
-    source.resize();
+    source.reinitialize();
     double sourcev = 1.;
     source = sourcev;
     ThreeDField target(ModelArray::Type::THREED);
-    target.resize();
+    target.reinitialize();
     double targetv = -1.;
     target = targetv;
 
@@ -174,11 +174,11 @@ TEST_CASE("Slice to ModelArray")
     ModelArray::setDimension(ModelArray::Dimension::Z, nz);
 
     ThreeDField source(ModelArray::Type::THREED);
-    source.resize();
+    source.reinitialize();
     double sourcev = 1.;
     source = sourcev;
     TwoDField target(ModelArray::Type::TWOD);
-    target.resize();
+    target.reinitialize();
     double targetv = -1.;
     target = targetv;
 
@@ -258,7 +258,7 @@ TEST_CASE("Test buffers")
     // Test 1 dimensional slices into and out of common buffer types
     // std::vector
     OneDField oned(ModelArray::Type::ONED);
-    oned.resize();
+    oned.reinitialize();
     const auto x0 = 3;
     const auto x1 = 11;
     auto oneSlice = oned[{ { { x0, x1 } } }];
@@ -324,7 +324,7 @@ TEST_CASE("General slice creation")
     size_t y1 = 14;
 
     TwoDField data(ModelArray::Type::TWOD);
-    data.resize();
+    data.reinitialize();
     for (size_t j = 0; j < ny; ++j) {
         for (size_t i = 0; i < nx; ++i) {
             data(i, j) = 100 * j + i;
@@ -440,14 +440,14 @@ TEST_CASE("Eigen copying")
     SliceIter eigCentre(centreBlock, eigDim);
 
     TwoDField source(ModelArray::Type::TWOD);
-    source.resize();
+    source.reinitialize();
     for (size_t j = 0; j < ny; ++j) {
         for (size_t i = 0; i < nx; ++i) {
             source(i, j) = i + 100 * j;
         }
     }
     TwoDField sink(ModelArray::Type::TWOD);
-    sink.resize();
+    sink.reinitialize();
     sink = -1;
 
     auto eig0 = eig.col(0);
@@ -562,7 +562,7 @@ TEST_CASE("Eigen (ModelArray::DataType) subscripted buffers")
 
     // Buffer of the array perimeter
     ModelArray maSrc(ModelArray::Type::TWOCOMP);
-    maSrc.resize();
+    maSrc.reinitialize();
 
     for (size_t j = 0; j < ny; ++j) {
         for (size_t i = 0; i < nx; ++i) {
@@ -611,7 +611,7 @@ TEST_CASE("Eigen (ModelArray::DataType) subscripted buffers")
     }
 
     ModelArray maSnk(ModelArray::Type::TWOCOMP);
-    maSnk.resize();
+    maSnk.reinitialize();
     maSnk[bottom] = ModelArray::DataType(perimeterBuffer(Eigen::seqN(0, nx), Eigen::all));
     maSnk[right] = ModelArray::DataType(perimeterBuffer(Eigen::seqN(nx, ny), Eigen::all));
     maSnk[top] = ModelArray::DataType(perimeterBuffer(Eigen::seqN(nx + ny, nx), Eigen::all));

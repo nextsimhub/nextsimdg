@@ -5,6 +5,7 @@
 #include "include/ConfigOutput.hpp"
 #include "include/FileCallbackCloser.hpp"
 #include "include/Logged.hpp"
+#include "include/ModelArrayAccessor.hpp"
 #include "include/StructureFactory.hpp"
 
 #include <cmath>
@@ -161,7 +162,7 @@ void ConfigOutput::outputState(const ModelState& diagState)
 
     double averagingFactor = meta.stepLength().seconds() / outputPeriod.seconds();
     ModelState state = { {}, diagState.config };
-    auto storeData = ModelComponent::getStore().getAllData();
+    auto storeData = ModelArrayAccessorBase<RO>::getAll(ModelComponent::getStore());
     if (outputAllTheFields) {
         // If the internal to external name lookup table is still empty, fill it
         if (reverseExternalNames.empty()) {
@@ -177,12 +178,12 @@ void ConfigOutput::outputState(const ModelState& diagState)
         // Output every entry in storeData, as either its external name if
         // defined, or as its internal name.
         for (auto entry : storeData) {
-            if (entry.second && entry.second->trueSize()) {
-                std::string key;
+            const ModelArray& modelArray = entry.second.getHostRO();
+            if (modelArray.trueSize()) {
                 if (reverseExternalNames.count(entry.first)) {
-                    state.data[reverseExternalNames.at(entry.first)] = *entry.second;
+                    state.data[reverseExternalNames.at(entry.first)] = modelArray;
                 } else {
-                    state.data[entry.first] = *entry.second;
+                    state.data[entry.first] = modelArray;
                 }
             }
         }
@@ -197,9 +198,9 @@ void ConfigOutput::outputState(const ModelState& diagState)
         // Get data from the data store for any named fields that have an external name that
         // matches.
         for (const auto& fieldExtName : fieldsForOutput) {
-            if (externalNames.count(fieldExtName) && storeData.count(externalNames.at(fieldExtName))
-                && storeData.at(externalNames.at(fieldExtName))) {
-                state.data[fieldExtName] = *storeData.at(externalNames.at(fieldExtName));
+            if (externalNames.count(fieldExtName)
+                && storeData.count(externalNames.at(fieldExtName))) {
+                state.data[fieldExtName] = storeData.at(externalNames.at(fieldExtName)).getHostRO();
             }
         }
     }

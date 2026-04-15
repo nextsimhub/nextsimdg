@@ -28,7 +28,7 @@ TEST_CASE("DGVector from ModelArray")
     ModelArray::setNComponents(ModelArray::Type::DG, DG);
 
     ModelArray source(ModelArray::Type::DG);
-    source.resize();
+    source.reinitialize();
     // Fill with data
     for (size_t i = 0; i < nx; ++i) {
         for (size_t j = 0; j < ny; j++) {
@@ -67,12 +67,12 @@ TEST_CASE("DGVector from ModelArray::Type::H")
     const size_t nx = 32;
     const size_t ny = 32;
     const size_t mx = 100;
-    const size_t my = 100;
+    // const size_t my = 100;
 
     ModelArray::setDimensions(ModelArray::Type::H, { nx, ny });
 
     ModelArray source(ModelArray::Type::H);
-    source.resize();
+    source.reinitialize();
     // Fill with data
     for (size_t i = 0; i < nx; ++i) {
         for (size_t j = 0; j < ny; j++) {
@@ -144,7 +144,7 @@ TEST_CASE("ModelArray from DGVector")
     ModelArray::setNComponents(ModelArray::Type::DG, DG);
 
     ModelArray dest(ModelArray::Type::DG);
-    dest.resize();
+    dest.reinitialize();
     DGModelArray::dg2ma(source, dest);
 
     // Did it work?
@@ -190,7 +190,7 @@ TEST_CASE("Test with DG = 1") // (It would be a silly case to get wrong!)
     ModelArray::setNComponents(ModelArray::Type::DG, DG);
 
     ModelArray dest(ModelArray::Type::DG);
-    dest.resize();
+    dest.reinitialize();
     DGModelArray::dg2ma(source, dest);
 
     // Did it work?
@@ -251,7 +251,7 @@ TEST_CASE("Test the HField/DG0 transfer") // (It would be a silly case to get wr
     ModelArray::setNComponents(ModelArray::Type::DG, DG);
 
     HField dest(ModelArray::Type::H);
-    dest.resize();
+    dest.reinitialize();
     DGModelArray::dg2hField(source, dest);
 
     // Did it work?

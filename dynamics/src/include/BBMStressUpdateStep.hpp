@@ -33,6 +33,11 @@ public:
     {
         assert(pmap);
 
+        // Number of Gauss points
+        static constexpr size_t NGP
+            = (((DGstress == 8) || (DGstress == 6)) ? 3 : (DGstress == 3 ? 2 : -1));
+        using EdgeVec = Eigen::Matrix<FloatType, 1, NGP * NGP>;
+
         // Unwrap references
         DGVector<DGstress>& s11 = stress[I11];
         DGVector<DGstress>& s12 = stress[I12];
@@ -43,8 +48,6 @@ public:
         DGVector<DGstress>& e22 = strain[I22];
 
         const BBMParameters& params = reinterpret_cast<const BBMParameters&>(dParams);
-        // Number of Gauss points
-        const size_t nGauss = (((DGstress == 8) || (DGstress == 6)) ? 3 : (DGstress == 3 ? 2 : -1));
 
 //! Stress and Damage Update
 #pragma omp parallel for
@@ -54,56 +57,47 @@ public:
                 continue;
 
             //! Evaluate values in Gauss points (3 point Gauss rule in 2d => 9 points)
-            const Eigen::Matrix<double, 1, nGauss * nGauss> hGauss
-                = (h.row(i) * PSI<DGadvection, nGauss>).array().max(0.0).matrix();
-            const Eigen::Matrix<double, 1, nGauss * nGauss> aGauss
-                = (a.row(i) * PSI<DGadvection, nGauss>).array().max(0.0).min(1.0).matrix();
-            Eigen::Matrix<double, 1, nGauss * nGauss> dGauss
-                = (p_d->row(i) * PSI<DGadvection, nGauss>).array().max(1e-12).min(1.0).matrix();
+            const EdgeVec hGauss = (h.row(i) * PSI<DGadvection, NGP>).array().max(0.0).matrix();
+            const EdgeVec aGauss
+                = (a.row(i) * PSI<DGadvection, NGP>).array().max(0.0).min(1.0).matrix();
+            EdgeVec dGauss
+                = (p_d->row(i) * PSI<DGadvection, NGP>).array().max(1e-12).min(1.0).matrix();
 
-            const Eigen::Matrix<double, 1, nGauss * nGauss> e11Gauss
-                = e11.row(i) * PSI<DGstress, nGauss>;
-            const Eigen::Matrix<double, 1, nGauss * nGauss> e12Gauss
-                = e12.row(i) * PSI<DGstress, nGauss>;
-            const Eigen::Matrix<double, 1, nGauss * nGauss> e22Gauss
-                = e22.row(i) * PSI<DGstress, nGauss>;
+            const EdgeVec e11Gauss = e11.row(i) * PSI<DGstress, NGP>;
+            const EdgeVec e12Gauss = e12.row(i) * PSI<DGstress, NGP>;
+            const EdgeVec e22Gauss = e22.row(i) * PSI<DGstress, NGP>;
 
-            Eigen::Matrix<double, 1, nGauss * nGauss> s11Gauss = s11.row(i) * PSI<DGstress, nGauss>;
-            Eigen::Matrix<double, 1, nGauss * nGauss> s12Gauss = s12.row(i) * PSI<DGstress, nGauss>;
-            Eigen::Matrix<double, 1, nGauss * nGauss> s22Gauss = s22.row(i) * PSI<DGstress, nGauss>;
+            EdgeVec s11Gauss = s11.row(i) * PSI<DGstress, NGP>;
+            EdgeVec s12Gauss = s12.row(i) * PSI<DGstress, NGP>;
+            EdgeVec s22Gauss = s22.row(i) * PSI<DGstress, NGP>;
 
             //! Current normal stress for the evaluation of tildeP (Eqn. 1)
-            Eigen::Matrix<double, 1, nGauss * nGauss> sigma_n
-                = 0.5 * (s11Gauss.array() + s22Gauss.array());
+            EdgeVec sigma_n = 0.5 * (s11Gauss.array() + s22Gauss.array());
 
             //! exp(-C(1-A))
-            const Eigen::Matrix<double, 1, nGauss * nGauss> expC
-                = (params.compactionParam * (1.0 - aGauss.array())).exp().array();
+            const EdgeVec expC = (params.compactionParam * (1.0 - aGauss.array())).exp().array();
 
             // Eqn. 25
-            const Eigen::Matrix<double, 1, nGauss * nGauss> powalphaexpC
-                = (dGauss.array() * expC.array()).pow(params.alpha - 1);
-            const Eigen::Matrix<double, 1, nGauss * nGauss> time_viscous
-                = params.lambda0 * powalphaexpC;
+            const EdgeVec powalphaexpC = (dGauss.array() * expC.array()).pow(params.alpha - 1);
+            const EdgeVec time_viscous = params.lambda0 * powalphaexpC;
 
             //! BBM  Computing tildeP according to (Eqn. 7b and Eqn. 8)
             // (Eqn. 8)
-            const Eigen::Matrix<double, 1, nGauss * nGauss> Pmax
-                = params.P0 * hGauss.array().pow(params.expPMax + 1) * expC.array();
+            const EdgeVec Pmax = params.P0 * hGauss.array().pow(params.expPMax + 1) * expC.array();
 
             // (Eqn. 7b) Prepare tildeP
             // tildeP must be capped at 1 to get an elastic response
             // (Eqn. 7b) Select case based on sigma_n
-            const Eigen::Matrix<double, 1, nGauss * nGauss> tildeP
+            const EdgeVec tildeP
                 = (sigma_n.array() < 0.0)
                       .select((-Pmax.array() / sigma_n.array()).min(1.0).matrix(), 0.);
 
             // multiplicator
-            const Eigen::Matrix<double, 1, nGauss * nGauss> multiplicator
+            const EdgeVec multiplicator
                 = time_viscous.array() / (time_viscous.array() + (1. - tildeP.array()) * deltaT);
 
             //! Eqn. 9
-            const Eigen::Matrix<double, 1, nGauss * nGauss> elasticity
+            const EdgeVec elasticity
                 = hGauss.array() * params.young * dGauss.array() * expC.array();
 
             // Eqn. 12: first factor on RHS
@@ -113,7 +107,7 @@ public:
              * \ (K:e)12 /    1 - nu^2 \  0   0  1-nu / \ e12 /
              */
 
-            const Eigen::Matrix<double, 1, nGauss * nGauss> Dunit_factor
+            const EdgeVec Dunit_factor
                 = deltaT * elasticity.array() / (1. - (params.nu0 * params.nu0));
 
             s11Gauss.array()
@@ -128,23 +122,20 @@ public:
             s12Gauss.array() *= multiplicator.array();
 
             sigma_n = 0.5 * (s11Gauss.array() + s22Gauss.array());
-            const Eigen::Matrix<double, 1, nGauss * nGauss> tau
-                = (0.25 * (s11Gauss.array() - s22Gauss.array()).square()
-                    + s12Gauss.array().square())
-                      .sqrt();
+            const EdgeVec tau = (0.25 * (s11Gauss.array() - s22Gauss.array()).square()
+                + s12Gauss.array().square())
+                                    .sqrt();
 
-            const double scale_coef = std::sqrt(0.1 / smesh.h(i));
+            const FloatType scale_coef = std::sqrt(0.1 / smesh.h(i));
 
             //! Eqn. 22
-            const Eigen::Matrix<double, 1, nGauss * nGauss> cohesion
-                = params.cLab * scale_coef * hGauss.array();
+            const EdgeVec cohesion = params.cLab * scale_coef * hGauss.array();
             //! Eqn. 30
-            const Eigen::Matrix<double, 1, nGauss * nGauss> compr_strength
-                = params.comprCap * scale_coef * hGauss.array();
+            const EdgeVec compr_strength = params.comprCap * scale_coef * hGauss.array();
 
             // Mohr-Coulomb failure using Mssrs. Plante & Tremblay's formulation
-            // sigma_s + mu*sigma_n < 0 is always inside, but gives dcrit < 0
-            Eigen::Matrix<double, 1, nGauss * nGauss> dcrit
+            // sigma_s + tan_phi*sigma_n < 0 is always inside, but gives dcrit < 0
+            EdgeVec dcrit
                 = (tau.array() + params.mu * sigma_n.array() > 0.)
                       .select(cohesion.array() / (tau.array() + params.mu * sigma_n.array()), 1.);
 
@@ -156,8 +147,8 @@ public:
             dcrit = dcrit.array().min(1.0);
 
             // Eqn. 29
-            const Eigen::Matrix<double, 1, nGauss * nGauss> td = smesh.h(i)
-                * std::sqrt(2. * (1. + params.nu0) * params.rhoIce) / elasticity.array().sqrt();
+            const EdgeVec td = smesh.h(i) * std::sqrt(2. * (1. + params.nu0) * params.rhoIce)
+                / elasticity.array().sqrt();
 
             // Update damage
             dGauss.array() -= dGauss.array() * (1. - dcrit.array()) * deltaT / td.array();
@@ -168,9 +159,13 @@ public:
             s22Gauss.array() -= s22Gauss.array() * (1. - dcrit.array()) * deltaT / td.array();
 
             // INTEGRATION OF STRESS AND DAMAGE
-            s11.row(i) = pmap->iMJwPSI[i] * s11Gauss.matrix().transpose();
-            s12.row(i) = pmap->iMJwPSI[i] * s12Gauss.matrix().transpose();
-            s22.row(i) = pmap->iMJwPSI[i] * s22Gauss.matrix().transpose();
+            // get the inverse of the mass matrix scaled with the test-functions in the gauss
+            // points, with the gauss weights and with J. This is a 8 x 9 matrix
+            const auto& iMJwPSI = pmap->iMJwPSI[i];
+            s11.row(i) = iMJwPSI * s11Gauss.matrix().transpose();
+            s12.row(i) = iMJwPSI * s12Gauss.matrix().transpose();
+            s22.row(i) = iMJwPSI * s22Gauss.matrix().transpose();
+
             p_d->row(i) = pmap->iMJwPSI_dam[i] * dGauss.matrix().transpose();
         }
     }

@@ -7,6 +7,9 @@
 #ifdef USE_MPI
 #include <mpi.h>
 #endif
+#ifdef USE_KOKKOS
+#include <Kokkos_Core.hpp>
+#endif
 
 #include "include/CommandLineParser.hpp"
 #include "include/ConfigurationHelpPrinter.hpp"
@@ -21,6 +24,9 @@ int main(int argc, char* argv[])
 #ifdef USE_MPI
     MPI_Init(&argc, &argv);
 #endif // USE_MPI
+#ifdef USE_KOKKOS
+    Kokkos::initialize(argc, argv);
+#endif
 
     int return_code = 0;
 
@@ -61,6 +67,10 @@ int main(int argc, char* argv[])
             Nextsim::Logged::error(e.what());
         }
     }
+
+#ifdef USE_KOKKOS
+    Kokkos::finalize();
+#endif
 #ifdef USE_MPI
     MPI_Finalize();
 #endif

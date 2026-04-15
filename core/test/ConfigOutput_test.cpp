@@ -16,7 +16,7 @@
 #include "include/Finalizer.hpp"
 #include "include/IStructure.hpp"
 #include "include/ModelArray.hpp"
-#include "include/ModelArrayRef.hpp"
+#include "include/ModelArrayAccessor.hpp"
 #include "include/ModelComponent.hpp"
 #include "include/ModelMetadata.hpp"
 #include "include/ModelState.hpp"
@@ -88,30 +88,34 @@ void runMe(const bool snapshot)
 
     Module::setImplementation<IStructure>("Nextsim::ParametricGrid");
 
-    HField hice(ModelArray::Type::H);
-    HField cice(ModelArray::Type::H);
-    HField hsnow(ModelArray::Type::H);
-    HField tsurf(ModelArray::Type::H);
+    ModelArrayAccessor<Shared::H_ICE_DG, RW> hiceAccessor(
+        ModelComponent::getStore(), RO, ModelArray::Type::H);
+    ModelArrayAccessor<Shared::C_ICE_DG, RW> ciceAccessor(
+        ModelComponent::getStore(), RO, ModelArray::Type::H);
+    ModelArrayAccessor<Shared::H_SNOW_DG, RW> hsnowAccessor(
+        ModelComponent::getStore(), RO, ModelArray::Type::H);
+    ModelArrayAccessor<Protected::T_SURF, RW> tsurfAccessor(
+        ModelComponent::getStore(), RO, ModelArray::Type::H);
+
+    HField& hice = hiceAccessor.getHostRW();
+    HField& cice = ciceAccessor.getHostRW();
+    HField& hsnow = hsnowAccessor.getHostRW();
+    HField& tsurf = tsurfAccessor.getHostRW();
 
     // An internal diagnostic field, not made available through the data store
     HField topMelt(ModelArray::Type::H);
 
-    hice.resize();
-    cice.resize();
-    hsnow.resize();
-    tsurf.resize();
-    topMelt.resize();
+    hice.reinitialize();
+    cice.reinitialize();
+    hsnow.reinitialize();
+    tsurf.reinitialize();
+    topMelt.reinitialize();
 
     hice = 0.;
     cice = 0.;
     hsnow = 0.;
     tsurf = 0.;
     topMelt = 0.;
-
-    ModelComponent::getStore().registerArray(Shared::H_ICE_DG, &hice);
-    ModelComponent::getStore().registerArray(Shared::C_ICE_DG, &cice);
-    ModelComponent::getStore().registerArray(Shared::H_SNOW_DG, &hsnow);
-    ModelComponent::getStore().registerArray(Protected::T_SURF, &tsurf);
 
     // Set up the coordinates, but use arrays filled with zeros
     HField latlonData(ModelArray::Type::H);

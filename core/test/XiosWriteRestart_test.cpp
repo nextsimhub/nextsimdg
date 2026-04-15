@@ -82,21 +82,21 @@ MPI_TEST_CASE("TestXiosWriteRestart", 2)
 
     // Create some fake data to test writing methods
     HField longitude(ModelArray::Type::H);
-    longitude.resize();
+    longitude.reinitialize();
     for (size_t j = 0; j < ny; ++j) {
         for (size_t i = 0; i < nx; ++i) {
             longitude(i, j) = i;
         }
     }
     HField latitude(ModelArray::Type::H);
-    latitude.resize();
+    latitude.reinitialize();
     for (size_t j = 0; j < ny; ++j) {
         for (size_t i = 0; i < nx; ++i) {
             latitude(i, j) = j;
         }
     }
     HField grid_azimuth(ModelArray::Type::H);
-    grid_azimuth.resize();
+    grid_azimuth.reinitialize();
     grid_azimuth = 0;
 
     /*
@@ -112,26 +112,26 @@ MPI_TEST_CASE("TestXiosWriteRestart", 2)
      * That is, mask is zero when i = 0 and j = 0 and one otherwise.
      */
     HField mask(ModelArray::Type::H);
-    mask.resize();
+    mask.reinitialize();
     for (size_t j = 0; j < ny; ++j) {
         for (size_t i = 0; i < nx; ++i) {
             mask(i, j) = (i == 0 && j == 0 ? 0.0 : 1.0);
         }
     }
     DGField cice(ModelArray::Type::DG);
-    cice.resize();
+    cice.reinitialize();
     DGField hice(ModelArray::Type::DG);
-    hice.resize();
+    hice.reinitialize();
     DGField damage(ModelArray::Type::DG);
-    damage.resize();
+    damage.reinitialize();
     DGField hsnow(ModelArray::Type::DG);
-    hsnow.resize();
+    hsnow.reinitialize();
     VertexField coords(ModelArray::Type::VERTEX);
-    coords.resize();
+    coords.reinitialize();
     DGSField tice(ModelArray::Type::DGSTRESS);
-    tice.resize();
+    tice.reinitialize();
     CGField uice(ModelArray::Type::CG);
-    uice.resize();
+    uice.reinitialize();
 
     // Check files with the expected names don't exist yet
     REQUIRE_FALSE(std::filesystem::exists("restart*.nc"));

@@ -20,7 +20,7 @@ bool ModelArray::areMapsInvalid = true;
 ModelArray::ModelArray(const Type type, const std::pair<double, double>& bounds)
     : type(type)
 {
-    m_data.resize(std::max(std::size_t { 0 }, m_sz.at(type)), nComponents());
+    m_data.resize(m_sz.at(type), nComponents());
     validateMaps();
     setLimits(bounds.first, bounds.second);
 }
@@ -175,15 +175,16 @@ ModelArray& ModelArray::clampBelow(const ModelArray& minArr)
     return *this;
 }
 
+/*************************************************************/
 void ModelArray::setData(double value)
 {
-    resize();
+    reinitialize();
     m_data = value;
 }
 
 void ModelArray::setData(const double* pData)
 {
-    resize();
+    reinitialize();
     auto out = std::copy(pData, pData + m_sz.at(type) * nComponents(), m_data.data());
 }
 
@@ -191,6 +192,26 @@ void ModelArray::setData(const DataType& from) { m_data = from; } // setData(fro
 
 void ModelArray::setData(const ModelArray& from) { setData(from.m_data.data()); }
 
+/*************************************************************/
+void ModelArray::assignData(const ModelArray& source)
+{
+    if (source.nComponents() != nComponents()) {
+        component(0) = source.component(0);
+    } else {
+        m_data = source.m_data;
+    }
+}
+
+void ModelArray::assignData(ModelArray&& source)
+{
+    if (source.nComponents() != nComponents()) {
+        component(0) = source.component(0);
+    } else {
+        m_data = std::move(source.m_data);
+    }
+}
+
+/*************************************************************/
 void ModelArray::setDimensions(Type type, const MultiDim& newDims)
 {
     std::vector<Dimension>& dimSpecs = typeDimensions.at(type);

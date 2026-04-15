@@ -58,9 +58,9 @@ TEST_CASE("PrognosticData write test, including DG components")
     ModelArray latitude(ModelArray::Type::H);
     ModelArray longitude(ModelArray::Type::H);
     ModelArray coords(ModelArray::Type::VERTEX);
-    baseData.resize();
-    dgData.resize();
-    coords.resize();
+    baseData.reinitialize();
+    dgData.reinitialize();
+    coords.reinitialize();
     size_t xMul = 1000;
     size_t yMul = 100;
     size_t resn = 2;
@@ -87,7 +87,6 @@ TEST_CASE("PrognosticData write test, including DG components")
     // Loop for coords
     for (size_t j = 0; j < ModelArray::size(ModelArray::Dimension::YVERTEX); ++j) {
         for (size_t i = 0; i < ModelArray::size(ModelArray::Dimension::XVERTEX); ++i) {
-            size_t c = i * xMul + j * yMul;
             size_t idx = coords.indexFromLocation({ i, j });
             coords.components(idx) << resn * i, resn * j;
         }

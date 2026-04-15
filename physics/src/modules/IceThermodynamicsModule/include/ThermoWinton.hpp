@@ -8,7 +8,6 @@
 
 #include "include/Configured.hpp"
 #include "include/IIceThermodynamics.hpp"
-#include "include/ModelArrayRef.hpp"
 
 namespace Nextsim {
 
@@ -41,23 +40,28 @@ public:
     static const std::string tBottomName;
 
 private:
-    void calculateElement(size_t i, const TimestepTime& tst);
+    // local namespace to prevent conflicts with other thermodynamics implementations
+    struct Private {
+        static inline constexpr TextTag T_INTERNAL = "T_INTERNAL";
+        static inline constexpr TextTag T_BOTTOM = "T_BOTTOM";
+        static inline constexpr TextTag T_SNOW_MELT = "T_SNOW_MELT";
+        static inline constexpr TextTag T_TOP_MELT = "T_TOP_MELT";
+        static inline constexpr TextTag T_BOT_MELT = "T_BOT_MELT";
+    };
+    // private owned
+    ModelArrayAccessor<Private::T_INTERNAL, RW> tInternalAccessor;
+    ModelArrayAccessor<Private::T_BOTTOM, RW> tBottomAccessor;
+    ModelArrayAccessor<Private::T_SNOW_MELT, RW> snowMeltAccessor;
+    ModelArrayAccessor<Private::T_TOP_MELT, RW> topMeltAccessor;
+    ModelArrayAccessor<Private::T_BOT_MELT, RW> botMeltAccessor;
 
-    AdvectedField tInternal;
-    AdvectedField tBottom;
-    HField snowMelt;
-    HField topMelt;
-    HField botMelt;
-    ModelArrayRef<Protected::SW_IN> sw_in;
-    ModelArrayRef<Shared::SUBLIM, RO> subl;
+    ModelArrayAccessor<Protected::SW_IN> sw_inAccessor;
+    ModelArrayAccessor<Shared::SUBLIM, RO> sublAccessor;
 
     static const double cVol;
     static bool doFlooding;
     static const double seaIceTf;
     static double kappa_s;
-
-    void calculateTemps(
-        double& tSurf, double& tMidt, double& tBotn, double& mSurf, size_t i, double dt);
 };
 
 } /* namespace Nextsim */
