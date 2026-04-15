@@ -221,7 +221,7 @@ public:
     {
     }
 
-    /// @brief Get read-only access to the field on the GPU (Kokkos enabled) or the CPU.
+    /// @brief Get read-write access to the field on the GPU (Kokkos enabled) or the CPU.
     ModelArray& getHostRW()
     {
 #ifdef USE_KOKKOS
@@ -246,7 +246,7 @@ public:
         return this->target.modelArray;
     }
 
-    /// @brief Get read-only access to the field on the GPU.
+    /// @brief Get read-write access to the field on the GPU.
     DeviceModelArray& getDeviceRW()
     {
         if (this->target.syncState == SyncState::HOST_CHANGED)
@@ -277,7 +277,7 @@ public:
 #endif
     }
 
-    /// @brief Get read-only access to the field on the GPU (Kokkos enabled) or the CPU
+    /// @brief Get read-write access to the field on the GPU (Kokkos enabled) or the CPU
     /// (asynchronous).
     template <typename ExecSpace> ModelArrayAuto& getAutoRW(ExecSpace execSpace)
     {
