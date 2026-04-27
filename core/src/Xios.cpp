@@ -51,8 +51,6 @@ static const std::string xDiagnosticPfx = "XiosDiagnostic";
 static const std::map<int, std::string> keyMap = { { Xios::ENABLED_KEY, "xios.enable" },
     // TODO: Avoid having to parse restart fields (#1056)
     { Xios::OUTPUT_FIELD_NAMES_KEY, "XiosOutput.field_names" },
-    // TODO: Avoid having to parse input fields (#1056)
-    { Xios::INPUT_FIELD_NAMES_KEY, "XiosInput.field_names" },
     { Xios::DIAGNOSTIC_PERIOD_KEY, xDiagnosticPfx + ".period" },
     { Xios::DIAGNOSTIC_FILE_KEY, xDiagnosticPfx + ".filename" },
     // TODO: Avoid having to parse diagnostic fields for XIOS specifically (#981)
@@ -72,10 +70,6 @@ Xios::HelpMap& Xios::getHelpText(HelpMap& map, bool getAll)
     map["XiosOutput"] = {
         { keyMap.at(OUTPUT_FIELD_NAMES_KEY), ConfigType::STRING, {}, "", "",
             "Comma-separated list of field names to be written to the output file." },
-    };
-    map["XiosInput"] = {
-        { keyMap.at(INPUT_FIELD_NAMES_KEY), ConfigType::STRING, {}, "", "",
-            "Comma-separated list of field names to be read from the input file." },
     };
     map["XiosDiagnostic"] = {
         { keyMap.at(DIAGNOSTIC_PERIOD_KEY), ConfigType::STRING, {}, "0", "",
@@ -170,11 +164,14 @@ void Xios::close_context_definition()
                 }
 
                 // Check the field types
-                const ModelArray::Type& inputType = getFieldType(inputFieldId);
                 if (fieldTypes.count(inputFieldId) == 0) {
-                    // getFieldType defaults to HField but doesn't set that as field type
-                    setFieldType(fieldId, inputType, ioType);
+                    if (fieldTypes.count(fieldId) > 0) {
+                        setFieldType(fieldId, getFieldType(fieldId), ioType);
+                    } else {
+                        setFieldType(fieldId, ModelArray::Type::H, ioType);
+                    }
                 }
+                const ModelArray::Type& inputType = getFieldType(inputFieldId);
                 if (fieldTypes.count(fieldId) == 0) {
                     // Unused base fields still need a field type
                     setFieldType(fieldId, inputType, NOT_READ);
@@ -184,6 +181,10 @@ void Xios::close_context_definition()
                     && baseType != ModelArray::Type::H) {
                     throw std::runtime_error("Xios: Forcing fields must be treated as HFields");
                 }
+
+                // Set grid references
+                setFieldGridRef(fieldId, gridIds[baseType]);
+                setFieldGridRef(inputFieldId, gridIds[inputType]);
 
                 if (inputType == baseType) {
                     // Link the input field to the base field if their types align
@@ -242,7 +243,6 @@ void Xios::configure()
         setupContext();
         setupCalendar();
         setupFiles();
-        setupFields();
     }
 }
 
@@ -266,22 +266,12 @@ std::set<std::string> str2set(const std::string& asStr, const char& delim = ',')
  */
 void Xios::parseConfig()
 {
-    // TODO: Avoid having to parse input fields (#1056)
-    inputRestartFieldNames
-        = str2set(Configured::getConfiguration(keyMap.at(INPUT_FIELD_NAMES_KEY), std::string()));
     // TODO: Avoid having to parse restart fields (#1056)
     outputRestartFieldNames
         = str2set(Configured::getConfiguration(keyMap.at(OUTPUT_FIELD_NAMES_KEY), std::string()));
     // TODO: Avoid having to parse diagnostic fields for XIOS specifically (#981)
     diagnosticFieldNames = str2set(
         Configured::getConfiguration(keyMap.at(DIAGNOSTIC_FIELD_NAMES_KEY), std::string()));
-
-    // Combine all field names into a single set for easier checking later on
-    fieldNames = inputRestartFieldNames;
-    fieldNames.insert(outputRestartFieldNames.begin(), outputRestartFieldNames.end());
-    fieldNames.insert(era5ForcingFieldNames.begin(), era5ForcingFieldNames.end());
-    fieldNames.insert(topazForcingFieldNames.begin(), topazForcingFieldNames.end());
-    fieldNames.insert(diagnosticFieldNames.begin(), diagnosticFieldNames.end());
 }
 
 //! Initialize the XIOS context with ID contextId
@@ -839,7 +829,6 @@ void Xios::createField(const std::string& fieldId, const std::string& fileId)
         setFieldReadAccess(fieldId, false);
         fileAddField(fileId, fieldId);
     } else {
-        // TODO: Allow unused fields in input files (#1060)
         throw std::runtime_error("Xios: Unknown I/O type for field '" + fieldId + "'");
     }
 }
@@ -1011,23 +1000,6 @@ void Xios::setFieldFreqOffset(const std::string& fieldId, const Duration& freqOf
 }
 
 /*!
- * Get the grid reference associated with a field with a given ID
- *
- * @param the field ID
- * @return grid reference used for the corresponding field
- */
-std::string Xios::getFieldGridRef(const std::string& fieldId)
-{
-    xios::CField* field = getField(fieldId);
-    if (!cxios_is_defined_field_grid_ref(field)) {
-        throw std::runtime_error("Xios: Undefined grid reference for field '" + fieldId + "'");
-    }
-    char cStr[cStrLen];
-    cxios_get_field_grid_ref(field, cStr, cStrLen);
-    return convertCStrToCppStr(cStr, cStrLen);
-}
-
-/*!
  * Get the read access associated with a field with a given ID
  *
  * @param the field ID
@@ -1072,7 +1044,7 @@ Duration Xios::getFieldFreqOffset(const std::string& fieldId)
 ModelArray::Type Xios::getFieldType(const std::string& fieldId)
 {
     if (fieldTypes.count(fieldId) == 0) {
-        return ModelArray::Type::H;
+        throw std::runtime_error("Xios::getFieldType: Field type not set for '" + fieldId + "'");
     }
     return fieldTypes[fieldId];
 }
@@ -1087,17 +1059,11 @@ ModelArray::Type Xios::getFieldType(const std::string& fieldId)
 void Xios::setFieldType(
     const std::string& fieldId, const ModelArray::Type& fieldType, const int ioType)
 {
-    if (fieldNames.count(fieldId) == 0) {
-        Logged::warning("Xios::setFieldType: Cannot set field type for field '" + fieldId
-            + "' because it is not in the config.");
-        return;
-    }
     const std::string ioFieldId = getFieldIOId(fieldId, ioType);
     if (fieldTypes.count(ioFieldId) > 0) {
         Logged::warning("Xios::setFieldType: Overwriting field type for field '" + ioFieldId + "'");
     }
     fieldTypes[ioFieldId] = fieldType;
-    setFieldGridRef(ioFieldId, gridIds[fieldType]);
 }
 
 /*!
@@ -1133,12 +1099,16 @@ void Xios::setupFields()
 {
     ModelMetadata& metadata = ModelMetadata::getInstance();
 
+    // Set dimensions based on those found in input file
+    if (!metadata.initialFileName.empty()) {
+        metadata.setDimensionsFromFile(metadata.initialFileName);
+    }
+
     for (const std::string& filename :
         { metadata.initialFileName, era5ForcingFilename, topazForcingFilename }) {
         if (filename.empty()) {
-            break;
+            continue;
         }
-        metadata.setDimensionsFromFile(filename);
 
         // Create map for field types
         const std::map<std::string, ModelArray::Type> dimensionKeys = {
@@ -1154,42 +1124,44 @@ void Xios::setupFields()
         };
 
         // Determine field types
-        std::set<std::string> configFieldIds;
         int ioType;
         if (filename == metadata.initialFileName) {
-            configFieldIds = inputRestartFieldNames;
             ioType = INPUT_RESTART;
         } else if (filename == era5ForcingFilename) {
-            configFieldIds = era5ForcingFieldNames;
             ioType = ERA5_FORCING;
         } else {
-            configFieldIds = topazForcingFieldNames;
             ioType = TOPAZ_FORCING;
         }
+
+        std::set<std::string> configFieldIds;
+        auto& modelMPI = ModelMPI::getInstance();
         try {
-            auto& modelMPI = ModelMPI::getInstance();
             netCDF::NcFilePar ncFile(filename, netCDF::NcFile::read, modelMPI.getComm());
 
             for (auto& [fieldId, var] : ncFile.getVars()) {
-                // Only consider fields that appear in the config
-                if (configFieldIds.count(fieldId) == 0) {
-                    continue;
-                }
+
                 // Determine the type from the dimensions
                 std::vector<netCDF::NcDim> varDims = var.getDims();
                 std::string dimKey = "";
                 for (netCDF::NcDim& dim : varDims) {
                     const std::string name = dim.getName();
                     // Skip the time_counter dim as it's handled differently
-                    if (name != "time_counter") {
-                        dimKey += dim.getName();
+                    if (name == "time_counter" || name == "time") {
+                        continue;
                     }
+                    dimKey += name;
                 }
-                // Skip invalid dimension keys
+
+                // Skip invalid dimension keys, otherwise add to the corresponding config section
                 if (!dimensionKeys.count(dimKey)) {
                     continue;
                 }
-                setFieldType(fieldId, dimensionKeys.at(dimKey), ioType);
+                configFieldIds.insert(fieldId);
+
+                // Set the input field type and default the base field type correspondingly
+                ModelArray::Type fieldType = dimensionKeys.at(dimKey);
+                setFieldType(fieldId, fieldType, ioType);
+                setFieldType(fieldId, fieldType, NOT_READ);
             }
             ncFile.close();
         } catch (const netCDF::exceptions::NcException& nce) {
@@ -1197,7 +1169,20 @@ void Xios::setupFields()
             ncWhat += ": " + filename;
             throw std::runtime_error(ncWhat);
         }
+        if (filename == metadata.initialFileName) {
+            inputRestartFieldNames = configFieldIds;
+        } else if (filename == era5ForcingFilename) {
+            era5ForcingFieldNames = configFieldIds;
+        } else {
+            topazForcingFieldNames = configFieldIds;
+        }
     }
+
+    // Combine all field names into a single set for easier checking later on
+    fieldNames = inputRestartFieldNames;
+    fieldNames.insert(outputRestartFieldNames.begin(), outputRestartFieldNames.end());
+    fieldNames.insert(era5ForcingFieldNames.begin(), era5ForcingFieldNames.end());
+    fieldNames.insert(diagnosticFieldNames.begin(), diagnosticFieldNames.end());
 }
 
 /*!
@@ -1519,6 +1504,9 @@ void Xios::setupFiles()
                 "Xios::setupFiles: TOPAZ forcing and diagnostic file names must differ.");
         }
     }
+
+    // Setup fields before creating files because createFile creates the associated fields
+    setupFields();
 
     // Create files for any non-empty file IDs
     for (const std::string& fileId :

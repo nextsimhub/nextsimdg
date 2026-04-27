@@ -41,10 +41,6 @@ MPI_TEST_CASE("TestXiosReadRestart", 2)
     config << "init_file = " << restartFilename << std::endl;
     config << "restart_period = P0-0T03:00:00" << std::endl;
     config << "partition_file = xios_test_partition_metadata_2.nc" << std::endl;
-    config << "[XiosInput]" << std::endl;
-    config << "field_names = " << maskName << "," << longitudeName << "," << latitudeName << ","
-           << coordsName << "," << gridAzimuthName << "," << ciceName << "," << hiceName << ","
-           << damageName << "," << hsnowName << "," << ticeName << "," << uName << "," << std::endl;
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
 
@@ -149,7 +145,7 @@ MPI_TEST_CASE("TestXiosReadRestart", 2)
                     }
                 }
             }
-        } else if (fieldName == uName) {
+        } else if (fieldName == shearName) {
             for (size_t j = 0; j < CGDEGREE * ny + 1; ++j) {
                 for (size_t i = 0; i < CGDEGREE * nx + 1; ++i) {
                     if (rank == 0) {

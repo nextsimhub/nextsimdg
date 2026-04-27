@@ -94,10 +94,11 @@ building without XIOS. That is, the ``model`` section should include
   restart_file = my_restart_file.nc
   restart_period = P0-0T02:00:00
 
-Information related to fields to be read from and written to files are
-configured via the ``XiosInput``, ``XiosOutput``, and ``XiosDiagnostic``
-sections, where the first two refer to restarts. Note that all of these sections
-are optional.
+Information related to fields to be written to files are currently configured
+via the ``XiosOutput`` section (for restart files), and ``XiosDiagnostic`` section (for diagnostic files). 
+Note that both of these sections are optional. Moreover, they
+provide an interim solution. Eventually, it will not be necessary to provide
+XIOS-specific configuration information.
 
 For restart files, the filename is determined from the ``restart_file`` entry in
 the ``model`` section mentioned above. In the case of diagnostics files, the
@@ -120,9 +121,9 @@ time window, whereas diagnostics files are averaged over the timesteps in the
 window.
 
 In addition to specifying file names, we need to specify which fields are to be
-read or written using each I/O type. For example, we could specify that two
-fields labelled ``field_A`` and ``field_B`` are to be written into restart files
-as follows:
+written using each I/O type. For example, we could specify that two fields
+labelled ``field_A`` and ``field_B`` are to be written into restart files as
+follows:
 
 .. code-block::
 
@@ -130,16 +131,15 @@ as follows:
   field_names = field_A,field_B
 
 The ``field_names`` entry may contain a single field name or a comma-separated
-list.
+list. Note that this is an interim solution. Eventually, it will not be
+necessary to provide field names to configure XIOS.
 
 As elsewhere in the model, the configuration values above are all parsed by
 calling the ``Model.configure()`` member function. Note that this function will
 automatically initialize the model state based on the ``input_file`` entry and
-any ``field_names`` listed in the ``[XiosInput]`` configuration section. You
-will need to ensure that variables defining the grid are read here, i.e.,
-``longitude`` and ``latitude`` and possibly ``coords`` and ``grid_azimuth``. The
-XIOS I/O implementation does not currently support Cartesian grids (based on
-``x_dim`` and ``y_dim``).
+all field variables found in that file, including variables defining the grid
+i.e., ``longitude`` and ``latitude`` and possibly ``coords`` and
+``grid_azimuth``.
 
 Forcing files
 -------------

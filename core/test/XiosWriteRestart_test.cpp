@@ -43,14 +43,11 @@ MPI_TEST_CASE("TestXiosWriteRestart", 2)
     config << "restart_file = " << outputFilename << std::endl;
     config << "partition_file = xios_test_partition_metadata_2.nc" << std::endl;
     config << "restart_period = P0-0T03:00:00" << std::endl;
-    config << "[XiosInput]" << std::endl;
-    config << "field_names = " << maskName << "," << longitudeName << "," << latitudeName << ","
-           << coordsName << "," << gridAzimuthName << "," << ciceName << "," << hiceName << ","
-           << damageName << "," << hsnowName << "," << ticeName << "," << uName << "," << std::endl;
     config << "[XiosOutput]" << std::endl;
     config << "field_names = " << maskName << "," << longitudeName << "," << latitudeName << ","
            << coordsName << "," << gridAzimuthName << "," << ciceName << "," << hiceName << ","
-           << damageName << "," << hsnowName << "," << ticeName << "," << uName << "," << std::endl;
+           << damageName << "," << hsnowName << "," << ticeName << "," << shearName << ","
+           << std::endl;
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
 
@@ -78,7 +75,7 @@ MPI_TEST_CASE("TestXiosWriteRestart", 2)
 
     // Set field types for restarts
     xiosHandler.setPrognosticFieldType(ticeName, ModelArray::Type::DGSTRESS);
-    xiosHandler.setPrognosticFieldType(uName, ModelArray::Type::CG);
+    xiosHandler.setPrognosticFieldType(shearName, ModelArray::Type::CG);
 
     // Create some fake data to test writing methods
     HField longitude(ModelArray::Type::H);
@@ -97,7 +94,7 @@ MPI_TEST_CASE("TestXiosWriteRestart", 2)
     }
     HField grid_azimuth(ModelArray::Type::H);
     grid_azimuth.reinitialize();
-    grid_azimuth = 0;
+    grid_azimuth = 0.0;
 
     /*
      * Mask definition, where 0 indicates land and 1 indicates ocean:
@@ -130,8 +127,8 @@ MPI_TEST_CASE("TestXiosWriteRestart", 2)
     coords.reinitialize();
     DGSField tice(ModelArray::Type::DGSTRESS);
     tice.reinitialize();
-    CGField uice(ModelArray::Type::CG);
-    uice.reinitialize();
+    CGField shear(ModelArray::Type::CG);
+    shear.reinitialize();
 
     // Check files with the expected names don't exist yet
     REQUIRE_FALSE(std::filesystem::exists("restart*.nc"));
@@ -220,7 +217,7 @@ MPI_TEST_CASE("TestXiosWriteRestart", 2)
                 } else {
                     value = (i == 1 && j == 1) ? NAN : 1.0 * ts * ((i + 5) * (j + 1));
                 }
-                uice(i, j) = value;
+                shear(i, j) = value;
             }
         }
 
@@ -236,7 +233,7 @@ MPI_TEST_CASE("TestXiosWriteRestart", 2)
                                     { hsnowName, hsnow },
                                     { coordsName, coords },
                                     { ticeName, tice },
-                                    { uName, uice },
+                                    { shearName, shear },
                                 },
             {} };
         StructureFactory::fileFromState(restarts, outputFilename, true);
