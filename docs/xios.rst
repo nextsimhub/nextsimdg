@@ -95,8 +95,8 @@ building without XIOS. That is, the ``model`` section should include
   restart_period = P0-0T02:00:00
 
 Information related to fields to be written to files are currently configured
-via the ``XiosOutput``, and ``XiosDiagnostic`` sections, where the first two
-refer to restarts. Note that both of these sections are optional. Moreover, they
+via the ``XiosOutput`` section (for restart files), and ``XiosDiagnostic`` section (for diagnostic files). 
+Note that both of these sections are optional. Moreover, they
 provide an interim solution. Eventually, it will not be necessary to provide
 XIOS-specific configuration information.
 
