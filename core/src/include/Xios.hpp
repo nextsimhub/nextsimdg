@@ -136,6 +136,8 @@ private:
     std::map<ModelArray::Type, std::string> domainIds = {
         // Standard cell-based x- and y-dimensions (alt. names x_dim and y_dim)
         { ModelArray::Type::H, "dim" },
+        { ModelArray::Type::U, "dim" },
+        { ModelArray::Type::V, "dim" },
         { ModelArray::Type::DG, "dim" },
         { ModelArray::Type::DGSTRESS, "dim" },
         // Vertex-based x- and y-dimensions (alt. names x_vertex and y_vertex)
@@ -156,9 +158,11 @@ private:
     xios::CGrid* getGrid(const std::string& gridId);
     std::map<ModelArray::Type, std::string> gridIds = {
         { ModelArray::Type::H, "HGrid" },
-        { ModelArray::Type::VERTEX, "VertexGrid" },
+        { ModelArray::Type::U, "UGrid" },
+        { ModelArray::Type::V, "VGrid" },
         { ModelArray::Type::DG, "DGGrid" },
         { ModelArray::Type::DGSTRESS, "DGSGrid" },
+        { ModelArray::Type::VERTEX, "VertexGrid" },
         { ModelArray::Type::CG, "CGGrid" },
     };
     void setupGrids();
