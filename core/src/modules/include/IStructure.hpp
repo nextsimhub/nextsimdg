@@ -8,6 +8,10 @@
 
 #include "include/ModelMetadata.hpp"
 #include "include/ModelState.hpp"
+#ifdef USE_XIOS
+#include "include/Xios.hpp"
+#endif
+#include "include/gridNames.hpp"
 
 #include <boost/algorithm/string/predicate.hpp>
 #include <string>
@@ -27,7 +31,16 @@ namespace Nextsim {
  */
 class IStructure {
 public:
-    IStructure() { }
+    IStructure()
+    {
+#ifdef USE_XIOS
+        // Set XIOS field types for core grid-related fields
+        Xios& xiosHandler = Xios::getInstance();
+        xiosHandler.setPrognosticFieldType(coordsName, ModelArray::Type::VERTEX);
+        xiosHandler.setPrognosticFieldType(gridAzimuthName, ModelArray::Type::H);
+        xiosHandler.setPrognosticFieldType(maskName, ModelArray::Type::H);
+#endif
+    }
     virtual ~IStructure() = default;
 
     /*!

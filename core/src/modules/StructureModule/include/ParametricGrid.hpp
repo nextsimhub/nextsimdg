@@ -24,6 +24,20 @@ public:
     ParametricGrid()
         : pio(nullptr)
     {
+#ifdef USE_XIOS
+        // Set XIOS field types for core grid-related fields
+        Xios& xiosHandler = Xios::getInstance();
+        xiosHandler.setPrognosticFieldType(coordsName, ModelArray::Type::VERTEX);
+        if (Xios::sphericalCoordinates()) {
+            xiosHandler.setPrognosticFieldType(latitudeName, ModelArray::Type::H);
+            xiosHandler.setPrognosticFieldType(longitudeName, ModelArray::Type::H);
+        } else {
+            xiosHandler.setPrognosticFieldType(xName, ModelArray::Type::H);
+            xiosHandler.setPrognosticFieldType(yName, ModelArray::Type::H);
+        }
+        xiosHandler.setPrognosticFieldType(gridAzimuthName, ModelArray::Type::H);
+        xiosHandler.setPrognosticFieldType(maskName, ModelArray::Type::H);
+#endif
     }
     virtual ~ParametricGrid()
     {

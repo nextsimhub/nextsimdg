@@ -43,11 +43,6 @@ MPI_TEST_CASE("TestXiosReadWriteRestart", 2)
     config << "restart_file = " << outputFilename << std::endl;
     config << "partition_file = xios_test_partition_metadata_2.nc" << std::endl;
     config << "restart_period = P0-0T03:00:00" << std::endl;
-    config << "[XiosOutput]" << std::endl;
-    config << "field_names = " << maskName << "," << longitudeName << "," << latitudeName << ","
-           << coordsName << "," << gridAzimuthName << "," << ciceName << "," << hiceName << ","
-           << damageName << "," << hsnowName << "," << ticeName << "," << shearName << ","
-           << std::endl;
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
 
@@ -69,11 +64,22 @@ MPI_TEST_CASE("TestXiosReadWriteRestart", 2)
     REQUIRE(ModelArray::nComponents(ModelArray::Type::DG) == DGCOMP);
     REQUIRE(ModelArray::size(ModelArray::Dimension::DG) == DGCOMP);
 
-    // Read initial state from the test input file
+    // Read initial state from the test input file, checking that the it contains the expected
+    // fields
     // NOTE: XIOS axes, domains, and grids are created by the ParaGridIO constructor, which is
     //       constructed in the call to StructureFactory::stateFromFile(). The XIOS context also
     //       gets closed in this call.
     ModelState modelstate = StructureFactory::stateFromFile(inputFilename);
+    REQUIRE(modelstate.data.count(maskName) > 0);
+    REQUIRE(modelstate.data.count(longitudeName) > 0);
+    REQUIRE(modelstate.data.count(latitudeName) > 0);
+    REQUIRE(modelstate.data.count(gridAzimuthName) > 0);
+    REQUIRE(modelstate.data.count(coordsName) > 0);
+    REQUIRE(modelstate.data.count(ciceName) > 0);
+    REQUIRE(modelstate.data.count(hiceName) > 0);
+    REQUIRE(modelstate.data.count(hsnowName) > 0);
+    REQUIRE(modelstate.data.count(ticeName) > 0);
+    REQUIRE(modelstate.data.count(shearName) > 0);
 
     // Check files with the expected names don't exist yet
     REQUIRE_FALSE(std::filesystem::exists("readwrite*.nc"));

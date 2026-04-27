@@ -43,26 +43,32 @@ MPI_TEST_CASE("TestXiosWriteRestart", 2)
     config << "restart_file = " << outputFilename << std::endl;
     config << "partition_file = xios_test_partition_metadata_2.nc" << std::endl;
     config << "restart_period = P0-0T03:00:00" << std::endl;
-    config << "[XiosOutput]" << std::endl;
-    config << "field_names = " << maskName << "," << longitudeName << "," << latitudeName << ","
-           << coordsName << "," << gridAzimuthName << "," << ciceName << "," << hiceName << ","
-           << damageName << "," << hsnowName << "," << ticeName << "," << shearName << ","
-           << std::endl;
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
 
     // Create ModelMPI instance based off the test communicator
     auto& modelMPI = ModelMPI::getInstance(test_comm);
 
-    // Create a Model and configure it so that time options are parsed
+    // Create a Model
     Model model;
-    model.configure();
+    model.configureRestarts();
+    model.configureTime();
 
-    // Get the Xios singleton instance and check it's initialized
+    // Get the Xios singleton instance
     // NOTE: The singleton is created when Xios::getInstance() is first called. In this test, this
     //       happens when the time sets set by ModelMetadata::setTime(). This occurs in the call to
     //       Model::configureTime() above.
     Xios& xiosHandler = Xios::getInstance();
+
+    // Custom XIOS configuration to ensure the unit test covers all discretisation types
+    // NOTE: This needs to happen after Model::configureTime() but before the rest of
+    //       Model::configure() so is placed here. Doing this is a non-standard approach purely for
+    //       testing purposes.
+    xiosHandler.setPrognosticFieldType(ticeName, ModelArray::Type::DGSTRESS);
+    xiosHandler.setPrognosticFieldType(shearName, ModelArray::Type::CG);
+
+    // Continue configuration
+    model.configure();
 
     // Set ModelArray dimensions
     const size_t nx = ModelArray::size(ModelArray::Dimension::X);
@@ -72,10 +78,6 @@ MPI_TEST_CASE("TestXiosWriteRestart", 2)
 
     // The ParametricGrid structure is required by XIOS
     Module::setImplementation<IStructure>("Nextsim::ParametricGrid");
-
-    // Set field types for restarts
-    xiosHandler.setPrognosticFieldType(ticeName, ModelArray::Type::DGSTRESS);
-    xiosHandler.setPrognosticFieldType(shearName, ModelArray::Type::CG);
 
     // Create some fake data to test writing methods
     HField longitude(ModelArray::Type::H);
@@ -119,7 +121,7 @@ MPI_TEST_CASE("TestXiosWriteRestart", 2)
     cice.reinitialize();
     DGField hice(ModelArray::Type::DG);
     hice.reinitialize();
-    DGField damage(ModelArray::Type::DG);
+    HField damage(ModelArray::Type::H);
     damage.reinitialize();
     DGField hsnow(ModelArray::Type::DG);
     hsnow.reinitialize();
@@ -143,6 +145,13 @@ MPI_TEST_CASE("TestXiosWriteRestart", 2)
     MPI_Comm_rank(test_comm, &rank);
     for (int ts = 0; ts <= 4; ts++) {
 
+        // Update HField restarts
+        for (size_t j = 0; j < ny; ++j) {
+            for (size_t i = 0; i < nx; ++i) {
+                damage(i, j) = 1.0 * ts * (i + nx * j);
+            }
+        }
+
         // Update DGField restarts
         // NOTE: NaN values for mask when i = 0 and j = 0
         for (size_t j = 0; j < ny; ++j) {
@@ -152,7 +161,6 @@ MPI_TEST_CASE("TestXiosWriteRestart", 2)
                         = (i == 0 && j == 0) ? NAN : 1.0 * ts * (d + DGCOMP * (i + nx * j));
                     cice.components({ i, j })[d] = value;
                     hice.components({ i, j })[d] = value;
-                    damage.components({ i, j })[d] = value;
                     hsnow.components({ i, j })[d] = value;
                 }
             }

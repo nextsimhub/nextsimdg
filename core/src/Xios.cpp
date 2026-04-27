@@ -49,8 +49,6 @@ namespace Nextsim {
 
 static const std::string xDiagnosticPfx = "XiosDiagnostic";
 static const std::map<int, std::string> keyMap = { { Xios::ENABLED_KEY, "xios.enable" },
-    // TODO: Avoid having to parse restart fields (#1056)
-    { Xios::OUTPUT_FIELD_NAMES_KEY, "XiosOutput.field_names" },
     { Xios::DIAGNOSTIC_PERIOD_KEY, xDiagnosticPfx + ".period" },
     { Xios::DIAGNOSTIC_FILE_KEY, xDiagnosticPfx + ".filename" },
     // TODO: Avoid having to parse diagnostic fields for XIOS specifically (#981)
@@ -66,10 +64,6 @@ Xios::HelpMap& Xios::getHelpText(HelpMap& map, bool getAll)
             "to be modifed by the user. Build nextSIM-DG with XIOS support with the CMake argument "
             "-DENABLE_XIOS=ON, passing the path to your XIOS installation with "
             "-Dxios_DIR=/path/to/xios." },
-    };
-    map["XiosOutput"] = {
-        { keyMap.at(OUTPUT_FIELD_NAMES_KEY), ConfigType::STRING, {}, "", "",
-            "Comma-separated list of field names to be written to the output file." },
     };
     map["XiosDiagnostic"] = {
         { keyMap.at(DIAGNOSTIC_PERIOD_KEY), ConfigType::STRING, {}, "0", "",
@@ -140,6 +134,7 @@ Xios::~Xios() { finalize(); }
 void Xios::close_context_definition()
 {
     if (isEnabled && contextStatus == DEFINITION_OPEN) {
+        setupFiles();
 
         // Special handling of input fields
         for (int ioType : { INPUT_RESTART, ERA5_FORCING, TOPAZ_FORCING }) {
@@ -201,6 +196,27 @@ void Xios::close_context_definition()
             }
         }
 
+        // Special handling of output fields
+        for (int ioType : { OUTPUT_RESTART, DIAGNOSTIC }) {
+            if (fileMap.at(ioType).empty()) {
+                continue;
+            }
+            const std::set<std::string> fieldIds
+                = (ioType == OUTPUT_RESTART) ? outputRestartFieldNames : diagnosticFieldNames;
+            for (const std::string& fieldId : fieldIds) {
+
+                // Ensure that fields have operation type 'instant' if not already defined
+                xios::CField* field = getField(fieldId);
+                if (!cxios_is_defined_field_operation(field)) {
+                    cxios_set_field_operation(field, "instant", strlen("instant"));
+                }
+
+                // Set grid references
+                const ModelArray::Type& type = getFieldType(fieldId);
+                setFieldGridRef(fieldId, gridIds[type]);
+            }
+        }
+
         cxios_context_close_definition();
         contextStatus = DEFINITION_CLOSED;
     }
@@ -242,7 +258,6 @@ void Xios::configure()
         setupClient();
         setupContext();
         setupCalendar();
-        setupFiles();
     }
 }
 
@@ -266,12 +281,26 @@ std::set<std::string> str2set(const std::string& asStr, const char& delim = ',')
  */
 void Xios::parseConfig()
 {
-    // TODO: Avoid having to parse restart fields (#1056)
-    outputRestartFieldNames
-        = str2set(Configured::getConfiguration(keyMap.at(OUTPUT_FIELD_NAMES_KEY), std::string()));
     // TODO: Avoid having to parse diagnostic fields for XIOS specifically (#981)
     diagnosticFieldNames = str2set(
         Configured::getConfiguration(keyMap.at(DIAGNOSTIC_FIELD_NAMES_KEY), std::string()));
+
+    // Ensure the coordinate variables are included in diagnostic files
+    if (spherical) {
+        if (diagnosticFieldNames.count(longitudeName) == 0) {
+            diagnosticFieldNames.insert(longitudeName);
+        }
+        if (diagnosticFieldNames.count(latitudeName) == 0) {
+            diagnosticFieldNames.insert(latitudeName);
+        }
+    } else {
+        if (diagnosticFieldNames.count(xName) == 0) {
+            diagnosticFieldNames.insert(xName);
+        }
+        if (diagnosticFieldNames.count(yName) == 0) {
+            diagnosticFieldNames.insert(yName);
+        }
+    }
 }
 
 //! Initialize the XIOS context with ID contextId
@@ -1075,6 +1104,7 @@ void Xios::setFieldType(
 void Xios::setPrognosticFieldType(const std::string& fieldId, const ModelArray::Type& fieldType)
 {
     setFieldType(fieldId, fieldType, OUTPUT_RESTART);
+    outputRestartFieldNames.insert(fieldId);
 }
 
 /*!
@@ -1161,7 +1191,9 @@ void Xios::setupFields()
                 // Set the input field type and default the base field type correspondingly
                 ModelArray::Type fieldType = dimensionKeys.at(dimKey);
                 setFieldType(fieldId, fieldType, ioType);
-                setFieldType(fieldId, fieldType, NOT_READ);
+                if (fieldTypes.count(fieldId) == 0) {
+                    setFieldType(fieldId, fieldType, NOT_READ);
+                }
             }
             ncFile.close();
         } catch (const netCDF::exceptions::NcException& nce) {

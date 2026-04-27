@@ -13,6 +13,9 @@
 #include "include/ModelComponent.hpp"
 #include "include/Slice.hpp"
 #include "include/Time.hpp"
+#ifdef USE_XIOS
+#include "include/Xios.hpp"
+#endif
 #include "include/gridNames.hpp"
 
 namespace Nextsim {
@@ -102,6 +105,12 @@ protected:
         , sssAccessor(getStore())
         , qswBaseAccessor(getStore())
     {
+
+#ifdef USE_XIOS
+        // Set XIOS field types
+        Xios& xiosHandler = Xios::getInstance();
+        xiosHandler.setPrognosticFieldType(tsurfName, ModelArray::AdvectionType);
+#endif
     }
 
     ModelArrayAccessor<Shared::H_ICE_DG, RW> hiceAccessor; // From PrognosticData

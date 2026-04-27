@@ -320,6 +320,19 @@ void ModelMetadata::setDimensionsFromFile(const std::string& filename)
 #else
             ModelArray::setDimension(dimType, dim.getSize());
 #endif
+
+#if USE_XIOS
+            // Determine coordinate system and communicate to XIOS
+            const bool isSpherical
+                = (!ncFile.getVar("longitude").isNull() && !ncFile.getVar("latitude").isNull());
+            if (!isSpherical && ncFile.getVar("x").isNull() && ncFile.getVar("y").isNull()) {
+                throw std::runtime_error(
+                    "ModelMetadata: Could not find coordinate system variables 'longitude' and"
+                    " 'latitude' or 'x' and 'y' in input file '"
+                    + filename + "'.");
+            }
+            Xios::setSphericalCoordinates(isSpherical);
+#endif
         }
     } catch (const netCDF::exceptions::NcException& nce) {
         std::string ncWhat(nce.what());

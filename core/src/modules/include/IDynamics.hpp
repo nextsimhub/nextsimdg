@@ -46,11 +46,16 @@ public:
 #ifdef USE_XIOS
         // Set XIOS field types
         Xios& xiosHandler = Xios::getInstance();
-        xiosHandler.setPrognosticFieldType(coordsName, ModelArray::Type::VERTEX);
+
+        // Advected fields
         xiosHandler.setPrognosticFieldType(hiceName, ModelArray::AdvectionType);
         xiosHandler.setPrognosticFieldType(ciceName, ModelArray::AdvectionType);
-        xiosHandler.setPrognosticFieldType(damageName, ModelArray::AdvectionType);
+        xiosHandler.setPrognosticFieldType(damageName, ModelArray::Type::H);
         xiosHandler.setPrognosticFieldType(hsnowName, ModelArray::AdvectionType);
+
+        // FIXME: We need to write out u and v to get a perfect restart (#1066)
+        // xiosHandler.setPrognosticFieldType(uName, ModelArray::Type::H);
+        // xiosHandler.setPrognosticFieldType(vName, ModelArray::Type::H);
 #endif
     }
     virtual ~IDynamics() = default;

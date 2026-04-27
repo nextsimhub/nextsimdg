@@ -64,9 +64,6 @@ variables:
   float hice(y_dim, x_dim, dg_comp) ;
 		hice:online_operation = "once" ;
 		hice:coordinates = "lat lon dg_comp" ;
-  float damage(y_dim, x_dim, dg_comp) ;
-		damage:online_operation = "once" ;
-		damage:coordinates = "lat lon dg_comp" ;
   float hsnow(y_dim, x_dim, dg_comp) ;
 		hsnow:online_operation = "once" ;
 		hsnow:coordinates = "lat lon dg_comp" ;
@@ -127,16 +124,6 @@ data:
   18, 19, 20, 21, 22, 23 ;
 
  hice =
-  NaN, 1, NaN, 3, NaN, 5,
-  NaN, 7, NaN, 9, NaN, 11,
-  NaN, 1, NaN, 3, NaN, 5,
-  NaN, 7, NaN, 9, NaN, 11,
-  12, 13, 14, 15, 16, 17,
-  18, 19, 20, 21, 22, 23,
-  12, 13, 14, 15, 16, 17,
-  18, 19, 20, 21, 22, 23 ;
-
- damage =
   NaN, 1, NaN, 3, NaN, 5,
   NaN, 7, NaN, 9, NaN, 11,
   NaN, 1, NaN, 3, NaN, 5,

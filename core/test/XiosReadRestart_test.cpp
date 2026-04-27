@@ -70,13 +70,25 @@ MPI_TEST_CASE("TestXiosReadRestart", 2)
     REQUIRE(ModelArray::nComponents(ModelArray::Type::DG) == DGCOMP);
     REQUIRE(ModelArray::size(ModelArray::Dimension::DG) == DGCOMP);
 
-    // Read restarts from file and check they take the expected values
+    // Read restarts from file, checking that the expected fields are included and that they take
+    // the expected values
     // NOTE: The ParametricGrid is created and the XIOS context definition is closed in the call to
     //       StructureFactory::stateFromFile()
     int rank;
     MPI_Comm_rank(test_comm, &rank);
     float ts = 2; // Corresponds to 2023-03-17T20:10:59Z
     ModelState modelstate = StructureFactory::stateFromFile(restartFilename);
+    REQUIRE(modelstate.data.count(maskName) > 0);
+    REQUIRE(modelstate.data.count(longitudeName) > 0);
+    REQUIRE(modelstate.data.count(latitudeName) > 0);
+    REQUIRE(modelstate.data.count(gridAzimuthName) > 0);
+    REQUIRE(modelstate.data.count(coordsName) > 0);
+    REQUIRE(modelstate.data.count(ciceName) > 0);
+    REQUIRE(modelstate.data.count(hiceName) > 0);
+    REQUIRE(modelstate.data.count(damageName) > 0);
+    REQUIRE(modelstate.data.count(hsnowName) > 0);
+    REQUIRE(modelstate.data.count(ticeName) > 0);
+    REQUIRE(modelstate.data.count(shearName) > 0);
     ModelArray& mask = modelstate.data.at(maskName);
     for (size_t j = 0; j < ny; ++j) {
         for (size_t i = 0; i < nx; ++i) {
@@ -102,6 +114,12 @@ MPI_TEST_CASE("TestXiosReadRestart", 2)
                     REQUIRE(modelarray(i, j) == doctest::Approx(0.0));
                 }
             }
+        } else if (fieldName == damageName) {
+            for (size_t j = 0; j < ny; ++j) {
+                for (size_t i = 0; i < nx; ++i) {
+                    REQUIRE(modelarray(i, j) == doctest::Approx(1.0 * ts * (i + nx * j)));
+                }
+            }
         } else if (fieldName == coordsName) {
             for (size_t j = 0; j < ny + 1; ++j) {
                 for (size_t i = 0; i < nx + 1; ++i) {
@@ -116,8 +134,7 @@ MPI_TEST_CASE("TestXiosReadRestart", 2)
                     REQUIRE(modelarray.components({ i, j })[1] == doctest::Approx(expected_y));
                 }
             }
-        } else if (fieldName == ciceName || fieldName == hiceName || fieldName == damageName
-            || fieldName == hsnowName) {
+        } else if (fieldName == ciceName || fieldName == hiceName || fieldName == hsnowName) {
             for (size_t j = 0; j < ny; ++j) {
                 for (size_t i = 0; i < nx; ++i) {
                     for (size_t d = 0; d < DGCOMP; ++d) {
