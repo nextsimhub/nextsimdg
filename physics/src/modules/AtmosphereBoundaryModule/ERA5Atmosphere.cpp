@@ -73,15 +73,18 @@ void ERA5Atmosphere::update(const TimestepTime& tst)
     std::set<std::string> forcings
         = { "tair", "dew2m", "pair", "sw_in", "lw_in", "wind_speed", "u", "v" };
 
-    ModelState state = ParaGridIO::readForcingTimeStatic(forcings, tst.start, filePath);
-    tairAccessor.getHostRW() = state.data.at("tair");
-    tdewAccessor.getHostRW() = state.data.at("dew2m");
-    pairAccessor.getHostRW() = state.data.at("pair");
-    sw_inAccessor.getHostRW() = state.data.at("sw_in");
-    lw_inAccessor.getHostRW() = state.data.at("lw_in");
-    windAccessor.getHostRW() = state.data.at("wind_speed");
-    uwindAccessor.getHostRW() = state.data.at("u");
-    vwindAccessor.getHostRW() = state.data.at("v");
+    // Read ERA5 forcings at the top of the hour
+    if (std::fmod((tst.start - TimePoint()).seconds(), 3600.) == 0.) {
+        forcingState = ParaGridIO::readForcingTimeStatic(forcings, tst.start, filePath);
+    }
+    tairAccessor.getHostRW() = forcingState.data.at("tair");
+    tdewAccessor.getHostRW() = forcingState.data.at("dew2m");
+    pairAccessor.getHostRW() = forcingState.data.at("pair");
+    sw_inAccessor.getHostRW() = forcingState.data.at("sw_in");
+    lw_inAccessor.getHostRW() = forcingState.data.at("lw_in");
+    windAccessor.getHostRW() = forcingState.data.at("wind_speed");
+    uwindAccessor.getHostRW() = forcingState.data.at("u");
+    vwindAccessor.getHostRW() = forcingState.data.at("v");
     snowAccessor.getHostRW() = 0; // FIXME get snow data
     rainAccessor.getHostRW() = 0; // FIXME get rain data
 

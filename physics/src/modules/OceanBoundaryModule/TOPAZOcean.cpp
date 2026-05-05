@@ -66,15 +66,20 @@ static const std::set<std::string> forcings = { sstName, sssName, mldName, uName
 
 void TOPAZOcean::updateBefore(const TimestepTime& tst)
 {
-    ModelState state = ParaGridIO::readForcingTimeStatic(forcings, tst.start, filePath);
-    sstExtAccessor.getHostRW() = state.data.at(sstName);
-    sssExtAccessor.getHostRW() = state.data.at(sssName);
-    mldAccessor.getHostRW() = state.data.at(mldName);
-    uAccessor.getHostRW() = state.data.at(uName);
-    vAccessor.getHostRW() = state.data.at(vName);
+    // Read TOPAZ forcings at midnight
+    if (std::fmod((tst.start - TimePoint()).seconds(), 86400.) == 0.) {
+        forcingState = ParaGridIO::readForcingTimeStatic(forcings, tst.start, filePath);
+    }
+
+    sstExtAccessor.getHostRW() = forcingState.data.at(sstName);
+    sssExtAccessor.getHostRW() = forcingState.data.at(sssName);
+    mldAccessor.getHostRW() = forcingState.data.at(mldName);
+    uAccessor.getHostRW() = forcingState.data.at(uName);
+    vAccessor.getHostRW() = forcingState.data.at(vName);
     HField& ssh = sshAccessor.getHostRW();
-    if (state.data.count(sshName)) {
-        ssh = state.data.at(sshName);
+
+    if (forcingState.data.count(sshName)) {
+        ssh = forcingState.data.at(sshName);
     } else {
         ssh = 0.;
     }

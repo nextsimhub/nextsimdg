@@ -388,8 +388,25 @@ ModelState& ModelMetadata::affixCoordinates(ModelState& state) const
     return state;
 }
 
+// Helper function for checking that the model start and timestep align with midnight and the hour.
+void checkStartStep(const std::string start_str, double step)
+{
+    if (start_str != "T00:00:00Z") {
+        throw std::runtime_error("ModelMetadata::setTimes: model.start must be at midnight.");
+    }
+    if (step < 3600) {
+        if (std::fmod(3600, step) != 0.) {
+            throw std::runtime_error(
+                "ModelMetadata::setTimes: model.time_step must be aligned with the hour.");
+        }
+    }
+}
+
 void ModelMetadata::setTimes(const TimePoint& start, const TimePoint& stop, const Duration& step)
 {
+#ifdef USE_XIOS
+    checkStartStep(start.format(TimePoint::hmsFormat), step.seconds());
+#endif
     this->start = start;
     this->stop = stop;
     this->step = step;
@@ -399,6 +416,9 @@ void ModelMetadata::setTimes(const TimePoint& start, const TimePoint& stop, cons
 
 void ModelMetadata::setTimes(const TimePoint& start, const Duration& runLen, const Duration& step)
 {
+#ifdef USE_XIOS
+    checkStartStep(start.format(TimePoint::hmsFormat), step.seconds());
+#endif
     this->start = start;
     this->stop = start + runLen;
     this->step = step;
