@@ -179,7 +179,8 @@ if(ENABLE_MPI)
                     "${ModulesRoot}/StructureModule")
         target_link_libraries(testXiosReadForcing_MPI2 PRIVATE nextsimlib doctest::doctest)
 
-        add_executable(testXiosForcingInterpolation_MPI2 "XiosForcingInterpolation_test.cpp" "MainMPI.cpp")
+        add_executable(testXiosForcingInterpolation_MPI2
+          "XiosForcingInterpolation_test.cpp" "MainMPI.cpp")
         target_compile_definitions(testXiosForcingInterpolation_MPI2
                                    PRIVATE USE_XIOS TEST_FILES_DIR="${CMAKE_CURRENT_BINARY_DIR}")
         target_include_directories(
