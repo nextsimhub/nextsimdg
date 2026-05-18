@@ -2,10 +2,9 @@
  * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
-#include "include/ConfigOutput.hpp"
+#include "include/SnapshotOutput.hpp"
 #include "include/FileCallbackCloser.hpp"
 #include "include/Logged.hpp"
-#include "include/ModelArrayAccessor.hpp"
 #include "include/StructureFactory.hpp"
 
 #include <cmath>
@@ -14,27 +13,29 @@
 
 namespace Nextsim {
 
-const std::string ConfigOutput::all = "ALL";
-const std::string ConfigOutput::defaultLastOutput = "0000-01-01T00:00:00Z";
+const std::string SnapshotOutput::all = "ALL";
+const std::string SnapshotOutput::defaultLastOutput = "0000-01-01T00:00:00Z";
 
 static const std::regex ncSuffix(".nc$");
 
-static const std::string pfx = "ConfigOutput";
+static const std::string pfx = "SnapshotOutput";
 static const std::string periodKey = pfx + ".period";
+static const std::string snapshotKey = pfx + ".snapshots";
 static const std::string startKey = pfx + ".start";
 static const std::string fieldNamesKey = pfx + ".field_names";
 static const std::string fileNameKey = pfx + ".filename";
 static const std::string filePeriodKey = pfx + ".file_period";
 
 static const std::map<int, std::string> keyMap = {
-    { ConfigOutput::PERIOD_KEY, periodKey },
-    { ConfigOutput::START_KEY, startKey },
-    { ConfigOutput::FIELDNAMES_KEY, fieldNamesKey },
-    { ConfigOutput::FILENAME_KEY, fileNameKey },
-    { ConfigOutput::FILEPERIOD_KEY, filePeriodKey },
+    { SnapshotOutput::PERIOD_KEY, periodKey },
+    { SnapshotOutput::START_KEY, startKey },
+    { SnapshotOutput::SNAPSHOT_KEY, snapshotKey },
+    { SnapshotOutput::FIELDNAMES_KEY, fieldNamesKey },
+    { SnapshotOutput::FILENAME_KEY, fileNameKey },
+    { SnapshotOutput::FILEPERIOD_KEY, filePeriodKey },
 };
 
-ConfigOutput::ConfigOutput()
+SnapshotOutput::SnapshotOutput()
     : IDiagnosticOutput()
     , m_filePrefix()
     , outputPeriod()
@@ -44,39 +45,35 @@ ConfigOutput::ConfigOutput()
     , lastOutput(defaultLastOutput)
     , fieldsForOutput()
     , currentFileName()
-    , accumulator()
-    , n_accum(0)
 {
 }
 
-ConfigurationHelp::HelpMap& ConfigOutput::getHelpText(HelpMap& map, bool getAll)
+ConfigurationHelp::HelpMap& SnapshotOutput::getHelpText(HelpMap& map, bool getAll)
 {
     map[pfx] = {
-        { periodKey, ConfigType::STRING, {}, "", "", "Time between samples of the averaged data."
-                " Also the averaging period over which data is accumulated." },
+        { periodKey, ConfigType::STRING, {}, "", "", "Time between samples of the output data." },
         { startKey, ConfigType::STRING, {}, "model.start", "",
-            "Date at which to start averaging data."
-            " The first output will occur " + periodKey + " later." },
+            "Date at which to start outputting data." },
         { fieldNamesKey, ConfigType::STRING, {}, "ALL", "",
             "Comma separated, space free list of fields to be output. "
-            " The special value \""
+            "The special value \""
                 + all + "\" will output all available fields." },
         { fileNameKey, ConfigType::STRING, {}, "", "",
             "Filename pattern for the output diagnostic files. Date and time elements can be "
             "included as in std::put_time()." },
-            { filePeriodKey, ConfigType::STRING, {}, "315360000000", "",
-                "The period with which diagnostic files are created. Defaults to a very long time "
-                "(10000 years)." },
+        { filePeriodKey, ConfigType::STRING, {}, "315360000000", "",
+            "The period with which diagnostic files are created. Defaults to a very long time "
+            "(10000 years)." },
     };
     return map;
 }
 
-ConfigurationHelp::HelpMap& ConfigOutput::getHelpRecursive(HelpMap& map, bool getAll)
+ConfigurationHelp::HelpMap& SnapshotOutput::getHelpRecursive(HelpMap& map, bool getAll)
 {
     getHelpText(map, getAll);
     return map;
 }
-void ConfigOutput::configure()
+void SnapshotOutput::configure()
 {
     std::string periodString = Configured::getConfiguration(keyMap.at(PERIOD_KEY), std::string(""));
     if (periodString.empty()) {
@@ -89,6 +86,9 @@ void ConfigOutput::configure()
         lastOutput = ModelMetadata::getInstance().startTime();
     } else {
         lastOutput.parse(startString);
+        if (!everyTS) {
+            lastOutput -= outputPeriod;
+        }
     }
 
     std::string outputFields
@@ -108,7 +108,7 @@ void ConfigOutput::configure()
                 internalFieldsForOutput.insert(externalNames.at(fieldName));
             } else {
                 Logged::warning(
-                    "ConfigOutput: No field with the name \"" + fieldName + "\" was found.");
+                    "SnapshotOutput: No field with the name \"" + fieldName + "\" was found.");
             }
         }
     }
@@ -126,7 +126,7 @@ void ConfigOutput::configure()
     lastFileChange = lastOutput;
 }
 
-void ConfigOutput::setModelStart(const TimePoint& modelStart)
+void SnapshotOutput::setModelStart(const TimePoint& modelStart)
 {
     // Set the lastOutput time to the model start if the default value has not yet been replaced.
     if (lastOutput == TimePoint(defaultLastOutput)) {
@@ -134,7 +134,7 @@ void ConfigOutput::setModelStart(const TimePoint& modelStart)
     }
 }
 
-void ConfigOutput::outputState(const ModelState& diagState)
+void SnapshotOutput::outputState(const ModelState& diagState)
 {
     auto& meta = ModelMetadata::getInstance();
     const TimePoint& time = meta.time();
@@ -147,8 +147,9 @@ void ConfigOutput::outputState(const ModelState& diagState)
         lastFileChange = time;
     }
 
+    double averagingFactor = meta.stepLength().seconds() / outputPeriod.seconds();
     ModelState state = { {}, diagState.config };
-    auto storeData = ModelArrayAccessorBase<RO>::getAll(ModelComponent::getStore());
+    auto storeData = ModelComponent::getStore().getAllData();
     if (outputAllTheFields) {
         // If the internal to external name lookup table is still empty, fill it
         if (reverseExternalNames.empty()) {
@@ -164,12 +165,12 @@ void ConfigOutput::outputState(const ModelState& diagState)
         // Output every entry in storeData, as either its external name if
         // defined, or as its internal name.
         for (auto entry : storeData) {
-            const ModelArray& modelArray = entry.second.getHostRO();
-            if (modelArray.trueSize()) {
+            if (entry.second && entry.second->trueSize()) {
+                std::string key;
                 if (reverseExternalNames.count(entry.first)) {
-                    state.data[reverseExternalNames.at(entry.first)] = modelArray;
+                    state.data[reverseExternalNames.at(entry.first)] = *entry.second;
                 } else {
-                    state.data[entry.first] = modelArray;
+                    state.data[entry.first] = *entry.second;
                 }
             }
         }
@@ -184,22 +185,11 @@ void ConfigOutput::outputState(const ModelState& diagState)
         // Get data from the data store for any named fields that have an external name that
         // matches.
         for (const auto& fieldExtName : fieldsForOutput) {
-            if (externalNames.count(fieldExtName)
-                && storeData.count(externalNames.at(fieldExtName))) {
-                state.data[fieldExtName] = storeData.at(externalNames.at(fieldExtName)).getHostRO();
+            if (externalNames.count(fieldExtName) && storeData.count(externalNames.at(fieldExtName))
+                && storeData.at(externalNames.at(fieldExtName))) {
+                state.data[fieldExtName] = *storeData.at(externalNames.at(fieldExtName));
             }
         }
-    }
-    // Accumulate data after the output start time. Assumes the same data is received every time.
-    if (meta.time() > lastOutput) {
-        for (auto& entry: state.data) {
-            if (accumulator.count(entry.first) <= 0) {
-                accumulator[entry.first] = entry.second;
-            } else {
-                accumulator.at(entry.first) += entry.second;
-            }
-        }
-        ++n_accum;
     }
 
     /*
@@ -211,19 +201,11 @@ void ConfigOutput::outputState(const ModelState& diagState)
     Duration timeSinceOutput = meta.time() - lastOutput;
     if (timeSinceOutput.seconds() > 0
         && (everyTS || std::fmod(timeSinceOutput.seconds(), outputPeriod.seconds()) == 0.)) {
-        Logged::info("ConfigOutput: Outputting " + std::to_string(state.data.size()) + " fields to "
+        Logged::info("SnapshotOutput: Outputting " + std::to_string(state.data.size()) + " fields to "
             + currentFileName + " at " + meta.time().format() + "\n");
-        double div = 1./n_accum;
-        for (auto &entry : accumulator) {
-            entry.second *= div;
-        }
-        n_accum = 0;
-        ModelState outputState = { accumulator, {} };
-        // Merge in fields that are not already in the accumulator (coordinates, mainly).
-        meta.affixCoordinates(outputState);
-        StructureFactory::fileFromState(outputState, currentFileName, false);
+        meta.affixCoordinates(state);
+        StructureFactory::fileFromState(state, currentFileName, false);
         lastOutput = meta.time();
-        accumulator.clear();
     }
 }
 

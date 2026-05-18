@@ -1,14 +1,14 @@
 /*!
- *
  * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
-#ifndef CONFIGOUTPUT_HPP
-#define CONFIGOUTPUT_HPP
+#ifndef SNAPSHOTOUTPUT_HPP
+#define SNAPSHOTOUTPUT_HPP
 
 #include "include/IDiagnosticOutput.hpp"
 
 #include "include/Configured.hpp"
+#include "include/ModelComponent.hpp"
 #include "include/Time.hpp"
 
 #include <set>
@@ -19,14 +19,15 @@ namespace Nextsim {
  * An implementation of the diagnostic output that allows some configuration of
  * the file output period and frequency, as well as the fields the files contain.
  */
-class ConfigOutput : public IDiagnosticOutput, public Configured<ConfigOutput> {
+class SnapshotOutput : public IDiagnosticOutput, public Configured<SnapshotOutput> {
 public:
-    ConfigOutput();
-    virtual ~ConfigOutput() = default;
+    SnapshotOutput();
+    virtual ~SnapshotOutput() = default;
 
     enum {
         PERIOD_KEY,
         START_KEY,
+        SNAPSHOT_KEY,
         FIELDNAMES_KEY,
         FILENAME_KEY,
         FILEPERIOD_KEY,
@@ -38,7 +39,7 @@ public:
     void outputState(const ModelState& state) override;
 
     // ModelComponent overrides
-    inline std::string getName() const override { return "ConfigOutput"; };
+    inline std::string getName() const override { return "SnapshotOutput"; };
     inline void setData(const ModelState::DataMap&) override {};
 
     // Configured overrides
@@ -64,11 +65,8 @@ private:
     static const std::string defaultLastOutput;
 
     std::map<std::string, std::string> reverseExternalNames;
-
-    ModelState::DataMap accumulator;
-    size_t n_accum;
 };
 
 } /* namespace Nextsim */
 
-#endif /* CONFIGOUTPUT_HPP */
+#endif /* SNAPSHOTOUTPUT_HPP */

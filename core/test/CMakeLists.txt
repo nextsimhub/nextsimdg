@@ -321,6 +321,32 @@ else()
     target_include_directories(testConfigOutput PRIVATE ${MODEL_INCLUDE_DIR})
     target_link_libraries(testConfigOutput PRIVATE nextsimlib doctest::doctest)
 
+    add_executable(testConfigOutputAve
+        "ConfigOutputAve_test.cpp"
+        "../src/modules/DiagnosticOutputModule/ConfigOutput.cpp"
+        "../src/ModelArray.cpp"
+        "../src/ModelArraySlice.cpp"
+        "../src/Time.cpp"
+        "testmodelarraydetails/ModelArrayDetails.cpp"
+    )
+    target_include_directories(testConfigOutputAve BEFORE PRIVATE
+        mock_includes/ConfigOutputAve
+        testmodelarraydetails
+    )
+    target_include_directories(testConfigOutputAve AFTER PRIVATE
+        mock_includes/ConfigOutputAve
+        testmodelarraydetails
+    )
+    target_link_libraries(testConfigOutputAve PRIVATE doctest::doctest Eigen3::Eigen)
+
+    add_executable(testSnapshotOutput "SnapshotOutput_test.cpp")
+    target_compile_definitions(
+        testSnapshotOutput
+        PRIVATE TEST_FILES_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\"
+    )
+    target_include_directories(testSnapshotOutput PRIVATE ${MODEL_INCLUDE_DIR})
+    target_link_libraries(testSnapshotOutput PRIVATE nextsimlib doctest::doctest)
+
     add_executable(testIterator "Iterator_test.cpp")
     target_link_libraries(testIterator PRIVATE nextsimlib doctest::doctest)
 
@@ -395,6 +421,7 @@ else()
         testRectGrid
         testParaGrid
         testConfigOutput
+        testSnapshotOutput
         testIterator
         testCommandLineParser
         testConfigurator
