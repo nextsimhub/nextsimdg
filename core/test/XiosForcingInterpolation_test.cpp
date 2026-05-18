@@ -33,7 +33,7 @@ namespace Nextsim {
  *
  * Test reading of forcings via `readForcingTimeStatic` with interpolation.
  */
-MPI_TEST_CASE("TestXiosForcingInterpolation", 2)
+MPI_TEST_CASE("TestXiosForcingInterpolation", 3)
 {
     std::stringstream config;
     config << "[model]" << std::endl;
@@ -42,7 +42,7 @@ MPI_TEST_CASE("TestXiosForcingInterpolation", 2)
     config << "time_step = P0-0T00:30:00" << std::endl;
     config << "init_file = " << inputFilename << std::endl;
     config << "restart_period = P0-0T02:00:00" << std::endl;
-    config << "partition_file = xios_test_partition_metadata_2.nc" << std::endl;
+    config << "partition_file = halo_cb_test_partition_metadata_3.nc" << std::endl;
     // NOTE: Assumed ERA5 period of 1 hour
     config << "[ERA5Atmosphere]" << std::endl;
     config << "file = " << era5ForcingFilename << std::endl;

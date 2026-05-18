@@ -179,15 +179,15 @@ if(ENABLE_MPI)
                     "${ModulesRoot}/StructureModule")
         target_link_libraries(testXiosReadForcing_MPI2 PRIVATE nextsimlib doctest::doctest)
 
-        add_executable(testXiosForcingInterpolation_MPI2
+        add_executable(testXiosForcingInterpolation_MPI3
           "XiosForcingInterpolation_test.cpp" "MainMPI.cpp")
-        target_compile_definitions(testXiosForcingInterpolation_MPI2
+        target_compile_definitions(testXiosForcingInterpolation_MPI3
                                    PRIVATE USE_XIOS TEST_FILES_DIR="${CMAKE_CURRENT_BINARY_DIR}")
         target_include_directories(
-            testXiosForcingInterpolation_MPI2
+            testXiosForcingInterpolation_MPI3
             PRIVATE ${PHYSICS_INCLUDE_DIRS} "${MODEL_INCLUDE_DIR}" "${XIOS_INCLUDE_LIST}"
                     "${ModulesRoot}/StructureModule")
-        target_link_libraries(testXiosForcingInterpolation_MPI2 PRIVATE nextsimlib doctest::doctest)
+        target_link_libraries(testXiosForcingInterpolation_MPI3 PRIVATE nextsimlib doctest::doctest)
 
         add_executable(testXiosReadDiagnostic_MPI3 "XiosReadDiagnostic_test.cpp" "MainMPI.cpp")
         target_compile_definitions(testXiosReadDiagnostic_MPI3
@@ -238,7 +238,7 @@ if(ENABLE_MPI)
             testXiosCalendar_MPI1
             testXiosAxis_MPI3
             testXiosReadForcing_MPI2
-            testXiosForcingInterpolation_MPI2
+            testXiosForcingInterpolation_MPI3
             testXiosReadDiagnostic_MPI3
             testXiosReadRestart_MPI2
             testXiosWriteDiagnostic_MPI2
