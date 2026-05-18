@@ -9,6 +9,7 @@
 #include "include/IDiagnosticOutput.hpp"
 
 #include "include/Configured.hpp"
+#include "include/ModelComponent.hpp"
 #include "include/Time.hpp"
 
 #include <set>
@@ -27,6 +28,7 @@ public:
     enum {
         PERIOD_KEY,
         START_KEY,
+        SNAPSHOT_KEY,
         FIELDNAMES_KEY,
         FILENAME_KEY,
         FILEPERIOD_KEY,
@@ -65,8 +67,8 @@ private:
 
     std::map<std::string, std::string> reverseExternalNames;
 
-    ModelState::DataMap accumulator;
-    size_t n_accum;
+    bool snapshots;
+    bool resetState;
 };
 
 } /* namespace Nextsim */
