@@ -21,14 +21,19 @@ static const std::regex ncSuffix(".nc$");
 
 static const std::string pfx = "ConfigOutput";
 static const std::string periodKey = pfx + ".period";
+static const std::string snapshotKey = pfx + ".snapshots";
 static const std::string startKey = pfx + ".start";
 static const std::string fieldNamesKey = pfx + ".field_names";
 static const std::string fileNameKey = pfx + ".filename";
 static const std::string filePeriodKey = pfx + ".file_period";
 
+// Access the model.start key. There's no clean way of getting this from Model, I think.
+static const std::string modelStartKey = "model.start";
+
 static const std::map<int, std::string> keyMap = {
     { ConfigOutput::PERIOD_KEY, periodKey },
     { ConfigOutput::START_KEY, startKey },
+    { ConfigOutput::SNAPSHOT_KEY, snapshotKey },
     { ConfigOutput::FIELDNAMES_KEY, fieldNamesKey },
     { ConfigOutput::FILENAME_KEY, fileNameKey },
     { ConfigOutput::FILEPERIOD_KEY, filePeriodKey },
@@ -44,29 +49,28 @@ ConfigOutput::ConfigOutput()
     , lastOutput(defaultLastOutput)
     , fieldsForOutput()
     , currentFileName()
-    , accumulator()
-    , n_accum(0)
+    , snapshots(true)
+    , resetState(true)
 {
 }
 
 ConfigurationHelp::HelpMap& ConfigOutput::getHelpText(HelpMap& map, bool getAll)
 {
     map[pfx] = {
-        { periodKey, ConfigType::STRING, {}, "", "", "Time between samples of the averaged data."
-                " Also the averaging period over which data is accumulated." },
+        { periodKey, ConfigType::STRING, {}, "", "", "Time between samples of the output data." },
         { startKey, ConfigType::STRING, {}, "model.start", "",
-            "Date at which to start averaging data."
-            " The first output will occur " + periodKey + " later." },
+            "Date at which to start outputting data." },
+        { snapshotKey, ConfigType::BOOLEAN, { "true", "false" }, "false", "",
+            "Output snapshots. Otherwise, output-period averages are output." },
         { fieldNamesKey, ConfigType::STRING, {}, "ALL", "",
             "Comma separated, space free list of fields to be output. "
-            " The special value \""
+            "The special value \""
                 + all + "\" will output all available fields." },
         { fileNameKey, ConfigType::STRING, {}, "", "",
             "Filename pattern for the output diagnostic files. Date and time elements can be "
             "included as in std::put_time()." },
-            { filePeriodKey, ConfigType::STRING, {}, "315360000000", "",
-                "The period with which diagnostic files are created. Defaults to a very long time "
-                "(10000 years)." },
+        { filePeriodKey, ConfigType::STRING, {}, "", "",
+            "The period with which diagnostic files are created." },
     };
     return map;
 }
@@ -86,10 +90,18 @@ void ConfigOutput::configure()
     }
     std::string startString = Configured::getConfiguration(keyMap.at(START_KEY), std::string(""));
     if (startString.empty()) {
-        lastOutput = ModelMetadata::getInstance().startTime();
+        startString = Configured::getConfiguration(modelStartKey, std::string(""));
+        if (startString.empty())
+            // If you start the model before 1st January year 0, tough.
+            lastOutput.parse(defaultLastOutput);
     } else {
         lastOutput.parse(startString);
+        if (!everyTS) {
+            lastOutput -= outputPeriod;
+        }
     }
+
+    snapshots = Configured::getConfiguration(keyMap.at(SNAPSHOT_KEY), false);
 
     std::string outputFields
         = Configured::getConfiguration(keyMap.at(FIELDNAMES_KEY), std::string(""));
@@ -119,7 +131,7 @@ void ConfigOutput::configure()
     std::regex_search(rawFileName, match, ncSuffix);
     m_filePrefix = match.empty() ? rawFileName : match.prefix();
 
-    // The default string is the number of seconds in 10000 common years (i.e. a very long time)
+    // The default string is the number of seconds in 10000 years of 365 days
     std::string newFilePeriodStr
         = Configured::getConfiguration(keyMap.at(FILEPERIOD_KEY), std::string("315360000000"));
     fileChangePeriod = Duration(newFilePeriodStr);
@@ -141,12 +153,14 @@ void ConfigOutput::outputState(const ModelState& diagState)
     if (currentFileName == "" || (lastFileChange + fileChangePeriod <= time)) {
         std::string newFileName = time.format(m_filePrefix) + ".nc";
         if (newFileName != currentFileName) {
+            // TODO: Close the file currentFileName
             FileCallbackCloser::close(currentFileName);
             currentFileName = newFileName;
         }
         lastFileChange = time;
     }
 
+    double averagingFactor = meta.stepLength().seconds() / outputPeriod.seconds();
     ModelState state = { {}, diagState.config };
     auto storeData = ModelArrayAccessorBase<RO>::getAll(ModelComponent::getStore());
     if (outputAllTheFields) {
@@ -190,17 +204,6 @@ void ConfigOutput::outputState(const ModelState& diagState)
             }
         }
     }
-    // Accumulate data after the output start time. Assumes the same data is received every time.
-    if (meta.time() > lastOutput) {
-        for (auto& entry: state.data) {
-            if (accumulator.count(entry.first) <= 0) {
-                accumulator[entry.first] = entry.second;
-            } else {
-                accumulator.at(entry.first) += entry.second;
-            }
-        }
-        ++n_accum;
-    }
 
     /*
      * Produce output either:
@@ -213,18 +216,19 @@ void ConfigOutput::outputState(const ModelState& diagState)
         && (everyTS || std::fmod(timeSinceOutput.seconds(), outputPeriod.seconds()) == 0.)) {
         Logged::info("ConfigOutput: Outputting " + std::to_string(state.data.size()) + " fields to "
             + currentFileName + " at " + meta.time().format() + "\n");
-        double div = 1./n_accum;
-        for (auto &entry : accumulator) {
-            entry.second *= div;
-        }
-        n_accum = 0;
-        ModelState outputState = { accumulator, {} };
-        // Merge in fields that are not already in the accumulator (coordinates, mainly).
-        meta.affixCoordinates(outputState);
-        StructureFactory::fileFromState(outputState, currentFileName, false);
+        meta.affixCoordinates(state);
+        StructureFactory::fileFromState(state, currentFileName, false);
         lastOutput = meta.time();
-        accumulator.clear();
     }
+}
+
+std::string concatenateFields(const std::set<std::string>& strSet)
+{
+    std::string outStr = "";
+    for (auto& str : strSet) {
+        outStr += str + ",";
+    }
+    return outStr;
 }
 
 } /* namespace Nextsim */

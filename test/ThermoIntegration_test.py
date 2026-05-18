@@ -62,13 +62,13 @@ stop = 2011-01-01T00:00:00Z
 time_step = P0-1T00:00:00
 
 [Modules]
-DiagnosticOutputModule = Nextsim::SnapshotOutput
+DiagnosticOutputModule = Nextsim::ConfigOutput
 IceAlbedoModule = Nextsim::MU71Albedo
 AtmosphereBoundaryModule = Nextsim::MU71Atmosphere
 OceanBoundaryModule = Nextsim::FluxConfiguredOcean
 IceThermodynamicsModule = Nextsim::ThermoWinton
 
-[SnapshotOutput]
+[ConfigOutput]
 start = 2010-01-01T00:00:00Z
 field_names = hsnow,hice,tsurf,tinterior,tbottom
 

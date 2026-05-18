@@ -41,11 +41,11 @@ const std::string partition_filename = test_files_dir + "/paragrid_test_partitio
 
 namespace Nextsim {
 
-void runMe(const bool snapshot
 #ifdef USE_MPI
-, MPI_Comm myMPIComm
+void runMe(const bool snapshot, MPI_Comm myMPIComm)
+#else
+void runMe(const bool snapshot)
 #endif
-)
 {
     size_t nx = 10;
     size_t ny = 9;
