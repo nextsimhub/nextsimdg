@@ -7,6 +7,10 @@
 #include "include/KokkosDGLimit.hpp"
 #include <include/constants.hpp>
 
+#ifdef USE_MPI
+#include "include/Halo.hpp"
+#endif
+
 namespace Nextsim {
 
 template <int DGadvection>
@@ -78,11 +82,12 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
     static KokkosTimer<DETAILED_MEASUREMENTS> timerDivergence("divGPU");
     static KokkosTimer<DETAILED_MEASUREMENTS> timerMomentum("momentumGPU");
     static KokkosTimer<DETAILED_MEASUREMENTS> timerBoundary("bcGPU");
+    static KokkosTimer<DETAILED_MEASUREMENTS> timerVelExch("velExchange");
     static KokkosTimer<true> timerAdvection("advectionGPU");
     static KokkosTimer<true> timerPrepIt("prepItGPU");
 
     // explicit execution space enables asynchronous execution
-    auto execSpace = Kokkos::DefaultExecutionSpace();
+    auto execSpace = Kokkos::Cuda();
 
     const FloatType dt = tst.step.seconds();
     timerAdvection.start();
@@ -101,6 +106,12 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
 
     Kokkos::deep_copy(execSpace, avgUDevice, 0.0);
     Kokkos::deep_copy(execSpace, avgVDevice, 0.0);
+
+#ifdef USE_MPI
+    // Note: we only need to create one halo object per array type,
+    // dimensionality and size.
+    Halo halo(this->u);
+#endif
 
     for (size_t subStep = 0; subStep < params.nSteps; ++subStep) {
         timerProj.start();
@@ -136,6 +147,19 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
         Base::applyBoundariesDevice(
             this->uDevice, this->vDevice, this->cgLandMaskDevice, this->smesh->nx, this->smesh->ny);
         timerBoundary.stop();
+
+#ifdef USE_MPI
+        // async host-device transfers and host MPI exchanges are interleaved to get at least some
+        // overlap
+        timerVelExch.start();
+        Kokkos::deep_copy(this->uHost, this->uDevice);
+        Kokkos::deep_copy(this->vHost, this->vDevice);
+        halo.exchangeHalos(this->u);
+        halo.exchangeHalos(this->v);
+        Kokkos::deep_copy(execSpace, this->uDevice, this->uHost);
+        Kokkos::deep_copy(execSpace, this->vDevice, this->vHost);
+        timerVelExch.stop();
+#endif
     }
     timerBBM.stop();
 

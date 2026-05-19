@@ -10,6 +10,10 @@
 #include "include/KokkosMesh.hpp"
 #include "include/KokkosSlopeLimiter.hpp"
 
+#ifdef USE_MPI
+#include "include/Halo.hpp"
+#endif
+
 namespace Nextsim {
 /*************************************************************/
 template <int DGadvection>
@@ -291,6 +295,24 @@ template <int DGadvection>
 void KokkosCGDynamicsKernel<DGadvection>::advectDGVFieldDevice(
     double timestep, const DeviceViewAdvect& field, FloatType lowerLimit, FloatType upperLimit)
 {
+#ifdef USE_MPI
+    if constexpr (IS_GPU_EXEC_SPACE<Kokkos::DefaultExecutionSpace>) {
+        // MPI is currently not GPU aware so the exchange needs to happen on the host. Their might
+        // already be an mirrored host view if the field is part of an ModelArrayStore that could be
+        // used to potentially elude some copies. However, we don't have an Accessor here and we
+        // expect that the field was updated on the device before so a copy would likely be
+        // necessary anyway.
+        Kokkos::deep_copy(this->tempDataAdvectHost, field);
+        Halo halo(tempDataAdvect);
+        halo.exchangeHalos(tempDataAdvect);
+        Kokkos::deep_copy(field, this->tempDataAdvectHost);
+    } else {
+        auto fieldMap = makeEigenMap(field);
+        Halo halo(tempDataAdvect);
+        halo.exchangeHalos(fieldMap);
+    }
+#endif
+
     dGTransportDevice->step(timestep, field);
 
     //! Slope Limiting
@@ -646,7 +668,7 @@ void KokkosCGDynamicsKernel<DGadvection>::updateIceOceanStressDevice(
     const FloatType FOcean = params.COcean * params.rhoOcean;
 
     Kokkos::parallel_for(
-        "computeStressDivergence", uIceOceanStressDevice.extent(0),
+        "computeIceOceanStress", uIceOceanStressDevice.extent(0),
         KOKKOS_LAMBDA(const DeviceIndex i) {
             const FloatType uOceanRel = uOceanDevice(i) - uIceDevice(i);
             const FloatType vOceanRel = vOceanDevice(i) - vIceDevice(i);

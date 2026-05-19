@@ -423,7 +423,7 @@ public:
      * @param dim The dimension to check
      * @return true if dimension is X, Y, XVERTEX, or YVERTEX, false otherwise
      */
-    static const bool isDimLateral(const ModelArray::Dimension dim)
+    static bool isDimLateral(const ModelArray::Dimension dim)
     {
         return dim == ModelArray::Dimension::X || dim == ModelArray::Dimension::Y
             || dim == ModelArray::Dimension::XVERTEX || dim == ModelArray::Dimension::YVERTEX;
