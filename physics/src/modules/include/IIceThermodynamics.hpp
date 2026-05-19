@@ -8,14 +8,22 @@
 #include "include/ConfigurationHelp.hpp"
 #include "include/FieldAdvection.hpp"
 #include "include/ModelArray.hpp"
-#include "include/ModelArrayRef.hpp"
+#include "include/ModelArrayAccessor.hpp"
 #include "include/ModelArraySlice.hpp"
 #include "include/ModelComponent.hpp"
 #include "include/Slice.hpp"
 #include "include/Time.hpp"
+#ifdef USE_XIOS
+#include "include/Xios.hpp"
+#endif
 #include "include/gridNames.hpp"
 
 namespace Nextsim {
+
+namespace Private {
+    inline constexpr TextTag SNOW_TO_ICE = "SNOW_TO_ICE";
+}
+
 //! An interface class to update the ice thermodynamics.
 class IIceThermodynamics : public ModelComponent {
 public:
@@ -24,9 +32,11 @@ public:
     std::string getName() const override { return "IceThermodynamics"; }
     void setData(const ModelState::DataMap& ms) override
     {
-        tsurf.resize();
-        deltaHi.resize();
-        snowToIce.resize();
+        AdvectedField& tsurf = tsurfAccessor.getHostRW();
+        tsurf.reinitialize();
+        HField& deltaHi = deltaHiAccessor.getHostRW();
+        deltaHi.reinitialize();
+        snowToIceAccessor.getHostRW().reinitialize();
 
         /* If the surface temperature is not in the restart file, then we simply set it to the
          * zero. It's a safe approximation, and it seems the user doesn't
@@ -42,7 +52,7 @@ public:
     ModelState getStatePrognostic() const override
     {
         return { {
-                     { tsurfName, tsurf },
+                     { tsurfName, tsurfAccessor.getHostRO() },
                  },
             getConfiguration() };
     }
@@ -50,8 +60,8 @@ public:
     ModelState getStateDiagnostic() const override
     {
         ModelState state = { {
-                                 { "delta_H_ice", deltaHi },
-                                 { "snow_to_ice", snowToIce },
+                                 { "delta_H_ice", deltaHiAccessor.getHostRO() },
+                                 { "snow_to_ice", snowToIceAccessor.getHostRO() },
                              },
             getConfiguration() };
         state.merge(getStatePrognostic());
@@ -66,55 +76,65 @@ public:
      */
     virtual void update(const TimestepTime& tsTime)
     {
-        FieldAdvection::advectField(tsurf, tsTime, minT, 0.);
+#ifdef USE_KOKKOS
+        FieldAdvection::advectField(tsurfAccessor.getDeviceRW(), tsTime, minT, 0.);
+#else
+        FieldAdvection::advectField(tsurfAccessor.getHostRW(), tsTime, minT, 0.);
+#endif
     }
 
     inline static std::string getKappaSConfigKey() { return "nextsim_thermo.ks"; }
 
 protected:
     IIceThermodynamics()
-        : tsurf(ModelArray::AdvectionType)
-        , deltaHi(ModelArray::Type::H)
-        , snowToIce(ModelArray::Type::H)
-        , hice(getStore())
-        , cice(getStore())
-        , hsnow(getStore())
-        , qic(getStore())
-        , qio(getStore())
-        , qow(getStore())
-        , qia(getStore())
-        , dQia_dt(getStore())
-        , penSw(getStore())
-        , sublim(getStore())
-        , tf(getStore())
-        , snowfall(getStore())
-        , sss(getStore())
-        , qswBase(getStore())
+        : tsurfAccessor(getStore(), RO, ModelArray::AdvectionType)
+        , deltaHiAccessor(getStore(), RW, ModelArray::Type::H)
+        , snowToIceAccessor(getStore(), RO, ModelArray::Type::H)
+        , hiceAccessor(getStore())
+        , ciceAccessor(getStore())
+        , hsnowAccessor(getStore())
+        //    , qicAccessor(getStore())
+        , qioAccessor(getStore())
+        , qowAccessor(getStore())
+        , qiaAccessor(getStore())
+        , dQia_dtAccessor(getStore())
+        , penSwAccessor(getStore())
+        , sublimAccessor(getStore())
+        , tfAccessor(getStore())
+        , snowfallAccessor(getStore())
+        , sssAccessor(getStore())
+        , qswBaseAccessor(getStore())
     {
-        getStore().registerArray(Shared::DELTA_HICE, &deltaHi, RW);
-        getStore().registerArray(Protected::T_SURF, &tsurf, RO);
+
+#ifdef USE_XIOS
+        // Set XIOS field types
+        Xios& xiosHandler = Xios::getInstance();
+        xiosHandler.setPrognosticFieldType(tsurfName, ModelArray::AdvectionType);
+#endif
     }
 
-    ModelArrayRef<Shared::H_ICE_DG, RW> hice; // From PrognosticData
-    ModelArrayRef<Shared::C_ICE_DG, RW> cice; // From PrognosticData
-    ModelArrayRef<Shared::H_SNOW_DG, RW> hsnow; // From PrognosticData
-    ModelArrayRef<Shared::Q_IC, RW>
-        qic; // From IceTemperature. Conductive heat flux to the ice surface.
-    ModelArrayRef<Shared::Q_SW_BASE, RW> qswBase; // Short-wave flux through the base of the ice
-    ModelArrayRef<Shared::Q_IO, RW> qio; // From FluxCalculation
-    ModelArrayRef<Shared::Q_OW, RW> qow; // From FluxCalculation
-    ModelArrayRef<Shared::Q_IA, RO> qia; // From FluxCalculation
-    ModelArrayRef<Shared::DQIA_DT, RO> dQia_dt; // From FluxCalculation
-    ModelArrayRef<Shared::Q_PEN_SW, RO> penSw; // From FluxCalculation
-    ModelArrayRef<Shared::SUBLIM, RO> sublim; // From AtmosphereState
-    ModelArrayRef<Protected::TF> tf; // Sea water freezing temperature
-    ModelArrayRef<Protected::SNOW> snowfall; // From ExternalData
-    ModelArrayRef<Protected::SSS> sss; // From ExternalData (possibly PrognosticData)
+    ModelArrayAccessor<Shared::H_ICE_DG, RW> hiceAccessor; // From PrognosticData
+    ModelArrayAccessor<Shared::C_ICE_DG, RW> ciceAccessor; // From PrognosticData
+    ModelArrayAccessor<Shared::H_SNOW_DG, RW> hsnowAccessor; // From PrognosticData
+    // Q_IC is owned by ThermoIce0 and currently not used
+    // ModelArrayAccessor<Shared::Q_IC, RW>
+    //    qicAccessor; // From IceTemperature. Conductive heat flux to the ice surface.
+    ModelArrayAccessor<Shared::Q_SW_BASE, RW>
+        qswBaseAccessor; // Short-wave flux through the base of the ice
+    ModelArrayAccessor<Shared::Q_IO, RW> qioAccessor; // From FluxCalculation
+    ModelArrayAccessor<Shared::Q_OW, RW> qowAccessor; // From FluxCalculation
+    ModelArrayAccessor<Shared::Q_IA, RO> qiaAccessor; // From FluxCalculation
+    ModelArrayAccessor<Shared::DQIA_DT, RO> dQia_dtAccessor; // From FluxCalculation
+    ModelArrayAccessor<Shared::Q_PEN_SW, RO> penSwAccessor; // From FluxCalculation
+    ModelArrayAccessor<Shared::SUBLIM, RO> sublimAccessor; // From AtmosphereState
+    ModelArrayAccessor<Protected::TF> tfAccessor; // Sea water freezing temperature
+    ModelArrayAccessor<Protected::SNOW> snowfallAccessor; // From ExternalData
+    ModelArrayAccessor<Protected::SSS> sssAccessor; // From ExternalData (possibly PrognosticData)
     // Owned, shared arrays
-    AdvectedField tsurf;
-    HField deltaHi;
+    ModelArrayAccessor<Protected::T_SURF, RW> tsurfAccessor;
+    ModelArrayAccessor<Shared::DELTA_HICE, RW> deltaHiAccessor;
     // Owned, Module-private arrays
-    HField snowToIce;
+    ModelArrayAccessor<Private::SNOW_TO_ICE, RW> snowToIceAccessor;
 
     constexpr static double minT = -90.0;
 };

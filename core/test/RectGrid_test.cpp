@@ -74,8 +74,8 @@ TEST_CASE("Write and read a ModelState-based RectGrid restart file")
     // Create data for reference file
     HField fractional(ModelArray::Type::H);
     HField mask(ModelArray::Type::H);
-    fractional.resize();
-    mask.resize();
+    fractional.reinitialize();
+    mask.reinitialize();
     auto dimX = ModelArray::Dimension::X;
     auto startX = ModelArray::definedDimensions.at(dimX).start;
     auto localNX = ModelArray::definedDimensions.at(dimX).localLength;

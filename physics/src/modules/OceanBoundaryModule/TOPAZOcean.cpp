@@ -1,5 +1,6 @@
 /*!
  * @author  Tim Spain <timothy.spain@nersc.no>
+ * @author  Robert Jendersie <robert.jendersie@ovgu.de>
  */
 
 #include "include/TOPAZOcean.hpp"
@@ -9,6 +10,9 @@
 #include "include/ParaGridIO.hpp"
 #include "include/constants.hpp"
 #include "include/gridNames.hpp"
+
+// testing
+#include "kokkos/include/KokkosTimer.hpp"
 
 namespace Nextsim {
 
@@ -22,8 +26,10 @@ static const std::map<int, std::string> keyMap = {
 };
 
 TOPAZOcean::TOPAZOcean()
-    : sstExt(ModelArray::Type::H, { -5, 50 })
-    , sssExt(ModelArray::Type::H, { 0, 50 })
+    : sstExtAccessor(getStore(), RO, ModelArray::Type::H, std::pair(-5.0, 50.0))
+    , sssExtAccessor(getStore(), RO, ModelArray::Type::H, std::pair(0.0, 50.0))
+    , sstSlabAccessor(getStore())
+    , sssSlabAccessor(getStore())
     , slabOcean(m_couplingArrays)
 {
 }
@@ -52,31 +58,41 @@ void TOPAZOcean::configure()
     filePath = Configured::getConfiguration(keyMap.at(FILEPATH_KEY), std::string());
 
     slabOcean.configure();
-
-    getStore().registerArray(Protected::EXT_SST, &sstExt, RO);
-    getStore().registerArray(Protected::EXT_SSS, &sssExt, RO);
 }
 
 ConfigMap TOPAZOcean::getConfiguration() const { return { { keyMap.at(FILEPATH_KEY), filePath } }; }
 
+static const std::set<std::string> forcings = { sstName, sssName, mldName, uName, vName, sshName };
+
 void TOPAZOcean::updateBefore(const TimestepTime& tst)
 {
-    std::set<std::string> forcings = { sstName, sssName, mldName, uName, vName, sshName };
+    // Read TOPAZ forcings at midnight
+    if (std::fmod((tst.start - TimePoint()).seconds(), 86400.) == 0.) {
+        forcingState = ParaGridIO::readForcingTimeStatic(forcings, tst.start, filePath);
+    }
 
-    ModelState state = ParaGridIO::readForcingTimeStatic(forcings, tst.start, filePath);
-    sstExt = state.data.at(sstName);
-    sssExt = state.data.at(sssName);
-    mld = state.data.at(mldName);
-    u = state.data.at(uName);
-    v = state.data.at(vName);
-    if (state.data.count(sshName)) {
-        ssh = state.data.at(sshName);
+    sstExtAccessor.getHostRW() = forcingState.data.at(sstName);
+    sssExtAccessor.getHostRW() = forcingState.data.at(sssName);
+    mldAccessor.getHostRW() = forcingState.data.at(mldName);
+    uAccessor.getHostRW() = forcingState.data.at(uName);
+    vAccessor.getHostRW() = forcingState.data.at(vName);
+    HField& ssh = sshAccessor.getHostRW();
+
+    if (forcingState.data.count(sshName)) {
+        ssh = forcingState.data.at(sshName);
     } else {
         ssh = 0.;
     }
 
-    cpml = Water::rhoOcean * Water::cp * mld;
-    overElements([this](size_t i, const TimestepTime& tsTime) { this->updateTf(i, tsTime); }, tst);
+    auto& cpml = cpmlAccessor.getAutoRW();
+    const auto& mld = mldAccessor.getAutoRO();
+    overElementsAuto(OVER_ELEMENTS_LAMBDA(
+        const ElementIndex i) { cpml[i] = Water::rhoOcean * Water::cp * mld[i]; });
+
+    // Update the freezing point
+    auto& tf = tfAccessor.getAutoRW();
+    const auto& sss = sssAccessor.getAutoRO();
+    pFreezingPoint->update(tf, sss);
 
     Module::getImplementation<IIceOceanHeatFlux>().update(tst);
 }
@@ -85,8 +101,9 @@ void TOPAZOcean::updateAfter(const TimestepTime& tst)
 {
     mergeFluxes(tst);
     slabOcean.update(tst);
-    sst = ModelArrayRef<Protected::SLAB_SST, RO>(getStore());
-    sss = ModelArrayRef<Protected::SLAB_SSS, RO>(getStore());
+
+    sstAccessor.getAutoRW().assignData(sstSlabAccessor.getAutoRO());
+    sssAccessor.getAutoRW().assignData(sssSlabAccessor.getAutoRO());
 
     try {
         checkFields();
@@ -113,17 +130,20 @@ void TOPAZOcean::setData(const ModelState::DataMap& ms)
 {
     IOceanBoundary::setData(ms);
 
-    sstExt.resize();
-    sssExt.resize();
+    HField& sstExt = sstExtAccessor.getHostRW();
+    sstExt.reinitialize();
+    HField& sssExt = sssExtAccessor.getHostRW();
+    sssExt.reinitialize();
 
     addChecks({
-        { "sstExt", &sstExt },
-        { "sssExt", &sssExt },
+        { "sstExt", sstExtAccessor },
+        { "sssExt", sssExtAccessor },
     });
 
     slabOcean.setData(ms);
 }
 
-void TOPAZOcean::updateTf(size_t i, const TimestepTime& tst) { tf[i] = (*pFreezingPoint)(sss[i]); }
+// void TOPAZOcean::updateTf(size_t i, const TimestepTime& tst) { tf[i] = (*pFreezingPoint)(sss[i]);
+// }
 
 } /* namespace Nextsim */

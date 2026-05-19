@@ -31,8 +31,13 @@ __pycache__/
 
 # File types
 *.DS_Store
+*.err
 *.log
+*.out
 *.nc
+/.vscode
+*__pycache__*
+lib/kokkos
 *.sif
 *.smesh
 .*sw?

@@ -25,15 +25,15 @@ ModelState FakeSmeshData::getData()
 
     // Land mask data, see below
     state.data[maskName](ModelArray::Type::H);
-    state.data.at(maskName).resize();
+    state.data.at(maskName).reinitialize();
     state.data.at(maskName).setData(landmask25km_NH().data());
 
     state.data[xName] = ModelArray(ModelArray::Type::H);
     state.data[yName] = ModelArray(ModelArray::Type::H);
     state.data[coordsName] = ModelArray(ModelArray::Type::VERTEX);
-    state.data.at(xName).resize();
-    state.data.at(yName).resize();
-    state.data.at(coordsName).resize();
+    state.data.at(xName).reinitialize();
+    state.data.at(yName).reinitialize();
+    state.data.at(coordsName).reinitialize();
 
     // Location of vertices
     for (size_t j = 0; j < ModelArray::size(ModelArray::Dimension::YVERTEX); ++j) {

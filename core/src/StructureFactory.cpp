@@ -8,10 +8,11 @@
 #include "include/Finalizer.hpp"
 #include "include/IStructure.hpp"
 #include "include/NextsimModule.hpp"
-
-#include "include/RectGridIO.hpp"
-
 #include "include/ParaGridIO.hpp"
+#include "include/RectGridIO.hpp"
+#ifdef USE_XIOS
+#include "include/Xios.hpp"
+#endif
 
 #include <ncFile.h>
 #include <ncGroupAtt.h>
@@ -46,7 +47,11 @@ ModelState StructureFactory::stateFromFile(const std::string& filePath)
 {
     Finalizer::registerUnique(Module::finalize<IStructure>);
 
+#ifdef USE_XIOS
+    std::string structureName = ParametricGrid::structureName;
+#else
     std::string structureName = structureNameFromFile(filePath);
+#endif
     // TODO There must be a better way
     if (RectangularGrid::structureName == structureName) {
         Module::setImplementation<IStructure>("Nextsim::RectangularGrid");

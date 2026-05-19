@@ -31,8 +31,8 @@ MPI_TEST_CASE("TestXiosCalendar", 1)
 {
     std::stringstream config;
     config << "[model]" << std::endl;
-    config << "start = 2023-03-17T17:11:00Z" << std::endl;
-    config << "stop = 2023-03-17T18:11:00Z" << std::endl;
+    config << "start = 2023-03-17T00:00:00Z" << std::endl;
+    config << "stop = 2023-03-17T00:00:00Z" << std::endl;
     config << "time_step = P0-0T01:00:00" << std::endl;
     config << "partition_file = xios_test_partition_metadata_1.nc" << std::endl;
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
@@ -52,32 +52,27 @@ MPI_TEST_CASE("TestXiosCalendar", 1)
     Xios& xiosHandler = Xios::getInstance();
 
     // --- Tests for calendar API
-    // Calendar origin
-    REQUIRE(xiosHandler.getCalendarOrigin().format() == "1970-01-01T00:00:00Z"); // Default
-    TimePoint origin("2020-01-23T00:08:15Z");
-    xiosHandler.setCalendarOrigin(origin);
-    REQUIRE(origin == xiosHandler.getCalendarOrigin());
-    REQUIRE(origin.format() == "2020-01-23T00:08:15Z");
     // Calendar start
-    REQUIRE(xiosHandler.getCalendarStart().format() == "2023-03-17T17:11:00Z"); // Set in config
-    TimePoint start("2023-03-17T17:11:00Z");
+    REQUIRE(xiosHandler.getCalendarStart().format() == "2023-03-17T00:00:00Z"); // Set in config
+    TimePoint start("2023-03-18T00:00:00Z");
     xiosHandler.setCalendarStart(start);
     REQUIRE(start == xiosHandler.getCalendarStart());
-    REQUIRE(start.format() == "2023-03-17T17:11:00Z");
+    REQUIRE(start.format() == "2023-03-18T00:00:00Z");
     // Timestep
     ModelMetadata& metadata = ModelMetadata::getInstance();
     REQUIRE(metadata.stepLength().seconds() == 3600.0); // Read from config
 
+    // NOTE: Needs calling before Xios::getCurrentDate()
     xiosHandler.close_context_definition();
 
     // --- Tests for getCurrentDate method
     REQUIRE(xiosHandler.getCalendarStep() == 0);
-    REQUIRE(xiosHandler.getCurrentDate().format() == "2023-03-17T17:11:00Z");
+    REQUIRE(xiosHandler.getCurrentDate().format() == "2023-03-18T00:00:00Z");
 
     // -- Tests that the timestep is set up correctly
     xiosHandler.setCalendarStep(1);
     REQUIRE(xiosHandler.getCalendarStep() == 1);
-    REQUIRE(xiosHandler.getCurrentDate().format() == "2023-03-17T18:11:00Z");
+    REQUIRE(xiosHandler.getCurrentDate().format() == "2023-03-18T01:00:00Z");
 
     xiosHandler.context_finalize();
     Finalizer::finalize();

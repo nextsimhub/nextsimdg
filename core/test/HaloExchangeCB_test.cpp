@@ -8,46 +8,84 @@
  * - VertexField
  * - DGField
  * - DGVector
+ * - DGVectorHolder
+ * - CGVector
  */
 
 #include <doctest/extensions/doctest_mpi.h>
 
 #include "ModelMPI.hpp"
 #include "ModelMetadata.hpp"
+#include "cgVector.hpp"
 #include "include/DGModelArray.hpp"
 #include "include/Halo.hpp"
+#include "include/Interpolations.hpp"
+#include "include/dgVectorHolder.hpp"
 
 namespace Nextsim {
 
 const std::string testFilesDir = TEST_FILES_DIR;
-const std::string file = testFilesDir + "/partition_metadata_3_cb.nc";
+const std::string file = testFilesDir + "/halo_cb_test_partition_metadata_3.nc";
 
 static const int DG = 3;
+static const int CGDEGREE = 2;
 static const bool debug = false;
 
-// reference data for each process
-static std::array<std::vector<double>, 3> refDataAllProcs = {
-    std::vector<double>({ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 100, 110, 120, 130, 140, 150, 160, 370, 0,
-        101, 111, 121, 131, 141, 151, 161, 371, 0, 102, 112, 122, 132, 142, 152, 162, 372, 0, 103,
-        113, 123, 133, 143, 153, 163, 373, 0, 204, 214, 224, 234, 244, 254, 264, 0 }),
-    std::vector<double>({ 0, 103, 113, 123, 133, 143, 153, 163, 0, 0, 204, 214, 224, 234, 244, 254,
-        264, 374, 0, 205, 215, 225, 235, 245, 255, 265, 375, 0, 206, 216, 226, 236, 246, 256, 266,
-        376, 0, 207, 217, 227, 237, 247, 257, 267, 377, 0, 208, 218, 228, 238, 248, 258, 268, 378,
-        0, 0, 0, 0, 0, 0, 0, 0, 0 }),
-    std::vector<double>({ 0, 0, 0, 0, 0, 160, 370, 380, 390, 0, 161, 371, 381, 391, 0, 162, 372,
-        382, 392, 0, 163, 373, 383, 393, 0, 264, 374, 384, 394, 0, 265, 375, 385, 395, 0, 266, 376,
-        386, 396, 0, 267, 377, 387, 397, 0, 268, 378, 388, 398, 0, 0, 0, 0, 0, 0 }),
-};
-
-void initializeTestData(ModelArray::DataType& data, size_t localNx, size_t localNy, size_t offsetX,
-    size_t offsetY, size_t numComps, int test_rank)
+template <typename T>
+void initializeTestData(
+    T& data, size_t localNx, size_t localNy, size_t offsetX, size_t offsetY, bool isCG = false)
 {
-    // initialize with test data
-    for (size_t j = 0; j < localNy; ++j) {
-        for (size_t i = 0; i < localNx; ++i) {
+    size_t nCells = 1;
+    if (isCG) {
+        nCells = CGDEGREE;
+    }
+
+    const auto numComps = data.cols();
+
+    // initialize only inner block of data (to mimic behaviour of Halo::setInnerBlock())
+    for (size_t j = nCells; j < localNy - nCells; ++j) {
+        for (size_t i = nCells; i < localNx - nCells; ++i) {
             for (size_t d = 0; d < numComps; ++d) {
                 data(d + i * numComps + j * localNx * numComps)
-                    = (d + 1) * 1000 + (test_rank + 1) * 100 + (i + offsetX) * 10 + (j + offsetY);
+                    = (d + 1) * 100 + (i - nCells + offsetX) * 10 + (j - nCells + offsetY);
+            }
+        }
+    }
+}
+
+template <typename T>
+void verifyTestData(T& data, size_t localNx, size_t localNy, size_t offsetX, size_t offsetY,
+    size_t nx, size_t ny, bool isCG = false)
+{
+    size_t nCells = 1;
+    if (isCG) {
+        nCells = CGDEGREE;
+    }
+
+    const auto numComps = data.cols();
+    auto globalNx = nx + 2 * Halo::haloWidth * nCells - nCells;
+    auto globalNy = ny + 2 * Halo::haloWidth * nCells - nCells;
+
+    // Verify the test data
+    for (size_t j = 0; j < localNy; j++) {
+        for (size_t i = 0; i < localNx; i++) {
+            for (size_t d = 0; d < numComps; d++) {
+                size_t globalI = i + offsetX;
+                size_t globalJ = j + offsetY;
+
+                double expectedValue;
+                if (globalI < nCells || globalI >= globalNx || globalJ < nCells
+                    || globalJ >= globalNy) {
+                    // value at boundaries should be zero in the closed-boundary (CB) case
+                    expectedValue = 0.0;
+                } else {
+                    // Interior points - use the formula
+                    expectedValue = (d + 1) * 100 + (globalI - nCells) * 10 + (globalJ - nCells);
+                }
+
+                double actualValue = data(d + i * numComps + j * localNx * numComps);
+
+                REQUIRE(actualValue == expectedValue);
             }
         }
     }
@@ -80,108 +118,32 @@ MPI_TEST_CASE("test halo exchange on 3 proc grid", 3)
 
     // create example 2D field on each process
     auto testData = ModelArray::HField();
-    testData.resize();
+    testData.reinitialize();
     testData = 0.;
 
     // create halo for testData model array
     Halo halo(testData);
 
-    // create and allocate temporary Eigen array
-    ModelArray::DataType innerData;
-    innerData.resize(halo.getInnerSize(), testData.nComponents());
-    initializeTestData(
-        innerData, localNx - 2, localNy - 2, offsetX, offsetY, testData.nComponents(), test_rank);
+    initializeTestData(testData.getDataRef(), localNx, localNy, offsetX, offsetY);
 
-    // populate inner block of modelarray
-    halo.setInnerBlock(innerData, testData.getDataRef());
     // exchange halos
     halo.exchangeHalos(testData.getDataRef());
 
-    // initialize reference data for each proc
-    ModelArray::DataType refData;
-    refData.resize(localNx * localNy, 1);
-    refData
-        = Eigen::Map<ModelArray::DataType>(refDataAllProcs[test_rank].data(), refData.size(), 1);
-
-    for (size_t j = 0; j < localNy; j++) {
-        for (size_t i = 0; i < localNx; i++) {
-            if (refData(i + j * localNx) > 0) {
-                REQUIRE(testData(i, j) == 1000. + refData(i + j * localNx));
-            } else {
-                REQUIRE(testData(i, j) == 0.);
-            }
-        }
-    }
+    // Verify the test data after halo exchange
+    verifyTestData(testData.getDataRef(), localNx, localNy, offsetX, offsetY, nx, ny);
 
     VertexField coordinates = ModelArray::VertexField();
-    coordinates.resize();
+    coordinates.reinitialize();
     coordinates = 0.;
 
     Halo haloVertex(coordinates);
 
-    // Vetex coordinates
-    auto localNxVertex = localNx + 1;
-    auto localNyVertex = localNy + 1;
-    for (size_t i = 0; i < localNxVertex - 2 * Halo::haloWidth; ++i) {
-        for (size_t j = 0; j < localNyVertex - 2 * Halo::haloWidth; ++j) {
-            double x = (i + offsetX) - 0.5 - float(nx) / 2;
-            double y = (j + offsetY) - 0.5 - float(ny) / 2;
-            coordinates.components({ i + Halo::haloWidth, j + Halo::haloWidth })[0] = x * 100.;
-            coordinates.components({ i + Halo::haloWidth, j + Halo::haloWidth })[1] = y * 100.;
-        }
-    }
+    initializeTestData(coordinates.getDataRef(), localNx + 1, localNy + 1, offsetX, offsetY);
 
     haloVertex.exchangeHalos(coordinates.getDataRef());
 
-    std::vector<double> refDataVertex;
-
-    if (test_rank == 0) {
-        refDataVertex = std::vector<double>({ 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
-            0., 0., 0., 0., 0., 0., 0., 0., 0., -550., -500., -450., -500., -350., -500., -250.,
-            -500., -150., -500., -50., -500., 50., -500., 150., -500., 250., -500., 0., 0., -550.,
-            -400., -450., -400., -350., -400., -250., -400., -150., -400., -50., -400., 50., -400.,
-            150., -400., 250., -400., 0., 0., -550., -300., -450., -300., -350., -300., -250.,
-            -300., -150., -300., -50., -300., 50., -300., 150., -300., 250., -300., 0., 0., -550.,
-            -200., -450., -200., -350., -200., -250., -200., -150., -200., -50., -200., 50., -200.,
-            150., -200., 250., -200., 0., 0., -550., -100., -450., -100., -350., -100., -250.,
-            -100., -150., -100., -50., -100., 50., -100., 150., -100., 250., -100., 0., 0., -550.,
-            0., -450., 0., -350., 0., -250., 0., -150., 0., -50., 0., 50., 0., 150., 0., 0., 0. });
-    }
-    if (test_rank == 1) {
-        refDataVertex = std::vector<double>({ 0., 0., -550., -200., -450., -200., -350., -200.,
-            -250., -200., -150., -200., -50., -200., 50., -200., 150., -200., 0., 0., 0., 0., -550.,
-            -100., -450., -100., -350., -100., -250., -100., -150., -100., -50., -100., 50., -100.,
-            150., -100., 250., -100., 0., 0., -550., 0., -450., 0., -350., 0., -250., 0., -150., 0.,
-            -50., 0., 50., 0., 150., 0., 250., 0., 0., 0., -550., 100., -450., 100., -350., 100.,
-            -250., 100., -150., 100., -50., 100., 50., 100., 150., 100., 250., 100., 0., 0., -550.,
-            200., -450., 200., -350., 200., -250., 200., -150., 200., -50., 200., 50., 200., 150.,
-            200., 250., 200., 0., 0., -550., 300., -450., 300., -350., 300., -250., 300., -150.,
-            300., -50., 300., 50., 300., 150., 300., 250., 300., 0., 0., -550., 400., -450., 400.,
-            -350., 400., -250., 400., -150., 400., -50., 400., 50., 400., 150., 400., 250., 400.,
-            0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0. });
-    }
-    if (test_rank == 2) {
-        refDataVertex = std::vector<double>({ 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 50.,
-            -500., 150., -500., 250., -500., 350., -500., 450., -500., 0., 0., 50., -400., 150.,
-            -400., 250., -400., 350., -400., 450., -400., 0., 0., 50., -300., 150., -300., 250.,
-            -300., 350., -300., 450., -300., 0., 0., 50., -200., 150., -200., 250., -200., 350.,
-            -200., 450., -200., 0., 0., 50., -100., 150., -100., 250., -100., 350., -100., 450.,
-            -100., 0., 0., 50., 0., 150., 0., 250., 0., 350., 0., 450., 0., 0., 0., 50., 100., 150.,
-            100., 250., 100., 350., 100., 450., 100., 0., 0., 50., 200., 150., 200., 250., 200.,
-            350., 200., 450., 200., 0., 0., 50., 300., 150., 300., 250., 300., 350., 300., 450.,
-            300., 0., 0., 50., 400., 150., 400., 250., 400., 350., 400., 450., 400., 0., 0., 0., 0.,
-            0., 0., 0., 0., 0., 0., 0., 0., 0., 0. });
-    }
-
-    auto coordRef = coordinates.getDataRef();
-    for (size_t j = 0; j < localNyVertex; j++) {
-        for (size_t i = 0; i < localNxVertex; i++) {
-            for (size_t coord = 0; coord < 2; coord++) {
-                REQUIRE(coordRef(i + j * localNxVertex, coord)
-                    == refDataVertex[coord + i * 2 + j * localNxVertex * 2]);
-            }
-        }
-    }
+    verifyTestData(
+        coordinates.getDataRef(), localNx + 1, localNy + 1, offsetX, offsetY, nx + 1, ny + 1);
 }
 
 MPI_TEST_CASE("DGField", 3)
@@ -202,41 +164,18 @@ MPI_TEST_CASE("DGField", 3)
 
     // create example 2D field on each process
     auto testData = ModelArray::DGField();
-    testData.resize();
+    testData.reinitialize();
     testData = 0.;
 
     // create halo for testData model array
     Halo halo(testData);
 
-    // create and allocate temporary Eigen array
-    ModelArray::DataType innerData;
-    innerData.resize(halo.getInnerSize(), testData.nComponents());
-    initializeTestData(
-        innerData, localNx - 2, localNy - 2, offsetX, offsetY, testData.nComponents(), test_rank);
+    initializeTestData(testData.getDataRef(), localNx, localNy, offsetX, offsetY);
 
-    // populate inner block of modelarray
-    halo.setInnerBlock(innerData, testData.getDataRef());
     // exchange halos
     halo.exchangeHalos(testData.getDataRef());
 
-    // initialize reference data for each proc
-    ModelArray::DataType refData;
-    refData.resize(localNx * localNy, 1);
-    refData
-        = Eigen::Map<ModelArray::DataType>(refDataAllProcs[test_rank].data(), refData.size(), 1);
-
-    for (size_t j = 0; j < localNy; j++) {
-        for (size_t i = 0; i < localNx; i++) {
-            for (size_t d = 0; d < DG; ++d) {
-                if (refData(i + j * localNx) > 0) {
-                    REQUIRE(testData.components({ i, j })[d]
-                        == (d + 1) * 1000. + refData(i + j * localNx));
-                } else {
-                    REQUIRE(testData.components({ i, j })[d] == 0.);
-                }
-            }
-        }
-    }
+    verifyTestData(testData.getDataRef(), localNx, localNy, offsetX, offsetY, nx, ny);
 }
 
 MPI_TEST_CASE("DGVector", 3)
@@ -258,13 +197,13 @@ MPI_TEST_CASE("DGVector", 3)
     ParametricMesh smesh(CARTESIAN);
     smesh.nx = localNx;
     smesh.ny = localNy;
-    smesh.nnodes = localNx * localNy;
     smesh.nelements = localNx * localNy;
-    smesh.vertices.resize(smesh.nelements, Eigen::NoChange);
-    for (size_t i = 0; i < localNx; ++i) {
-        for (size_t j = 0; j < localNy; ++j) {
-            smesh.vertices(i * localNy + j, 0) = i;
-            smesh.vertices(i * localNy + j, 1) = j;
+    smesh.nnodes = (localNx + 1) * (localNy + 1);
+    smesh.vertices.resize(smesh.nnodes, Eigen::NoChange);
+    for (size_t i = 0; i < localNx + 1; ++i) {
+        for (size_t j = 0; j < localNy + 1; ++j) {
+            smesh.vertices(i * (localNy + 1) + j, 0) = i;
+            smesh.vertices(i * (localNy + 1) + j, 1) = j;
         }
     }
 
@@ -275,34 +214,111 @@ MPI_TEST_CASE("DGVector", 3)
     // create halo for testData model array
     Halo halo(testData);
 
-    // create and allocate temporary Eigen array
-    ModelArray::DataType innerData;
-    innerData.resize(halo.getInnerSize(), DG);
-    initializeTestData(innerData, localNx - 2, localNy - 2, offsetX, offsetY, DG, test_rank);
-
-    // populate inner block of modelarray
-    halo.setInnerBlock(innerData, testData);
+    initializeTestData(testData, localNx, localNy, offsetX, offsetY);
 
     // exchange halos
     halo.exchangeHalos(testData);
 
-    // initialize reference data for each proc
-    ModelArray::DataType refData;
-    refData.resize(localNx * localNy, 1);
-    refData
-        = Eigen::Map<ModelArray::DataType>(refDataAllProcs[test_rank].data(), refData.size(), 1);
+    verifyTestData(testData, localNx, localNy, offsetX, offsetY, nx, ny);
+}
 
-    for (size_t j = 0; j < localNy; j++) {
-        for (size_t i = 0; i < localNx; i++) {
-            for (size_t d = 0; d < DG; ++d) {
-                if (refData(i + j * localNx) > 0) {
-                    REQUIRE(
-                        testData(i + j * localNx, d) == (d + 1) * 1000. + refData(i + j * localNx));
-                } else {
-                    REQUIRE(testData(i + j * localNx, d) == 0.);
-                }
-            }
+MPI_TEST_CASE("DGVectorHolder", 3)
+{
+    auto& modelMPI = ModelMPI::getInstance();
+    auto& metadata = ModelMetadata::getInstance();
+
+    const size_t nx = metadata.getGlobalExtentX();
+    const size_t ny = metadata.getGlobalExtentY();
+    const size_t localNx = metadata.getLocalExtentX() + 2 * Halo::haloWidth;
+    const size_t localNy = metadata.getLocalExtentY() + 2 * Halo::haloWidth;
+    const size_t offsetX = metadata.getLocalCornerX();
+    const size_t offsetY = metadata.getLocalCornerY();
+
+    ModelArray::setDimension(ModelArray::Dimension::X, nx, localNx, offsetX);
+    ModelArray::setDimension(ModelArray::Dimension::Y, ny, localNy, offsetY);
+    ModelArray::setNComponents(ModelArray::Type::DG, DG);
+
+    ParametricMesh smesh(CARTESIAN);
+    smesh.nx = localNx;
+    smesh.ny = localNy;
+    smesh.nelements = localNx * localNy;
+    smesh.nnodes = (localNx + 1) * (localNy + 1);
+    smesh.vertices.resize(smesh.nnodes, Eigen::NoChange);
+    for (size_t i = 0; i < localNx + 1; ++i) {
+        for (size_t j = 0; j < localNy + 1; ++j) {
+            smesh.vertices(i * (localNy + 1) + j, 0) = i;
+            smesh.vertices(i * (localNy + 1) + j, 1) = j;
         }
     }
+
+    // create example DGVector
+    DGVector<DG> testData(smesh);
+    testData.zero();
+
+    DGVectorHolder<DG> testHolder;
+    testHolder = DGVectorHolder<DG>(testData);
+
+    // create halo for testData model array
+    Halo halo(testHolder);
+
+    initializeTestData(static_cast<DGVector<DG>&>(testHolder), localNx, localNy, offsetX, offsetY);
+
+    // exchange halos
+    halo.exchangeHalos(static_cast<DGVector<DG>&>(testHolder));
+
+    verifyTestData(
+        static_cast<DGVector<DG>&>(testHolder), localNx, localNy, offsetX, offsetY, nx, ny);
+}
+
+MPI_TEST_CASE("CGVector", 3)
+{
+    auto& modelMPI = ModelMPI::getInstance();
+    auto& metadata = ModelMetadata::getInstance();
+
+    const size_t nx = metadata.getGlobalExtentX();
+    const size_t ny = metadata.getGlobalExtentY();
+    const size_t localNx = metadata.getLocalExtentX() + 2 * Halo::haloWidth;
+    const size_t localNy = metadata.getLocalExtentY() + 2 * Halo::haloWidth;
+    const size_t offsetX = metadata.getLocalCornerX();
+    const size_t offsetY = metadata.getLocalCornerY();
+
+    ModelArray::setDimension(ModelArray::Dimension::X, nx, localNx, offsetX);
+    ModelArray::setDimension(ModelArray::Dimension::Y, ny, localNy, offsetY);
+    ModelArray::setNComponents(ModelArray::Type::DG, DG);
+
+    ParametricMesh smesh(CARTESIAN);
+    smesh.nx = localNx;
+    smesh.ny = localNy;
+    smesh.nelements = localNx * localNy;
+    smesh.nnodes = (localNx + 1) * (localNy + 1);
+    smesh.vertices.resize(smesh.nnodes, Eigen::NoChange);
+    for (size_t i = 0; i < localNx + 1; ++i) {
+        for (size_t j = 0; j < localNy + 1; ++j) {
+            smesh.vertices(i * (localNy + 1) + j, 0) = i;
+            smesh.vertices(i * (localNy + 1) + j, 1) = j;
+        }
+    }
+
+    auto CGNx = nx * CGDEGREE + 1;
+    auto CGNy = ny * CGDEGREE + 1;
+    auto CGLocalNx = localNx * CGDEGREE + 1;
+    auto CGLocalNy = localNy * CGDEGREE + 1;
+    auto CGoffsetX = offsetX * CGDEGREE;
+    auto CGoffsetY = offsetY * CGDEGREE;
+    bool isCG = true;
+
+    // create CGVector
+    CGVector<CGDEGREE> cgVector;
+    cgVector.resize_by_mesh(smesh);
+    cgVector.zero();
+
+    // initialize data
+    initializeTestData(cgVector, CGLocalNx, CGLocalNy, CGoffsetX, CGoffsetY, isCG);
+
+    // create halo for testData model array
+    Halo halo(cgVector);
+    halo.exchangeHalos(cgVector);
+
+    verifyTestData(cgVector, CGLocalNx, CGLocalNy, CGoffsetX, CGoffsetY, CGNx, CGNy, isCG);
 }
 }

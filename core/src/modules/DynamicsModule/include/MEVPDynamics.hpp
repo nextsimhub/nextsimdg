@@ -12,6 +12,7 @@
 #include "include/IDynamics.hpp"
 #include "include/MEVPDynamicsKernel.hpp"
 #include "include/NextsimModule.hpp"
+#include "kokkos/include/KokkosMEVPDynamicsKernel.hpp"
 
 #include "include/ModelArray.hpp"
 #include "include/ModelComponent.hpp"
@@ -36,6 +37,12 @@ public:
         double lowerLimit = -std::numeric_limits<double>::infinity(),
         double upperLimit = std::numeric_limits<double>::infinity()) override;
 
+#ifdef USE_KOKKOS
+    void advectField(double timestep, const DeviceViewMA& field,
+        double lowerLimit = -std::numeric_limits<double>::infinity(),
+        double upperLimit = std::numeric_limits<double>::infinity()) override;
+#endif
+
     void setData(const ModelState::DataMap&) override;
     void configure() override;
     ConfigMap getConfiguration() const override;
@@ -59,7 +66,11 @@ public:
 
 private:
     VPParameters params;
+#ifdef USE_KOKKOS
+    KokkosMEVPDynamicsKernel<DGCOMP> kernel;
+#else
     MEVPDynamicsKernel<DGCOMP> kernel;
+#endif
 };
 }
 

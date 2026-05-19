@@ -41,7 +41,7 @@ TEST_CASE("Cast to and from")
     ModelArray::setDimension(ModelArray::Dimension::DG, DG);
 
     ModelArray ma(ModelArray::Type::DG);
-    ma.resize();
+    ma.reinitialize();
     double ma0 = 2.;
     ma = ma0;
     DGVectorHolder<DG> mHolder(ma);

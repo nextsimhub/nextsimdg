@@ -7,7 +7,7 @@
 #define IICEOCEANHEATFLUX_HPP
 
 #include "include/ModelArray.hpp"
-#include "include/ModelArrayRef.hpp"
+#include "include/ModelArrayAccessor.hpp"
 #include "include/ModelComponent.hpp"
 #include "include/Time.hpp"
 
@@ -17,10 +17,10 @@ namespace Nextsim {
 class IIceOceanHeatFlux : public ModelComponent {
 public:
     IIceOceanHeatFlux()
-        : sst(getStore())
-        , tf(getStore())
-        , cice(getStore())
-        , qio(getStore())
+        : sstAccessor(getStore())
+        , tfAccessor(getStore())
+        , ciceAccessor(getStore())
+        , qioAccessor(getStore())
     {
     }
     virtual ~IIceOceanHeatFlux() = default;
@@ -37,11 +37,11 @@ public:
     virtual void update(const TimestepTime&) = 0;
 
 protected:
-    ModelArrayRef<Protected::SST> sst;
-    ModelArrayRef<Protected::TF> tf;
-    ModelArrayRef<Shared::C_ICE_DG> cice;
+    ModelArrayAccessor<Protected::SST> sstAccessor;
+    ModelArrayAccessor<Protected::TF> tfAccessor;
+    ModelArrayAccessor<Shared::C_ICE_DG> ciceAccessor;
 
-    ModelArrayRef<Shared::Q_IO, RW> qio;
+    ModelArrayAccessor<Shared::Q_IO, RW> qioAccessor;
 };
 }
 #endif /* IICEOCEANHEATFLUX_HPP_ */

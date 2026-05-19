@@ -38,27 +38,30 @@ public:
         std::cout << tst.start << std::endl;
 
         // set the forcing velocities
-        kernel.setData(uOceanName, uocean);
-        kernel.setData(vOceanName, vocean);
+        kernel.setData(uOceanName, uoceanAccessor.getHostRO());
+        kernel.setData(vOceanName, voceanAccessor.getHostRO());
 
         kernel.update(tst);
 
-        uice = kernel.getDG0Data(uName);
-        vice = kernel.getDG0Data(vName);
+        uiceAccessor.getHostRW() = kernel.getDG0Data(uName);
+        viceAccessor.getHostRW() = kernel.getDG0Data(vName);
     }
 
     void setData(const ModelState::DataMap& ms) override
     {
-        // Degrees to radians as a hex float
-        static const double radians = 0x1.1df46a2529d39p-6;
-
         IDynamics::setData(ms);
+
+        // Set the DG field data. Needs to be done before initialise() because the Kokkos kernel
+        // requires the actual vectors to init its views.
+        kernel.setDGArray(hiceName, hiceDGAccessor.getHostRW());
+        kernel.setDGArray(ciceName, ciceDGAccessor.getHostRW());
+        kernel.setDGArray(hsnowName, hsnowDGAccessor.getHostRW());
 
         bool isSpherical = checkSpherical(ms);
 
         ModelArray coords = ms.at(coordsName);
         if (isSpherical) {
-            coords *= radians;
+            coords *= PhysicalConstants::deg2rad;
         }
         // TODO: Some encoding of the periodic edge boundary conditions
         kernel.initialise(coords, false, ms.at(maskName));
@@ -67,11 +70,6 @@ public:
         for (const auto& fieldName : namedFields) {
             kernel.setData(fieldName, ms.at(fieldName));
         }
-
-        // Set the DG field data
-        kernel.setDGArray(hiceName, hiceDG.allComponents());
-        kernel.setDGArray(ciceName, ciceDG.allComponents());
-        kernel.setDGArray(hsnowName, hsnowDG.allComponents());
     }
 
     void advectField(double timestep, ModelArray& field,

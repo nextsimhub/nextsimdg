@@ -13,7 +13,7 @@ API calls to reduce user requirements.
 
 .. _XIOS: https://forge.ipsl.fr/ioserver
 
-The integration of XIOS into nextSIM-DG's is built around a static ``Xios``
+The integration of XIOS into nextSIM-DG is built around a static ``Xios``
 handler class, which provides a C++ API for the various XIOS functions. When the
 handler is instantiated, the configuration sections (see section below) are
 parsed. Based on the values that are parsed, the handler object will
@@ -23,9 +23,42 @@ appropriate. Further details on how this works can be found in the following.
 Configuration
 -------------
 
-XIOS is configured automatically from files with ``.cfg`` extension that are
-passed to the ``nextsim`` executable. There are several configuration sections
-that are relevant to XIOS.
+XIOS is configured automatically from two sources, as detailed in the following.
+
+XML configuration
+^^^^^^^^^^^^^^^^^
+
+Given that XIOS is an XML-based approach, it does require a small XML file to
+configure information that is known at compile time, as well as how errors and
+logs are handled. As such, you will need to provide an ``iodef.xml`` file, which
+needs to exist in the directory you intend to run from. A Jinja2 template is
+provided as ``core/src/iodef.xml.jinja``, which accepts ``DGCOMP`` and
+``DGSTRESSCOMP`` as inputs. A helper script is provided for using the template
+to generate an XML file:
+
+.. code-block::
+
+   python3 core/src/generate_iodef.py \
+       <DGCOMP> \
+       <DGSTRESSCOMP> \
+       core/src/iodef.xml.jinja
+       <OUTPUT_FILE_NAME>
+
+where ``DGCOMP`` is the integer number of DG components (e.g., 6),
+``DGSTRESSCOMP`` is the integer number of DG stress components (e.g., 8), and
+``OUTPUT_FILE_NAME`` is the output file name, including its path, e.g.,
+``build/core/test/iodef.xml`` or ``run/iodef.xml``.
+
+NextSIM-DG configuration
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+As mentioned above, the XML configuration handles information that is known at
+compile time. Information that is not known at compile time is configured by
+nextSIM-DG through calls to XIOS' API. This information is provided in the same
+way as information is provided to the rest of nextSIM-DG - from files with
+``.cfg`` extension that are passed to the ``nextsim`` executable. There are
+several configuration sections that are relevant to XIOS, as detailed in the
+following.
 
 The ``xios`` section contains a single entry, which determines whether or not to
 build nextSIM-DG with XIOS as the I/O driver.
@@ -50,6 +83,15 @@ used to configure the calendar used by XIOS. For example,
   stop = 1970-01-01T01:00:00Z
   time_step = P0-0T01:00:00
 
+.. note::
+
+  The XIOS I/O implementation makes two assumptions:
+
+  1. The simulation starts at midnight.
+  2. The timestep aligns with the hour.
+
+  If these conditions aren't met then an error will be thrown.
+
 The filename and period for restart files is configured in the same way as when
 building without XIOS. That is, the ``model`` section should include
 ``init_file``, ``restart_file`` and ``restart_period`` entries:
@@ -61,66 +103,97 @@ building without XIOS. That is, the ``model`` section should include
   restart_file = my_restart_file.nc
   restart_period = P0-0T02:00:00
 
-In the cases of forcing and diagnostics files, the file names are configured
-differently, via the ``filename`` entry in the ``XiosForcing`` and/or
-``XiosDiagnostic`` sections, respectively. For example,
+Restart file names may include format strings such as
+``restart%Y-%m-%dT%H:%M:%SZ.nc`` (in fact, this is the default). When writing
+out, a separate file is produced for each restart period, with filename of the
+format ``<FILENAME>_<START_TIME>-<END_TIME>.nc``, where ``<START_TIME>`` and
+``<END_TIME>`` are the start and end of the associated period, written using the
+provided format string. Restart files contain the state at the beginning of the
+time window.
+
+As elsewhere in the model, the configuration values above are all parsed by
+calling the ``Model.configure()`` member function. Note that this function will
+automatically initialize the model state based on the ``input_file`` entry and
+all field variables found in that file, including variables defining the grid
+i.e., ``longitude`` and ``latitude`` and possibly ``coords`` and
+``grid_azimuth``.
+
+Diagnostics files
+-----------------
+
+Information related to diagnostic outputs are currently configured via the
+(optional) ``XiosDiagnostic`` section. This is an interim solution that will
+eventually be unified with the ``ConfigOutput`` section.
+File names are configured via the ``filename`` entry. For example,
 
 .. code-block::
 
-   [XiosForcing]
-   filename = my_forcing_file.nc
+   [XiosDiagnostic]
+   filename = my_diag_file.nc
 
-The fields to be read from and written to files are configured via the
-``XiosInput``, ``XiosOutput``, and ``XiosForcing`` sections, where the first two
-refer to restarts. For example, we could specify that two fields labelled
-``field_A`` and ``field_B`` are to be written into restart files as follows:
+As with restart files, diagnostic file names may include format strings such as
+``diagnostic%Y-%m-%dT%H:%M:%SZ.nc``. While restart files contain the state at
+the beginning of the time window, diagnostics files are averaged over the
+timesteps in the window.
+
+In addition to specifying file names, we need to specify which fields are to be
+written using each I/O type. For example, we could specify that two fields
+labelled ``field_A`` and ``field_B`` are to be written as diagnostics as
+follows:
 
 .. code-block::
 
-  [XiosOutput]
+  [XiosDiagnostic]
   field_names = field_A,field_B
 
 The ``field_names`` entry may contain a single field name or a comma-separated
-list. Note that all of the ``XiosOutput``, ``XiosInput``, ``XiosDiagnostic``,
-and ``XiosForcing`` sections are optional.
+list. This is an interim solution that will eventually be unified with the
+``ConfigOutput`` section.
 
-When writing out files, the ``split_period`` option can be included in either of
-the ``XiosOutput`` or ``XiosDiagnostic`` sections, which instructs XIOS to
-create a separate output file for each such period. For a given period, a file
-will be written with a name of the form
-``<FILENAME>_<START_TIME>-<END_TIME>.nc``, where ``<FILENAME>`` is the
-user-provided file name and ``<START_TIME>`` and ``<END_TIME>`` are the start
-and end of the associated period.
 
-As elsewhere in the model, the configuration values above are all parsed by
-calling the ``Model.configure`` member function. Since building with XIOS
-implies also building with MPI, you will need to pass the MPI communicator to
-this member function when calling it.
+Forcing files
+-------------
+
+Forcing files are handled in a pre-defined fashion. The ``ERA5Atmosphere``
+config section is used for atmospheric forcings and the ``TOPAZOcean`` config
+section is used for ocean forcings. The only entry that they support is ``file``
+to indicate the corresponding forcing file name. In both cases, pre-processed
+files are currently expected, with the following properties:
+
+* Pre-processed ERA5 forcing files use a 1 hour frequency and include variables
+  ``dew2m``, ``lw_in``, ``sw_in``, ``pair``, ``tair``, ``wind_speed``, ``u``,
+  and ``v``.
+* Pre-processed TOPAZ forcing files use a 1 day frequency and include variables
+  ``mld``, ``sss``, ``sst``, ``ssh``, ``u``, and ``v``.
+
+In both cases, it is assumed that the variables are defined to have ``HField``
+type based on the same grid as used in the model.
+
+Note that this is an interim approach. Eventually, it will be possible to read
+forcing data with XIOS directly from original climatology files defined on
+different grids.
 
 Order of operations for XIOS setup
 ----------------------------------
 
 The required order of operations to set everything up correctly for reading and
-writing files using XIOS is demonstrated in the ``core/test/XiosRead_test.cpp``
-and ``core/test/XiosWrite_test.cpp`` worked examples and is elaborated in the
+writing files using XIOS is demonstrated in the
+``core/test/XiosReadRestart_test.cpp`` and
+``core/test/XiosWriteRestart_test.cpp`` worked examples and is elaborated in the
 following:
 
 1. Set configuration options as for other parts of the model. (See section above
    for options.)
-2. Get the ``ModelMetadata`` singleton instance by calling the static
-   ``ModelMetadata::getInstance`` member function, passing the MPI partition
-   metadata file as an argument.
-3. Configure the ``Model`` by constructing it and calling its ``configure``
-   member function.
-4. Construct a ``ParametricGrid`` and a new ``ParaGridIO`` pointer.
-5. Associate the ``ParaGridIO`` pointer with the ``ParametricGrid`` instance
-   using the latter's ``setIO`` member function.
-6. Get the ``Xios`` handler singleton using ``Xios::getInstance``.
-7. For each field to be written to file with XIOS, call the ``setFieldType``
-   member function of ``Xios``, providing the field name as the first argument
-   and the ``ModelArray::Type::<TYPE>`` enum as the second argument (replacing
-   ``<TYPE>>`` as appropriate).
-8. Call the ``close_context_definition`` member function of ``Xios``.
+2. Configure the ``Model`` by constructing it and calling its ``configure``
+   member function. NextSIM-DG communicates the field type (i.e.,
+   discretisation) for each field to XIOS during this step, which allows XIOS to
+   set up the correct data structures for each field.
+3. Get the ``Xios`` handler singleton using ``Xios::getInstance()``.
+4. Specify the ``ParametricGrid`` grid type.
+
+There is no need to explicitly close the XIOS context definition because this
+happens automatically upon reading or writing. As such, all XIOS configuration
+must take place before any files are read from or written to.
 
 XIOS concepts
 -------------
@@ -139,12 +212,13 @@ indices (corner) in each dimension for each MPI rank. This information is
 provided to XIOS automatically upon configuring the ``Model``.
 
 Different domains are used for different field types, depending on the number of
-degrees of freedom (DoFs) they have in the horizontal. The ``HDomain`` has one
-DoF per cell and is used for the ``HField``, ``DGField``, and ``DGSField``
-types. The ``VertexDomain`` has one DoF per vertex and is used for the
-``VertexField`` type. Finally, the ``CGDomain`` has the same (degree-dependant)
+degrees of freedom (DoFs) they have in the horizontal. The ``dim`` has one DoF
+per cell and is used for the ``HField``, ``UField``, ``VField``, ``DGField``,
+and ``DGSField`` types. The ``vertex`` has one DoF per vertex and is used for
+the ``VertexField`` type. Finally, the ``cg`` has the same (degree-dependent)
 number of DoFs as the continuous Galerkin discretisation and is used by
-``CGField``.
+``CGField``. When prepended by ``x`` or ``y``, the domain names give rise to the
+dimension names used in NetCDF files, e.g., ``x_dim`` and ``y_cg``.
 
 XIOS Axis concept
 ^^^^^^^^^^^^^^^^^
@@ -154,7 +228,7 @@ For ``VertexField``, it gives rise to a vector field with as many components as
 the spatial dimension, i.e., two. For ``DGField`` and ``DGSField``, the Axis
 concept is used to give rise to vector fields with as many components as
 ``dg_comp`` and ``dgstress_comp``, respectively. These Axes are set up
-automatically at the same point at which Domains are created.
+automatically based on the XML configuration.
 
 XIOS Grid concept
 ^^^^^^^^^^^^^^^^^
@@ -166,18 +240,22 @@ XIOS Field concept
 ^^^^^^^^^^^^^^^^^^
 
 An instance of the Field type is based on a Grid and is associated with a
-``ModelArray::Type``. Fields are created automatically upon configuring the
-``Model``. For fields that are read from file, the field type is determined
-automatically during the file read. For fields that are written, it's required
-to call the ``setFieldType`` member function of the ``Xios`` singleton,
-providing the field name and ``ModelArray::Type``.
+``ModelArray::Type``. For fields that are read from file, the field type is
+determined automatically during the file read. For fields that are written, it's
+required to call the ``setPrognosticFieldType`` or ``setDiagnosticFieldType``
+member function of the ``Xios`` singleton, providing the field name and
+``ModelArray::Type``. Fields are created automatically upon closing the XIOS
+context definition, so calls to ``setPrognosticFieldType`` and
+``setDiagnosticFieldType`` must be made before this (i.e., before any files are
+read from or written).
 
 XIOS File concept
 ^^^^^^^^^^^^^^^^^
 
 The File concept holds metadata related to input and output files, including
 which Fields are associated with it and whether it is to be used for reading or
-writing. Files are created automatically upon configuring the ``Model``.
+writing. Files are created automatically upon closing the XIOS context
+definition.
 
 Developer notes
 ---------------
@@ -192,3 +270,15 @@ Developer notes
 * The nextSIM-DG XIOS integration is set up such that the filename and field
   names coincide with the fileId and fieldId of the corresponding ``File`` and
   ``Field`` objects.
+
+* Allowing fields to be both read and written in the same run requires
+  additional fields. This is because the two may have different I/O modes, e.g.,
+  reading or writing at a specified frequency (``"instant"```), writing after
+  applying a reduction operator (e.g., ``"average"``), or reading or writing
+  once at the start of the time window (``"once"``). We use the 'base' field
+  associated with the field ID for writing. For reading a field, we create a
+  separate 'inherited' field, which has the same name but with ID appended by
+  ``"_input"`` or ``"_forcing"``, depending on whether the field is to be read
+  as a restart or as a forcing. The inherited field references the base one so
+  that they share the same data, but differ in how they are handled for I/O. All
+  of this happens automatically in the ``createField`` function.

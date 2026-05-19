@@ -2,7 +2,6 @@
  * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
-#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include <doctest/doctest.h>
 #include <sstream>
 
@@ -15,7 +14,6 @@
 #include "include/IIceAlbedo.hpp"
 #include "include/IOceanBoundary.hpp"
 #include "include/ModelArray.hpp"
-#include "include/ModelArrayRef.hpp"
 #include "include/ModelComponent.hpp"
 #include "include/NextsimModule.hpp"
 #include "include/Time.hpp"
@@ -46,27 +44,27 @@ TEST_CASE("Melting conditions")
     class IceTemperatureData : public ModelComponent {
     public:
         IceTemperatureData()
+            : sw_inAccessor(getStore(), RO)
+            , hiceAccessor(getStore(), RW)
+            , ciceAccessor(getStore(), RW)
+            , hsnowAccessor(getStore(), RW)
         {
-            getStore().registerArray(Protected::SW_IN, &sw_in, RO);
-            getStore().registerArray(Shared::H_ICE_DG, &hice, RW);
-            getStore().registerArray(Shared::C_ICE_DG, &cice, RW);
-            getStore().registerArray(Shared::H_SNOW_DG, &hsnow, RW);
         }
         std::string getName() const override { return "IceTemperatureData"; }
 
         void setData(const ModelState::DataMap&) override
         {
-            cice[0] = 0.5;
-            hice[0] = 0.1;
-            hsnow[0] = 0.01;
-            sw_in[0] = -10.1675; // Net shortwave flux from incident 50 W/m^2
+            ciceAccessor.getHostRW()[0] = 0.5;
+            hiceAccessor.getHostRW()[0] = 0.1;
+            hsnowAccessor.getHostRW()[0] = 0.01;
+            sw_inAccessor.getHostRW()[0] = -10.1675; // Net shortwave flux from incident 50 W/m^2
         }
 
-        HField sw_in;
+        ModelArrayAccessor<Protected::SW_IN, RW> sw_inAccessor;
 
-        HField hice;
-        HField cice;
-        HField hsnow;
+        ModelArrayAccessor<Shared::H_ICE_DG, RW> hiceAccessor;
+        ModelArrayAccessor<Shared::C_ICE_DG, RW> ciceAccessor;
+        ModelArrayAccessor<Shared::H_SNOW_DG, RW> hsnowAccessor;
     } initCond;
     initCond.setData(ModelState().data);
 
@@ -79,12 +77,12 @@ TEST_CASE("Melting conditions")
         void setData(const ModelState::DataMap& ms) override
         {
             IAtmosphereBoundary::setData(ms);
-            snow[0] = 0.00;
-            qow[0] = -109.923;
-            qia[0] = -85.6364;
-            dqia_dt[0] = 19.7016;
-            subl[0] = -7.3858e-06;
-            penSW[0] = 1.04125;
+            snowAccessor.getHostRW()[0] = 0.00;
+            qowAccessor.getHostRW()[0] = -109.923;
+            qiaAccessor.getHostRW()[0] = -85.6364;
+            dqia_dtAccessor.getHostRW()[0] = 19.7016;
+            sublAccessor.getHostRW()[0] = -7.3858e-06;
+            penSWAccessor.getHostRW()[0] = 1.04125;
         }
     } atmosState;
     atmosState.setData(ModelState().data);
@@ -137,12 +135,12 @@ TEST_CASE("Freezing conditions")
     class IceTemperatureData : public ModelComponent {
     public:
         IceTemperatureData()
+            : snowAccessor(getStore(), RO)
+            , sw_inAccessor(getStore(), RO)
+            , hiceAccessor(getStore(), RW)
+            , ciceAccessor(getStore(), RW)
+            , hsnowAccessor(getStore(), RW)
         {
-            getStore().registerArray(Protected::SNOW, &snow, RO);
-            getStore().registerArray(Protected::SW_IN, &sw_in, RO);
-            getStore().registerArray(Shared::H_ICE_DG, &hice, RW);
-            getStore().registerArray(Shared::C_ICE_DG, &cice, RW);
-            getStore().registerArray(Shared::H_SNOW_DG, &hsnow, RW);
         }
         std::string getName() const override { return "IceTemperatureData"; }
 
@@ -151,23 +149,23 @@ TEST_CASE("Freezing conditions")
             cice0[0] = 0.5;
             hice0[0] = 0.1;
             hsnow0[0] = 0.01;
-            snow[0] = 1e-3;
-            sw_in[0] = 0;
+            snowAccessor.getHostRW()[0] = 1e-3;
+            sw_inAccessor.getHostRW()[0] = 0;
 
-            hice = hice0;
-            cice = cice0;
-            hsnow = hsnow0;
+            hiceAccessor.getHostRW() = hice0;
+            ciceAccessor.getHostRW() = cice0;
+            hsnowAccessor.getHostRW() = hsnow0;
         }
 
         HField hice0;
         HField cice0;
         HField hsnow0;
-        HField snow;
-        HField sw_in;
+        ModelArrayAccessor<Protected::SNOW, RW> snowAccessor;
+        ModelArrayAccessor<Protected::SW_IN, RW> sw_inAccessor;
 
-        HField hice;
-        HField cice;
-        HField hsnow;
+        ModelArrayAccessor<Shared::H_ICE_DG, RW> hiceAccessor;
+        ModelArrayAccessor<Shared::C_ICE_DG, RW> ciceAccessor;
+        ModelArrayAccessor<Shared::H_SNOW_DG, RW> hsnowAccessor;
     } atmoState;
     atmoState.setData(ModelState().data);
 
@@ -180,12 +178,12 @@ TEST_CASE("Freezing conditions")
         void setData(const ModelState::DataMap& ms) override
         {
             IAtmosphereBoundary::setData(ms);
-            snow[0] = 0.00;
-            qow[0] = 143.266;
-            qia[0] = 42.2955;
-            dqia_dt[0] = 16.7615;
-            subl[0] = 2.15132e-6;
-            penSW[0] = 0.;
+            snowAccessor.getHostRW()[0] = 0.00;
+            qowAccessor.getHostRW()[0] = 143.266;
+            qiaAccessor.getHostRW()[0] = 42.2955;
+            dqia_dtAccessor.getHostRW()[0] = 16.7615;
+            sublAccessor.getHostRW()[0] = 2.15132e-6;
+            penSWAccessor.getHostRW()[0] = 0.;
         }
     } atmosState;
     atmosState.setData(ModelState().data);
@@ -238,13 +236,12 @@ TEST_CASE("No ice do nothing")
     class IceTemperatureData : public ModelComponent {
     public:
         IceTemperatureData()
+            : snowAccessor(getStore(), RO)
+            , sw_inAccessor(getStore(), RO)
+            , hiceAccessor(getStore(), RW)
+            , ciceAccessor(getStore(), RW)
+            , hsnowAccessor(getStore(), RW)
         {
-            getStore().registerArray(Protected::SNOW, &snow, RO);
-            getStore().registerArray(Protected::SW_IN, &sw_in, RO);
-
-            getStore().registerArray(Shared::H_ICE_DG, &hice, RW);
-            getStore().registerArray(Shared::C_ICE_DG, &cice, RW);
-            getStore().registerArray(Shared::H_SNOW_DG, &hsnow, RW);
         }
         std::string getName() const override { return "IceTemperatureData"; }
 
@@ -253,23 +250,23 @@ TEST_CASE("No ice do nothing")
             cice0[0] = 0;
             hice0[0] = 0;
             hsnow0[0] = 0;
-            snow[0] = 0;
-            sw_in[0] = 0;
+            snowAccessor.getHostRW()[0] = 0;
+            sw_inAccessor.getHostRW()[0] = 0;
 
-            hice = hice0;
-            cice = cice0;
-            hsnow = hsnow0;
+            hiceAccessor.getHostRW() = hice0;
+            ciceAccessor.getHostRW() = cice0;
+            hsnowAccessor.getHostRW() = hsnow0;
         }
 
         HField hice0;
         HField cice0;
         HField hsnow0;
-        HField snow;
-        HField sw_in;
+        ModelArrayAccessor<Protected::SNOW, RW> snowAccessor;
+        ModelArrayAccessor<Protected::SW_IN, RW> sw_inAccessor;
 
-        HField hice;
-        HField cice;
-        HField hsnow;
+        ModelArrayAccessor<Shared::H_ICE_DG, RW> hiceAccessor;
+        ModelArrayAccessor<Shared::C_ICE_DG, RW> ciceAccessor;
+        ModelArrayAccessor<Shared::H_SNOW_DG, RW> hsnowAccessor;
     } atmoState;
     atmoState.setData(ModelState().data);
 
@@ -278,11 +275,12 @@ TEST_CASE("No ice do nothing")
         void setData(const ModelState::DataMap& ms) override
         {
             IOceanBoundary::setData(ms);
-            sst[0] = 1.75;
+            sstAccessor.getHostRW()[0] = 1.75;
+            HField& sss = sssAccessor.getHostRW();
             sss[0] = 32.;
-            tf[0] = Module::getImplementation<IFreezingPoint>()(sss[0]);
-            cpml[0] = 4.29151e7;
-            qio[0] = 0;
+            tfAccessor.getHostRW()[0] = Module::getImplementation<IFreezingPoint>()(sss[0]);
+            cpmlAccessor.getHostRW()[0] = 4.29151e7;
+            qioAccessor.getHostRW()[0] = 0;
         }
         void updateBefore(const TimestepTime& tst) override { }
         void updateAfter(const TimestepTime& tst) override { }
@@ -294,11 +292,11 @@ TEST_CASE("No ice do nothing")
         void setData(const ModelState::DataMap& ms) override
         {
             IAtmosphereBoundary::setData(ms);
-            snow[0] = 0.00;
-            qow[0] = 143.266;
-            qia[0] = 42.2955;
-            dqia_dt[0] = 16.7615;
-            subl[0] = 2.15132e-6;
+            snowAccessor.getHostRW()[0] = 0.00;
+            qowAccessor.getHostRW()[0] = 143.266;
+            qiaAccessor.getHostRW()[0] = 42.2955;
+            dqia_dtAccessor.getHostRW()[0] = 16.7615;
+            sublAccessor.getHostRW()[0] = 2.15132e-6;
         }
     } atmosState;
     atmosState.setData(ModelState().data);
@@ -318,10 +316,12 @@ TEST_CASE("No ice do nothing")
     twin.configure();
     twin.update(tst);
 
-    ModelArrayRef<Shared::H_ICE_DG, RO> hice(ModelComponent::getStore());
-    ModelArrayRef<Shared::C_ICE_DG, RO> cice(ModelComponent::getStore());
+    ModelArrayAccessor<Shared::H_ICE_DG, RO> hiceAccessor(ModelComponent::getStore());
+    const HField& hice = hiceAccessor.getHostRO();
+    ModelArrayAccessor<Shared::C_ICE_DG, RO> ciceAccessor(ModelComponent::getStore());
+    const HField& cice = ciceAccessor.getHostRO();
 
-    double prec = 1e-5;
+    //    double prec = 1e-5;
 
     REQUIRE(hice[0] == 0);
     REQUIRE(cice[0] == 0);

@@ -44,7 +44,7 @@ const std::string partitionFilename = testFilesDir + "/paragrid_test_partition_m
 
 static const int DG = 3;
 static const int DGSTRESS = 6;
-static const int CG = 2;
+// static const int CG = 2;
 
 const size_t nx = 10;
 const size_t ny = 9;
@@ -135,9 +135,7 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file")
     auto& metadata = ModelMetadata::getInstance();
 
     const auto localNX = nx;
-    const size_t offsetX = 0;
     const auto localNY = ny;
-    const size_t offsetY = 0;
     ModelArray::setDimension(ModelArray::Dimension::X, nx);
     ModelArray::setDimension(ModelArray::Dimension::Y, ny);
     ModelArray::setDimension(ModelArray::Dimension::XVERTEX, nx + 1);
@@ -158,7 +156,7 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file")
     // Initialize (resize and set to zero) all ModelArrays
     ModelArray* arrays[] = { &fractional, &fractionalDG, &mask, &coordinates, &x, &y };
     for (auto arr : arrays) {
-        arr->resize();
+        arr->reinitialize();
         *arr = 0.;
     }
 
@@ -294,11 +292,6 @@ TEST_CASE("Write a diagnostic ParaGrid file")
 #else
     auto& metadata = ModelMetadata::getInstance();
 
-    const auto localNX = nx;
-    const size_t offsetX = 0;
-    const auto localNY = ny;
-    const size_t offsetY = 0;
-
     ModelArray::setDimension(ModelArray::Dimension::X, nx);
     ModelArray::setDimension(ModelArray::Dimension::Y, ny);
     ModelArray::setDimension(ModelArray::Dimension::XVERTEX, nx + 1);
@@ -319,7 +312,7 @@ TEST_CASE("Write a diagnostic ParaGrid file")
     // Initialize (resize and set to zero) all ModelArrays
     ModelArray* arrays[] = { &fractional, &fractionalDG, &mask, &coordinates, &x, &y };
     for (auto arr : arrays) {
-        arr->resize();
+        arr->reinitialize();
         *arr = 0.;
     }
 
@@ -438,16 +431,13 @@ TEST_CASE("Test array ordering")
 #else
     auto& metadata = ModelMetadata::getInstance();
 
-    const auto localNX = nx;
     const size_t offsetX = 0;
-    const auto localNY = ny;
-    const size_t offsetY = 0;
     ModelArray::setDimension(ModelArray::Dimension::X, nx);
     ModelArray::setDimension(ModelArray::Dimension::Y, ny);
 #endif
 
     HField index2d(ModelArray::Type::H);
-    index2d.resize();
+    index2d.reinitialize();
     index2d = 0.;
     std::string fieldName = "index2d";
     std::set<std::string> fields = { fieldName };
@@ -489,12 +479,12 @@ TEST_CASE("Check an exception is thrown for an invalid file name")
 }
 
 #ifdef USE_MPI
-MPI_TEST_CASE("Check if a file with the old dimension names can be read", 2)
+MPI_TEST_CASE("Check if a file with the alternative dimension names can be read", 2)
 #else
-TEST_CASE("Check if a file with the old dimension names can be read")
+TEST_CASE("Check if a file with the alternative dimension names can be read")
 #endif
 {
-    std::string inputFilename = std::string(TEST_FILE_SOURCE) + "/old_names.nc";
+    std::string inputFilename = std::string(TEST_FILE_SOURCE) + "/alt_names.nc";
 
     Module::setImplementation<IStructure>("Nextsim::ParametricGrid");
 

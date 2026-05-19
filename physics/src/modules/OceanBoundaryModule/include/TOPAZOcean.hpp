@@ -49,8 +49,13 @@ private:
     // be static.
     static std::string filePath;
 
-    HField sstExt;
-    HField sssExt;
+    ModelState forcingState;
+
+    ModelArrayAccessor<Protected::EXT_SST, RW> sstExtAccessor;
+    ModelArrayAccessor<Protected::EXT_SSS, RW> sssExtAccessor;
+
+    ModelArrayAccessor<Protected::SLAB_SST, RO> sstSlabAccessor;
+    ModelArrayAccessor<Protected::SLAB_SSS, RO> sssSlabAccessor;
 
     SlabOcean slabOcean;
 

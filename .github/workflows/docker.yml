@@ -5,6 +5,11 @@ on:
   # Build the Docker container upon merging into main or develop
   push:
     branches: [ main, develop ]
+    paths:
+      - .github/workflows/docker.yml
+      - Dockerfiles/Dockerfile.devenv
+      - Dockerfiles/install-xios.sh
+      - Dockerfiles/spack.yaml
 
   # Build the Docker container whenever commits are pushed to an open PR that changes one of the files listed
   pull_request:
@@ -52,18 +57,9 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
           logout: true
 
-      - name: Build container
-        uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83  # v6
-        if: github.event_name == 'pull_request'
-        with:
-          push: false
-          file: Dockerfiles/Dockerfile.devenv
-          tags: ghcr.io/nextsimhub/nextsimdg-dev-env:latest
-
       - name: Build container and push to ghcr
         uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83  # v6
-        if: github.event_name == 'push' || github.event_name == 'schedule'
         with:
-          push: ${{ github.ref == 'refs/heads/main' }}
+          push: ${{ github.event_name == 'push' || github.event_name == 'schedule' }}
           file: Dockerfiles/Dockerfile.devenv
           tags: ghcr.io/nextsimhub/nextsimdg-dev-env:latest

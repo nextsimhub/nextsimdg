@@ -65,6 +65,9 @@ private:
     Iterator iterator;
     DevStep modelStep; // Change the model step calculation here
     PrognosticData pData;
+
+    bool configuredRestarts = false; // Guard to avoid repeated configuration
+    bool configuredTime = false; // Guard to avoid repeated configuration
 };
 
 } /* namespace Nextsim */

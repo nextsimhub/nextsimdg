@@ -49,8 +49,11 @@ private:
     static double v0;
 
     // External SS* fields to feed the slab ocean
-    HField sstExt;
-    HField sssExt;
+    ModelArrayAccessor<Protected::EXT_SST, RW> sstExtAccessor;
+    ModelArrayAccessor<Protected::EXT_SSS, RW> sssExtAccessor;
+
+    ModelArrayAccessor<Protected::SLAB_SST, RO> sstSlabAccessor;
+    ModelArrayAccessor<Protected::SLAB_SSS, RO> sssSlabAccessor;
 
     // We need a slab ocean in this implementation
     SlabOcean slabOcean;

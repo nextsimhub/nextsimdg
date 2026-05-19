@@ -20,4 +20,13 @@ ModelArray& FieldAdvection::advectField(
     return field;
 }
 
+#ifdef USE_KOKKOS
+void FieldAdvection::advectField(
+    const DeviceViewMA& field, const TimestepTime& tst, double lowerLimit, double upperLimit)
+{
+    Module::getImplementation<IDynamics>().advectField(
+        tst.step.seconds(), field, lowerLimit, upperLimit);
+}
+#endif
+
 } /* namespace Nextsim */

@@ -7,7 +7,7 @@
 #ifndef ILATERALICESPREAD_HPP
 #define ILATERALICESPREAD_HPP
 
-#include "include/ModelArrayRef.hpp"
+#include "include/ModelArrayAccessor.hpp"
 #include "include/ModelComponent.hpp"
 #include "include/Time.hpp"
 
@@ -20,9 +20,12 @@ public:
     std::string getName() const override { return "LateralIceSpread"; }
     void setData(const ModelState::DataMap& ms) override
     {
-        deltaCIce.resize();
-        newice.resize();
-        snowMelt.resize();
+        HField& deltaCIce = deltaCIceAccessor.getHostRW();
+        deltaCIce.reinitialize();
+        HField& newice = newiceAccessor.getHostRW();
+        newice.reinitialize();
+        HField& snowMelt = snowMeltAccessor.getHostRW();
+        snowMelt.reinitialize();
 
         /*
          * Set these to zero, so we don't have uninitialized values floating around.
@@ -43,29 +46,28 @@ public:
 
 protected:
     ILateralIceSpread()
-        : deltaCIce(ModelArray::Type::H)
-        , newice(ModelArray::Type::H)
-        , snowMelt(ModelArray::Type::H)
-        , cice(getStore())
-        , deltaHi(getStore())
-        , hice(getStore())
-        , hsnow(getStore())
-        , qow(getStore())
+        : deltaCIceAccessor(getStore(), RW, ModelArray::Type::H)
+        , newiceAccessor(getStore(), RW, ModelArray::Type::H)
+        , snowMeltAccessor(getStore(), RW, ModelArray::Type::H)
+        , ciceAccessor(getStore())
+        , deltaHiAccessor(getStore())
+        , hiceAccessor(getStore())
+        , hsnowAccessor(getStore())
+        , qowAccessor(getStore())
     {
-        getStore().registerArray(Shared::DELTA_CICE, &deltaCIce, RW);
-        getStore().registerArray(Shared::HSNOW_MELT, &snowMelt, RW);
-        getStore().registerArray(Shared::NEW_ICE, &newice, RW);
     }
 
-    HField deltaCIce; // Change in ice concentration
-    HField newice; // New ice over open water this timestep, m
-    HField snowMelt; // Ocean to snow transfer of freshwater kg m⁻²
+    ModelArrayAccessor<Shared::DELTA_CICE, RW> deltaCIceAccessor; // Change in ice concentration
+    ModelArrayAccessor<Shared::NEW_ICE, RW>
+        newiceAccessor; // New ice over open water this timestep, m
+    ModelArrayAccessor<Shared::HSNOW_MELT, RW>
+        snowMeltAccessor; // Ocean to snow transfer of freshwater kg m⁻²
 
-    ModelArrayRef<Shared::C_ICE_DG, RW> cice; // From IceGrowth
-    ModelArrayRef<Shared::DELTA_HICE, RO> deltaHi; // From Vertical Ice Growth
-    ModelArrayRef<Shared::H_ICE_DG, RW> hice; // From IceGrowth
-    ModelArrayRef<Shared::H_SNOW_DG, RW> hsnow; // From Ice Growth?
-    ModelArrayRef<Shared::Q_OW, RW> qow; // From FluxCalculation
+    ModelArrayAccessor<Shared::C_ICE_DG, RW> ciceAccessor; // From ColumnPhysics
+    ModelArrayAccessor<Shared::DELTA_HICE, RO> deltaHiAccessor; // From Vertical Ice Growth
+    ModelArrayAccessor<Shared::H_ICE_DG, RW> hiceAccessor; // From ColumnPhysics
+    ModelArrayAccessor<Shared::H_SNOW_DG, RW> hsnowAccessor; // From ColumnPhysics
+    ModelArrayAccessor<Shared::Q_OW, RW> qowAccessor; // From FluxCalculation
 };
 
 } /* namespace Nextsim */

@@ -33,14 +33,15 @@ ParaGridIO::ParaGridIO(ParametricGrid& grid)
     , dimensionKeys({
           // clang-format off
           // Accept post-May 2024 (xdim, ydim, zdim) dimension names and pre-May 2024 (x, y, z)
-        { "yx", ModelArray::Type::H },
         { "ydimxdim", ModelArray::Type::H },
-        { "yxdg_comp", ModelArray::Type::DG },
+        { "y_dimx_dim", ModelArray::Type::H },
         { "ydimxdimdg_comp", ModelArray::Type::DG },
-        { "yxdgstress_comp", ModelArray::Type::DGSTRESS },
+        { "y_dimx_dimdg_comp", ModelArray::Type::DG },
         { "ydimxdimdgstress_comp", ModelArray::Type::DGSTRESS },
-        { "ycgxcg", ModelArray::Type::CG },
+        { "y_dimx_dimdgstress_comp", ModelArray::Type::DGSTRESS },
+        { "y_cgx_cg", ModelArray::Type::CG },
         { "yvertexxvertexncoords", ModelArray::Type::VERTEX },
+        { "y_vertexx_vertexncoords", ModelArray::Type::VERTEX },
           // clang-format on
       })
     , isDG({
@@ -83,6 +84,10 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
 {
     ModelState state;
 
+    // Set global dimensions with an initial read of the input file
+    ModelMetadata& metadata = ModelMetadata::getInstance();
+    metadata.setDimensionsFromFile(filePath);
+
     try {
 #ifdef USE_MPI
         auto& modelMPI = ModelMPI::getInstance();
@@ -91,60 +96,7 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
         netCDF::NcFile ncFile(filePath, netCDF::NcFile::read);
 #endif
 
-        // Dimensions and DG components
-        std::multimap<std::string, netCDF::NcDim> dimMap = ncFile.getDims();
-        for (auto entry : ModelArray::definedDimensions) {
-            auto dimType = entry.first;
-            if (dimCompMap.count(dimType) > 0)
-                // TODO Assertions that DG in the file equals the compile time DG in the model. See
-                // #205
-                continue;
-
-            ModelArray::DimensionSpec& dimensionSpec = entry.second;
-            // Find dimensions in the netCDF file by their name in the ModelArray details
-            netCDF::NcDim dim = ncFile.getDim(dimensionSpec.name);
-            // Also check the old name
-            if (dim.isNull()) {
-                dim = ncFile.getDim(dimensionSpec.altName);
-            }
-            // If we didn't find a dimension with the dimensions name or altName, throw.
-            if (dim.isNull()) {
-                throw std::out_of_range(
-                    std::string("No netCDF dimension found corresponding to the dimension named ")
-                    + dimensionSpec.name + std::string(" or ") + dimensionSpec.altName);
-            }
-#ifdef USE_MPI
-            auto dimName = dim.getName();
-            size_t localLength = 0;
-            size_t start = 0;
-            auto& metadata = ModelMetadata::getInstance();
-            if (dimType == ModelArray::Dimension::X) {
-                localLength = metadata.getLocalExtentX();
-                start = metadata.getLocalCornerX();
-            } else if (dimType == ModelArray::Dimension::Y) {
-                localLength = metadata.getLocalExtentY();
-                start = metadata.getLocalCornerY();
-            } else if (dimType == ModelArray::Dimension::XVERTEX) {
-                localLength = metadata.getLocalExtentX() + 1;
-                start = metadata.getLocalCornerX();
-            } else if (dimType == ModelArray::Dimension::YVERTEX) {
-                localLength = metadata.getLocalExtentY() + 1;
-                start = metadata.getLocalCornerY();
-            } else {
-                localLength = dim.getSize();
-                start = 0;
-            }
-            // globalLength doesnt need to be padded with halo cells but localLength does
-            // setDimension(dim, globalLength, localLength, start)
-            ModelArray::setDimension(
-                dimType, dim.getSize(), localLength + 2 * Halo::haloWidth, start);
-#else
-            ModelArray::setDimension(dimType, dim.getSize());
-#endif
-        }
-
         // Get all valid variables and load them into a new ModelState
-
         for (auto entry : ncFile.getVars()) {
             const std::string& varName = entry.first;
             netCDF::NcVar& var = entry.second;
@@ -161,7 +113,7 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
             ModelArray::Type type = dimensionKeys.at(dimKey);
             state.data[varName] = ModelArray(type);
             ModelArray& data = state.data.at(varName);
-            data.resize();
+            data.reinitialize();
 
             std::vector<size_t> start;
             std::vector<size_t> count;
@@ -275,7 +227,7 @@ ModelState ParaGridIO::readForcingTimeStatic(
             netCDF::NcVar var = ncFile.getVar(varName);
             state.data[varName] = ModelArray(ModelArray::Type::H);
             ModelArray& data = state.data.at(varName);
-            data.resize();
+            data.reinitialize();
 
 #ifdef USE_MPI
             Halo halo(data);

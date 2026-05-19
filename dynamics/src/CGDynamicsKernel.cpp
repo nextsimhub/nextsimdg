@@ -19,6 +19,10 @@
 
 #include <limits>
 
+#ifdef USE_MPI
+#include "include/Halo.hpp"
+#endif
+
 namespace Nextsim {
 
 template <int DGadvection>
@@ -215,9 +219,9 @@ void CGDynamicsKernel<DGadvection>::computeGradientOfSeaSurfaceHeight(
         yGradSeaSurfaceHeight = vGrad;
     } else {
         // outer nodes
-        size_t icg1 = 0;
 #pragma omp parallel for
         for (size_t iy = 0; iy <= smesh->ny; ++iy) {
+            size_t icg1 = (smesh->nx + 1) * iy;
             size_t icg2 = (2 * smesh->nx + 1) * 2 * iy;
             for (size_t ix = 0; ix <= smesh->nx; ++ix, ++icg1, icg2 += 2) {
                 xGradSeaSurfaceHeight(icg2) = uGrad(icg1);
@@ -271,6 +275,14 @@ template <int DGadvection> void CGDynamicsKernel<DGadvection>::prepareIteration(
     VectorManipulations::CGAveragePeriodic(*smesh, cgH);
     Interpolations::DG2CG(*smesh, cgA, data.at(ciceName));
     VectorManipulations::CGAveragePeriodic(*smesh, cgA);
+
+#ifdef USE_MPI
+    // Halo object only depends on shape of the array, so we can share it for all CGVectors of the
+    // same shape
+    Halo halo(cgH);
+    halo.exchangeHalos(cgH);
+    halo.exchangeHalos(cgA);
+#endif
 
     // Reinit the gradient of the sea surface height. Not done by
     // DataMap as seaSurfaceHeight is always dG(0)
@@ -431,6 +443,12 @@ template <int DGadvection>
 DGVector<DGadvection>& CGDynamicsKernel<DGadvection>::advectDGVField(
     double timestep, DGVector<DGadvection>& field, double lowerLimit, double upperLimit)
 {
+
+#ifdef USE_MPI
+    Halo halo(field);
+    halo.exchangeHalos(field);
+#endif
+
     dgtransport->step(timestep, field);
 
     //! Slope Limiting

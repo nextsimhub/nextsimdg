@@ -13,7 +13,12 @@
 #include "ParametricMap.hpp"
 #include "StressUpdateStep.hpp"
 #include "include/constants.hpp"
+#include "kokkos/include/KokkosTimer.hpp"
 #include <cmath>
+
+#ifdef USE_MPI
+#include "include/Halo.hpp"
+#endif
 
 namespace Nextsim {
 
@@ -114,15 +119,30 @@ public:
 
     void update(const TimestepTime& tst) override
     {
+        static KokkosTimer<true> timerBBM("bbm");
+        static KokkosTimer<true> timerAdvection("advection");
+        static KokkosTimer<true> timerPrepIt("prepIt");
+
+        timerAdvection.start();
         advectDynamicsFields(tst.step.seconds());
+        timerAdvection.stop();
 
+        timerPrepIt.start();
         prepareIteration({ { hiceName, hice }, { ciceName, cice } });
+        timerPrepIt.stop();
 
+        timerBBM.start();
         // The timestep for the brittle solver is the solver subtimestep
         deltaT = tst.step.seconds() / params.nSteps;
 
         avgU.zero();
         avgV.zero();
+
+#ifdef USE_MPI
+        // Note: we only need to create one halo object per array type,
+        // dimensionality and size.
+        Halo halo(u);
+#endif
 
         for (size_t subStep = 0; subStep < params.nSteps; ++subStep) {
 
@@ -140,8 +160,14 @@ public:
 
             applyBoundaries();
 
+#ifdef USE_MPI
+            halo.exchangeHalos(u);
+            halo.exchangeHalos(v);
+#endif
+
             // Land mask
         }
+        timerBBM.stop();
 
         updateIceOceanStress(avgU, avgV);
 

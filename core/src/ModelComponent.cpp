@@ -8,6 +8,11 @@ namespace Nextsim {
 
 size_t ModelComponent::nOcean = 0;
 std::vector<size_t> ModelComponent::oceanIndex;
+bool ModelComponent::columnPhysicsStoreIsDestroyed; // initialized to 0 because of static lifetime
+
+#if USE_KOKKOS
+KokkosDeviceMapView<DeviceIndex> ModelComponent::oceanIndexDevice;
+#endif
 
 ModelComponent::ModelComponent()
 {
@@ -38,13 +43,17 @@ void ModelComponent::setOceanMask(const ModelArray& mask)
             oceanIndex[iOceanIndex++] = i;
         }
     }
+
+#if USE_KOKKOS
+    makeOceanIndexDevice();
+#endif
 }
 
 // Fills the nOcean and OceanIndex variables for the zero land case
 void ModelComponent::noLandMask()
 {
     ModelArray newOceanMask(ModelArray::Type::H);
-    newOceanMask.resize();
+    newOceanMask.reinitialize();
     newOceanMask = 1.; // All ocean
     oceanMaskSingleton() = newOceanMask;
 
@@ -53,6 +62,10 @@ void ModelComponent::noLandMask()
     for (size_t i = 0; i < ModelArray::size(ModelArray::Type::H); ++i) {
         oceanIndex[i] = i;
     }
+
+#if USE_KOKKOS
+    makeOceanIndexDevice();
+#endif
 }
 
 ModelArray ModelComponent::mask(const ModelArray& data, const double missingValue)
@@ -66,5 +79,21 @@ ModelArray ModelComponent::mask(const ModelArray& data, const double missingValu
 }
 
 const ModelArray& ModelComponent::oceanMask() { return oceanMaskSingleton(); }
+
+#if USE_KOKKOS
+void ModelComponent::makeOceanIndexDevice()
+{
+    // some tests don't need Kokkos
+    if (!Kokkos::is_initialized()) {
+        return;
+    }
+
+    std::vector<DeviceIndex> buf(oceanIndex.begin(), oceanIndex.end());
+    oceanIndexDevice = makeKokkosDeviceViewMap("oceanIndex", buf, MakeViewOptions::ALWAYS_COPY);
+    Finalizer::registerUnique(destroyOceanIndex);
+}
+
+void ModelComponent::destroyOceanIndex() { oceanIndexDevice.assign_data(nullptr); }
+#endif
 
 } /* namespace Nextsim */

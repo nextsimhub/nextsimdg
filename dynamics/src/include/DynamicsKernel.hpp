@@ -91,7 +91,6 @@ public:
      */
     virtual void setData(const std::string& name, const ModelArray& data)
     {
-
         // Special cases: hice, cice, (damage, stress) <- not yet implemented
         if (name == hiceName || name == ciceName || name == hsnowName) {
             throw std::runtime_error(std::string("Use setDGArray() to set the data for ") + name);
@@ -138,6 +137,23 @@ public:
             return ModelArray(ModelArray::component0Type(ModelArray::AdvectionType));
         }
     }
+
+    // in combination with getAutoRO() this should do the automatic switch
+    // problem: buffer is only marked dirty at the begining but the data is changed in every update
+    // solutions:
+    // * provide accessor instead
+    // * do set data in every update (error prone since it is easily forgotten)
+    // * take fields as arguments to kernel update
+    // virtual void setDGArray(const std::string& name, const DeviceViewAdvect& dgData);
+    // bad interface: copy can't be avoided, no overload possible
+    // virtual DeviceViewMA getDG0Data(const std::string& name) const;
+    // alternative:
+    // virtual void getDG0Data(const std::string& name, const DeviceViewMA& destination) const;
+    // other thinks to consider:
+    // * should make datatransfers in kernel and mirrored views obsolete
+    // * to completely eliminate host views have to also port computeSeaSurfaceHeight?
+    // * no data transfer capability in kernel would it more difficult to debug / develop new
+    // features
 
     virtual void update(const TimestepTime& tst) { ++stepNumber; }
 

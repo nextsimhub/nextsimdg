@@ -5,6 +5,8 @@
 #ifndef SRC_INCLUDE_CONSTANTS_HPP
 #define SRC_INCLUDE_CONSTANTS_HPP
 
+#include "include/KernelAlternatives.hpp"
+
 //! General physical constants of the Earth and universe
 namespace PhysicalConstants {
 
@@ -129,21 +131,27 @@ const double TfOcean = -1.8;
 
 namespace Nextsim {
 //! Convert a temperature from ˚C to K
-inline double kelvin(double celsius) { return celsius + Water::Tf; }
+KERNEL_IMPL_FUNCTION inline double kelvin(double celsius) { return celsius + Water::Tf; }
 
 //! Convert a temperature from K to ˚C
-inline double celsius(double kelvin) { return kelvin - Water::Tf; }
+KERNEL_IMPL_FUNCTION inline double celsius(double kelvin) { return kelvin - Water::Tf; }
 
 //! Convert an angle from radians to degrees
-inline double degrees(double radians) { return radians * PhysicalConstants::rad2deg; }
+KERNEL_IMPL_FUNCTION inline double degrees(double radians)
+{
+    return radians * PhysicalConstants::rad2deg;
+}
 
 //! Convert an angle from degrees to radians
-inline double radians(double degrees) { return degrees * PhysicalConstants::deg2rad; }
+KERNEL_IMPL_FUNCTION inline double radians(double degrees)
+{
+    return degrees * PhysicalConstants::deg2rad;
+}
 
 //! Convert a pressure from Pa to mbar
-inline double mbar(double pascals) { return pascals / 100; }
+KERNEL_IMPL_FUNCTION inline double mbar(double pascals) { return pascals / 100; }
 
 //! Convert a pressure from mbar to Pa
-inline double pascals(double mbar) { return mbar * 100; }
+KERNEL_IMPL_FUNCTION inline double pascals(double mbar) { return mbar * 100; }
 }
 #endif /* SRC_INCLUDE_CONSTANTS_HPP */

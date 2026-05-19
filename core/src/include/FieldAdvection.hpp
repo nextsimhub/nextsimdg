@@ -11,6 +11,10 @@
 #include "include/ModelArray.hpp"
 #include "include/Time.hpp"
 
+#ifdef USE_KOKKOS
+#include "include/ModelArrayStore.hpp" // needed for DeviceViewMA
+#endif
+
 namespace Nextsim {
 
 class FieldAdvection {
@@ -26,6 +30,18 @@ public:
     static ModelArray& advectField(ModelArray& field, const TimestepTime& tst,
         double lowerLimit = -std::numeric_limits<double>::infinity(),
         double upperLimit = std::numeric_limits<double>::infinity());
+
+#ifdef USE_KOKKOS
+    static void advectField(const DeviceViewMA& field, const TimestepTime& tst,
+        double lowerLimit = -std::numeric_limits<double>::infinity(),
+        double upperLimit = std::numeric_limits<double>::infinity());
+
+/*    template<typename ExecSpace>
+    static void advectField(ExecSpace execSpace, const DeviceViewMA& field, const TimestepTime& tst,
+        double lowerLimit = -std::numeric_limits<double>::infinity(),
+        double upperLimit = std::numeric_limits<double>::infinity())
+    {}*/
+#endif
 };
 
 } /* namespace Nextsim */

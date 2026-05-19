@@ -30,7 +30,7 @@ class ParaGridIO;
 class Xios : public Configured<Xios> {
 private:
     //! Private constructor
-    Xios(const std::string contextId = "nextSIM-DG", const std::string calendarType = "Gregorian");
+    Xios();
 
     //! Performs some one-time initialization for the class. Returns true.
     static bool doOnce();
@@ -41,15 +41,10 @@ public:
     //! Prevent copying
     Xios(const Xios&) = delete;
 
-    /*
-     * Define Xios handler Singleton
-     *
-     * NOTE: The arguments will only be used the first time this is called.
-     */
-    inline static Xios& getInstance(
-        const std::string contextId = "nextSIM-DG", const std::string calendarType = "Gregorian")
+    //! Define Xios handler Singleton
+    inline static Xios& getInstance()
     {
-        static Xios instance = Xios(contextId, calendarType);
+        static Xios instance = Xios();
         return instance;
     };
 
@@ -65,74 +60,31 @@ public:
 
     /* Configuration */
     void configure() override;
-    void configureServer();
+    static void setSphericalCoordinates(const bool isSpherical) { spherical = isSpherical; }
+    static bool sphericalCoordinates() { return spherical; }
 
     /* Calendar, date and duration */
-    void setCalendarType(const std::string type);
-    void setCalendarOrigin(const TimePoint origin);
-    void setCalendarStart(const TimePoint start);
+    void setCalendarStart(const TimePoint& start);
     void setCalendarStep(const int stepNumber);
     void incrementCalendar();
-    TimePoint getCalendarOrigin();
     TimePoint getCalendarStart();
     int getCalendarStep();
     TimePoint getCurrentDate();
 
     /* Axis */
-    void createAxis(const std::string axisId);
-    void setAxisSize(const std::string axisId, const size_t size);
-    size_t getAxisSize(const std::string axisId);
-
-    /* Grid */
-    void createGrid(const std::string gridId);
-    void gridAddAxis(std::string axisId, const std::string gridId);
-    std::vector<std::string> getGridAxisIds(const std::string gridId);
+    size_t getAxisSize(const std::string& axisId);
 
     /* Field */
-    void createField(const std::string fieldId);
-    void setFieldOperation(const std::string fieldId, const std::string operation);
-    void setFieldGridRef(const std::string fieldId, const std::string gridRef);
-    void setFieldFreqOffset(const std::string fieldId, const Duration freqOffset);
-    std::string getFieldOperation(const std::string fieldId);
-    std::string getFieldGridRef(const std::string fieldId);
-    bool getFieldReadAccess(const std::string fieldId);
-    Duration getFieldFreqOffset(const std::string fieldId);
-    std::set<std::string> configGetForcingFieldNames();
-    ModelArray::Type getFieldType(const std::string fieldId);
-    void setFieldType(const std::string fieldId, ModelArray::Type type);
-
-    /* File */
-    void createFile(const std::string fileId, const int fieldType);
-    void setFileType(const std::string fileId, const std::string fileType);
-    void setFileOutputFreq(const std::string fileId, const Duration outputFreq);
-    void setFileParAccess(const std::string fileId, const std::string parAccess);
-    std::string getFileType(const std::string fileId);
-    Duration getFileOutputFreq(const std::string fileId);
-    std::string getFileMode(const std::string fileId);
-    std::string getFileParAccess(const std::string fileId);
-    void fileAddField(const std::string fileId, const std::string fieldId);
-    std::vector<std::string> fileGetFieldIds(const std::string fileId);
+    void setPrognosticFieldType(const std::string& fieldId, const ModelArray::Type& type);
+    void setDiagnosticFieldType(const std::string& fieldId, const ModelArray::Type& type);
 
     enum {
         ENABLED_KEY,
-        OUTPUT_FIELD_NAMES_KEY,
-        OUTPUT_SPLITFREQ_KEY,
-        INPUT_FIELD_NAMES_KEY,
         DIAGNOSTIC_PERIOD_KEY,
         DIAGNOSTIC_FILE_KEY,
         DIAGNOSTIC_FIELD_NAMES_KEY,
-        DIAGNOSTIC_SPLITFREQ_KEY,
-        FORCING_PERIOD_KEY,
-        FORCING_FILE_KEY,
-        FORCING_FIELD_NAMES_KEY,
-    };
-
-    // TODO: Make the following enum private
-    enum {
-        OUTPUT_RESTART,
-        INPUT_RESTART,
-        DIAGNOSTIC,
-        FORCING,
+        ERA5_FORCING_FILE_KEY,
+        TOPAZ_FORCING_FILE_KEY,
     };
 
 protected:
@@ -140,8 +92,6 @@ protected:
 
 private:
     inline static bool isEnabled = false;
-    std::string clientId;
-    std::string contextId;
     MPI_Comm clientComm;
     MPI_Fint clientComm_F;
     MPI_Fint nullComm_F;
@@ -150,91 +100,142 @@ private:
     int cStrLen { 20 }; // Length of C-strings passed to XIOS
 
     /* Configuration */
-    void parseInputFiles();
+    void parseConfig();
+    inline static bool spherical = false;
+
+    /* Client */
+    const std::string clientId = "client";
+    void setupClient();
+
+    /* Context */
+    enum {
+        PRE_DEFINITION, // XIOS context has not yet been initialized
+        DEFINITION_OPEN, // XIOS context has been initialized but the definition has not been closed
+        DEFINITION_CLOSED, // XIOS context definition has been closed
+    };
+    int contextStatus = PRE_DEFINITION;
+    const std::string contextId = "nextSIM-DG";
+    void setupContext();
 
     /* Calendar, date and duration */
-    std::string calendarType;
     xios::CCalendarWrapper* clientCalendar;
-    std::string convertXiosDatetimeToString(const cxios_date datetime, const bool isoFormat = true);
-    cxios_date convertStringToXiosDatetime(const std::string datetime, const bool isoFormat = true);
+    std::string convertXiosDatetimeToString(
+        const cxios_date& datetime, const bool isoFormat = true);
+    cxios_date convertStringToXiosDatetime(std::string datetime, const bool isoFormat = true);
     std::string convertCStrToCppStr(const char* cStr, int cStrLen);
-    Duration convertDurationFromXios(const cxios_duration duration);
-    cxios_duration convertDurationToXios(const Duration duration);
+    Duration convertDurationFromXios(const cxios_duration& duration);
+    cxios_duration convertDurationToXios(const Duration& duration);
+    void setupCalendar();
 
     /* Axis */
-    std::map<ModelArray::Type, std::string> axisIds = {
-        { ModelArray::Type::VERTEX, "VertexAxis" },
-        { ModelArray::Type::DG, "DGAxis" },
-        { ModelArray::Type::DGSTRESS, "DGSAxis" },
-    };
-    std::map<std::string, std::string> axisNames = {
-        { "VertexAxis", "ncoords" },
-        { "DGAxis", "dg_comp" },
-        { "DGSAxis", "dgstress_comp" },
-    };
-    xios::CAxisGroup* getAxisGroup();
-    xios::CAxis* getAxis(const std::string axisId);
-    void setupAxes();
+    xios::CAxis* getAxis(const std::string& axisId);
 
     /* Domain */
+    // NOTE: Dimension names get processed as <dim>_<domainId> by XIOS, so we define the domainIds
+    //       so that these coincide with the altnames when applied to dimensions x and y.
     std::map<ModelArray::Type, std::string> domainIds = {
-        { ModelArray::Type::H, "HDomain" },
-        { ModelArray::Type::VERTEX, "VertexDomain" },
-        { ModelArray::Type::DG, "HDomain" },
-        { ModelArray::Type::DGSTRESS, "HDomain" },
-        { ModelArray::Type::CG, "CGDomain" },
+        // Standard cell-based x- and y-dimensions (alt. names x_dim and y_dim)
+        { ModelArray::Type::H, "dim" },
+        { ModelArray::Type::U, "dim" },
+        { ModelArray::Type::V, "dim" },
+        { ModelArray::Type::DG, "dim" },
+        { ModelArray::Type::DGSTRESS, "dim" },
+        // Vertex-based x- and y-dimensions (alt. names x_vertex and y_vertex)
+        { ModelArray::Type::VERTEX, "vertex" },
+        // CG-based x- and y-dimensions (alt. names x_cg and y_cg)
+        { ModelArray::Type::CG, "cg" },
+    };
+    std::map<std::string, bool> domainWritten = {
+        { "dim", false },
+        { "vertex", false },
+        { "cg", false },
     };
     xios::CDomainGroup* getDomainGroup();
-    xios::CDomain* getDomain(std::string domainId);
+    xios::CDomain* getDomain(const std::string& domainId);
     void setupDomains();
 
     /* Grid */
-    xios::CGridGroup* getGridGroup();
-    xios::CGrid* getGrid(const std::string gridId);
+    xios::CGrid* getGrid(const std::string& gridId);
     std::map<ModelArray::Type, std::string> gridIds = {
         { ModelArray::Type::H, "HGrid" },
-        { ModelArray::Type::VERTEX, "VertexGrid" },
+        { ModelArray::Type::U, "UGrid" },
+        { ModelArray::Type::V, "VGrid" },
         { ModelArray::Type::DG, "DGGrid" },
         { ModelArray::Type::DGSTRESS, "DGSGrid" },
+        { ModelArray::Type::VERTEX, "VertexGrid" },
         { ModelArray::Type::CG, "CGGrid" },
     };
     void setupGrids();
 
     /* Field */
     xios::CFieldGroup* getFieldGroup();
-    xios::CField* getField(const std::string fieldId);
-    void setFieldReadAccess(const std::string fieldId, const bool readAccess);
-    std::set<std::string> configGetOutputRestartFieldNames();
-    std::set<std::string> configGetInputRestartFieldNames();
-    std::set<std::string> configGetDiagnosticFieldNames();
-    std::set<std::string> configGetOutputFieldNames();
-    std::set<std::string> configGetInputFieldNames();
-    std::set<std::string> configGetFieldNames(const bool readAccess);
-    bool configCheckField(const std::string fieldId, const bool readAccess);
+    xios::CField* getField(const std::string& fieldId);
+    std::set<std::string> outputRestartFieldNames;
+    std::set<std::string> inputRestartFieldNames;
+    std::set<std::string> diagnosticFieldNames;
+    std::set<std::string> era5ForcingFieldNames;
+    std::set<std::string> topazForcingFieldNames;
+    std::set<std::string> fieldNames;
+    void createField(const std::string& fieldId, const std::string& fileId);
+    std::string getFieldIOId(const std::string& fieldId, const int ioType);
+    std::string createInputField(const std::string& fieldId, const int ioType);
+    void setFieldOperation(const std::string& fieldId, const int ioType);
+    void setFieldReadAccess(const std::string& fieldId, const bool& readAccess);
+    void setFieldGridRef(const std::string& fieldId, const std::string& gridRef);
+    void setFieldFreqOffset(const std::string& fieldId, const Duration& freqOffset);
+    bool getFieldReadAccess(const std::string& fieldId);
+    Duration getFieldFreqOffset(const std::string& fieldId);
+    ModelArray::Type getFieldType(const std::string& fieldId);
     std::map<std::string, ModelArray::Type> fieldTypes;
+    void setupFields();
+    void setFieldType(const std::string& fieldId, const ModelArray::Type& type, const int ioType);
+    std::set<std::string> inputFieldsToConvert;
 
     /* File */
     xios::CFileGroup* getFileGroup();
-    xios::CFile* getFile(const std::string fileId);
-    void setFileMode(const std::string fileId, const std::string mode);
-    std::string outputFilename;
+    xios::CFile* getFile(const std::string& fileId);
+    int getFileIOType(const std::string& fileId);
     std::string outputFileId;
-    std::string inputFilename;
+    std::string outputFormatStr = "%y-%mo-%dT%h:%mi:%sZ";
     std::string inputFileId;
     std::string diagnosticFilename;
     std::string diagnosticFileId;
-    std::string forcingFilename;
-    std::string forcingFileId;
+    std::string diagnosticFormatStr = "%y-%mo-%dT%h:%mi:%sZ";
+    std::string era5ForcingFilename;
+    std::string era5ForcingFileId;
+    std::string topazForcingFilename;
+    std::string topazForcingFileId;
+    enum {
+        NOT_READ, // Either unused or generically written but not read
+        OUTPUT_RESTART, // Written as restart
+        INPUT_RESTART, // Read as restart
+        DIAGNOSTIC, // Written as diagnostic
+        ERA5_FORCING, // Read as ERA5 forcing
+        TOPAZ_FORCING, // Read as TOPAZ forcing
+    };
     const std::map<int, std::string&> fileMap = {
         { OUTPUT_RESTART, outputFileId },
         { INPUT_RESTART, inputFileId },
         { DIAGNOSTIC, diagnosticFileId },
-        { FORCING, forcingFileId },
+        { ERA5_FORCING, era5ForcingFileId },
+        { TOPAZ_FORCING, topazForcingFileId },
     };
+    void setupFiles();
+    void createFile(const std::string& fileId);
+    void fileAddField(const std::string& fileId, const std::string& fieldId);
+    std::vector<std::string> fileGetFieldIds(const std::string& fileId);
+    const std::map<std::string, std::string> formatStrMap = {
+        { "%Y", "%y" },
+        { "%m-", "%mo-" },
+        { "%H", "%h" },
+        { "%M", "%mi" },
+        { "%S", "%s" },
+    };
+    void postprocessOutputFiles();
 
     /* I/O */
-    void read(const std::string fieldId, ModelArray& modelarray);
-    void write(const std::string fieldId, ModelArray& modelarray);
+    void read(const std::string& fieldId, ModelArray& modelarray);
+    void write(const std::string& fieldId, const ModelArray& modelarray);
 
     /* Declare any classes that need to access private members */
     friend ParaGridIO;

@@ -238,12 +238,12 @@ if __name__ == "__main__":
     era5_ncFile = netCDF4.Dataset(era5_out_file, "w", format="NETCDF4")
     era5_ncFile.structure_name = target_structure
 
-    xDim = era5_ncFile.createDimension("xdim", nx)
-    yDim = era5_ncFile.createDimension("ydim", ny)
+    xDim = era5_ncFile.createDimension("x_dim", nx)
+    yDim = era5_ncFile.createDimension("y_dim", ny)
     tDim = era5_ncFile.createDimension("time", None)
 
-    hfield_dims = ("ydim", "xdim")
-    timefield_dims = ("time", "ydim", "xdim")
+    hfield_dims = ("y_dim", "x_dim")
+    timefield_dims = ("time", "y_dim", "x_dim")
 
     # Position and time variables
     nc_lons = era5_ncFile.createVariable("longitude", "f8", hfield_dims)
@@ -352,8 +352,8 @@ if __name__ == "__main__":
     print(f"Writing TOPAZ4 data to {topaz_out_file}")
     topaz_ncFile.structure_name = target_structure
 
-    xDim = topaz_ncFile.createDimension("xdim", nx)
-    yDim = topaz_ncFile.createDimension("ydim", ny)
+    xDim = topaz_ncFile.createDimension("x_dim", nx)
+    yDim = topaz_ncFile.createDimension("y_dim", ny)
     tDim = topaz_ncFile.createDimension("time", None)
 
     (unix_times_t, topaz4_times) = create_topaz_times(start_time, stop_time)
@@ -401,8 +401,8 @@ if __name__ == "__main__":
                 # Now interpolate the source data to the target grid
                 time_data = np.zeros((nx, ny))
                 proj_string = source_file["stereographic"].proj4
-                source_x = source_file["x"][:]
-                source_y = source_file["y"][:]
+                source_x = source_file["x_dim"][:]
+                source_y = source_file["y_dim"][:]
                 time_data = topaz4_interpolate(
                     element_lon,
                     element_lat,
@@ -441,8 +441,8 @@ if __name__ == "__main__":
         v_source_data_tgrid = np.zeros((nx, ny))
         # Interpolate the current components on the TOPAZ basis on to the new grid
         proj_string = source_file["stereographic"].proj4
-        source_x = source_file["x"][:]
-        source_y = source_file["y"][:]
+        source_x = source_file["x_dim"][:]
+        source_y = source_file["y_dim"][:]
         u_source_data_tgrid = topaz4_interpolate(
             element_lon, element_lat, u_source_data, source_x, source_y, proj_string
         )

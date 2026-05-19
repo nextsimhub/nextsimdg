@@ -6,7 +6,7 @@
 #ifndef IDAMAGEHEALING_HPP
 #define IDAMAGEHEALING_HPP
 
-#include "include/ModelArrayRef.hpp"
+#include "include/ModelArrayAccessor.hpp"
 #include "include/ModelComponent.hpp"
 
 namespace Nextsim {
@@ -26,15 +26,15 @@ public:
 
 protected:
     IDamageHealing()
-        : cice(getStore())
-        , deltaCi(getStore())
-        , damage(getStore())
+        : ciceAccessor(getStore())
+        , deltaCiAccessor(getStore())
+        , damageAccessor(getStore())
     {
     }
 
-    ModelArrayRef<Shared::C_ICE_DG, RO> cice; // From prognostic data
-    ModelArrayRef<Shared::DELTA_CICE, RO> deltaCi; // From LateralIceSpread
-    ModelArrayRef<Shared::DAMAGE, RW> damage; // From prognostic data
+    ModelArrayAccessor<Shared::C_ICE_DG, RO> ciceAccessor; // From prognostic data
+    ModelArrayAccessor<Shared::DELTA_CICE, RO> deltaCiAccessor; // From LateralIceSpread
+    ModelArrayAccessor<Shared::DAMAGE, RW> damageAccessor; // From prognostic data
 };
 
 } /* namespace Nextsim */

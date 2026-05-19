@@ -47,6 +47,9 @@ public:
     //! Add a Duration to a TimePoint to get a TimePoint (now + 7 days = next week).
     TimePoint operator+(const TimePoint& t) const;
 
+    //! Subtract a Duration from a TimePoint to get a TimePoint
+    TimePoint operator-(const TimePoint& t) const;
+
     //! Add-assign a Duration to this.
     Duration& operator+=(const Duration& a)
     {
@@ -181,6 +184,8 @@ public:
 
     //! Calculate the Duration between two TimePoints.
     Duration operator-(const TimePoint& a) const { return Duration(m_t - a.m_t); }
+    //! Subtract a Duration from this TimePoint
+    TimePoint operator-(const Duration& d) const { return TimePoint(m_t - d.m_d); }
     //! Add-assign a Duration to this TimePoint (now + 7 days = next week).
     TimePoint& operator+=(const Duration& d)
     {

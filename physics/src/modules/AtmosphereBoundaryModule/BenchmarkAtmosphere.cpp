@@ -14,13 +14,13 @@ void BenchmarkAtmosphere::setData(const ModelState::DataMap& ms)
     IAtmosphereBoundary::setData(ms);
     BenchmarkCoordinates::setData();
     // Constant, zero fluxes in the atmosphere
-    qia = 0.;
-    dqia_dt = 0.;
-    qow = 0.;
-    subl = 0.;
-    snow = 0.;
-    rain = 0.;
-    evap = 0.;
+    qiaAccessor.getHostRW() = 0.;
+    dqia_dtAccessor.getHostRW() = 0.;
+    qowAccessor.getHostRW() = 0.;
+    sublAccessor.getHostRW() = 0.;
+    snowAccessor.getHostRW() = 0.;
+    rainAccessor.getHostRW() = 0.;
+    evapAccessor.getHostRW() = 0.;
 }
 
 void BenchmarkAtmosphere::update(const TimestepTime& tst)
@@ -58,6 +58,9 @@ void BenchmarkAtmosphere::update(const TimestepTime& tst)
     // distance from the centre of the cyclone
     const ModelArray& xPrime = BenchmarkCoordinates::x() - x0;
     const ModelArray& yPrime = BenchmarkCoordinates::y() - y0;
+
+    UField& uwind = uwindAccessor.getHostRW();
+    VField& vwind = vwindAccessor.getHostRW();
 
     // Perform the rest of the calculation per element
     for (size_t j = 0; j < BenchmarkCoordinates::ny(); ++j) {

@@ -44,12 +44,14 @@ private:
     // be static.
     static std::string filePath;
 
-    HField tair;
-    HField tdew;
-    HField pair;
-    HField sw_in;
-    HField lw_in;
-    HField wind;
+    ModelState forcingState;
+
+    ModelArrayAccessor<Protected::T_AIR, RW> tairAccessor;
+    ModelArrayAccessor<Protected::DEW_2M, RW> tdewAccessor;
+    ModelArrayAccessor<Protected::P_AIR, RW> pairAccessor;
+    ModelArrayAccessor<Protected::SW_IN, RW> sw_inAccessor;
+    ModelArrayAccessor<Protected::LW_IN, RW> lw_inAccessor;
+    ModelArrayAccessor<Protected::WIND_SPEED, RW> windAccessor;
 
     IFluxCalculation* fluxImpl;
 };

@@ -59,6 +59,10 @@ Model::~Model() { }
 
 void Model::configureRestarts()
 {
+    // Ensure configureRestarts is only called once
+    if (configuredRestarts) {
+        return;
+    }
     ModelMetadata& metadata = ModelMetadata::getInstance();
 
     // Parse the initial restart file name and the pattern for output restart files
@@ -71,10 +75,19 @@ void Model::configureRestarts()
     std::string restartPeriodStr
         = Configured::getConfiguration(keyMap.at(RESTARTPERIOD_KEY), std::string("0"));
     metadata.restartPeriod = Duration(restartPeriodStr);
+
+    // Set global dimensions with an initial read of the input file
+    metadata.setDimensionsFromFile(metadata.initialFileName);
+
+    configuredRestarts = true;
 }
 
 void Model::configureTime()
 {
+    // Ensure configureTime is only called once
+    if (configuredTime) {
+        return;
+    }
     ModelMetadata& metadata = ModelMetadata::getInstance();
 
 #ifdef USE_XIOS
@@ -103,6 +116,8 @@ void Model::configureTime()
         metadata.setTimes(startTimeStr, Duration(runLengthStr), stepStr);
     }
     iterator.setStartStopStep(metadata.startTime(), metadata.stopTime(), metadata.stepLength());
+
+    configuredTime = true;
 }
 
 void Model::configure()
@@ -116,14 +131,17 @@ void Model::configure()
 
     configureRestarts();
 
+    // Configure parameters related to the temporal discretisation
+    configureTime();
+
+    // Configure prognostic data
     pData.configure();
 
     auto& metadata = ModelMetadata::getInstance();
     modelStep.init();
     modelStep.setInitFile(metadata.initialFileName);
 
-    configureTime();
-
+    // Read the initial state from file
     ModelState initialState(StructureFactory::stateFromFile(metadata.initialFileName));
 
     // Get the coordinates from the ModelState for persistence
@@ -185,15 +203,27 @@ Model::HelpMap& Model::getHelpRecursive(HelpMap& map, bool getAll)
 
 void Model::run()
 {
+    Nextsim::ModelComponent::getStore().checkAllRegistered();
+
+#ifdef USE_XIOS
+    Xios& xiosHandler = Xios::getInstance();
+#endif
+
     try {
         iterator.run();
     } catch (const std::exception& e) {
         writeRestartFile();
+#ifdef USE_XIOS
+        xiosHandler.context_finalize();
+#endif
         Finalizer::finalize();
         throw;
     }
 
     writeRestartFile();
+#ifdef USE_XIOS
+    xiosHandler.context_finalize();
+#endif
     Finalizer::finalize();
 }
 

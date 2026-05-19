@@ -30,8 +30,8 @@ MPI_TEST_CASE("TestXiosAxis", 3)
 {
     std::stringstream config;
     config << "[model]" << std::endl;
-    config << "start = 2023-03-17T17:11:00Z" << std::endl;
-    config << "stop = 2023-03-17T18:11:00Z" << std::endl;
+    config << "start = 2023-03-17T00:00:00Z" << std::endl;
+    config << "stop = 2023-03-17T00:00:00Z" << std::endl;
     config << "time_step = P0-0T01:00:00" << std::endl;
     config << "partition_file = xios_test_partition_metadata_3.nc" << std::endl;
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
@@ -50,18 +50,12 @@ MPI_TEST_CASE("TestXiosAxis", 3)
     //       Model::configureTime() above.
     Xios& xiosHandler = Xios::getInstance();
 
-    // --- Tests for axis API
-    const std::string axisId = { "axis_A" };
-    REQUIRE_THROWS_WITH(xiosHandler.getAxisSize(axisId), "Xios: Undefined axis 'axis_A'");
-    xiosHandler.createAxis(axisId);
-    REQUIRE_THROWS_WITH(xiosHandler.createAxis(axisId), "Xios: Axis 'axis_A' already exists");
-    // Axis size
-    REQUIRE_THROWS_WITH(xiosHandler.getAxisSize(axisId), "Xios: Undefined size for axis 'axis_A'");
-    const size_t axisSize { 2 };
-    xiosHandler.setAxisSize(axisId, axisSize);
-    REQUIRE(xiosHandler.getAxisSize(axisId) == axisSize);
+    // Tests for axis size getter
+    REQUIRE_THROWS_WITH(xiosHandler.getAxisSize("axis_A"), "Xios: Undefined axis 'axis_A'");
+    REQUIRE(xiosHandler.getAxisSize("DGAxis") == 6);
+    REQUIRE(xiosHandler.getAxisSize("DGSAxis") == 8);
+    REQUIRE(xiosHandler.getAxisSize("VertexAxis") == 2);
 
-    xiosHandler.close_context_definition();
     xiosHandler.context_finalize();
     Finalizer::finalize();
 }

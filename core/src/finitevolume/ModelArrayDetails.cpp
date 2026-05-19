@@ -13,10 +13,10 @@
 
 namespace Nextsim {
 std::map<ModelArray::Dimension, ModelArray::DimensionSpec> ModelArray::definedDimensions = {
-    { ModelArray::Dimension::X, { "xdim", "x", 0, 0, 0 } },
-    { ModelArray::Dimension::Y, { "ydim", "y", 0, 0, 0 } },
-    { ModelArray::Dimension::XVERTEX, { "xvertex", "xvertex", 1, 1, 0 } }, // defined as x + 1
-    { ModelArray::Dimension::YVERTEX, { "yvertex", "yvertex", 1, 1, 0 } }, // defined as y + 1
+    { ModelArray::Dimension::X, { "x_dim", "xdim", 0, 0, 0 } },
+    { ModelArray::Dimension::Y, { "y_dim", "ydim", 0, 0, 0 } },
+    { ModelArray::Dimension::XVERTEX, { "x_vertex", "xvertex", 1, 1, 0 } }, // defined as x + 1
+    { ModelArray::Dimension::YVERTEX, { "y_vertex", "yvertex", 1, 1, 0 } }, // defined as y + 1
 };
 
 ModelArray::TypeDimensions ModelArray::typeDimensions = {
@@ -83,5 +83,7 @@ const std::map<ModelArray::Type, ModelArray::Dimension> ModelArray::componentMap
 };
 
 const ModelArray::TypeMap ModelArray::definedComp0Map() { return {}; };
+
+const ModelArray::Type ModelArray::AdvectionType = ModelArray::Type::H;
 
 }
