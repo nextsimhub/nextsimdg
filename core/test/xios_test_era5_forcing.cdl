@@ -22,15 +22,15 @@ variables:
 		y_dim:standard_name = "latitude" ;
 		y_dim:long_name = "Latitude" ;
 		y_dim:units = "degrees_north" ;
-	double time_instant(time_counter) ;
+	FloatType time_instant(time_counter) ;
 		time_instant:standard_name = "time" ;
 		time_instant:long_name = "Time axis" ;
 		time_instant:calendar = "gregorian" ;
 		time_instant:units = "seconds since 1970-01-01 00:00:00" ;
 		time_instant:time_origin = "1970-01-01 00:00:00" ;
 		time_instant:bounds = "time_instant_bounds" ;
-	double time_instant_bounds(time_counter, axis_nbounds) ;
-	double time_counter(time_counter) ;
+	FloatType time_instant_bounds(time_counter, axis_nbounds) ;
+	FloatType time_counter(time_counter) ;
 		time_counter:axis = "T" ;
 		time_counter:standard_name = "time" ;
 		time_counter:long_name = "Time axis" ;
@@ -38,7 +38,7 @@ variables:
 		time_counter:units = "seconds since 1970-01-01 00:00:00" ;
 		time_counter:time_origin = "1970-01-01 00:00:00" ;
 		time_counter:bounds = "time_counter_bounds" ;
-	double time_counter_bounds(time_counter, axis_nbounds) ;
+	FloatType time_counter_bounds(time_counter, axis_nbounds) ;
 	float tair(time_counter, y_dim, x_dim) ;
 		tair:online_operation = "instant" ;
 		tair:interval_operation = "3600 s" ;

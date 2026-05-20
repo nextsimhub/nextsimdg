@@ -18,7 +18,7 @@ public:
     static ModelState getData();
 
 private:
-    static std::vector<double> landmask25km_NH();
+    static std::vector<FloatType> landmask25km_NH();
 };
 
 }

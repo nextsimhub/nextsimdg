@@ -5,6 +5,8 @@
 #ifndef KERNEL_ALTERNATIVES_HPP
 #define KERNEL_ALTERNATIVES_HPP
 
+#include "FloatType.hpp"
+
 #ifdef USE_KOKKOS
 #include "../kokkos/include/KokkosUtils.hpp"
 #include <Kokkos_Core.hpp>
@@ -48,6 +50,7 @@ using DefaultExecutionSpace = Kokkos::DefaultExecutionSpace;
 struct ExecutionSpaceDummy { };
 using DefaultExecutionSpace = ExecutionSpaceDummy;
 #endif
-}
+
+} /* namespace Nextsim */
 
 #endif /* KERNEL_ALTERNATIVES_HPP */

@@ -11,7 +11,7 @@ namespace Nextsim {
 
 class IColumnPhysics {
 public:
-    inline static void setMinima(double hMin, double cMin)
+    inline static void setMinima(FloatType hMin, FloatType cMin)
     {
         IceMinima::hMin = hMin;
         IceMinima::cMin = cMin;
@@ -23,8 +23,8 @@ TEST_CASE("Set and retrieve ice minima values")
 {
     // IColumnPhysics is a friend of IceMinima. Here is a fake IColumnPhysics
     // class that directly sets the minimum values without configuration.
-    const double hMinTest = 0.1;
-    const double cMinTest = 1e-6;
+    const FloatType hMinTest = 0.1;
+    const FloatType cMinTest = 1e-6;
 
     IColumnPhysics::setMinima(hMinTest, cMinTest);
     REQUIRE(IceMinima::h() == hMinTest);

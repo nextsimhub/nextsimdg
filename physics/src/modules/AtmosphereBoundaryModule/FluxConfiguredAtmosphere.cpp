@@ -6,15 +6,15 @@
 
 namespace Nextsim {
 
-double FluxConfiguredAtmosphere::qia0 = 305.288;
-double FluxConfiguredAtmosphere::dqia_dt0 = 4.5036;
-double FluxConfiguredAtmosphere::qow0 = 307.546;
-double FluxConfiguredAtmosphere::subl0 = 0;
-double FluxConfiguredAtmosphere::snowfall0 = 0;
-double FluxConfiguredAtmosphere::rain0 = 0;
-double FluxConfiguredAtmosphere::evap0 = 0;
-double FluxConfiguredAtmosphere::u0 = 0;
-double FluxConfiguredAtmosphere::v0 = 0;
+FloatType FluxConfiguredAtmosphere::qia0 = 305.288;
+FloatType FluxConfiguredAtmosphere::dqia_dt0 = 4.5036;
+FloatType FluxConfiguredAtmosphere::qow0 = 307.546;
+FloatType FluxConfiguredAtmosphere::subl0 = 0;
+FloatType FluxConfiguredAtmosphere::snowfall0 = 0;
+FloatType FluxConfiguredAtmosphere::rain0 = 0;
+FloatType FluxConfiguredAtmosphere::evap0 = 0;
+FloatType FluxConfiguredAtmosphere::u0 = 0;
+FloatType FluxConfiguredAtmosphere::v0 = 0;
 
 static const std::string pfx = "FluxConfiguredAtmosphere";
 static const std::string qiaKey = pfx + ".Q_ia";

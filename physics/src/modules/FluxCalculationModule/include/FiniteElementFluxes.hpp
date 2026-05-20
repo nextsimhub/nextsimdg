@@ -138,11 +138,11 @@ private:
     ModelArrayAccessor<Protected::ICE_ALBEDO> iceAlbedoAccessor;
     ModelArrayAccessor<Protected::ICE_PEN_SW> icePenSWAccessor;
 
-    static double dragOcean_q;
-    static double dragOcean_t;
-    static double dragIce_t;
+    static FloatType dragOcean_q;
+    static FloatType dragOcean_t;
+    static FloatType dragIce_t;
 
-    static double m_oceanAlbedo;
+    static FloatType m_oceanAlbedo;
 
     IIceAlbedo* iIceAlbedoImpl;
 };

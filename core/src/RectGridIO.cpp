@@ -11,6 +11,7 @@
 #include "include/ModelArray.hpp"
 #include "include/ModelMPI.hpp"
 #include "include/ModelState.hpp"
+#include "include/NetCDFUtils.hpp"
 #include "include/gridNames.hpp"
 
 #ifdef USE_MPI
@@ -20,6 +21,7 @@
 #include <ncDim.h>
 #include <ncDouble.h>
 #include <ncFile.h>
+#include <ncFloat.h>
 #include <ncVar.h>
 
 #include <algorithm>
@@ -165,8 +167,8 @@ void RectGridIO::dumpModelState(
     for (const auto entry : state.data) {
         const std::string& name = entry.first;
         if (entry.second.trueSize() > 0) {
-            netCDF::NcVar var(ncFile.addVar(name, netCDF::ncDouble, dims2));
-            var.putAtt(mdiName, netCDF::ncDouble, MissingData::value());
+            netCDF::NcVar var(ncFile.addVar(name, ToNetCDFType<FloatType>::get(), dims2));
+            var.putAtt(mdiName, ToNetCDFType<FloatType>::get(), MissingData::value());
 #ifdef USE_MPI
             var.putVar(start2, size2, entry.second.getData());
 #else

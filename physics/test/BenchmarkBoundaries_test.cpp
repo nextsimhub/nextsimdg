@@ -37,7 +37,7 @@ TEST_CASE("OceanTest")
     REQUIRE(uOcean(iTest, jTest) != 0.);
     REQUIRE(vOcean(iTest, jTest) != 0.);
 
-    double vMaxOcean = 0.01;
+    FloatType vMaxOcean = 0.01;
     REQUIRE(uOcean(0, 0) == -vMaxOcean);
     REQUIRE(vOcean(0, 0) == vMaxOcean);
     REQUIRE(uOcean(nx - 1, ny - 1) == (ny - 2.) / ny * vMaxOcean);
@@ -67,8 +67,8 @@ TEST_CASE("AtmosphereTest")
     // Check the wind at an arbitrary point lies in a reasonable range
     size_t iTest = 50;
     size_t jTest = 40;
-    const double uTest = uWindAccessor.getHostRO()(iTest, jTest);
-    const double vTest = vWindAccessor.getHostRO()(iTest, jTest);
+    const FloatType uTest = uWindAccessor.getHostRO()(iTest, jTest);
+    const FloatType vTest = vWindAccessor.getHostRO()(iTest, jTest);
     REQUIRE(uTest != 0.);
     REQUIRE(vTest != 0.);
 

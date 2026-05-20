@@ -136,7 +136,7 @@ protected:
     // Owned, Module-private arrays
     ModelArrayAccessor<Private::SNOW_TO_ICE, RW> snowToIceAccessor;
 
-    constexpr static double minT = -90.0;
+    constexpr static FloatType minT = -90.0;
 };
 
 } /* namespace Nextsim */

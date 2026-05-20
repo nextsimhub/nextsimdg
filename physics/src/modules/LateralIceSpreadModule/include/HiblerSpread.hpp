@@ -42,8 +42,8 @@ public:
     void update(const TimestepTime& tstep) override;
 
 private:
-    static double h0;
-    static double phiM;
+    static FloatType h0;
+    static FloatType phiM;
 
     ModelArrayAccessor<Protected::ML_BULK_CP>
         mixedLayerBulkHeatCapacityAccessor; // J K⁻¹ m⁻², from atmospheric state

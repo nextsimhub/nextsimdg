@@ -58,10 +58,10 @@ private:
     ModelArrayAccessor<Protected::SW_IN> sw_inAccessor;
     ModelArrayAccessor<Shared::SUBLIM, RO> sublAccessor;
 
-    static const double cVol;
+    static const FloatType cVol;
     static bool doFlooding;
-    static const double seaIceTf;
-    static double kappa_s;
+    static const FloatType seaIceTf;
+    static FloatType kappa_s;
 };
 
 } /* namespace Nextsim */

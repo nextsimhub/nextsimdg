@@ -16,8 +16,8 @@ ModelState FakeSmeshData::getData()
     ModelState state;
     size_t nx = 154;
     size_t ny = 121;
-    double dx = 25000.;
-    double dy = 25000.;
+    FloatType dx = 25000.;
+    FloatType dy = 25000.;
     ModelArray::setDimension(ModelArray::Dimension::X, nx);
     ModelArray::setDimension(ModelArray::Dimension::Y, ny);
     ModelArray::setDimension(ModelArray::Dimension::XVERTEX, nx + 1);
@@ -37,9 +37,9 @@ ModelState FakeSmeshData::getData()
 
     // Location of vertices
     for (size_t j = 0; j < ModelArray::size(ModelArray::Dimension::YVERTEX); ++j) {
-        double y = dy * j;
+        FloatType y = dy * j;
         for (size_t i = 0; i < ModelArray::size(ModelArray::Dimension::XVERTEX); ++i) {
-            double x = dx * i;
+            FloatType x = dx * i;
             state.data.at(coordsName).components({ i, j })[0] = x;
             state.data.at(coordsName).components({ i, j })[1] = y;
         }
@@ -47,9 +47,9 @@ ModelState FakeSmeshData::getData()
 
     // Location of grid element centres
     for (size_t j = 0; j < ny; ++j) {
-        double y = dy * (j + 0.5);
+        FloatType y = dy * (j + 0.5);
         for (size_t i = 0; i < nx; ++i) {
-            double x = dx * (i + 0.5);
+            FloatType x = dx * (i + 0.5);
             state.data.at(xName)(i, j) = x;
             state.data.at(yName)(i, j) = y;
         }
@@ -59,7 +59,7 @@ ModelState FakeSmeshData::getData()
 }
 
 // Returns the 25km_NH.smesh landmask as a C++ array.
-std::vector<double> FakeSmeshData::landmask25km_NH()
+std::vector<FloatType> FakeSmeshData::landmask25km_NH()
 {
     // clang-format off
     return {

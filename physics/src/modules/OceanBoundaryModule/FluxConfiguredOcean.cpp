@@ -10,12 +10,12 @@
 
 namespace Nextsim {
 
-double FluxConfiguredOcean::qio0 = 0;
-double FluxConfiguredOcean::sst0 = -1.5;
-double FluxConfiguredOcean::sss0 = 32;
-double FluxConfiguredOcean::mld0 = 10;
-double FluxConfiguredOcean::u0 = 0;
-double FluxConfiguredOcean::v0 = 0;
+FloatType FluxConfiguredOcean::qio0 = 0;
+FloatType FluxConfiguredOcean::sst0 = -1.5;
+FloatType FluxConfiguredOcean::sss0 = 32;
+FloatType FluxConfiguredOcean::mld0 = 10;
+FloatType FluxConfiguredOcean::u0 = 0;
+FloatType FluxConfiguredOcean::v0 = 0;
 
 static const std::string pfx = "FluxConfiguredOcean";
 static const std::string qioKey = pfx + ".qio";

@@ -161,7 +161,7 @@ public:
         const auto& deltaSmelt = deltaSmeltAccessor.getAutoRO();
         const auto& tauXOW = tauXOWAccessor.getAutoRO();
 
-        const double dt = tst.step.seconds();
+        const FloatType dt = tst.step.seconds();
 
         overElementsAuto(OVER_ELEMENTS_LAMBDA(const ElementIndex i) {
             // Heat fluxes - partitioned in solar and non-solar
@@ -170,15 +170,15 @@ public:
 
             // Mass fluxes - fresh water and salt
             // ice volume change, both laterally and vertically
-            const double deltaIceVol = newIce[i] + deltaHice[i] * cice[i];
+            const FloatType deltaIceVol = newIce[i] + deltaHice[i] * cice[i];
             // change in snow volume due to melting (should be < 0)
-            const double meltSnowVol = deltaSmelt[i] * cice[i];
+            const FloatType meltSnowVol = deltaSmelt[i] * cice[i];
             // the device compiler does not like a global constant appearing in the argument list of
             // a template function: "identifier "Ice::s" is undefined in device code"
-            const double s = Ice::s;
+            const FloatType s = Ice::s;
             // Effective ice salinity is always less than or equal to the SSS, and here we use
             // the right units too
-            const double effectiveIceSal = 1e-3 * Utils::min(s, sss[i]);
+            const FloatType effectiveIceSal = 1e-3 * Utils::min(s, sss[i]);
 
             // Positive flux is up!
             fwFlux[i]

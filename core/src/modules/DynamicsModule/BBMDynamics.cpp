@@ -10,7 +10,7 @@
 namespace Nextsim {
 
 static const std::vector<std::string> namedFields = { uName, vName };
-static const std::map<std::string, std::pair<ModelArray::Type, double>> defaultFields = {};
+static const std::map<std::string, std::pair<ModelArray::Type, FloatType>> defaultFields = {};
 
 // TODO: We should use getName() here, but it isn't static.
 static const std::string prefix = "BBMDynamics"; // MEVPDynamics::getName();
@@ -167,14 +167,14 @@ void BBMDynamics::update(const TimestepTime& tst)
 void BBMDynamics::prepareAdvection() { kernel.prepareAdvection(); }
 
 void BBMDynamics::advectField(
-    double timestep, ModelArray& field, double lowerLimit, double upperLimit)
+    FloatType timestep, ModelArray& field, FloatType lowerLimit, FloatType upperLimit)
 {
     kernel.advectField(timestep, field, lowerLimit, upperLimit);
 }
 
 #ifdef USE_KOKKOS
 void BBMDynamics::advectField(
-    double timestep, const DeviceViewMA& field, double lowerLimit, double upperLimit)
+    FloatType timestep, const DeviceViewMA& field, FloatType lowerLimit, FloatType upperLimit)
 {
     kernel.advectDGVFieldDevice(timestep, field, lowerLimit, upperLimit);
 }

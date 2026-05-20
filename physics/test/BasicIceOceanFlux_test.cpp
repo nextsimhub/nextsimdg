@@ -60,7 +60,7 @@ TEST_CASE("Melting conditions")
     BasicIceOceanHeatFlux biohf;
     biohf.update(tst);
 
-    constexpr double prec = 1e-5;
+    constexpr FloatType prec = 1e-5;
     REQUIRE(qioAccessor.getHostRO()[0] == doctest::Approx(53717.8).epsilon(prec));
 }
 
@@ -104,7 +104,7 @@ TEST_CASE("Freezing conditions")
     BasicIceOceanHeatFlux biohf;
     biohf.update(tst);
 
-    constexpr double prec = 1e-5;
+    constexpr FloatType prec = 1e-5;
     REQUIRE(qioAccessor.getHostRO()[0] == doctest::Approx(73.9465).epsilon(prec));
 }
 TEST_SUITE_END();

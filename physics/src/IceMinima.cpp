@@ -6,10 +6,10 @@
 
 namespace Nextsim {
 
-const double IceMinima::hMinDefault = 0.01;
-const double IceMinima::cMinDefault = 1e-12;
+const FloatType IceMinima::hMinDefault = 0.01;
+const FloatType IceMinima::cMinDefault = 1e-12;
 
-double IceMinima::hMin = hMinDefault;
-double IceMinima::cMin = cMinDefault;
+FloatType IceMinima::hMin = hMinDefault;
+FloatType IceMinima::cMin = cMinDefault;
 
 } /* namespace Nextsim */

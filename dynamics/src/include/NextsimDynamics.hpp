@@ -5,6 +5,8 @@
 #ifndef __NEXTSIMDYNAMICS_HPP
 #define __NEXTSIMDYNAMICS_HPP
 
+#include "include/FloatType.hpp"
+
 #include <array>
 /*!
  * This file include all the definitions that are shared by nearly all nextsim-dynamics
@@ -18,7 +20,7 @@ namespace Nextsim {
  * This is not yet fully checked or supported but might be required in
  * for future use of GPU's
  */
-using FloatType = double;
+using FloatType = FloatType;
 
 enum TENSOR_ELEMENT { I11, I12, I22, N_TENSOR_ELEMENTS };
 const std::array<TENSOR_ELEMENT, N_TENSOR_ELEMENTS> tensorElements = { I11, I12, I22 };

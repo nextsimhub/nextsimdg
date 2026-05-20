@@ -129,14 +129,14 @@ void MEVPDynamics::update(const TimestepTime& tst)
 }
 
 void MEVPDynamics::advectField(
-    double timestep, ModelArray& field, double lowerLimit, double upperLimit)
+    FloatType timestep, ModelArray& field, FloatType lowerLimit, FloatType upperLimit)
 {
     kernel.advectField(timestep, field, lowerLimit, upperLimit);
 }
 
 #ifdef USE_KOKKOS
 void MEVPDynamics::advectField(
-    double timestep, const DeviceViewMA& field, double lowerLimit, double upperLimit)
+    FloatType timestep, const DeviceViewMA& field, FloatType lowerLimit, FloatType upperLimit)
 {
     kernel.advectDGVFieldDevice(timestep, field, lowerLimit, upperLimit);
 }

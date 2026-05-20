@@ -101,7 +101,7 @@ TEST_CASE("New ice formation")
     ModelArrayAccessor<Shared::NEW_ICE, RO> newiceAccessor(ModelComponent::getStore());
     const HField& newice = newiceAccessor.getHostRO();
 
-    double prec = 1e-5;
+    FloatType prec = 1e-5;
     REQUIRE(newice[0] == doctest::Approx(0.0258264).epsilon(prec));
 }
 
@@ -192,7 +192,7 @@ TEST_CASE("Melting conditions")
     ModelArrayAccessor<Shared::H_SNOW_DG, RO> hsnowAccessor(ModelComponent::getStore());
     const HField& hsnow = hsnowAccessor.getHostRO();
 
-    double prec = 1e-5;
+    FloatType prec = 1e-5;
     // The thickness values from old NextSIM are cell-averaged. Perform that
     // conversion here.
     REQUIRE(cice[0] == doctest::Approx(0.368269).epsilon(prec));
@@ -288,7 +288,7 @@ TEST_CASE("Freezing conditions")
     ModelArrayAccessor<Shared::H_SNOW_DG, RO> hsnowAccessor(ModelComponent::getStore());
     const HField& hsnow = hsnowAccessor.getHostRO();
 
-    double prec = 1e-5;
+    FloatType prec = 1e-5;
 
     // The thickness values from old NextSIM are cell-averaged. Perform that
     // conversion here.
@@ -382,7 +382,7 @@ TEST_CASE("Dummy ice")
 
     ig.update(tst);
 
-    //   double prec = 1e-5;
+    //   FloatType prec = 1e-5;
 
     ModelArrayAccessor<Shared::NEW_ICE, RO> newiceAccessor(ModelComponent::getStore());
     const HField& newice = newiceAccessor.getHostRO();
@@ -503,7 +503,7 @@ TEST_CASE("Zero thickness")
     ModelArrayAccessor<Shared::C_ICE_DG, RO> ciceAccessor(ModelComponent::getStore());
     const HField& cice = ciceAccessor.getHostRO();
 
-    //    double prec = 1e-6;
+    //    FloatType prec = 1e-6;
 
     REQUIRE(newice[0] == 0);
     REQUIRE(hice[0] == 0);
@@ -623,7 +623,7 @@ TEST_CASE("Turn off thermo")
     ModelArrayAccessor<Shared::H_SNOW_DG, RO> hsnowAccessor(ModelComponent::getStore());
     const HField& hsnow = hsnowAccessor.getHostRO();
 
-    //    double prec = 1e-5;
+    //    FloatType prec = 1e-5;
 
     // Rather than the values from old NextSIM, they should be unchanged from the definition above.
     REQUIRE(cice[0] == 0.5);

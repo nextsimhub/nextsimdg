@@ -30,7 +30,7 @@ using ConstHostViewMA = ConstKokkosHostView<ModelArray::DataType>;
  */
 class ConstDeviceModelArray {
 public:
-    KOKKOS_IMPL_FUNCTION double operator[](DeviceIndex i) const { return m_deviceView(i, 0); }
+    KOKKOS_IMPL_FUNCTION FloatType operator[](DeviceIndex i) const { return m_deviceView(i, 0); }
 
     // provides a copy because the underlying view is not const
     ConstDeviceViewMA deviceView() const;
@@ -56,7 +56,7 @@ public:
      * constant by default. To prevent this, every lambda would need to be marked as mutable.
      */
     //
-    KOKKOS_IMPL_FUNCTION double& operator[](DeviceIndex i) const { return m_deviceView(i, 0); }
+    KOKKOS_IMPL_FUNCTION FloatType& operator[](DeviceIndex i) const { return m_deviceView(i, 0); }
 
     const DeviceViewMA& deviceView();
     operator const DeviceViewMA&();

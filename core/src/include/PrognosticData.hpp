@@ -53,7 +53,7 @@ public:
     enum { CHECKFIELDS_KEY, CHECKFIELDSFAST_KEY };
 
 private:
-    double m_dt;
+    FloatType m_dt;
 
     // Full DG component arrays of thickness and concentration
     ModelArrayAccessor<Shared::H_ICE_DG, RW> hiceAccessor;

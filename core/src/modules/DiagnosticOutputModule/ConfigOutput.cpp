@@ -160,7 +160,7 @@ void ConfigOutput::outputState(const ModelState& diagState)
         lastFileChange = time;
     }
 
-    double averagingFactor = meta.stepLength().seconds() / outputPeriod.seconds();
+    FloatType averagingFactor = meta.stepLength().seconds() / outputPeriod.seconds();
     ModelState state = { {}, diagState.config };
     auto storeData = ModelArrayAccessorBase<RO>::getAll(ModelComponent::getStore());
     if (outputAllTheFields) {

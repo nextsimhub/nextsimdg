@@ -58,10 +58,10 @@ TEST_CASE("TOPAZOcean test")
     // Get the forcing fields at time 0
     topaz.updateBefore(tst);
 
-    double mdi = -2.03703597633448608e90;
+    FloatType mdi = -2.03703597633448608e90;
 
-    // Use this, rather than the literal 0.035045, as the two are not equal at double precision
-    double targetFrac = 35 * 0.001 + 45 * 0.000001;
+    // Use this, rather than the literal 0.035045, as the two are not equal at FloatType precision
+    FloatType targetFrac = 35 * 0.001 + 45 * 0.000001;
 
     {
         const HField& sst = sstAccessor.getHostRO();

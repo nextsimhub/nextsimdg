@@ -73,7 +73,7 @@ void verifyTestData(T& data, size_t localNx, size_t localNy, size_t offsetX, siz
                 size_t globalI = i + offsetX;
                 size_t globalJ = j + offsetY;
 
-                double expectedValue;
+                FloatType expectedValue;
                 if (globalI < nCells || globalI >= globalNx || globalJ < nCells
                     || globalJ >= globalNy) {
                     // value at boundaries should be zero in the closed-boundary (CB) case
@@ -83,7 +83,7 @@ void verifyTestData(T& data, size_t localNx, size_t localNy, size_t offsetX, siz
                     expectedValue = (d + 1) * 100 + (globalI - nCells) * 10 + (globalJ - nCells);
                 }
 
-                double actualValue = data(d + i * numComps + j * localNx * numComps);
+                FloatType actualValue = data(d + i * numComps + j * localNx * numComps);
 
                 REQUIRE(actualValue == expectedValue);
             }

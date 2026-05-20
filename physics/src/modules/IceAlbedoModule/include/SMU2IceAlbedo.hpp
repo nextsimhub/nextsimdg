@@ -21,7 +21,7 @@ public:
     void update(const TimestepTime& tst) override;
 
 private:
-    static double i0;
+    static FloatType i0;
 };
 
 }

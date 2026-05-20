@@ -26,14 +26,14 @@ public:
     void prepareAdvection() override;
     void update(const TimestepTime& tst) override;
 
-    void advectField(double timestep, ModelArray& field,
-        double lowerLimit = -std::numeric_limits<double>::infinity(),
-        double upperLimit = std::numeric_limits<double>::infinity()) override;
+    void advectField(FloatType timestep, ModelArray& field,
+        FloatType lowerLimit = -std::numeric_limits<FloatType>::infinity(),
+        FloatType upperLimit = std::numeric_limits<FloatType>::infinity()) override;
 
 #ifdef USE_KOKKOS
-    void advectField(double timestep, const DeviceViewMA& field,
-        double lowerLimit = -std::numeric_limits<double>::infinity(),
-        double upperLimit = std::numeric_limits<double>::infinity()) override;
+    void advectField(FloatType timestep, const DeviceViewMA& field,
+        FloatType lowerLimit = -std::numeric_limits<FloatType>::infinity(),
+        FloatType upperLimit = std::numeric_limits<FloatType>::infinity()) override;
 #endif
 
     void setData(const ModelState::DataMap&) override;

@@ -10,9 +10,9 @@
 
 namespace Nextsim {
 
-static constexpr double I0_DEFAULT = 0.17;
+static constexpr FloatType I0_DEFAULT = 0.17;
 
-double SMU2IceAlbedo::i0;
+FloatType SMU2IceAlbedo::i0;
 
 static const std::string pfx = "SMU2IceAlbedo";
 static const std::string i0Key = pfx + ".i0";
@@ -31,8 +31,8 @@ ConfigMap SMU2IceAlbedo::getConfiguration() const
 /* This scheme mimics Semtner 76 and Maykut and Untersteiner 71 when
  * alb_ice = 0.64 and alb_sn = 0.85 */
 
-static constexpr double ICE_ALBEDO = 0.64;
-static constexpr double SNOW_ALBEDO = 0.85;
+static constexpr FloatType ICE_ALBEDO = 0.64;
+static constexpr FloatType SNOW_ALBEDO = 0.85;
 
 void SMU2IceAlbedo::update(const TimestepTime& tst)
 {
@@ -42,10 +42,10 @@ void SMU2IceAlbedo::update(const TimestepTime& tst)
     const auto& cice = ciceAccessor.getAutoRO(execSpace);
     const auto& hsnow = hsnowAccessor.getAutoRO(execSpace);
 
-    const double i0 = SMU2IceAlbedo::i0;
+    const FloatType i0 = SMU2IceAlbedo::i0;
 
     overElementsAuto(OVER_ELEMENTS_LAMBDA(const ElementIndex i) {
-        const double snowThickness = cice[i] > 0 ? hsnow[i] / cice[i] : 0.;
+        const FloatType snowThickness = cice[i] > 0 ? hsnow[i] / cice[i] : 0.;
 
         if (snowThickness > 0.) {
             iceAlbedo[i] = Utils::fmin(

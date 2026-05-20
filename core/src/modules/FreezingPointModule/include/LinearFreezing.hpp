@@ -24,7 +24,7 @@ public:
      *
      * @param sss Sea surface salinity [PSU]
      */
-    KERNEL_IMPL_FUNCTION double calculate(double sss) const
+    KERNEL_IMPL_FUNCTION FloatType calculate(FloatType sss) const
     {
         // μ is positive, so a negative sign is needed so that the freezing point is below zero.
         return -Water::mu * sss;

@@ -44,9 +44,9 @@ public:
             {} };
     }
 
-    const double hiceData = 1.2;
-    double data() { return hiceAccessor.getHostRO()[0]; }
-    double refData() { return cice_refAccessor.getHostRO()[0]; }
+    const FloatType hiceData = 1.2;
+    FloatType data() { return hiceAccessor.getHostRO()[0]; }
+    FloatType refData() { return cice_refAccessor.getHostRO()[0]; }
 
 private:
     ModelArrayAccessor<Shared::H_ICE_DG, RW> hiceAccessor;
@@ -70,9 +70,9 @@ public:
             {} };
     }
 
-    const double ciceData = 0.6;
-    double data() { return ciceAccessor.getHostRO()[0]; }
-    double refData() { return hice_refAccessor.getHostRO()[0]; }
+    const FloatType ciceData = 0.6;
+    FloatType data() { return ciceAccessor.getHostRO()[0]; }
+    FloatType refData() { return hice_refAccessor.getHostRO()[0]; }
 
 private:
     ModelArrayAccessor<Shared::C_ICE_DG, RW> ciceAccessor;
@@ -107,9 +107,9 @@ public:
             {} };
     }
 
-    const double qicData = 123;
-    double data() { return qicAccessor.getHostRO()[0]; }
-    double refData() { return qio_refAccessor.getHostRO()[0]; }
+    const FloatType qicData = 123;
+    FloatType data() { return qicAccessor.getHostRO()[0]; }
+    FloatType refData() { return qio_refAccessor.getHostRO()[0]; }
 
 private:
     ModelArrayAccessor<Shared::Q_IC, RW> qicAccessor;
@@ -133,10 +133,10 @@ public:
             {} };
     }
 
-    const double qioData = 234;
-    const double qicData = 246;
-    double data() { return qioAccessor.getHostRO()[0]; }
-    double& refData() { return qic_refAccessor.getHostRW()[0]; }
+    const FloatType qioData = 234;
+    const FloatType qicData = 246;
+    FloatType data() { return qioAccessor.getHostRO()[0]; }
+    FloatType& refData() { return qic_refAccessor.getHostRW()[0]; }
     void setRefData() { qic_refAccessor.getHostRW()[0] = qicData; }
 
 private:

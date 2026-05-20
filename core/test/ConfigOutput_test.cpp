@@ -165,13 +165,13 @@ void runMe(const bool snapshot)
         if (day > 10) {
             diagFiles.push_back(pfx + std::to_string(day) + sfx);
         }
-        double dayIncr = 100.;
+        FloatType dayIncr = 100.;
         hice += dayIncr;
         cice += dayIncr;
         hsnow += dayIncr;
         tsurf += dayIncr;
         for (size_t hour = 0; hour < hr_day; ++hour) {
-            double hourIncr = 1;
+            FloatType hourIncr = 1;
             hice += hourIncr;
             cice += hourIncr;
             hsnow += hourIncr;

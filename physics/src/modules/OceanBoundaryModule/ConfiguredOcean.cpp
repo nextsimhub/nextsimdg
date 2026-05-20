@@ -12,11 +12,11 @@
 
 namespace Nextsim {
 
-double ConfiguredOcean::sst0 = -1.5;
-double ConfiguredOcean::sss0 = 32;
-double ConfiguredOcean::mld0 = 10;
-double ConfiguredOcean::u0 = 0;
-double ConfiguredOcean::v0 = 0;
+FloatType ConfiguredOcean::sst0 = -1.5;
+FloatType ConfiguredOcean::sss0 = 32;
+FloatType ConfiguredOcean::mld0 = 10;
+FloatType ConfiguredOcean::u0 = 0;
+FloatType ConfiguredOcean::v0 = 0;
 
 static const std::string pfx = "ConfiguredOcean";
 static const std::string sstKey = pfx + ".sst";

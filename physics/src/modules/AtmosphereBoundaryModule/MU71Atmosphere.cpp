@@ -75,13 +75,13 @@ void MU71Atmosphere::update(const Nextsim::TimestepTime& tst)
     const HField& icePenSW = icePenSWAccessor.getHostRO();
 
     overElements([&](size_t i) {
-        const double Tsurf_K = kelvin(tsurf[i]);
+        const FloatType Tsurf_K = kelvin(tsurf[i]);
 
-        double sw_in = convFactor * q_sw(dayOfYear, isLeap);
-        const double hs = cice[i] > 0 ? hsnow[i] / cice[i] : 0.;
-        const double albedoValue = iceAlbedo[i];
-        const double i0 = icePenSW[i];
-        double qsw = -sw_in * (1. - albedoValue) * (1. - i0);
+        FloatType sw_in = convFactor * q_sw(dayOfYear, isLeap);
+        const FloatType hs = cice[i] > 0 ? hsnow[i] / cice[i] : 0.;
+        const FloatType albedoValue = iceAlbedo[i];
+        const FloatType i0 = icePenSW[i];
+        FloatType qsw = -sw_in * (1. - albedoValue) * (1. - i0);
         penSW[i] = sw_in * (1. - albedoValue) * i0;
         qia[i] = -convFactor
                 * (q_sh(dayOfYear, isLeap) + q_lh(dayOfYear, isLeap) + q_lw(dayOfYear, isLeap))
@@ -108,9 +108,9 @@ void MU71Atmosphere::update(const Nextsim::TimestepTime& tst)
 }
 
 // Snowfall according to M&U '71 (in m/s water equivalent)
-double MU71Atmosphere::snowfall()
+FloatType MU71Atmosphere::snowfall()
 {
-    double const conversionFactor = Ice::rhoSnow / (24. * 3600.);
+    FloatType const conversionFactor = Ice::rhoSnow / (24. * 3600.);
 
     // Snowfall rate depends on these dates
     int apr30 = 31 + 28 + 31 + 30;
@@ -123,7 +123,7 @@ double MU71Atmosphere::snowfall()
     const int dec31 = oct31 + 30 + 31;
 
     // Snowfall rate in winter: "a linear increase of 5 cm from November 1 to April 30
-    const double winterRate = 5e-2 * conversionFactor / double(apr30 + dec31 - oct31);
+    const FloatType winterRate = 5e-2 * conversionFactor / FloatType(apr30 + dec31 - oct31);
 
     if (dayOfYear <= apr30) {
         return winterRate;
@@ -136,7 +136,7 @@ double MU71Atmosphere::snowfall()
         /* "a linear accumulation of 30 cm between August 20 and October 30"
          * They don't say anything about October 31 - so I assume they meant 31, not 30 in the quote
          * above. */
-        return 30e-2 * conversionFactor / double(oct31 - aug20 + 1);
+        return 30e-2 * conversionFactor / FloatType(oct31 - aug20 + 1);
     } else {
         return winterRate;
     }

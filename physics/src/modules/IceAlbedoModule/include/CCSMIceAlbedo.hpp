@@ -25,9 +25,9 @@ public:
     static HelpMap& getHelpRecursive(HelpMap& map, bool getAll);
 
 private:
-    static double iceAlbedo;
-    static double snowAlbedo;
-    static double i0;
+    static FloatType iceAlbedo;
+    static FloatType snowAlbedo;
+    static FloatType i0;
 };
 
 }

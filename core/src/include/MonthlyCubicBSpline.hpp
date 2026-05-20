@@ -5,6 +5,8 @@
 #ifndef MONTHLYCUBICBSPLINE_HPP
 #define MONTHLYCUBICBSPLINE_HPP
 
+#include "include/FloatType.hpp"
+
 #include <boost/version.hpp>
 
 #if BOOST_VERSION >= 107200
@@ -29,28 +31,28 @@ class monthlyCubicBSpline {
 
 public:
 #if NEW_SPLINES
-    typedef boost::math::interpolators::cardinal_cubic_b_spline<double> bSpline;
+    typedef boost::math::interpolators::cardinal_cubic_b_spline<FloatType> bSpline;
 #else
-    typedef boost::math::cubic_b_spline<double> bSpline;
+    typedef boost::math::cubic_b_spline<FloatType> bSpline;
 #endif
     /*!
      * @brief The constructor for a monthlyCubicBSpline object.
      * @param f A vector of length 12 containing the monthly values for the spline
      */
-    explicit monthlyCubicBSpline(const std::vector<double>& f)
+    explicit monthlyCubicBSpline(const std::vector<FloatType>& f)
     {
         // Create a cyclic B-spline using a fold with a "ghost border"
         /* We need k+1 ghost points, plus one for each of the derivatives at the end, where k is the
          * order of the spline
          * (here k=3). So, with STL's vector.insert() we need ghostWidth = k + 1 + 2 = 6 */
         const int ghostWidth = 6;
-        std::vector<double> y = f;
+        std::vector<FloatType> y = f;
         y.insert(y.begin(), f.end() - ghostWidth, f.end());
         y.insert(y.end(), f.begin(), f.begin() + ghostWidth);
 
         // Normalise the year from 0 to 1 (easier for leap years later on)
-        const double h = 1. / 12.;
-        const double t0 = h / 2. - ghostWidth * h;
+        const FloatType h = 1. / 12.;
+        const FloatType t0 = h / 2. - ghostWidth * h;
 
         // Use boost!
         m_spline = std::make_shared<bSpline>(y.begin(), y.end(), t0, h);
@@ -62,10 +64,10 @@ public:
      * @param isLeap Boolean to indicate if its a leap year
      * @return
      */
-    double operator()(double dayOfYear, bool isLeap)
+    FloatType operator()(FloatType dayOfYear, bool isLeap)
     {
         // Convert from day-of-year to normalised [0, 1]
-        double fracYear;
+        FloatType fracYear;
         if (isLeap)
             fracYear = dayOfYear / 366.;
         else

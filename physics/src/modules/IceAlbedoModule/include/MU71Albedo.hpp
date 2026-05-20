@@ -28,7 +28,7 @@ public:
 private:
     monthlyCubicBSpline snowAlbedo;
 
-    static double i0;
+    static FloatType i0;
 };
 
 }

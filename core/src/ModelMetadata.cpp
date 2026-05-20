@@ -389,7 +389,7 @@ ModelState& ModelMetadata::affixCoordinates(ModelState& state) const
 }
 
 // Helper function for checking that the model start and timestep align with midnight and the hour.
-void checkStartStep(const std::string start_str, double step)
+void checkStartStep(const std::string start_str, FloatType step)
 {
     if (start_str != "T00:00:00Z") {
         throw std::runtime_error("ModelMetadata::setTimes: model.start must be at midnight.");

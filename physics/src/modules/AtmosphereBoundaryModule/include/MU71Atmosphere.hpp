@@ -51,23 +51,23 @@ private:
      * @brief A function to calculate the snow fall according tu Maykut and Untersteiner (1971)
      * @return Snow fall in m/s
      */
-    double snowfall();
+    FloatType snowfall();
 
     // Monthly fluxes from Maykut and Untersteiner (1971)
-    const std::vector<double> swTable
+    const std::vector<FloatType> swTable
         = { 0.00, 0.00, 1.90, 9.99, 17.7, 19.2, 13.6, 9.00, 3.70, 0.40, 0.00, 0.00 };
-    const std::vector<double> lwTable
+    const std::vector<FloatType> lwTable
         = { 10.4, 10.3, 10.3, 11.6, 15.1, 18.0, 19.1, 18.7, 16.5, 13.9, 11.2, 10.9 };
-    const std::vector<double> shTable
+    const std::vector<FloatType> shTable
         = { 1.18, 0.76, 0.72, 0.29, -.45, -.39, -.30, -.40, -.17, 0.10, 0.56, 0.79 };
-    const std::vector<double> lhTable
+    const std::vector<FloatType> lhTable
         = { 0.00, -.02, -.03, -.09, -.46, -.70, -.64, -.66, -.39, -.19, -.01, -.01 };
     //       Jan,  Feb,  Mar,  Apr,  Mai,  Jun,  Jul,  Aug,  Sept, Oct,  Nov,  Dec
 
     // Conversion factor from kcal/cm^2/month to W/m^2
-    const double convFactor = 4.184e7 / (365.2425 / 12. * 24. * 3600.);
+    const FloatType convFactor = 4.184e7 / (365.2425 / 12. * 24. * 3600.);
 
-    double dayOfYear;
+    FloatType dayOfYear;
     bool isLeap;
 
     monthlyCubicBSpline q_sw;

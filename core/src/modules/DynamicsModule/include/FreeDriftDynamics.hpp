@@ -72,9 +72,9 @@ public:
         }
     }
 
-    void advectField(double timestep, ModelArray& field,
-        double lowerLimit = -std::numeric_limits<double>::infinity(),
-        double upperLimit = std::numeric_limits<double>::infinity()) override
+    void advectField(FloatType timestep, ModelArray& field,
+        FloatType lowerLimit = -std::numeric_limits<FloatType>::infinity(),
+        FloatType upperLimit = std::numeric_limits<FloatType>::infinity()) override
     {
         kernel.advectField(timestep, field, lowerLimit, upperLimit);
     }

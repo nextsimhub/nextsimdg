@@ -17,7 +17,7 @@ ModelArray::SizeMap ModelArray::m_sz;
 ModelArray::DimensionMap ModelArray::m_dims;
 bool ModelArray::areMapsInvalid = true;
 
-ModelArray::ModelArray(const Type type, const std::pair<double, double>& bounds)
+ModelArray::ModelArray(const Type type, const std::pair<FloatType, FloatType>& bounds)
     : type(type)
 {
     m_data.resize(m_sz.at(type), nComponents());
@@ -43,7 +43,7 @@ ModelArray& ModelArray::operator=(const ModelArray& orig)
     return *this;
 }
 
-ModelArray& ModelArray::operator=(const double& fill)
+ModelArray& ModelArray::operator=(const FloatType& fill)
 {
     setData(fill);
 
@@ -86,51 +86,51 @@ ModelArray ModelArray::operator-() const
     return copy;
 }
 
-ModelArray ModelArray::operator+(const double& x) const
+ModelArray ModelArray::operator+(const FloatType& x) const
 {
     ModelArray result = *this;
     return result += x;
 }
 
-ModelArray ModelArray::operator-(const double& x) const
+ModelArray ModelArray::operator-(const FloatType& x) const
 {
     ModelArray result = *this;
     return result -= x;
 }
 
-ModelArray ModelArray::operator*(const double& x) const
+ModelArray ModelArray::operator*(const FloatType& x) const
 {
     ModelArray result = *this;
     return result *= x;
 }
 
-ModelArray ModelArray::operator/(const double& x) const
+ModelArray ModelArray::operator/(const FloatType& x) const
 {
     ModelArray result = *this;
     return result /= x;
 }
 
-ModelArray operator+(const double& x, const ModelArray& y) { return y + x; }
+ModelArray operator+(const FloatType& x, const ModelArray& y) { return y + x; }
 
-ModelArray operator-(const double& x, const ModelArray& y) { return -(y - x); }
+ModelArray operator-(const FloatType& x, const ModelArray& y) { return -(y - x); }
 
-ModelArray operator*(const double& x, const ModelArray& y) { return y * x; }
+ModelArray operator*(const FloatType& x, const ModelArray& y) { return y * x; }
 
-ModelArray operator/(const double& x, const ModelArray& y)
+ModelArray operator/(const FloatType& x, const ModelArray& y)
 {
     ModelArray xArray(y.getType());
     xArray.setData(x);
     return xArray /= y;
 }
 
-ModelArray ModelArray::max(double max) const
+ModelArray ModelArray::max(FloatType max) const
 {
     ModelArray maxed = ModelArray(type);
     maxed.m_data.array() = m_data.array().max(max);
     return maxed;
 }
 
-ModelArray ModelArray::min(double min) const
+ModelArray ModelArray::min(FloatType min) const
 {
     ModelArray mined = ModelArray(type);
     mined.m_data.array() = m_data.array().min(min);
@@ -151,13 +151,13 @@ ModelArray ModelArray::min(const ModelArray& minArr) const
     return mined;
 }
 
-ModelArray& ModelArray::clampAbove(double max)
+ModelArray& ModelArray::clampAbove(FloatType max)
 {
     m_data = this->max(max).m_data;
     return *this;
 }
 
-ModelArray& ModelArray::clampBelow(double min)
+ModelArray& ModelArray::clampBelow(FloatType min)
 {
     m_data = this->min(min).m_data;
     return *this;
@@ -176,13 +176,13 @@ ModelArray& ModelArray::clampBelow(const ModelArray& minArr)
 }
 
 /*************************************************************/
-void ModelArray::setData(double value)
+void ModelArray::setData(FloatType value)
 {
     reinitialize();
     m_data = value;
 }
 
-void ModelArray::setData(const double* pData)
+void ModelArray::setData(const FloatType* pData)
 {
     reinitialize();
     auto out = std::copy(pData, pData + m_sz.at(type) * nComponents(), m_data.data());
@@ -240,14 +240,14 @@ void ModelArray::setDimension(Dimension dim, size_t globalLength)
     validateMaps();
 }
 
-const double& ModelArray::operator[](const MultiDim& loc) const
+const FloatType& ModelArray::operator[](const MultiDim& loc) const
 {
     return (*this)[indexr(this->dimensions(), loc)];
 }
 
-double& ModelArray::operator[](const MultiDim& dims)
+FloatType& ModelArray::operator[](const MultiDim& dims)
 {
-    return const_cast<double&>(std::as_const(*this)[dims]);
+    return const_cast<FloatType&>(std::as_const(*this)[dims]);
 }
 
 ModelArraySlice ModelArray::operator[](const Slice& slice) { return ModelArraySlice(*this, slice); }
@@ -297,7 +297,7 @@ ModelArray::MultiDim ModelArray::locationFromIndex(Type type, size_t index)
     return loc;
 }
 
-void ModelArray::setLimits(const double lower, const double upper)
+void ModelArray::setLimits(const FloatType lower, const FloatType upper)
 {
     lowerPhysicalLimit = lower;
     upperPhysicalLimit = upper;
@@ -321,7 +321,7 @@ void ModelArray::checkLimits(const ModelArray& mask) const
      * value is in min <= value <= max.
      */
     size_t i;
-    double value;
+    FloatType value;
     if (masked.minCoeff() < lowerPhysicalLimit) {
         value = masked.col(0).minCoeff(&i);
     } else if (masked.maxCoeff() > upperPhysicalLimit) {

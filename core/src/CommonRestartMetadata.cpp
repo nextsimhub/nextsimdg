@@ -10,6 +10,7 @@
 #include <cstdint>
 #include <cstring>
 #include <ncDouble.h>
+#include <ncFloat.h>
 #include <ncInt64.h>
 #include <ncString.h>
 #include <ncVar.h>
@@ -52,6 +53,10 @@ netCDF::NcFile& CommonRestartMetadata::writeRestartMetadata(netCDF::NcFile& ncFi
         switch (entry.second.index()) {
         case (ConfigMapType::DOUBLE): {
             ncFile.putAtt(entry.first, netCDF::ncDouble, *std::get_if<double>(&entry.second));
+            break;
+        }
+        case (ConfigMapType::FLOAT): {
+            ncFile.putAtt(entry.first, netCDF::ncFloat, *std::get_if<float>(&entry.second));
             break;
         }
         case (ConfigMapType::UNSIGNED): {

@@ -26,14 +26,14 @@ public:
      *
      * @param sss Sea surface salinity [PSU]
      */
-    KERNEL_IMPL_FUNCTION double calculate(double sss) const
+    KERNEL_IMPL_FUNCTION FloatType calculate(FloatType sss) const
     {
         // Fofonoff and Millard, Unesco technical papers in marine science 44, (1983)
-        constexpr double a0 = -0.0575;
-        constexpr double a1 = +1.710523e-3;
-        constexpr double a2 = -2.154996e-4;
-        constexpr double b = -7.53e-4;
-        constexpr double p0 = 0; // Zero hydrostatic pressure
+        constexpr FloatType a0 = -0.0575;
+        constexpr FloatType a1 = +1.710523e-3;
+        constexpr FloatType a2 = -2.154996e-4;
+        constexpr FloatType b = -7.53e-4;
+        constexpr FloatType p0 = 0; // Zero hydrostatic pressure
 
         return sss * (a0 + a1 * Utils::sqrt(sss) + a2 * sss) + b * p0;
     }

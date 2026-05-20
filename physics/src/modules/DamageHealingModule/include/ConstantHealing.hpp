@@ -32,7 +32,7 @@ public:
     void update(const TimestepTime& tstep) override;
 
 private:
-    static double tD;
+    static FloatType tD;
 };
 
 }

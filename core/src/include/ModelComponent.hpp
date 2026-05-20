@@ -235,7 +235,7 @@ protected:
      * @param data The data to be masked.
      * @param missingValue The mask value to use (defaults to MissingData::value()).
      */
-    static ModelArray mask(const ModelArray& data, double missingValue = MissingData::value());
+    static ModelArray mask(const ModelArray& data, FloatType missingValue = MissingData::value());
 
     /*!
      * @brief Returns the ocean mask.

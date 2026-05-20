@@ -6,6 +6,8 @@
 #ifndef ISPECIFICHUMIDITY_HPP
 #define ISPECIFICHUMIDITY_HPP
 
+#include "include/FloatType.hpp"
+
 #include <utility>
 
 namespace Nextsim {
@@ -20,7 +22,7 @@ public:
      * @param temperature Temperature of the water vapour [˚C]
      * @param pressure Hydrostatic pressure [Pa]
      */
-    virtual double operator()(double temperature, double pressure) const = 0;
+    virtual FloatType operator()(FloatType temperature, FloatType pressure) const = 0;
     /*!
      * @brief Calculates humidity over sea water.
      *
@@ -28,7 +30,9 @@ public:
      * @param pressure Hydrostatic pressure [Pa]
      * @param salinity Salinity of the liquid water [PSU]
      */
-    virtual double operator()(double temperature, double pressure, double salinity) const = 0;
+    virtual FloatType operator()(
+        FloatType temperature, FloatType pressure, FloatType salinity) const
+        = 0;
 
     /*!
      * @brief Calculates humidity and its temperature dependence over fresh
@@ -37,7 +41,8 @@ public:
      * @param temperature Temperature of the water vapour [˚C]
      * @param pressure Hydrostatic pressure [Pa]
      */
-    virtual std::pair<double, double> valueAndDerivative(double temperature, double pressure) const
+    virtual std::pair<FloatType, FloatType> valueAndDerivative(
+        FloatType temperature, FloatType pressure) const
         = 0;
     /*!
      * @brief Calculates humidity and its temperature dependence over sea
@@ -47,8 +52,8 @@ public:
      * @param pressure Hydrostatic pressure [Pa]
      * @param salinity Salinity of the liquid water [PSU]
      */
-    virtual std::pair<double, double> valueAndDerivative(
-        double temperature, double pressure, double salinity) const
+    virtual std::pair<FloatType, FloatType> valueAndDerivative(
+        FloatType temperature, FloatType pressure, FloatType salinity) const
         = 0;
 };
 

@@ -6,7 +6,7 @@
 
 namespace Nextsim {
 
-ModelArraySlice& ModelArraySlice::operator=(double v)
+ModelArraySlice& ModelArraySlice::operator=(FloatType v)
 {
     /*
      * The left most index varies fastest, as is the ModelArray standard

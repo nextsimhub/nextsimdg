@@ -63,7 +63,7 @@ TEST_CASE("Higher dimensional indexing")
     }
     REQUIRE(check4d(4, 7, 2, 5) == 0);
 
-    double* data = new double[arrayLen];
+    FloatType* data = new FloatType[arrayLen];
     for (size_t i = 0; i < arrayLen; ++i) {
         data[i] = i;
     }
@@ -78,7 +78,7 @@ TEST_CASE("Higher dimensional indexing")
     }
     REQUIRE(check4d(4, 7, 2, 5) == 0);
 
-    std::vector<double> vData = std::vector<double>(arrayLen);
+    std::vector<FloatType> vData = std::vector<FloatType>(arrayLen);
     for (size_t i = 0; i < arrayLen; ++i) {
         vData[i] = i;
     }
@@ -180,8 +180,8 @@ TEST_CASE("Arithmetic tests")
     REQUIRE(negative[0] == -3);
     REQUIRE(negative[1] == 5);
 
-    double three = 3;
-    double four = 4;
+    FloatType three = 3;
+    FloatType four = 4;
     sum = lhs + three;
     REQUIRE(sum[0] == 12);
     REQUIRE(sum[1] == 13);
@@ -235,7 +235,7 @@ TEST_CASE("Arithmetic tests")
     REQUIRE(lhs[1] == 6.75);
 
     OneDField fill = ModelArray::OneDField();
-    double filldub = 5.2354;
+    FloatType filldub = 5.2354;
     fill = filldub;
 
     REQUIRE(fill[0] == filldub);
