@@ -44,8 +44,8 @@ namespace VectorManipulations {
                 if (ptype == 0) // X-edge, bottom/top
                 {
                     for (size_t j = 0; j <= CG; ++j) {
-                        v(i0_lb + j)
-                            = 0.5 * (v(i0_lb + j) + v(i0_rt + CG * (CG * smesh.nx + 1) + j));
+                        v(i0_lb + j) = FloatType(0.5)
+                            * (v(i0_lb + j) + v(i0_rt + CG * (CG * smesh.nx + 1) + j));
                         v(i0_rt + CG * (CG * smesh.nx + 1) + j) = v(i0_lb + j);
                     }
                 } else if (ptype == 1) // Y-edge, left/right
@@ -53,7 +53,7 @@ namespace VectorManipulations {
                     for (size_t j = 0; j <= CG; ++j) {
                         const size_t i1 = i0_lb + j * (CG * smesh.nx + 1);
                         const size_t i2 = i0_rt + CG + j * (CG * smesh.nx + 1);
-                        v(i1) = 0.5 * (v(i1) + v(i2));
+                        v(i1) = FloatType(0.5) * (v(i1) + v(i2));
                         v(i2) = v(i1);
                     }
                 } else

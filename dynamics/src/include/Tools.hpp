@@ -129,7 +129,7 @@ namespace Tools {
 
 #pragma omp parallel for
         for (size_t i = 0; i < smesh.nelements; ++i) {
-            Invariant.row(i) = 0.5 * (E11.row(i) + E22.row(i));
+            Invariant.row(i) = FloatType(0.5) * (E11.row(i) + E22.row(i));
         }
 
         return Invariant;
@@ -143,9 +143,9 @@ namespace Tools {
 
 #pragma omp parallel for
         for (size_t i = 0; i < smesh.nelements; ++i) {
-            Invariant.row(i)
-                = ((0.5 * (E11.row(i) - E22.row(i))).array().pow(2) + E12.row(i).array().pow(2))
-                      .sqrt();
+            Invariant.row(i) = ((FloatType(0.5) * (E11.row(i) - E22.row(i))).array().pow(2)
+                + E12.row(i).array().pow(2))
+                                   .sqrt();
         }
         return Invariant;
     }

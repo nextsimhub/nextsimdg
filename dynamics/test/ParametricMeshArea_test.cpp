@@ -87,8 +87,10 @@ TEST_CASE("Test area spherical")
     smesh.vertices.resize(smesh.nnodes, 2);
     for (int iy = 0; iy <= ny; ++iy)
         for (int ix = 0; ix <= nx; ++ix) {
-            smesh.vertices((nx + 1) * iy + ix, 0) = -1.0 * M_PI + 2.0 * M_PI * ix / nx;
-            smesh.vertices((nx + 1) * iy + ix, 1) = -0.5 * M_PI + 1.0 * M_PI * iy / ny;
+            smesh.vertices((nx + 1) * iy + ix, 0)
+                = -FloatType(1) * M_PI + FloatType(2.0) * M_PI * ix / nx;
+            smesh.vertices((nx + 1) * iy + ix, 1)
+                = -FloatType(0.5) * M_PI + FloatType(1) * M_PI * iy / ny;
         }
     smesh.landmask.resize(nx * ny, true);
 
@@ -106,7 +108,8 @@ TEST_CASE("Test area spherical")
     REQUIRE(fabs(1.0 - totalarea / exact) < 1.e-9);
 
     //////// next, distort the inner vertices of the mesh
-    FloatType h = std::min(2.0 * M_PI / nx, M_PI / ny); // min. mesh size in x/y-direction
+    FloatType h
+        = std::min(FloatType(2.0) * M_PI / nx, M_PI / ny); // min. mesh size in x/y-direction
     for (int iy = 1; iy < ny; ++iy)
         for (int ix = 1; ix < nx; ++ix) {
             smesh.vertices((nx + 1) * iy + ix, 0) += 0.2 * h * sin(ix + iy); // distort by 20%

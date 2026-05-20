@@ -89,14 +89,14 @@ class InitialVX : public Nextsim::Interpolations::Function { // (0.5,0.2) m/s
 public:
     FloatType operator()(FloatType x, FloatType y) const
     {
-        return (y - 0.5 * ProblemConfig::Lx) * 2.0 * M_PI / ProblemConfig::Lx;
+        return (y - FloatType(0.5) * ProblemConfig::Lx) * FloatType(2.0) * M_PI / ProblemConfig::Lx;
     }
 };
 class InitialVY : public Nextsim::Interpolations::Function {
 public:
     FloatType operator()(FloatType x, FloatType y) const
     {
-        return (0.5 * ProblemConfig::Lx - x) * 2.0 * M_PI / ProblemConfig::Lx;
+        return (FloatType(0.5) * ProblemConfig::Lx - x) * FloatType(2.0) * M_PI / ProblemConfig::Lx;
     }
 };
 

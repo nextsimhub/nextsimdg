@@ -107,14 +107,15 @@ void ThermoIce0::update(const TimestepTime& tsTime)
         tice_i = Utils::min(meltingLimit, tice_i);
 
         // Top melt. Melting rate is non-positive.
-        FloatType snowMeltRate = Utils::min(-remainingFlux, 0.) / bulkLHFusionSnow;
+        FloatType snowMeltRate = Utils::min(-remainingFlux, FloatType(0)) / bulkLHFusionSnow;
         snowMelt[i] = snowMeltRate * dt;
         FloatType snowSublRate = sublim[i] / Ice::rhoSnow;
         FloatType nowSnow = hs + (snowMeltRate - snowSublRate) * dt;
         // Use excess flux to melt ice. Non-positive value
-        FloatType excessIceMelt = Utils::min(nowSnow, 0.) * bulkLHFusionSnow / bulkLHFusionIce;
+        FloatType excessIceMelt
+            = Utils::min(nowSnow, FloatType(0)) * bulkLHFusionSnow / bulkLHFusionIce;
         // With the excess flux noted, clamp the snow thickness to a minimum of zero.
-        hs = Utils::max(nowSnow, 0.);
+        hs = Utils::max(nowSnow, FloatType(0));
 
         // Bottom melt or growth
         FloatType iceBottomChange = (qic[i] - qio[i]) * dt / bulkLHFusionIce;
@@ -123,12 +124,12 @@ void ThermoIce0::update(const TimestepTime& tsTime)
         hi += deltaHi[i];
 
         // Then add snowfall back on top if there's still ice
-        if (hi > 0.)
+        if (hi > FloatType(0))
             hs += snowfall[i] * dt / Ice::rhoSnow;
 
         // Amount of melting (only) at the top and bottom of the ice
-        topMelt[i] = Utils::min(excessIceMelt, 0.);
-        botMelt[i] = Utils::min(iceBottomChange, 0.);
+        topMelt[i] = Utils::min(excessIceMelt, FloatType(0));
+        botMelt[i] = Utils::min(iceBottomChange, FloatType(0));
         // Snow to ice conversion
         FloatType iceDraught = (hi * Ice::rho + hs * Ice::rhoSnow) / Water::rhoOcean;
 

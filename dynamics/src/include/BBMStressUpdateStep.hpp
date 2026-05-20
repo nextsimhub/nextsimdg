@@ -72,7 +72,7 @@ public:
             EdgeVec s22Gauss = s22.row(i) * PSI<DGstress, NGP>;
 
             //! Current normal stress for the evaluation of tildeP (Eqn. 1)
-            EdgeVec sigma_n = 0.5 * (s11Gauss.array() + s22Gauss.array());
+            EdgeVec sigma_n = FloatType(0.5) * (s11Gauss.array() + s22Gauss.array());
 
             //! exp(-C(1-A))
             const EdgeVec expC = (params.compactionParam * (1.0 - aGauss.array())).exp().array();
@@ -90,7 +90,7 @@ public:
             // (Eqn. 7b) Select case based on sigma_n
             const EdgeVec tildeP
                 = (sigma_n.array() < 0.0)
-                      .select((-Pmax.array() / sigma_n.array()).min(1.0).matrix(), 0.);
+                      .select((-Pmax.array() / sigma_n.array()).min(1.0).matrix(), FloatType(0));
 
             // multiplicator
             const EdgeVec multiplicator
@@ -121,8 +121,8 @@ public:
             s22Gauss.array() *= multiplicator.array();
             s12Gauss.array() *= multiplicator.array();
 
-            sigma_n = 0.5 * (s11Gauss.array() + s22Gauss.array());
-            const EdgeVec tau = (0.25 * (s11Gauss.array() - s22Gauss.array()).square()
+            sigma_n = FloatType(0.5) * (s11Gauss.array() + s22Gauss.array());
+            const EdgeVec tau = (FloatType(0.25) * (s11Gauss.array() - s22Gauss.array()).square()
                 + s12Gauss.array().square())
                                     .sqrt();
 
@@ -136,7 +136,7 @@ public:
             // Mohr-Coulomb failure using Mssrs. Plante & Tremblay's formulation
             // sigma_s + tan_phi*sigma_n < 0 is always inside, but gives dcrit < 0
             EdgeVec dcrit
-                = (tau.array() + params.mu * sigma_n.array() > 0.)
+                = (tau.array() + params.mu * sigma_n.array() > FloatType(0))
                       .select(cohesion.array() / (tau.array() + params.mu * sigma_n.array()), 1.);
 
             // Compressive failure using Mssrs. Plante & Tremblay's formulation

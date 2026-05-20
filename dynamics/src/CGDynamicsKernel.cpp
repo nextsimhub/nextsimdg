@@ -235,8 +235,8 @@ void CGDynamicsKernel<DGadvection>::computeGradientOfSeaSurfaceHeight(
             size_t icg1 = (smesh->nx + 1) * iy;
             size_t icg2 = (2 * smesh->nx + 1) * 2 * iy + 1;
             for (size_t ix = 0; ix < smesh->nx; ++ix, ++icg1, icg2 += 2) {
-                xGradSeaSurfaceHeight(icg2) = 0.5 * (uGrad(icg1) + uGrad(icg1 + 1));
-                yGradSeaSurfaceHeight(icg2) = 0.5 * (vGrad(icg1) + vGrad(icg1 + 1));
+                xGradSeaSurfaceHeight(icg2) = FloatType(0.5) * (uGrad(icg1) + uGrad(icg1 + 1));
+                yGradSeaSurfaceHeight(icg2) = FloatType(0.5) * (vGrad(icg1) + vGrad(icg1 + 1));
             }
         }
 #pragma omp parallel for
@@ -245,8 +245,8 @@ void CGDynamicsKernel<DGadvection>::computeGradientOfSeaSurfaceHeight(
             size_t icg1 = (smesh->nx + 1) * iy;
             size_t icg2 = (2 * smesh->nx + 1) * (2 * iy + 1);
             for (size_t ix = 0; ix <= smesh->nx; ++ix, ++icg1, icg2 += 2) {
-                xGradSeaSurfaceHeight(icg2) = 0.5 * (uGrad(icg1) + uGrad(icg1 + cg1row));
-                yGradSeaSurfaceHeight(icg2) = 0.5 * (vGrad(icg1) + vGrad(icg1 + cg1row));
+                xGradSeaSurfaceHeight(icg2) = FloatType(0.5) * (uGrad(icg1) + uGrad(icg1 + cg1row));
+                yGradSeaSurfaceHeight(icg2) = FloatType(0.5) * (vGrad(icg1) + vGrad(icg1 + cg1row));
             }
         }
 
@@ -349,11 +349,12 @@ template <int DGadvection> void CGDynamicsKernel<DGadvection>::projectVelocityTo
             //
             e11.row(dgi) = pmap->iMgradX[dgi] * vx_local;
             e22.row(dgi) = pmap->iMgradY[dgi] * vy_local;
-            e12.row(dgi) = 0.5 * (pmap->iMgradX[dgi] * vy_local + pmap->iMgradY[dgi] * vx_local);
+            e12.row(dgi)
+                = FloatType(0.5) * (pmap->iMgradX[dgi] * vy_local + pmap->iMgradY[dgi] * vx_local);
 
             if (smesh->CoordinateSystem == SPHERICAL) {
                 e11.row(dgi) -= pmap->iMM[dgi] * vy_local;
-                e12.row(dgi) += 0.5 * pmap->iMM[dgi] * vx_local;
+                e12.row(dgi) += FloatType(0.5) * pmap->iMM[dgi] * vx_local;
             }
         }
     }

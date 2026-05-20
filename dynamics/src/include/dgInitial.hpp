@@ -28,7 +28,7 @@ public:
     FloatType operator()(FloatType x, FloatType y) const
     {
         FloatType r2 = ((x - 0.3) * (x - 0.3) + (y - 0.6) * (y - 0.6));
-        return std::max(0.0, 1.0 - 10.0 * sqrt(r2));
+        return std::max(FloatType(0), 1.0 - 10.0 * sqrt(r2));
     }
 };
 

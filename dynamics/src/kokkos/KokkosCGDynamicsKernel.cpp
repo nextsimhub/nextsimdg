@@ -538,12 +538,12 @@ void KokkosCGDynamicsKernel<DGadvection>::projectVelocityToStrainDevice(
             e11.row(dgi) = iMgradX * vxLocal;
             const auto iMgradY = iMgradYDevice[dgi];
             e22.row(dgi) = iMgradY * vyLocal;
-            e12.row(dgi) = 0.5 * (iMgradX * vyLocal + iMgradY * vxLocal);
+            e12.row(dgi) = FloatType(0.5) * (iMgradX * vyLocal + iMgradY * vxLocal);
 
             if (coordinates == SPHERICAL) {
                 const auto iMM = iMMDevice[dgi];
                 e11.row(dgi) -= iMM * vyLocal;
-                e12.row(dgi) += 0.5 * iMM * vxLocal;
+                e12.row(dgi) += FloatType(0.5) * iMM * vxLocal;
             }
         });
 }
@@ -704,7 +704,7 @@ void KokkosCGDynamicsKernel<DGadvection>::computeTensorInvariantIDevice(
             const auto e12 = makeEigenMap(e12Device);
             const auto e22 = makeEigenMap(e22Device);
 
-            dest.row(i) = 0.5 * (e11.row(i) + e22.row(i));
+            dest.row(i) = FloatType(0.5) * (e11.row(i) + e22.row(i));
         });
 }
 
@@ -720,9 +720,9 @@ void KokkosCGDynamicsKernel<DGadvection>::computeTensorInvariantIIDevice(
             const auto e12 = makeEigenMap(e12Device);
             const auto e22 = makeEigenMap(e22Device);
 
-            dest.row(i)
-                = ((0.5 * (e11.row(i) - e22.row(i))).array().square() + e12.row(i).array().square())
-                      .sqrt();
+            dest.row(i) = ((FloatType(0.5) * (e11.row(i) - e22.row(i))).array().square()
+                + e12.row(i).array().square())
+                              .sqrt();
         });
 }
 

@@ -94,7 +94,7 @@ public:
                 * (1.0 / alpha
                     * (P.array() / 8.0 / DELTA.array()
                             * (5.0 * e11_gauss.array() + 3.0 * e22_gauss.array())
-                        - 0.5 * P.array())
+                        - FloatType(0.5) * P.array())
                           .matrix()
                           .transpose());
 
@@ -107,12 +107,12 @@ public:
             //   S22.row(i)
             //       += 1.0 / alpha * (2. * eta * E22.row(i) + (zeta - eta) * (E11.row(i) +
             //       E22.row(i)));
-            //   S22(i, 0) -= 1.0 / alpha * 0.5 * P;
+            //   S22(i, 0) -= 1.0 / alpha * FloatType(0.5) * P;
             s22.row(i) += pmap->iMJwPSI[i]
                 * (1.0 / alpha
                     * (P.array() / 8.0 / DELTA.array()
                             * (5.0 * e22_gauss.array() + 3.0 * e11_gauss.array())
-                        - 0.5 * P.array())
+                        - FloatType(0.5) * P.array())
                           .matrix()
                           .transpose());
         }

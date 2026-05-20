@@ -32,10 +32,10 @@ struct KokkosMesh {
         dv(1) = vertices(n2, 1) - vertices(n1, 1);
         //! In spherical coordinates (and greenland) we must check for the Pi -> -Pi jump
         if (coordinateSystem == SPHERICAL) {
-            if (dv(0, 0) > 0.5 * M_PI)
-                dv(0, 0) -= 2.0 * M_PI;
-            if (dv(0, 0) < -0.5 * M_PI)
-                dv(0, 0) += 2.0 * M_PI;
+            if (dv(0, 0) > FloatType(0.5) * M_PI)
+                dv(0, 0) -= FloatType(2.0) * M_PI;
+            if (dv(0, 0) < -FloatType(0.5) * M_PI)
+                dv(0, 0) += FloatType(2.0) * M_PI;
         }
 
         return dv;

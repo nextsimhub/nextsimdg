@@ -187,7 +187,7 @@ public:
         if (problem) {
             for (size_t i = 0; i < N; ++i)
                 if (coords(i, 0) < 0)
-                    coords(i, 0) += 2.0 * M_PI;
+                    coords(i, 0) += FloatType(2.0) * M_PI;
         }
     }
 
@@ -291,12 +291,15 @@ public:
                 if ((my == 0) && (mx == 0))
                     return Vertex({ coe(0, 0), coe(0, 1) });
                 else if ((my == 0) && (mx == 1))
-                    return Vertex({ 0.5 * (coe(0, 0) + coe(1, 0)), 0.5 * (coe(0, 1) + coe(1, 1)) });
+                    return Vertex({ FloatType(0.5) * (coe(0, 0) + coe(1, 0)),
+                        FloatType(0.5) * (coe(0, 1) + coe(1, 1)) });
                 else if ((my == 1) && (mx == 0))
-                    return Vertex({ 0.5 * (coe(0, 0) + coe(2, 0)), 0.5 * (coe(0, 1) + coe(2, 1)) });
+                    return Vertex({ FloatType(0.5) * (coe(0, 0) + coe(2, 0)),
+                        FloatType(0.5) * (coe(0, 1) + coe(2, 1)) });
                 else if ((my == 1) && (mx == 1))
-                    return Vertex({ 0.25 * (coe(0, 0) + coe(1, 0) + coe(2, 0) + coe(3, 0)),
-                        0.25 * (coe(0, 1) + coe(1, 1) + coe(2, 1) + coe(3, 1)) });
+                    return Vertex(
+                        { FloatType(0.25) * (coe(0, 0) + coe(1, 0) + coe(2, 0) + coe(3, 0)),
+                            FloatType(0.25) * (coe(0, 1) + coe(1, 1) + coe(2, 1) + coe(3, 1)) });
                 else
                     abort();
             } else if (cx < nx)
@@ -310,7 +313,8 @@ public:
                 if (mx == 0)
                     return Vertex({ coe(2, 0), coe(2, 1) });
                 else if (mx == 1)
-                    return Vertex({ 0.5 * (coe(2, 0) + coe(3, 0)), 0.5 * (coe(2, 1) + coe(3, 1)) });
+                    return Vertex({ FloatType(0.5) * (coe(2, 0) + coe(3, 0)),
+                        FloatType(0.5) * (coe(2, 1) + coe(3, 1)) });
                 abort();
             } else if (cy < ny)
             // the node is on the right boundary of  the mesh
@@ -324,7 +328,8 @@ public:
                 if (my == 0)
                     return Vertex({ coe(1, 0), coe(1, 1) });
                 else if (my == 1)
-                    return Vertex({ 0.5 * (coe(1, 0) + coe(3, 0)), 0.5 * (coe(1, 1) + coe(3, 1)) });
+                    return Vertex({ FloatType(0.5) * (coe(1, 0) + coe(3, 0)),
+                        FloatType(0.5) * (coe(1, 1) + coe(3, 1)) });
                 abort();
             } else // top right vertex
             {
@@ -346,10 +351,10 @@ public:
             Eigen::Matrix<FloatType, 1, 2> dv
                 = vertices.block<1, 2>(n2, 0) - vertices.block<1, 2>(n1, 0);
 
-            if (dv(0, 0) > 0.5 * M_PI)
-                dv(0, 0) -= 2.0 * M_PI;
-            if (dv(0, 0) < -0.5 * M_PI)
-                dv(0, 0) += 2.0 * M_PI;
+            if (dv(0, 0) > FloatType(0.5) * M_PI)
+                dv(0, 0) -= FloatType(2.0) * M_PI;
+            if (dv(0, 0) < -FloatType(0.5) * M_PI)
+                dv(0, 0) += FloatType(2.0) * M_PI;
             return dv;
         } else if (CoordinateSystem == CARTESIAN)
             return vertices.block<1, 2>(n2, 0) - vertices.block<1, 2>(n1, 0);

@@ -56,63 +56,75 @@ template <> Eigen::Matrix<FloatType, 1, 1> topedgeofcell(const DGVector<1>& cv, 
 // dG1 (3 in cell, 2 on edge)
 template <> Eigen::Matrix<FloatType, 1, 2> leftedgeofcell(const DGVector<3>& cv, size_t eid)
 {
-    return Eigen::Matrix<FloatType, 1, 2>(cv(eid, 0) - 0.5 * cv(eid, 1), cv(eid, 2));
+    return Eigen::Matrix<FloatType, 1, 2>(cv(eid, 0) - FloatType(0.5) * cv(eid, 1), cv(eid, 2));
 }
 template <> Eigen::Matrix<FloatType, 1, 2> rightedgeofcell(const DGVector<3>& cv, size_t eid)
 {
-    return Eigen::Matrix<FloatType, 1, 2>(cv(eid, 0) + 0.5 * cv(eid, 1), cv(eid, 2));
+    return Eigen::Matrix<FloatType, 1, 2>(cv(eid, 0) + FloatType(0.5) * cv(eid, 1), cv(eid, 2));
 }
 template <> Eigen::Matrix<FloatType, 1, 2> bottomedgeofcell(const DGVector<3>& cv, size_t eid)
 {
-    return Eigen::Matrix<FloatType, 1, 2>(cv(eid, 0) - 0.5 * cv(eid, 2), cv(eid, 1));
+    return Eigen::Matrix<FloatType, 1, 2>(cv(eid, 0) - FloatType(0.5) * cv(eid, 2), cv(eid, 1));
 }
 template <> Eigen::Matrix<FloatType, 1, 2> topedgeofcell(const DGVector<3>& cv, size_t eid)
 {
-    return Eigen::Matrix<FloatType, 1, 2>(cv(eid, 0) + 0.5 * cv(eid, 2), cv(eid, 1));
+    return Eigen::Matrix<FloatType, 1, 2>(cv(eid, 0) + FloatType(0.5) * cv(eid, 2), cv(eid, 1));
 }
 
 // dG2 (6 in cell, 3 on edge)
 template <> Eigen::Matrix<FloatType, 1, 3> leftedgeofcell(const DGVector<6>& cv, size_t eid)
 {
-    return Eigen::Matrix<FloatType, 1, 3>(cv(eid, 0) - 0.5 * cv(eid, 1) + 1. / 6. * cv(eid, 3),
-        cv(eid, 2) - 0.5 * cv(eid, 5), cv(eid, 4));
+    return Eigen::Matrix<FloatType, 1, 3>(
+        cv(eid, 0) - FloatType(0.5) * cv(eid, 1) + 1. / 6. * cv(eid, 3),
+        cv(eid, 2) - FloatType(0.5) * cv(eid, 5), cv(eid, 4));
 }
 template <> Eigen::Matrix<FloatType, 1, 3> rightedgeofcell(const DGVector<6>& cv, size_t eid)
 {
-    return Eigen::Matrix<FloatType, 1, 3>(cv(eid, 0) + 0.5 * cv(eid, 1) + 1. / 6. * cv(eid, 3),
-        cv(eid, 2) + 0.5 * cv(eid, 5), cv(eid, 4));
+    return Eigen::Matrix<FloatType, 1, 3>(
+        cv(eid, 0) + FloatType(0.5) * cv(eid, 1) + 1. / 6. * cv(eid, 3),
+        cv(eid, 2) + FloatType(0.5) * cv(eid, 5), cv(eid, 4));
 }
 template <> Eigen::Matrix<FloatType, 1, 3> bottomedgeofcell(const DGVector<6>& cv, size_t eid)
 {
-    return Eigen::Matrix<FloatType, 1, 3>(cv(eid, 0) - 0.5 * cv(eid, 2) + 1. / 6. * cv(eid, 4),
-        cv(eid, 1) - 0.5 * cv(eid, 5), cv(eid, 3));
+    return Eigen::Matrix<FloatType, 1, 3>(
+        cv(eid, 0) - FloatType(0.5) * cv(eid, 2) + 1. / 6. * cv(eid, 4),
+        cv(eid, 1) - FloatType(0.5) * cv(eid, 5), cv(eid, 3));
 }
 template <> Eigen::Matrix<FloatType, 1, 3> topedgeofcell(const DGVector<6>& cv, size_t eid)
 {
-    return Eigen::Matrix<FloatType, 1, 3>(cv(eid, 0) + 0.5 * cv(eid, 2) + 1. / 6. * cv(eid, 4),
-        cv(eid, 1) + 0.5 * cv(eid, 5), cv(eid, 3));
+    return Eigen::Matrix<FloatType, 1, 3>(
+        cv(eid, 0) + FloatType(0.5) * cv(eid, 2) + 1. / 6. * cv(eid, 4),
+        cv(eid, 1) + FloatType(0.5) * cv(eid, 5), cv(eid, 3));
 }
 
 // dG2+ (8 in cell, 3 on edge)
 template <> Eigen::Matrix<FloatType, 1, 3> leftedgeofcell(const DGVector<8>& cv, size_t eid)
 {
-    return Eigen::Matrix<FloatType, 1, 3>(cv(eid, 0) - 0.5 * cv(eid, 1) + 1. / 6. * cv(eid, 3),
-        cv(eid, 2) - 0.5 * cv(eid, 5) + 1. / 6. * cv(eid, 6), cv(eid, 4) - 0.5 * cv(eid, 7));
+    return Eigen::Matrix<FloatType, 1, 3>(
+        cv(eid, 0) - FloatType(0.5) * cv(eid, 1) + 1. / 6. * cv(eid, 3),
+        cv(eid, 2) - FloatType(0.5) * cv(eid, 5) + 1. / 6. * cv(eid, 6),
+        cv(eid, 4) - FloatType(0.5) * cv(eid, 7));
 }
 template <> Eigen::Matrix<FloatType, 1, 3> rightedgeofcell(const DGVector<8>& cv, size_t eid)
 {
-    return Eigen::Matrix<FloatType, 1, 3>(cv(eid, 0) + 0.5 * cv(eid, 1) + 1. / 6. * cv(eid, 3),
-        cv(eid, 2) + 0.5 * cv(eid, 5) + 1. / 6. * cv(eid, 6), cv(eid, 4) + 0.5 * cv(eid, 7));
+    return Eigen::Matrix<FloatType, 1, 3>(
+        cv(eid, 0) + FloatType(0.5) * cv(eid, 1) + 1. / 6. * cv(eid, 3),
+        cv(eid, 2) + FloatType(0.5) * cv(eid, 5) + 1. / 6. * cv(eid, 6),
+        cv(eid, 4) + FloatType(0.5) * cv(eid, 7));
 }
 template <> Eigen::Matrix<FloatType, 1, 3> bottomedgeofcell(const DGVector<8>& cv, size_t eid)
 {
-    return Eigen::Matrix<FloatType, 1, 3>(cv(eid, 0) - 0.5 * cv(eid, 2) + 1. / 6. * cv(eid, 4),
-        cv(eid, 1) - 0.5 * cv(eid, 5) + 1. / 6. * cv(eid, 7), cv(eid, 3) - 0.5 * cv(eid, 6));
+    return Eigen::Matrix<FloatType, 1, 3>(
+        cv(eid, 0) - FloatType(0.5) * cv(eid, 2) + 1. / 6. * cv(eid, 4),
+        cv(eid, 1) - FloatType(0.5) * cv(eid, 5) + 1. / 6. * cv(eid, 7),
+        cv(eid, 3) - FloatType(0.5) * cv(eid, 6));
 }
 template <> Eigen::Matrix<FloatType, 1, 3> topedgeofcell(const DGVector<8>& cv, size_t eid)
 {
-    return Eigen::Matrix<FloatType, 1, 3>(cv(eid, 0) + 0.5 * cv(eid, 2) + 1. / 6. * cv(eid, 4),
-        cv(eid, 1) + 0.5 * cv(eid, 5) + 1. / 6. * cv(eid, 7), cv(eid, 3) + 0.5 * cv(eid, 6));
+    return Eigen::Matrix<FloatType, 1, 3>(
+        cv(eid, 0) + FloatType(0.5) * cv(eid, 2) + 1. / 6. * cv(eid, 4),
+        cv(eid, 1) + FloatType(0.5) * cv(eid, 5) + 1. / 6. * cv(eid, 7),
+        cv(eid, 3) + FloatType(0.5) * cv(eid, 6));
 }
 
 // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -332,8 +344,8 @@ inline void DGTransport<1>::edge_term_X(const ParametricMesh& smesh, const Float
     FloatType top = phi(c2, 0);
     FloatType vel = normalvel_X(ie, 0);
 
-    phiup(c1, 0) -= dt * (std::max(vel, 0.) * bottom + std::min(vel, 0.) * top);
-    phiup(c2, 0) += dt * (std::max(vel, 0.) * bottom + std::min(vel, 0.) * top);
+    phiup(c1, 0) -= dt * (std::max(vel, FloatType(0)) * bottom + std::min(vel, FloatType(0)) * top);
+    phiup(c2, 0) += dt * (std::max(vel, FloatType(0)) * bottom + std::min(vel, FloatType(0)) * top);
 }
 template <>
 inline void DGTransport<1>::edge_term_Y(const ParametricMesh& smesh, const FloatType dt,
@@ -349,8 +361,8 @@ inline void DGTransport<1>::edge_term_Y(const ParametricMesh& smesh, const Float
     FloatType right = phi(c2, 0);
     FloatType vel = normalvel_Y(ie, 0);
 
-    phiup(c1, 0) -= dt * (std::max(vel, 0.) * left + std::min(vel, 0.) * right);
-    phiup(c2, 0) += dt * (std::max(vel, 0.) * left + std::min(vel, 0.) * right);
+    phiup(c1, 0) -= dt * (std::max(vel, FloatType(0)) * left + std::min(vel, FloatType(0)) * right);
+    phiup(c2, 0) += dt * (std::max(vel, FloatType(0)) * left + std::min(vel, FloatType(0)) * right);
 }
 
 template <int DG>
@@ -506,7 +518,7 @@ template <int DG> void DGTransport<DG>::step_rk2(const FloatType dt, DGVector<DG
     DGTransportOperator(
         smesh, dt, velx, vely, normalvel_X, normalvel_Y, phi, tmp2); // tmp1 = k * F( u + k * F(u) )
 
-    phi += 0.5 * (tmp2 - tmp1);
+    phi += FloatType(0.5) * (tmp2 - tmp1);
 }
 
 template <int DG> void DGTransport<DG>::step_rk3(const FloatType dt, DGVector<DG>& phi)

@@ -60,7 +60,7 @@ void ConstantHealing::update(const TimestepTime& tstep)
         }
 
         // Only lateral growth contributes to healing, not melt(!)
-        FloatType const lateralGrowth = Utils::max(0., deltaCi[i]);
+        FloatType const lateralGrowth = Utils::max(FloatType(0), deltaCi[i]);
 
         /* 1. Lateral ice formation
          * A weighted average of the original damage, weighted by the old concentration, and the
@@ -75,7 +75,7 @@ void ConstantHealing::update(const TimestepTime& tstep)
 
         // This is what Véro did (Dansereau et al., 2016)
         damage[i] += dt / tD;
-        damage[i] = Utils::min(1., damage[i]);
+        damage[i] = Utils::min(FloatType(1), damage[i]);
     });
 }
 

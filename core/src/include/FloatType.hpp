@@ -7,7 +7,7 @@ namespace Nextsim {
  * This is not yet fully checked or supported but might be required in
  * for future use of GPU's
  */
-using FloatType = double;
+using FloatType = float;
 
 } /* namespace Nextsim */
 

@@ -92,7 +92,7 @@ void MU71Atmosphere::update(const Nextsim::TimestepTime& tst)
         dqia_dt[i] = 4. * Ice::epsilon * PhysicalConstants::sigma * std::pow(Tsurf_K, 3);
 
         // Only snowfall if we're not melting
-        if ((hs > 0 && tsurf[i] < 0.) || (hs == 0 && tsurf[i] < -Ice::s * Water::mu))
+        if ((hs > 0 && tsurf[i] < FloatType(0)) || (hs == 0 && tsurf[i] < -Ice::s * Water::mu))
             snow[i] = snowfall();
         else
             snow[i] = 0.;
