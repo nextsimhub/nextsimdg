@@ -44,7 +44,7 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::initialise(
 
 /*************************************************************/
 template <int DGadvection>
-void KokkosBrittleCGDynamicsKernel<DGadvection>::advectDynamicsFields(double timestep)
+void KokkosBrittleCGDynamicsKernel<DGadvection>::advectDynamicsFields(FloatType timestep)
 {
     static KokkosTimer<DETAILED_MEASUREMENTS> timerAdvectStress("advectStressGPU");
 

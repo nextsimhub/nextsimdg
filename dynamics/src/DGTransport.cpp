@@ -27,115 +27,91 @@ namespace Nextsim {
  *
  */
 template <int DG>
-Eigen::Matrix<Nextsim::FloatType, 1, EDGEDOFS(DG)> leftedgeofcell(
-    const DGVector<DG>& cv, size_t eid);
+Eigen::Matrix<FloatType, 1, EDGEDOFS(DG)> leftedgeofcell(const DGVector<DG>& cv, size_t eid);
 template <int DG>
-Eigen::Matrix<Nextsim::FloatType, 1, EDGEDOFS(DG)> rightedgeofcell(
-    const DGVector<DG>& cv, size_t eid);
+Eigen::Matrix<FloatType, 1, EDGEDOFS(DG)> rightedgeofcell(const DGVector<DG>& cv, size_t eid);
 template <int DG>
-Eigen::Matrix<Nextsim::FloatType, 1, EDGEDOFS(DG)> bottomedgeofcell(
-    const DGVector<DG>& cv, size_t eid);
+Eigen::Matrix<FloatType, 1, EDGEDOFS(DG)> bottomedgeofcell(const DGVector<DG>& cv, size_t eid);
 template <int DG>
-Eigen::Matrix<Nextsim::FloatType, 1, EDGEDOFS(DG)> topedgeofcell(
-    const DGVector<DG>& cv, size_t eid);
+Eigen::Matrix<FloatType, 1, EDGEDOFS(DG)> topedgeofcell(const DGVector<DG>& cv, size_t eid);
 
 // dG0 (1 in cell, 1 on edge)
-template <>
-Eigen::Matrix<Nextsim::FloatType, 1, 1> leftedgeofcell(const DGVector<1>& cv, size_t eid)
+template <> Eigen::Matrix<FloatType, 1, 1> leftedgeofcell(const DGVector<1>& cv, size_t eid)
 {
-    return Eigen::Matrix<Nextsim::FloatType, 1, 1>(cv(eid, 0));
+    return Eigen::Matrix<FloatType, 1, 1>(cv(eid, 0));
 }
-template <>
-Eigen::Matrix<Nextsim::FloatType, 1, 1> rightedgeofcell(const DGVector<1>& cv, size_t eid)
+template <> Eigen::Matrix<FloatType, 1, 1> rightedgeofcell(const DGVector<1>& cv, size_t eid)
 {
-    return Eigen::Matrix<Nextsim::FloatType, 1, 1>(cv(eid, 0));
+    return Eigen::Matrix<FloatType, 1, 1>(cv(eid, 0));
 }
-template <>
-Eigen::Matrix<Nextsim::FloatType, 1, 1> bottomedgeofcell(const DGVector<1>& cv, size_t eid)
+template <> Eigen::Matrix<FloatType, 1, 1> bottomedgeofcell(const DGVector<1>& cv, size_t eid)
 {
-    return Eigen::Matrix<Nextsim::FloatType, 1, 1>(cv(eid, 0));
+    return Eigen::Matrix<FloatType, 1, 1>(cv(eid, 0));
 }
-template <> Eigen::Matrix<Nextsim::FloatType, 1, 1> topedgeofcell(const DGVector<1>& cv, size_t eid)
+template <> Eigen::Matrix<FloatType, 1, 1> topedgeofcell(const DGVector<1>& cv, size_t eid)
 {
-    return Eigen::Matrix<Nextsim::FloatType, 1, 1>(cv(eid, 0));
+    return Eigen::Matrix<FloatType, 1, 1>(cv(eid, 0));
 }
 
 // dG1 (3 in cell, 2 on edge)
-template <>
-Eigen::Matrix<Nextsim::FloatType, 1, 2> leftedgeofcell(const DGVector<3>& cv, size_t eid)
+template <> Eigen::Matrix<FloatType, 1, 2> leftedgeofcell(const DGVector<3>& cv, size_t eid)
 {
-    return Eigen::Matrix<Nextsim::FloatType, 1, 2>(cv(eid, 0) - 0.5 * cv(eid, 1), cv(eid, 2));
+    return Eigen::Matrix<FloatType, 1, 2>(cv(eid, 0) - 0.5 * cv(eid, 1), cv(eid, 2));
 }
-template <>
-Eigen::Matrix<Nextsim::FloatType, 1, 2> rightedgeofcell(const DGVector<3>& cv, size_t eid)
+template <> Eigen::Matrix<FloatType, 1, 2> rightedgeofcell(const DGVector<3>& cv, size_t eid)
 {
-    return Eigen::Matrix<Nextsim::FloatType, 1, 2>(cv(eid, 0) + 0.5 * cv(eid, 1), cv(eid, 2));
+    return Eigen::Matrix<FloatType, 1, 2>(cv(eid, 0) + 0.5 * cv(eid, 1), cv(eid, 2));
 }
-template <>
-Eigen::Matrix<Nextsim::FloatType, 1, 2> bottomedgeofcell(const DGVector<3>& cv, size_t eid)
+template <> Eigen::Matrix<FloatType, 1, 2> bottomedgeofcell(const DGVector<3>& cv, size_t eid)
 {
-    return Eigen::Matrix<Nextsim::FloatType, 1, 2>(cv(eid, 0) - 0.5 * cv(eid, 2), cv(eid, 1));
+    return Eigen::Matrix<FloatType, 1, 2>(cv(eid, 0) - 0.5 * cv(eid, 2), cv(eid, 1));
 }
-template <> Eigen::Matrix<Nextsim::FloatType, 1, 2> topedgeofcell(const DGVector<3>& cv, size_t eid)
+template <> Eigen::Matrix<FloatType, 1, 2> topedgeofcell(const DGVector<3>& cv, size_t eid)
 {
-    return Eigen::Matrix<Nextsim::FloatType, 1, 2>(cv(eid, 0) + 0.5 * cv(eid, 2), cv(eid, 1));
+    return Eigen::Matrix<FloatType, 1, 2>(cv(eid, 0) + 0.5 * cv(eid, 2), cv(eid, 1));
 }
 
 // dG2 (6 in cell, 3 on edge)
-template <>
-Eigen::Matrix<Nextsim::FloatType, 1, 3> leftedgeofcell(const DGVector<6>& cv, size_t eid)
+template <> Eigen::Matrix<FloatType, 1, 3> leftedgeofcell(const DGVector<6>& cv, size_t eid)
 {
-    return Eigen::Matrix<Nextsim::FloatType, 1, 3>(
-        cv(eid, 0) - 0.5 * cv(eid, 1) + 1. / 6. * cv(eid, 3), cv(eid, 2) - 0.5 * cv(eid, 5),
-        cv(eid, 4));
+    return Eigen::Matrix<FloatType, 1, 3>(cv(eid, 0) - 0.5 * cv(eid, 1) + 1. / 6. * cv(eid, 3),
+        cv(eid, 2) - 0.5 * cv(eid, 5), cv(eid, 4));
 }
-template <>
-Eigen::Matrix<Nextsim::FloatType, 1, 3> rightedgeofcell(const DGVector<6>& cv, size_t eid)
+template <> Eigen::Matrix<FloatType, 1, 3> rightedgeofcell(const DGVector<6>& cv, size_t eid)
 {
-    return Eigen::Matrix<Nextsim::FloatType, 1, 3>(
-        cv(eid, 0) + 0.5 * cv(eid, 1) + 1. / 6. * cv(eid, 3), cv(eid, 2) + 0.5 * cv(eid, 5),
-        cv(eid, 4));
+    return Eigen::Matrix<FloatType, 1, 3>(cv(eid, 0) + 0.5 * cv(eid, 1) + 1. / 6. * cv(eid, 3),
+        cv(eid, 2) + 0.5 * cv(eid, 5), cv(eid, 4));
 }
-template <>
-Eigen::Matrix<Nextsim::FloatType, 1, 3> bottomedgeofcell(const DGVector<6>& cv, size_t eid)
+template <> Eigen::Matrix<FloatType, 1, 3> bottomedgeofcell(const DGVector<6>& cv, size_t eid)
 {
-    return Eigen::Matrix<Nextsim::FloatType, 1, 3>(
-        cv(eid, 0) - 0.5 * cv(eid, 2) + 1. / 6. * cv(eid, 4), cv(eid, 1) - 0.5 * cv(eid, 5),
-        cv(eid, 3));
+    return Eigen::Matrix<FloatType, 1, 3>(cv(eid, 0) - 0.5 * cv(eid, 2) + 1. / 6. * cv(eid, 4),
+        cv(eid, 1) - 0.5 * cv(eid, 5), cv(eid, 3));
 }
-template <> Eigen::Matrix<Nextsim::FloatType, 1, 3> topedgeofcell(const DGVector<6>& cv, size_t eid)
+template <> Eigen::Matrix<FloatType, 1, 3> topedgeofcell(const DGVector<6>& cv, size_t eid)
 {
-    return Eigen::Matrix<Nextsim::FloatType, 1, 3>(
-        cv(eid, 0) + 0.5 * cv(eid, 2) + 1. / 6. * cv(eid, 4), cv(eid, 1) + 0.5 * cv(eid, 5),
-        cv(eid, 3));
+    return Eigen::Matrix<FloatType, 1, 3>(cv(eid, 0) + 0.5 * cv(eid, 2) + 1. / 6. * cv(eid, 4),
+        cv(eid, 1) + 0.5 * cv(eid, 5), cv(eid, 3));
 }
 
 // dG2+ (8 in cell, 3 on edge)
-template <>
-Eigen::Matrix<Nextsim::FloatType, 1, 3> leftedgeofcell(const DGVector<8>& cv, size_t eid)
+template <> Eigen::Matrix<FloatType, 1, 3> leftedgeofcell(const DGVector<8>& cv, size_t eid)
 {
-    return Eigen::Matrix<Nextsim::FloatType, 1, 3>(
-        cv(eid, 0) - 0.5 * cv(eid, 1) + 1. / 6. * cv(eid, 3),
+    return Eigen::Matrix<FloatType, 1, 3>(cv(eid, 0) - 0.5 * cv(eid, 1) + 1. / 6. * cv(eid, 3),
         cv(eid, 2) - 0.5 * cv(eid, 5) + 1. / 6. * cv(eid, 6), cv(eid, 4) - 0.5 * cv(eid, 7));
 }
-template <>
-Eigen::Matrix<Nextsim::FloatType, 1, 3> rightedgeofcell(const DGVector<8>& cv, size_t eid)
+template <> Eigen::Matrix<FloatType, 1, 3> rightedgeofcell(const DGVector<8>& cv, size_t eid)
 {
-    return Eigen::Matrix<Nextsim::FloatType, 1, 3>(
-        cv(eid, 0) + 0.5 * cv(eid, 1) + 1. / 6. * cv(eid, 3),
+    return Eigen::Matrix<FloatType, 1, 3>(cv(eid, 0) + 0.5 * cv(eid, 1) + 1. / 6. * cv(eid, 3),
         cv(eid, 2) + 0.5 * cv(eid, 5) + 1. / 6. * cv(eid, 6), cv(eid, 4) + 0.5 * cv(eid, 7));
 }
-template <>
-Eigen::Matrix<Nextsim::FloatType, 1, 3> bottomedgeofcell(const DGVector<8>& cv, size_t eid)
+template <> Eigen::Matrix<FloatType, 1, 3> bottomedgeofcell(const DGVector<8>& cv, size_t eid)
 {
-    return Eigen::Matrix<Nextsim::FloatType, 1, 3>(
-        cv(eid, 0) - 0.5 * cv(eid, 2) + 1. / 6. * cv(eid, 4),
+    return Eigen::Matrix<FloatType, 1, 3>(cv(eid, 0) - 0.5 * cv(eid, 2) + 1. / 6. * cv(eid, 4),
         cv(eid, 1) - 0.5 * cv(eid, 5) + 1. / 6. * cv(eid, 7), cv(eid, 3) - 0.5 * cv(eid, 6));
 }
-template <> Eigen::Matrix<Nextsim::FloatType, 1, 3> topedgeofcell(const DGVector<8>& cv, size_t eid)
+template <> Eigen::Matrix<FloatType, 1, 3> topedgeofcell(const DGVector<8>& cv, size_t eid)
 {
-    return Eigen::Matrix<Nextsim::FloatType, 1, 3>(
-        cv(eid, 0) + 0.5 * cv(eid, 2) + 1. / 6. * cv(eid, 4),
+    return Eigen::Matrix<FloatType, 1, 3>(cv(eid, 0) + 0.5 * cv(eid, 2) + 1. / 6. * cv(eid, 4),
         cv(eid, 1) + 0.5 * cv(eid, 5) + 1. / 6. * cv(eid, 7), cv(eid, 3) + 0.5 * cv(eid, 6));
 }
 
@@ -175,14 +151,14 @@ template <int DG> void DGTransport<DG>::reinitnormalvelocity()
                 continue;
 
             // un-normed tangent vector of left edge (pointing up). normal is (y,-x)
-            const Eigen::Matrix<Nextsim::FloatType, 1, 2> tangent_left
+            const Eigen::Matrix<FloatType, 1, 2> tangent_left
                 = smesh.edgevector(ey, ey + smesh.nx + 1);
             normalvel_Y.row(ey) += 0.5
                 * (tangent_left(0, 1) * leftedgeofcell<DG>(velx, cy)
                     - tangent_left(0, 0) * leftedgeofcell<DG>(vely, cy));
 
             // un-normed tangent vector of left edge (pointing up). normal is (y,-x)
-            const Eigen::Matrix<Nextsim::FloatType, 1, 2> tangent_right
+            const Eigen::Matrix<FloatType, 1, 2> tangent_right
                 = smesh.edgevector(ey + 1, ey + smesh.nx + 2);
             normalvel_Y.row(ey + 1) += 0.5
                 * (tangent_right(0, 1) * rightedgeofcell<DG>(velx, cy)
@@ -208,15 +184,14 @@ template <int DG> void DGTransport<DG>::reinitnormalvelocity()
                 continue;
 
             // un-normed tangent vector of bottom edge (pointing right). normal is (-y,x)
-            const Eigen::Matrix<Nextsim::FloatType, 1, 2> tangent_bottom
-                = smesh.edgevector(nx, nx + 1);
+            const Eigen::Matrix<FloatType, 1, 2> tangent_bottom = smesh.edgevector(nx, nx + 1);
 
             normalvel_X.row(cx) += 0.5
                 * (-tangent_bottom(0, 1) * bottomedgeofcell<DG>(velx, cx)
                     + tangent_bottom(0, 0) * bottomedgeofcell<DG>(vely, cx));
 
             // un-normed tangent vector of top edge (pointing right). normal is (-y,x)
-            const Eigen::Matrix<Nextsim::FloatType, 1, 2> tangent_top
+            const Eigen::Matrix<FloatType, 1, 2> tangent_top
                 = smesh.edgevector(nx + smesh.nx + 1, nx + smesh.nx + 2);
 
             normalvel_X.row(cx + smesh.nx) += 0.5
@@ -261,13 +236,13 @@ void DGTransport<DG>::prepareAdvection(const CGVector<CG>& cg_vx, const CGVector
 ////////////////////////////////////////////////// CELL TERM
 
 template <>
-void DGTransport<1>::cell_term(const ParametricMesh& smesh, double dt, DGVector<1>& phiup,
+void DGTransport<1>::cell_term(const ParametricMesh& smesh, FloatType dt, DGVector<1>& phiup,
     const DGVector<1>& phi, const DGVector<1>& vx, const DGVector<1>& vy, const size_t ic)
 {
 }
 
 template <int DG>
-void DGTransport<DG>::cell_term(const ParametricMesh& smesh, double dt, DGVector<DG>& phiup,
+void DGTransport<DG>::cell_term(const ParametricMesh& smesh, FloatType dt, DGVector<DG>& phiup,
     const DGVector<DG>& phi, const DGVector<DG>& vx, const DGVector<DG>& vy, const size_t eid)
 {
     if (smesh.landmask[eid] == 0) {
@@ -279,11 +254,11 @@ void DGTransport<DG>::cell_term(const ParametricMesh& smesh, double dt, DGVector
         // std::cout << "element id " << eid  << " lm " << smesh.landmask[eid] << " " <<
         // phi.row(eid) << std::endl;
     }
-    const Eigen::Matrix<Nextsim::FloatType, 1, GAUSSPOINTS(DG)> vx_gauss
+    const Eigen::Matrix<FloatType, 1, GAUSSPOINTS(DG)> vx_gauss
         = vx.row(eid) * PSI<DG, GAUSSPOINTS1D(DG)>; //!< velocity in GP
-    const Eigen::Matrix<Nextsim::FloatType, 1, GAUSSPOINTS(DG)> vy_gauss
+    const Eigen::Matrix<FloatType, 1, GAUSSPOINTS(DG)> vy_gauss
         = vy.row(eid) * PSI<DG, GAUSSPOINTS1D(DG)>;
-    const Eigen::Matrix<Nextsim::FloatType, 1, GAUSSPOINTS(DG)> phi_gauss
+    const Eigen::Matrix<FloatType, 1, GAUSSPOINTS(DG)> phi_gauss
         = (phi.row(eid) * PSI<DG, GAUSSPOINTS1D(DG)>).array();
 
     phiup.row(eid) += dt
@@ -295,7 +270,7 @@ void DGTransport<DG>::cell_term(const ParametricMesh& smesh, double dt, DGVector
 ////////////////////////////////////////////////// BOUNDARY HANDLING
 
 template <int DG>
-void boundary_lower(const ParametricMesh& smesh, const double dt, DGVector<DG>& phiup,
+void boundary_lower(const ParametricMesh& smesh, const FloatType dt, DGVector<DG>& phiup,
     const DGVector<DG>& phi, const EdgeVector<EDGEDOFS(DG)>& normalvel_X, const size_t c,
     const size_t e)
 {
@@ -308,7 +283,7 @@ void boundary_lower(const ParametricMesh& smesh, const double dt, DGVector<DG>& 
     phiup.row(c) -= dt * tmp * PSIe_w<DG, EDGEDOFS(DG), 0>;
 }
 template <int DG>
-void boundary_upper(const ParametricMesh& smesh, const double dt, DGVector<DG>& phiup,
+void boundary_upper(const ParametricMesh& smesh, const FloatType dt, DGVector<DG>& phiup,
     const DGVector<DG>& phi, const EdgeVector<EDGEDOFS(DG)>& normalvel_X, const size_t c,
     const size_t e)
 {
@@ -319,7 +294,7 @@ void boundary_upper(const ParametricMesh& smesh, const double dt, DGVector<DG>& 
     phiup.row(c) -= dt * tmp * PSIe_w<DG, EDGEDOFS(DG), 2>;
 }
 template <int DG>
-void boundary_left(const ParametricMesh& smesh, const double dt, DGVector<DG>& phiup,
+void boundary_left(const ParametricMesh& smesh, const FloatType dt, DGVector<DG>& phiup,
     const DGVector<DG>& phi, const EdgeVector<EDGEDOFS(DG)>& normalvel_Y, const size_t c,
     const size_t e)
 {
@@ -330,7 +305,7 @@ void boundary_left(const ParametricMesh& smesh, const double dt, DGVector<DG>& p
     phiup.row(c) -= dt * tmp * PSIe_w<DG, EDGEDOFS(DG), 3>;
 }
 template <int DG>
-void boundary_right(const ParametricMesh& smesh, const double dt, DGVector<DG>& phiup,
+void boundary_right(const ParametricMesh& smesh, const FloatType dt, DGVector<DG>& phiup,
     const DGVector<DG>& phi, const EdgeVector<EDGEDOFS(DG)>& normalvel_Y, const size_t c,
     const size_t e)
 {
@@ -344,7 +319,7 @@ void boundary_right(const ParametricMesh& smesh, const double dt, DGVector<DG>& 
 ////////////////////////////////////////////////// EDGE TERMS
 
 template <>
-inline void DGTransport<1>::edge_term_X(const ParametricMesh& smesh, const double dt,
+inline void DGTransport<1>::edge_term_X(const ParametricMesh& smesh, const FloatType dt,
     DGVector<1>& phiup, const DGVector<1>& phi, // DG0 (1)
     const EdgeVector<1>& normalvel_X, const size_t c1, const size_t c2, const size_t ie)
 {
@@ -353,15 +328,15 @@ inline void DGTransport<1>::edge_term_X(const ParametricMesh& smesh, const doubl
     if (smesh.landmask[c2] == 0)
         return;
 
-    double bottom = phi(c1, 0);
-    double top = phi(c2, 0);
-    double vel = normalvel_X(ie, 0);
+    FloatType bottom = phi(c1, 0);
+    FloatType top = phi(c2, 0);
+    FloatType vel = normalvel_X(ie, 0);
 
     phiup(c1, 0) -= dt * (std::max(vel, 0.) * bottom + std::min(vel, 0.) * top);
     phiup(c2, 0) += dt * (std::max(vel, 0.) * bottom + std::min(vel, 0.) * top);
 }
 template <>
-inline void DGTransport<1>::edge_term_Y(const ParametricMesh& smesh, const double dt,
+inline void DGTransport<1>::edge_term_Y(const ParametricMesh& smesh, const FloatType dt,
     DGVector<1>& phiup, const DGVector<1>& phi, // DG0 (1)
     const EdgeVector<1>& normalvel_Y, const size_t c1, const size_t c2, const size_t ie)
 {
@@ -370,16 +345,16 @@ inline void DGTransport<1>::edge_term_Y(const ParametricMesh& smesh, const doubl
     if (smesh.landmask[c2] == 0)
         return;
 
-    double left = phi(c1, 0);
-    double right = phi(c2, 0);
-    double vel = normalvel_Y(ie, 0);
+    FloatType left = phi(c1, 0);
+    FloatType right = phi(c2, 0);
+    FloatType vel = normalvel_Y(ie, 0);
 
     phiup(c1, 0) -= dt * (std::max(vel, 0.) * left + std::min(vel, 0.) * right);
     phiup(c2, 0) += dt * (std::max(vel, 0.) * left + std::min(vel, 0.) * right);
 }
 
 template <int DG>
-inline void DGTransport<DG>::edge_term_X(const ParametricMesh& smesh, const double dt,
+inline void DGTransport<DG>::edge_term_X(const ParametricMesh& smesh, const FloatType dt,
     DGVector<DG>& phiup, const DGVector<DG>& phi, // DG1 (3)
     const EdgeVector<EDGEDOFS(DG)>& normalvel_X, const size_t c1, const size_t c2, const size_t ie)
 {
@@ -401,7 +376,7 @@ inline void DGTransport<DG>::edge_term_X(const ParametricMesh& smesh, const doub
 }
 
 template <int DG>
-inline void DGTransport<DG>::edge_term_Y(const ParametricMesh& smesh, const double dt,
+inline void DGTransport<DG>::edge_term_Y(const ParametricMesh& smesh, const FloatType dt,
     DGVector<DG>& phiup, const DGVector<DG>& phi, // DG1 (3)
     const EdgeVector<EDGEDOFS(DG)>& normalvel_Y, const size_t c1, const size_t c2, const size_t ie)
 {
@@ -424,7 +399,7 @@ inline void DGTransport<DG>::edge_term_Y(const ParametricMesh& smesh, const doub
 }
 
 template <int DG>
-void DGTransport<DG>::DGTransportOperator(const ParametricMesh& smesh, const double dt,
+void DGTransport<DG>::DGTransportOperator(const ParametricMesh& smesh, const FloatType dt,
     const DGVector<DG>& vx, const DGVector<DG>& vy, const EdgeVector<EDGEDOFS(DG)>& normalvel_X,
     const EdgeVector<EDGEDOFS(DG)>& normalvel_Y, const DGVector<DG>& phi, DGVector<DG>& phiup)
 {
@@ -514,14 +489,14 @@ void DGTransport<DG>::DGTransportOperator(const ParametricMesh& smesh, const dou
         phiup.row(eid) = parammap.InverseDGMassMatrix[eid] * phiup.row(eid).transpose();
 }
 
-template <int DG> void DGTransport<DG>::step_rk1(const double dt, DGVector<DG>& phi)
+template <int DG> void DGTransport<DG>::step_rk1(const FloatType dt, DGVector<DG>& phi)
 {
     DGTransportOperator(smesh, dt, velx, vely, normalvel_X, normalvel_Y, phi, tmp1);
 
     phi += tmp1;
 }
 
-template <int DG> void DGTransport<DG>::step_rk2(const double dt, DGVector<DG>& phi)
+template <int DG> void DGTransport<DG>::step_rk2(const FloatType dt, DGVector<DG>& phi)
 {
     DGTransportOperator(
         smesh, dt, velx, vely, normalvel_X, normalvel_Y, phi, tmp1); // tmp1 = k * F(u)
@@ -534,7 +509,7 @@ template <int DG> void DGTransport<DG>::step_rk2(const double dt, DGVector<DG>& 
     phi += 0.5 * (tmp2 - tmp1);
 }
 
-template <int DG> void DGTransport<DG>::step_rk3(const double dt, DGVector<DG>& phi)
+template <int DG> void DGTransport<DG>::step_rk3(const FloatType dt, DGVector<DG>& phi)
 {
     DGTransportOperator(smesh, dt, velx, vely, normalvel_X, normalvel_Y, phi,
         tmp1); // tmp1 = k * F(u)  // K1 in Heun(3)
@@ -554,7 +529,7 @@ template <int DG> void DGTransport<DG>::step_rk3(const double dt, DGVector<DG>& 
     phi += 2.0 / 3.0 * tmp3;
 }
 
-template <int DG> void DGTransport<DG>::step(const double dt, DGVector<DG>& phi)
+template <int DG> void DGTransport<DG>::step(const FloatType dt, DGVector<DG>& phi)
 {
     if (timesteppingscheme == "rk1")
         step_rk1(dt, phi);

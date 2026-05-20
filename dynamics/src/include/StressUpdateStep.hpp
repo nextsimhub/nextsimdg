@@ -25,7 +25,7 @@ public:
     virtual void stressUpdateHighOrder(const DynamicsParameters& params,
         const ParametricMesh& smesh, SymmetricTensorVector& stress,
         const SymmetricTensorVector& strain, const DGVector<DGadvection>& h,
-        const DGVector<DGadvection>& a, const double deltaT)
+        const DGVector<DGadvection>& a, const FloatType deltaT)
         = 0;
 };
 

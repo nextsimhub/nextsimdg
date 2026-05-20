@@ -17,11 +17,12 @@
 #include <vector>
 
 using namespace doctest;
+using namespace Nextsim;
 
 bool WRITE_VTK = false; //!< set to true for vtk output
 int WRITE_EVERY = 5;
 
-double TOL = 1.e-7; //!< tolerance for checking test results
+FloatType TOL = 1.e-7; //!< tolerance for checking test results
 
 /*!
  *  Description of the test case
@@ -40,8 +41,8 @@ double TOL = 1.e-7; //!< tolerance for checking test results
  * NT = 1000
  */
 namespace ProblemConfig {
-double Lx = 409600.0;
-double Ly = 512000.0;
+FloatType Lx = 409600.0;
+FloatType Ly = 512000.0;
 size_t Nx = 12;
 const size_t Nx0 = 12;
 size_t Ny = 13;
@@ -55,11 +56,12 @@ const size_t NT0 = 100;
 class PackmanPlus : public Nextsim::Interpolations::Function {
 
 public:
-    double operator()(double x, double y) const
+    FloatType operator()(FloatType x, FloatType y) const
     {
         //      return 1;
-        double r = sqrt(pow((x - 240000.0) / 64000.0, 2.0) + pow((y - 120000.0) / 64000.0, 2.0));
-        double r1 = sqrt(pow((x - 272000.0) / 96000.0, 2.0) + pow((y - 368000.0) / 96000.0, 2.0));
+        FloatType r = sqrt(pow((x - 240000.0) / 64000.0, 2.0) + pow((y - 120000.0) / 64000.0, 2.0));
+        FloatType r1
+            = sqrt(pow((x - 272000.0) / 96000.0, 2.0) + pow((y - 368000.0) / 96000.0, 2.0));
         if (r < 1.0)
             if ((16000.0 - fabs(x - 240000.0) < 0.0) || (y > 120000.0 - 16000.0))
                 return 1.0 + exp(-5.0 * r1 * r1);
@@ -69,11 +71,11 @@ public:
 class SmoothBump : public Nextsim::Interpolations::Function {
 
 public:
-    double operator()(double x, double y) const
+    FloatType operator()(FloatType x, FloatType y) const
     {
-        double X = x / ProblemConfig::Lx;
-        double Y = y / ProblemConfig::Lx;
-        double r = (pow((X - 0.25), 2.0) + pow((Y - 0.5), 2.0)) / 0.025;
+        FloatType X = x / ProblemConfig::Lx;
+        FloatType Y = y / ProblemConfig::Lx;
+        FloatType r = (pow((X - 0.25), 2.0) + pow((Y - 0.5), 2.0)) / 0.025;
         if (r < 1)
             return exp(-1.0 / (1.0 - r));
         else
@@ -85,14 +87,14 @@ public:
 class InitialVX : public Nextsim::Interpolations::Function { // (0.5,0.2) m/s
 
 public:
-    double operator()(double x, double y) const
+    FloatType operator()(FloatType x, FloatType y) const
     {
         return (y - 0.5 * ProblemConfig::Lx) * 2.0 * M_PI / ProblemConfig::Lx;
     }
 };
 class InitialVY : public Nextsim::Interpolations::Function {
 public:
-    double operator()(double x, double y) const
+    FloatType operator()(FloatType x, FloatType y) const
     {
         return (0.5 * ProblemConfig::Lx - x) * 2.0 * M_PI / ProblemConfig::Lx;
     }
@@ -106,7 +108,7 @@ template <int DG> class Test {
 
     size_t N; //!< size of mesh N x N
 
-    double dt; //!< time step size
+    FloatType dt; //!< time step size
 
     //! Velocity vectors and density
     Nextsim::DGVector<DG> phi;
@@ -142,7 +144,7 @@ public:
         phi.resize_by_mesh(smesh);
     }
 
-    double run()
+    FloatType run()
     {
 
         // init the test case, in particular resize vectors
@@ -151,7 +153,7 @@ public:
         // initial density
         Nextsim::Interpolations::Function2DG(smesh, phi, SmoothBump());
 
-        double initialaverage = Nextsim::Tools::MeanValue(smesh, phi);
+        FloatType initialaverage = Nextsim::Tools::MeanValue(smesh, phi);
 
         // velocity field
         Nextsim::DGVector<DG> vx;
@@ -198,8 +200,8 @@ public:
 
 //////////////////////////////////////////////////
 
-void create_rectanglemesh(Nextsim::ParametricMesh& smesh, const double Lx, const double Ly,
-    const size_t Nx, const size_t Ny, double distort = 0.0)
+void create_rectanglemesh(Nextsim::ParametricMesh& smesh, const FloatType Lx, const FloatType Ly,
+    const size_t Nx, const size_t Ny, FloatType distort = 0.0)
 {
     smesh.reset(); // reset mesh and clear all variables
 
@@ -233,7 +235,7 @@ void create_rectanglemesh(Nextsim::ParametricMesh& smesh, const double Lx, const
         smesh.landmask[(i + 1) * smesh.nx - 1] = 0;
 }
 
-template <int DG> void run(double distort, const std::array<std::array<double, 4>, 3>& exact)
+template <int DG> void run(FloatType distort, const std::array<std::array<FloatType, 4>, 3>& exact)
 {
     Nextsim::ParametricMesh smesh(Nextsim::CARTESIAN); // 0 means no output
 
@@ -251,7 +253,7 @@ template <int DG> void run(double distort, const std::array<std::array<double, 4
             ProblemConfig::Ny, distort);
 
         Test<DG> test(smesh);
-        double error = test.run();
+        FloatType error = test.run();
         std::cout << error << "\t" << exact[DG2DEG(DG)][it] << std::endl;
         CHECK(error == Approx(exact[DG2DEG(DG)][it]).epsilon(TOL));
     }
@@ -267,12 +269,12 @@ TEST_CASE("Advection")
     // New values 07/04/2025 after reimplementation of boundary data. Dirichlet data is now
     // realized using the landmaks info. Therefore, the physical domain shrinks by one layer all
     // around and this slightly changes the exact values.
-    std::array<std::array<double, 4>, 3> exact
-        = { std::array<double, 4>({ 5.0568601321622546e-02, 4.8785010758681462e-02,
+    std::array<std::array<FloatType, 4>, 3> exact
+        = { std::array<FloatType, 4>({ 5.0568601321622546e-02, 4.8785010758681462e-02,
                 4.3807523095968269e-02, 3.6079575213776381e-02 }),
-              std::array<double, 4>({ 2.8463796850208754e-02, 1.4000140482658283e-02,
+              std::array<FloatType, 4>({ 2.8463796850208754e-02, 1.4000140482658283e-02,
                   5.8605850177331619e-03, 2.2757018442945147e-03 }),
-              std::array<double, 4>({ 1.0146940898974235e-02, 4.0853715304369851e-03,
+              std::array<FloatType, 4>({ 1.0146940898974235e-02, 4.0853715304369851e-03,
                   1.2400975498406005e-03, 2.8460132054714237e-04 }) };
 
     std::cout << std::endl << "DG\tNT\tNX\tmass loss\terror\t\texact" << std::endl;
@@ -282,14 +284,14 @@ TEST_CASE("Advection")
 }
 TEST_CASE("Distorted Mesh")
 {
-    // std::array<std::array<double, 6>, 3> exact
-    //     = { std::array<double, 6>(
+    // std::array<std::array<FloatType, 6>, 3> exact
+    //     = { std::array<FloatType, 6>(
     //             { 5.0958748236875594e-02, 4.8461087243594887e-02, 4.3918572621094686e-02,
     //                 3.7038043078562323e-02, 2.8334464207979679e-02, 1.9666196904181983e-02 }),
-    //           std::array<double, 6>(
+    //           std::array<FloatType, 6>(
     //               { 3.2033423984965226e-02, 1.5639052766007147e-02, 6.7926997203524983e-03,
     //                   2.7369916393700151e-03, 9.2109964949992139e-04, 2.5128064874203957e-04 }),
-    //           std::array<double, 6>(
+    //           std::array<FloatType, 6>(
     //               { 1.1830071142946669e-02, 4.9207680503709564e-03, 1.5831512504162868e-03,
     //                   3.8869595113351363e-04, 6.7162895595772516e-05, 7.5853786764529606e-06 })
     //                   };
@@ -297,12 +299,12 @@ TEST_CASE("Distorted Mesh")
     // New values 07/04/2025 after reimplementation of boundary data. Dirichlet data is now
     // realized using the landmaks info. Therefore, the physical domain shrinks by one layer all
     // around and this slightly changes the exact values.
-    std::array<std::array<double, 4>, 3> exact
-        = { std::array<double, 4>({ 4.8195942137802428e-02, 4.9345757529052611e-02,
+    std::array<std::array<FloatType, 4>, 3> exact
+        = { std::array<FloatType, 4>({ 4.8195942137802428e-02, 4.9345757529052611e-02,
                 4.4903895856787640e-02, 3.7467928845481245e-02 }),
-              std::array<double, 4>({ 3.2422647655365219e-02, 1.7062569520319999e-02,
+              std::array<FloatType, 4>({ 3.2422647655365219e-02, 1.7062569520319999e-02,
                   6.8213111669173628e-03, 2.7372092446537699e-03 }),
-              std::array<double, 4>({ 1.2603978369132178e-02, 5.1434197544894689e-03,
+              std::array<FloatType, 4>({ 1.2603978369132178e-02, 5.1434197544894689e-03,
                   1.5845944976351275e-03, 3.8869603127842235e-04 }) };
 
     std::cout << std::endl << "Distorted mesh" << std::endl;

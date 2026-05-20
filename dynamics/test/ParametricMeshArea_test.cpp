@@ -22,8 +22,8 @@ namespace Nextsim {
 
 static const size_t nx = 154;
 static const size_t ny = 121;
-static const double dx = 25000;
-static const double dy = 25000;
+static const FloatType dx = 25000;
+static const FloatType dy = 25000;
 
 TEST_SUITE_BEGIN("ParametricMeshArea");
 
@@ -45,10 +45,10 @@ TEST_CASE("Test area cartesian")
     smesh.landmask.resize(nx * ny, true);
 
     // exact area
-    double exact = dx * dy;
+    FloatType exact = dx * dy;
 
     // check mesh area
-    double totalarea = 0.0;
+    FloatType totalarea = 0.0;
     for (int i = 0; i < nx * ny; ++i) {
         REQUIRE(smesh.area(i) > 0);
         totalarea += smesh.area(i); // area must be positive
@@ -58,7 +58,7 @@ TEST_CASE("Test area cartesian")
     REQUIRE(fabs(1.0 - totalarea / exact) < 1.e-12);
 
     //////// next, distort the inner vertices of the mesh
-    double h = std::min(dx / nx, dy / ny); // min. mesh size in x/y-direction
+    FloatType h = std::min(dx / nx, dy / ny); // min. mesh size in x/y-direction
     for (int iy = 1; iy < ny; ++iy)
         for (int ix = 1; ix < nx; ++ix) {
             smesh.vertices((nx + 1) * iy + ix, 0) += 0.2 * h * sin(ix + iy); // distort by 20%
@@ -93,10 +93,10 @@ TEST_CASE("Test area spherical")
     smesh.landmask.resize(nx * ny, true);
 
     // exact radius (surface of earth)
-    double exact = 4.0 * M_PI * EarthRadius * EarthRadius;
+    FloatType exact = 4.0 * M_PI * EarthRadius * EarthRadius;
 
     // check mesh area
-    double totalarea = 0.0;
+    FloatType totalarea = 0.0;
     for (int i = 0; i < nx * ny; ++i) {
         REQUIRE(smesh.area(i) > 0);
         totalarea += smesh.area(i); // area must be positive
@@ -106,7 +106,7 @@ TEST_CASE("Test area spherical")
     REQUIRE(fabs(1.0 - totalarea / exact) < 1.e-9);
 
     //////// next, distort the inner vertices of the mesh
-    double h = std::min(2.0 * M_PI / nx, M_PI / ny); // min. mesh size in x/y-direction
+    FloatType h = std::min(2.0 * M_PI / nx, M_PI / ny); // min. mesh size in x/y-direction
     for (int iy = 1; iy < ny; ++iy)
         for (int ix = 1; ix < nx; ++ix) {
             smesh.vertices((nx + 1) * iy + ix, 0) += 0.2 * h * sin(ix + iy); // distort by 20%

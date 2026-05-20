@@ -98,13 +98,13 @@ public:
      * @param timestep Advection timestep length in seconds
      * @param stessComp Stress component to advect
      */
-    DGVector<DGstressComp>& advectStress(double advectionTS, DGVector<DGstressComp>& stressComp)
+    DGVector<DGstressComp>& advectStress(FloatType advectionTS, DGVector<DGstressComp>& stressComp)
     {
         stresstransport->step(advectionTS, stressComp);
         return stressComp;
     }
 
-    void advectDynamicsFields(double timestep) override
+    void advectDynamicsFields(FloatType timestep) override
     {
         // Let DynamicsKernel handle the advection of the ice.
         DynamicsKernel<DGadvection, DGstressComp>::advectDynamicsFields(timestep);
@@ -211,8 +211,8 @@ protected:
     // Common brittle parts of the momentum solver.
     void updateMomentum(const TimestepTime& tst) override
     {
-        const double FOcean = params.COcean * params.rhoOcean;
-        const double FAtm = params.CAtm * params.rhoAtm;
+        const FloatType FOcean = params.COcean * params.rhoOcean;
+        const FloatType FAtm = params.CAtm * params.rhoAtm;
 
 #pragma omp parallel for
         for (size_t i = 0; i < u.rows(); ++i) {
@@ -220,34 +220,35 @@ protected:
                 continue;
 
             // FIXME dte_over_mass should include snow in the total mass
-            const double dteOverMass = deltaT / (params.rhoIce * cgH(i));
+            const FloatType dteOverMass = deltaT / (params.rhoIce * cgH(i));
             // Memoized initial velocity values
-            const double uIce = u(i);
-            const double vIce = v(i);
+            const FloatType uIce = u(i);
+            const FloatType vIce = v(i);
 
-            const double cPrime = cgA(i) * FOcean * std::hypot(uOcean(i) - uIce, vOcean(i) - vIce);
+            const FloatType cPrime
+                = cgA(i) * FOcean * std::hypot(uOcean(i) - uIce, vOcean(i) - vIce);
 
             // FIXME grounding term tauB = cBu[i] / std::hypot(uIce, vIce) + u0
-            const double tauB = 0.;
-            const double alpha = 1 + dteOverMass * (cPrime * cosOceanAngle + tauB);
+            const FloatType tauB = 0.;
+            const FloatType alpha = 1 + dteOverMass * (cPrime * cosOceanAngle + tauB);
             /* FIXME latitude needed for spherical cases
-             * const double beta = deltaT * fc +
+             * const FloatType beta = deltaT * fc +
              * dteOverMass * cPrime * std::copysign(sinOceanAngle, lat[i]);
              */
-            const double beta = deltaT * params.fc + dteOverMass * cPrime * sinOceanAngle;
-            const double rDenom = 1 / (SQR(alpha) + SQR(beta));
+            const FloatType beta = deltaT * params.fc + dteOverMass * cPrime * sinOceanAngle;
+            const FloatType rDenom = 1 / (SQR(alpha) + SQR(beta));
 
             // Atmospheric drag
-            const double dragAtm = cgA(i) * FAtm * std::hypot(uAtmos(i), vAtmos(i));
-            const double tauX = dragAtm * uAtmos(i)
+            const FloatType dragAtm = cgA(i) * FAtm * std::hypot(uAtmos(i), vAtmos(i));
+            const FloatType tauX = dragAtm * uAtmos(i)
                 + cPrime * (uOcean(i) * cosOceanAngle - vOcean(i) * sinOceanAngle);
-            const double tauY = dragAtm * vAtmos(i)
+            const FloatType tauY = dragAtm * vAtmos(i)
                 + cPrime * (vOcean(i) * cosOceanAngle + uOcean(i) * sinOceanAngle);
 
             // Stress gradient
-            const double gradX = dStressX(i) / pmap->lumpedcgmass(i)
+            const FloatType gradX = dStressX(i) / pmap->lumpedcgmass(i)
                 - params.rhoIce * cgH(i) * PhysicalConstants::g * xGradSeaSurfaceHeight(i);
-            const double gradY = dStressY(i) / pmap->lumpedcgmass(i)
+            const FloatType gradY = dStressY(i) / pmap->lumpedcgmass(i)
                 - params.rhoIce * cgH(i) * PhysicalConstants::g * yGradSeaSurfaceHeight(i);
 
             u(i) = alpha * uIce + beta * vIce

@@ -31,7 +31,7 @@ public:
 
     void initialise(const ModelArray& coords, bool isSpherical, const ModelArray& mask) override;
 
-    void advectDynamicsFields(double timestep) override;
+    void advectDynamicsFields(FloatType timestep) override;
 
     void update(const TimestepTime& tst) override;
 

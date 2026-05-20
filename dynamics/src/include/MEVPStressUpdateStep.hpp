@@ -27,7 +27,7 @@ public:
     void stressUpdateHighOrder(const DynamicsParameters& params, const ParametricMesh& smesh,
         SymmetricTensorVector& stress, const SymmetricTensorVector& strain,
         const DGVector<DGadvection>& h, const DGVector<DGadvection>& a,
-        const double deltaT) override
+        const FloatType deltaT) override
     {
         // Unwrap references
         DGVector<DGstress>& s11 = stress[I11];
@@ -39,7 +39,7 @@ public:
         DGVector<DGstress>& e22 = strain[I22];
 
         const VPParameters& vpParams = reinterpret_cast<const VPParameters&>(params);
-        const double sqrDeltaMin = SQR(vpParams.deltaMin);
+        const FloatType sqrDeltaMin = SQR(vpParams.deltaMin);
         // Number of Gauss points
         const size_t nGauss = (((DGstress == 8) || (DGstress == 6)) ? 3 : (DGstress == 3 ? 2 : -1));
         //! Stress Update
@@ -66,13 +66,13 @@ public:
                     + 1.50 * e11_gauss.array() * e22_gauss.array() + e12_gauss.array().square())
                       .sqrt()
                       .matrix();
-            // double DELTA = sqrt(SQR(vpparameters.deltaMin) + 1.25 * (SQR(E11(i, 0)) + SQR(E22(i,
-            // 0)))
+            // FloatType DELTA = sqrt(SQR(vpparameters.deltaMin) + 1.25 * (SQR(E11(i, 0)) +
+            // SQR(E22(i, 0)))
             //       + 1.50 * E11(i, 0) * E22(i, 0) + SQR(E12(i, 0)));
             //   assert(DELTA > 0);
 
             //   //! Ice strength
-            //   double P = vpparameters.pStar * H(i, 0) * exp(-20.0 * (1.0 - A(i, 0)));
+            //   FloatType P = vpparameters.pStar * H(i, 0) * exp(-20.0 * (1.0 - A(i, 0)));
             const LocalEdgeVector<nGauss * nGauss> P = (vpParams.pStar * h_gauss.array()
                 * (vpParams.compactionParam * (1.0 - a_gauss.array())).exp())
                                                            .matrix();
@@ -82,11 +82,11 @@ public:
             s12.row(i) *= (1.0 - 1.0 / alpha);
             s22.row(i) *= (1.0 - 1.0 / alpha);
 
-            // const Eigen::Matrix<Nextsim::FloatType, 1, 9> J = ParametricTools::J<3>(smesh, i);
+            // const Eigen::Matrix<FloatType, 1, 9> J = ParametricTools::J<3>(smesh, i);
             // // get the inverse of the mass matrix scaled with the test-functions in the gauss
             // points,
             // // with the gauss weights and with J. This is a 8 x 9 matrix
-            // const Eigen::Matrix<Nextsim::FloatType, 8, 9> imass_psi =
+            // const Eigen::Matrix<FloatType, 8, 9> imass_psi =
             // ParametricTools::massMatrix<8>(smesh, i).inverse()
             //     * (PSI<8,3>.array().rowwise() * (GAUSSWEIGHTS<3>.array() * J.array())).matrix();
 
@@ -124,8 +124,8 @@ protected:
 
 private:
     //! MEVP parameters
-    double alpha = 1500.0;
-    double beta = 1500.0;
+    FloatType alpha = 1500.0;
+    FloatType beta = 1500.0;
 };
 
 } /* namespace Nextsim */

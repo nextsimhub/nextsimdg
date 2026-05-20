@@ -37,7 +37,7 @@ public:
     operator DGVector<DG>&() { return reinterpret_cast<DGVector<DG>&>(*ref); }
     operator const DGVector<DG>&() const { return reinterpret_cast<const DGVector<DG>&>(*ref); }
 
-    double& operator()(size_t i, size_t j) { return (*ref)(i, j); }
+    FloatType& operator()(size_t i, size_t j) { return (*ref)(i, j); }
 
     void zero() { ref->setZero(); }
 

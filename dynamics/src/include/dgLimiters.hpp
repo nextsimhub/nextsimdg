@@ -64,7 +64,7 @@ public:
 
                 auto Uc = v(ii, 0);
                 // solution values in verticies
-                std::array<double, 4> U = { v(ii, 0), v(ii, 0), v(ii, 0), v(ii, 0) };
+                std::array<FloatType, 4> U = { v(ii, 0), v(ii, 0), v(ii, 0), v(ii, 0) };
                 U[0] += -0.5 * v(ii, 1);
                 U[1] += 0.5 * v(ii, 1);
                 U[2] += 0.5 * v(ii, 1);
@@ -75,7 +75,7 @@ public:
                 U[3] += 0.5 * v(ii, 2);
 
                 // max and min bounds for verticies
-                std::array<double, 4> Umin, Umax;
+                std::array<FloatType, 4> Umin, Umax;
 
                 // loop over verticies taking all elements that contain vertex
                 // bottom left, bottom right, top right, top left
@@ -93,7 +93,7 @@ public:
                 }
 
                 // compute correction factor alpha
-                double alpha_e(1.0);
+                FloatType alpha_e(1.0);
                 for (j = 0; j < 4; j++) {
                     if (std::abs(U[j] - Uc) < 1e-10)
                         alpha_e = std::min(alpha_e, 1.0);
@@ -124,7 +124,7 @@ public:
 
                 // solution values in verticies
                 // Kuzmin2011 eqn 23
-                std::array<double, 4> U = { v(ii, 0), v(ii, 0), v(ii, 0), v(ii, 0) };
+                std::array<FloatType, 4> U = { v(ii, 0), v(ii, 0), v(ii, 0), v(ii, 0) };
                 U[0] += -0.5 * v(ii, 1);
                 U[1] += 0.5 * v(ii, 1);
                 U[2] += 0.5 * v(ii, 1);
@@ -135,7 +135,7 @@ public:
                 U[3] += 0.5 * v(ii, 2);
 
                 // Kuzmin2011 eqns 21 and 22
-                std::array<double, 4> Ux = { v(ii, 1), v(ii, 1), v(ii, 1), v(ii, 1) };
+                std::array<FloatType, 4> Ux = { v(ii, 1), v(ii, 1), v(ii, 1), v(ii, 1) };
                 Ux[0] += -0.5 * v(ii, 3);
                 Ux[1] += 0.5 * v(ii, 3);
                 Ux[2] += 0.5 * v(ii, 3);
@@ -144,7 +144,7 @@ public:
                 Ux[1] += -0.5 * v(ii, 5);
                 Ux[2] += 0.5 * v(ii, 5);
                 Ux[3] += 0.5 * v(ii, 5);
-                std::array<double, 4> Uy = { v(ii, 2), v(ii, 2), v(ii, 2), v(ii, 2) };
+                std::array<FloatType, 4> Uy = { v(ii, 2), v(ii, 2), v(ii, 2), v(ii, 2) };
                 Uy[0] += -0.5 * v(ii, 5);
                 Uy[1] += 0.5 * v(ii, 5);
                 Uy[2] += 0.5 * v(ii, 5);
@@ -155,7 +155,7 @@ public:
                 Uy[3] += 0.5 * v(ii, 4);
 
                 // max and min bounds for verticies
-                std::array<double, 4> Umin, Umax, Uminx, Umaxx, Uminy, Umaxy;
+                std::array<FloatType, 4> Umin, Umax, Uminx, Umaxx, Uminy, Umaxy;
 
                 // loop over verticies taking all elements that contain vertex
                 // bottom left, bottom right, top right, top left
@@ -184,7 +184,7 @@ public:
                 }
 
                 // compute correction factor alpha
-                double alpha2x(1.0);
+                FloatType alpha2x(1.0);
                 for (j = 0; j < 4; j++) {
                     if (std::abs(Ux[j] - Ucx) < 1e-10)
                         alpha2x = std::min(alpha2x, 1.0);
@@ -195,7 +195,7 @@ public:
                         alpha2x
                             = std::min(alpha2x, std::min(1.0, (Uminx[j] - Ucx) / (Ux[j] - Ucx)));
                 }
-                double alpha2y(1.0);
+                FloatType alpha2y(1.0);
                 for (j = 0; j < 4; j++) {
                     if (std::abs(Uy[j] - Ucy) < 1e-10)
                         alpha2y = std::min(alpha2y, 1.0);
@@ -209,7 +209,7 @@ public:
 
                 alpha(ii, 1) = std::min(alpha2x, alpha2y);
 
-                double alpha_e(1.0);
+                FloatType alpha_e(1.0);
                 for (j = 0; j < 4; j++) {
                     if (std::abs(U[j] - Uc) < 1e-10)
                         alpha_e = std::min(alpha_e, 1.0);

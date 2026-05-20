@@ -173,9 +173,9 @@ public:
      *
      * @return A reference to the advected array.
      */
-    ModelArray& advectField(double timestep, ModelArray& field,
-        double lowerLimit = -std::numeric_limits<double>::infinity(),
-        double upperLimit = std::numeric_limits<double>::infinity())
+    ModelArray& advectField(FloatType timestep, ModelArray& field,
+        FloatType lowerLimit = -std::numeric_limits<FloatType>::infinity(),
+        FloatType upperLimit = std::numeric_limits<FloatType>::infinity())
     {
         DGVectorHolder<DGadvection> holder(field);
         advectDGVField(timestep, holder, lowerLimit, upperLimit);
@@ -192,12 +192,12 @@ public:
      *
      * @return A reference to the advected array.
      */
-    virtual DGVector<DGadvection>& advectDGVField(double timestep, DGVector<DGadvection>& field,
-        double lowerLimit = -std::numeric_limits<double>::infinity(),
-        double upperLimit = std::numeric_limits<double>::infinity())
+    virtual DGVector<DGadvection>& advectDGVField(FloatType timestep, DGVector<DGadvection>& field,
+        FloatType lowerLimit = -std::numeric_limits<FloatType>::infinity(),
+        FloatType upperLimit = std::numeric_limits<FloatType>::infinity())
         = 0;
 
-    virtual void advectDynamicsFields(double timestep)
+    virtual void advectDynamicsFields(FloatType timestep)
     {
         advectDGVField(timestep, hice, 0.0);
         advectDGVField(timestep, cice, 0.0, 1.0);
@@ -220,7 +220,7 @@ protected:
 
     size_t stepNumber = 0;
 
-    double deltaT;
+    FloatType deltaT;
 
     std::unique_ptr<Nextsim::ParametricMesh> smesh;
 

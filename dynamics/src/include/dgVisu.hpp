@@ -33,7 +33,7 @@ public:
         return ss.str();
     }
 
-    static inline double cuttol(double v, double tol)
+    static inline FloatType cuttol(FloatType v, FloatType tol)
     {
         if ((v < tol) && (v > -tol))
             return 0;
@@ -61,7 +61,7 @@ public:
             << "ASCII" << std::endl
             << "DATASET UNSTRUCTURED_GRID" << std::endl
             << "FIELD FieldData 1" << std::endl
-            << "TIME 1 1 double" << std::endl
+            << "TIME 1 1 FloatType" << std::endl
             << "0" << std::endl;
         OUT << "POINTS " << v.rows() << " DOUBLE" << std::endl;
         if (CG == 1) {
@@ -139,7 +139,7 @@ public:
             << "ASCII" << std::endl
             << "DATASET UNSTRUCTURED_GRID" << std::endl
             << "FIELD FieldData 1" << std::endl
-            << "TIME 1 1 double" << std::endl
+            << "TIME 1 1 FloatType" << std::endl
             << "0" << std::endl;
         OUT << "POINTS " << vx.rows() << " DOUBLE" << std::endl;
         if (CG == 1) {
@@ -166,7 +166,7 @@ public:
             assert(static_cast<int>((2 * smesh.nx + 1) * (2 * smesh.ny + 1)) == vx.rows());
             for (size_t iy = 0; iy < 2 * smesh.ny + 1; ++iy)
                 for (size_t ix = 0; ix < 2 * smesh.nx + 1; ++ix) {
-                    const std::array<double, 2> v = smesh.coordinate<2>(ix, iy);
+                    const std::array<FloatType, 2> v = smesh.coordinate<2>(ix, iy);
                     write_coords(OUT, v[0], v[1], smesh.CoordinateSystem);
                 }
 
@@ -204,7 +204,8 @@ public:
         OUT.close();
     }
 
-    static void write_coords(std::ostream& OUT, double x, double y, COORDINATES CoordinateSystem)
+    static void write_coords(
+        std::ostream& OUT, FloatType x, FloatType y, COORDINATES CoordinateSystem)
     {
         if (CoordinateSystem == SPHERICAL) {
             OUT << Nextsim::EarthRadius * cos(y) * cos(x) << "\t"
@@ -231,7 +232,7 @@ public:
             << "ASCII" << std::endl
             << "DATASET UNSTRUCTURED_GRID" << std::endl
             << "FIELD FieldData 1" << std::endl
-            << "TIME 1 1 double" << std::endl
+            << "TIME 1 1 FloatType" << std::endl
             << 0.0 << std::endl;
         OUT << "POINTS " << 4 * smesh.nx * smesh.ny << " DOUBLE" << std::endl;
 
@@ -266,7 +267,7 @@ public:
         ii = 0;
         for (size_t iy = 0; iy < smesh.ny; ++iy)
             for (size_t ix = 0; ix < smesh.nx; ++ix, ++ii) {
-                std::array<double, 4> interpolate = { v(ii, 0), v(ii, 0), v(ii, 0), v(ii, 0) };
+                std::array<FloatType, 4> interpolate = { v(ii, 0), v(ii, 0), v(ii, 0), v(ii, 0) };
 
                 if (DG >= 3) {
                     interpolate[0] += -0.5 * v(ii, 1);
@@ -317,7 +318,7 @@ public:
             << "ASCII" << std::endl
             << "DATASET UNSTRUCTURED_GRID" << std::endl
             << "FIELD FieldData 1" << std::endl
-            << "TIME 1 1 double" << std::endl
+            << "TIME 1 1 FloatType" << std::endl
             << 0.0 << std::endl;
         OUT << "POINTS " << 3 * 3 * smesh.nx * smesh.ny << " DOUBLE"
             << std::endl; // add substructre
@@ -328,7 +329,7 @@ public:
         for (size_t iy = 0; iy < smesh.ny; ++iy, ++nid) // also increase nid to add +1
             for (size_t ix = 0; ix < smesh.nx; ++ix, ++nid) {
                 // Print 9 points of the element incl. subsamples
-                const Eigen::Matrix<Nextsim::FloatType, 4, 2> coords
+                const Eigen::Matrix<FloatType, 4, 2> coords
                     = smesh.coordinatesOfElement(smesh.nx * iy + ix);
 
                 write_coords(OUT, coords(0, 0), coords(0, 1), smesh.CoordinateSystem);
@@ -371,7 +372,7 @@ public:
         for (size_t iy = 0; iy < smesh.ny; ++iy)
             for (size_t ix = 0; ix < smesh.nx; ++ix, ++ii) {
 
-                const Eigen::Matrix<double, 1, 9> vt = v.row(ii) * PSILagrange<6, 3>;
+                const Eigen::Matrix<FloatType, 1, 9> vt = v.row(ii) * PSILagrange<6, 3>;
                 for (int i = 0; i < 9; ++i)
                     OUT << cuttol(vt(i), 1.e-20) << std::endl;
             }

@@ -26,8 +26,8 @@ COORDINATES CoordinateSystem = CARTESIAN;
 static const std::string smeshFile = TO_STR(TEST_FILE_SOURCE) + std::string("/") + "25km_NH.smesh";
 static const size_t nx = 154;
 static const size_t ny = 121;
-static const double dx = 25000;
-static const double dy = 25000;
+static const FloatType dx = 25000;
+static const FloatType dy = 25000;
 
 TEST_SUITE_BEGIN("ParametricMesh");
 // Read data from a .smesh file. This is the old way, but also provides a

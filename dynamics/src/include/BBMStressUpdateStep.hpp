@@ -29,7 +29,7 @@ public:
     void stressUpdateHighOrder(const DynamicsParameters& dParams, const ParametricMesh& smesh,
         SymmetricTensorVector& stress, const SymmetricTensorVector& strain,
         const DGVector<DGadvection>& h, const DGVector<DGadvection>& a,
-        const double deltaT) override
+        const FloatType deltaT) override
     {
         assert(pmap);
 

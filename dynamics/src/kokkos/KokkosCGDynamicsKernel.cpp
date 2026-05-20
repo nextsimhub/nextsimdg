@@ -262,7 +262,7 @@ template <int DGadvection> void KokkosCGDynamicsKernel<DGadvection>::prepareAdve
 
 /*************************************************************/
 template <int DGadvection>
-void KokkosCGDynamicsKernel<DGadvection>::advectDynamicsFields(double timestep)
+void KokkosCGDynamicsKernel<DGadvection>::advectDynamicsFields(FloatType timestep)
 {
     advectDGVFieldDevice(timestep, hiceDevice, 0.0);
     advectDGVFieldDevice(timestep, ciceDevice, 0.0, 1.0);
@@ -272,7 +272,7 @@ void KokkosCGDynamicsKernel<DGadvection>::advectDynamicsFields(double timestep)
 /*************************************************************/
 template <int DGadvection>
 DGVector<DGadvection>& KokkosCGDynamicsKernel<DGadvection>::advectDGVField(
-    double timestep, DGVector<DGadvection>& field, double lowerLimit, double upperLimit)
+    FloatType timestep, DGVector<DGadvection>& field, FloatType lowerLimit, FloatType upperLimit)
 {
     static KokkosTimer<DETAILED_MEASUREMENTS> timer("advectExternalGPU");
 
@@ -289,7 +289,7 @@ DGVector<DGadvection>& KokkosCGDynamicsKernel<DGadvection>::advectDGVField(
 /*************************************************************/
 template <int DGadvection>
 void KokkosCGDynamicsKernel<DGadvection>::advectDGVFieldDevice(
-    double timestep, const DeviceViewAdvect& field, FloatType lowerLimit, FloatType upperLimit)
+    FloatType timestep, const DeviceViewAdvect& field, FloatType lowerLimit, FloatType upperLimit)
 {
     dGTransportDevice->step(timestep, field);
 
@@ -574,7 +574,7 @@ void KokkosCGDynamicsKernel<DGadvection>::computeStressDivergenceDevice(
     const DivMapDevice& divMDevice, const ConstDeviceBitset& cgLandMaskDevice, DeviceIndex nx,
     DeviceIndex ny, COORDINATES coordinates)
 {
-    using CGVec = Eigen::Vector<Nextsim::FloatType, CGdof>;
+    using CGVec = Eigen::Vector<FloatType, CGdof>;
 
     auto execSpace = Kokkos::DefaultExecutionSpace();
     Kokkos::deep_copy(execSpace, dStressXDevice, 0.0);
