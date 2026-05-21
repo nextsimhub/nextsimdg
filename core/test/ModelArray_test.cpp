@@ -202,10 +202,10 @@ TEST_CASE("Arithmetic tests")
     REQUIRE(product[1] == -20);
     quotient = lhs / three;
     REQUIRE(quotient[0] == 3);
-    REQUIRE(quotient[1] == (10. / 3.));
+    REQUIRE(quotient[1] == (FloatType(10) / FloatType(3)));
     quotient = four / rhs;
-    REQUIRE(quotient[0] == (4. / 3.));
-    REQUIRE(quotient[1] == (4. / -5.));
+    REQUIRE(quotient[0] == (FloatType(4) / FloatType(3)));
+    REQUIRE(quotient[1] == (FloatType(4) / FloatType(-5)));
 
     // Finally, in-place arithmetic
     lhs += rhs;
@@ -232,7 +232,7 @@ TEST_CASE("Arithmetic tests")
     REQUIRE(lhs[1] == 27);
     lhs /= four;
     REQUIRE(lhs[0] == 6);
-    REQUIRE(lhs[1] == 6.75);
+    REQUIRE(lhs[1] == FloatType(6.75));
 
     OneDField fill = ModelArray::OneDField();
     FloatType filldub = 5.2354;

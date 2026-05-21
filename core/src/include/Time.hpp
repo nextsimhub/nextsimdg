@@ -5,8 +5,6 @@
 #ifndef TIME_HPP
 #define TIME_HPP
 
-#include "include/FloatType.hpp"
-
 #include <array>
 #include <chrono>
 #include <ctime>
@@ -44,7 +42,7 @@ public:
     {
     }
     Duration(const std::string& str);
-    Duration(FloatType seconds);
+    Duration(double seconds);
 
     //! Add a Duration to a TimePoint to get a TimePoint (now + 7 days = next week).
     TimePoint operator+(const TimePoint& t) const;
@@ -66,13 +64,13 @@ public:
     }
 
     //! Multiply-assign this Duration by a factor.
-    Duration& operator*=(FloatType a)
+    Duration& operator*=(double a)
     {
         m_d *= a;
         return *this;
     }
     //! Divide-assign this Duration by a factor.
-    Duration& operator/=(FloatType a)
+    Duration& operator/=(double a)
     {
         m_d /= a;
         return *this;
@@ -84,10 +82,7 @@ public:
     Duration operator-(const Duration& a) const { return Duration(m_d - a.m_d); }
 
     //! Return the length of this Duration in seconds.
-    FloatType seconds() const
-    {
-        return std::chrono::duration_cast<std::chrono::seconds>(m_d).count();
-    }
+    double seconds() const { return std::chrono::duration_cast<std::chrono::seconds>(m_d).count(); }
 
     /*!
      * Set this Duration by parsing the characters in an istream. The
@@ -134,7 +129,7 @@ private:
     {
     }
     Basis m_d;
-    void setDurationSeconds(FloatType);
+    void setDurationSeconds(double);
 };
 
 /*!
@@ -302,10 +297,10 @@ private:
     TimePoint m_last;
 };
 
-inline FloatType operator*(FloatType a, const Duration& b) { return a * b.seconds(); }
-inline FloatType operator/(FloatType a, const Duration& b) { return a / b.seconds(); }
-inline FloatType operator*(const Duration& a, FloatType b) { return b * a; }
-inline FloatType operator/(const Duration& a, FloatType b) { return a.seconds() / b; }
+inline double operator*(double a, const Duration& b) { return a * b.seconds(); }
+inline double operator/(double a, const Duration& b) { return a / b.seconds(); }
+inline double operator*(const Duration& a, double b) { return b * a; }
+inline double operator/(const Duration& a, double b) { return a.seconds() / b; }
 
 inline std::istream& operator>>(std::istream& is, TimePoint& tp) { return tp.parse(is); }
 inline std::istream& operator>>(std::istream& is, Duration& dur) { return dur.parse(is); }

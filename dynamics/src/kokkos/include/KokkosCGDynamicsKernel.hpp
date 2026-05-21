@@ -223,6 +223,7 @@ protected:
     DGVector<DGadvection> tempDataAdvect;
     DeviceViewAdvect tempDataAdvectDevice;
     HostViewAdvect tempDataAdvectHost;
+    ModelArray tempDataMA;
     DeviceViewMA tempDataMADevice;
 
     // precomputed parametric map

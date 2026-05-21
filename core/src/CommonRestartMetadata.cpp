@@ -6,6 +6,7 @@
 #include "include/ModelMetadata.hpp"
 
 #include "include/MissingData.hpp"
+#include "include/NetCDFUtils.hpp"
 
 #include <cstdint>
 #include <cstring>
@@ -47,7 +48,7 @@ netCDF::NcFile& CommonRestartMetadata::writeRestartMetadata(netCDF::NcFile& ncFi
     ncFile.putAtt(stepLengthName(), std::to_string(metadata.stepLength().seconds()));
     ncFile.putAtt(runLengthName(), std::to_string(metadata.runLength().seconds()));
 
-    ncFile.putAtt(missingDataName(), netCDF::NcDouble(), MissingData::value());
+    ncFile.putAtt(missingDataName(), ToNetCDFType<FloatType>::get(), MissingData::value());
 
     for (auto entry : metadata.m_config) {
         switch (entry.second.index()) {

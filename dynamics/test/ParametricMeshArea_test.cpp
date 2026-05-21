@@ -20,10 +20,10 @@ namespace Nextsim {
 #define TEST_FILE_SOURCE .
 #endif
 
-static const size_t nx = 154;
-static const size_t ny = 121;
-static const FloatType dx = 25000;
-static const FloatType dy = 25000;
+static constexpr size_t nx = 154;
+static constexpr size_t ny = 121;
+static constexpr FloatType dx = 25000;
+static constexpr FloatType dy = 25000;
 
 TEST_SUITE_BEGIN("ParametricMeshArea");
 
@@ -55,7 +55,8 @@ TEST_CASE("Test area cartesian")
     }
 
     // total area must match domain dimension up to machine accuracy
-    REQUIRE(fabs(1.0 - totalarea / exact) < 1.e-12);
+    static const FloatType eps = std::is_same_v<FloatType, float> ? 1e-3 : 1.e-12;
+    REQUIRE(std::abs(1 - totalarea / exact) < eps);
 
     //////// next, distort the inner vertices of the mesh
     FloatType h = std::min(dx / nx, dy / ny); // min. mesh size in x/y-direction
@@ -72,7 +73,7 @@ TEST_CASE("Test area cartesian")
         totalarea += smesh.area(i); // area must be positive
     }
     // total area must match domain dimension up to machine accuracy
-    REQUIRE(fabs(1.0 - totalarea / exact) < 1.e-12);
+    REQUIRE(std::abs(1 - totalarea / exact) < eps);
 }
 
 TEST_CASE("Test area spherical")
@@ -88,14 +89,14 @@ TEST_CASE("Test area spherical")
     for (int iy = 0; iy <= ny; ++iy)
         for (int ix = 0; ix <= nx; ++ix) {
             smesh.vertices((nx + 1) * iy + ix, 0)
-                = -FloatType(1) * M_PI + FloatType(2.0) * M_PI * ix / nx;
+                = -FloatType(1) * pi + FloatType(2.0) * pi * ix / nx;
             smesh.vertices((nx + 1) * iy + ix, 1)
-                = -FloatType(0.5) * M_PI + FloatType(1) * M_PI * iy / ny;
+                = -FloatType(0.5) * pi + FloatType(1) * pi * iy / ny;
         }
     smesh.landmask.resize(nx * ny, true);
 
     // exact radius (surface of earth)
-    FloatType exact = 4.0 * M_PI * EarthRadius * EarthRadius;
+    FloatType exact = FloatType(4.0) * pi * EarthRadius * EarthRadius;
 
     // check mesh area
     FloatType totalarea = 0.0;
@@ -105,15 +106,16 @@ TEST_CASE("Test area spherical")
     }
 
     // total area must match domain dimension up to machine accuracy
-    REQUIRE(fabs(1.0 - totalarea / exact) < 1.e-9);
+    static const FloatType eps = std::is_same_v<FloatType, float> ? 1e-4 : 1.e-9;
+    REQUIRE(std::abs(1 - totalarea / exact) < eps);
 
     //////// next, distort the inner vertices of the mesh
-    FloatType h
-        = std::min(FloatType(2.0) * M_PI / nx, M_PI / ny); // min. mesh size in x/y-direction
+    FloatType h = std::min(FloatType(2.0) * pi / nx, pi / ny); // min. mesh size in x/y-direction
     for (int iy = 1; iy < ny; ++iy)
         for (int ix = 1; ix < nx; ++ix) {
-            smesh.vertices((nx + 1) * iy + ix, 0) += 0.2 * h * sin(ix + iy); // distort by 20%
-            smesh.vertices((nx + 1) * iy + ix, 1) += 0.2 * h * cos(ix + iy);
+            smesh.vertices((nx + 1) * iy + ix, 0)
+                += FloatType(0.2) * h * sin(ix + iy); // distort by 20%
+            smesh.vertices((nx + 1) * iy + ix, 1) += FloatType(0.2) * h * cos(ix + iy);
         }
 
     // check mesh area
@@ -123,6 +125,6 @@ TEST_CASE("Test area spherical")
         totalarea += smesh.area(i); // area must be positive
     }
     // total area must match domain dimension up to machine accuracy
-    REQUIRE(fabs(1.0 - totalarea / exact) < 1.e-9);
+    REQUIRE(std::abs(1 - totalarea / exact) < eps);
 }
 }

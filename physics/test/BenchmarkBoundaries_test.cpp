@@ -37,11 +37,11 @@ TEST_CASE("OceanTest")
     REQUIRE(uOcean(iTest, jTest) != 0.);
     REQUIRE(vOcean(iTest, jTest) != 0.);
 
-    FloatType vMaxOcean = 0.01;
+    const FloatType vMaxOcean = 0.01;
     REQUIRE(uOcean(0, 0) == -vMaxOcean);
     REQUIRE(vOcean(0, 0) == vMaxOcean);
-    REQUIRE(uOcean(nx - 1, ny - 1) == (ny - 2.) / ny * vMaxOcean);
-    REQUIRE(vOcean(nx - 1, ny - 1) == -(nx - 2.) / nx * vMaxOcean);
+    REQUIRE(uOcean(nx - 1, ny - 1) == (ny - FloatType(2.)) / ny * vMaxOcean);
+    REQUIRE(vOcean(nx - 1, ny - 1) == -(nx - FloatType(2.)) / nx * vMaxOcean);
 }
 
 TEST_CASE("AtmosphereTest")

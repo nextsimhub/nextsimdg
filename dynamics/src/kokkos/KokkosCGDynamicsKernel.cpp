@@ -69,8 +69,11 @@ void KokkosCGDynamicsKernel<DGadvection>::initialise(
     tempData.resize_by_mesh(*this->smesh);
     std::tie(tempDataAdvectHost, tempDataAdvectDevice)
         = makeKokkosDualView("tempDataAdvect", (this->tempDataAdvect));
-    ModelArray tempDataMA;
-    tempDataMADevice = makeKokkosDeviceView("tempDataMA", tempDataMA.data());
+    // The host ModelArray is currently deeded when no device backend is enabled.
+    // In theory tempDataMADevice should not be used at all in this case since it introduces
+    // unecessary copies.
+    tempDataMA.reinitialize();
+    tempDataMADevice = makeKokkosDeviceView("tempDataMA", tempDataMA.getDataRef());
 
     assert(this->pmap);
     divS1Device = makeKokkosDeviceViewMap("divS1", this->pmap->divS1, MakeViewOptions::DEVICE_COPY);
@@ -82,13 +85,13 @@ void KokkosCGDynamicsKernel<DGadvection>::initialise(
         = makeKokkosDeviceViewMap("iMgradY", this->pmap->iMgradY, MakeViewOptions::DEVICE_COPY);
     iMMDevice = makeKokkosDeviceViewMap("iMM", this->pmap->iMM, MakeViewOptions::DEVICE_COPY);
 
-    PSIAdvectDevice = makeKokkosDeviceView(
-        "PSI<DGadvection, NGP>", PSI<DGadvection, NGP>, MakeViewOptions::DEVICE_COPY);
-    PSIStressDevice = makeKokkosDeviceView(
-        "PSI<DGstress, NGP>", PSI<DGstressComp, NGP>, MakeViewOptions::DEVICE_COPY);
+    PSIAdvectDevice = makeKokkosDeviceView<MakeViewOptions::DEVICE_COPY>(
+        "PSI<DGadvection, NGP>", PSI<DGadvection, NGP>);
+    PSIStressDevice = makeKokkosDeviceView<MakeViewOptions::DEVICE_COPY>(
+        "PSI<DGstress, NGP>", PSI<DGstressComp, NGP>);
 
-    lumpedCGMassDevice = makeKokkosDeviceView(
-        "lumpedCGMass", this->pmap->lumpedcgmass, MakeViewOptions::DEVICE_COPY);
+    lumpedCGMassDevice = makeKokkosDeviceView<MakeViewOptions::DEVICE_COPY>(
+        "lumpedCGMass", this->pmap->lumpedcgmass);
     iMJwPSIDevice
         = makeKokkosDeviceViewMap("iMJwPSI", this->pmap->iMJwPSI, MakeViewOptions::DEVICE_COPY);
     iMJwPSIAdvectDevice = makeKokkosDeviceViewMap(

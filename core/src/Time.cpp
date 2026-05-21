@@ -196,7 +196,7 @@ std::istream& Duration::parse(std::istream& is)
         std::string restOf;
         is >> restOf;
         restOf = possibleP + restOf;
-        // If the remaining string is a valid FloatType, then interpret that as a
+        // If the remaining string is a valid double, then interpret that as a
         // duration in seconds, else throw an invalid argument exception.
 
         // Double regex courtesy of https://stackoverflow.com/a/56502134
@@ -206,7 +206,7 @@ std::istream& Duration::parse(std::istream& is)
             throw std::invalid_argument(
                 "The duration should be an ISO 8601 duration (P…) or a number of seconds. Got: "
                 + restOf);
-        FloatType sec = std::stod(restOf);
+        double sec = std::stod(restOf);
         // Assign the seconds value to the Duration
         setDurationSeconds(sec);
         return is;
@@ -226,11 +226,11 @@ std::istream& Duration::parse(std::istream& is)
 
 Duration::Duration(const std::string& str) { this->parse(str); }
 
-Duration::Duration(FloatType seconds) { setDurationSeconds(seconds); }
+Duration::Duration(double seconds) { setDurationSeconds(seconds); }
 
-void Duration::setDurationSeconds(FloatType secs)
+void Duration::setDurationSeconds(double secs)
 {
-    std::chrono::duration<FloatType> sec(secs);
+    std::chrono::duration<double> sec(secs);
     m_d = std::chrono::duration_cast<Basis>(sec);
 }
 

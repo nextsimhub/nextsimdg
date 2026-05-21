@@ -191,6 +191,8 @@ if(WITH_KOKKOS)
     # define to use for conditional code inclusion
     target_compile_definitions(nextsimlib PUBLIC USE_KOKKOS)
 
+    target_compile_definitions(nextsimlib PUBLIC EIGEN_FAST_MATH=0)
+
     if(Kokkos_ENABLE_CUDA OR Kokkos_ENABLE_ROCM)
         # Eigen's intrinsic based implementations are not valid on GPU
         target_compile_definitions(nextsimlib PRIVATE "EIGEN_DONT_VECTORIZE")

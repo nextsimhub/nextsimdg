@@ -75,7 +75,8 @@ void KokkosBBMDynamicsKernel<DGadvection>::updateStressHighOrderDevice(
 
             const EdgeVec hGauss = (hice.row(i) * PSIAdvect).array().max(0.0).matrix();
             const EdgeVec aGauss = (cice.row(i) * PSIAdvect).array().max(0.0).min(1.0).matrix();
-            EdgeVec dGauss = (damage.row(i) * PSIAdvect).array().max(1e-12).min(1.0).matrix();
+            EdgeVec dGauss
+                = (damage.row(i) * PSIAdvect).array().max(params.minDamage).min(1.0).matrix();
 
             const EdgeVec e11Gauss = e11.row(i) * PSIStress;
             const EdgeVec e12Gauss = e12.row(i) * PSIStress;
@@ -136,9 +137,10 @@ void KokkosBBMDynamicsKernel<DGadvection>::updateStressHighOrderDevice(
             s12Gauss.array() *= multiplicator.array();
 
             sigma_n = FloatType(0.5) * (s11Gauss.array() + s22Gauss.array());
-            const EdgeVec tau = (FloatType(0.25) * (s11Gauss.array() - s22Gauss.array()).square()
+
+            EdgeVec tau = (FloatType(0.25) * (s11Gauss.array() - s22Gauss.array()).square()
                 + s12Gauss.array().square())
-                                    .sqrt();
+                              .sqrt();
 
             const FloatType scale_coef = Kokkos::sqrt(0.1 / cellSizeDevice(i));
 

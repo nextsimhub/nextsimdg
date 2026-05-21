@@ -84,11 +84,16 @@ using ConstKokkosEigenView
 
 template <typename EigenMat> using KokkosDeviceView = KokkosEigenView<EigenMat>;
 template <typename EigenMat> using ConstKokkosDeviceView = ConstKokkosEigenView<EigenMat>;
+
+template <typename EigenMat> using KokkosHostView = KokkosEigenView<EigenMat, Kokkos::HostSpace>;
 template <typename EigenMat>
-using KokkosHostView
+using ConstKokkosHostView = ConstKokkosEigenView<EigenMat, Kokkos::HostSpace>;
+
+template <typename EigenMat>
+using KokkosHostViewUnmanaged
     = KokkosEigenView<EigenMat, Kokkos::HostSpace, Kokkos::MemoryTraits<Kokkos::Unmanaged>>;
 template <typename EigenMat>
-using ConstKokkosHostView
+using ConstKokkosHostViewUnmanaged
     = ConstKokkosEigenView<EigenMat, Kokkos::HostSpace, Kokkos::MemoryTraits<Kokkos::Unmanaged>>;
 
 /*!
@@ -103,19 +108,19 @@ template <typename EigenMat> auto makeKokkosHostView(EigenMat& mat)
 {
     // const_cast is necessary because Eigen only gives const access to the underlying pointer
     if constexpr (EigenMat::RowsAtCompileTime == 1 || EigenMat::ColsAtCompileTime == 1) {
-        return KokkosHostView<EigenMat>(
+        return KokkosHostViewUnmanaged<EigenMat>(
             const_cast<typename EigenMat::Scalar*>(mat.data()), mat.rows() * mat.cols());
     }
-    return KokkosHostView<EigenMat>(
+    return KokkosHostViewUnmanaged<EigenMat>(
         const_cast<typename EigenMat::Scalar*>(mat.data()), mat.rows(), mat.cols());
 }
 // const overload
 template <typename EigenMat> auto makeKokkosHostView(const EigenMat& mat)
 {
     if constexpr (EigenMat::RowsAtCompileTime == 1 || EigenMat::ColsAtCompileTime == 1) {
-        return ConstKokkosHostView<EigenMat>(mat.data(), mat.rows() * mat.cols());
+        return ConstKokkosHostViewUnmanaged<EigenMat>(mat.data(), mat.rows() * mat.cols());
     }
-    return ConstKokkosHostView<EigenMat>(mat.data(), mat.rows(), mat.cols());
+    return ConstKokkosHostViewUnmanaged<EigenMat>(mat.data(), mat.rows(), mat.cols());
 }
 
 /// Options for the creation of views based on existing data.
@@ -136,12 +141,13 @@ enum struct MakeViewOptions {
  * @param mat The Eigen matrix to use.
  * @param opts See MakeViewOptions.
  */
-template <typename EigenMat>
+template <MakeViewOptions Opts = MakeViewOptions::NO_COPY, typename EigenMat>
 auto makeKokkosDeviceView(
     const std::string& name, EigenMat& mat, MakeViewOptions opts = MakeViewOptions::NO_COPY)
 {
-    if constexpr (std::is_same_v<typename KokkosDeviceView<EigenMat>::memory_space,
-                      Kokkos::HostSpace>) {
+    constexpr bool IsHostOnly
+        = std::is_same_v<typename KokkosDeviceView<EigenMat>::memory_space, Kokkos::HostSpace>;
+    if constexpr (IsHostOnly && Opts != MakeViewOptions::ALWAYS_COPY) {
         return makeKokkosHostView(mat);
     } else {
         auto deviceView = [&]() {
@@ -156,7 +162,8 @@ auto makeKokkosDeviceView(
             }
         }();
 
-        if (opts != MakeViewOptions::NO_COPY) {
+        if constexpr (Opts == MakeViewOptions::ALWAYS_COPY
+            || (Opts == MakeViewOptions::DEVICE_COPY && !IsHostOnly)) {
             auto hostView = makeKokkosHostView(mat);
             Kokkos::deep_copy(deviceView, hostView);
         }

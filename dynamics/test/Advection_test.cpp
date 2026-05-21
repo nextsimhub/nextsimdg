@@ -22,7 +22,8 @@ using namespace Nextsim;
 bool WRITE_VTK = false; //!< set to true for vtk output
 int WRITE_EVERY = 5;
 
-FloatType TOL = 1.e-7; //!< tolerance for checking test results
+const FloatType TOL
+    = std::is_same_v<FloatType, float> ? 1.e-5 : 1.e-7; //!< tolerance for checking test results;
 
 /*!
  *  Description of the test case

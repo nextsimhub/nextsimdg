@@ -78,9 +78,9 @@ TEST_CASE("ERA5Atmosphere construction test")
         const HField& wind = windAccessor.getHostRO();
         const HField& pair = pairAccessor.getHostRO();
         REQUIRE(wind(0, 0) == 0.);
-        REQUIRE(wind(12, 12) == 12.012);
-        REQUIRE(wind(30, 20) == 20.030);
-        REQUIRE(pair(30, 20) == (1.01e5 + 20.030));
+        REQUIRE(wind(12, 12) == FloatType(12.012));
+        REQUIRE(wind(30, 20) == FloatType(20.030));
+        REQUIRE(pair(30, 20) == (FloatType(1.01e5) + FloatType(20.030)));
     }
 
     TimePoint t2("2000-02-01T00:00:00Z");
@@ -89,10 +89,10 @@ TEST_CASE("ERA5Atmosphere construction test")
     {
         const HField& wind = windAccessor.getHostRO();
         const HField& pair = pairAccessor.getHostRO();
-        REQUIRE(wind(0, 0) == 0. + 100.);
-        REQUIRE(wind(12, 12) == 12.012 + 100);
-        REQUIRE(wind(30, 20) == 20.030 + 100);
-        REQUIRE(pair(30, 20) == (1.01e5 + 20.030) + 1000);
+        REQUIRE(wind(0, 0) == FloatType(0.) + 100.);
+        REQUIRE(wind(12, 12) == FloatType(12.012) + 100);
+        REQUIRE(wind(30, 20) == FloatType(20.030) + 100);
+        REQUIRE(pair(30, 20) == (FloatType(1.01e5) + FloatType(20.030)) + 1000);
     }
 
     TimePoint t12("2000-12-01T00:00:00Z");
@@ -101,10 +101,10 @@ TEST_CASE("ERA5Atmosphere construction test")
     {
         const HField& wind = windAccessor.getHostRO();
         const HField& pair = pairAccessor.getHostRO();
-        REQUIRE(wind(0, 0) == 0. + 100. * 11);
-        REQUIRE(wind(12, 12) == 12.012 + 100 * 11);
-        REQUIRE(wind(30, 20) == 20.030 + 100 * 11);
-        REQUIRE(pair(30, 20) == (1.01e5 + 20.030) + 1000 * 11);
+        REQUIRE(wind(0, 0) == FloatType(0.) + 100. * 11);
+        REQUIRE(wind(12, 12) == FloatType(12.012) + 100 * 11);
+        REQUIRE(wind(30, 20) == FloatType(20.030) + 100 * 11);
+        REQUIRE(pair(30, 20) == (FloatType(1.01e5) + FloatType(20.030)) + 1000 * 11);
     }
 
     // All times after the last time sample should use the last sample's data
@@ -116,11 +116,11 @@ TEST_CASE("ERA5Atmosphere construction test")
         const HField& pair = pairAccessor.getHostRO();
         const UField& u = uAccessor.getHostRO();
 
-        REQUIRE(wind(0, 0) == 0. + 100. * 11);
-        REQUIRE(wind(12, 12) == 12.012 + 100 * 11);
-        REQUIRE(wind(30, 20) == 20.030 + 100 * 11);
-        REQUIRE(pair(30, 20) == (1.01e5 + 20.030) + 1000 * 11);
-        REQUIRE(u(30, 20) == (10 + 20.030) + 10 * 11);
+        REQUIRE(wind(0, 0) == 0. + FloatType(100.) * 11);
+        REQUIRE(wind(12, 12) == FloatType(12.012) + 100 * 11);
+        REQUIRE(wind(30, 20) == FloatType(20.030) + 100 * 11);
+        REQUIRE(pair(30, 20) == (FloatType(1.01e5) + FloatType(20.030)) + 1000 * 11);
+        REQUIRE(u(30, 20) == (10 + FloatType(20.030)) + 10 * 11);
     }
 
     std::filesystem::remove(filePath);

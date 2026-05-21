@@ -87,39 +87,35 @@ ModelState RectGridIO::getModelState(const std::string& filePath)
 #ifdef USE_MPI
     // Set the origins and extensions for reading 2D data based
     // on MPI decomposition
-    std::vector<size_t> start(2);
-    std::vector<size_t> size(2);
-    auto& metadata = ModelMetadata::getInstance();
-    start[0] = metadata.getLocalCornerY();
-    start[1] = metadata.getLocalCornerX();
-    size[0] = metadata.getLocalExtentY();
-    size[1] = metadata.getLocalExtentX();
+    const auto& metadata = ModelMetadata::getInstance();
+    const std::vector<size_t> start = { metadata.getLocalCornerY(), metadata.getLocalCornerX() };
+    const std::vector<size_t> size = { metadata.getLocalExtentY(), metadata.getLocalExtentX() };
 #else
-    std::vector<size_t> start = { 0, 0 };
-    std::vector<size_t> size = ModelArray::dimensions(ModelArray::Type::H);
-    std::reverse(size.begin(), size.end());
+    const std::vector<size_t> start = { 0, 0 };
+    const std::vector<size_t> size(ModelArray::dimensions(ModelArray::Type::H).rbegin(),
+        ModelArray::dimensions(ModelArray::Type::H).rend());
 #endif
     state.data[maskName] = ModelArray::HField();
-    ncFile.getVar(maskName).getVar(start, size, &state.data[maskName][0]);
+    readNetCDFVar(ncFile.getVar(maskName), start, size, &state.data[maskName][0]);
     state.data[hiceName] = ModelArray::HField();
-    ncFile.getVar(hiceName).getVar(start, size, &state.data[hiceName][0]);
+    readNetCDFVar(ncFile.getVar(hiceName), start, size, &state.data[hiceName][0]);
     state.data[ciceName] = ModelArray::HField();
-    ncFile.getVar(ciceName).getVar(start, size, &state.data[ciceName][0]);
+    readNetCDFVar(ncFile.getVar(ciceName), start, size, &state.data[ciceName][0]);
     state.data[hsnowName] = ModelArray::HField();
-    ncFile.getVar(hsnowName).getVar(start, size, &state.data[hsnowName][0]);
+    readNetCDFVar(ncFile.getVar(hsnowName), start, size, &state.data[hsnowName][0]);
     state.data[tsurfName] = ModelArray::HField();
-    ncFile.getVar(tsurfName).getVar(start, size, &state.data[tsurfName][0]);
+    readNetCDFVar(ncFile.getVar(tsurfName), start, size, &state.data[tsurfName][0]);
     // coordinates on the H grid
     if (ncFile.getVars().count(xName) > 0) {
         state.data[xName] = ModelArray::HField();
-        ncFile.getVar(xName).getVar(start, size, &state.data[xName][0]);
+        readNetCDFVar(ncFile.getVar(xName), start, size, &state.data[xName][0]);
         state.data[yName] = ModelArray::HField();
-        ncFile.getVar(yName).getVar(start, size, &state.data[yName][0]);
+        readNetCDFVar(ncFile.getVar(yName), start, size, &state.data[yName][0]);
     } else {
         state.data[longitudeName] = ModelArray::HField();
-        ncFile.getVar(longitudeName).getVar(start, size, &state.data[longitudeName][0]);
+        readNetCDFVar(ncFile.getVar(longitudeName), start, size, &state.data[longitudeName][0]);
         state.data[latitudeName] = ModelArray::HField();
-        ncFile.getVar(latitudeName).getVar(start, size, &state.data[latitudeName][0]);
+        readNetCDFVar(ncFile.getVar(latitudeName), start, size, &state.data[latitudeName][0]);
     }
 
     ncFile.close();

@@ -16,17 +16,17 @@ KokkosSlopeLimiter<DG>::KokkosSlopeLimiter(
     DGVector<1> tempDG;
     tempDG.resize_by_mesh(_mesh);
     if constexpr (DG >= 3) {
-        minV = makeKokkosDeviceView("minV", temp);
-        maxV = makeKokkosDeviceView("maxV", temp);
-        alpha = makeKokkosDeviceView("alpha", tempDG);
+        minV = makeKokkosDeviceView<MakeViewOptions::ALWAYS_COPY>("minV", temp);
+        maxV = makeKokkosDeviceView<MakeViewOptions::ALWAYS_COPY>("maxV", temp);
+        alpha = makeKokkosDeviceView<MakeViewOptions::ALWAYS_COPY>("alpha", tempDG);
     }
     if constexpr (DG >= 6) {
-        dxminV = makeKokkosDeviceView("dxminV", temp);
-        dxmaxV = makeKokkosDeviceView("dxmaxV", temp);
-        dyminV = makeKokkosDeviceView("dyminV", temp);
-        dymaxV = makeKokkosDeviceView("dymaxV", temp);
-        alphaX = makeKokkosDeviceView("alphaX", tempDG);
-        alphaY = makeKokkosDeviceView("alphaY", tempDG);
+        dxminV = makeKokkosDeviceView<MakeViewOptions::ALWAYS_COPY>("dxminV", temp);
+        dxmaxV = makeKokkosDeviceView<MakeViewOptions::ALWAYS_COPY>("dxmaxV", temp);
+        dyminV = makeKokkosDeviceView<MakeViewOptions::ALWAYS_COPY>("dyminV", temp);
+        dymaxV = makeKokkosDeviceView<MakeViewOptions::ALWAYS_COPY>("dymaxV", temp);
+        alphaX = makeKokkosDeviceView<MakeViewOptions::ALWAYS_COPY>("alphaX", tempDG);
+        alphaY = makeKokkosDeviceView<MakeViewOptions::ALWAYS_COPY>("alphaY", tempDG);
     }
     if constexpr (DG == 8) {
         std::cerr << "No limiting for DG8" << std::endl;

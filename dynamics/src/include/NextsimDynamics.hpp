@@ -22,6 +22,8 @@ namespace Nextsim {
  */
 using FloatType = FloatType;
 
+constexpr FloatType pi = 3.14159265358979323846;
+
 enum TENSOR_ELEMENT { I11, I12, I22, N_TENSOR_ELEMENTS };
 const std::array<TENSOR_ELEMENT, N_TENSOR_ELEMENTS> tensorElements = { I11, I12, I22 };
 typedef std::array<FloatType, N_TENSOR_ELEMENTS> SymmetricTensor;
