@@ -27,12 +27,12 @@ KokkosDGTransport<DG>::KokkosDGTransport(const ParametricMesh& smesh, const Kokk
     tmpRes3 = makeKokkosDeviceView("tmpRes3", this->tmp3);
 
     // parametric map
-    advectionCellTermXDevice = makeKokkosDeviceViewMap(
-        "advectionCellTermX", this->parammap.AdvectionCellTermX, MakeViewOptions::DEVICE_COPY);
-    advectionCellTermYDevice = makeKokkosDeviceViewMap(
-        "advectionCellTermY", this->parammap.AdvectionCellTermY, MakeViewOptions::DEVICE_COPY);
-    inverseDGMassMatrixDevice = makeKokkosDeviceViewMap(
-        "inverseDGMassMatrix", this->parammap.InverseDGMassMatrix, MakeViewOptions::DEVICE_COPY);
+    advectionCellTermXDevice = makeKokkosDeviceViewMap<MakeViewOptions::DEVICE_COPY>(
+        "advectionCellTermX", this->parammap.AdvectionCellTermX);
+    advectionCellTermYDevice = makeKokkosDeviceViewMap<MakeViewOptions::DEVICE_COPY>(
+        "advectionCellTermY", this->parammap.AdvectionCellTermY);
+    inverseDGMassMatrixDevice = makeKokkosDeviceViewMap<MakeViewOptions::DEVICE_COPY>(
+        "inverseDGMassMatrix", this->parammap.InverseDGMassMatrix);
 }
 
 //! returns the localization of the cell vector to the edges

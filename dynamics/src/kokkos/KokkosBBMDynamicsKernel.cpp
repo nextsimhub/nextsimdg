@@ -22,7 +22,7 @@ void KokkosBBMDynamicsKernel<DGadvection>::initialise(
     for (size_t i = 0; i < this->smesh->nelements; ++i) {
         cellSize[i] = this->smesh->h(i);
     }
-    cellSizeDevice = makeKokkosDeviceViewMap("cellSize", cellSize, MakeViewOptions::ALWAYS_COPY);
+    cellSizeDevice = makeKokkosDeviceViewMap<MakeViewOptions::ALWAYS_COPY>("cellSize", cellSize);
 }
 
 template <int DGadvection>

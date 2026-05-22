@@ -41,7 +41,7 @@ namespace Interpolations {
             }
         }
         cG2DGMatrixDevice
-            = makeKokkosDeviceViewMap("cG2DGMatrix", cG2DGMatrix, MakeViewOptions::ALWAYS_COPY);
+            = makeKokkosDeviceViewMap<MakeViewOptions::ALWAYS_COPY>("cG2DGMatrix", cG2DGMatrix);
     }
 
     template <int DG, int CG>

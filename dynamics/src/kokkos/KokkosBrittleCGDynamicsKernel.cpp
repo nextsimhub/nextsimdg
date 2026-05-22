@@ -62,19 +62,26 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::advectDynamicsFields(FloatType 
 }
 
 /*************************************************************/
-template <typename Mat> void compare(const std::string& name, const Mat& m1, const Mat& m2)
+template <typename Mat> void compareDebug(const std::string& name, const Mat& m1, const Mat& m2)
 {
     FloatType normRef = m1.norm();
     FloatType normDiff = (m1 - m2).norm();
     std::cout << name << " - abs: " << normDiff << ", rel: " << normDiff / normRef
-              << ", norm: " << normRef << std::endl;
+              << ", norm: " << normRef;
+    Eigen::Index maxIndex;
+    const FloatType maxVal = (m1 - m2).cwiseAbs().maxCoeff(&maxIndex);
+    std::cout << ", max diff: " << maxVal << " at " << maxIndex << " abs(" << m1(maxIndex) << "-"
+              << m2(maxIndex) << ")" << std::endl;
+}
+template <typename Mat> void printMatDebug(const std::string& name, const Mat& mat)
+{
+    std::cout << name << ": " << mat.minCoeff() << " " << mat.maxCoeff() << " " << mat.sum()
+              << "\n";
 }
 
 template <int DGadvection>
 void KokkosBrittleCGDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
 {
-    feenableexcept(FE_INVALID | FE_OVERFLOW);
-
     static KokkosTimer<true> timerBBM("bbmGPU");
     static KokkosTimer<DETAILED_MEASUREMENTS> timerProj("projGPU");
     static KokkosTimer<DETAILED_MEASUREMENTS> timerStress("stressGPU");
@@ -133,12 +140,6 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
             this->xGradSeaSurfaceHeightDevice, this->yGradSeaSurfaceHeightDevice,
             this->lumpedCGMassDevice, this->cgLandMaskDevice, this->deltaT, this->params,
             this->cosOceanAngle, this->sinOceanAngle, params.nSteps);
-
-        /*      std::cout << subStep << "\n";
-              std::cout << "u: " << this->u.minCoeff() << " " << this->u.maxCoeff() << " "
-                        << this->u.sum() << "\n";
-              std::cout << "v: " << this->v.minCoeff() << " " << this->v.maxCoeff() << " "
-                        << this->u.sum() << "\n";*/
         timerMomentum.stop();
 
         timerBoundary.start();

@@ -89,7 +89,7 @@ void ModelComponent::makeOceanIndexDevice()
     }
 
     std::vector<DeviceIndex> buf(oceanIndex.begin(), oceanIndex.end());
-    oceanIndexDevice = makeKokkosDeviceViewMap("oceanIndex", buf, MakeViewOptions::ALWAYS_COPY);
+    oceanIndexDevice = makeKokkosDeviceViewMap<MakeViewOptions::ALWAYS_COPY>("oceanIndex", buf);
     Finalizer::registerUnique(destroyOceanIndex);
 }
 

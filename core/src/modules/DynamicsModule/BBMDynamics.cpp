@@ -130,17 +130,6 @@ void BBMDynamics::update(const TimestepTime& tst)
 {
     std::cout << tst.start << std::endl;
 
-    std::cout << "hice: " << hiceDGAccessor.getHostRO().data().minCoeff() << " "
-              << hiceDGAccessor.getHostRO().data().maxCoeff() << "\n";
-    std::cout << "uwind: " << uwindAccessor.getHostRO().data().minCoeff() << " "
-              << uwindAccessor.getHostRO().data().maxCoeff() << "\n";
-    std::cout << "vwind: " << vwindAccessor.getHostRO().data().minCoeff() << " "
-              << vwindAccessor.getHostRO().data().maxCoeff() << "\n";
-    std::cout << "u: " << uiceAccessor.getHostRO().data().minCoeff() << " "
-              << uiceAccessor.getHostRO().data().maxCoeff() << "\n";
-    std::cout << "v: " << viceAccessor.getHostRO().data().minCoeff() << " "
-              << viceAccessor.getHostRO().data().maxCoeff() << "\n";
-
     // set dg fields
     // Needs to be done every step even so the field references do not change to ensure that the
     // write accesses are registered and that needed host-device data transfers can take place.
@@ -165,18 +154,6 @@ void BBMDynamics::update(const TimestepTime& tst)
 
     uiceAccessor.getHostRW() = kernel.getDG0Data(uName);
     viceAccessor.getHostRW() = kernel.getDG0Data(vName);
-
-    std::cout << "=================\n";
-    std::cout << "hice: " << hiceDGAccessor.getHostRO().data().minCoeff() << " "
-              << hiceDGAccessor.getHostRO().data().maxCoeff() << "\n";
-    std::cout << "uwind: " << uwindAccessor.getHostRO().data().minCoeff() << " "
-              << uwindAccessor.getHostRO().data().maxCoeff() << "\n";
-    std::cout << "vwind: " << vwindAccessor.getHostRO().data().minCoeff() << " "
-              << vwindAccessor.getHostRO().data().maxCoeff() << "\n";
-    std::cout << "u: " << uiceAccessor.getHostRO().data().minCoeff() << " "
-              << uiceAccessor.getHostRO().data().maxCoeff() << "\n";
-    std::cout << "v: " << viceAccessor.getHostRO().data().minCoeff() << " "
-              << viceAccessor.getHostRO().data().maxCoeff() << "\n";
 
     tauxAccessor.getHostRW() = kernel.getDG0Data(uIOStressName);
     tauyAccessor.getHostRW() = kernel.getDG0Data(vIOStressName);
