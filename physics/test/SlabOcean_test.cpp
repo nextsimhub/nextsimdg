@@ -181,7 +181,9 @@ TEST_CASE("Test Fdw")
     ModelArrayAccessor<Protected::SLAB_FDW> fdwAccessor(ModelComponent::getStore());
     const HField& fdw = fdwAccessor.getHostRO();
 
-    constexpr FloatType prec = std::is_same_v<FloatType, float> ? 1e-5 : 1e-6;
+    // maintaining this tolerance for both float and double is important here because the change
+    // that is tested for is so small
+    constexpr FloatType prec = 1e-6;
     REQUIRE(fdw[0]
         == doctest::Approx(
             -sOffset / sss[0] * mld[0] * Water::rho / SlabOcean::defaultRelaxationTime)
@@ -198,7 +200,7 @@ TEST_CASE("Test Fdw")
 
     REQUIRE(sssSlab[0] != doctest::Approx(sss[0]).epsilon(prec / dt));
     REQUIRE(sssSlab[0]
-        == doctest::Approx(sss[0] - (fdw[0] * dt) / (mld[0] * Water::rho + fdw[0] * dt))
+        == doctest::Approx(sss[0] - (sss[0] * fdw[0] * dt) / (mld[0] * Water::rho + fdw[0] * dt))
                .epsilon(prec));
 
     ModelArrayAccessor<CouplingFields::FWFLUX, RW> snowMeltFluxAccessor(
@@ -210,7 +212,8 @@ TEST_CASE("Test Fdw")
     slabOcean.update(tst);
     REQUIRE(sssSlab[0]
         == doctest::Approx(sss[0]
-            + (snowMeltVol - fdw[0] * dt) / (mld[0] * Water::rho - snowMeltVol + fdw[0] * dt))
+            + (snowMeltVol - sss[0] * fdw[0] * dt)
+                / (mld[0] * Water::rho - snowMeltVol + fdw[0] * dt))
                .epsilon(prec));
 }
 TEST_SUITE_END();
