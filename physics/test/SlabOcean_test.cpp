@@ -86,7 +86,7 @@ TEST_CASE("Test Qdw")
     ModelArrayAccessor<Protected::SLAB_QDW> qdwAccessor(ModelComponent::getStore());
     const HField& qdw = qdwAccessor.getHostRO();
 
-    FloatType prec = 1e-8;
+    constexpr FloatType prec = std::is_same_v<FloatType, float> ? 1e-6 : 1e-8;
     REQUIRE(qdw[0]
         == doctest::Approx(tOffset * cpml[0] / SlabOcean::defaultRelaxationTime).epsilon(prec));
 
@@ -181,7 +181,7 @@ TEST_CASE("Test Fdw")
     ModelArrayAccessor<Protected::SLAB_FDW> fdwAccessor(ModelComponent::getStore());
     const HField& fdw = fdwAccessor.getHostRO();
 
-    FloatType prec = 1e-6;
+    constexpr FloatType prec = std::is_same_v<FloatType, float> ? 1e-5 : 1e-6;
     REQUIRE(fdw[0]
         == doctest::Approx(
             -sOffset / sss[0] * mld[0] * Water::rho / SlabOcean::defaultRelaxationTime)

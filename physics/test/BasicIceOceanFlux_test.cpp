@@ -104,7 +104,7 @@ TEST_CASE("Freezing conditions")
     BasicIceOceanHeatFlux biohf;
     biohf.update(tst);
 
-    constexpr FloatType prec = 1e-5;
+    constexpr FloatType prec = std::is_same_v<FloatType, float> ? 1e-3 : 1e-5;
     REQUIRE(qioAccessor.getHostRO()[0] == doctest::Approx(73.9465).epsilon(prec));
 }
 TEST_SUITE_END();

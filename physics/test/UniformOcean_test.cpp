@@ -54,7 +54,7 @@ TEST_CASE("UniformOcean construction")
     REQUIRE(u[0] == uIn);
     REQUIRE(v[0] == vIn);
     REQUIRE(qio[0] == qioIn);
-    REQUIRE(cpml[0] == mldIn * Water::rho * Water::cp);
+    REQUIRE(cpml[0] == Water::rho * Water::cp * mldIn);
     REQUIRE(tf[0] == Module::getImplementation<IFreezingPoint>()(sssIn));
 }
 
@@ -98,7 +98,7 @@ TEST_CASE("UniformOcean set functions")
     REQUIRE(u[0] == uIn);
     REQUIRE(v[0] == vIn);
     REQUIRE(qio[0] == qioIn);
-    REQUIRE(cpml[0] == mldIn * Water::rho * Water::cp);
+    REQUIRE(cpml[0] == Water::rho * Water::cp * mldIn);
     REQUIRE(tf[0] == Module::getImplementation<IFreezingPoint>()(sssIn));
 }
 TEST_SUITE_END();

@@ -15,11 +15,11 @@ class UniformOcean : public IOceanBoundary {
 public:
     UniformOcean()
         // The same defaults as ConstantOceanBoundary
-        : UniformOcean(-1.5, 32., 10, 0., FloatType(0))
+        : UniformOcean(-1.5, 32., 10, 0., 0)
     {
     }
     UniformOcean(FloatType sstIn, FloatType sssIn, FloatType mldIn, FloatType uIn = 0.,
-        FloatType vIn = 0., FloatType qioIn = FloatType(0))
+        FloatType vIn = 0., FloatType qioIn = 0)
         : sst0(sstIn)
         , sss0(sssIn)
         , mld0(mldIn)

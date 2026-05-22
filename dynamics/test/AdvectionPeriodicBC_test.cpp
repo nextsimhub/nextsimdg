@@ -46,7 +46,8 @@ size_t NT = NT0;
 
 bool WRITE_VTK = false; //!< set to true for vtk output
 
-FloatType TOL = 1.e-7; //!< tolerance for checking test results
+// tolerance for checking test results
+FloatType TOL = std::is_same_v<FloatType, float> ? 1e-5 : 1.e-7;
 
 /*!
  *  Description of the test case

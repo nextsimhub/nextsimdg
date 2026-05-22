@@ -329,11 +329,10 @@ TEST_CASE("Dummy ice")
     } atmBdy;
     atmBdy.setData(ModelState().data);
 
-    // Don't like referencing variables in the enclosing scope? FINE!
-#define cice0 0.5
-#define hice0 0.1
-#define hsnow0 0.01
-#define tice00 -5
+    static constexpr FloatType cice0 = 0.5;
+    static constexpr FloatType hice0 = 0.1;
+    static constexpr FloatType hsnow0 = 0.01;
+    static constexpr FloatType tice00 = -5;
 
     class PrognosticData : public ModelComponent {
     public:
@@ -401,10 +400,6 @@ TEST_CASE("Dummy ice")
 
     REQUIRE(newice[0] == 0.);
 }
-#undef cice0
-#undef hice0
-#undef hsnow0
-#undef tice00
 
 TEST_CASE("Zero thickness")
 {
@@ -626,11 +621,11 @@ TEST_CASE("Turn off thermo")
     //    FloatType prec = 1e-5;
 
     // Rather than the values from old NextSIM, they should be unchanged from the definition above.
-    REQUIRE(cice[0] == 0.5);
-    REQUIRE((hice[0]) == 0.1);
-    REQUIRE((hsnow[0]) == 0.01);
+    REQUIRE(cice[0] == FloatType(0.5));
+    REQUIRE((hice[0]) == FloatType(0.1));
+    REQUIRE((hsnow[0]) == FloatType(0.01));
 
-    REQUIRE(newice[0] == 0.0);
+    REQUIRE(newice[0] == FloatType(0.0));
 }
 
 TEST_SUITE_END();

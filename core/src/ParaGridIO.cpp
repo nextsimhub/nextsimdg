@@ -236,12 +236,12 @@ ModelState ParaGridIO::readForcingTimeStatic(
             ModelArray::DataType tempData;
             tempData.resize(halo.getInnerSize(), data.nComponents());
             // populate temp Eigen array with data from netCDF file
-            var.getVar(indexArray, extentArray, tempData.data());
+            readNetCDFVar(var, indexArray, extentArray, tempData.data());
             // populate inner block of modelarray with data from tempData
             halo.setInnerBlock(tempData, data.getDataRef());
             halo.exchangeHalos(data.getDataRef());
 #else
-            var.getVar(indexArray, extentArray, &data[0]);
+            readNetCDFVar(var, indexArray, extentArray, &data[0]);
 #endif
         }
         ncFile.close();
