@@ -1,3 +1,6 @@
+# definitions for tests that do not link to nextsimlib
+add_compile_definitions("NEXTSIM_FLOAT_TYPE=${FloatType}")
+
 if(NOT ENABLE_MPI)
     set(COMMON_INCLUDE_DIRS "../../core/src/discontinuousgalerkin" "../../core/src"
                             "../../core/src/modules" "../src" "../src/modules")

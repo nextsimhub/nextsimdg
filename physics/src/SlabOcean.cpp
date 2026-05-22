@@ -130,8 +130,6 @@ void SlabOcean::update(const TimestepTime& tst)
         const FloatType denominator
             = Utils::max(arealDensity - (fwFlux[i] - fdw[i]) * dt, rhoOcean);
         sssSlab[i] = sss[i] + (sss[i] * (fwFlux[i] - fdw[i]) * dt) / denominator;
-        // Kokkos::printf("(%e * (%e - %e) * %e) / %e\n", sss[i], fwFlux[i], fdw[i], dt,
-        // denominator);
     });
     timer.stop();
 }

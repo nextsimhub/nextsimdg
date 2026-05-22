@@ -4,6 +4,9 @@ set(SRC_DIR "${DynamicsSrc}")
 set(INCLUDE_DIR "${DynamicsSrc}/include")
 set(CoreDir "../../core/src/")
 
+# definitions for tests that do not link to nextsimlib
+add_compile_definitions("NEXTSIM_FLOAT_TYPE=${FloatType}")
+
 include_directories(${INCLUDE_DIR})
 
 if(NOT ENABLE_MPI)

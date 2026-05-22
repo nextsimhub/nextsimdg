@@ -3,11 +3,11 @@
 
 namespace Nextsim {
 /*!
- * the Float-Type used in NextSim.
- * This is not yet fully checked or supported but might be required in
- * for future use of GPU's
+ * The Float-Type used in NextSim for computations and outputs.
+ * NEXTSIM_FLOAT_TYPE is defined in the main CMakeLists.txt based on the USE_SINGLE_PRECISION
+ * option. Support for float is experimental and most useful when used with a Kokkos GPU backend.
  */
-using FloatType = float;
+using FloatType = NEXTSIM_FLOAT_TYPE;
 
 } /* namespace Nextsim */
 
