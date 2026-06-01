@@ -196,25 +196,33 @@ TEST_CASE("Test Fdw")
     REQUIRE(fdw[0] != doctest::Approx(oldFdw).epsilon(prec * 1e-6));
 
     ModelArrayAccessor<Protected::SLAB_SSS> sssSlabAccessor(ModelComponent::getStore());
-    const HField& sssSlab = sssSlabAccessor.getHostRO();
 
-    REQUIRE(sssSlab[0] != doctest::Approx(sss[0]).epsilon(prec / dt));
-    REQUIRE(sssSlab[0]
-        == doctest::Approx(sss[0] - (sss[0] * fdw[0] * dt) / (mld[0] * Water::rho + fdw[0] * dt))
-               .epsilon(prec));
+    {
+        const HField& sssSlab = sssSlabAccessor.getHostRO();
 
-    ModelArrayAccessor<CouplingFields::FWFLUX, RW> snowMeltFluxAccessor(
-        couplingArrays, RW, ModelArray::Type::H);
-    HField& snowMeltFlux = snowMeltFluxAccessor.getHostRW();
-    FloatType snowMelt = -1e-4;
-    FloatType snowMeltVol = snowMelt * Ice::rhoSnow;
-    snowMeltFlux = snowMeltVol / dt;
-    slabOcean.update(tst);
-    REQUIRE(sssSlab[0]
-        == doctest::Approx(sss[0]
-            + (snowMeltVol - sss[0] * fdw[0] * dt)
-                / (mld[0] * Water::rho - snowMeltVol + fdw[0] * dt))
-               .epsilon(prec));
+        REQUIRE(sssSlab[0] != doctest::Approx(sss[0]).epsilon(prec / dt));
+        REQUIRE(sssSlab[0]
+            == doctest::Approx(
+                sss[0] - (sss[0] * fdw[0] * dt) / (mld[0] * Water::rho + fdw[0] * dt))
+                   .epsilon(prec));
+    }
+
+    {
+        ModelArrayAccessor<CouplingFields::FWFLUX, RW> snowMeltFluxAccessor(
+            couplingArrays, RW, ModelArray::Type::H);
+        HField& snowMeltFlux = snowMeltFluxAccessor.getHostRW();
+        FloatType snowMelt = -1e-4;
+        FloatType snowMeltVol = snowMelt * Ice::rhoSnow;
+        snowMeltFlux = snowMeltVol / dt;
+        slabOcean.update(tst);
+        const HField& sssSlab = sssSlabAccessor.getHostRO();
+
+        REQUIRE(sssSlab[0]
+            == doctest::Approx(sss[0]
+                + sss[0] * (snowMeltVol - fdw[0] * dt)
+                    / (mld[0] * Water::rho - snowMeltVol + fdw[0] * dt))
+                   .epsilon(prec));
+    }
 }
 TEST_SUITE_END();
 } /* namespace Nextsim */
