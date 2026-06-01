@@ -112,7 +112,9 @@ def basisfunctions_in_gausspoints(edge, d, g):
         )
     )
     print(
-        "\t(Eigen::Matrix<FloatType, {0}, {1}, Eigen::RowMajor>() <<".format(g, dgdofs(d))
+        "\t(Eigen::Matrix<FloatType, {0}, {1}, Eigen::RowMajor>() <<".format(
+            g, dgdofs(d)
+        )
     )
     print("\t", end=" ")
     for gp in range(g):
@@ -235,7 +237,9 @@ def edge_basisfunctions_in_gausspoints(d, g):
             d + 1, g, d, g
         )
     )
-    print("\t(Eigen::Matrix<FloatType, {0}, {1}, Eigen::RowMajor>() <<".format(d + 1, g))
+    print(
+        "\t(Eigen::Matrix<FloatType, {0}, {1}, Eigen::RowMajor>() <<".format(d + 1, g)
+    )
     print("\t", end=" ")
     for dp in range(d + 1):
         for gp in range(g):

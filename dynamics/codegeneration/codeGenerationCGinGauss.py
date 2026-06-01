@@ -169,7 +169,9 @@ def cgfunction_in_gausspoints(cg, gp):
                 gp * gp, bf.cgdofs(cg), cg, gp
             )
         )
-        print("\t(Eigen::Matrix<FloatType, {0}, {1}>() <<".format(gp * gp, bf.cgdofs(cg)))
+        print(
+            "\t(Eigen::Matrix<FloatType, {0}, {1}>() <<".format(gp * gp, bf.cgdofs(cg))
+        )
     print("\t", end=" ")
     for gy in range(gp):
         for gx in range(gp):
@@ -210,7 +212,9 @@ def cgfunction_dx_in_gausspoints(cg, gp):
                 gp * gp, bf.cgdofs(cg), cg, gp
             )
         )
-        print("\t(Eigen::Matrix<FloatType, {0}, {1}>() <<".format(gp * gp, bf.cgdofs(cg)))
+        print(
+            "\t(Eigen::Matrix<FloatType, {0}, {1}>() <<".format(gp * gp, bf.cgdofs(cg))
+        )
     print("\t", end=" ")
     for gy in range(gp):
         for gx in range(gp):
@@ -251,7 +255,9 @@ def cgfunction_dy_in_gausspoints(cg, gp):
                 gp * gp, bf.cgdofs(cg), cg, gp
             )
         )
-        print("\t(Eigen::Matrix<FloatType, {0}, {1}>() <<".format(gp * gp, bf.cgdofs(cg)))
+        print(
+            "\t(Eigen::Matrix<FloatType, {0}, {1}>() <<".format(gp * gp, bf.cgdofs(cg))
+        )
     print("\t", end=" ")
     for gy in range(gp):
         for gx in range(gp):

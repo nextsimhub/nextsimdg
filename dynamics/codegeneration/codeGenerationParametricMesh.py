@@ -69,7 +69,9 @@ def cg_q1(g):
         print("\t(Eigen::Matrix<FloatType, 4, {0}, Eigen::RowMajor>() <<".format(g * g))
 
     else:
-        print("static const Eigen::Matrix<FloatType, 4, {0}> CG_Q1_{1} =".format(g * g, g))
+        print(
+            "static const Eigen::Matrix<FloatType, 4, {0}> CG_Q1_{1} =".format(g * g, g)
+        )
         print("\t(Eigen::Matrix<FloatType, 4, {0}>() <<".format(g * g))
     print("\t", end=" ")
     for i in range(4):
@@ -103,7 +105,9 @@ def cg_q1grad(g):
 
     else:
         print(
-            "static const Eigen::Matrix<FloatType, 4, {0}> CG_Q1x_{1} =".format(g * g, g)
+            "static const Eigen::Matrix<FloatType, 4, {0}> CG_Q1x_{1} =".format(
+                g * g, g
+            )
         )
         print("\t(Eigen::Matrix<FloatType, 4, {0}>() <<".format(g * g))
     print("\t", end=" ")
@@ -127,7 +131,9 @@ def cg_q1grad(g):
         print("\t(Eigen::Matrix<FloatType, 4, {0}, Eigen::RowMajor>() <<".format(g * g))
     else:
         print(
-            "static const Eigen::Matrix<FloatType, 4, {0}> CG_Q1y_{1} =".format(g * g, g)
+            "static const Eigen::Matrix<FloatType, 4, {0}> CG_Q1y_{1} =".format(
+                g * g, g
+            )
         )
         print("\t(Eigen::Matrix<FloatType, 4, {0}>() <<".format(g * g))
     print("\t", end=" ")

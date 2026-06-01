@@ -22,7 +22,9 @@ def basisfunctions_in_gausspoints_edge(edge, d, g):
                 g, d, d, g, edge
             )
         )
-        print("\t(Eigen::Matrix<FloatType, {0}, {1}, Eigen::RowMajor>() <<".format(g, d))
+        print(
+            "\t(Eigen::Matrix<FloatType, {0}, {1}, Eigen::RowMajor>() <<".format(g, d)
+        )
     else:
         print(
             "static const Eigen::Matrix<FloatType, {0}, {1}> PSI{2}{3}_{4} =".format(
@@ -146,7 +148,9 @@ def integration_basisfunctions_in_gausspoints_cell(d, g):
             )
         )
         print(
-            "\t(Eigen::Matrix<FloatType, {0}, {1}, Eigen::RowMajor>() <<".format(d, g * g)
+            "\t(Eigen::Matrix<FloatType, {0}, {1}, Eigen::RowMajor>() <<".format(
+                d, g * g
+            )
         )
     else:
         print(
@@ -439,7 +443,9 @@ for g in [1, 2, 3, 4]:
         )
         print("\t(Eigen::Matrix<FloatType, 2, {0}, Eigen::RowMajor>() <<".format(g * g))
     else:
-        print("static const Eigen::Matrix<FloatType, 2, {0}> GAUSS_{1} =".format(g * g, g))
+        print(
+            "static const Eigen::Matrix<FloatType, 2, {0}> GAUSS_{1} =".format(g * g, g)
+        )
         print("\t(Eigen::Matrix<FloatType, 2, {0}>() <<".format(g * g))
     print("\t", end=" ")
     for _ in range(g):
