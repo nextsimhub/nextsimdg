@@ -120,12 +120,12 @@ target_compile_definitions(nextsimlib PRIVATE DGCOMP=${DGComp} DGSTRESSCOMP=${DG
 
 if(USE_SINGLE_PRECISION)
     if(ENABLE_MPI)
-        message(SEND_ERROR "Trying to use both MPI and single precision together, which is currently not supported. \
-                Disable either ENABLE_MPI or USE_SINGLE_PRECISION.")
+        message(SEND_ERROR "Trying to use both MPI and single precision together, which is \
+            currently not supported. Disable either ENABLE_MPI or USE_SINGLE_PRECISION.")
     endif()
     if(ENABLE_XIOS)
-        message(SEND_ERROR "Trying to use both XIOS and single precision together, which is currently not supported. \
-                Disable either ENABLE_XIOS or USE_SINGLE_PRECISION.")
+        message(SEND_ERROR "Trying to use both XIOS and single precision together, which is \
+        currently not supported. Disable either ENABLE_XIOS or USE_SINGLE_PRECISION.")
     endif()
     if (NOT WITH_KOKKOS)
         message(WARNING "Single precision has only been tested with the Kokkos implementations.")
