@@ -19,6 +19,7 @@
 #include <file.hpp>
 #include <grid.hpp>
 #include <icdate.hpp>
+#include <interpolate_domain.hpp>
 
 extern "C" {
 
@@ -70,11 +71,27 @@ void cxios_xml_tree_add_domain(
     xios::CDomainGroup* domain_grp, xios::CDomain** domain, const char* _id, int _id_len);
 
 // domain methods
+
+void cxios_set_domain_domain_ref(
+    xios::CDomain* domain_hdl, const char* domain_ref, int domain_ref_size);
+void cxios_get_domain_domain_ref(xios::CDomain* domain_hdl, char* domain_ref, int domain_ref_size);
+bool cxios_is_defined_domain_domain_ref(xios::CDomain* domain_hdl);
+
+void cxios_set_interpolate_domain_mode(
+    xios::CInterpolateDomain* hdl, const char* mode, int mode_size);
+void cxios_get_interpolate_domain_mode(xios::CInterpolateDomain* hdl, char* mode, int mode_size);
+void cxios_set_interpolate_domain_order(xios::CInterpolateDomain* hdl, int order);
+void cxios_get_interpolate_domain_order(xios::CInterpolateDomain* hdl, int* order);
+void cxios_xml_tree_add_interpolatedomaintodomain(xios::CDomain* parent,
+    xios::CInterpolateDomain** child, const char* child_id, int child_id_size);
+
 void cxios_domain_handle_create(xios::CDomain** _ret, const char* _id, int _id_len);
 void cxios_domain_valid_id(bool* _ret, const char* _id, int _id_len);
 void cxios_set_domain_type(xios::CDomain* domain_hdl, const char* type, int type_size);
 void cxios_set_domain_dim_i_name(xios::CDomain* domain_hdl, const char* iname, int iname_size);
+void cxios_get_domain_dim_i_name(xios::CDomain* domain_hdl, char* iname, int iname_size);
 void cxios_set_domain_dim_j_name(xios::CDomain* domain_hdl, const char* jname, int jname_size);
+void cxios_get_domain_dim_j_name(xios::CDomain* domain_hdl, char* jname, int jname_size);
 void cxios_set_domain_lat_name(xios::CDomain* domain_hdl, const char* latname, int latname_size);
 void cxios_set_domain_lon_name(xios::CDomain* domain_hdl, const char* lonname, int lonname_size);
 void cxios_set_domain_ni_glo(xios::CDomain* domain_hdl, int ni_glo);
