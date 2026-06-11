@@ -146,11 +146,12 @@ void KokkosMEVPDynamicsKernel<DGadvection>::updateStressHighOrderDevice(
             const auto PSIAdvect = makeEigenMap(PSIAdvectDevice);
             const auto PSIStress = makeEigenMap(PSIStressDevice);
 
-            auto hGauss = (hice.row(i) * PSIAdvect).array().max(0.0).matrix();
-            auto aGauss = (cice.row(i) * PSIAdvect).array().max(0.0).min(1.0).matrix();
+            auto hGauss = (hice.row(i) * PSIAdvect).array().max(FloatType(0)).matrix();
+            auto aGauss
+                = (cice.row(i) * PSIAdvect).array().max(FloatType(0)).min(FloatType(1)).matrix();
 
             const EdgeVec P = (params.pStar * hGauss.array()
-                * (params.compactionParam * (1.0 - aGauss.array())).exp())
+                * (params.compactionParam * (FloatType(1) - aGauss.array())).exp())
                                   .matrix();
 
             const EdgeVec e11Gauss = e11.row(i) * PSIStress;
@@ -172,7 +173,8 @@ void KokkosMEVPDynamicsKernel<DGadvection>::updateStressHighOrderDevice(
                 + (map
                     * (alphaInv
                         * (PDelta.array()
-                                * ((5.0 / 8.0) * e11Gauss.array() + (3.0 / 8.0) * e22Gauss.array())
+                                * (FloatType(5.0 / 8.0) * e11Gauss.array()
+                                    + FloatType(3.0 / 8.0) * e22Gauss.array())
                             - FloatType(0.5) * P.array())
                               .matrix()
                               .transpose()))
@@ -181,7 +183,8 @@ void KokkosMEVPDynamicsKernel<DGadvection>::updateStressHighOrderDevice(
                 + (map
                     * (alphaInv
                         * (PDelta.array()
-                                * ((5.0 / 8.0) * e22Gauss.array() + (3.0 / 8.0) * e11Gauss.array())
+                                * (FloatType(5.0 / 8.0) * e22Gauss.array()
+                                    + FloatType(3.0 / 8.0) * e11Gauss.array())
                             - FloatType(0.5) * P.array())
                               .matrix()
                               .transpose()))
@@ -189,7 +192,9 @@ void KokkosMEVPDynamicsKernel<DGadvection>::updateStressHighOrderDevice(
             s12.row(i) = fac * s12.row(i)
                 + (map
                     * (alphaInv
-                        * (PDelta.array() * (1.0 / 4.0) * e12Gauss.array()).matrix().transpose()))
+                        * (PDelta.array() * FloatType(1.0 / 4.0) * e12Gauss.array())
+                              .matrix()
+                              .transpose()))
                       .transpose();
         });
 }
@@ -228,8 +233,8 @@ void KokkosMEVPDynamicsKernel<DGadvection>::updateMomentumDevice(const DeviceVie
             const FloatType absocn = Kokkos::sqrt(sqr(uOcnRel) + sqr(vOcnRel));
 
             // TODO: Take the sign of lat into account for Coriolis term
-            uDevice(i) = (1.0
-                / (params.rhoIce * cgHDevice(i) / deltaT * (1.0 + beta) // implicit parts
+            uDevice(i) = (FloatType(1)
+                / (params.rhoIce * cgHDevice(i) / deltaT * FloatType(1.0 + beta) // implicit parts
                     + cgADevice(i) * FOcean * absocn) // implicit parts
                 * (params.rhoIce * cgHDevice(i) / deltaT
                         * (beta * u + u0Device(i)) // pseudo - timestepping
@@ -240,8 +245,8 @@ void KokkosMEVPDynamicsKernel<DGadvection>::updateMomentumDevice(const DeviceVie
                     - params.rhoIce * cgHDevice(i) * PhysicalConstants::g
                         * xGradSeaSurfaceHeightDevice(i) // sea surface
                     + dStressXDevice(i) / lumpedCGMassDevice(i))); // internal stress term
-            vDevice(i) = (1.0
-                / (params.rhoIce * cgHDevice(i) / deltaT * (1.0 + beta) // implicit parts
+            vDevice(i) = (FloatType(1)
+                / (params.rhoIce * cgHDevice(i) / deltaT * FloatType(1.0 + beta) // implicit parts
                     + cgADevice(i) * FOcean * absocn) // implicit parts
                 * (params.rhoIce * cgHDevice(i) / deltaT
                         * (beta * v + v0Device(i)) // pseudo - timestepping

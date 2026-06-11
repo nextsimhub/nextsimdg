@@ -57,11 +57,18 @@ public:
                 continue;
 
             //! Evaluate values in Gauss points (3 point Gauss rule in 2d => 9 points)
-            const EdgeVec hGauss = (h.row(i) * PSI<DGadvection, NGP>).array().max(0.0).matrix();
-            const EdgeVec aGauss
-                = (a.row(i) * PSI<DGadvection, NGP>).array().max(0.0).min(1.0).matrix();
-            EdgeVec dGauss
-                = (p_d->row(i) * PSI<DGadvection, NGP>).array().max(1e-12).min(1.0).matrix();
+            const EdgeVec hGauss
+                = (h.row(i) * PSI<DGadvection, NGP>).array().max(FloatType(0)).matrix();
+            const EdgeVec aGauss = (a.row(i) * PSI<DGadvection, NGP>)
+                                       .array()
+                                       .max(FloatType(0))
+                                       .min(FloatType(1))
+                                       .matrix();
+            EdgeVec dGauss = (p_d->row(i) * PSI<DGadvection, NGP>)
+                                 .array()
+                                 .max(params.minDamage)
+                                 .min(FloatType(1))
+                                 .matrix();
 
             const EdgeVec e11Gauss = e11.row(i) * PSI<DGstress, NGP>;
             const EdgeVec e12Gauss = e12.row(i) * PSI<DGstress, NGP>;
@@ -89,8 +96,9 @@ public:
             // tildeP must be capped at 1 to get an elastic response
             // (Eqn. 7b) Select case based on sigma_n
             const EdgeVec tildeP
-                = (sigma_n.array() < 0.0)
-                      .select((-Pmax.array() / sigma_n.array()).min(1.0).matrix(), FloatType(0));
+                = (sigma_n.array() < FloatType(0))
+                      .select((-Pmax.array() / sigma_n.array()).min(FloatType(1)).matrix(),
+                          FloatType(0));
 
             // multiplicator
             const EdgeVec multiplicator
@@ -144,7 +152,7 @@ public:
                         .select(-compr_strength.array() / sigma_n.array(), dcrit);
 
             // Only damage when we're outside
-            dcrit = dcrit.array().min(1.0);
+            dcrit = dcrit.array().min(FloatType(1));
 
             // Eqn. 29
             const EdgeVec td = smesh.h(i) * std::sqrt(2. * (1. + params.nu0) * params.rhoIce)

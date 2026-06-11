@@ -568,9 +568,10 @@ void KokkosDGTransport<DG>::addEdgeXTermsDevice(FloatType dt,
                 const auto normalVelX = makeEigenMap(normalVelXDevice);
                 const LocalVec<GP1D> velGauss = normalVelX.row(ie) * PSIe1D;
 
-                const LocalVec<GP1D> tmp = (velGauss.array().max(0)
+                const LocalVec<GP1D> tmp = (velGauss.array().max(FloatType(0))
                         * (topEdgeOfCell(phiDevice, c1) * PSIe1D).array()
-                    + velGauss.array().min(0) * (bottomEdgeOfCell(phiDevice, c2) * PSIe1D).array());
+                    + velGauss.array().min(FloatType(0))
+                        * (bottomEdgeOfCell(phiDevice, c2) * PSIe1D).array());
 
                 addRowAtomic(phiupDevice, (-dt * tmp * PSIew2).eval(), c1);
                 addRowAtomic(phiupDevice, (dt * tmp * PSIew0).eval(), c2);
@@ -639,9 +640,10 @@ void KokkosDGTransport<DG>::addEdgeYTermsDevice(FloatType dt,
                 const auto normalVelY = makeEigenMap(normalVelYDevice);
                 const LocalVec<GP1D> velGauss = normalVelY.row(ie) * PSIe1D;
 
-                const LocalVec<GP1D> tmp = (velGauss.array().max(0)
+                const LocalVec<GP1D> tmp = (velGauss.array().max(FloatType(0))
                         * (rightEdgeOfCell(phiDevice, c1) * PSIe1D).array()
-                    + velGauss.array().min(0) * (leftEdgeOfCell(phiDevice, c2) * PSIe1D).array());
+                    + velGauss.array().min(FloatType(0))
+                        * (leftEdgeOfCell(phiDevice, c2) * PSIe1D).array());
 
                 addRowAtomic(phiupDevice, (-dt * tmp * PSIew1).eval(), c1);
                 addRowAtomic(phiupDevice, (dt * tmp * PSIew3).eval(), c2);
@@ -669,8 +671,8 @@ void KokkosDGTransport<DG>::addBoundaryTermsDevice(FloatType dt,
 
             const auto normalVelX = makeEigenMap(normalVelXDevice);
             const LocalVec<EDGE_DOFS> velGauss = normalVelX.row(e) * PSIeE;
-            const LocalVec<EDGE_DOFS> tmp
-                = (bottomEdgeOfCell(phiDevice, c) * PSIeE).array() * (-velGauss.array()).max(0);
+            const LocalVec<EDGE_DOFS> tmp = (bottomEdgeOfCell(phiDevice, c) * PSIeE).array()
+                * (-velGauss.array()).max(FloatType(0));
 
             auto phiup = makeEigenMap(phiupDevice);
             phiup.row(c) -= dt * tmp * PSIew0;
@@ -688,8 +690,8 @@ void KokkosDGTransport<DG>::addBoundaryTermsDevice(FloatType dt,
 
             const auto normalVelY = makeEigenMap(normalVelYDevice);
             const LocalVec<EDGE_DOFS> velGauss = normalVelY.row(e) * PSIeE;
-            const LocalVec<EDGE_DOFS> tmp
-                = (rightEdgeOfCell(phiDevice, c) * PSIeE).array() * velGauss.array().max(0);
+            const LocalVec<EDGE_DOFS> tmp = (rightEdgeOfCell(phiDevice, c) * PSIeE).array()
+                * velGauss.array().max(FloatType(0));
 
             auto phiup = makeEigenMap(phiupDevice);
             phiup.row(c) -= dt * tmp * PSIew1;
@@ -707,8 +709,8 @@ void KokkosDGTransport<DG>::addBoundaryTermsDevice(FloatType dt,
 
             const auto normalVelX = makeEigenMap(normalVelXDevice);
             const LocalVec<EDGE_DOFS> velGauss = normalVelX.row(e) * PSIeE;
-            const LocalVec<EDGE_DOFS> tmp
-                = (topEdgeOfCell(phiDevice, c) * PSIeE).array() * velGauss.array().max(0);
+            const LocalVec<EDGE_DOFS> tmp = (topEdgeOfCell(phiDevice, c) * PSIeE).array()
+                * velGauss.array().max(FloatType(0));
 
             auto phiup = makeEigenMap(phiupDevice);
             phiup.row(c) -= dt * tmp * PSIew2;
@@ -726,8 +728,8 @@ void KokkosDGTransport<DG>::addBoundaryTermsDevice(FloatType dt,
 
             const auto normalVelY = makeEigenMap(normalVelYDevice);
             const LocalVec<EDGE_DOFS> velGauss = normalVelY.row(e) * PSIeE;
-            const LocalVec<EDGE_DOFS> tmp
-                = (leftEdgeOfCell(phiDevice, c) * PSIeE).array() * (-velGauss.array()).max(0);
+            const LocalVec<EDGE_DOFS> tmp = (leftEdgeOfCell(phiDevice, c) * PSIeE).array()
+                * (-velGauss.array()).max(FloatType(0));
 
             auto phiup = makeEigenMap(phiupDevice);
             phiup.row(c) -= dt * tmp * PSIew3;

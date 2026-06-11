@@ -73,10 +73,14 @@ void KokkosBBMDynamicsKernel<DGadvection>::updateStressHighOrderDevice(
             const auto PSIAdvect = makeEigenMap(PSIAdvectDevice);
             const auto PSIStress = makeEigenMap(PSIStressDevice);
 
-            const EdgeVec hGauss = (hice.row(i) * PSIAdvect).array().max(0.0).matrix();
-            const EdgeVec aGauss = (cice.row(i) * PSIAdvect).array().max(0.0).min(1.0).matrix();
-            EdgeVec dGauss
-                = (damage.row(i) * PSIAdvect).array().max(params.minDamage).min(1.0).matrix();
+            const EdgeVec hGauss = (hice.row(i) * PSIAdvect).array().max(FloatType(0)).matrix();
+            const EdgeVec aGauss
+                = (cice.row(i) * PSIAdvect).array().max(FloatType(0)).min(FloatType(1)).matrix();
+            EdgeVec dGauss = (damage.row(i) * PSIAdvect)
+                                 .array()
+                                 .max(params.minDamage)
+                                 .min(FloatType(1))
+                                 .matrix();
 
             const EdgeVec e11Gauss = e11.row(i) * PSIStress;
             const EdgeVec e12Gauss = e12.row(i) * PSIStress;
@@ -90,7 +94,8 @@ void KokkosBBMDynamicsKernel<DGadvection>::updateStressHighOrderDevice(
             EdgeVec sigma_n = FloatType(0.5) * (s11Gauss.array() + s22Gauss.array());
 
             //! exp(-C(1-A))
-            const EdgeVec expC = (params.compactionParam * (1.0 - aGauss.array())).exp().array();
+            const EdgeVec expC
+                = (params.compactionParam * (FloatType(1) - aGauss.array())).exp().array();
 
             // Eqn. 25
             const auto powalphaexpC = (dGauss.array() * expC.array()).pow(params.alpha - 1);
@@ -104,12 +109,13 @@ void KokkosBBMDynamicsKernel<DGadvection>::updateStressHighOrderDevice(
             // tildeP must be capped at 1 to get an elastic response
             // (Eqn. 7b) Select case based on sigma_n
             const auto tildeP
-                = (sigma_n.array() < 0.0)
-                      .select((-Pmax.array() / sigma_n.array()).min(1.0).matrix(), FloatType(0));
+                = (sigma_n.array() < FloatType(0))
+                      .select((-Pmax.array() / sigma_n.array()).min(FloatType(1)).matrix(),
+                          FloatType(0));
 
             // multiplicator
-            const EdgeVec multiplicator
-                = time_viscous.array() / (time_viscous.array() + (1. - tildeP.array()) * deltaT);
+            const EdgeVec multiplicator = time_viscous.array()
+                / (time_viscous.array() + (FloatType(1) - tildeP.array()) * deltaT);
 
             //! Eqn. 9
             const EdgeVec elasticity
@@ -123,13 +129,14 @@ void KokkosBBMDynamicsKernel<DGadvection>::updateStressHighOrderDevice(
              */
 
             const EdgeVec Dunit_factor
-                = deltaT * elasticity.array() / (1. - (params.nu0 * params.nu0));
+                = deltaT * elasticity.array() / (FloatType(1) - (params.nu0 * params.nu0));
 
             s11Gauss.array()
                 += Dunit_factor.array() * (e11Gauss.array() + params.nu0 * e22Gauss.array());
             s22Gauss.array()
                 += Dunit_factor.array() * (params.nu0 * e11Gauss.array() + e22Gauss.array());
-            s12Gauss.array() += Dunit_factor.array() * e12Gauss.array() * (1. - params.nu0);
+            s12Gauss.array()
+                += Dunit_factor.array() * e12Gauss.array() * (FloatType(1) - params.nu0);
 
             // //! Implicit part of RHS (Eqn. 33)
             s11Gauss.array() *= multiplicator.array();
@@ -153,21 +160,23 @@ void KokkosBBMDynamicsKernel<DGadvection>::updateStressHighOrderDevice(
             // sigma_s + tan_phi*sigma_n < 0 is always inside, but gives dcrit < 0
             EdgeVec dcrit
                 = (tau.array() + params.mu * sigma_n.array() > FloatType(0))
-                      .select(cohesion.array() / (tau.array() + params.mu * sigma_n.array()), 1.);
+                      .select(cohesion.array() / (tau.array() + params.mu * sigma_n.array()),
+                          FloatType(1));
 
             // Compressive failure using Mssrs. Plante & Tremblay's formulation
             dcrit = (sigma_n.array() < -compr_strength.array())
                         .select(-compr_strength.array() / sigma_n.array(), dcrit);
 
             // Only damage when we're outside
-            dcrit = dcrit.array().min(1.0);
+            dcrit = dcrit.array().min(FloatType(1));
 
             // Eqn. 29
-            const auto td = cellSizeDevice(i) * Kokkos::sqrt(2. * (1. + params.nu0) * params.rhoIce)
+            const auto td = cellSizeDevice(i)
+                * Kokkos::sqrt(FloatType(2) * (FloatType(1) + params.nu0) * params.rhoIce)
                 / elasticity.array().sqrt();
 
             // Update damage
-            const EdgeVec relaxFac = (1. - dcrit.array()) * deltaT / td.array();
+            const EdgeVec relaxFac = (FloatType(1) - dcrit.array()) * deltaT / td.array();
             dGauss.array() -= dGauss.array() * relaxFac.array();
 
             // Relax stress in Gauss points
