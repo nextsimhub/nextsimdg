@@ -25,7 +25,7 @@ const DeviceViewMA& ModelArrayStore::ExtModelArray::deviceView()
             m_deviceModelArray.m_deviceView = makeKokkosDeviceView(name, modelArray.getDataRef());
         }
     } else {
-        // in host mode there is only one buffer, owned by the ModelArray, which can be reallocated.
+        // in host mode there is only one buffer, owned by the ModelArray, which can be reallocated
         m_deviceModelArray.m_deviceView = hostView();
     }
 

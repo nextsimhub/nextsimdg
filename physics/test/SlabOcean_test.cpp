@@ -53,20 +53,19 @@ TEST_CASE("Test Qdw")
     FloatType cice0 = 0.5;
     cice = cice0;
 
-    /*
-    ModelArrayAccessor<CouplingFields::Q_SS_NO_SW, RW> data0Accessor(
+    ModelArrayAccessor<CouplingFields::Q_SS_NO_SW, RW> qNoSunAccessor(
         couplingArrays, RO, ModelArray::Type::H);
-    HField& data0 = data0Accessor.getHostRW();
+    HField& data0 = qNoSunAccessor.getHostRW();
     data0 = 0;
-    ModelArrayAccessor<CouplingFields::Q_SS_SW, RW> data1Accessor(
+    ModelArrayAccessor<CouplingFields::Q_SS_SW, RW> qswNetAccessor(
         couplingArrays, RO, ModelArray::Type::H);
-    data1Accessor.getHostRW() = data0;
+    qswNetAccessor.getHostRW() = data0;
     ModelArrayAccessor<CouplingFields::FWFLUX, RW> data2Accessor(
         couplingArrays, RO, ModelArray::Type::H);
     data2Accessor.getHostRW() = data0;
     ModelArrayAccessor<CouplingFields::SFLUX, RW> data3Accessor(
         couplingArrays, RO, ModelArray::Type::H);
-    data3Accessor.getHostRW() = data0;*/
+    data3Accessor.getHostRW() = data0;
 
     // External SS* data
     ModelArrayAccessor<Protected::EXT_SSS, RW> sssExtAccessor(
@@ -94,17 +93,14 @@ TEST_CASE("Test Qdw")
     // scope needed because we have to access sstSlab again after update
     {
         const HField& sstSlab = sstSlabAccessor.getHostRO();
+        std::cout << cpml[0] << "\n";
 
         REQUIRE(sstSlab[0] != doctest::Approx(sst[0]).epsilon(prec / dt));
         REQUIRE(sstSlab[0] == doctest::Approx(sst[0] + dt * qdw[0] / cpml[0]).epsilon(prec));
     }
 
-    ModelArrayAccessor<CouplingFields::Q_SS_SW, RW> qswNetAccessor(
-        couplingArrays, RW, ModelArray::Type::H);
     HField& qswNet = qswNetAccessor.getHostRW();
     qswNet[0] = 15;
-    ModelArrayAccessor<CouplingFields::Q_SS_NO_SW, RW> qNoSunAccessor(
-        couplingArrays, RW, ModelArray::Type::H);
     HField& qNoSun = qNoSunAccessor.getHostRW();
     qNoSun[0] = -17.5;
 
@@ -148,7 +144,6 @@ TEST_CASE("Test Fdw")
     HField& cpml = cpmlAccessor.getHostRW();
     cpml = Water::cp * Water::rho * mld;
 
-    /*
     ModelArrayAccessor<CouplingFields::Q_SS_NO_SW, RW> data0Accessor(
         couplingArrays, RO, ModelArray::Type::H);
     HField& data0 = data0Accessor.getHostRW();
@@ -156,12 +151,12 @@ TEST_CASE("Test Fdw")
     ModelArrayAccessor<CouplingFields::Q_SS_SW, RW> data1Accessor(
         couplingArrays, RO, ModelArray::Type::H);
     data1Accessor.getHostRW() = data0;
-    ModelArrayAccessor<CouplingFields::FWFLUX, RW> data2Accessor(
-        couplingArrays, RO, ModelArray::Type::H);
-    data2Accessor.getHostRW() = data0;
+    ModelArrayAccessor<CouplingFields::FWFLUX, RW> snowMeltFluxAccessor(
+        couplingArrays, RW, ModelArray::Type::H);
+    snowMeltFluxAccessor.getHostRW() = data0;
     ModelArrayAccessor<CouplingFields::SFLUX, RW> data3Accessor(
         couplingArrays, RO, ModelArray::Type::H);
-    data3Accessor.getHostRW() = data0;*/
+    data3Accessor.getHostRW() = data0;
 
     // External SS* data
     ModelArrayAccessor<Protected::EXT_SSS, RW> sssExtAccessor(
@@ -208,8 +203,6 @@ TEST_CASE("Test Fdw")
     }
 
     {
-        ModelArrayAccessor<CouplingFields::FWFLUX, RW> snowMeltFluxAccessor(
-            couplingArrays, RW, ModelArray::Type::H);
         HField& snowMeltFlux = snowMeltFluxAccessor.getHostRW();
         FloatType snowMelt = -1e-4;
         FloatType snowMeltVol = snowMelt * Ice::rhoSnow;
