@@ -15,8 +15,8 @@ namespace Nextsim {
 // kokkos views compatible with ModelArray
 using DeviceViewMA = KokkosDeviceView<ModelArray::DataType>;
 using ConstDeviceViewMA = ConstKokkosDeviceView<ModelArray::DataType>;
-using HostViewMA = KokkosHostView<ModelArray::DataType>;
-using ConstHostViewMA = ConstKokkosHostView<ModelArray::DataType>;
+using HostViewMA = KokkosHostViewUnmanaged<ModelArray::DataType>;
+using ConstHostViewMA = ConstKokkosHostViewUnmanaged<ModelArray::DataType>;
 
 /*!
  * @brief Wrapper for const Kokkos views with semantics closer to ModelArray for use in auto

@@ -20,8 +20,13 @@ HostViewMA ModelArrayStore::ExtModelArray::hostView()
 const DeviceViewMA& ModelArrayStore::ExtModelArray::deviceView()
 {
     assert(modelArray.trueSize() > 0 && "ModelArray is allocated");
-    if (!m_deviceModelArray.m_deviceView.is_allocated()) {
-        m_deviceModelArray.m_deviceView = makeKokkosDeviceView(name, modelArray.getDataRef());
+    if constexpr (IS_GPU_EXEC_SPACE<Kokkos::DefaultExecutionSpace>) {
+        if (!m_deviceModelArray.m_deviceView.is_allocated()) {
+            m_deviceModelArray.m_deviceView = makeKokkosDeviceView(name, modelArray.getDataRef());
+        }
+    } else {
+        // in host mode there is only one buffer, owned by the ModelArray, which can be reallocated.
+        m_deviceModelArray.m_deviceView = hostView();
     }
 
     return m_deviceModelArray.m_deviceView;
