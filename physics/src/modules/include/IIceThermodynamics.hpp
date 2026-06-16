@@ -77,9 +77,9 @@ public:
     virtual void update(const TimestepTime& tsTime)
     {
 #ifdef USE_KOKKOS
-        FieldAdvection::advectField(tsurfAccessor.getDeviceRW(), tsTime, minT, FloatType(0));
+        FieldAdvection::advectField(tsurfAccessor.getDeviceRW(), tsTime, minT, 0.0_ft);
 #else
-        FieldAdvection::advectField(tsurfAccessor.getHostRW(), tsTime, minT, FloatType(0));
+        FieldAdvection::advectField(tsurfAccessor.getHostRW(), tsTime, minT, 0.0_ft);
 #endif
     }
 

@@ -621,11 +621,11 @@ TEST_CASE("Turn off thermo")
     //    FloatType prec = 1e-5;
 
     // Rather than the values from old NextSIM, they should be unchanged from the definition above.
-    REQUIRE(cice[0] == FloatType(0.5));
-    REQUIRE((hice[0]) == FloatType(0.1));
-    REQUIRE((hsnow[0]) == FloatType(0.01));
+    REQUIRE(cice[0] == 0.5_ft);
+    REQUIRE((hice[0]) == 0.1_ft);
+    REQUIRE((hsnow[0]) == 0.01_ft);
 
-    REQUIRE(newice[0] == FloatType(0.0));
+    REQUIRE(newice[0] == 0.0_ft);
 }
 
 TEST_SUITE_END();

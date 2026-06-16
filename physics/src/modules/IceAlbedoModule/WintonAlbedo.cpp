@@ -84,7 +84,7 @@ void WintonAlbedo::update(const TimestepTime& tst)
     overElementsAuto(OVER_ELEMENTS_LAMBDA(const ElementIndex i) {
         const FloatType snowThickness = cice[i] > 0 ? hsnow[i] / cice[i] : 0.;
 
-        if (snowThickness > FloatType(0)) {
+        if (snowThickness > 0.0_ft) {
             iceAlbedo[i] = tsurf[i] < 0. ? snowAlbedoBase : meltAlbedoBase;
             icePenSW[i] = 0.;
         } else {

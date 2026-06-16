@@ -232,7 +232,7 @@ TEST_CASE("Arithmetic tests")
     REQUIRE(lhs[1] == 27);
     lhs /= four;
     REQUIRE(lhs[0] == 6);
-    REQUIRE(lhs[1] == FloatType(6.75));
+    REQUIRE(lhs[1] == 6.75_ft);
 
     OneDField fill = ModelArray::OneDField();
     FloatType filldub = 5.2354;

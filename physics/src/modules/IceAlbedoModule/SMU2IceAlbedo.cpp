@@ -47,7 +47,7 @@ void SMU2IceAlbedo::update(const TimestepTime& tst)
     overElementsAuto(OVER_ELEMENTS_LAMBDA(const ElementIndex i) {
         const FloatType snowThickness = cice[i] > 0 ? hsnow[i] / cice[i] : 0.;
 
-        if (snowThickness > FloatType(0)) {
+        if (snowThickness > 0.0_ft) {
             iceAlbedo[i] = Utils::fmin(
                 SNOW_ALBEDO, ICE_ALBEDO + (SNOW_ALBEDO - ICE_ALBEDO) * snowThickness / 0.4);
             icePenSW[i] = 0;

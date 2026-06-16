@@ -270,15 +270,15 @@ public:
                 std::array<FloatType, 4> interpolate = { v(ii, 0), v(ii, 0), v(ii, 0), v(ii, 0) };
 
                 if (DG >= 3) {
-                    interpolate[0] += -FloatType(0.5) * v(ii, 1);
-                    interpolate[1] += FloatType(0.5) * v(ii, 1);
-                    interpolate[2] += FloatType(0.5) * v(ii, 1);
-                    interpolate[3] += -FloatType(0.5) * v(ii, 1);
+                    interpolate[0] += -0.5_ft * v(ii, 1);
+                    interpolate[1] += 0.5_ft * v(ii, 1);
+                    interpolate[2] += 0.5_ft * v(ii, 1);
+                    interpolate[3] += -0.5_ft * v(ii, 1);
 
-                    interpolate[0] += -FloatType(0.5) * v(ii, 2);
-                    interpolate[1] += -FloatType(0.5) * v(ii, 2);
-                    interpolate[2] += FloatType(0.5) * v(ii, 2);
-                    interpolate[3] += FloatType(0.5) * v(ii, 2);
+                    interpolate[0] += -0.5_ft * v(ii, 2);
+                    interpolate[1] += -0.5_ft * v(ii, 2);
+                    interpolate[2] += 0.5_ft * v(ii, 2);
+                    interpolate[3] += 0.5_ft * v(ii, 2);
                 }
                 if (DG >= 6) {
                     interpolate[0] += 1. / 6. * v(ii, 3);
@@ -333,21 +333,21 @@ public:
                     = smesh.coordinatesOfElement(smesh.nx * iy + ix);
 
                 write_coords(OUT, coords(0, 0), coords(0, 1), smesh.CoordinateSystem);
-                write_coords(OUT, FloatType(0.5) * (coords(0, 0) + coords(1, 0)),
-                    FloatType(0.5) * (coords(0, 1) + coords(1, 1)), smesh.CoordinateSystem);
+                write_coords(OUT, 0.5_ft * (coords(0, 0) + coords(1, 0)),
+                    0.5_ft * (coords(0, 1) + coords(1, 1)), smesh.CoordinateSystem);
                 write_coords(OUT, coords(1, 0), coords(1, 1), smesh.CoordinateSystem);
 
-                write_coords(OUT, FloatType(0.5) * (coords(0, 0) + coords(2, 0)),
-                    FloatType(0.5) * (coords(0, 1) + coords(2, 1)), smesh.CoordinateSystem);
+                write_coords(OUT, 0.5_ft * (coords(0, 0) + coords(2, 0)),
+                    0.5_ft * (coords(0, 1) + coords(2, 1)), smesh.CoordinateSystem);
                 write_coords(OUT,
-                    FloatType(0.25) * (coords(0, 0) + coords(1, 0) + coords(2, 0) + coords(3, 0)),
-                    FloatType(0.25) * (coords(0, 1) + coords(1, 1) + coords(2, 1) + coords(3, 1)),
+                    0.25_ft * (coords(0, 0) + coords(1, 0) + coords(2, 0) + coords(3, 0)),
+                    0.25_ft * (coords(0, 1) + coords(1, 1) + coords(2, 1) + coords(3, 1)),
                     smesh.CoordinateSystem);
-                write_coords(OUT, FloatType(0.5) * (coords(1, 0) + coords(3, 0)),
-                    FloatType(0.5) * (coords(1, 1) + coords(3, 1)), smesh.CoordinateSystem);
+                write_coords(OUT, 0.5_ft * (coords(1, 0) + coords(3, 0)),
+                    0.5_ft * (coords(1, 1) + coords(3, 1)), smesh.CoordinateSystem);
                 write_coords(OUT, coords(2, 0), coords(2, 1), smesh.CoordinateSystem);
-                write_coords(OUT, FloatType(0.5) * (coords(2, 0) + coords(3, 0)),
-                    FloatType(0.5) * (coords(2, 1) + coords(3, 1)), smesh.CoordinateSystem);
+                write_coords(OUT, 0.5_ft * (coords(2, 0) + coords(3, 0)),
+                    0.5_ft * (coords(2, 1) + coords(3, 1)), smesh.CoordinateSystem);
                 write_coords(OUT, coords(3, 0), coords(3, 1), smesh.CoordinateSystem);
             }
         OUT << "CELLS " << smesh.nx * smesh.ny << " " << 10 * smesh.nx * smesh.ny << std::endl;

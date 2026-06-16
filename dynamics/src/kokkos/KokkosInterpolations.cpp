@@ -147,20 +147,20 @@ namespace Interpolations {
                 // for implicit capture dest has to be used outside of the constexpr branch
                 auto& cg = dest;
                 if constexpr (CG == 1) {
-                    Kokkos::atomic_add(&cg(cgi), FloatType(0.25) * At(0));
-                    Kokkos::atomic_add(&cg(cgi + 1), FloatType(0.25) * At(1));
-                    Kokkos::atomic_add(&cg(cgi + cGDofsPerRow), FloatType(0.25) * At(2));
-                    Kokkos::atomic_add(&cg(cgi + cGDofsPerRow + 1), FloatType(0.25) * At(3));
+                    Kokkos::atomic_add(&cg(cgi), 0.25_ft * At(0));
+                    Kokkos::atomic_add(&cg(cgi + 1), 0.25_ft * At(1));
+                    Kokkos::atomic_add(&cg(cgi + cGDofsPerRow), 0.25_ft * At(2));
+                    Kokkos::atomic_add(&cg(cgi + cGDofsPerRow + 1), 0.25_ft * At(3));
                 } else {
-                    Kokkos::atomic_add(&cg(cgi), FloatType(0.25) * At(0));
-                    Kokkos::atomic_add(&cg(cgi + 1), FloatType(0.5) * At(1));
-                    Kokkos::atomic_add(&cg(cgi + 2), FloatType(0.25) * At(2));
-                    Kokkos::atomic_add(&cg(cgi + cGDofsPerRow), FloatType(0.5) * At(3));
+                    Kokkos::atomic_add(&cg(cgi), 0.25_ft * At(0));
+                    Kokkos::atomic_add(&cg(cgi + 1), 0.5_ft * At(1));
+                    Kokkos::atomic_add(&cg(cgi + 2), 0.25_ft * At(2));
+                    Kokkos::atomic_add(&cg(cgi + cGDofsPerRow), 0.5_ft * At(3));
                     Kokkos::atomic_add(&cg(cgi + cGDofsPerRow + 1), At(4));
-                    Kokkos::atomic_add(&cg(cgi + cGDofsPerRow + 2), FloatType(0.5) * At(5));
-                    Kokkos::atomic_add(&cg(cgi + 2 * cGDofsPerRow), FloatType(0.25) * At(6));
-                    Kokkos::atomic_add(&cg(cgi + 2 * cGDofsPerRow + 1), FloatType(0.5) * At(7));
-                    Kokkos::atomic_add(&cg(cgi + 2 * cGDofsPerRow + 2), FloatType(0.25) * At(8));
+                    Kokkos::atomic_add(&cg(cgi + cGDofsPerRow + 2), 0.5_ft * At(5));
+                    Kokkos::atomic_add(&cg(cgi + 2 * cGDofsPerRow), 0.25_ft * At(6));
+                    Kokkos::atomic_add(&cg(cgi + 2 * cGDofsPerRow + 1), 0.5_ft * At(7));
+                    Kokkos::atomic_add(&cg(cgi + 2 * cGDofsPerRow + 2), 0.25_ft * At(8));
                 }
             });
     }
@@ -196,20 +196,20 @@ namespace Interpolations {
                 FloatType dof1;
                 if (ix < nx) {
                     dof1 = src(icg1 + 1);
-                    dest(icg2 + 1) = FloatType(0.5) * (dof0 + dof1);
+                    dest(icg2 + 1) = 0.5_ft * (dof0 + dof1);
                 }
 
                 // along vertical lines
                 FloatType dof2;
                 if (iy < ny) {
                     dof2 = src(icg1 + cg1Row);
-                    dest(icg2 + 2 * nx + 1) = FloatType(0.5) * (dof0 + dof2);
+                    dest(icg2 + 2 * nx + 1) = 0.5_ft * (dof0 + dof2);
                 }
 
                 // midpoints
                 if (ix < nx && iy < ny) {
                     const FloatType dof3 = src(icg1 + cg1Row + 1);
-                    dest(icg2 + 2 * nx + 1 + 1) = FloatType(0.25) * (dof0 + dof1 + dof2 + dof3);
+                    dest(icg2 + 2 * nx + 1 + 1) = 0.25_ft * (dof0 + dof1 + dof2 + dof3);
                 }
             });
     }

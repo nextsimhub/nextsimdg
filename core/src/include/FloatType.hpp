@@ -9,6 +9,8 @@ namespace Nextsim {
  */
 using FloatType = NEXTSIM_FLOAT_TYPE;
 
+constexpr FloatType operator""_ft(long double v) { return FloatType(v); }
+
 } /* namespace Nextsim */
 
 #endif /* #define __FLOATTYPE_HPP */

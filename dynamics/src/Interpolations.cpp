@@ -139,10 +139,10 @@ namespace Interpolations {
 
         const Eigen::Matrix<FloatType, 1, 4> At = A.row(c) * PSILagrange<DG, 2>;
 
-        cg_A(cgi) += FloatType(0.25) * At(0);
-        cg_A(cgi + 1) += FloatType(0.25) * At(1);
-        cg_A(cgi + CGDofsPerRow) += FloatType(0.25) * At(2);
-        cg_A(cgi + CGDofsPerRow + 1) += FloatType(0.25) * At(3);
+        cg_A(cgi) += 0.25_ft * At(0);
+        cg_A(cgi + 1) += 0.25_ft * At(1);
+        cg_A(cgi + CGDofsPerRow) += 0.25_ft * At(2);
+        cg_A(cgi + CGDofsPerRow + 1) += 0.25_ft * At(3);
     }
     template <int DG>
     void DG2CGCell(const ParametricMesh& smesh, const size_t c, const size_t cx, const size_t cy,
@@ -154,15 +154,15 @@ namespace Interpolations {
 
         const Eigen::Matrix<FloatType, 1, 9> At = A.row(c) * PSILagrange<DG, 3>;
 
-        cg_A(cgi) += FloatType(0.25) * At(0);
-        cg_A(cgi + 1) += FloatType(0.5) * At(1);
-        cg_A(cgi + 2) += FloatType(0.25) * At(2);
-        cg_A(cgi + CGDofsPerRow) += FloatType(0.5) * At(3);
+        cg_A(cgi) += 0.25_ft * At(0);
+        cg_A(cgi + 1) += 0.5_ft * At(1);
+        cg_A(cgi + 2) += 0.25_ft * At(2);
+        cg_A(cgi + CGDofsPerRow) += 0.5_ft * At(3);
         cg_A(cgi + CGDofsPerRow + 1) += At(4);
-        cg_A(cgi + CGDofsPerRow + 2) += FloatType(0.5) * At(5);
-        cg_A(cgi + 2 * CGDofsPerRow) += FloatType(0.25) * At(6);
-        cg_A(cgi + 2 * CGDofsPerRow + 1) += FloatType(0.5) * At(7);
-        cg_A(cgi + 2 * CGDofsPerRow + 2) += FloatType(0.25) * At(8);
+        cg_A(cgi + CGDofsPerRow + 2) += 0.5_ft * At(5);
+        cg_A(cgi + 2 * CGDofsPerRow) += 0.25_ft * At(6);
+        cg_A(cgi + 2 * CGDofsPerRow + 1) += 0.5_ft * At(7);
+        cg_A(cgi + 2 * CGDofsPerRow + 2) += 0.25_ft * At(8);
     }
 
     template <int CG> void DG2CGBoundary(const ParametricMesh& smesh, CGVector<CG>& cg_A)

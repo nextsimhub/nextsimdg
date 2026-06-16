@@ -107,14 +107,14 @@ class InitialVX : public Nextsim::Interpolations::Function { // (0.5,0.2) m/s
 public:
     FloatType operator()(FloatType x, FloatType y) const
     {
-        return y * FloatType(2.0) * M_PI / ProblemConfig::R1;
+        return y * 2.0_ft * M_PI / ProblemConfig::R1;
     }
 };
 class InitialVY : public Nextsim::Interpolations::Function {
 public:
     FloatType operator()(FloatType x, FloatType y) const
     {
-        return -x * FloatType(2.0) * M_PI / ProblemConfig::R1;
+        return -x * 2.0_ft * M_PI / ProblemConfig::R1;
     }
 };
 
@@ -235,7 +235,7 @@ void create_rectanglemesh(Nextsim::ParametricMesh& smesh)
         for (size_t ix = 0; ix <= ProblemConfig::Nx; ++ix, ++ii) {
             FloatType r = ProblemConfig::R0
                 + (ProblemConfig::R1 - ProblemConfig::R0) * iy / ProblemConfig::Ny;
-            FloatType p = -FloatType(2.0) * M_PI * ix / ProblemConfig::Nx;
+            FloatType p = -2.0_ft * M_PI * ix / ProblemConfig::Nx;
             smesh.vertices(ii, 0) = r * cos(p);
             smesh.vertices(ii, 1) = r * sin(p);
         }

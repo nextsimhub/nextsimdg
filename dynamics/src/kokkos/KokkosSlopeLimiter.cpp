@@ -90,13 +90,11 @@ KOKKOS_IMPL_FUNCTION static FloatType computeLimit(FloatType midValue,
         const FloatType dv = vertexValues[i] - midValue; // distance to midpoint
         if (dv > 1.e-8) {
             assert(_max(cgi + cgIndices[i]) >= midValue);
-            al = Kokkos::min(
-                al, Kokkos::min(FloatType(1), (_max(cgi + cgIndices[i]) - midValue) / dv));
+            al = Kokkos::min(al, Kokkos::min(1.0_ft, (_max(cgi + cgIndices[i]) - midValue) / dv));
         }
         if (dv < -1.e-8) {
             assert(_min(cgi + cgIndices[i]) <= midValue);
-            al = Kokkos::min(
-                al, Kokkos::min(FloatType(1), (_min(cgi + cgIndices[i]) - midValue) / dv));
+            al = Kokkos::min(al, Kokkos::min(1.0_ft, (_min(cgi + cgIndices[i]) - midValue) / dv));
         }
         assert(al >= 0);
     }

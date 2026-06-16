@@ -18,7 +18,7 @@ static void LimitMax(DGVector<3>& dg, FloatType max)
     for (long int i = 0; i < dg.rows(); ++i) {
         dg(i, 0) = std::min(max, dg(i, 0));
         const FloatType l0
-            = FloatType(2.0) * std::max(fabs(dg(i, 1) + dg(i, 2)), fabs(dg(i, 1) - dg(i, 2)));
+            = 2.0_ft * std::max(fabs(dg(i, 1) + dg(i, 2)), fabs(dg(i, 1) - dg(i, 2)));
         if (l0 == 0)
             continue;
         const FloatType ex = dg(i, 0) + l0 - max;
@@ -56,7 +56,7 @@ static void LimitMin(DGVector<3>& dg, FloatType min)
     for (long int i = 0; i < dg.rows(); ++i) {
         dg(i, 0) = std::max(min, dg(i, 0));
         const FloatType l0
-            = FloatType(2.0) * std::max(fabs(dg(i, 1) + dg(i, 2)), fabs(dg(i, 1) - dg(i, 2)));
+            = 2.0_ft * std::max(fabs(dg(i, 1) + dg(i, 2)), fabs(dg(i, 1) - dg(i, 2)));
         if (l0 == 0)
             continue;
 

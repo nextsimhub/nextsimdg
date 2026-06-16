@@ -320,12 +320,12 @@ void ThermoWinton::update(const TimestepTime& tst)
             hs = 0;
         }
         // Sublimated ice counts as top melt
-        topMelt[i] = Utils::max(FloatType(0), h1 + h2 - hi); // (23)
+        topMelt[i] = Utils::max(0.0_ft, h1 + h2 - hi); // (23)
 
         // Bottom melt/freezing
         FloatType meltBottom = (qio[i] - 4 * Ice::kappa * (tBott - tLowr) / hi) * dt;
         snowMelt[i] = 0;
-        if (meltBottom <= FloatType(0)) {
+        if (meltBottom <= 0.0_ft) {
             // Freezing
             // Eq. (25) - but I 've multiplied them with \rho_i (hence cVol), because it's
             // missing in the paper
@@ -337,16 +337,15 @@ void ThermoWinton::update(const TimestepTime& tst)
             // Melting
             // Eqs. (31)-(32) with added division with \rho_i (and \rho_s for 32)
             deltaIce2 = -Utils::min(-meltBottom / e2, h2);
-            deltaIce1 = -Utils::min(Utils::max(-(meltBottom + e2 * h2) / e1, FloatType(0)), h1);
+            deltaIce1 = -Utils::min(Utils::max(-(meltBottom + e2 * h2) / e1, 0.0_ft), h1);
             snowMelt[i] = -Utils::min(
-                Utils::max((meltBottom + e2 * h2 + e1 * h1) / bulkLHFusionSnow, FloatType(0)), hs);
+                Utils::max((meltBottom + e2 * h2 + e1 * h1) / bulkLHFusionSnow, 0.0_ft), hs);
 
             // If everything melts we need to put heat back into the ocean
-            if (h2 + h1 + hs - deltaIce2 - deltaIce1 - snowMelt[i] <= FloatType(0)) {
+            if (h2 + h1 + hs - deltaIce2 - deltaIce1 - snowMelt[i] <= 0.0_ft) {
                 // (34) - with added multiplication of rhoi and rhos and division with dt
                 qow[i] -= cice[i]
-                    * Utils::max(
-                        meltBottom - bulkLHFusionSnow * hs + e1 * h1 + e2 * h2, FloatType(0))
+                    * Utils::max(meltBottom - bulkLHFusionSnow * hs + e1 * h1 + e2 * h2, 0.0_ft)
                     / dt;
             }
 
@@ -361,17 +360,16 @@ void ThermoWinton::update(const TimestepTime& tst)
         // assert(surfMelt >= 0);
         // Eqs. (27)-(29) with division of \rho_i and \rho_s
         snowMelt[i] -= Utils::min(surfMelt * dt / bulkLHFusionSnow, hs);
-        deltaIce1 = -Utils::min(
-            Utils::max(-(surfMelt * dt - bulkLHFusionSnow * hs) / e1, FloatType(0)), h1);
+        deltaIce1
+            = -Utils::min(Utils::max(-(surfMelt * dt - bulkLHFusionSnow * hs) / e1, 0.0_ft), h1);
         deltaIce2 = -Utils::min(
-            Utils::max(-(surfMelt * dt - bulkLHFusionSnow * hs + e1 * h1) / e2, FloatType(0)), h2);
+            Utils::max(-(surfMelt * dt - bulkLHFusionSnow * hs + e1 * h1) / e2, 0.0_ft), h2);
 
         // If everything melts we need to put heat back into the ocean
         // Eq (30) - with multiplication of rhoi and rhos and division with dt
-        if (h2 + h1 + hs - deltaIce2 - deltaIce1 - snowMelt[i] <= FloatType(0)) {
+        if (h2 + h1 + hs - deltaIce2 - deltaIce1 - snowMelt[i] <= 0.0_ft) {
             qow[i] -= cice[i]
-                * Utils::max(
-                    surfMelt * dt - bulkLHFusionSnow * hs + e1 * h1 + e2 * h2, FloatType(0))
+                * Utils::max(surfMelt * dt - bulkLHFusionSnow * hs + e1 * h1 + e2 * h2, 0.0_ft)
                 / dt;
         }
 
@@ -383,9 +381,9 @@ void ThermoWinton::update(const TimestepTime& tst)
         // Snow to ice conversion
         FloatType freeboard
             = (hi * (Water::rhoOcean - Ice::rho) - hs * Ice::rhoSnow) / Water::rhoOcean;
-        if (doFlooding && freeboard < FloatType(0)) {
-            hs += Utils::min(freeboard * Ice::rho / Ice::rhoSnow, FloatType(0)); // (35) using +=
-            deltaIce1 = Utils::max(-freeboard, FloatType(0)); // (36)
+        if (doFlooding && freeboard < 0.0_ft) {
+            hs += Utils::min(freeboard * Ice::rho / Ice::rhoSnow, 0.0_ft); // (35) using +=
+            deltaIce1 = Utils::max(-freeboard, 0.0_ft); // (36)
             FloatType f1
                 = 1 - deltaIce1 / (deltaIce1 + h1); // Fraction of new ice in the upper layer
             FloatType tBar = f1 * (tUppr + dHfTf_cp / tUppr) + (1 - f1) * seaIceTf; // (39)

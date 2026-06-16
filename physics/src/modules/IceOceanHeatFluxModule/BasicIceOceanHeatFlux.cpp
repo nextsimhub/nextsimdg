@@ -27,7 +27,7 @@ void BasicIceOceanHeatFlux::update(const TimestepTime& tst)
 
     overElementsAuto(OVER_ELEMENTS_LAMBDA(const ElementIndex i) {
         // Use the timestep length as the relaxation time scale
-        if (cice[i] > FloatType(0)) {
+        if (cice[i] > 0.0_ft) {
             qio[i] = doOne(tf[i], sst[i], mlBulkCp[i], dt);
         } else {
             qio[i] = 0.;

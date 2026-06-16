@@ -171,7 +171,7 @@ TEST_CASE("Write and read a ModelState-based RectGrid restart file")
     REQUIRE(ms.data.at("hice")(targetX, targetY)
         == 1.0201 + metadata.getLocalCornerY() * yFactor + metadata.getLocalCornerX() * xFactor);
 #else
-    REQUIRE(ms.data.at("hice")(targetX, targetY) == FloatType(1.0201));
+    REQUIRE(ms.data.at("hice")(targetX, targetY) == 1.0201_ft);
 #endif
 
     HField ticeIn = ms.data.at("tsurf");
@@ -180,7 +180,7 @@ TEST_CASE("Write and read a ModelState-based RectGrid restart file")
     REQUIRE(ticeIn(targetX, targetY, 0U)
         == -1.0201 - metadata.getLocalCornerY() * yFactor - metadata.getLocalCornerX() * xFactor);
 #else
-    REQUIRE(ticeIn(targetX, targetY) == FloatType(-1.0201));
+    REQUIRE(ticeIn(targetX, targetY) == -1.0201_ft);
 #endif
 
     // Check that the coordinates have been correctly written and read

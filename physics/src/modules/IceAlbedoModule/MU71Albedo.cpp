@@ -57,7 +57,7 @@ void MU71Albedo::update(const TimestepTime& tst)
     overElements([&](const size_t i) {
         const FloatType snowThickness = cice[i] > 0 ? hsnow[i] / cice[i] : 0.;
 
-        if (snowThickness == FloatType(0)) {
+        if (snowThickness == 0.0_ft) {
             iceAlbedo[i] = ICE_ALBEDO;
             icePenSW[i] = i0;
         } else {

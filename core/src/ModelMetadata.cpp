@@ -395,7 +395,7 @@ void checkStartStep(const std::string start_str, FloatType step)
         throw std::runtime_error("ModelMetadata::setTimes: model.start must be at midnight.");
     }
     if (step < 3600) {
-        if (std::fmod(3600, step) != FloatType(0)) {
+        if (std::fmod(3600, step) != 0.0_ft) {
             throw std::runtime_error(
                 "ModelMetadata::setTimes: model.time_step must be aligned with the hour.");
         }

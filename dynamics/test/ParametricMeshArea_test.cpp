@@ -88,15 +88,13 @@ TEST_CASE("Test area spherical")
     smesh.vertices.resize(smesh.nnodes, 2);
     for (int iy = 0; iy <= ny; ++iy)
         for (int ix = 0; ix <= nx; ++ix) {
-            smesh.vertices((nx + 1) * iy + ix, 0)
-                = -FloatType(1) * pi + FloatType(2.0) * pi * ix / nx;
-            smesh.vertices((nx + 1) * iy + ix, 1)
-                = -FloatType(0.5) * pi + FloatType(1) * pi * iy / ny;
+            smesh.vertices((nx + 1) * iy + ix, 0) = -1.0_ft * pi + 2.0_ft * pi * ix / nx;
+            smesh.vertices((nx + 1) * iy + ix, 1) = -0.5_ft * pi + 1.0_ft * pi * iy / ny;
         }
     smesh.landmask.resize(nx * ny, true);
 
     // exact radius (surface of earth)
-    FloatType exact = FloatType(4.0) * pi * EarthRadius * EarthRadius;
+    FloatType exact = 4.0_ft * pi * EarthRadius * EarthRadius;
 
     // check mesh area
     FloatType totalarea = 0.0;
@@ -110,12 +108,11 @@ TEST_CASE("Test area spherical")
     REQUIRE(std::abs(1 - totalarea / exact) < eps);
 
     //////// next, distort the inner vertices of the mesh
-    FloatType h = std::min(FloatType(2.0) * pi / nx, pi / ny); // min. mesh size in x/y-direction
+    FloatType h = std::min(2.0_ft * pi / nx, pi / ny); // min. mesh size in x/y-direction
     for (int iy = 1; iy < ny; ++iy)
         for (int ix = 1; ix < nx; ++ix) {
-            smesh.vertices((nx + 1) * iy + ix, 0)
-                += FloatType(0.2) * h * sin(ix + iy); // distort by 20%
-            smesh.vertices((nx + 1) * iy + ix, 1) += FloatType(0.2) * h * cos(ix + iy);
+            smesh.vertices((nx + 1) * iy + ix, 0) += 0.2_ft * h * sin(ix + iy); // distort by 20%
+            smesh.vertices((nx + 1) * iy + ix, 1) += 0.2_ft * h * cos(ix + iy);
         }
 
     // check mesh area

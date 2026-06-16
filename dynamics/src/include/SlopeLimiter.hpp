@@ -112,10 +112,10 @@ public:
 
             // values of phi in the 4 nodes: lower-left, lower-right, upper-left, upper-right
             const Eigen::Vector<FloatType, 4> vertexvalues
-                = { phi(c, 0) - FloatType(0.5) * phi(c, 1) - FloatType(0.5) * phi(c, 2),
-                      phi(c, 0) + FloatType(0.5) * phi(c, 1) - FloatType(0.5) * phi(c, 2),
-                      phi(c, 0) - FloatType(0.5) * phi(c, 1) + FloatType(0.5) * phi(c, 2),
-                      phi(c, 0) + FloatType(0.5) * phi(c, 1) + FloatType(0.5) * phi(c, 2) };
+                = { phi(c, 0) - 0.5_ft * phi(c, 1) - 0.5_ft * phi(c, 2),
+                      phi(c, 0) + 0.5_ft * phi(c, 1) - 0.5_ft * phi(c, 2),
+                      phi(c, 0) - 0.5_ft * phi(c, 1) + 0.5_ft * phi(c, 2),
+                      phi(c, 0) + 0.5_ft * phi(c, 1) + 0.5_ft * phi(c, 2) };
 
             // value of phi in the midpoint
             const FloatType midvalue = phi(c, 0);
@@ -125,13 +125,11 @@ public:
                 FloatType dv = vertexvalues[i] - midvalue; // distance to midpoint
                 if (dv > 1.e-8) {
                     assert(_max(cgi + cgindices[i]) >= midvalue);
-                    al = std::min(
-                        al, std::min(FloatType(1), (_max(cgi + cgindices[i]) - midvalue) / dv));
+                    al = std::min(al, std::min(1.0_ft, (_max(cgi + cgindices[i]) - midvalue) / dv));
                 }
                 if (dv < -1.e-8) {
                     assert(_min(cgi + cgindices[i]) <= midvalue);
-                    al = std::min(
-                        al, std::min(FloatType(1), (_min(cgi + cgindices[i]) - midvalue) / dv));
+                    al = std::min(al, std::min(1.0_ft, (_min(cgi + cgindices[i]) - midvalue) / dv));
                 }
                 assert(al >= 0);
             }
@@ -154,10 +152,10 @@ public:
 
             // values of (d/dx phi) in the 4 nodes: lower-left, lower-right, upper-left, upper-right
             const Eigen::Vector<FloatType, 4> vertexvalues
-                = { phi(c, 1) - phi(c, 3) - FloatType(0.5) * phi(c, 5),
-                      phi(c, 1) + phi(c, 3) - FloatType(0.5) * phi(c, 5),
-                      phi(c, 1) - phi(c, 3) + FloatType(0.5) * phi(c, 5),
-                      phi(c, 1) + phi(c, 3) + FloatType(0.5) * phi(c, 5) };
+                = { phi(c, 1) - phi(c, 3) - 0.5_ft * phi(c, 5),
+                      phi(c, 1) + phi(c, 3) - 0.5_ft * phi(c, 5),
+                      phi(c, 1) - phi(c, 3) + 0.5_ft * phi(c, 5),
+                      phi(c, 1) + phi(c, 3) + 0.5_ft * phi(c, 5) };
             // value of d/dx phi in the midpoint
             const FloatType midvalue = phi(c, 1);
 
@@ -166,13 +164,11 @@ public:
                 FloatType dv = vertexvalues[i] - midvalue; // distance to midpoint
                 if (dv > 1.e-8) {
                     assert(_max(cgi + cgindices[i]) >= midvalue);
-                    al = std::min(
-                        al, std::min(FloatType(1), (_max(cgi + cgindices[i]) - midvalue) / dv));
+                    al = std::min(al, std::min(1.0_ft, (_max(cgi + cgindices[i]) - midvalue) / dv));
                 }
                 if (dv < -1.e-8) {
                     assert(_min(cgi + cgindices[i]) <= midvalue);
-                    al = std::min(
-                        al, std::min(FloatType(1), (_min(cgi + cgindices[i]) - midvalue) / dv));
+                    al = std::min(al, std::min(1.0_ft, (_min(cgi + cgindices[i]) - midvalue) / dv));
                 }
                 assert(al >= 0);
             }
@@ -194,10 +190,10 @@ public:
 
             // values of (d/dx phi) in the 4 nodes: lower-left, lower-right, upper-left, upper-right
             const Eigen::Vector<FloatType, 4> vertexvalues
-                = { phi(c, 2) - phi(c, 4) - FloatType(0.5) * phi(c, 5),
-                      phi(c, 2) - phi(c, 4) + FloatType(0.5) * phi(c, 5),
-                      phi(c, 2) + phi(c, 4) - FloatType(0.5) * phi(c, 5),
-                      phi(c, 2) + phi(c, 4) + FloatType(0.5) * phi(c, 5) };
+                = { phi(c, 2) - phi(c, 4) - 0.5_ft * phi(c, 5),
+                      phi(c, 2) - phi(c, 4) + 0.5_ft * phi(c, 5),
+                      phi(c, 2) + phi(c, 4) - 0.5_ft * phi(c, 5),
+                      phi(c, 2) + phi(c, 4) + 0.5_ft * phi(c, 5) };
             // value of d/dx phi in the midpoint
             const FloatType midvalue = phi(c, 2);
 
@@ -206,13 +202,11 @@ public:
                 FloatType dv = vertexvalues[i] - midvalue; // distance to midpoint
                 if (dv > 1.e-8) {
                     assert(_max(cgi + cgindices[i]) >= midvalue);
-                    al = std::min(
-                        al, std::min(FloatType(1), (_max(cgi + cgindices[i]) - midvalue) / dv));
+                    al = std::min(al, std::min(1.0_ft, (_max(cgi + cgindices[i]) - midvalue) / dv));
                 }
                 if (dv < -1.e-8) {
                     assert(_min(cgi + cgindices[i]) <= midvalue);
-                    al = std::min(
-                        al, std::min(FloatType(1), (_min(cgi + cgindices[i]) - midvalue) / dv));
+                    al = std::min(al, std::min(1.0_ft, (_min(cgi + cgindices[i]) - midvalue) / dv));
                 }
                 assert(al >= 0);
             }
