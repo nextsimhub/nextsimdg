@@ -174,7 +174,7 @@ public:
      * up the second dimension. That is, a 4 x 5 slice with 3 components will create a (20, 3)
      * Eigen::Array.
      */
-    operator ModelArray::DataType();
+    operator ModelArray::DataType() const;
 
     /*!
      * Copies the contents of a slice to a ModelArray with an equal number of elements.
