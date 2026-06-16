@@ -672,8 +672,8 @@ void KokkosCGDynamicsKernel<DGadvection>::computeShearDevice(const DeviceViewAdv
             const EdgeVec e22Gauss = e22.row(i) * PSIStress;
 
             dest.row(i) = iMJwPSIAdvectDevice[i]
-                * ((e11Gauss.array() - e22Gauss.array()).square() + 4.0 * e12Gauss.array().square()
-                    + 1.e-20)
+                * ((e11Gauss.array() - e22Gauss.array()).square()
+                    + FloatType(4) * e12Gauss.array().square() + FloatType(1.e-20))
                       .sqrt()
                       .matrix()
                       .transpose();

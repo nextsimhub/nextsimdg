@@ -102,24 +102,24 @@ KOKKOS_IMPL_FUNCTION LocalVec<2> topEdgeOfCell(const ConstDeviceViewDG<3>& cv, D
 
 KOKKOS_IMPL_FUNCTION LocalVec<3> leftEdgeOfCell(const ConstDeviceViewDG<6>& cv, DeviceIndex eid)
 {
-    return LocalVec<3>(cv(eid, 0) - FloatType(0.5) * cv(eid, 1) + 1. / 6. * cv(eid, 3),
+    return LocalVec<3>(cv(eid, 0) - FloatType(0.5) * cv(eid, 1) + FloatType(1. / 6.) * cv(eid, 3),
         cv(eid, 2) - FloatType(0.5) * cv(eid, 5), cv(eid, 4));
 }
 
 KOKKOS_IMPL_FUNCTION LocalVec<3> rightEdgeOfCell(const ConstDeviceViewDG<6>& cv, DeviceIndex eid)
 {
-    return LocalVec<3>(cv(eid, 0) + FloatType(0.5) * cv(eid, 1) + 1. / 6. * cv(eid, 3),
+    return LocalVec<3>(cv(eid, 0) + FloatType(0.5) * cv(eid, 1) + FloatType(1. / 6.) * cv(eid, 3),
         cv(eid, 2) + FloatType(0.5) * cv(eid, 5), cv(eid, 4));
 }
 
 KOKKOS_IMPL_FUNCTION LocalVec<3> bottomEdgeOfCell(const ConstDeviceViewDG<6>& cv, DeviceIndex eid)
 {
-    return LocalVec<3>(cv(eid, 0) - FloatType(0.5) * cv(eid, 2) + 1. / 6. * cv(eid, 4),
+    return LocalVec<3>(cv(eid, 0) - FloatType(0.5) * cv(eid, 2) + FloatType(1. / 6.) * cv(eid, 4),
         cv(eid, 1) - FloatType(0.5) * cv(eid, 5), cv(eid, 3));
 }
 KOKKOS_IMPL_FUNCTION LocalVec<3> topEdgeOfCell(const ConstDeviceViewDG<6>& cv, DeviceIndex eid)
 {
-    return LocalVec<3>(cv(eid, 0) + FloatType(0.5) * cv(eid, 2) + 1. / 6. * cv(eid, 4),
+    return LocalVec<3>(cv(eid, 0) + FloatType(0.5) * cv(eid, 2) + FloatType(1. / 6.) * cv(eid, 4),
         cv(eid, 1) + FloatType(0.5) * cv(eid, 5), cv(eid, 3));
 }
 
@@ -127,28 +127,28 @@ KOKKOS_IMPL_FUNCTION LocalVec<3> topEdgeOfCell(const ConstDeviceViewDG<6>& cv, D
 
 KOKKOS_IMPL_FUNCTION LocalVec<3> leftEdgeOfCell(const ConstDeviceViewDG<8>& cv, DeviceIndex eid)
 {
-    return LocalVec<3>(cv(eid, 0) - FloatType(0.5) * cv(eid, 1) + 1. / 6. * cv(eid, 3),
-        cv(eid, 2) - FloatType(0.5) * cv(eid, 5) + 1. / 6. * cv(eid, 6),
+    return LocalVec<3>(cv(eid, 0) - FloatType(0.5) * cv(eid, 1) + FloatType(1. / 6.) * cv(eid, 3),
+        cv(eid, 2) - FloatType(0.5) * cv(eid, 5) + FloatType(1. / 6.) * cv(eid, 6),
         cv(eid, 4) - FloatType(0.5) * cv(eid, 7));
 }
 
 KOKKOS_IMPL_FUNCTION LocalVec<3> rightEdgeOfCell(const ConstDeviceViewDG<8>& cv, DeviceIndex eid)
 {
-    return LocalVec<3>(cv(eid, 0) + FloatType(0.5) * cv(eid, 1) + 1. / 6. * cv(eid, 3),
-        cv(eid, 2) + FloatType(0.5) * cv(eid, 5) + 1. / 6. * cv(eid, 6),
+    return LocalVec<3>(cv(eid, 0) + FloatType(0.5) * cv(eid, 1) + FloatType(1. / 6.) * cv(eid, 3),
+        cv(eid, 2) + FloatType(0.5) * cv(eid, 5) + FloatType(1. / 6.) * cv(eid, 6),
         cv(eid, 4) + FloatType(0.5) * cv(eid, 7));
 }
 
 KOKKOS_IMPL_FUNCTION LocalVec<3> bottomEdgeOfCell(const ConstDeviceViewDG<8>& cv, DeviceIndex eid)
 {
-    return LocalVec<3>(cv(eid, 0) - FloatType(0.5) * cv(eid, 2) + 1. / 6. * cv(eid, 4),
-        cv(eid, 1) - FloatType(0.5) * cv(eid, 5) + 1. / 6. * cv(eid, 7),
+    return LocalVec<3>(cv(eid, 0) - FloatType(0.5) * cv(eid, 2) + FloatType(1. / 6.) * cv(eid, 4),
+        cv(eid, 1) - FloatType(0.5) * cv(eid, 5) + FloatType(1. / 6.) * cv(eid, 7),
         cv(eid, 3) - FloatType(0.5) * cv(eid, 6));
 }
 KOKKOS_IMPL_FUNCTION LocalVec<3> topEdgeOfCell(const ConstDeviceViewDG<8>& cv, DeviceIndex eid)
 {
-    return LocalVec<3>(cv(eid, 0) + FloatType(0.5) * cv(eid, 2) + 1. / 6. * cv(eid, 4),
-        cv(eid, 1) + FloatType(0.5) * cv(eid, 5) + 1. / 6. * cv(eid, 7),
+    return LocalVec<3>(cv(eid, 0) + FloatType(0.5) * cv(eid, 2) + FloatType(1. / 6.) * cv(eid, 4),
+        cv(eid, 1) + FloatType(0.5) * cv(eid, 5) + FloatType(1. / 6.) * cv(eid, 7),
         cv(eid, 3) + FloatType(0.5) * cv(eid, 6));
 }
 
@@ -199,14 +199,14 @@ void KokkosDGTransport<DG>::reinitNormalVelocityDevice(const DeviceViewEdge& nor
 
             // un-normed tangent vector of left edge (pointing up). normal is (y,-x)
             const LocalVec<2> tangentLeft = mesh.edgeVector(ey, ey + mesh.nx + 1);
-            const LocalVec<EDGE_DOFS> vel1 = 0.5
+            const LocalVec<EDGE_DOFS> vel1 = FloatType(0.5)
                 * (tangentLeft(0, 1) * leftEdgeOfCell(velXDevice, cy)
                     - tangentLeft(0, 0) * leftEdgeOfCell(velYDevice, cy));
             addRowAtomic(normalVelYDevice, vel1, ey);
 
             // un-normed tangent vector of left edge (pointing up). normal is (y,-x)
             const LocalVec<2> tangentRight = mesh.edgeVector(ey + 1, ey + mesh.nx + 2);
-            const LocalVec<EDGE_DOFS> vel2 = 0.5
+            const LocalVec<EDGE_DOFS> vel2 = FloatType(0.5)
                 * (tangentRight(0, 1) * rightEdgeOfCell(velXDevice, cy)
                     - tangentRight(0, 0) * rightEdgeOfCell(velYDevice, cy));
             addRowAtomic(normalVelYDevice, vel2, ey + 1);
@@ -233,14 +233,14 @@ void KokkosDGTransport<DG>::reinitNormalVelocityDevice(const DeviceViewEdge& nor
 
             // un-normed tangent vector of bottom edge (pointing right). normal is (-y,x)
             const LocalVec<2> tangentBottom = mesh.edgeVector(nx, nx + 1);
-            const LocalVec<EDGE_DOFS> vel1 = 0.5
+            const LocalVec<EDGE_DOFS> vel1 = FloatType(0.5)
                 * (-tangentBottom(0, 1) * bottomEdgeOfCell(velXDevice, cx)
                     + tangentBottom(0, 0) * bottomEdgeOfCell(velYDevice, cx));
             addRowAtomic(normalVelXDevice, vel1, cx);
 
             // un-normed tangent vector of top edge (pointing right). normal is (-y,x)
             const LocalVec<2> tangentTop = mesh.edgeVector(nx + mesh.nx + 1, nx + mesh.nx + 2);
-            const LocalVec<EDGE_DOFS> vel2 = 0.5
+            const LocalVec<EDGE_DOFS> vel2 = FloatType(0.5)
                 * (-tangentTop(0, 1) * topEdgeOfCell(velXDevice, cx)
                     + tangentTop(0, 0) * topEdgeOfCell(velYDevice, cx));
             addRowAtomic(normalVelXDevice, vel2, cx + mesh.nx);
@@ -439,7 +439,7 @@ void KokkosDGTransport<DG>::stepRK3(FloatType dt, const ConstDeviceViewDG& velXD
                 const DeviceIndex eid = i / DG;
                 const DeviceIndex ci = i % DG;
                 tmpRes2(eid, ci) = FloatType(0.25) * (tmpRes2(eid, ci) + tmpRes1(eid, ci))
-                    + 0.75 * phiDevice(eid, ci);
+                    + FloatType(0.75) * phiDevice(eid, ci);
             });
     }
 
@@ -449,16 +449,16 @@ void KokkosDGTransport<DG>::stepRK3(FloatType dt, const ConstDeviceViewDG& velXD
     if constexpr (DG == 1) {
         Kokkos::parallel_for(
             "add3", phiDevice.size(), KOKKOS_LAMBDA(const DeviceIndex eid) {
-                phiDevice(eid)
-                    = 1.0 / 3.0 * phiDevice(eid) + 2.0 / 3.0 * (tmpRes2(eid) + tmpRes3(eid));
+                phiDevice(eid) = FloatType(1.0 / 3.0) * phiDevice(eid)
+                    + FloatType(2.0 / 3.0) * (tmpRes2(eid) + tmpRes3(eid));
             });
     } else {
         Kokkos::parallel_for(
             "add3", phiDevice.size(), KOKKOS_LAMBDA(const DeviceIndex i) {
                 const DeviceIndex eid = i / DG;
                 const DeviceIndex ci = i % DG;
-                phiDevice(eid, ci) = 1.0 / 3.0 * phiDevice(eid, ci)
-                    + 2.0 / 3.0 * (tmpRes2(eid, ci) + tmpRes3(eid, ci));
+                phiDevice(eid, ci) = FloatType(1.0 / 3.0) * phiDevice(eid, ci)
+                    + FloatType(2.0 / 3.0) * (tmpRes2(eid, ci) + tmpRes3(eid, ci));
             });
     }
 }

@@ -159,15 +159,15 @@ void KokkosMEVPDynamicsKernel<DGadvection>::updateStressHighOrderDevice(
             const EdgeVec e22Gauss = e22.row(i) * PSIStress;
 
             const auto DELTA = (params.deltaMin * params.deltaMin
-                + 1.25 * (e11Gauss.array().square() + e22Gauss.array().square())
-                + 1.50 * e11Gauss.array() * e22Gauss.array() + e12Gauss.array().square())
+                + FloatType(1.25) * (e11Gauss.array().square() + e22Gauss.array().square())
+                + FloatType(1.50) * e11Gauss.array() * e22Gauss.array() + e12Gauss.array().square())
                                    .sqrt()
                                    .matrix();
 
             const auto map = iMJwPSIDevice[i];
 
-            const FloatType alphaInv = 1.0 / alpha;
-            const FloatType fac = 1.0 - alphaInv;
+            const FloatType alphaInv = FloatType(1) / alpha;
+            const FloatType fac = FloatType(1) - alphaInv;
             const EdgeVec PDelta = P.array() / DELTA.array();
             s11.row(i) = fac * s11.row(i)
                 + (map
@@ -234,7 +234,7 @@ void KokkosMEVPDynamicsKernel<DGadvection>::updateMomentumDevice(const DeviceVie
 
             // TODO: Take the sign of lat into account for Coriolis term
             uDevice(i) = (FloatType(1)
-                / (params.rhoIce * cgHDevice(i) / deltaT * FloatType(1.0 + beta) // implicit parts
+                / (params.rhoIce * cgHDevice(i) / deltaT * (FloatType(1) + beta) // implicit parts
                     + cgADevice(i) * FOcean * absocn) // implicit parts
                 * (params.rhoIce * cgHDevice(i) / deltaT
                         * (beta * u + u0Device(i)) // pseudo - timestepping
@@ -246,7 +246,7 @@ void KokkosMEVPDynamicsKernel<DGadvection>::updateMomentumDevice(const DeviceVie
                         * xGradSeaSurfaceHeightDevice(i) // sea surface
                     + dStressXDevice(i) / lumpedCGMassDevice(i))); // internal stress term
             vDevice(i) = (FloatType(1)
-                / (params.rhoIce * cgHDevice(i) / deltaT * FloatType(1.0 + beta) // implicit parts
+                / (params.rhoIce * cgHDevice(i) / deltaT * (FloatType(1) + beta) // implicit parts
                     + cgADevice(i) * FOcean * absocn) // implicit parts
                 * (params.rhoIce * cgHDevice(i) / deltaT
                         * (beta * v + v0Device(i)) // pseudo - timestepping

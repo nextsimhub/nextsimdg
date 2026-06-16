@@ -149,7 +149,7 @@ void KokkosBBMDynamicsKernel<DGadvection>::updateStressHighOrderDevice(
                 + s12Gauss.array().square())
                               .sqrt();
 
-            const FloatType scale_coef = Kokkos::sqrt(0.1 / cellSizeDevice(i));
+            const FloatType scale_coef = Kokkos::sqrt(FloatType(0.1) / cellSizeDevice(i));
 
             //! Eqn. 22
             const auto cohesion = params.cLab * scale_coef * hGauss.array();
