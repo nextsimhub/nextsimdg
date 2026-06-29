@@ -5,8 +5,6 @@
 #ifndef KERNEL_ALTERNATIVES_HPP
 #define KERNEL_ALTERNATIVES_HPP
 
-#include "FloatType.hpp"
-
 #ifdef USE_KOKKOS
 #include "../kokkos/include/KokkosUtils.hpp"
 #include <Kokkos_Core.hpp>

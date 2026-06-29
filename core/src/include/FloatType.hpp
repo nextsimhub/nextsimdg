@@ -1,6 +1,8 @@
 #ifndef __FLOATTYPE_HPP
 #define __FLOATTYPE_HPP
 
+#include "KernelAlternatives.hpp"
+
 namespace Nextsim {
 /*!
  * The Float-Type used in NextSim for computations and outputs.
@@ -9,7 +11,7 @@ namespace Nextsim {
  */
 using FloatType = NEXTSIM_FLOAT_TYPE;
 
-constexpr FloatType operator""_ft(long double v) { return FloatType(v); }
+KERNEL_IMPL_FUNCTION constexpr FloatType operator""_ft(long double v) { return FloatType(v); }
 
 } /* namespace Nextsim */
 
