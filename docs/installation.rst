@@ -216,6 +216,16 @@ To build with GPU support, it is necessary to enable both the feature itself and
  
 While it is currently not possible to use Kokkos and MPI together, OpenMP (``WITH_THREADS``) can be enabled to run modules that have not been ported to the device in parallel on the CPU. The OpenMP backend of Kokkos can be enabled as well, however it will only be used if no device backend is enabled. Same as the device backends, it should be used in concert with the basic OpenMP parallelisation and may have different performance characteristics then ``WITH_THREADS=ON`` alone.
 
+Single Precision
+^^^^^^^^^^^^^^^^
+With Kokkos, there is experimental support for single precision, which is controlled by the option
+
+.. code::
+
+        cmake .. -DUSE_SINGLE_PRECISION=ON
+
+When switched on all data and computations use ``float`` instead of ``double``, cutting the memory footprint in half and providing a significant speedup, especially on consumer grade GPUs. This option currently does not work with XIOS or MPI.
+
 Using Dockerfiles for Development or Production Runs
 ----------------------------------------------------
 
