@@ -12,7 +12,6 @@
 #endif
 #include "include/constants.hpp"
 #include "include/gridNames.hpp"
-#include "kokkos/include/KokkosTimer.hpp"
 
 #include <cmath>
 
@@ -195,9 +194,6 @@ KERNEL_IMPL_FUNCTION static void calculateTemps(FloatType& tSurf, FloatType& tUp
 
 void ThermoWinton::update(const TimestepTime& tst)
 {
-    static KokkosTimer<true> timer("ThermoWinton");
-
-    timer.start();
     // Advect ice temperatures
     IIceThermodynamics::update(tst);
     auto execSpace = DefaultExecutionSpace();

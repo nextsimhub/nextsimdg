@@ -93,7 +93,6 @@ TEST_CASE("Test Qdw")
     // scope needed because we have to access sstSlab again after update
     {
         const HField& sstSlab = sstSlabAccessor.getHostRO();
-        std::cout << cpml[0] << "\n";
 
         REQUIRE(sstSlab[0] != doctest::Approx(sst[0]).epsilon(prec / dt));
         REQUIRE(sstSlab[0] == doctest::Approx(sst[0] + dt * qdw[0] / cpml[0]).epsilon(prec));
