@@ -89,14 +89,14 @@ KOKKOS_IMPL_FUNCTION static FloatType computeLimit(FloatType midValue,
     for (DeviceIndex i = 0; i < 4; ++i) {
         const FloatType dv = vertexValues[i] - midValue; // distance to midpoint
         if (dv > 1.e-8) {
-            assert(_max(cgi + cgIndices[i]) >= midValue);
+            KOKKOS_ASSERT(_max(cgi + cgIndices[i]) >= midValue);
             al = Kokkos::min(al, Kokkos::min(1.0, (_max(cgi + cgIndices[i]) - midValue) / dv));
         }
         if (dv < -1.e-8) {
-            assert(_min(cgi + cgIndices[i]) <= midValue);
+            KOKKOS_ASSERT(_min(cgi + cgIndices[i]) <= midValue);
             al = Kokkos::min(al, Kokkos::min(1.0, (_min(cgi + cgIndices[i]) - midValue) / dv));
         }
-        assert(al >= 0);
+        KOKKOS_ASSERT(al >= 0);
     }
 
     return al;
