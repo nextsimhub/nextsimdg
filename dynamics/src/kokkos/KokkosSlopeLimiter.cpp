@@ -19,13 +19,13 @@ KokkosSlopeLimiter<DG>::KokkosSlopeLimiter(
         minV = makeKokkosDeviceView<MakeViewOptions::ALWAYS_COPY>("minV", temp);
         maxV = makeKokkosDeviceView<MakeViewOptions::ALWAYS_COPY>("maxV", temp);
         alpha = makeKokkosDeviceView<MakeViewOptions::ALWAYS_COPY>("alpha", tempDG);
+        alphaX = makeKokkosDeviceView<MakeViewOptions::ALWAYS_COPY>("alphaX", tempDG);
     }
     if constexpr (DG >= 6) {
         dxminV = makeKokkosDeviceView<MakeViewOptions::ALWAYS_COPY>("dxminV", temp);
         dxmaxV = makeKokkosDeviceView<MakeViewOptions::ALWAYS_COPY>("dxmaxV", temp);
         dyminV = makeKokkosDeviceView<MakeViewOptions::ALWAYS_COPY>("dyminV", temp);
         dymaxV = makeKokkosDeviceView<MakeViewOptions::ALWAYS_COPY>("dymaxV", temp);
-        alphaX = makeKokkosDeviceView<MakeViewOptions::ALWAYS_COPY>("alphaX", tempDG);
         alphaY = makeKokkosDeviceView<MakeViewOptions::ALWAYS_COPY>("alphaY", tempDG);
     }
     if constexpr (DG == 8) {
