@@ -108,7 +108,7 @@ public:
     {
         // Let DynamicsKernel handle the advection of the ice.
         DynamicsKernel<DGadvection, DGstressComp>::advectDynamicsFields(timestep);
-        advectDGVField(timestep, damage, 1e-12, 1.0);
+        advectDGVField(timestep, damage, params.minDamage, 1.0);
 
         //! Perform transport step for stress
         stresstransport->prepareAdvection(avgU, avgV);
