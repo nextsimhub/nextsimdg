@@ -141,11 +141,18 @@ void ThermoWinton::setData(const ModelState::DataMap& state)
     }
 }
 
-KERNEL_IMPL_FUNCTION static void calculateTemps(FloatType& tSurf, FloatType& tUppr,
-    FloatType& tLowr, FloatType& mSurf, const FloatType cice, const FloatType dQia_dt,
-    const FloatType hice, const FloatType hsnow, const FloatType penSw, const FloatType qia,
-    const FloatType tf, FloatType dt, const FloatType cVol, const FloatType seaIceTf,
-    const FloatType kappa_s)
+/*
+ * Use of double instead of FloatType is intentional here!
+ * Some of these computations have caused problems in float, causing rapid ice growth in summer for
+ * longer simulations.
+ * The performance cost is only marginal. We still benefit from the effective
+ * bandwith increase when the fields are stored as float and the thermodynamics are cheap in terms
+ * of compute.
+ */
+KERNEL_IMPL_FUNCTION static void calculateTemps(double& tSurf, double& tUppr, double& tLowr,
+    double& mSurf, const double cice, const double dQia_dt, const double hice, const double hsnow,
+    const double penSw, const double qia, const double tf, double dt, const double cVol,
+    const double seaIceTf, const double kappa_s)
 {
     /*
      * Internal temperatures
@@ -153,24 +160,23 @@ KERNEL_IMPL_FUNCTION static void calculateTemps(FloatType& tSurf, FloatType& tUp
      * finally T2 Numers in parentheses refer to equations in the paper
      */
 
-    const FloatType hi = hice / cice;
-    const FloatType hs = hsnow / cice;
-    const FloatType tBase = tf; // Freezing point of seawater with the local salinity
-    const FloatType tMelt = (hs > 0) ? 0 : seaIceTf; // Melting point at the surface
+    const double hi = hice / cice;
+    const double hs = hsnow / cice;
+    const double tBase = tf; // Freezing point of seawater with the local salinity
+    const double tMelt = (hs > 0) ? 0 : seaIceTf; // Melting point at the surface
 
     // First some coefficients based on temperatures from the previous time step
-    FloatType k12 = 4 * Ice::kappa * kappa_s / (kappa_s * hi + 4 * Ice::kappa * hs); // (5)
-    FloatType a = qia - tSurf * dQia_dt; // (7)
-    FloatType b = dQia_dt; // (8)
-    FloatType k32 = 2 * Ice::kappa / hi; // (10)
+    double k12 = 4 * Ice::kappa * kappa_s / (kappa_s * hi + 4 * Ice::kappa * hs); // (5)
+    double a = qia - tSurf * dQia_dt; // (7)
+    double b = dQia_dt; // (8)
+    double k32 = 2 * Ice::kappa / hi; // (10)
 
-    FloatType a1 = hi * cVol / (2 * dt)
-        + k32 * (4 * dt * k32 + hi * cVol) / (6 * dt * k32 + hi * cVol)
+    double a1 = hi * cVol / (2 * dt) + k32 * (4 * dt * k32 + hi * cVol) / (6 * dt * k32 + hi * cVol)
         + b * k12 / (k12 + b); // (16)
-    FloatType b1 = -hi * (cVol * tUppr + Ice::Lf * Ice::rho * seaIceTf / tUppr) / (2 * dt) - penSw
+    double b1 = -hi * (cVol * tUppr + Ice::Lf * Ice::rho * seaIceTf / tUppr) / (2 * dt) - penSw
         - k32 * (4 * dt * k32 * tBase + hi * cVol * tLowr) / (6 * dt * k32 + hi * cVol)
         + a * k12 / (k12 + b); // (17)
-    FloatType c1 = hi * Ice::Lf * Ice::rho * seaIceTf / (2 * dt); // (18)
+    double c1 = hi * Ice::Lf * Ice::rho * seaIceTf / (2 * dt); // (18)
 
     // Updated surface and mid-ice temperatures
     tUppr = -(b1 + Utils::sqrt(b1 * b1 - 4 * a1 * c1)) / (2 * a1); // (21)
@@ -223,17 +229,17 @@ void ThermoWinton::update(const TimestepTime& tst)
     const auto& tf = tfAccessor.getAutoRO(execSpace);
 
     // static members can not be captured directly
-    const FloatType cVol = ThermoWinton::cVol;
+    const double cVol = ThermoWinton::cVol;
     const bool doFlooding = ThermoWinton::doFlooding;
-    const FloatType seaIceTf = ThermoWinton::seaIceTf;
-    const FloatType kappa_s = ThermoWinton::kappa_s;
-    const FloatType cMin = IceMinima::c();
-    const FloatType hMin = IceMinima::h();
-    const FloatType dt = tst.step.seconds();
+    const double seaIceTf = ThermoWinton::seaIceTf;
+    const double kappa_s = ThermoWinton::kappa_s;
+    const double cMin = IceMinima::c();
+    const double hMin = IceMinima::h();
+    const double dt = tst.step.seconds();
 
     overElementsAuto(OVER_ELEMENTS_LAMBDA(const ElementIndex i) {
-        static const FloatType bulkLHFusionSnow = Water::Lf * Ice::rhoSnow;
-        static const FloatType bulkLHFusionIce = Water::Lf * Ice::rho;
+        static const double bulkLHFusionSnow = Water::Lf * Ice::rhoSnow;
+        static const double bulkLHFusionIce = Water::Lf * Ice::rho;
 
         // Don't do anything if there is no ice
         if (cice[i] <= cMin || hice[i] <= hMin) {
@@ -257,42 +263,42 @@ void ThermoWinton::update(const TimestepTime& tst)
             return;
         }
 
-        FloatType tSurf = tsurf[i]; // surface temperature
-        FloatType tUppr = tInternal[i]; // upper layer temperature
-        FloatType tLowr = tBottom[i]; // lower layer temperature
-        FloatType tBott = tf[i]; // freezing point of (local) seawater
+        double tSurf = tsurf[i]; // surface temperature
+        double tUppr = tInternal[i]; // upper layer temperature
+        double tLowr = tBottom[i]; // lower layer temperature
+        double tBott = tf[i]; // freezing point of (local) seawater
 
-        FloatType hi = hice[i] / cice[i];
-        FloatType hs = hsnow[i] / cice[i];
-        const FloatType oldHi = hi; // Ice thickness at the start of the timestep
+        double hi = hice[i] / cice[i];
+        double hs = hsnow[i] / cice[i];
+        const double oldHi = hi; // Ice thickness at the start of the timestep
 
-        FloatType surfMelt = 0; // surface melting mass loss
+        double surfMelt = 0; // surface melting mass loss
         // Calculate temperatures by solving the heat conduction equation
         calculateTemps(tSurf, tUppr, tLowr, surfMelt, cice[i], dQia_dt[i], hice[i], hsnow[i],
             penSw[i], qia[i], tf[i], dt, cVol, seaIceTf, kappa_s);
 
         // The ratio of ΔΗ_f T_f / c_p,ice is used a lot. Units are K²
-        const static FloatType dHfTf_cp = Water::Lf * seaIceTf / Ice::cp;
+        const static double dHfTf_cp = Water::Lf * seaIceTf / Ice::cp;
 
         // Thickness changes
         // ice
-        FloatType h1 = hi / 2;
-        FloatType h2 = hi / 2;
+        double h1 = hi / 2;
+        double h2 = hi / 2;
         // Eqs. (1) and (25) - but I 've multiplied them with \rho_i (hence cVol), because it's
         // missing in the paper
-        FloatType e1 = cVol * (tUppr - seaIceTf) - bulkLHFusionIce * (1 - seaIceTf / tUppr);
-        FloatType e2 = cVol * (tLowr - seaIceTf) - bulkLHFusionIce;
+        double e1 = cVol * (tUppr - seaIceTf) - bulkLHFusionIce * (1 - seaIceTf / tUppr);
+        double e2 = cVol * (tLowr - seaIceTf) - bulkLHFusionIce;
 
         // snow
         hs += snowfall[i] / Ice::rhoSnow * dt;
-        //    FloatType accumulatedSnowThickness = snowfall[i] / Ice::rhoSnow * dt;
+        //    double accumulatedSnowThickness = snowfall[i] / Ice::rhoSnow * dt;
 
         // sublimation
         // 4 cases
-        const FloatType& subli = subl[i];
-        FloatType deltaSnow = subli * dt / Ice::rhoSnow;
-        FloatType deltaIce1 = (deltaSnow - hs) * Ice::rhoSnow / Ice::rho;
-        FloatType deltaIce2 = deltaIce1 - h1;
+        const double& subli = subl[i];
+        double deltaSnow = subli * dt / Ice::rhoSnow;
+        double deltaIce1 = (deltaSnow - hs) * Ice::rhoSnow / Ice::rho;
+        double deltaIce2 = deltaIce1 - h1;
         if (deltaSnow <= hs) {
             // sublimation is less than or equal to the mass of snow
             hs -= deltaSnow;
@@ -309,23 +315,23 @@ void ThermoWinton::update(const TimestepTime& tst)
             hs = 0;
         } else {
             // the snow and ice sublimates
-            // FloatType oceanEvapError = (deltaIce2 - h2) * Ice::rho / Water::rhoOcean;
+            // double oceanEvapError = (deltaIce2 - h2) * Ice::rho / Water::rhoOcean;
             // TODO: log the error
             h2 = 0;
             h1 = 0;
             hs = 0;
         }
         // Sublimated ice counts as top melt
-        topMelt[i] = Utils::max(0.0_ft, h1 + h2 - hi); // (23)
+        topMelt[i] = Utils::max(0.0, h1 + h2 - hi); // (23)
 
         // Bottom melt/freezing
-        FloatType meltBottom = (qio[i] - 4 * Ice::kappa * (tBott - tLowr) / hi) * dt;
+        double meltBottom = (qio[i] - 4 * Ice::kappa * (tBott - tLowr) / hi) * dt;
         snowMelt[i] = 0;
-        if (meltBottom <= 0.0_ft) {
+        if (meltBottom <= 0.0) {
             // Freezing
             // Eq. (25) - but I 've multiplied them with \rho_i (hence cVol), because it's
             // missing in the paper
-            FloatType eBot = cVol * (tBott - seaIceTf) - bulkLHFusionIce;
+            double eBot = cVol * (tBott - seaIceTf) - bulkLHFusionIce;
             deltaIce2 = meltBottom / eBot; // (24)
             tLowr = (deltaIce2 * tBott + h2 * tLowr) / (deltaIce2 + h2); // (26)
             h2 += deltaIce2;
@@ -333,16 +339,15 @@ void ThermoWinton::update(const TimestepTime& tst)
             // Melting
             // Eqs. (31)-(32) with added division with \rho_i (and \rho_s for 32)
             deltaIce2 = -Utils::min(-meltBottom / e2, h2);
-            deltaIce1 = -Utils::min(Utils::max(-(meltBottom + e2 * h2) / e1, 0.0_ft), h1);
+            deltaIce1 = -Utils::min(Utils::max(-(meltBottom + e2 * h2) / e1, 0.0), h1);
             snowMelt[i] = -Utils::min(
-                Utils::max((meltBottom + e2 * h2 + e1 * h1) / bulkLHFusionSnow, 0.0_ft), hs);
+                Utils::max((meltBottom + e2 * h2 + e1 * h1) / bulkLHFusionSnow, 0.0), hs);
 
             // If everything melts we need to put heat back into the ocean
-            if (h2 + h1 + hs - deltaIce2 - deltaIce1 - snowMelt[i] <= 0.0_ft) {
+            if (h2 + h1 + hs - deltaIce2 - deltaIce1 - snowMelt[i] <= 0.0) {
                 // (34) - with added multiplication of rhoi and rhos and division with dt
                 qow[i] -= cice[i]
-                    * Utils::max(meltBottom - bulkLHFusionSnow * hs + e1 * h1 + e2 * h2, 0.0_ft)
-                    / dt;
+                    * Utils::max(meltBottom - bulkLHFusionSnow * hs + e1 * h1 + e2 * h2, 0.0) / dt;
             }
 
             hs += snowMelt[i];
@@ -356,17 +361,15 @@ void ThermoWinton::update(const TimestepTime& tst)
         // assert(surfMelt >= 0);
         // Eqs. (27)-(29) with division of \rho_i and \rho_s
         snowMelt[i] -= Utils::min(surfMelt * dt / bulkLHFusionSnow, hs);
-        deltaIce1
-            = -Utils::min(Utils::max(-(surfMelt * dt - bulkLHFusionSnow * hs) / e1, 0.0_ft), h1);
+        deltaIce1 = -Utils::min(Utils::max(-(surfMelt * dt - bulkLHFusionSnow * hs) / e1, 0.0), h1);
         deltaIce2 = -Utils::min(
-            Utils::max(-(surfMelt * dt - bulkLHFusionSnow * hs + e1 * h1) / e2, 0.0_ft), h2);
+            Utils::max(-(surfMelt * dt - bulkLHFusionSnow * hs + e1 * h1) / e2, 0.0), h2);
 
         // If everything melts we need to put heat back into the ocean
         // Eq (30) - with multiplication of rhoi and rhos and division with dt
-        if (h2 + h1 + hs - deltaIce2 - deltaIce1 - snowMelt[i] <= 0.0_ft) {
+        if (h2 + h1 + hs - deltaIce2 - deltaIce1 - snowMelt[i] <= 0.0) {
             qow[i] -= cice[i]
-                * Utils::max(surfMelt * dt - bulkLHFusionSnow * hs + e1 * h1 + e2 * h2, 0.0_ft)
-                / dt;
+                * Utils::max(surfMelt * dt - bulkLHFusionSnow * hs + e1 * h1 + e2 * h2, 0.0) / dt;
         }
 
         hs += snowMelt[i];
@@ -375,14 +378,13 @@ void ThermoWinton::update(const TimestepTime& tst)
         topMelt[i] += deltaIce1 + deltaIce2;
 
         // Snow to ice conversion
-        FloatType freeboard
+        double freeboard
             = (hi * (Water::rhoOcean - Ice::rho) - hs * Ice::rhoSnow) / Water::rhoOcean;
-        if (doFlooding && freeboard < 0.0_ft) {
-            hs += Utils::min(freeboard * Ice::rho / Ice::rhoSnow, 0.0_ft); // (35) using +=
-            deltaIce1 = Utils::max(-freeboard, 0.0_ft); // (36)
-            FloatType f1
-                = 1 - deltaIce1 / (deltaIce1 + h1); // Fraction of new ice in the upper layer
-            FloatType tBar = f1 * (tUppr + dHfTf_cp / tUppr) + (1 - f1) * seaIceTf; // (39)
+        if (doFlooding && freeboard < 0.0) {
+            hs += Utils::min(freeboard * Ice::rho / Ice::rhoSnow, 0.0); // (35) using +=
+            deltaIce1 = Utils::max(-freeboard, 0.0); // (36)
+            double f1 = 1 - deltaIce1 / (deltaIce1 + h1); // Fraction of new ice in the upper layer
+            double tBar = f1 * (tUppr + dHfTf_cp / tUppr) + (1 - f1) * seaIceTf; // (39)
             tUppr = (tBar - Utils::sqrt(tBar * tBar - 4 * dHfTf_cp)) / 2; // (38)
             h1 += deltaIce1;
             snowToIce[i] += deltaIce1;
@@ -393,18 +395,18 @@ void ThermoWinton::update(const TimestepTime& tst)
         // Adjust the temperatures to evenly divide the ice
         if (h2 > h1) {
             // Lower layer ice is added to the upper layer
-            FloatType f1 = h1 / hi * 2;
-            FloatType tBar = f1 * (tUppr + dHfTf_cp / tUppr) + (1 - f1) * tLowr; // (39)
+            double f1 = h1 / hi * 2;
+            double tBar = f1 * (tUppr + dHfTf_cp / tUppr) + (1 - f1) * tLowr; // (39)
             // The upper layer temperature changes
             tUppr = (tBar - Utils::sqrt(tBar * tBar - 4 * dHfTf_cp)) / 2; // (38)
         } else {
             // Upper layer ice is added to the lower layer
-            FloatType f1 = (2 * h1 - hi) / hi;
+            double f1 = (2 * h1 - hi) / hi;
             // Lower layer temperature changes
             tLowr = f1 * (tUppr + dHfTf_cp / tUppr) + (1 - f1) * tLowr; // (40)
             // Melt from top and bottom if the lower layer temperature is too high
             if (tLowr > seaIceTf) {
-                FloatType deltaMelt = hi / 4 * Ice::cp * (tLowr - seaIceTf) * tUppr
+                double deltaMelt = hi / 4 * Ice::cp * (tLowr - seaIceTf) * tUppr
                     / (Ice::Lf * tUppr + (Ice::cp * tUppr - Ice::Lf) * (seaIceTf - tUppr));
                 topMelt[i] -= deltaMelt;
                 botMelt[i] -= deltaMelt;
