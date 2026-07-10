@@ -15,13 +15,6 @@
 
 namespace Nextsim {
 
-/*!
- * the Float-Type used in NextSim.
- * This is not yet fully checked or supported but might be required in
- * for future use of GPU's
- */
-using FloatType = FloatType;
-
 constexpr FloatType pi = 3.14159265358979323846;
 
 enum TENSOR_ELEMENT { I11, I12, I22, N_TENSOR_ELEMENTS };
