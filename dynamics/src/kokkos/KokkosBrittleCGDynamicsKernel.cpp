@@ -5,7 +5,6 @@
 #include "include/KokkosBrittleCGDynamicsKernel.hpp"
 #include "../../../core/src/kokkos/include/KokkosTimer.hpp"
 #include "include/KokkosDGLimit.hpp"
-#include <cfenv> // debugging
 #include <include/constants.hpp>
 
 namespace Nextsim {
