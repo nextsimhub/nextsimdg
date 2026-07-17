@@ -104,16 +104,17 @@ def edgebasisfunction(j, x):
 # edge: left, right, up, down
 # d   : order of dG (0, 1, 2)
 # g   : number of gauss points (1,2,3)
-def basisfunctions_in_gausspoints(edge, d, g):
+# dtype: C++ type name ("float" or "double")
+def basisfunctions_in_gausspoints(edge, d, g, dtype):
     # print header
     print(
-        "static const Eigen::Matrix<FloatType, {0}, {1}, Eigen::RowMajor> BiG{2}{3}_{4} =".format(
-            g, dgdofs(d), d, g, edge
+        "static const Eigen::Matrix<{0}, {1}, {2}, Eigen::RowMajor> BiG{3}{4}_{5}_{6} =".format(
+            dtype, g, dgdofs(d), d, g, edge, dtype
         )
     )
     print(
-        "\t(Eigen::Matrix<FloatType, {0}, {1}, Eigen::RowMajor>() <<".format(
-            g, dgdofs(d)
+        "\t(Eigen::Matrix<{0}, {1}, {2}, Eigen::RowMajor>() <<".format(
+            dtype, g, dgdofs(d)
         )
     )
     print("\t", end=" ")
@@ -162,16 +163,17 @@ def basisfunctions_in_gausspoints(edge, d, g):
 # edge: left, right, up, down
 # d   : order of dG (0, 1, 2)
 # g   : number of gauss points (1,2,3) in each direction
-def integration_basisfunctions_in_gausspoints_cell(d, g):
+# dtype: C++ type name ("float" or "double")
+def integration_basisfunctions_in_gausspoints_cell(d, g, dtype):
     # print header
     print(
-        "static const Eigen::Matrix<FloatType, {0}, {1}, Eigen::RowMajor> IBC{2}{3} =".format(
-            g * g, dgdofs(d), d, g
+        "static const Eigen::Matrix<{0}, {1}, {2}, Eigen::RowMajor> IBC{3}{4}_{5} =".format(
+            dtype, g * g, dgdofs(d), d, g, dtype
         )
     )
     print(
-        "\t(Eigen::Matrix<FloatType, {0}, {1}, Eigen::RowMajor>() <<".format(
-            g * g, dgdofs(d)
+        "\t(Eigen::Matrix<{0}, {1}, {2}, Eigen::RowMajor>() <<".format(
+            dtype, g * g, dgdofs(d)
         )
     )
     print("\t", end=" ")
@@ -197,16 +199,17 @@ def integration_basisfunctions_in_gausspoints_cell(d, g):
 #
 # d   : order of dG (0, 1, 2)
 # g   : Gauss points in each direction (2,3)
-def basisfunctions_in_gausspoints_cell(d, g):
+# dtype: C++ type name ("float" or "double")
+def basisfunctions_in_gausspoints_cell(d, g, dtype):
     # print header
     print(
-        "static const Eigen::Matrix<FloatType, {0}, {1}, Eigen::RowMajor> BiG{2}{3} =".format(
-            dgdofs(d), g * g, d, g
+        "static const Eigen::Matrix<{0}, {1}, {2}, Eigen::RowMajor> BiG{3}{4}_{5} =".format(
+            dtype, dgdofs(d), g * g, d, g, dtype
         )
     )
     print(
-        "\t(Eigen::Matrix<FloatType, {0}, {1}, Eigen::RowMajor>() <<".format(
-            dgdofs(d), g * g
+        "\t(Eigen::Matrix<{0}, {1}, {2}, Eigen::RowMajor>() <<".format(
+            dtype, dgdofs(d), g * g
         )
     )
     print("\t", end=" ")
@@ -230,15 +233,16 @@ def basisfunctions_in_gausspoints_cell(d, g):
 
 # d   : order of dG (0, 1, 2)
 # g   : number of gauss points (1,2,3)
-def edge_basisfunctions_in_gausspoints(d, g):
+# dtype: C++ type name ("float" or "double")
+def edge_basisfunctions_in_gausspoints(d, g, dtype):
     # print header
     print(
-        "static const Eigen::Matrix<FloatType, {0}, {1}, Eigen::RowMajor> BiGe{2}{3} =".format(
-            d + 1, g, d, g
+        "static const Eigen::Matrix<{0}, {1}, {2}, Eigen::RowMajor> BiGe{3}{4}_{5} =".format(
+            dtype, d + 1, g, d, g, dtype
         )
     )
     print(
-        "\t(Eigen::Matrix<FloatType, {0}, {1}, Eigen::RowMajor>() <<".format(d + 1, g)
+        "\t(Eigen::Matrix<{0}, {1}, {2}, Eigen::RowMajor>() <<".format(dtype, d + 1, g)
     )
     print("\t", end=" ")
     for dp in range(d + 1):
@@ -296,53 +300,68 @@ print("\nnamespace Nextsim {")
 # print out guass points and weights
 print("\n\n//------------------------------ Gauss Quadrature\n")
 for gp in [1, 2, 3]:
-    print("constexpr FloatType gauss_points{0}[{0}] = {{".format(gp), end="")
-    for q in range(gp):
-        print(gausspoints[gp - 1, q], end="")
-        if q < gp - 1:
-            print(",", end="")
-    print("};")
-    print("constexpr FloatType gauss_weights{0}[{0}] = {{".format(gp), end="")
-    for q in range(gp):
-        print(gaussweights[gp - 1, q], end="")
-        if q < gp - 1:
-            print(",", end="")
-    print("};")
+    for dtype in ["float", "double"]:
+        print(
+            "constexpr {0} gauss_points{1}_{2}[{1}] = {{".format(dtype, gp, dtype),
+            end="",
+        )
+        for q in range(gp):
+            print(gausspoints[gp - 1, q], end="")
+            if q < gp - 1:
+                print(",", end="")
+        print("};")
+        print(
+            "constexpr {0} gauss_weights{1}_{2}[{1}] = {{".format(dtype, gp, dtype),
+            end="",
+        )
+        for q in range(gp):
+            print(gaussweights[gp - 1, q], end="")
+            if q < gp - 1:
+                print(",", end="")
+        print("};")
 
 
 print("\n\n//------------------------------ Basis Functions in Gauss Points (edge)\n")
 # generate arrays that evaluate basis functions in the gauss points on the edges
 for dg in [1, 2]:
     for e in [0, 1, 2, 3]:
-        basisfunctions_in_gausspoints(e, dg, dg + 1)
-        print("")
+        for dtype in ["float", "double"]:
+            basisfunctions_in_gausspoints(e, dg, dg + 1, dtype)
+            print("")
 
 for dg in [1]:
     for e in [0, 1, 2, 3]:
-        basisfunctions_in_gausspoints(e, dg, dg + 2)
-        print("")
+        for dtype in ["float", "double"]:
+            basisfunctions_in_gausspoints(e, dg, dg + 2, dtype)
+            print("")
 
 print("\n\n//------------------------------ Basis Functions in Gauss Points (cell)\n")
 
 for dg in [1, 2]:
-    basisfunctions_in_gausspoints_cell(dg, 2)
-    basisfunctions_in_gausspoints_cell(dg, 3)
+    for dtype in ["float", "double"]:
+        basisfunctions_in_gausspoints_cell(dg, 2, dtype)
+    for dtype in ["float", "double"]:
+        basisfunctions_in_gausspoints_cell(dg, 3, dtype)
 
 
 for dg in [1, 2]:
-    integration_basisfunctions_in_gausspoints_cell(dg, 2)
-    integration_basisfunctions_in_gausspoints_cell(dg, 3)
+    for dtype in ["float", "double"]:
+        integration_basisfunctions_in_gausspoints_cell(dg, 2, dtype)
+    for dtype in ["float", "double"]:
+        integration_basisfunctions_in_gausspoints_cell(dg, 3, dtype)
 
 
 print("\n\n//------------------------------ Edge Basis Functions in Gauss Points\n")
 # generate arrays that evaluate basis functions in the gauss points on the edges
 for dg in [1, 2]:
-    edge_basisfunctions_in_gausspoints(dg, dg + 1)
-    print("")
+    for dtype in ["float", "double"]:
+        edge_basisfunctions_in_gausspoints(dg, dg + 1, dtype)
+        print("")
 
 for dg in [1]:
-    edge_basisfunctions_in_gausspoints(dg, dg + 2)
-    print("")
+    for dtype in ["float", "double"]:
+        edge_basisfunctions_in_gausspoints(dg, dg + 2, dtype)
+        print("")
 
 
 # Some output

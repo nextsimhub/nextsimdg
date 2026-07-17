@@ -13,26 +13,27 @@ import numpy as np
 # (dg, psi) = (cg, psi) in terms of dg = A * cg
 #
 # 'd' is the degree of the DG space
-def cg2dg_matrix(dg, cg):
+# dtype: C++ type name ("float" or "double")
+def cg2dg_matrix(dg, cg, dtype):
     # print header
     if dg > 1:
         print(
-            "static const Eigen::Matrix<FloatType, {0}, {1}, Eigen::RowMajor> CG{2}_to_DG{3} =".format(
-                dg, bf.cgdofs(cg), cg, dg
+            "static const Eigen::Matrix<{0}, {1}, {2}, Eigen::RowMajor> CG{3}_to_DG{4}_{5} =".format(
+                dtype, dg, bf.cgdofs(cg), cg, dg, dtype
             )
         )
         print(
-            "\t(Eigen::Matrix<FloatType, {0}, {1}, Eigen::RowMajor>() <<".format(
-                dg, bf.cgdofs(cg)
+            "\t(Eigen::Matrix<{0}, {1}, {2}, Eigen::RowMajor>() <<".format(
+                dtype, dg, bf.cgdofs(cg)
             )
         )
     else:
         print(
-            "static const Eigen::Matrix<FloatType, {0}, {1}> CG{2}_to_DG{3} =".format(
-                dg, bf.cgdofs(cg), cg, dg
+            "static const Eigen::Matrix<{0}, {1}, {2}> CG{3}_to_DG{4}_{5} =".format(
+                dtype, dg, bf.cgdofs(cg), cg, dg, dtype
             )
         )
-        print("\t(Eigen::Matrix<FloatType, {0}, {1}>() <<".format(dg, bf.cgdofs(cg)))
+        print("\t(Eigen::Matrix<{0}, {1}, {2}>() <<".format(dtype, dg, bf.cgdofs(cg)))
 
     for dgi in range(dg):
         for cgi in range(bf.cgdofs(cg)):
@@ -57,26 +58,27 @@ def cg2dg_matrix(dg, cg):
 # (dg, psi) = (d_X/Y cg, psi) in terms of dg = A_dX/Y * cg
 #
 # 'd' is the degree of the DG space
-def cg2dg_dxy_matrix(dg, cg, dXY):
+# dtype: C++ type name ("float" or "double")
+def cg2dg_dxy_matrix(dg, cg, dXY, dtype):
     # print header
     if dg > 1:
         print(
-            "static const Eigen::Matrix<FloatType, {0}, {1}, Eigen::RowMajor> CG{2}_to_DG{3}_d{4} =".format(
-                dg, bf.cgdofs(cg), cg, dg, dXY
+            "static const Eigen::Matrix<{0}, {1}, {2}, Eigen::RowMajor> CG{3}_to_DG{4}_d{5}_{6} =".format(
+                dtype, dg, bf.cgdofs(cg), cg, dg, dXY, dtype
             )
         )
         print(
-            "\t(Eigen::Matrix<FloatType, {0}, {1}, Eigen::RowMajor>() <<".format(
-                dg, bf.cgdofs(cg)
+            "\t(Eigen::Matrix<{0}, {1}, {2}, Eigen::RowMajor>() <<".format(
+                dtype, dg, bf.cgdofs(cg)
             )
         )
     else:
         print(
-            "static const Eigen::Matrix<FloatType, {0}, {1}> CG{2}_to_DG{3}_d{4} =".format(
-                dg, bf.cgdofs(cg), cg, dg, dXY
+            "static const Eigen::Matrix<{0}, {1}, {2}> CG{3}_to_DG{4}_d{5}_{6} =".format(
+                dtype, dg, bf.cgdofs(cg), cg, dg, dXY, dtype
             )
         )
-        print("\t(Eigen::Matrix<FloatType, {0}, {1}>() <<".format(dg, bf.cgdofs(cg)))
+        print("\t(Eigen::Matrix<{0}, {1}, {2}>() <<".format(dtype, dg, bf.cgdofs(cg)))
 
     for dgi in range(dg):
         for cgi in range(bf.cgdofs(cg)):
@@ -109,26 +111,27 @@ def cg2dg_dxy_matrix(dg, cg, dXY):
 # (dg, psi) = (d_X/Y cg, psi) in terms of dg = A_dX/Y * cg
 #
 # 'd' is the degree of the DG space
-def dg_cg_dxy_matrix(dg, cg, dXY):
+# dtype: C++ type name ("float" or "double")
+def dg_cg_dxy_matrix(dg, cg, dXY, dtype):
     # print header
     if dg > 1:
         print(
-            "static const Eigen::Matrix<FloatType, {0}, {1}, Eigen::RowMajor> DG{2}_CG{3}_d{4} =".format(
-                bf.cgdofs(cg), dg, dg, cg, dXY
+            "static const Eigen::Matrix<{0}, {1}, {2}, Eigen::RowMajor> DG{3}_CG{4}_d{5}_{6} =".format(
+                dtype, bf.cgdofs(cg), dg, dg, cg, dXY, dtype
             )
         )
         print(
-            "\t(Eigen::Matrix<FloatType, {0}, {1}, Eigen::RowMajor>() <<".format(
-                bf.cgdofs(cg), dg
+            "\t(Eigen::Matrix<{0}, {1}, {2}, Eigen::RowMajor>() <<".format(
+                dtype, bf.cgdofs(cg), dg
             )
         )
     else:
         print(
-            "static const Eigen::Matrix<FloatType, {0}, {1}> DG{2}_CG{3}_d{4} =".format(
-                bf.cgdofs(cg), dg, dg, cg, dXY
+            "static const Eigen::Matrix<{0}, {1}, {2}> DG{3}_CG{4}_d{5}_{6} =".format(
+                dtype, bf.cgdofs(cg), dg, dg, cg, dXY, dtype
             )
         )
-        print("\t(Eigen::Matrix<FloatType, {0}, {1}>() <<".format(bf.cgdofs(cg), dg))
+        print("\t(Eigen::Matrix<{0}, {1}, {2}>() <<".format(dtype, bf.cgdofs(cg), dg))
 
     for cgi in range(bf.cgdofs(cg)):
         for dgi in range(dg):
@@ -179,8 +182,9 @@ print("namespace Nextsim {")
 print("\n\n//------------------------------ CGtoDG\n")
 for dg in [1, 3, 6, 8]:
     for cg in [1, 2]:
-        cg2dg_matrix(dg, cg)
-        print("")
+        for dtype in ["float", "double"]:
+            cg2dg_matrix(dg, cg, dtype)
+            print("")
 
 print("\n")
 print("// Generates the matrices CG2toDG[dg]_dX and CG2toDG[dg]_dY")
@@ -194,9 +198,10 @@ print("")
 print("//------------------------------ CG2toDG\n")
 for dg in [1, 3, 6, 8]:
     for cg in [1, 2]:
-        cg2dg_dxy_matrix(dg, cg, "X")
-        cg2dg_dxy_matrix(dg, cg, "Y")
-        print("")
+        for dtype in ["float", "double"]:
+            cg2dg_dxy_matrix(dg, cg, "X", dtype)
+            cg2dg_dxy_matrix(dg, cg, "Y", dtype)
+            print("")
 
 print("\n")
 print("// Generates the matrices DG1_CG2_dX/Y for")
@@ -208,9 +213,10 @@ print("")
 print("//------------------------------ CG2toDG\n")
 for dg in [1, 3, 6, 8]:
     for cg in [1, 2]:
-        dg_cg_dxy_matrix(dg, cg, "X")
-        dg_cg_dxy_matrix(dg, cg, "Y")
-        print("")
+        for dtype in ["float", "double"]:
+            dg_cg_dxy_matrix(dg, cg, "X", dtype)
+            dg_cg_dxy_matrix(dg, cg, "Y", dtype)
+            print("")
 
 
 # Some output
