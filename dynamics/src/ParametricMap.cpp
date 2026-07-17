@@ -7,6 +7,7 @@
 #include "VectorManipulations.hpp"
 
 namespace Nextsim {
+
 template <int DG> void ParametricTransportMap<DG>::InitializeAdvectionCellTerms()
 {
     // for advection
@@ -29,36 +30,43 @@ template <int DG> void ParametricTransportMap<DG>::InitializeAdvectionCellTerms(
 
     // Store wq * phi(q)
 
+    constexpr int GP_DG = GAUSSPOINTS(DG);
+    constexpr int GP_1D = GAUSSPOINTS1D(DG);
+
 #pragma omp parallel for
     for (size_t eid = 0; eid < smesh.nelements; ++eid) {
-        const Eigen::Matrix<FloatType, 2, GAUSSPOINTS(DG)> dxT
-            = ParametricTools::dxT<GAUSSPOINTS1D(DG)>(smesh, eid).array().rowwise()
-            * GAUSSWEIGHTS<GAUSSPOINTS1D(DG)>.array();
-        const Eigen::Matrix<FloatType, 2, GAUSSPOINTS(DG)> dyT
-            = ParametricTools::dyT<GAUSSPOINTS1D(DG)>(smesh, eid).array().rowwise()
-            * GAUSSWEIGHTS<GAUSSPOINTS1D(DG)>.array();
+        const Eigen::Matrix<double, 2, GP_DG> dxT
+            = ParametricTools::dxT<GP_1D, double>(smesh, eid).array().rowwise()
+            * GAUSSWEIGHTS<GP_1D, double>.array();
+        const Eigen::Matrix<double, 2, GP_DG> dyT
+            = ParametricTools::dyT<GP_1D, double>(smesh, eid).array().rowwise()
+            * GAUSSWEIGHTS<GP_1D, double>.array();
 
         // [J dT^{-T} nabla phi]_1
-        AdvectionCellTermX[eid] = PSIx<DG, GAUSSPOINTS1D(DG)>.array().rowwise() * dyT.row(1).array()
-            - PSIy<DG, GAUSSPOINTS1D(DG)>.array().rowwise() * dxT.row(1).array();
+        AdvectionCellTermX[eid] = (PSIx<DG, GP_1D, double>.array().rowwise() * dyT.row(1).array()
+            - PSIy<DG, GP_1D, double>.array().rowwise() * dxT.row(1).array())
+                                      .template cast<FloatType>();
         // [J dT^{-T} nabla phi]_2
 
         //! the lat-direction must be scaled with the metric term if in the spherical system
         if (smesh.CoordinateSystem == SPHERICAL) {
-            const Eigen::Matrix<FloatType, 1, GAUSSPOINTS(DG)> cos_lat
-                = (ParametricTools::getGaussPointsInElement<GAUSSPOINTS1D(DG)>(smesh, eid)
+            const Eigen::Matrix<double, 1, GP_DG> cos_lat
+                = (ParametricTools::getGaussPointsInElement<GP_1D, double>(smesh, eid)
                         .row(1)
                         .array())
                       .cos();
             AdvectionCellTermY[eid]
-                = PSIy<DG, GAUSSPOINTS1D(DG)>.array().rowwise() * (dxT.row(0).array())
-                - PSIx<DG, GAUSSPOINTS1D(DG)>.array().rowwise() * (dyT.row(0).array());
-        } else if (smesh.CoordinateSystem == CARTESIAN)
+                = (PSIy<DG, GP_1D, double>.array().rowwise() * (dxT.row(0).array())
+                    - PSIx<DG, GP_1D, double>.array().rowwise() * (dyT.row(0).array()))
+                      .template cast<FloatType>();
+        } else if (smesh.CoordinateSystem == CARTESIAN) {
             AdvectionCellTermY[eid]
-                = PSIy<DG, GAUSSPOINTS1D(DG)>.array().rowwise() * dxT.row(0).array()
-                - PSIx<DG, GAUSSPOINTS1D(DG)>.array().rowwise() * dyT.row(0).array();
-        else
+                = (PSIy<DG, GP_1D, double>.array().rowwise() * dxT.row(0).array()
+                    - PSIx<DG, GP_1D, double>.array().rowwise() * dyT.row(0).array())
+                      .template cast<FloatType>();
+        } else {
             abort();
+        }
     }
 }
 
@@ -71,12 +79,15 @@ template <int DG> void ParametricTransportMap<DG>::InitializeInverseDGMassMatrix
     if (smesh.CoordinateSystem == SPHERICAL) {
 #pragma omp parallel for
         for (size_t eid = 0; eid < smesh.nelements; ++eid)
-            InverseDGMassMatrix[eid]
-                = SphericalTools::massMatrix<DG>(smesh, eid).inverse() / Nextsim::EarthRadius;
+            InverseDGMassMatrix[eid] = (SphericalTools::massMatrix<DG, double>(smesh, eid).inverse()
+                / Nextsim::EarthRadius)
+                                           .template cast<FloatType>();
     } else if (smesh.CoordinateSystem == CARTESIAN) {
 #pragma omp parallel for
         for (size_t eid = 0; eid < smesh.nelements; ++eid)
-            InverseDGMassMatrix[eid] = ParametricTools::massMatrix<DG>(smesh, eid).inverse();
+            InverseDGMassMatrix[eid] = ParametricTools::massMatrix<DG, double>(smesh, eid)
+                                           .inverse()
+                                           .template cast<FloatType>();
     } else {
         std::cerr << "Coordinate System " << smesh.CoordinateSystem << " not known!" << std::endl;
         abort();
@@ -105,28 +116,26 @@ template <int CG, int DG> void ParametricMomentumMap<CG, DG>::InitializeLumpedCG
             for (size_t ix = 0; ix < smesh.nx; ++ix) {
                 size_t eid = smesh.nx * iy + ix;
 
-                Eigen::Vector<FloatType, (CG == 1 ? 4 : 9)> Meid;
+                Eigen::Vector<double, (CG == 1 ? 4 : 9)> Meid;
 
                 if (smesh.CoordinateSystem == CARTESIAN) {
-                    const Eigen::Matrix<FloatType, 1, CGGP(CG) * CGGP(CG)> J
-                        = ParametricTools::J<CGGP(CG)>(smesh, eid).array()
-                        * GAUSSWEIGHTS<CGGP(CG)>.array();
+                    const Eigen::Matrix<double, 1, CGGP(CG) * CGGP(CG)> J
+                        = ParametricTools::J<CGGP(CG), double>(smesh, eid).array()
+                        * GAUSSWEIGHTS<CGGP(CG), double>.array();
 
-                    Meid = PHI<CG, CGGP(CG)> * J.transpose();
-                    const Eigen::Matrix<FloatType, 4, 2> coordinates
-                        = smesh.coordinatesOfElement(eid);
+                    Meid = PHI<CG, CGGP(CG), double> * J.transpose();
                 } else if (smesh.CoordinateSystem == SPHERICAL) {
-                    const Eigen::Matrix<FloatType, 1, CGGP(CG) * CGGP(CG)> cos_lat
-                        = (ParametricTools::getGaussPointsInElement<CGGP(CG)>(smesh, eid)
+                    const Eigen::Matrix<double, 1, CGGP(CG) * CGGP(CG)> cos_lat
+                        = (ParametricTools::getGaussPointsInElement<CGGP(CG), double>(smesh, eid)
                                 .row(1)
                                 .array())
                               .cos();
 
-                    const Eigen::Matrix<FloatType, 1, CGGP(CG) * CGGP(CG)> J
-                        = ParametricTools::J<CGGP(CG)>(smesh, eid).array()
-                        * GAUSSWEIGHTS<CGGP(CG)>.array() * cos_lat.array();
+                    const Eigen::Matrix<double, 1, CGGP(CG) * CGGP(CG)> J
+                        = ParametricTools::J<CGGP(CG), double>(smesh, eid).array()
+                        * GAUSSWEIGHTS<CGGP(CG), double>.array() * cos_lat.array();
 
-                    Meid = PHI<CG, CGGP(CG)> * J.transpose();
+                    Meid = PHI<CG, CGGP(CG), double> * J.transpose();
                 } else
                     abort();
 
@@ -169,23 +178,26 @@ template <int CG, int DG> void ParametricMomentumMap<CG, DG>::InitializeLumpedCG
             for (size_t ix = 0; ix < smesh.nx; ++ix) {
                 size_t eid = smesh.nx * iy + ix;
 
-                Eigen::Vector<FloatType, 4> Meid;
+                Eigen::Vector<double, 4> Meid;
 
                 if (smesh.CoordinateSystem == CARTESIAN) {
-                    const Eigen::Matrix<FloatType, 1, 2 * 2> J
-                        = ParametricTools::J<2>(smesh, eid).array() * GAUSSWEIGHTS<2>.array();
+                    const Eigen::Matrix<double, 1, 2 * 2> J
+                        = ParametricTools::J<2, double>(smesh, eid).array()
+                        * GAUSSWEIGHTS<2, double>.array();
 
-                    Meid = PHI<1, 2> * J.transpose();
+                    Meid = PHI<1, 2, double> * J.transpose();
                 } else if (smesh.CoordinateSystem == SPHERICAL) {
-                    const Eigen::Matrix<FloatType, 1, 2 * 2> cos_lat
-                        = (ParametricTools::getGaussPointsInElement<2>(smesh, eid).row(1).array())
+                    const Eigen::Matrix<double, 1, 2 * 2> cos_lat
+                        = (ParametricTools::getGaussPointsInElement<2, double>(smesh, eid)
+                                .row(1)
+                                .array())
                               .cos();
 
-                    const Eigen::Matrix<FloatType, 1, 2 * 2> J
-                        = ParametricTools::J<2>(smesh, eid).array() * GAUSSWEIGHTS<2>.array()
-                        * cos_lat.array();
+                    const Eigen::Matrix<double, 1, 2 * 2> J
+                        = ParametricTools::J<2, double>(smesh, eid).array()
+                        * GAUSSWEIGHTS<2, double>.array() * cos_lat.array();
 
-                    Meid = PHI<1, 2> * J.transpose();
+                    Meid = PHI<1, 2, double> * J.transpose();
                 } else
                     abort();
 
@@ -226,13 +238,17 @@ template <int CG, int DG> void ParametricMomentumMap<CG, DG>::InitializeDivSMatr
         // F = [         ]
         //     [ Fy   Fy ]
 
-        const Eigen::Matrix<FloatType, 2, GAUSSPOINTS(CG2DGSTRESS(CG))> Fx
-            = (ParametricTools::dxT<GAUSSPOINTS1D(CG2DGSTRESS(CG))>(smesh, eid).array().rowwise()
-                * GAUSSWEIGHTS<GAUSSPOINTS1D(CG2DGSTRESS(CG))>.array())
+        constexpr int GP = GAUSSPOINTS(CG2DGSTRESS(CG));
+        constexpr int GP_1D = GAUSSPOINTS1D(CG2DGSTRESS(CG));
+        constexpr int DG_STRESS = CG2DGSTRESS(CG);
+
+        const Eigen::Matrix<double, 2, GP> Fx
+            = (ParametricTools::dxT<GP_1D, double>(smesh, eid).array().rowwise()
+                * GAUSSWEIGHTS<GP_1D, double>.array())
                   .matrix();
-        const Eigen::Matrix<FloatType, 2, GAUSSPOINTS(CG2DGSTRESS(CG))> Fy
-            = (ParametricTools::dyT<GAUSSPOINTS1D(CG2DGSTRESS(CG))>(smesh, eid).array().rowwise()
-                * GAUSSWEIGHTS<GAUSSPOINTS1D(CG2DGSTRESS(CG))>.array())
+        const Eigen::Matrix<double, 2, GP> Fy
+            = (ParametricTools::dyT<GP_1D, double>(smesh, eid).array().rowwise()
+                * GAUSSWEIGHTS<GP_1D, double>.array())
                   .matrix();
 
         //               [  Fy2  -Fx2 ]
@@ -242,114 +258,123 @@ template <int CG, int DG> void ParametricMomentumMap<CG, DG>::InitializeDivSMatr
 
         // the transformed gradient of the CG basis function in the gauss points (OBSERVE SIGN IN
         // SECOND, EIGEN CAN'T START WITH A MINUS
-        const Eigen::Matrix<FloatType, (CG == 2 ? 9 : 4), GAUSSPOINTS(CG2DGSTRESS(CG))> dx_cg2
-            = PHIx<CG, GAUSSPOINTS1D(CG2DGSTRESS(CG))>.array().rowwise() * Fy.row(1).array()
-            - PHIy<CG, GAUSSPOINTS1D(CG2DGSTRESS(CG))>.array().rowwise() * Fx.row(1).array();
+        const Eigen::Matrix<double, (CG == 2 ? 9 : 4), GP> dx_cg2
+            = PHIx<CG, GP_1D, double>.array().rowwise() * Fy.row(1).array()
+            - PHIy<CG, GP_1D, double>.array().rowwise() * Fx.row(1).array();
 
-        const Eigen::Matrix<FloatType, (CG == 2 ? 9 : 4), GAUSSPOINTS(CG2DGSTRESS(CG))> dy_cg2
-            = PHIy<CG, GAUSSPOINTS1D(CG2DGSTRESS(CG))>.array().rowwise() * Fx.row(0).array()
-            - PHIx<CG, GAUSSPOINTS1D(CG2DGSTRESS(CG))>.array().rowwise() * Fy.row(0).array();
+        const Eigen::Matrix<double, (CG == 2 ? 9 : 4), GP> dy_cg2
+            = PHIy<CG, GP_1D, double>.array().rowwise() * Fx.row(0).array()
+            - PHIx<CG, GP_1D, double>.array().rowwise() * Fy.row(0).array();
 
         // same but using CG1 basis functions. Required for seaSurfaceHeight
-        const Eigen::Matrix<FloatType, 4, GAUSSPOINTS(CG2DGSTRESS(CG))> dx_cg1
-            = PHIx<1, GAUSSPOINTS1D(CG2DGSTRESS(CG))>.array().rowwise() * Fy.row(1).array()
-            - PHIy<1, GAUSSPOINTS1D(CG2DGSTRESS(CG))>.array().rowwise() * Fx.row(1).array();
+        const Eigen::Matrix<double, 4, GP> dx_cg1
+            = PHIx<1, GP_1D, double>.array().rowwise() * Fy.row(1).array()
+            - PHIy<1, GP_1D, double>.array().rowwise() * Fx.row(1).array();
 
-        const Eigen::Matrix<FloatType, 4, GAUSSPOINTS(CG2DGSTRESS(CG))> dy_cg1
-            = PHIy<1, GAUSSPOINTS1D(CG2DGSTRESS(CG))>.array().rowwise() * Fx.row(0).array()
-            - PHIx<1, GAUSSPOINTS1D(CG2DGSTRESS(CG))>.array().rowwise() * Fy.row(0).array();
+        const Eigen::Matrix<double, 4, GP> dy_cg1
+            = PHIy<1, GP_1D, double>.array().rowwise() * Fx.row(0).array()
+            - PHIx<1, GP_1D, double>.array().rowwise() * Fy.row(0).array();
 
-        const Eigen::Matrix<FloatType, 1, GAUSSPOINTS(CG2DGSTRESS(CG))> J
-            = ParametricTools::J<GAUSSPOINTS1D(CG2DGSTRESS(CG))>(smesh, eid);
+        const Eigen::Matrix<double, 1, GP> J = ParametricTools::J<GP_1D, double>(smesh, eid);
 
         if (smesh.CoordinateSystem == CARTESIAN) {
             // divS is used for update of stress (S, nabla Phi) in Momentum
-            divS1[eid] = dx_cg2 * PSI<CG2DGSTRESS(CG), GAUSSPOINTS1D(CG2DGSTRESS(CG))>.transpose();
-            divS2[eid] = dy_cg2 * PSI<CG2DGSTRESS(CG), GAUSSPOINTS1D(CG2DGSTRESS(CG))>.transpose();
+            const Eigen::Matrix<double, CGDOFS(CG), DG_STRESS> divS1_
+                = dx_cg2 * PSI<DG_STRESS, GP_1D, double>.transpose();
+            const Eigen::Matrix<double, CGDOFS(CG), DG_STRESS> divS2_
+                = dy_cg2 * PSI<DG_STRESS, GP_1D, double>.transpose();
+
+            divS1[eid] = divS1_.template cast<FloatType>();
+            divS2[eid] = divS2_.template cast<FloatType>();
 
             // dX_SSH and dY_SSH are used to compute the gradient of the sea surface height
             // they store (d_[x/y] PHI_j, PHI_i)
-            dX_SSH[eid] = dx_cg1 * PHI<1, GAUSSPOINTS1D(CG2DGSTRESS(CG))>.transpose();
-            dY_SSH[eid] = dy_cg1 * PHI<1, GAUSSPOINTS1D(CG2DGSTRESS(CG))>.transpose();
+            dX_SSH[eid] = (dx_cg1 * PHI<1, GP_1D, double>.transpose()).template cast<FloatType>();
+            dY_SSH[eid] = (dy_cg1 * PHI<1, GP_1D, double>.transpose()).template cast<FloatType>();
 
             // iMgradX/Y (inverse-Mass-gradient X/Y) is used to project strain rate from CG to DG
-            const Eigen::Matrix<FloatType, CG2DGSTRESS(CG), CG2DGSTRESS(CG)> imass
-                = ParametricTools::massMatrix<CG2DGSTRESS(CG)>(smesh, eid).inverse();
-            iMgradX[eid] = imass * divS1[eid].transpose();
-            iMgradY[eid] = imass * divS2[eid].transpose();
+            const Eigen::Matrix<double, DG_STRESS, DG_STRESS> imass
+                = ParametricTools::massMatrix<DG_STRESS, double>(smesh, eid).inverse();
+            iMgradX[eid] = (imass * divS1_.transpose()).template cast<FloatType>();
+            iMgradY[eid] = (imass * divS2_.transpose()).template cast<FloatType>();
 
             // imJwPSI is used to compute nonlinear stress update
-            iMJwPSI[eid] = imass
-                * (PSI<CG2DGSTRESS(CG), GAUSSPOINTS1D(CG2DGSTRESS(CG))>.array().rowwise()
-                    * (GAUSSWEIGHTS<GAUSSPOINTS1D(CG2DGSTRESS(CG))>.array() * J.array()))
-                      .matrix();
+            iMJwPSI[eid] = (imass
+                * (PSI<DG_STRESS, GP_1D, double>.array().rowwise()
+                    * (GAUSSWEIGHTS<GP_1D, double>.array() * J.array()))
+                      .matrix())
+                               .template cast<FloatType>();
             // same but for the damage. However, we use the same number of Gausspoints as
             // for the DG-stress variant above for easier use in BBM Stress update
-            const Eigen::Matrix<FloatType, DG, DG> imass_dam
-                = ParametricTools::massMatrix<DG>(smesh, eid).inverse();
-            iMJwPSI_dam[eid] = imass_dam
-                * (PSI<DG, GAUSSPOINTS1D(CG2DGSTRESS(CG))>.array().rowwise()
-                    * (GAUSSWEIGHTS<GAUSSPOINTS1D(CG2DGSTRESS(CG))>.array() * J.array()))
-                      .matrix();
+            const Eigen::Matrix<double, DG, DG> imass_dam
+                = ParametricTools::massMatrix<DG, double>(smesh, eid).inverse();
+            iMJwPSI_dam[eid] = (imass_dam
+                * (PSI<DG, GP_1D, double>.array().rowwise()
+                    * (GAUSSWEIGHTS<GP_1D, double>.array() * J.array()))
+                      .matrix())
+                                   .template cast<FloatType>();
 
         } else if (smesh.CoordinateSystem == SPHERICAL) {
             // In spherical coordinates (x,y) coordinates are (lon,lat) coordinates
 
-            const Eigen::Matrix<FloatType, 1, GAUSSPOINTS(CG2DGSTRESS(CG))> cos_lat
-                = (ParametricTools::getGaussPointsInElement<GAUSSPOINTS1D(CG2DGSTRESS(CG))>(
-                       smesh, eid)
+            const Eigen::Matrix<double, 1, GP> cos_lat
+                = (ParametricTools::getGaussPointsInElement<GP_1D, double>(smesh, eid)
                         .row(1)
                         .array())
                       .cos();
-            const Eigen::Matrix<FloatType, 1, GAUSSPOINTS(CG2DGSTRESS(CG))> sin_lat
-                = (ParametricTools::getGaussPointsInElement<GAUSSPOINTS1D(CG2DGSTRESS(CG))>(
-                       smesh, eid)
+            const Eigen::Matrix<double, 1, GP> sin_lat
+                = (ParametricTools::getGaussPointsInElement<GP_1D, double>(smesh, eid)
                         .row(1)
                         .array())
                       .sin();
 
             // 1 is lon-derivative, 2 is lat-derivative of the test function
-            divS1[eid] = dx_cg2 * PSI<CG2DGSTRESS(CG), GAUSSPOINTS1D(CG2DGSTRESS(CG))>.transpose()
-                / Nextsim::EarthRadius;
-            divS2[eid] = (dy_cg2.array().rowwise() * cos_lat.array()).matrix()
-                * PSI<CG2DGSTRESS(CG), GAUSSPOINTS1D(CG2DGSTRESS(CG))>.transpose()
-                / Nextsim::EarthRadius;
+            const Eigen::Matrix<double, CGDOFS(CG), DG_STRESS> divS1_
+                = dx_cg2 * PSI<DG_STRESS, GP_1D, double>.transpose() / Nextsim::EarthRadius;
+            const Eigen::Matrix<double, CGDOFS(CG), DG_STRESS> divS2_
+                = (dy_cg2.array().rowwise() * cos_lat.array()).matrix()
+                * PSI<DG_STRESS, GP_1D, double>.transpose() / Nextsim::EarthRadius;
 
-            divM[eid] = (PHI<CG, GAUSSPOINTS1D(CG2DGSTRESS(CG))>.array().rowwise()
-                            * (J.array() * sin_lat.array()
-                                * GAUSSWEIGHTS<GAUSSPOINTS1D(CG2DGSTRESS(CG))>.array()))
-                            .matrix()
-                * PSI<CG2DGSTRESS(CG), GAUSSPOINTS1D(CG2DGSTRESS(CG))>.transpose()
-                / Nextsim::EarthRadius;
+            divS1[eid] = divS1_.template cast<FloatType>();
+            divS2[eid] = divS2_.template cast<FloatType>();
+
+            const Eigen::Matrix<double, CGDOFS(CG), DG_STRESS> divM_
+                = (PHI<CG, GP_1D, double>.array().rowwise()
+                      * (J.array() * sin_lat.array() * GAUSSWEIGHTS<GP_1D, double>.array()))
+                      .matrix()
+                * PSI<DG_STRESS, GP_1D, double>.transpose() / Nextsim::EarthRadius;
+
+            divM[eid] = divM_.template cast<FloatType>();
 
             // same for CG1 (Sea-Surface Height)
-            dX_SSH[eid] = dx_cg1 * PHI<1, GAUSSPOINTS1D(CG2DGSTRESS(CG))>.transpose()
-                / Nextsim::EarthRadius;
-            dY_SSH[eid] = (dy_cg1.array().rowwise() * cos_lat.array()).matrix()
-                * PHI<1, GAUSSPOINTS1D(CG2DGSTRESS(CG))>.transpose() / Nextsim::EarthRadius;
+            dX_SSH[eid] = (dx_cg1 * PHI<1, GP_1D, double>.transpose() / Nextsim::EarthRadius)
+                              .template cast<FloatType>();
+            dY_SSH[eid] = ((dy_cg1.array().rowwise() * cos_lat.array()).matrix()
+                * PHI<1, GP_1D, double>.transpose() / Nextsim::EarthRadius)
+                              .template cast<FloatType>();
 
-            const Eigen::Matrix<FloatType, CG2DGSTRESS(CG), CG2DGSTRESS(CG)> imass
-                = SphericalTools::massMatrix<CG2DGSTRESS(CG)>(smesh, eid).inverse();
-            iMgradX[eid] = imass * divS1[eid].transpose();
-            iMgradY[eid] = imass * divS2[eid].transpose();
-            iMM[eid] = imass * divM[eid].transpose();
+            const Eigen::Matrix<double, DG_STRESS, DG_STRESS> imass
+                = SphericalTools::massMatrix<DG_STRESS, double>(smesh, eid).inverse();
+            iMgradX[eid] = (imass * divS1_.transpose()).template cast<FloatType>();
+            iMgradY[eid] = (imass * divS2_.transpose()).template cast<FloatType>();
+            iMM[eid] = (imass * divM_.transpose()).template cast<FloatType>();
 
             // same as in Cartesian but using spherical mass matrix and adding cosine
             // for proper scale of the integral
-            iMJwPSI[eid] = imass
-                * (PSI<CG2DGSTRESS(CG), GAUSSPOINTS1D(CG2DGSTRESS(CG))>.array().rowwise()
-                    * (GAUSSWEIGHTS<GAUSSPOINTS1D(CG2DGSTRESS(CG))>.array() * J.array()
-                        * cos_lat.array()))
-                      .matrix();
+            iMJwPSI[eid] = (imass
+                * (PSI<DG_STRESS, GP_1D, double>.array().rowwise()
+                    * (GAUSSWEIGHTS<GP_1D, double>.array() * J.array() * cos_lat.array()))
+                      .matrix())
+                               .template cast<FloatType>();
 
             // smae for DG advection (damage)
-            const Eigen::Matrix<FloatType, DG, DG> imass_dam
-                = SphericalTools::massMatrix<DG>(smesh, eid).inverse();
-            iMJwPSI_dam[eid] = imass_dam
-                * (PSI<DG, GAUSSPOINTS1D(CG2DGSTRESS(CG))>.array().rowwise()
-                    * (GAUSSWEIGHTS<GAUSSPOINTS1D(CG2DGSTRESS(CG))>.array() * J.array()
-                        * cos_lat.array()))
-                      .matrix();
+            const Eigen::Matrix<double, DG, DG> imass_dam
+                = SphericalTools::massMatrix<DG, double>(smesh, eid).inverse();
+            iMJwPSI_dam[eid] = (imass_dam
+                * (PSI<DG, GP_1D, double>.array().rowwise()
+                    * (GAUSSWEIGHTS<GP_1D, double>.array() * J.array() * cos_lat.array()))
+                      .matrix())
+                                   .template cast<FloatType>();
 
         } else
             abort();
