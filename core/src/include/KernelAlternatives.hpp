@@ -48,6 +48,7 @@ using DefaultExecutionSpace = Kokkos::DefaultExecutionSpace;
 struct ExecutionSpaceDummy { };
 using DefaultExecutionSpace = ExecutionSpaceDummy;
 #endif
-}
+
+} /* namespace Nextsim */
 
 #endif /* KERNEL_ALTERNATIVES_HPP */

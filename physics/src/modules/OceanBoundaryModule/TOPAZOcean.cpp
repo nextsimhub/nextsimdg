@@ -67,7 +67,7 @@ static const std::set<std::string> forcings = { sstName, sssName, mldName, uName
 void TOPAZOcean::updateBefore(const TimestepTime& tst)
 {
     // Read TOPAZ forcings at midnight
-    if (std::fmod((tst.start - TimePoint()).seconds(), 86400.) == 0.) {
+    if (std::fmod((tst.start - TimePoint()).seconds(), 86400.) == 0.0_ft) {
         forcingState = ParaGridIO::readForcingTimeStatic(forcings, tst.start, filePath);
     }
 

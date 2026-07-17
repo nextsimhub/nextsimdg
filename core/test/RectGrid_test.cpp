@@ -42,8 +42,8 @@ TEST_CASE("Write and read a ModelState-based RectGrid restart file")
     // Fill in the data. It is not real data.
     size_t nx = 5;
     size_t ny = 7;
-    double yFactor = 0.01;
-    double xFactor = 0.0001;
+    FloatType yFactor = 0.01;
+    FloatType xFactor = 0.0001;
 
 #ifdef USE_MPI
     if (test_rank == 0) {
@@ -123,12 +123,12 @@ TEST_CASE("Write and read a ModelState-based RectGrid restart file")
     ModelArray x(ModelArray::Type::H);
     ModelArray y(ModelArray::Type::H);
     // Use an anisotropic grid so we can differentiate the dimensions.
-    double dx = 25.;
-    double dy = 35.;
+    FloatType dx = 25.;
+    FloatType dy = 35.;
     for (size_t j = 0; j < localNY; ++j) {
-        double yy = (j + startY) * dy;
+        FloatType yy = (j + startY) * dy;
         for (size_t i = 0; i < localNX; ++i) {
-            double xx = (i + startX) * dx;
+            FloatType xx = (i + startX) * dx;
             x(i, j) = xx;
             y(i, j) = yy;
         }
@@ -171,7 +171,7 @@ TEST_CASE("Write and read a ModelState-based RectGrid restart file")
     REQUIRE(ms.data.at("hice")(targetX, targetY)
         == 1.0201 + metadata.getLocalCornerY() * yFactor + metadata.getLocalCornerX() * xFactor);
 #else
-    REQUIRE(ms.data.at("hice")(targetX, targetY) == 1.0201);
+    REQUIRE(ms.data.at("hice")(targetX, targetY) == 1.0201_ft);
 #endif
 
     HField ticeIn = ms.data.at("tsurf");
@@ -180,7 +180,7 @@ TEST_CASE("Write and read a ModelState-based RectGrid restart file")
     REQUIRE(ticeIn(targetX, targetY, 0U)
         == -1.0201 - metadata.getLocalCornerY() * yFactor - metadata.getLocalCornerX() * xFactor);
 #else
-    REQUIRE(ticeIn(targetX, targetY) == -1.0201);
+    REQUIRE(ticeIn(targetX, targetY) == -1.0201_ft);
 #endif
 
     // Check that the coordinates have been correctly written and read

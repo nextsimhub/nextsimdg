@@ -6,7 +6,7 @@
 
 namespace Nextsim {
 
-ModelArraySlice& ModelArraySlice::operator=(double v)
+ModelArraySlice& ModelArraySlice::operator=(FloatType v)
 {
     /*
      * The left most index varies fastest, as is the ModelArray standard
@@ -61,7 +61,7 @@ ModelArraySlice& ModelArraySlice::operator=(const ModelArray::DataType& buffer)
     return *this;
 }
 
-ModelArraySlice::operator ModelArray::DataType()
+ModelArraySlice::operator ModelArray::DataType() const
 {
     SliceIter thisIter(slice, data.dimensions());
     Slice::VBounds bufferBounds(data.nDimensions(), Slice::Bounds());

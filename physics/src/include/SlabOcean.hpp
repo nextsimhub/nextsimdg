@@ -56,7 +56,7 @@ public:
 
     void update(const TimestepTime&);
 
-    static const double defaultRelaxationTime; // A default value for the relaxation time in s.
+    static const FloatType defaultRelaxationTime; // A default value for the relaxation time in s.
 
 private:
     // Owned shared fields
@@ -77,8 +77,8 @@ private:
     ModelArrayAccessor<CouplingFields::SFLUX, RO> sFluxAccessor;
     // TODO ModelArrayAccessor to assimilation flux
 
-    double relaxationTimeT = defaultRelaxationTime;
-    double relaxationTimeS = defaultRelaxationTime;
+    FloatType relaxationTimeT = defaultRelaxationTime;
+    FloatType relaxationTimeS = defaultRelaxationTime;
 };
 
 } /* namespace Nextsim */

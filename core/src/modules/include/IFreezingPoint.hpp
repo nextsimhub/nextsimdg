@@ -28,7 +28,7 @@ public:
      *
      * @param sss Sea surface salinity [PSU]
      */
-    virtual double operator()(double sss) const = 0;
+    virtual FloatType operator()(FloatType sss) const = 0;
 
     /*!
      * @brief A virtual function that calculates the freezing point of
@@ -50,7 +50,7 @@ public:
     static_assert(
         std::is_base_of_v<IFreezingPoint, Base>, "Base needs to inherit from IFreezingPoint");
 
-    double operator()(double sss) const override { return Base::calculate(sss); }
+    FloatType operator()(FloatType sss) const override { return Base::calculate(sss); }
     void update(ModelArrayAuto& tf, const ConstModelArrayAuto& sss) const override
     {
         ModelComponent::overElementsAuto(

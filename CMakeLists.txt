@@ -16,6 +16,7 @@ option(BUILD_TESTS "Build the tests" ON)
 set(DynamicsType
     "DG2"
     CACHE STRING "Set the discretization order for the dynamics, either DG1 or DG2")
+option(USE_SINGLE_PRECISION "Use float instead of double everywhere" OFF)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
@@ -116,6 +117,31 @@ endif()
 # set degree / component parameters
 target_compile_definitions(nextsimlib PRIVATE DGCOMP=${DGComp} DGSTRESSCOMP=${DGStressComp}
                                               CGDEGREE=${CGDegree})
+
+if(USE_SINGLE_PRECISION)
+    if(ENABLE_MPI)
+        message(SEND_ERROR "Trying to use both MPI and single precision together, which is \
+            currently not supported. Disable either ENABLE_MPI or USE_SINGLE_PRECISION.")
+    endif()
+    if(ENABLE_XIOS)
+        message(SEND_ERROR "Trying to use both XIOS and single precision together, which is \
+        currently not supported. Disable either ENABLE_XIOS or USE_SINGLE_PRECISION.")
+    endif()
+    if (NOT WITH_KOKKOS)
+        message(WARNING "Single precision has only been tested with the Kokkos implementations.")
+    endif()
+
+    # EIGEN_FAST_MATH enables an alternative sqrt implementation when used with float.
+    # This has not been sufficiently tested and may currently cause issues in the dynamics.
+    target_compile_definitions(nextsimlib PRIVATE EIGEN_FAST_MATH=0)
+
+    set(FloatType "float")
+else()
+    set(FloatType "double")
+endif()
+# set the floating point type
+target_compile_definitions(nextsimlib PUBLIC "NEXTSIM_FLOAT_TYPE=${FloatType}")
+message("FP type is set to ${FloatType}")
 
 # boost
 find_package(

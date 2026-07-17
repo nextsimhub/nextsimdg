@@ -154,7 +154,7 @@ TEST_CASE("Melting conditions")
     ocnBdy.updateBefore(tst);
     fef.update(tst);
 
-    double prec = 1e-5;
+    FloatType prec = 1e-5;
     REQUIRE(qowAccessor.getHostRO()[0] == doctest::Approx(-109.923).epsilon(prec));
     REQUIRE(qiaAccessor.getHostRO()[0] == doctest::Approx(-85.6364).epsilon(prec));
     REQUIRE(dqia_dtAccessor.getHostRO()[0] == doctest::Approx(19.7016).epsilon(prec));
@@ -290,7 +290,7 @@ TEST_CASE("Freezing conditions")
     fef.setData(ModelState().data);
     fef.update(tst);
 
-    double prec = 1e-5;
+    FloatType prec = 1e-5;
     REQUIRE(qowAccessor.getHostRO()[0] == doctest::Approx(143.266).epsilon(prec));
     REQUIRE(qiaAccessor.getHostRO()[0] == doctest::Approx(42.2955).epsilon(prec));
     REQUIRE(dqia_dtAccessor.getHostRO()[0] == doctest::Approx(16.7615).epsilon(prec));

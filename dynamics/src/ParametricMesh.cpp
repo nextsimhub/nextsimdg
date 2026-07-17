@@ -119,7 +119,7 @@ void ParametricMesh::readmesh(std::string fname)
                   << std::endl;
         size_t nd;
         IN >> nd;
-        double tmp;
+        FloatType tmp;
         for (int i = 0; i < nd; ++i)
             IN >> tmp >> tmp;
 
@@ -208,9 +208,9 @@ void ParametricMesh::landmaskFromModelArray(const ModelArray& mask)
  * returns minimum mesh size.
  *
  */
-double ParametricMesh::hmin() const
+FloatType ParametricMesh::hmin() const
 {
-    double hmin = 1.e99;
+    FloatType hmin = 1.e99;
     for (size_t i = 0; i < nelements; ++i)
         hmin = std::min(hmin, h(i));
     return hmin;
@@ -219,7 +219,7 @@ double ParametricMesh::hmin() const
 /*!
  * return the area of the mesh element with index eid
  */
-double ParametricMesh::area(const size_t eid) const
+FloatType ParametricMesh::area(const size_t eid) const
 {
     // The element area is computed by transforming the reference element K = [0,1]^2 onto the
     // element T. Hence, Area(T) = \int_T dx = \int_K J(z) dz
@@ -247,9 +247,9 @@ double ParametricMesh::area(const size_t eid) const
 /*!
  * returns are of domain
  */
-double ParametricMesh::area() const
+FloatType ParametricMesh::area() const
 {
-    double a = 0;
+    FloatType a = 0;
     for (size_t i = 0; i < nelements; ++i)
         a += area(i);
     return a;

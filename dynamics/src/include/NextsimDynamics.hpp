@@ -5,6 +5,8 @@
 #ifndef __NEXTSIMDYNAMICS_HPP
 #define __NEXTSIMDYNAMICS_HPP
 
+#include "include/FloatType.hpp"
+
 #include <array>
 /*!
  * This file include all the definitions that are shared by nearly all nextsim-dynamics
@@ -13,9 +15,11 @@
 
 namespace Nextsim {
 
+constexpr FloatType pi = 3.14159265358979323846;
+
 enum TENSOR_ELEMENT { I11, I12, I22, N_TENSOR_ELEMENTS };
 const std::array<TENSOR_ELEMENT, N_TENSOR_ELEMENTS> tensorElements = { I11, I12, I22 };
-typedef std::array<double, N_TENSOR_ELEMENTS> SymmetricTensor;
+typedef std::array<FloatType, N_TENSOR_ELEMENTS> SymmetricTensor;
 /*!
  *
  * The different mappings used
@@ -29,7 +33,9 @@ enum COORDINATES { SPHERICAL, CARTESIAN };
 /*!
  * Radius of the earth in [m]
  */
-constexpr double EarthRadius = 6371000.0;
+constexpr FloatType EarthRadius = 6371000.0;
+
+template <typename T> constexpr T SQR(T x) { return x * x; }
 
 /*!
  * Computes the correct number of stress-unknowns
@@ -56,13 +62,6 @@ constexpr double EarthRadius = 6371000.0;
  * which is the number of unknowns in an element.
  */
 #define EDGEDOFS(DG) ((DG == 1) ? 1 : ((DG == 3) ? 2 : 3))
-
-/*!
- * the Float-Type used in NextSim.
- * This is not yet fully checked or supported but might be required in
- * for future use of GPU's
- */
-typedef double FloatType;
 
 }
 

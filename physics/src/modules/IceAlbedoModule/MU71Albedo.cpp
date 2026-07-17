@@ -9,9 +9,9 @@
 
 namespace Nextsim {
 
-static constexpr double I0_DEFAULT = 0.17;
+static constexpr FloatType I0_DEFAULT = 0.17;
 
-double MU71Albedo::i0;
+FloatType MU71Albedo::i0;
 
 static const std::string pfx = "MU71Albedo";
 static const std::string i0Key = pfx + ".i0";
@@ -28,7 +28,7 @@ ConfigMap MU71Albedo::getConfiguration() const
 }
 
 // Monthly snow albedo from Maykut and Untersteiner (1971)
-static constexpr std::array<double, 12> ALBEDO_TABLE
+static constexpr std::array<FloatType, 12> ALBEDO_TABLE
     = { 0.85, 0.85, 0.83, 0.81, 0.82, 0.78, 0.64, 0.69, 0.84, 0.85, 0.85, 0.85 };
 //      Jan,  Feb,  Mar,  Apr,  Mai,  Jun,  Jul,  Aug,  Sept, Oct,  Nov,  Dec
 
@@ -37,7 +37,7 @@ MU71Albedo::MU71Albedo()
 {
 }
 
-static constexpr double ICE_ALBEDO = 0.64;
+static constexpr FloatType ICE_ALBEDO = 0.64;
 
 void MU71Albedo::update(const TimestepTime& tst)
 {
@@ -49,15 +49,15 @@ void MU71Albedo::update(const TimestepTime& tst)
     const auto& hsnow = hsnowAccessor.getHostRO();
 
     const TimePoint& tp = tst.start;
-    const double dayOfYear = tp.gmtime()->tm_yday;
+    const FloatType dayOfYear = tp.gmtime()->tm_yday;
     const bool isLeap = ((tp.gmtime()->tm_year % 4 == 0) && (tp.gmtime()->tm_year % 100 != 0))
         || (tp.gmtime()->tm_year % 400 == 0);
-    const double i0 = MU71Albedo::i0;
+    const FloatType i0 = MU71Albedo::i0;
 
     overElements([&](const size_t i) {
-        const double snowThickness = cice[i] > 0 ? hsnow[i] / cice[i] : 0.;
+        const FloatType snowThickness = cice[i] > 0 ? hsnow[i] / cice[i] : 0.;
 
-        if (snowThickness == 0.) {
+        if (snowThickness == 0.0_ft) {
             iceAlbedo[i] = ICE_ALBEDO;
             icePenSW[i] = i0;
         } else {

@@ -660,7 +660,7 @@ void Xios::setupDomains()
                     throw std::runtime_error(
                         "Xios: Failed to set local starting x-index for domain '" + domainId + "'");
                 }
-                std::vector<double> lonvalue;
+                std::vector<FloatType> lonvalue;
                 for (int i = 0; i < ni; i++) {
                     lonvalue.push_back(ibegin + i);
                 }
@@ -715,7 +715,7 @@ void Xios::setupDomains()
                     throw std::runtime_error(
                         "Xios: Failed to set local starting y-index for domain '" + domainId + "'");
                 }
-                std::vector<double> latvalue;
+                std::vector<FloatType> latvalue;
                 for (int j = 0; j < nj; j++) {
                     latvalue.push_back(jbegin + j);
                 }

@@ -23,11 +23,11 @@ template <int DG> class ParametricTransportMap {
 
 public:
     //! These terms are required for the cell-term in the advection  -(vA, nabla PHI)
-    std::vector<Eigen::Matrix<Nextsim::FloatType, DG, GAUSSPOINTS(DG)>> AdvectionCellTermX;
-    std::vector<Eigen::Matrix<Nextsim::FloatType, DG, GAUSSPOINTS(DG)>> AdvectionCellTermY;
+    std::vector<Eigen::Matrix<FloatType, DG, GAUSSPOINTS(DG)>> AdvectionCellTermX;
+    std::vector<Eigen::Matrix<FloatType, DG, GAUSSPOINTS(DG)>> AdvectionCellTermY;
 
     //! The inverse of the dG mass matrix
-    std::vector<Eigen::Matrix<Nextsim::FloatType, DG, DG>> InverseDGMassMatrix;
+    std::vector<Eigen::Matrix<FloatType, DG, DG>> InverseDGMassMatrix;
 
     ParametricTransportMap(const ParametricMesh& sm)
         : smesh(sm)
@@ -75,7 +75,7 @@ public:
      * [ where S12= S21 ]
      * divM is in addition required for spherical coordinates
      */
-    using DivMatrix = Eigen::Matrix<Nextsim::FloatType, CGDOFS(CG), CG2DGSTRESS(CG)>;
+    using DivMatrix = Eigen::Matrix<FloatType, CGDOFS(CG), CG2DGSTRESS(CG)>;
     std::vector<DivMatrix, Eigen::aligned_allocator<DivMatrix>> divS1, divS2, divM;
 
     /*!
@@ -85,14 +85,14 @@ public:
      *
      * Very similar to divS1 and divS2 but working in CG(1) vectors
      */
-    using DSSHMatrix = Eigen::Matrix<Nextsim::FloatType, 4, 4>;
+    using DSSHMatrix = Eigen::Matrix<FloatType, 4, 4>;
     std::vector<DSSHMatrix, Eigen::aligned_allocator<DSSHMatrix>> dX_SSH, dY_SSH;
 
     /*!
      * These matrices realize the integration of (E, \grad phi) scaled with the
      * inverse mass matrix;
      */
-    using GradMatrix = Eigen::Matrix<Nextsim::FloatType, CG2DGSTRESS(CG), CGDOFS(CG)>;
+    using GradMatrix = Eigen::Matrix<FloatType, CG2DGSTRESS(CG), CGDOFS(CG)>;
     std::vector<GradMatrix, Eigen::aligned_allocator<GradMatrix>> iMgradX, iMgradY, iMM;
 
     /*!
@@ -100,16 +100,14 @@ public:
      * inverse of mass matrix (in DGstress-degree) multiplied with map J, weights w and DG Test
      * functions, all in the GAUSS points, i.e. iMJwPSI \in R^(DGstress x Ngauss)
      */
-    using GaussMapMatrix
-        = Eigen::Matrix<Nextsim::FloatType, CG2DGSTRESS(CG), GAUSSPOINTS(CG2DGSTRESS(CG))>;
+    using GaussMapMatrix = Eigen::Matrix<FloatType, CG2DGSTRESS(CG), GAUSSPOINTS(CG2DGSTRESS(CG))>;
     std::vector<GaussMapMatrix, Eigen::aligned_allocator<GaussMapMatrix>> iMJwPSI;
 
     /*!
      * These matrices are M^-1 J w PSI_i(q),
      * but, instead of DG-stress based on the DGAdvection (used for damage)
      */
-    using GaussMapAdvectMatrix
-        = Eigen::Matrix<Nextsim::FloatType, DG, GAUSSPOINTS(CG2DGSTRESS(CG))>;
+    using GaussMapAdvectMatrix = Eigen::Matrix<FloatType, DG, GAUSSPOINTS(CG2DGSTRESS(CG))>;
     std::vector<GaussMapAdvectMatrix, Eigen::aligned_allocator<GaussMapAdvectMatrix>> iMJwPSI_dam;
 
     ParametricMomentumMap(const ParametricMesh& sm)

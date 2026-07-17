@@ -109,7 +109,7 @@ TEST_CASE("Melting conditions")
     REQUIRE(output.count(ThermoWinton::tInteriorName) != 0);
     REQUIRE(output.count(ThermoWinton::tBottomName) != 0);
 
-    double prec = 1e-5;
+    FloatType prec = 1e-5;
 
     REQUIRE(output.at(tsurfName)[0] == doctest::Approx(0.0).epsilon(prec));
     REQUIRE(output.at(ThermoWinton::tInteriorName)[0] == doctest::Approx(-0.999261).epsilon(prec));
@@ -209,7 +209,7 @@ TEST_CASE("Freezing conditions")
     REQUIRE(output.count(ThermoWinton::tInteriorName) != 0);
     REQUIRE(output.count(ThermoWinton::tBottomName) != 0);
 
-    double prec = 1e-5;
+    FloatType prec = 1e-5;
 
     REQUIRE(output.at(tsurfName)[0] == doctest::Approx(-10.5129).epsilon(prec));
     REQUIRE(output.at(ThermoWinton::tInteriorName)[0] == doctest::Approx(-9.00726).epsilon(prec));
@@ -321,7 +321,7 @@ TEST_CASE("No ice do nothing")
     ModelArrayAccessor<Shared::C_ICE_DG, RO> ciceAccessor(ModelComponent::getStore());
     const HField& cice = ciceAccessor.getHostRO();
 
-    //    double prec = 1e-5;
+    //    FloatType prec = 1e-5;
 
     REQUIRE(hice[0] == 0);
     REQUIRE(cice[0] == 0);

@@ -18,14 +18,14 @@ TEST_CASE("Test Qdw")
 {
     // 1000 s timestep
     TimestepTime tst = { TimePoint(), Duration("P0-0T0:16:40") };
-    double dt = tst.step.seconds();
+    FloatType dt = tst.step.seconds();
     REQUIRE(dt == 1000);
 
     ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
 
     ModelArrayStore couplingArrays;
 
-    double tOffset = 0.001;
+    FloatType tOffset = 0.001;
     // Supply the data to the slab ocean
     ModelArrayAccessor<Protected::SSS, RW> sssAccessor(
         ModelComponent::getStore(), RO, ModelArray::Type::H);
@@ -50,23 +50,22 @@ TEST_CASE("Test Qdw")
     ModelArrayAccessor<Shared::C_ICE_DG, RW> ciceAccessor(
         ModelComponent::getStore(), RO, ModelArray::Type::H);
     HField& cice = ciceAccessor.getHostRW();
-    double cice0 = 0.5;
+    FloatType cice0 = 0.5;
     cice = cice0;
 
-    /*
-    ModelArrayAccessor<CouplingFields::Q_SS_NO_SW, RW> data0Accessor(
+    ModelArrayAccessor<CouplingFields::Q_SS_NO_SW, RW> qNoSunAccessor(
         couplingArrays, RO, ModelArray::Type::H);
-    HField& data0 = data0Accessor.getHostRW();
+    HField& data0 = qNoSunAccessor.getHostRW();
     data0 = 0;
-    ModelArrayAccessor<CouplingFields::Q_SS_SW, RW> data1Accessor(
+    ModelArrayAccessor<CouplingFields::Q_SS_SW, RW> qswNetAccessor(
         couplingArrays, RO, ModelArray::Type::H);
-    data1Accessor.getHostRW() = data0;
+    qswNetAccessor.getHostRW() = data0;
     ModelArrayAccessor<CouplingFields::FWFLUX, RW> data2Accessor(
         couplingArrays, RO, ModelArray::Type::H);
     data2Accessor.getHostRW() = data0;
     ModelArrayAccessor<CouplingFields::SFLUX, RW> data3Accessor(
         couplingArrays, RO, ModelArray::Type::H);
-    data3Accessor.getHostRW() = data0;*/
+    data3Accessor.getHostRW() = data0;
 
     // External SS* data
     ModelArrayAccessor<Protected::EXT_SSS, RW> sssExtAccessor(
@@ -86,7 +85,7 @@ TEST_CASE("Test Qdw")
     ModelArrayAccessor<Protected::SLAB_QDW> qdwAccessor(ModelComponent::getStore());
     const HField& qdw = qdwAccessor.getHostRO();
 
-    double prec = 1e-8;
+    constexpr FloatType prec = std::is_same_v<FloatType, float> ? 1e-6 : 1e-8;
     REQUIRE(qdw[0]
         == doctest::Approx(tOffset * cpml[0] / SlabOcean::defaultRelaxationTime).epsilon(prec));
 
@@ -99,12 +98,8 @@ TEST_CASE("Test Qdw")
         REQUIRE(sstSlab[0] == doctest::Approx(sst[0] + dt * qdw[0] / cpml[0]).epsilon(prec));
     }
 
-    ModelArrayAccessor<CouplingFields::Q_SS_SW, RW> qswNetAccessor(
-        couplingArrays, RW, ModelArray::Type::H);
     HField& qswNet = qswNetAccessor.getHostRW();
     qswNet[0] = 15;
-    ModelArrayAccessor<CouplingFields::Q_SS_NO_SW, RW> qNoSunAccessor(
-        couplingArrays, RW, ModelArray::Type::H);
     HField& qNoSun = qNoSunAccessor.getHostRW();
     qNoSun[0] = -17.5;
 
@@ -119,14 +114,14 @@ TEST_CASE("Test Fdw")
 {
     // 1000 s timestep
     TimestepTime tst = { TimePoint(), Duration("P0-0T0:16:40") };
-    double dt = tst.step.seconds();
+    FloatType dt = tst.step.seconds();
     REQUIRE(dt == 1000);
 
     ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
 
     ModelArrayStore couplingArrays;
 
-    double sOffset = 0.1;
+    FloatType sOffset = 0.1;
     // Supply the data to the slab ocean
     ModelArrayAccessor<Protected::SSS, RW> sssAccessor(
         ModelComponent::getStore(), RO, ModelArray::Type::H);
@@ -148,7 +143,6 @@ TEST_CASE("Test Fdw")
     HField& cpml = cpmlAccessor.getHostRW();
     cpml = Water::cp * Water::rho * mld;
 
-    /*
     ModelArrayAccessor<CouplingFields::Q_SS_NO_SW, RW> data0Accessor(
         couplingArrays, RO, ModelArray::Type::H);
     HField& data0 = data0Accessor.getHostRW();
@@ -156,12 +150,12 @@ TEST_CASE("Test Fdw")
     ModelArrayAccessor<CouplingFields::Q_SS_SW, RW> data1Accessor(
         couplingArrays, RO, ModelArray::Type::H);
     data1Accessor.getHostRW() = data0;
-    ModelArrayAccessor<CouplingFields::FWFLUX, RW> data2Accessor(
-        couplingArrays, RO, ModelArray::Type::H);
-    data2Accessor.getHostRW() = data0;
+    ModelArrayAccessor<CouplingFields::FWFLUX, RW> snowMeltFluxAccessor(
+        couplingArrays, RW, ModelArray::Type::H);
+    snowMeltFluxAccessor.getHostRW() = data0;
     ModelArrayAccessor<CouplingFields::SFLUX, RW> data3Accessor(
         couplingArrays, RO, ModelArray::Type::H);
-    data3Accessor.getHostRW() = data0;*/
+    data3Accessor.getHostRW() = data0;
 
     // External SS* data
     ModelArrayAccessor<Protected::EXT_SSS, RW> sssExtAccessor(
@@ -181,37 +175,46 @@ TEST_CASE("Test Fdw")
     ModelArrayAccessor<Protected::SLAB_FDW> fdwAccessor(ModelComponent::getStore());
     const HField& fdw = fdwAccessor.getHostRO();
 
-    double prec = 1e-6;
+    // maintaining this tolerance for both float and double is important here because the change
+    // that is tested for is so small
+    constexpr FloatType prec = 1e-6;
     REQUIRE(fdw[0]
         == doctest::Approx(
             -sOffset / sss[0] * mld[0] * Water::rho / SlabOcean::defaultRelaxationTime)
                .epsilon(prec));
     // Test that the finiteelement.cpp calculation of fdw is not being used
-    double delS = -sOffset;
-    double timeS = SlabOcean::defaultRelaxationTime;
-    double ddt = tst.step.seconds();
-    double oldFdw = delS * mld[0] * Water::rho / (timeS * sss[0] - ddt * delS);
+    FloatType delS = -sOffset;
+    FloatType timeS = SlabOcean::defaultRelaxationTime;
+    FloatType ddt = tst.step.seconds();
+    FloatType oldFdw = delS * mld[0] * Water::rho / (timeS * sss[0] - ddt * delS);
     REQUIRE(fdw[0] != doctest::Approx(oldFdw).epsilon(prec * 1e-6));
 
     ModelArrayAccessor<Protected::SLAB_SSS> sssSlabAccessor(ModelComponent::getStore());
-    const HField& sssSlab = sssSlabAccessor.getHostRO();
 
-    REQUIRE(sssSlab[0] != doctest::Approx(sss[0]).epsilon(prec / dt));
-    REQUIRE(sssSlab[0]
-        == doctest::Approx(sss[0] - (fdw[0] * dt) / (mld[0] * Water::rho + fdw[0] * dt))
-               .epsilon(prec));
+    {
+        const HField& sssSlab = sssSlabAccessor.getHostRO();
 
-    ModelArrayAccessor<CouplingFields::FWFLUX, RW> snowMeltFluxAccessor(
-        couplingArrays, RW, ModelArray::Type::H);
-    HField& snowMeltFlux = snowMeltFluxAccessor.getHostRW();
-    double snowMelt = -1e-4;
-    double snowMeltVol = snowMelt * Ice::rhoSnow;
-    snowMeltFlux = snowMeltVol / dt;
-    slabOcean.update(tst);
-    REQUIRE(sssSlab[0]
-        == doctest::Approx(sss[0]
-            + (snowMeltVol - fdw[0] * dt) / (mld[0] * Water::rho - snowMeltVol + fdw[0] * dt))
-               .epsilon(prec));
+        REQUIRE(sssSlab[0] != doctest::Approx(sss[0]).epsilon(prec / dt));
+        REQUIRE(sssSlab[0]
+            == doctest::Approx(
+                sss[0] - (sss[0] * fdw[0] * dt) / (mld[0] * Water::rho + fdw[0] * dt))
+                   .epsilon(prec));
+    }
+
+    {
+        HField& snowMeltFlux = snowMeltFluxAccessor.getHostRW();
+        FloatType snowMelt = -1e-4;
+        FloatType snowMeltVol = snowMelt * Ice::rhoSnow;
+        snowMeltFlux = snowMeltVol / dt;
+        slabOcean.update(tst);
+        const HField& sssSlab = sssSlabAccessor.getHostRO();
+
+        REQUIRE(sssSlab[0]
+            == doctest::Approx(sss[0]
+                + sss[0] * (snowMeltVol - fdw[0] * dt)
+                    / (mld[0] * Water::rho - snowMeltVol + fdw[0] * dt))
+                   .epsilon(prec));
+    }
 }
 TEST_SUITE_END();
 } /* namespace Nextsim */

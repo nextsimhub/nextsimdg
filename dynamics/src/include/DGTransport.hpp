@@ -12,7 +12,7 @@
 namespace Nextsim {
 
 template <int DG>
-void DGTransportOperator(const ParametricMesh& smesh, const double dt, const DGVector<DG>& vx,
+void DGTransportOperator(const ParametricMesh& smesh, const FloatType dt, const DGVector<DG>& vx,
     const DGVector<DG>& vy, const EdgeVector<EDGEDOFS(DG)>& evx,
     const EdgeVector<EDGEDOFS(DG)>& evy, const DGVector<DG>& phi, DGVector<DG>& phiup);
 
@@ -49,21 +49,21 @@ protected:
      *
      * @params phi is the vector of values to be transported
      */
-    void step_rk1(const double dt, DGVector<DG>& phi);
+    void step_rk1(const FloatType dt, DGVector<DG>& phi);
 
     /*!
      * Performs one time step transporting phi with the 2nd Order Heun Scheme
      *
      * @params phi is the vector of values to be transported
      */
-    void step_rk2(const double dt, DGVector<DG>& phi);
+    void step_rk2(const FloatType dt, DGVector<DG>& phi);
 
     /*!
      * Performs one time step transporting phi with the 2nd Order Heun Scheme
      *
      * @params phi is the vector of values to be transported
      */
-    void step_rk3(const double dt, DGVector<DG>& phi);
+    void step_rk3(const FloatType dt, DGVector<DG>& phi);
 
 public:
     DGTransport(const ParametricMesh& mesh)
@@ -133,7 +133,7 @@ public:
      *
      * @params phi is the vector of values to be transported
      */
-    void step(const double dt, DGVector<DG>& phi);
+    void step(const FloatType dt, DGVector<DG>& phi);
 
 private:
     /*!
@@ -141,18 +141,18 @@ private:
      */
 
     //! computes all integrals on the elements and the edges
-    void DGTransportOperator(const ParametricMesh& smesh, const double dt, const DGVector<DG>& vx,
-        const DGVector<DG>& vy, const EdgeVector<EDGEDOFS(DG)>& normalvel_X,
+    void DGTransportOperator(const ParametricMesh& smesh, const FloatType dt,
+        const DGVector<DG>& vx, const DGVector<DG>& vy, const EdgeVector<EDGEDOFS(DG)>& normalvel_X,
         const EdgeVector<EDGEDOFS(DG)>& normalvel_Y, const DGVector<DG>& phi, DGVector<DG>& phiup);
 
-    void edge_term_X(const ParametricMesh& smesh, const double dt, DGVector<DG>& phiup,
+    void edge_term_X(const ParametricMesh& smesh, const FloatType dt, DGVector<DG>& phiup,
         const DGVector<DG>& phi, const EdgeVector<EDGEDOFS(DG)>& normalvel_Y, const size_t c1,
         const size_t c2, const size_t ie);
-    void edge_term_Y(const ParametricMesh& smesh, const double dt, DGVector<DG>& phiup,
+    void edge_term_Y(const ParametricMesh& smesh, const FloatType dt, DGVector<DG>& phiup,
         const DGVector<DG>& phi, const EdgeVector<EDGEDOFS(DG)>& normalvel_Y, const size_t c1,
         const size_t c2, const size_t ie);
 
-    void cell_term(const ParametricMesh& smesh, double dt, DGVector<DG>& phiup,
+    void cell_term(const ParametricMesh& smesh, FloatType dt, DGVector<DG>& phiup,
         const DGVector<DG>& phi, const DGVector<DG>& vx, const DGVector<DG>& vy, const size_t ic);
 };
 

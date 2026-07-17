@@ -12,6 +12,7 @@
 #include "include/ModelMPI.hpp"
 #endif
 #include "include/MissingData.hpp"
+#include "include/NetCDFUtils.hpp"
 #include "include/gridNames.hpp"
 
 #include <ncDim.h>
@@ -149,12 +150,12 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
             ModelArray::DataType tempData;
             tempData.resize(halo.getInnerSize(), data.nComponents());
             // populate temp Eigen array with data from netCDF file
-            var.getVar(start, count, tempData.data());
+            readNetCDFVar(var, start, count, tempData.data());
             // populate inner block of modelarray with data from tempData
             halo.setInnerBlock(tempData, data.getDataRef());
             halo.exchangeHalos(data.getDataRef());
 #else
-            var.getVar(start, count, &data[0]);
+            readNetCDFVar(var, start, count, &data[0]);
 #endif
         }
         ncFile.close();
@@ -235,12 +236,12 @@ ModelState ParaGridIO::readForcingTimeStatic(
             ModelArray::DataType tempData;
             tempData.resize(halo.getInnerSize(), data.nComponents());
             // populate temp Eigen array with data from netCDF file
-            var.getVar(indexArray, extentArray, tempData.data());
+            readNetCDFVar(var, indexArray, extentArray, tempData.data());
             // populate inner block of modelarray with data from tempData
             halo.setInnerBlock(tempData, data.getDataRef());
             halo.exchangeHalos(data.getDataRef());
 #else
-            var.getVar(indexArray, extentArray, &data[0]);
+            readNetCDFVar(var, indexArray, extentArray, &data[0]);
 #endif
         }
         ncFile.close();
@@ -325,8 +326,8 @@ void ParaGridIO::dumpModelState(const ModelState& state, const std::string& file
         std::reverse(count.begin(), count.end());
 
         std::vector<netCDF::NcDim>& ncDims = dimMap.at(type);
-        netCDF::NcVar var(ncFile.addVar(entry.first, netCDF::ncDouble, ncDims));
-        var.putAtt(mdiName, netCDF::ncDouble, MissingData::value());
+        netCDF::NcVar var(ncFile.addVar(entry.first, ToNetCDFType<FloatType>::get(), ncDims));
+        var.putAtt(mdiName, ToNetCDFType<FloatType>::get(), MissingData::value());
 
 #ifdef USE_MPI
         auto& data = entry.second;
@@ -470,8 +471,8 @@ void ParaGridIO::writeDiagnosticTime(const ModelState& state, const std::string&
     std::vector<netCDF::NcDim> timeDimVec = { timeDim };
     netCDF::NcVar timeVar(
         (isNew) ? ncFile.addVar(timeName, netCDF::ncDouble, timeDimVec) : ncFile.getVar(timeName));
-    auto& metadata = ModelMetadata::getInstance();
-    double secondsSinceEpoch = (metadata.time() - TimePoint()).seconds();
+    const auto& metadata = ModelMetadata::getInstance();
+    const double secondsSinceEpoch = (metadata.time() - TimePoint()).seconds();
 #ifdef USE_MPI
     netCDF::setVariableCollective(timeVar, ncFile);
 #endif
@@ -488,7 +489,7 @@ void ParaGridIO::writeDiagnosticTime(const ModelState& state, const std::string&
             continue;
         if (entry.first == maskName) {
             // Land mask in a new file (since it was skipped above in existing files)
-            netCDF::NcVar var(ncFile.addVar(maskName, netCDF::ncDouble, maskDims));
+            netCDF::NcVar var(ncFile.addVar(maskName, ToNetCDFType<FloatType>::get(), maskDims));
             // No missing data
 #ifdef USE_MPI
             netCDF::setVariableCollective(var, ncFile);
@@ -505,10 +506,11 @@ void ParaGridIO::writeDiagnosticTime(const ModelState& state, const std::string&
         } else {
             std::vector<netCDF::NcDim>& ncDims = dimMap.at(type);
             // Get the variable object, either creating a new one or getting the existing one
-            netCDF::NcVar var((isNew) ? ncFile.addVar(entry.first, netCDF::ncDouble, ncDims)
-                                      : ncFile.getVar(entry.first));
+            netCDF::NcVar var((isNew)
+                    ? ncFile.addVar(entry.first, ToNetCDFType<FloatType>::get(), ncDims)
+                    : ncFile.getVar(entry.first));
             if (isNew)
-                var.putAtt(mdiName, netCDF::ncDouble, MissingData::value());
+                var.putAtt(mdiName, ToNetCDFType<FloatType>::get(), MissingData::value());
 #ifdef USE_MPI
             netCDF::setVariableCollective(var, ncFile);
             auto& data = entry.second;

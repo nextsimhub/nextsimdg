@@ -39,12 +39,12 @@ public:
     void updateAfter(const TimestepTime& tst) override { }
 
 private:
-    static double qio0;
-    static double sst0;
-    static double sss0;
-    static double mld0;
-    static double u0;
-    static double v0;
+    static FloatType qio0;
+    static FloatType sst0;
+    static FloatType sss0;
+    static FloatType mld0;
+    static FloatType u0;
+    static FloatType v0;
 };
 
 } /* namespace Nextsim */

@@ -18,13 +18,13 @@
 
 namespace Nextsim {
 
-static constexpr double ICE_ALBEDO0 = 0.538;
-static constexpr double SNOW_ALBEDO0 = 0.8256;
-static constexpr double I0_DEFAULT = 0.17;
+static constexpr FloatType ICE_ALBEDO0 = 0.538;
+static constexpr FloatType SNOW_ALBEDO0 = 0.8256;
+static constexpr FloatType I0_DEFAULT = 0.17;
 
-double CCSMIceAlbedo::iceAlbedo = ICE_ALBEDO0;
-double CCSMIceAlbedo::snowAlbedo = SNOW_ALBEDO0;
-double CCSMIceAlbedo::i0 = I0_DEFAULT;
+FloatType CCSMIceAlbedo::iceAlbedo = ICE_ALBEDO0;
+FloatType CCSMIceAlbedo::snowAlbedo = SNOW_ALBEDO0;
+FloatType CCSMIceAlbedo::i0 = I0_DEFAULT;
 
 static const std::string pfx = "CCSMIceAlbedo";
 static const std::string iceAlbedoKey = pfx + ".iceAlbedo";
@@ -58,22 +58,24 @@ void CCSMIceAlbedo::update(const TimestepTime& tst)
     const auto& hsnow = hsnowAccessor.getAutoRO(execSpace);
     const auto& tsurf = tsurfAccessor.getAutoRO(execSpace);
 
-    const double iceAlbedoBase = CCSMIceAlbedo::iceAlbedo;
-    const double snowAlbedoBase = CCSMIceAlbedo::snowAlbedo;
-    const double i0 = CCSMIceAlbedo::i0;
+    const FloatType iceAlbedoBase = CCSMIceAlbedo::iceAlbedo;
+    const FloatType snowAlbedoBase = CCSMIceAlbedo::snowAlbedo;
+    const FloatType i0 = CCSMIceAlbedo::i0;
 
     overElementsAuto(OVER_ELEMENTS_LAMBDA(const ElementIndex i) {
-        const double snowThickness = cice[i] > 0 ? hsnow[i] / cice[i] : 0.;
-        const double temperature = tsurf[i];
+        const FloatType snowThickness = cice[i] > 0 ? hsnow[i] / cice[i] : 0.;
+        const FloatType temperature = tsurf[i];
 
-        constexpr double tLimit = -1.;
-        const double iceAlbedoT = iceAlbedoBase - Utils::fmax(0., 0.075 * (temperature - tLimit));
-        const double snowAlbedoT = snowAlbedoBase - Utils::fmax(0., 0.124 * (temperature - tLimit));
-        const double snowCoverFraction = snowThickness / (snowThickness + 0.02);
+        constexpr FloatType tLimit = -1.;
+        const FloatType iceAlbedoT
+            = iceAlbedoBase - Utils::fmax(0., 0.075 * (temperature - tLimit));
+        const FloatType snowAlbedoT
+            = snowAlbedoBase - Utils::fmax(0., 0.124 * (temperature - tLimit));
+        const FloatType snowCoverFraction = snowThickness / (snowThickness + 0.02);
 
-        const double albedo
+        const FloatType albedo
             = snowCoverFraction * snowAlbedoT + (1 - snowCoverFraction) * iceAlbedoT;
-        const double penSW = (1. - snowCoverFraction) * i0;
+        const FloatType penSW = (1. - snowCoverFraction) * i0;
 
         iceAlbedo[i] = albedo;
         icePenSW[i] = penSW;

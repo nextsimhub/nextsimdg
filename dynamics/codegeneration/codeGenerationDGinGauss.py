@@ -18,18 +18,20 @@ def basisfunctions_in_gausspoints_edge(edge, d, g):
     # print header
     if g > 1 and d > 1:
         print(
-            "static const Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor> PSI{2}{3}_{4} =".format(
+            "static const Eigen::Matrix<FloatType, {0}, {1}, Eigen::RowMajor> PSI{2}{3}_{4} =".format(
                 g, d, d, g, edge
             )
         )
-        print("\t(Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor>() <<".format(g, d))
+        print(
+            "\t(Eigen::Matrix<FloatType, {0}, {1}, Eigen::RowMajor>() <<".format(g, d)
+        )
     else:
         print(
-            "static const Eigen::Matrix<double, {0}, {1}> PSI{2}{3}_{4} =".format(
+            "static const Eigen::Matrix<FloatType, {0}, {1}> PSI{2}{3}_{4} =".format(
                 g, d, d, g, edge
             )
         )
-        print("\t(Eigen::Matrix<double, {0}, {1}>() <<".format(g, d))
+        print("\t(Eigen::Matrix<FloatType, {0}, {1}>() <<".format(g, d))
 
     print("\t", end=" ")
     for gp in range(g):
@@ -83,14 +85,14 @@ def basisfunctions_in_gausspoints_edge_new(edge, d, g):
     if g > 1 and d > 1:
         print("template<> struct PSIe_wImpl< {0}, {1}, {2} >{{".format(d, g, edge))
         print(
-            "static inline const Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor> value = (Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor>() <<".format(
+            "static inline const Eigen::Matrix<FloatType, {0}, {1}, Eigen::RowMajor> value = (Eigen::Matrix<FloatType, {0}, {1}, Eigen::RowMajor>() <<".format(
                 g, d
             )
         )
     else:
         print("template<> struct PSIe_wImpl< {0}, {1}, {2} >{{".format(d, g, edge))
         print(
-            "static inline const Eigen::Matrix<double, {0}, {1}> value = (Eigen::Matrix<double, {0}, {1}>() <<".format(
+            "static inline const Eigen::Matrix<FloatType, {0}, {1}> value = (Eigen::Matrix<FloatType, {0}, {1}>() <<".format(
                 g, d
             )
         )
@@ -141,20 +143,22 @@ def integration_basisfunctions_in_gausspoints_cell(d, g):
     # print header
     if d > 1:
         print(
-            "static const Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor> IBC{2}{3} =".format(
+            "static const Eigen::Matrix<FloatType, {0}, {1}, Eigen::RowMajor> IBC{2}{3} =".format(
                 d, g * g, d, g
             )
         )
         print(
-            "\t(Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor>() <<".format(d, g * g)
+            "\t(Eigen::Matrix<FloatType, {0}, {1}, Eigen::RowMajor>() <<".format(
+                d, g * g
+            )
         )
     else:
         print(
-            "static const Eigen::Matrix<double, {0}, {1}> IBC{2}{3} =".format(
+            "static const Eigen::Matrix<FloatType, {0}, {1}> IBC{2}{3} =".format(
                 d, g * g, d, g
             )
         )
-        print("\t(Eigen::Matrix<double, {0}, {1}>() <<".format(d, g * g))
+        print("\t(Eigen::Matrix<FloatType, {0}, {1}>() <<".format(d, g * g))
     print("\t", end=" ")
     for dp in range(d):
         for gy in range(g):
@@ -185,7 +189,7 @@ def basisfunctions_in_lagrangepoints_cell(d, g):
     # print header
     print("template<> struct PSILagrangeImpl< {0}, {1} >{{".format(d, g))
     print(
-        "static inline const Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor> value = (Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor>() <<".format(
+        "static inline const Eigen::Matrix<FloatType, {0}, {1}, Eigen::RowMajor> value = (Eigen::Matrix<FloatType, {0}, {1}, Eigen::RowMajor>() <<".format(
             d, g * g
         )
     )
@@ -217,13 +221,13 @@ def basisfunctions_in_gausspoints_cell(d, g):
     print("template<> struct PSIImpl< {0}, {1} >{{".format(d, g))
     if g > 1:
         print(
-            "static inline const Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor> value = (Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor>() <<".format(
+            "static inline const Eigen::Matrix<FloatType, {0}, {1}, Eigen::RowMajor> value = (Eigen::Matrix<FloatType, {0}, {1}, Eigen::RowMajor>() <<".format(
                 d, g * g
             )
         )
     else:
         print(
-            "static inline const Eigen::Matrix<double, {0}, {1}> value = (Eigen::Matrix<double, {0}, {1}>() <<".format(
+            "static inline const Eigen::Matrix<FloatType, {0}, {1}> value = (Eigen::Matrix<FloatType, {0}, {1}>() <<".format(
                 d, g * g
             )
         )
@@ -255,13 +259,13 @@ def basisfunctions_in_gausspoints_cell_gradient(d, g):
     print("template<> struct PSIxImpl< {0}, {1} >{{".format(d, g))
     if g > 1:
         print(
-            "static inline const Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor> value = (Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor>() <<".format(
+            "static inline const Eigen::Matrix<FloatType, {0}, {1}, Eigen::RowMajor> value = (Eigen::Matrix<FloatType, {0}, {1}, Eigen::RowMajor>() <<".format(
                 d, g * g
             )
         )
     else:
         print(
-            "static inline const Eigen::Matrix<double, {0}, {1}> value = (Eigen::Matrix<double, {0}, {1}>() <<".format(
+            "static inline const Eigen::Matrix<FloatType, {0}, {1}> value = (Eigen::Matrix<FloatType, {0}, {1}>() <<".format(
                 d, g * g
             )
         )
@@ -285,13 +289,13 @@ def basisfunctions_in_gausspoints_cell_gradient(d, g):
     print("template<> struct PSIyImpl< {0}, {1} >{{".format(d, g))
     if g > 1:
         print(
-            "static inline const Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor> value = (Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor>() <<".format(
+            "static inline const Eigen::Matrix<FloatType, {0}, {1}, Eigen::RowMajor> value = (Eigen::Matrix<FloatType, {0}, {1}, Eigen::RowMajor>() <<".format(
                 d, g * g
             )
         )
     else:
         print(
-            "static inline const Eigen::Matrix<double, {0}, {1}> value = (Eigen::Matrix<double, {0}, {1}>() <<".format(
+            "static inline const Eigen::Matrix<FloatType, {0}, {1}> value = (Eigen::Matrix<FloatType, {0}, {1}>() <<".format(
                 d, g * g
             )
         )
@@ -321,13 +325,13 @@ def edge_basisfunctions_in_gausspoints(d, g):
     print("template<> struct PSIeImpl< {0}, {1} >{{".format(d, g))
     if g > 1 and d > 1:
         print(
-            "static inline const Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor> value = (Eigen::Matrix<double, {0}, {1}, Eigen::RowMajor>() <<".format(
+            "static inline const Eigen::Matrix<FloatType, {0}, {1}, Eigen::RowMajor> value = (Eigen::Matrix<FloatType, {0}, {1}, Eigen::RowMajor>() <<".format(
                 d, g
             )
         )
     else:
         print(
-            "static inline const Eigen::Matrix<double, {0}, {1}> value = (Eigen::Matrix<double, {0}, {1}>() <<".format(
+            "static inline const Eigen::Matrix<FloatType, {0}, {1}> value = (Eigen::Matrix<FloatType, {0}, {1}>() <<".format(
                 d, g
             )
         )
@@ -346,9 +350,11 @@ def edge_basisfunctions_in_gausspoints(d, g):
 # make sure that Guass quadrature is correct
 gq.sanitycheck_gauss()
 
+include_guard = "__CODEGENERATIONDGINGAUSS_HPP"
+
 # Some output
-print("#ifndef __BASISFUNCTIONSGUASSPOINTS_HPP")
-print("#define __BASISFUNCTIONSGUASSPOINTS_HPP")
+print(f"#ifndef {include_guard}")
+print(f"#define {include_guard}")
 print("\n")
 print("// Automatically generated by codegeneration/basisfunctions_gausspoints.py")
 print("//")
@@ -379,17 +385,19 @@ print("// - dg is the dG degree and gq the number of Gauss points in each direct
 print("// - PSI[i,j] is phi_j( gauss_point(i) )")
 print("")
 
+print('#include "NextsimDynamics.hpp"')
+print("\nnamespace Nextsim {")
 
 # print out guass points and weights
 print("\n\n//------------------------------ Gauss Quadrature\n")
 for gp in [1, 2, 3, 4]:
-    print("constexpr double gauss_points{0}[{0}] = {{".format(gp), end="")
+    print("constexpr FloatType gauss_points{0}[{0}] = {{".format(gp), end="")
     for q in range(gp):
         print(gq.gausspoints[gp - 1, q], end="")
         if q < gp - 1:
             print(",", end="")
     print("};")
-    print("constexpr double gauss_weights{0}[{0}] = {{".format(gp), end="")
+    print("constexpr FloatType gauss_weights{0}[{0}] = {{".format(gp), end="")
     for q in range(gp):
         print(gq.gaussweights[gp - 1, q], end="")
         if q < gp - 1:
@@ -404,7 +412,7 @@ for g in [1, 2, 3, 4]:
     # print header
     print("template<> struct GAUSSWEIGHTSImpl< {0} >{{".format(g))
     print(
-        "static inline const Eigen::Matrix<double, 1, {0}, Eigen::RowMajor> value = (Eigen::Matrix<double, 1, {0}, Eigen::RowMajor>() <<".format(
+        "static inline const Eigen::Matrix<FloatType, 1, {0}, Eigen::RowMajor> value = (Eigen::Matrix<FloatType, 1, {0}, Eigen::RowMajor>() <<".format(
             g * g
         )
     )
@@ -420,7 +428,7 @@ for g in [1, 2, 3, 4]:
                 print(").finished();};")
 print("template<int NGP>")
 print(
-    "const Eigen::Matrix<double, 1, NGP*NGP, Eigen::RowMajor> GAUSSWEIGHTS = GAUSSWEIGHTSImpl<NGP>::value;"
+    "const Eigen::Matrix<FloatType, 1, NGP*NGP, Eigen::RowMajor> GAUSSWEIGHTS = GAUSSWEIGHTSImpl<NGP>::value;"
 )
 print("")
 
@@ -429,14 +437,16 @@ print("\n\n//------------------------------ Gauss Points\n")
 for g in [1, 2, 3, 4]:
     if g > 1:
         print(
-            "static const Eigen::Matrix<double, 2, {0}, Eigen::RowMajor> GAUSSPOINTS_{1} =".format(
+            "static const Eigen::Matrix<FloatType, 2, {0}, Eigen::RowMajor> GAUSSPOINTS_{1} =".format(
                 g * g, g
             )
         )
-        print("\t(Eigen::Matrix<double, 2, {0}, Eigen::RowMajor>() <<".format(g * g))
+        print("\t(Eigen::Matrix<FloatType, 2, {0}, Eigen::RowMajor>() <<".format(g * g))
     else:
-        print("static const Eigen::Matrix<double, 2, {0}> GAUSS_{1} =".format(g * g, g))
-        print("\t(Eigen::Matrix<double, 2, {0}>() <<".format(g * g))
+        print(
+            "static const Eigen::Matrix<FloatType, 2, {0}> GAUSS_{1} =".format(g * g, g)
+        )
+        print("\t(Eigen::Matrix<FloatType, 2, {0}>() <<".format(g * g))
     print("\t", end=" ")
     for _ in range(g):
         for gx in range(g):
@@ -481,7 +491,7 @@ for dg in [1, 3, 6, 8]:
         print("")
 print("template<int DG, int GP, int E>")
 print(
-    "const Eigen::Matrix<double, GP, DG, Eigen::RowMajor> PSIe_w = PSIe_wImpl<DG, GP, E>::value;"
+    "const Eigen::Matrix<FloatType, GP, DG, Eigen::RowMajor> PSIe_w = PSIe_wImpl<DG, GP, E>::value;"
 )
 print("")
 
@@ -497,7 +507,7 @@ for dg in [1, 3, 6, 8]:
     basisfunctions_in_lagrangepoints_cell(dg, 3)
 print("template<int DG, int GP>")
 print(
-    "const Eigen::Matrix<double, DG, GP*GP, Eigen::RowMajor> PSILagrange = PSILagrangeImpl<DG, GP>::value;"
+    "const Eigen::Matrix<FloatType, DG, GP*GP, Eigen::RowMajor> PSILagrange = PSILagrangeImpl<DG, GP>::value;"
 )
 print("")
 
@@ -514,7 +524,7 @@ for dg in [1, 3, 6, 8]:
 
 print("template<int DG, int GP>")
 print(
-    "const Eigen::Matrix<double, DG, GP*GP, Eigen::RowMajor> PSI = PSIImpl<DG, GP>::value;"
+    "const Eigen::Matrix<FloatType, DG, GP*GP, Eigen::RowMajor> PSI = PSIImpl<DG, GP>::value;"
 )
 print("")
 
@@ -530,11 +540,11 @@ for dg in [1, 3, 6, 8]:
     basisfunctions_in_gausspoints_cell_gradient(dg, 4)
 print("template<int DG, int GP>")
 print(
-    "const Eigen::Matrix<double, DG, GP*GP, Eigen::RowMajor> PSIx = PSIxImpl<DG, GP>::value;"
+    "const Eigen::Matrix<FloatType, DG, GP*GP, Eigen::RowMajor> PSIx = PSIxImpl<DG, GP>::value;"
 )
 print("template<int DG, int GP>")
 print(
-    "const Eigen::Matrix<double, DG, GP*GP, Eigen::RowMajor> PSIy = PSIyImpl<DG, GP>::value;"
+    "const Eigen::Matrix<FloatType, DG, GP*GP, Eigen::RowMajor> PSIy = PSIyImpl<DG, GP>::value;"
 )
 print("")
 
@@ -557,9 +567,10 @@ edge_basisfunctions_in_gausspoints(2, 3)
 
 print("template<int DG, int GP>")
 print(
-    "const Eigen::Matrix<double, DG, GP, Eigen::RowMajor> PSIe = PSIeImpl<DG, GP>::value;"
+    "const Eigen::Matrix<FloatType, DG, GP, Eigen::RowMajor> PSIe = PSIeImpl<DG, GP>::value;"
 )
 print("")
 
 # Some output
-print("#endif /* __BASISFUNCTIONSGUASSPOINTS_HPP */")
+print("\n} /* namespace Nextsim */\n")
+print(f"#endif /* {include_guard} */")

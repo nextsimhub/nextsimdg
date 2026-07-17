@@ -58,10 +58,10 @@ TEST_CASE("TOPAZOcean test")
     // Get the forcing fields at time 0
     topaz.updateBefore(tst);
 
-    double mdi = -2.03703597633448608e90;
+    FloatType mdi = -2.03703597633448608e90;
 
-    // Use this, rather than the literal 0.035045, as the two are not equal at double precision
-    double targetFrac = 35 * 0.001 + 45 * 0.000001;
+    // Use this, rather than the literal 0.035045, as the two are not equal at FloatType precision
+    FloatType targetFrac = 35 * 0.001 + 45 * 0.000001;
 
     {
         const HField& sst = sstAccessor.getHostRO();
@@ -71,7 +71,7 @@ TEST_CASE("TOPAZOcean test")
         const HField& v = vAccessor.getHostRO();
         const HField& ssh = sshAccessor.getHostRO();
         REQUIRE(sst(0, 0) == mdi);
-        REQUIRE(sst(32, 32) == -0.032032);
+        REQUIRE(sst(32, 32) == -0.032032_ft);
         REQUIRE(sst(45, 35) == -(0 + targetFrac));
         REQUIRE(mld(45, 35) == (10 + targetFrac));
         REQUIRE(ssh(45, 35) == (20 + targetFrac));
@@ -88,7 +88,7 @@ TEST_CASE("TOPAZOcean test")
         const HField& v = vAccessor.getHostRO();
         const HField& ssh = sshAccessor.getHostRO();
         REQUIRE(sst(0, 0) == mdi);
-        REQUIRE(sst(32, 32) == -0.032032 - 1);
+        REQUIRE(sst(32, 32) == -0.032032_ft - 1);
         REQUIRE(sst(45, 35) == -(0 + targetFrac) - 1);
         REQUIRE(mld(45, 35) == (10 + targetFrac) + 1);
         REQUIRE(ssh(45, 35) == (20 + targetFrac) + 1);
@@ -105,7 +105,7 @@ TEST_CASE("TOPAZOcean test")
         const HField& v = vAccessor.getHostRO();
         const HField& ssh = sshAccessor.getHostRO();
         REQUIRE(sst(0, 0) == mdi);
-        REQUIRE(sst(32, 32) == -0.032032 - 11);
+        REQUIRE(sst(32, 32) == -0.032032_ft - 11);
         REQUIRE(sst(45, 35) == -(0 + targetFrac) - 11);
         REQUIRE(mld(45, 35) == (10 + targetFrac) + 11);
         REQUIRE(ssh(45, 35) == (20 + targetFrac) + 11);
@@ -123,7 +123,7 @@ TEST_CASE("TOPAZOcean test")
         const HField& v = vAccessor.getHostRO();
         const HField& ssh = sshAccessor.getHostRO();
         REQUIRE(sst(0, 0) == mdi);
-        REQUIRE(sst(32, 32) == -0.032032 - 11);
+        REQUIRE(sst(32, 32) == -0.032032_ft - 11);
         REQUIRE(sst(45, 35) == -(0 + targetFrac) - 11);
         REQUIRE(mld(45, 35) == (10 + targetFrac) + 11);
         REQUIRE(ssh(45, 35) == (20 + targetFrac) + 11);

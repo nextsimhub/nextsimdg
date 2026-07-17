@@ -61,7 +61,7 @@ TEST_CASE("Thermodynamic healing")
     iHealing->setData(ModelState().data);
 
     TimestepTime tst = { TimePoint("2000-001"), Duration("P0-1T00:00:00") };
-    double prec = 1e-8;
+    FloatType prec = 1e-8;
 
     // always go through the accessor because their are be updates in between
     iceState.damageAccessor.getHostRW() = 0.5;
@@ -121,7 +121,7 @@ TEST_CASE("New ice formation")
     iHealing = std::move(Module::getInstance<IDamageHealing>());
 
     TimestepTime tst = { TimePoint("2000-001"), Duration("P0-1T00:00:00") };
-    double prec = 1e-8;
+    const FloatType prec = std::is_same_v<FloatType, float> ? 1e-4 : 1e-8;
 
     // always go through the accessor because there are updates in between
     iceState.ciceAccessor.getHostRW() = 0.6;

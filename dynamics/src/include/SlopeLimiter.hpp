@@ -73,7 +73,7 @@ public:
                 for (size_t cx = 0; cx < mesh.nx;
                      ++cx, ++c, ++cgi) //!< loop over all cells of the mesh
                 {
-                    const double meanvalue = phi(c, comp);
+                    const FloatType meanvalue = phi(c, comp);
                     for (size_t j = 0; j < 4; ++j) {
                         _minv(cgi + cgindices[j]) = std::min(_minv(cgi + cgindices[j]), meanvalue);
                         _maxv(cgi + cgindices[j]) = std::max(_maxv(cgi + cgindices[j]), meanvalue);
@@ -83,14 +83,14 @@ public:
     }
 
     // truncates the averages by min or max value
-    void limitMax(DGVector<DG>& phi, double max) const
+    void limitMax(DGVector<DG>& phi, FloatType max) const
     {
 #pragma omp parallel for
         for (size_t c = 0; c < mesh.nelements; ++c)
             phi(c, 0) = std::min(max, phi(c, 0));
     }
     // truncates the averages by min or max value
-    void limitMin(DGVector<DG>& phi, double min) const
+    void limitMin(DGVector<DG>& phi, FloatType min) const
     {
 #pragma omp parallel for
         for (size_t c = 0; c < mesh.nelements; ++c)
@@ -111,25 +111,25 @@ public:
             size_t cgi = cy * (mesh.nx + 1) + cx; // index of lower-left vertex
 
             // values of phi in the 4 nodes: lower-left, lower-right, upper-left, upper-right
-            const Eigen::Vector<double, 4> vertexvalues
-                = { phi(c, 0) - 0.5 * phi(c, 1) - 0.5 * phi(c, 2),
-                      phi(c, 0) + 0.5 * phi(c, 1) - 0.5 * phi(c, 2),
-                      phi(c, 0) - 0.5 * phi(c, 1) + 0.5 * phi(c, 2),
-                      phi(c, 0) + 0.5 * phi(c, 1) + 0.5 * phi(c, 2) };
+            const Eigen::Vector<FloatType, 4> vertexvalues
+                = { phi(c, 0) - 0.5_ft * phi(c, 1) - 0.5_ft * phi(c, 2),
+                      phi(c, 0) + 0.5_ft * phi(c, 1) - 0.5_ft * phi(c, 2),
+                      phi(c, 0) - 0.5_ft * phi(c, 1) + 0.5_ft * phi(c, 2),
+                      phi(c, 0) + 0.5_ft * phi(c, 1) + 0.5_ft * phi(c, 2) };
 
             // value of phi in the midpoint
-            const double midvalue = phi(c, 0);
+            const FloatType midvalue = phi(c, 0);
 
-            double al = 1.0; // the limiter
+            FloatType al = 1.0; // the limiter
             for (size_t i = 0; i < 4; ++i) {
-                double dv = vertexvalues[i] - midvalue; // distance to midpoint
+                FloatType dv = vertexvalues[i] - midvalue; // distance to midpoint
                 if (dv > 1.e-8) {
                     assert(_max(cgi + cgindices[i]) >= midvalue);
-                    al = std::min(al, std::min(1.0, (_max(cgi + cgindices[i]) - midvalue) / dv));
+                    al = std::min(al, std::min(1.0_ft, (_max(cgi + cgindices[i]) - midvalue) / dv));
                 }
                 if (dv < -1.e-8) {
                     assert(_min(cgi + cgindices[i]) <= midvalue);
-                    al = std::min(al, std::min(1.0, (_min(cgi + cgindices[i]) - midvalue) / dv));
+                    al = std::min(al, std::min(1.0_ft, (_min(cgi + cgindices[i]) - midvalue) / dv));
                 }
                 assert(al >= 0);
             }
@@ -151,22 +151,24 @@ public:
             size_t cgi = cy * (mesh.nx + 1) + cx; // index of lower-left vertex
 
             // values of (d/dx phi) in the 4 nodes: lower-left, lower-right, upper-left, upper-right
-            const Eigen::Vector<double, 4> vertexvalues = { phi(c, 1) - phi(c, 3) - 0.5 * phi(c, 5),
-                phi(c, 1) + phi(c, 3) - 0.5 * phi(c, 5), phi(c, 1) - phi(c, 3) + 0.5 * phi(c, 5),
-                phi(c, 1) + phi(c, 3) + 0.5 * phi(c, 5) };
+            const Eigen::Vector<FloatType, 4> vertexvalues
+                = { phi(c, 1) - phi(c, 3) - 0.5_ft * phi(c, 5),
+                      phi(c, 1) + phi(c, 3) - 0.5_ft * phi(c, 5),
+                      phi(c, 1) - phi(c, 3) + 0.5_ft * phi(c, 5),
+                      phi(c, 1) + phi(c, 3) + 0.5_ft * phi(c, 5) };
             // value of d/dx phi in the midpoint
-            const double midvalue = phi(c, 1);
+            const FloatType midvalue = phi(c, 1);
 
-            double al = 1.0; // the limiter
+            FloatType al = 1.0; // the limiter
             for (size_t i = 0; i < 4; ++i) {
-                double dv = vertexvalues[i] - midvalue; // distance to midpoint
+                FloatType dv = vertexvalues[i] - midvalue; // distance to midpoint
                 if (dv > 1.e-8) {
                     assert(_max(cgi + cgindices[i]) >= midvalue);
-                    al = std::min(al, std::min(1.0, (_max(cgi + cgindices[i]) - midvalue) / dv));
+                    al = std::min(al, std::min(1.0_ft, (_max(cgi + cgindices[i]) - midvalue) / dv));
                 }
                 if (dv < -1.e-8) {
                     assert(_min(cgi + cgindices[i]) <= midvalue);
-                    al = std::min(al, std::min(1.0, (_min(cgi + cgindices[i]) - midvalue) / dv));
+                    al = std::min(al, std::min(1.0_ft, (_min(cgi + cgindices[i]) - midvalue) / dv));
                 }
                 assert(al >= 0);
             }
@@ -187,22 +189,24 @@ public:
             size_t cgi = cy * (mesh.nx + 1) + cx; // index of lower-left vertex
 
             // values of (d/dx phi) in the 4 nodes: lower-left, lower-right, upper-left, upper-right
-            const Eigen::Vector<double, 4> vertexvalues = { phi(c, 2) - phi(c, 4) - 0.5 * phi(c, 5),
-                phi(c, 2) - phi(c, 4) + 0.5 * phi(c, 5), phi(c, 2) + phi(c, 4) - 0.5 * phi(c, 5),
-                phi(c, 2) + phi(c, 4) + 0.5 * phi(c, 5) };
+            const Eigen::Vector<FloatType, 4> vertexvalues
+                = { phi(c, 2) - phi(c, 4) - 0.5_ft * phi(c, 5),
+                      phi(c, 2) - phi(c, 4) + 0.5_ft * phi(c, 5),
+                      phi(c, 2) + phi(c, 4) - 0.5_ft * phi(c, 5),
+                      phi(c, 2) + phi(c, 4) + 0.5_ft * phi(c, 5) };
             // value of d/dx phi in the midpoint
-            const double midvalue = phi(c, 2);
+            const FloatType midvalue = phi(c, 2);
 
-            double al = 1.0; // the limiter
+            FloatType al = 1.0; // the limiter
             for (size_t i = 0; i < 4; ++i) {
-                double dv = vertexvalues[i] - midvalue; // distance to midpoint
+                FloatType dv = vertexvalues[i] - midvalue; // distance to midpoint
                 if (dv > 1.e-8) {
                     assert(_max(cgi + cgindices[i]) >= midvalue);
-                    al = std::min(al, std::min(1.0, (_max(cgi + cgindices[i]) - midvalue) / dv));
+                    al = std::min(al, std::min(1.0_ft, (_max(cgi + cgindices[i]) - midvalue) / dv));
                 }
                 if (dv < -1.e-8) {
                     assert(_min(cgi + cgindices[i]) <= midvalue);
-                    al = std::min(al, std::min(1.0, (_min(cgi + cgindices[i]) - midvalue) / dv));
+                    al = std::min(al, std::min(1.0_ft, (_min(cgi + cgindices[i]) - midvalue) / dv));
                 }
                 assert(al >= 0);
             }

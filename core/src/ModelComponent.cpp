@@ -23,7 +23,7 @@ ModelComponent::ModelComponent()
 
 /*
  * This assumes that the HField array size has already been set in the restart
- * reading routine. The mask, like all ModelArrays, is double precision,
+ * reading routine. The mask, like all ModelArrays, is FloatType precision,
  * where 0 (false) is land, >0 (true) is ocean.
  */
 void ModelComponent::setOceanMask(const ModelArray& mask)
@@ -68,7 +68,7 @@ void ModelComponent::noLandMask()
 #endif
 }
 
-ModelArray ModelComponent::mask(const ModelArray& data, const double missingValue)
+ModelArray ModelComponent::mask(const ModelArray& data, const FloatType missingValue)
 {
     auto copy = data;
     copy = missingValue;
@@ -89,7 +89,7 @@ void ModelComponent::makeOceanIndexDevice()
     }
 
     std::vector<DeviceIndex> buf(oceanIndex.begin(), oceanIndex.end());
-    oceanIndexDevice = makeKokkosDeviceViewMap("oceanIndex", buf, MakeViewOptions::ALWAYS_COPY);
+    oceanIndexDevice = makeKokkosDeviceViewMap<MakeViewOptions::ALWAYS_COPY>("oceanIndex", buf);
     Finalizer::registerUnique(destroyOceanIndex);
 }
 

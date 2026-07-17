@@ -29,32 +29,32 @@ void UniformOcean::setData(const ModelState::DataMap& ms)
     sshAccessor.getHostRW() = 0.;
 }
 
-UniformOcean& UniformOcean::setSST(double sstIn)
+UniformOcean& UniformOcean::setSST(FloatType sstIn)
 {
     sst0 = sstIn;
     return *this;
 }
-UniformOcean& UniformOcean::setSSS(double sssIn)
+UniformOcean& UniformOcean::setSSS(FloatType sssIn)
 {
     sss0 = sssIn;
     return *this;
 }
-UniformOcean& UniformOcean::setMLD(double mldIn)
+UniformOcean& UniformOcean::setMLD(FloatType mldIn)
 {
     mld0 = mldIn;
     return *this;
 }
-UniformOcean& UniformOcean::setU(double uIn)
+UniformOcean& UniformOcean::setU(FloatType uIn)
 {
     u0 = uIn;
     return *this;
 }
-UniformOcean& UniformOcean::setV(double vIn)
+UniformOcean& UniformOcean::setV(FloatType vIn)
 {
     v0 = vIn;
     return *this;
 }
-UniformOcean& UniformOcean::setQio(double qioIn)
+UniformOcean& UniformOcean::setQio(FloatType qioIn)
 {
     qio0 = qioIn;
     return *this;

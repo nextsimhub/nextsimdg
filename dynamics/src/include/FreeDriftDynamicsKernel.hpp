@@ -69,9 +69,9 @@ public:
 
 protected:
     const DynamicsParameters& params;
-    double FAtm = std::numeric_limits<double>::quiet_NaN();
-    double NansenNumber = std::numeric_limits<double>::quiet_NaN();
-    double FOcean = std::numeric_limits<double>::quiet_NaN();
+    FloatType FAtm = std::numeric_limits<FloatType>::quiet_NaN();
+    FloatType NansenNumber = std::numeric_limits<FloatType>::quiet_NaN();
+    FloatType FOcean = std::numeric_limits<FloatType>::quiet_NaN();
 
     void updateMomentum(const TimestepTime& tst) override
     {

@@ -116,16 +116,16 @@ public:
      */
     virtual bool usesDamage() const { return m_usesDamage; }
 
-    virtual void advectField(double timestep, ModelArray& field,
-        double lowerLimit = -std::numeric_limits<double>::infinity(),
-        double upperLimit = std::numeric_limits<double>::infinity())
+    virtual void advectField(FloatType timestep, ModelArray& field,
+        FloatType lowerLimit = -std::numeric_limits<FloatType>::infinity(),
+        FloatType upperLimit = std::numeric_limits<FloatType>::infinity())
     {
     }
 
 #ifdef USE_KOKKOS
-    virtual void advectField(double timestep, const DeviceViewMA& field,
-        double lowerLimit = -std::numeric_limits<double>::infinity(),
-        double upperLimit = std::numeric_limits<double>::infinity())
+    virtual void advectField(FloatType timestep, const DeviceViewMA& field,
+        FloatType lowerLimit = -std::numeric_limits<FloatType>::infinity(),
+        FloatType upperLimit = std::numeric_limits<FloatType>::infinity())
     {
     }
 #endif

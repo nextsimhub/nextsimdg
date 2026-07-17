@@ -3,8 +3,8 @@
  * @author  Robert Jendersie <robert.jendersie@ovgu.de>
  */
 
-#include "include/IceMinima.hpp"
 #include "include/ThermoWinton.hpp"
+#include "include/IceMinima.hpp"
 
 #include "include/KernelAlternatives.hpp"
 #ifdef USE_XIOS
@@ -12,17 +12,16 @@
 #endif
 #include "include/constants.hpp"
 #include "include/gridNames.hpp"
-#include "kokkos/include/KokkosTimer.hpp"
 
 #include <cmath>
 
 namespace Nextsim {
 
-double ThermoWinton::kappa_s;
-static const double k_sDefault = 0.3096;
+FloatType ThermoWinton::kappa_s;
+static const FloatType k_sDefault = 0.3096;
 
-const double ThermoWinton::cVol = Ice::cp * Ice::rho; // bulk heat capacity of ice
-const double ThermoWinton::seaIceTf = -Water::mu * Ice::s;
+const FloatType ThermoWinton::cVol = Ice::cp * Ice::rho; // bulk heat capacity of ice
+const FloatType ThermoWinton::seaIceTf = -Water::mu * Ice::s;
 bool ThermoWinton::doFlooding = true;
 
 // Names of the additional ice temperature fields
@@ -142,6 +141,14 @@ void ThermoWinton::setData(const ModelState::DataMap& state)
     }
 }
 
+/*
+ * Use of double instead of FloatType is intentional here!
+ * Some of these computations have caused problems in float, causing rapid ice growth in summer for
+ * longer simulations.
+ * The performance cost is only marginal. We still benefit from the effective
+ * bandwith increase when the fields are stored as float and the thermodynamics are cheap in terms
+ * of compute.
+ */
 KERNEL_IMPL_FUNCTION static void calculateTemps(double& tSurf, double& tUppr, double& tLowr,
     double& mSurf, const double cice, const double dQia_dt, const double hice, const double hsnow,
     const double penSw, const double qia, const double tf, double dt, const double cVol,
@@ -193,9 +200,6 @@ KERNEL_IMPL_FUNCTION static void calculateTemps(double& tSurf, double& tUppr, do
 
 void ThermoWinton::update(const TimestepTime& tst)
 {
-    static KokkosTimer<true> timer("ThermoWinton");
-
-    timer.start();
     // Advect ice temperatures
     IIceThermodynamics::update(tst);
     auto execSpace = DefaultExecutionSpace();
@@ -318,12 +322,12 @@ void ThermoWinton::update(const TimestepTime& tst)
             hs = 0;
         }
         // Sublimated ice counts as top melt
-        topMelt[i] = Utils::max(0., h1 + h2 - hi); // (23)
+        topMelt[i] = Utils::max(0.0, h1 + h2 - hi); // (23)
 
         // Bottom melt/freezing
         double meltBottom = (qio[i] - 4 * Ice::kappa * (tBott - tLowr) / hi) * dt;
         snowMelt[i] = 0;
-        if (meltBottom <= 0.) {
+        if (meltBottom <= 0.0) {
             // Freezing
             // Eq. (25) - but I 've multiplied them with \rho_i (hence cVol), because it's
             // missing in the paper
@@ -335,15 +339,15 @@ void ThermoWinton::update(const TimestepTime& tst)
             // Melting
             // Eqs. (31)-(32) with added division with \rho_i (and \rho_s for 32)
             deltaIce2 = -Utils::min(-meltBottom / e2, h2);
-            deltaIce1 = -Utils::min(Utils::max(-(meltBottom + e2 * h2) / e1, 0.), h1);
+            deltaIce1 = -Utils::min(Utils::max(-(meltBottom + e2 * h2) / e1, 0.0), h1);
             snowMelt[i] = -Utils::min(
-                Utils::max((meltBottom + e2 * h2 + e1 * h1) / bulkLHFusionSnow, 0.), hs);
+                Utils::max((meltBottom + e2 * h2 + e1 * h1) / bulkLHFusionSnow, 0.0), hs);
 
             // If everything melts we need to put heat back into the ocean
-            if (h2 + h1 + hs - deltaIce2 - deltaIce1 - snowMelt[i] <= 0.) {
+            if (h2 + h1 + hs - deltaIce2 - deltaIce1 - snowMelt[i] <= 0.0) {
                 // (34) - with added multiplication of rhoi and rhos and division with dt
                 qow[i] -= cice[i]
-                    * Utils::max(meltBottom - bulkLHFusionSnow * hs + e1 * h1 + e2 * h2, 0.) / dt;
+                    * Utils::max(meltBottom - bulkLHFusionSnow * hs + e1 * h1 + e2 * h2, 0.0) / dt;
             }
 
             hs += snowMelt[i];
@@ -357,15 +361,15 @@ void ThermoWinton::update(const TimestepTime& tst)
         // assert(surfMelt >= 0);
         // Eqs. (27)-(29) with division of \rho_i and \rho_s
         snowMelt[i] -= Utils::min(surfMelt * dt / bulkLHFusionSnow, hs);
-        deltaIce1 = -Utils::min(Utils::max(-(surfMelt * dt - bulkLHFusionSnow * hs) / e1, 0.), h1);
+        deltaIce1 = -Utils::min(Utils::max(-(surfMelt * dt - bulkLHFusionSnow * hs) / e1, 0.0), h1);
         deltaIce2 = -Utils::min(
-            Utils::max(-(surfMelt * dt - bulkLHFusionSnow * hs + e1 * h1) / e2, 0.), h2);
+            Utils::max(-(surfMelt * dt - bulkLHFusionSnow * hs + e1 * h1) / e2, 0.0), h2);
 
         // If everything melts we need to put heat back into the ocean
         // Eq (30) - with multiplication of rhoi and rhos and division with dt
-        if (h2 + h1 + hs - deltaIce2 - deltaIce1 - snowMelt[i] <= 0.) {
+        if (h2 + h1 + hs - deltaIce2 - deltaIce1 - snowMelt[i] <= 0.0) {
             qow[i] -= cice[i]
-                * Utils::max(surfMelt * dt - bulkLHFusionSnow * hs + e1 * h1 + e2 * h2, 0.) / dt;
+                * Utils::max(surfMelt * dt - bulkLHFusionSnow * hs + e1 * h1 + e2 * h2, 0.0) / dt;
         }
 
         hs += snowMelt[i];
@@ -376,9 +380,9 @@ void ThermoWinton::update(const TimestepTime& tst)
         // Snow to ice conversion
         double freeboard
             = (hi * (Water::rhoOcean - Ice::rho) - hs * Ice::rhoSnow) / Water::rhoOcean;
-        if (doFlooding && freeboard < 0.) {
-            hs += Utils::min(freeboard * Ice::rho / Ice::rhoSnow, 0.); // (35) using +=
-            deltaIce1 = Utils::max(-freeboard, 0.); // (36)
+        if (doFlooding && freeboard < 0.0) {
+            hs += Utils::min(freeboard * Ice::rho / Ice::rhoSnow, 0.0); // (35) using +=
+            deltaIce1 = Utils::max(-freeboard, 0.0); // (36)
             double f1 = 1 - deltaIce1 / (deltaIce1 + h1); // Fraction of new ice in the upper layer
             double tBar = f1 * (tUppr + dHfTf_cp / tUppr) + (1 - f1) * seaIceTf; // (39)
             tUppr = (tBar - Utils::sqrt(tBar * tBar - 4 * dHfTf_cp)) / 2; // (38)

@@ -15,7 +15,7 @@
 
 namespace Nextsim {
 
-const double SlabOcean::defaultRelaxationTime = 30 * 24 * 60 * 60; // 30 days in seconds
+const FloatType SlabOcean::defaultRelaxationTime = 30 * 24 * 60 * 60; // 30 days in seconds
 
 // Configuration strings
 static const std::string className = "SlabOcean";
@@ -105,9 +105,9 @@ void SlabOcean::update(const TimestepTime& tst)
     const auto& qNoSun = qNoSunAccessor.getAutoRO(execSpace);
     const auto& cpml = cpmlAccessor.getAutoRO(execSpace);
 
-    const double dt = tst.step.seconds();
-    const double relaxationTimeT = SlabOcean::relaxationTimeT;
-    const double relaxationTimeS = SlabOcean::relaxationTimeS;
+    const FloatType dt = tst.step.seconds();
+    const FloatType relaxationTimeT = SlabOcean::relaxationTimeT;
+    const FloatType relaxationTimeS = SlabOcean::relaxationTimeS;
 
     overElementsAuto(OVER_ELEMENTS_LAMBDA(const ElementIndex i) {
         // Slab SST update
@@ -115,7 +115,7 @@ void SlabOcean::update(const TimestepTime& tst)
         sstSlab[i] = sst[i] - dt * (qswNet[i] + qNoSun[i] - qdw[i]) / cpml[i];
 
         // Slab SSS update
-        const double arealDensity
+        const FloatType arealDensity
             = cpml[i] / Water::cp; // density times depth, or cpml divided by cp
         // This is simplified compared to the finiteelement.cpp calculation
         // Fdw = delS * mld * physical::rhow /(timeS*M_sss[i] - ddt*delS) where delS = sssSlab -
@@ -124,11 +124,12 @@ void SlabOcean::update(const TimestepTime& tst)
 
         // the device compiler does not like a global constant appearing in the argument list of
         // a template function: "Water::rhoOcean" is undefined in device code"
-        const double rhoOcean = Water::rhoOcean;
+        const FloatType rhoOcean = Water::rhoOcean;
         // Mass per unit area after all the changes in water volume
         // Clamp the denominator to be at least 1 m deep, i.e. at least Water::rho kg m⁻²
-        const double denominator = Utils::max(arealDensity - (fwFlux[i] - fdw[i]) * dt, rhoOcean);
-        sssSlab[i] = sss[i] + (sss[i] * fwFlux[i] - fdw[i] * dt) / denominator;
+        const FloatType denominator
+            = Utils::max(arealDensity - (fwFlux[i] - fdw[i]) * dt, rhoOcean);
+        sssSlab[i] = sss[i] + (sss[i] * (fwFlux[i] - fdw[i]) * dt) / denominator;
     });
     timer.stop();
 }

@@ -101,7 +101,7 @@ TEST_CASE("New ice formation")
     ModelArrayAccessor<Shared::NEW_ICE, RO> newiceAccessor(ModelComponent::getStore());
     const HField& newice = newiceAccessor.getHostRO();
 
-    double prec = 1e-5;
+    FloatType prec = 1e-5;
     REQUIRE(newice[0] == doctest::Approx(0.0258264).epsilon(prec));
 }
 
@@ -192,7 +192,7 @@ TEST_CASE("Melting conditions")
     ModelArrayAccessor<Shared::H_SNOW_DG, RO> hsnowAccessor(ModelComponent::getStore());
     const HField& hsnow = hsnowAccessor.getHostRO();
 
-    double prec = 1e-5;
+    FloatType prec = 1e-5;
     // The thickness values from old NextSIM are cell-averaged. Perform that
     // conversion here.
     REQUIRE(cice[0] == doctest::Approx(0.368269).epsilon(prec));
@@ -288,7 +288,7 @@ TEST_CASE("Freezing conditions")
     ModelArrayAccessor<Shared::H_SNOW_DG, RO> hsnowAccessor(ModelComponent::getStore());
     const HField& hsnow = hsnowAccessor.getHostRO();
 
-    double prec = 1e-5;
+    FloatType prec = 1e-5;
 
     // The thickness values from old NextSIM are cell-averaged. Perform that
     // conversion here.
@@ -329,11 +329,10 @@ TEST_CASE("Dummy ice")
     } atmBdy;
     atmBdy.setData(ModelState().data);
 
-    // Don't like referencing variables in the enclosing scope? FINE!
-#define cice0 0.5
-#define hice0 0.1
-#define hsnow0 0.01
-#define tice00 -5
+    static constexpr FloatType cice0 = 0.5;
+    static constexpr FloatType hice0 = 0.1;
+    static constexpr FloatType hsnow0 = 0.01;
+    static constexpr FloatType tice00 = -5;
 
     class PrognosticData : public ModelComponent {
     public:
@@ -382,7 +381,7 @@ TEST_CASE("Dummy ice")
 
     ig.update(tst);
 
-    //   double prec = 1e-5;
+    //   FloatType prec = 1e-5;
 
     ModelArrayAccessor<Shared::NEW_ICE, RO> newiceAccessor(ModelComponent::getStore());
     const HField& newice = newiceAccessor.getHostRO();
@@ -401,10 +400,6 @@ TEST_CASE("Dummy ice")
 
     REQUIRE(newice[0] == 0.);
 }
-#undef cice0
-#undef hice0
-#undef hsnow0
-#undef tice00
 
 TEST_CASE("Zero thickness")
 {
@@ -503,7 +498,7 @@ TEST_CASE("Zero thickness")
     ModelArrayAccessor<Shared::C_ICE_DG, RO> ciceAccessor(ModelComponent::getStore());
     const HField& cice = ciceAccessor.getHostRO();
 
-    //    double prec = 1e-6;
+    //    FloatType prec = 1e-6;
 
     REQUIRE(newice[0] == 0);
     REQUIRE(hice[0] == 0);
@@ -623,14 +618,14 @@ TEST_CASE("Turn off thermo")
     ModelArrayAccessor<Shared::H_SNOW_DG, RO> hsnowAccessor(ModelComponent::getStore());
     const HField& hsnow = hsnowAccessor.getHostRO();
 
-    //    double prec = 1e-5;
+    //    FloatType prec = 1e-5;
 
     // Rather than the values from old NextSIM, they should be unchanged from the definition above.
-    REQUIRE(cice[0] == 0.5);
-    REQUIRE((hice[0]) == 0.1);
-    REQUIRE((hsnow[0]) == 0.01);
+    REQUIRE(cice[0] == 0.5_ft);
+    REQUIRE((hice[0]) == 0.1_ft);
+    REQUIRE((hsnow[0]) == 0.01_ft);
 
-    REQUIRE(newice[0] == 0.0);
+    REQUIRE(newice[0] == 0.0_ft);
 }
 
 TEST_SUITE_END();

@@ -88,7 +88,7 @@ TEST_CASE("PrognosticData call order test")
     ModelArrayAccessor<Shared::Q_OW> qowAccessor(ModelComponent::getStore());
     const HField& qow = qowAccessor.getHostRO();
 
-    double prec = 1e-5;
+    FloatType prec = 1e-5;
     // Correct value
     REQUIRE(qow[0] == doctest::Approx(-109.923).epsilon(prec));
     // Value if pAtmBdy->update and pOcnBdy->updateBefore are switched in PrognosticData::update

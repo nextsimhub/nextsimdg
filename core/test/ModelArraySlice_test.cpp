@@ -25,11 +25,11 @@ TEST_CASE("Assign scalar to slice")
 
     TwoDField target(ModelArray::Type::TWOD);
     target.reinitialize();
-    double orig = 0.;
+    FloatType orig = 0.;
     target = orig;
     Slice patch { { { 5, 14 }, { 8, 15 } } };
     ModelArraySlice mas(target, patch);
-    double set = 1.;
+    FloatType set = 1.;
     mas = set;
     REQUIRE(target(5, 8) == set);
     REQUIRE(target(13, 8) == set);
@@ -55,7 +55,7 @@ TEST_CASE("Slice to Slice")
     source.reinitialize();
     TwoDField target(ModelArray::Type::TWOD);
     target.reinitialize();
-    double targetv = -1.;
+    FloatType targetv = -1.;
     target = targetv;
 
     for (size_t i = 0; i < source.size(); ++i) {
@@ -138,11 +138,11 @@ TEST_CASE("ModelArray to Slice")
 
     TwoDField source(ModelArray::Type::TWOD);
     source.reinitialize();
-    double sourcev = 1.;
+    FloatType sourcev = 1.;
     source = sourcev;
     ThreeDField target(ModelArray::Type::THREED);
     target.reinitialize();
-    double targetv = -1.;
+    FloatType targetv = -1.;
     target = targetv;
 
     const auto k = 2;
@@ -175,11 +175,11 @@ TEST_CASE("Slice to ModelArray")
 
     ThreeDField source(ModelArray::Type::THREED);
     source.reinitialize();
-    double sourcev = 1.;
+    FloatType sourcev = 1.;
     source = sourcev;
     TwoDField target(ModelArray::Type::TWOD);
     target.reinitialize();
-    double targetv = -1.;
+    FloatType targetv = -1.;
     target = targetv;
 
     const auto k = 2;
@@ -211,9 +211,9 @@ TEST_CASE("Index a ModelArray with a Slice")
 
     Slice slice { { { x0, x1 }, { y0, y1 } } };
     TwoDField data(ModelArray::Type::TWOD);
-    double v0 = -1.;
+    FloatType v0 = -1.;
     data = v0;
-    double v1 = 1.;
+    FloatType v1 = 1.;
     data[slice] = v1;
 
     // Test the areas that should not be assigned to
@@ -264,7 +264,7 @@ TEST_CASE("Test buffers")
     auto oneSlice = oned[{ { { x0, x1 } } }];
 
     // Check the functions throw when given too small a buffer
-    std::vector<double> shortBuffer;
+    std::vector<FloatType> shortBuffer;
     shortBuffer.resize(x1 - x0 - 1);
     REQUIRE_THROWS(oneSlice = shortBuffer);
     REQUIRE_THROWS(oneSlice.copyToBuffer(shortBuffer));
@@ -273,7 +273,7 @@ TEST_CASE("Test buffers")
         oned[i] = i;
     }
 
-    std::vector<double> vectorBuffer;
+    std::vector<FloatType> vectorBuffer;
     vectorBuffer.resize(x1 - x0);
     // Fill with index values
     for (auto i = 0; i < vectorBuffer.size(); ++i) {
@@ -294,7 +294,7 @@ TEST_CASE("Test buffers")
     REQUIRE(vectorBuffer[x1 - x0 - 1] == x1 - 1);
 
     // std::array<x1-x0>
-    std::array<double, x1 - x0> arrayBuffer;
+    std::array<FloatType, x1 - x0> arrayBuffer;
     for (auto i = 0; i < arrayBuffer.size(); ++i) {
         arrayBuffer[i] = i;
     }
@@ -335,7 +335,7 @@ TEST_CASE("General slice creation")
     // auto slice = data[{{{},{0}}}];
     auto slice = data[{ { { {} }, { 0 } } }];
     // receiving buffer
-    std::vector<double> buff(nx);
+    std::vector<FloatType> buff(nx);
     slice.copyToBuffer(buff);
     for (size_t i = 0; i < nx; ++i) {
         REQUIRE(buff[i] == i);
@@ -428,7 +428,7 @@ TEST_CASE("Eigen copying")
     const size_t DG = 6;
     const size_t nWrap = 2;
 
-    Eigen::Matrix<double, Eigen::Dynamic, DG, Eigen::RowMajor> eig;
+    Eigen::Matrix<FloatType, Eigen::Dynamic, DG, Eigen::RowMajor> eig;
     eig.resize((nx + 2 * nWrap) * ny, DG);
     SliceIter::MultiDim eigDim = { nx + 2 * nWrap, ny };
     Slice leftColumn { { { 0, nWrap }, {} } };
@@ -478,7 +478,7 @@ TEST_CASE("Eigen copying")
     SliceIter eig1BottomRowBlock(bottomRowBlock1, eig1Dim);
 
     // The target array
-    Eigen::Matrix<double, Eigen::Dynamic, DG, Eigen::RowMajor> eig1;
+    Eigen::Matrix<FloatType, Eigen::Dynamic, DG, Eigen::RowMajor> eig1;
     eig1.resize(eig1Dim[0] * eig1Dim[1], DG);
     eig1.setConstant(-1.);
 
@@ -508,8 +508,8 @@ TEST_CASE("Eigen (ModelArray::DataType) buffers")
     size_t sliceX0 = 3;
     size_t sliceY0 = 5;
 
-    double xMul = 100;
-    double yMul = 100;
+    FloatType xMul = 100;
+    FloatType yMul = 100;
     ModelArray::DataType eaSrc;
     eaSrc.resize(sliceNx * sliceNy, DG);
     for (size_t j = 0; j < sliceNy; ++j) {
@@ -557,8 +557,8 @@ TEST_CASE("Eigen (ModelArray::DataType) subscripted buffers")
     const size_t DG = 6;
     ModelArray::setDimension(ModelArray::Dimension::COMP, DG);
 
-    double xMul = 100;
-    double yMul = 100;
+    FloatType xMul = 100;
+    FloatType yMul = 100;
 
     // Buffer of the array perimeter
     ModelArray maSrc(ModelArray::Type::TWOCOMP);
@@ -566,7 +566,7 @@ TEST_CASE("Eigen (ModelArray::DataType) subscripted buffers")
 
     for (size_t j = 0; j < ny; ++j) {
         for (size_t i = 0; i < nx; ++i) {
-            double spatial = xMul * (i + yMul * j);
+            FloatType spatial = xMul * (i + yMul * j);
             for (size_t c = 0; c < DG; ++c) {
                 maSrc.components({ i, j })[c] = spatial + c;
             }

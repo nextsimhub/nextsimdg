@@ -11,15 +11,15 @@
 
 namespace Nextsim {
 
-double ConfiguredAtmosphere::tair0 = 0; // Freezing
-double ConfiguredAtmosphere::tdew0 = 0; // Fog
-double ConfiguredAtmosphere::pair0 = 101325; // Mean pressure
-double ConfiguredAtmosphere::sw0 = 0; // Night
-double ConfiguredAtmosphere::lw0 = 315.637; // Stefan-Boltzmann at 0˚C
-double ConfiguredAtmosphere::snowfall0 = 0; // No snow
-double ConfiguredAtmosphere::rain0 = 0; // No rain
-double ConfiguredAtmosphere::uWind0 = 0; // Still
-double ConfiguredAtmosphere::vWind0 = 0; // Still
+FloatType ConfiguredAtmosphere::tair0 = 0; // Freezing
+FloatType ConfiguredAtmosphere::tdew0 = 0; // Fog
+FloatType ConfiguredAtmosphere::pair0 = 101325; // Mean pressure
+FloatType ConfiguredAtmosphere::sw0 = 0; // Night
+FloatType ConfiguredAtmosphere::lw0 = 315.637; // Stefan-Boltzmann at 0˚C
+FloatType ConfiguredAtmosphere::snowfall0 = 0; // No snow
+FloatType ConfiguredAtmosphere::rain0 = 0; // No rain
+FloatType ConfiguredAtmosphere::uWind0 = 0; // Still
+FloatType ConfiguredAtmosphere::vWind0 = 0; // Still
 
 static const std::string pfx = "ConfiguredAtmosphere";
 static const std::string tKey = pfx + ".t_air";

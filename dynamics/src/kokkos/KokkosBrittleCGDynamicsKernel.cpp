@@ -44,12 +44,12 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::initialise(
 
 /*************************************************************/
 template <int DGadvection>
-void KokkosBrittleCGDynamicsKernel<DGadvection>::advectDynamicsFields(double timestep)
+void KokkosBrittleCGDynamicsKernel<DGadvection>::advectDynamicsFields(FloatType timestep)
 {
     static KokkosTimer<DETAILED_MEASUREMENTS> timerAdvectStress("advectStressGPU");
 
     Base::advectDynamicsFields(timestep);
-    Base::advectDGVFieldDevice(timestep, damageDevice, 1e-12, 1.0);
+    Base::advectDGVFieldDevice(timestep, damageDevice, params.minDamage, 1.0);
 
     //! Perform transport step for stress
     timerAdvectStress.start();
@@ -61,12 +61,21 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::advectDynamicsFields(double tim
 }
 
 /*************************************************************/
-template <typename Mat> void compare(const std::string& name, const Mat& m1, const Mat& m2)
+template <typename Mat> void compareDebug(const std::string& name, const Mat& m1, const Mat& m2)
 {
     FloatType normRef = m1.norm();
     FloatType normDiff = (m1 - m2).norm();
     std::cout << name << " - abs: " << normDiff << ", rel: " << normDiff / normRef
-              << ", norm: " << normRef << std::endl;
+              << ", norm: " << normRef;
+    Eigen::Index maxIndex;
+    const FloatType maxVal = (m1 - m2).cwiseAbs().maxCoeff(&maxIndex);
+    std::cout << ", max diff: " << maxVal << " at " << maxIndex << " abs(" << m1(maxIndex) << "-"
+              << m2(maxIndex) << ")" << std::endl;
+}
+template <typename Mat> void printMatDebug(const std::string& name, const Mat& mat)
+{
+    std::cout << name << ": " << mat.minCoeff() << " " << mat.maxCoeff() << " " << mat.sum()
+              << "\n";
 }
 
 template <int DGadvection>
@@ -145,7 +154,7 @@ void KokkosBrittleCGDynamicsKernel<DGadvection>::update(const TimestepTime& tst)
 
     // TODO: It's annoying to have to limit damage again. We need to find a better solution.
     limitMax(this->damageDevice, 1.0);
-    limitMin(this->damageDevice, 1e-12);
+    limitMin(this->damageDevice, params.minDamage);
 
     // Finally, do the base class update
     DynamicsKernel<DGadvection, DGstressComp>::update(tst);

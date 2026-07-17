@@ -12,7 +12,7 @@ KokkosMesh::KokkosMesh(const ParametricMesh& mesh)
     , ny(mesh.ny)
 {
     // vertices
-    vertices = makeKokkosDeviceView("vertices", mesh.vertices, MakeViewOptions::DEVICE_COPY);
+    vertices = makeKokkosDeviceView<MakeViewOptions::DEVICE_COPY>("vertices", mesh.vertices);
 
     landMaskDevice = makeKokkosDeviceBitset(mesh.landmask);
 }

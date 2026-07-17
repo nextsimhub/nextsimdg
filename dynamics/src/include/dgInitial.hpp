@@ -12,31 +12,31 @@
 
 namespace Nextsim {
 
-typedef std::function<double(double, double)> InitialOp;
+typedef std::function<FloatType(FloatType, FloatType)> InitialOp;
 
 struct SmoothInitial {
 public:
-    double operator()(double x, double y) const
+    FloatType operator()(FloatType x, FloatType y) const
     {
-        double r2 = ((x - 0.7) * (x - 0.7) + (y - 0.7) * (y - 0.7));
+        FloatType r2 = ((x - 0.7) * (x - 0.7) + (y - 0.7) * (y - 0.7));
         return exp(-200.0 * r2);
     }
 };
 
 struct PyramidInitial {
 public:
-    double operator()(double x, double y) const
+    FloatType operator()(FloatType x, FloatType y) const
     {
-        double r2 = ((x - 0.3) * (x - 0.3) + (y - 0.6) * (y - 0.6));
-        return std::max(0.0, 1.0 - 10.0 * sqrt(r2));
+        FloatType r2 = ((x - 0.3) * (x - 0.3) + (y - 0.6) * (y - 0.6));
+        return std::max(0.0_ft, 1.0 - 10.0 * sqrt(r2));
     }
 };
 
 struct BoxInitial {
 public:
-    double operator()(double x, double y) const
+    FloatType operator()(FloatType x, FloatType y) const
     {
-        double r2 = ((x - 0.65) * (x - 0.65) + (y - 0.3) * (y - 0.3));
+        FloatType r2 = ((x - 0.65) * (x - 0.65) + (y - 0.3) * (y - 0.3));
         if (sqrt(r2) < 0.1)
             return 1.0;
         return 0.0;
@@ -45,7 +45,7 @@ public:
 
 struct MixedInitial {
 public:
-    double operator()(double x, double y) const
+    FloatType operator()(FloatType x, FloatType y) const
     {
         return SmoothInitial()(x, y) + BoxInitial()(x, y) + PyramidInitial()(x, y);
     }

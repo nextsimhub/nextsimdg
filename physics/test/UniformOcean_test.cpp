@@ -21,12 +21,12 @@ TEST_CASE("UniformOcean construction")
 
     Module::setImplementation<IFreezingPoint>("Nextsim::UnescoFreezing");
 
-    double sstIn = -1.23;
-    double sssIn = 34.5;
-    double mldIn = 12.3;
-    double uIn = -0.12;
-    double vIn = 0.98;
-    double qioIn = 123.45;
+    FloatType sstIn = -1.23;
+    FloatType sssIn = 34.5;
+    FloatType mldIn = 12.3;
+    FloatType uIn = -0.12;
+    FloatType vIn = 0.98;
+    FloatType qioIn = 123.45;
 
     UniformOcean uniOcn(sstIn, sssIn, mldIn, uIn, vIn, qioIn);
     uniOcn.setData(ModelState::DataMap());
@@ -54,7 +54,7 @@ TEST_CASE("UniformOcean construction")
     REQUIRE(u[0] == uIn);
     REQUIRE(v[0] == vIn);
     REQUIRE(qio[0] == qioIn);
-    REQUIRE(cpml[0] == mldIn * Water::rho * Water::cp);
+    REQUIRE(cpml[0] == Water::rho * Water::cp * mldIn);
     REQUIRE(tf[0] == Module::getImplementation<IFreezingPoint>()(sssIn));
 }
 
@@ -64,12 +64,12 @@ TEST_CASE("UniformOcean set functions")
 
     Module::setImplementation<IFreezingPoint>("Nextsim::UnescoFreezing");
 
-    double sstIn = -2.34;
-    double sssIn = 32.1;
-    double mldIn = 23.4;
-    double uIn = 0.12;
-    double vIn = -1.23;
-    double qioIn = 234.5;
+    FloatType sstIn = -2.34;
+    FloatType sssIn = 32.1;
+    FloatType mldIn = 23.4;
+    FloatType uIn = 0.12;
+    FloatType vIn = -1.23;
+    FloatType qioIn = 234.5;
 
     UniformOcean uniOcn;
     uniOcn.setSST(sstIn).setSSS(sssIn).setMLD(mldIn).setU(uIn).setV(vIn).setQio(qioIn);
@@ -98,7 +98,7 @@ TEST_CASE("UniformOcean set functions")
     REQUIRE(u[0] == uIn);
     REQUIRE(v[0] == vIn);
     REQUIRE(qio[0] == qioIn);
-    REQUIRE(cpml[0] == mldIn * Water::rho * Water::cp);
+    REQUIRE(cpml[0] == Water::rho * Water::cp * mldIn);
     REQUIRE(tf[0] == Module::getImplementation<IFreezingPoint>()(sssIn));
 }
 TEST_SUITE_END();

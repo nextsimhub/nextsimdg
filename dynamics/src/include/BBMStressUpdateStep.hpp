@@ -29,7 +29,7 @@ public:
     void stressUpdateHighOrder(const DynamicsParameters& dParams, const ParametricMesh& smesh,
         SymmetricTensorVector& stress, const SymmetricTensorVector& strain,
         const DGVector<DGadvection>& h, const DGVector<DGadvection>& a,
-        const double deltaT) override
+        const FloatType deltaT) override
     {
         assert(pmap);
 
@@ -57,11 +57,14 @@ public:
                 continue;
 
             //! Evaluate values in Gauss points (3 point Gauss rule in 2d => 9 points)
-            const EdgeVec hGauss = (h.row(i) * PSI<DGadvection, NGP>).array().max(0.0).matrix();
+            const EdgeVec hGauss = (h.row(i) * PSI<DGadvection, NGP>).array().max(0.0_ft).matrix();
             const EdgeVec aGauss
-                = (a.row(i) * PSI<DGadvection, NGP>).array().max(0.0).min(1.0).matrix();
-            EdgeVec dGauss
-                = (p_d->row(i) * PSI<DGadvection, NGP>).array().max(1e-12).min(1.0).matrix();
+                = (a.row(i) * PSI<DGadvection, NGP>).array().max(0.0_ft).min(1.0_ft).matrix();
+            EdgeVec dGauss = (p_d->row(i) * PSI<DGadvection, NGP>)
+                                 .array()
+                                 .max(params.minDamage)
+                                 .min(1.0_ft)
+                                 .matrix();
 
             const EdgeVec e11Gauss = e11.row(i) * PSI<DGstress, NGP>;
             const EdgeVec e12Gauss = e12.row(i) * PSI<DGstress, NGP>;
@@ -72,7 +75,7 @@ public:
             EdgeVec s22Gauss = s22.row(i) * PSI<DGstress, NGP>;
 
             //! Current normal stress for the evaluation of tildeP (Eqn. 1)
-            EdgeVec sigma_n = 0.5 * (s11Gauss.array() + s22Gauss.array());
+            EdgeVec sigma_n = 0.5_ft * (s11Gauss.array() + s22Gauss.array());
 
             //! exp(-C(1-A))
             const EdgeVec expC = (params.compactionParam * (1.0 - aGauss.array())).exp().array();
@@ -89,8 +92,8 @@ public:
             // tildeP must be capped at 1 to get an elastic response
             // (Eqn. 7b) Select case based on sigma_n
             const EdgeVec tildeP
-                = (sigma_n.array() < 0.0)
-                      .select((-Pmax.array() / sigma_n.array()).min(1.0).matrix(), 0.);
+                = (sigma_n.array() < 0.0_ft)
+                      .select((-Pmax.array() / sigma_n.array()).min(1.0_ft).matrix(), 0.0_ft);
 
             // multiplicator
             const EdgeVec multiplicator
@@ -121,8 +124,8 @@ public:
             s22Gauss.array() *= multiplicator.array();
             s12Gauss.array() *= multiplicator.array();
 
-            sigma_n = 0.5 * (s11Gauss.array() + s22Gauss.array());
-            const EdgeVec tau = (0.25 * (s11Gauss.array() - s22Gauss.array()).square()
+            sigma_n = 0.5_ft * (s11Gauss.array() + s22Gauss.array());
+            const EdgeVec tau = (0.25_ft * (s11Gauss.array() - s22Gauss.array()).square()
                 + s12Gauss.array().square())
                                     .sqrt();
 
@@ -136,7 +139,7 @@ public:
             // Mohr-Coulomb failure using Mssrs. Plante & Tremblay's formulation
             // sigma_s + tan_phi*sigma_n < 0 is always inside, but gives dcrit < 0
             EdgeVec dcrit
-                = (tau.array() + params.mu * sigma_n.array() > 0.)
+                = (tau.array() + params.mu * sigma_n.array() > 0.0_ft)
                       .select(cohesion.array() / (tau.array() + params.mu * sigma_n.array()), 1.);
 
             // Compressive failure using Mssrs. Plante & Tremblay's formulation
@@ -144,7 +147,7 @@ public:
                         .select(-compr_strength.array() / sigma_n.array(), dcrit);
 
             // Only damage when we're outside
-            dcrit = dcrit.array().min(1.0);
+            dcrit = dcrit.array().min(1.0_ft);
 
             // Eqn. 29
             const EdgeVec td = smesh.h(i) * std::sqrt(2. * (1. + params.nu0) * params.rhoIce)

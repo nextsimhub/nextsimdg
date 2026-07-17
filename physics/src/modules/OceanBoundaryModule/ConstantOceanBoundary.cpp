@@ -26,7 +26,7 @@ void ConstantOceanBoundary::setData(const ModelState::DataMap& ms)
     vAccessor.getHostRW() = 0;
     HField& mld = mldAccessor.getHostRW();
     mld = 10.;
-    double tf32 = -1.751; // Hand calculated from S = 32 using UNESCO
+    FloatType tf32 = -1.751; // Hand calculated from S = 32 using UNESCO
     tfAccessor.getHostRW() = tf32;
     sstAccessor.getHostRW() = tf32; // Tf == SST ensures that there is no ice-ocean heat flux
     cpmlAccessor.getHostRW() = Water::cp * Water::rho * mld;

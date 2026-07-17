@@ -266,7 +266,7 @@ TEST_CASE("Test the HField/DG0 transfer") // (It would be a silly case to get wr
     targetPoint = ModelArray::indexFromLocation(ModelArray::Type::H, { 11, 13 });
     // Make sure it is different before the copy
     REQUIRE(source(targetPoint, 0) != dest(11, 13));
-    double retained = source(targetPoint, 1);
+    FloatType retained = source(targetPoint, 1);
     REQUIRE(source(targetPoint, 0) != retained);
 
     DGModelArray::hField2dg<DG>(dest, source);
@@ -302,7 +302,7 @@ TEST_CASE("dgVector from Eigen::Array")
     ParametricMesh smesh(CoordinateSystem);
     smesh.nelements = nx * ny;
 
-    Eigen::Array<double, Eigen::Dynamic, DG, Eigen::RowMajor> earr(smesh.nelements, DG);
+    Eigen::Array<FloatType, Eigen::Dynamic, DG, Eigen::RowMajor> earr(smesh.nelements, DG);
     DGVector<DG>& dgv = reinterpret_cast<DGVector<DG>&>(earr);
     earr.setZero();
     REQUIRE(dgv(2, 2) == 0.);

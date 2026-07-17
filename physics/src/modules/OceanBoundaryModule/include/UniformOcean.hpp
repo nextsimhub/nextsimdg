@@ -15,11 +15,11 @@ class UniformOcean : public IOceanBoundary {
 public:
     UniformOcean()
         // The same defaults as ConstantOceanBoundary
-        : UniformOcean(-1.5, 32., 10, 0., 0.)
+        : UniformOcean(-1.5, 32., 10, 0., 0)
     {
     }
-    UniformOcean(double sstIn, double sssIn, double mldIn, double uIn = 0., double vIn = 0.,
-        double qioIn = 0.)
+    UniformOcean(FloatType sstIn, FloatType sssIn, FloatType mldIn, FloatType uIn = 0.,
+        FloatType vIn = 0., FloatType qioIn = 0)
         : sst0(sstIn)
         , sss0(sssIn)
         , mld0(mldIn)
@@ -35,20 +35,20 @@ public:
     void updateAfter(const TimestepTime&) override { }
     // TODO ^add the SlabOcean when it becomes available
 
-    UniformOcean& setSST(double);
-    UniformOcean& setSSS(double);
-    UniformOcean& setMLD(double);
-    UniformOcean& setQio(double);
-    UniformOcean& setU(double);
-    UniformOcean& setV(double);
+    UniformOcean& setSST(FloatType);
+    UniformOcean& setSSS(FloatType);
+    UniformOcean& setMLD(FloatType);
+    UniformOcean& setQio(FloatType);
+    UniformOcean& setU(FloatType);
+    UniformOcean& setV(FloatType);
 
 private:
-    double sst0;
-    double sss0;
-    double mld0;
-    double u0;
-    double v0;
-    double qio0;
+    FloatType sst0;
+    FloatType sss0;
+    FloatType mld0;
+    FloatType u0;
+    FloatType v0;
+    FloatType qio0;
 };
 
 } /* namespace Nextsim */

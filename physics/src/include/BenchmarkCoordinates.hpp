@@ -13,8 +13,8 @@ namespace Nextsim {
 //! BenchmarkAtmosphere classes
 class BenchmarkCoordinates {
 public:
-    static double dx;
-    static double dy;
+    static FloatType dx;
+    static FloatType dy;
 
     //! Sets the data for the benchmark after the initial restart file has been read
     static void setData();

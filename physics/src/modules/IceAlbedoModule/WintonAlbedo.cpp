@@ -14,15 +14,15 @@
 
 namespace Nextsim {
 
-static constexpr double ICE_ALBEDO0 = 0.65;
-static constexpr double SNOW_ALBEDO0 = 0.80;
-static constexpr double MELT_ALBEDO0 = 0.75;
-static constexpr double I0_DEFAULT = 0.17;
+static constexpr FloatType ICE_ALBEDO0 = 0.65;
+static constexpr FloatType SNOW_ALBEDO0 = 0.80;
+static constexpr FloatType MELT_ALBEDO0 = 0.75;
+static constexpr FloatType I0_DEFAULT = 0.17;
 
-double WintonAlbedo::iceAlbedo = ICE_ALBEDO0;
-double WintonAlbedo::snowAlbedo = SNOW_ALBEDO0;
-double WintonAlbedo::meltAlbedo = MELT_ALBEDO0;
-double WintonAlbedo::i0 = I0_DEFAULT;
+FloatType WintonAlbedo::iceAlbedo = ICE_ALBEDO0;
+FloatType WintonAlbedo::snowAlbedo = SNOW_ALBEDO0;
+FloatType WintonAlbedo::meltAlbedo = MELT_ALBEDO0;
+FloatType WintonAlbedo::i0 = I0_DEFAULT;
 
 static const std::string pfx = "WintonAlbedo";
 static const std::string iceAlbedoKey = pfx + ".iceAlbedo";
@@ -76,15 +76,15 @@ void WintonAlbedo::update(const TimestepTime& tst)
     const auto& hsnow = hsnowAccessor.getAutoRO(execSpace);
     const auto& tsurf = tsurfAccessor.getAutoRO(execSpace);
 
-    const double iceAlbedoBase = WintonAlbedo::iceAlbedo;
-    const double snowAlbedoBase = WintonAlbedo::snowAlbedo;
-    const double meltAlbedoBase = WintonAlbedo::meltAlbedo;
-    const double i0 = WintonAlbedo::i0;
+    const FloatType iceAlbedoBase = WintonAlbedo::iceAlbedo;
+    const FloatType snowAlbedoBase = WintonAlbedo::snowAlbedo;
+    const FloatType meltAlbedoBase = WintonAlbedo::meltAlbedo;
+    const FloatType i0 = WintonAlbedo::i0;
 
     overElementsAuto(OVER_ELEMENTS_LAMBDA(const ElementIndex i) {
-        const double snowThickness = cice[i] > 0 ? hsnow[i] / cice[i] : 0.;
+        const FloatType snowThickness = cice[i] > 0 ? hsnow[i] / cice[i] : 0.;
 
-        if (snowThickness > 0.) {
+        if (snowThickness > 0.0_ft) {
             iceAlbedo[i] = tsurf[i] < 0. ? snowAlbedoBase : meltAlbedoBase;
             icePenSW[i] = 0.;
         } else {

@@ -160,7 +160,7 @@ void ConfigOutput::outputState(const ModelState& diagState)
         lastFileChange = time;
     }
 
-    double averagingFactor = meta.stepLength().seconds() / outputPeriod.seconds();
+    FloatType averagingFactor = meta.stepLength().seconds() / outputPeriod.seconds();
     ModelState state = { {}, diagState.config };
     auto storeData = ModelArrayAccessorBase<RO>::getAll(ModelComponent::getStore());
     if (outputAllTheFields) {
@@ -213,7 +213,7 @@ void ConfigOutput::outputState(const ModelState& diagState)
      */
     Duration timeSinceOutput = meta.time() - lastOutput;
     if (timeSinceOutput.seconds() > 0
-        && (everyTS || std::fmod(timeSinceOutput.seconds(), outputPeriod.seconds()) == 0.)) {
+        && (everyTS || std::fmod(timeSinceOutput.seconds(), outputPeriod.seconds()) == 0.0_ft)) {
         Logged::info("ConfigOutput: Outputting " + std::to_string(state.data.size()) + " fields to "
             + currentFileName + " at " + meta.time().format() + "\n");
         meta.affixCoordinates(state);

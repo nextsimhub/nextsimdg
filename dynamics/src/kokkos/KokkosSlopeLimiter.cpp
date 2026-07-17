@@ -16,17 +16,17 @@ KokkosSlopeLimiter<DG>::KokkosSlopeLimiter(
     DGVector<1> tempDG;
     tempDG.resize_by_mesh(_mesh);
     if constexpr (DG >= 3) {
-        minV = makeKokkosDeviceView("minV", temp);
-        maxV = makeKokkosDeviceView("maxV", temp);
-        alpha = makeKokkosDeviceView("alpha", tempDG);
+        minV = makeKokkosDeviceView<MakeViewOptions::ALWAYS_COPY>("minV", temp);
+        maxV = makeKokkosDeviceView<MakeViewOptions::ALWAYS_COPY>("maxV", temp);
+        alpha = makeKokkosDeviceView<MakeViewOptions::ALWAYS_COPY>("alpha", tempDG);
+        alphaX = makeKokkosDeviceView<MakeViewOptions::ALWAYS_COPY>("alphaX", tempDG);
     }
     if constexpr (DG >= 6) {
-        dxminV = makeKokkosDeviceView("dxminV", temp);
-        dxmaxV = makeKokkosDeviceView("dxmaxV", temp);
-        dyminV = makeKokkosDeviceView("dyminV", temp);
-        dymaxV = makeKokkosDeviceView("dymaxV", temp);
-        alphaX = makeKokkosDeviceView("alphaX", tempDG);
-        alphaY = makeKokkosDeviceView("alphaY", tempDG);
+        dxminV = makeKokkosDeviceView<MakeViewOptions::ALWAYS_COPY>("dxminV", temp);
+        dxmaxV = makeKokkosDeviceView<MakeViewOptions::ALWAYS_COPY>("dxmaxV", temp);
+        dyminV = makeKokkosDeviceView<MakeViewOptions::ALWAYS_COPY>("dyminV", temp);
+        dymaxV = makeKokkosDeviceView<MakeViewOptions::ALWAYS_COPY>("dymaxV", temp);
+        alphaY = makeKokkosDeviceView<MakeViewOptions::ALWAYS_COPY>("alphaY", tempDG);
     }
     if constexpr (DG == 8) {
         std::cerr << "No limiting for DG8" << std::endl;
@@ -90,11 +90,11 @@ KOKKOS_IMPL_FUNCTION static FloatType computeLimit(FloatType midValue,
         const FloatType dv = vertexValues[i] - midValue; // distance to midpoint
         if (dv > 1.e-8) {
             assert(_max(cgi + cgIndices[i]) >= midValue);
-            al = Kokkos::min(al, Kokkos::min(1.0, (_max(cgi + cgIndices[i]) - midValue) / dv));
+            al = Kokkos::min(al, Kokkos::min(1.0_ft, (_max(cgi + cgIndices[i]) - midValue) / dv));
         }
         if (dv < -1.e-8) {
             assert(_min(cgi + cgIndices[i]) <= midValue);
-            al = Kokkos::min(al, Kokkos::min(1.0, (_min(cgi + cgIndices[i]) - midValue) / dv));
+            al = Kokkos::min(al, Kokkos::min(1.0_ft, (_min(cgi + cgIndices[i]) - midValue) / dv));
         }
         assert(al >= 0);
     }

@@ -88,10 +88,10 @@ public:
         const std::string& name, const KokkosDeviceView<ModelArray::DataType>& dgData);
 
     void prepareAdvection() override;
-    void advectDynamicsFields(double timestep) override;
-    DGVector<DGadvection>& advectDGVField(double timestep, DGVector<DGadvection>& field,
-        double lowerLimit = -std::numeric_limits<double>::infinity(),
-        double upperLimit = std::numeric_limits<double>::infinity()) override;
+    void advectDynamicsFields(FloatType timestep) override;
+    DGVector<DGadvection>& advectDGVField(FloatType timestep, DGVector<DGadvection>& field,
+        FloatType lowerLimit = -std::numeric_limits<FloatType>::infinity(),
+        FloatType upperLimit = std::numeric_limits<FloatType>::infinity()) override;
     void advectDGVFieldDevice(FloatType timestep, const DeviceViewAdvect& field,
         FloatType lowerLimit = -std::numeric_limits<FloatType>::infinity(),
         FloatType upperLimit = std::numeric_limits<FloatType>::infinity());
@@ -223,6 +223,7 @@ protected:
     DGVector<DGadvection> tempDataAdvect;
     DeviceViewAdvect tempDataAdvectDevice;
     HostViewAdvect tempDataAdvectHost;
+    ModelArray tempDataMA;
     DeviceViewMA tempDataMADevice;
 
     // precomputed parametric map

@@ -16,15 +16,15 @@
 
 namespace Nextsim {
 
-double FiniteElementFluxes::dragOcean_q;
-double FiniteElementFluxes::dragOcean_t;
-double FiniteElementFluxes::dragIce_t;
-double FiniteElementFluxes::m_oceanAlbedo;
+FloatType FiniteElementFluxes::dragOcean_q;
+FloatType FiniteElementFluxes::dragOcean_t;
+FloatType FiniteElementFluxes::dragIce_t;
+FloatType FiniteElementFluxes::m_oceanAlbedo;
 
-static constexpr double dragOcean_q_default = 1.5e-3;
-static constexpr double dragOcean_t_default = 0.83e-3;
-static constexpr double dragIce_t_default = 1.3e-3;
-static constexpr double oceanAlbedo_default = 0.07;
+static constexpr FloatType dragOcean_q_default = 1.5e-3;
+static constexpr FloatType dragOcean_t_default = 0.83e-3;
+static constexpr FloatType dragIce_t_default = 1.3e-3;
+static constexpr FloatType oceanAlbedo_default = 0.07;
 
 static const std::map<int, std::string> keyMap = {
     { FiniteElementFluxes::DRAGOCEANQ_KEY, "nextsim_thermo.drag_ocean_q" },
@@ -125,24 +125,24 @@ FiniteElementFluxes::HelpMap& FiniteElementFluxes::getHelpRecursive(HelpMap& map
 /*************************************************************/
 // Drag coefficient from Gill(1982) / Smith (1980)
 // Could be replaced by a  module ... but we'll probably never do that
-KERNEL_IMPL_FUNCTION static double dragOcean_m(double windSpeed)
+KERNEL_IMPL_FUNCTION static FloatType dragOcean_m(FloatType windSpeed)
 {
     return 1e-3 * Utils::max(1., Utils::min(2., 0.61 + 0.063 * windSpeed));
 }
 
-KERNEL_IMPL_FUNCTION static double latentHeatWater(double temperature)
+KERNEL_IMPL_FUNCTION static FloatType latentHeatWater(FloatType temperature)
 {
     // Polynomial approximation expressed using Horner's scheme
     return Water::Lv0
         + temperature * (-2.36418e3 + temperature * (1.58927 + temperature * (-6.14342e-2)));
 }
 
-KERNEL_IMPL_FUNCTION static double latentHeatIce(double temperature)
+KERNEL_IMPL_FUNCTION static FloatType latentHeatIce(FloatType temperature)
 {
     return Water::Lv0 + Water::Lf - 240. + temperature * (-290. + temperature * (-4.));
 }
 
-KERNEL_IMPL_FUNCTION static double stefanBoltzmannLaw(double temperatureC)
+KERNEL_IMPL_FUNCTION static FloatType stefanBoltzmannLaw(FloatType temperatureC)
 {
     return Ice::epsilon * PhysicalConstants::sigma * Utils::pow(kelvin(temperatureC), 4);
 }
@@ -188,7 +188,7 @@ void FiniteElementFluxes::updateAtmosphere(const TimestepTime& tst)
         sh_ice[i] = shIce;
         dshice_dT[i] = dshIceDT;
         // Density of the wet air
-        double Ra_wet = Air::Ra / (1 - sh_air[i] * (1 - Vapour::Ra / Air::Ra));
+        FloatType Ra_wet = Air::Ra / (1 - sh_air[i] * (1 - Vapour::Ra / Air::Ra));
         rho_air[i] = p_air[i] / (Ra_wet * kelvin(t_air[i]));
         // Heat capacity of the wet air
         cp_air[i] = Air::cp + sh_air[i] * Vapour::cp;
@@ -219,16 +219,16 @@ void FiniteElementFluxes::updateOW(const TimestepTime& tst)
     const auto& windSpeed = windSpeedAccessor.getAutoRO(execSpace);
 
     // static members can not be captured directly
-    const double dragOcean_q = FiniteElementFluxes::dragOcean_q;
-    const double dragOcean_t = FiniteElementFluxes::dragOcean_t;
-    const double m_oceanAlbedo = FiniteElementFluxes::m_oceanAlbedo;
+    const FloatType dragOcean_q = FiniteElementFluxes::dragOcean_q;
+    const FloatType dragOcean_t = FiniteElementFluxes::dragOcean_t;
+    const FloatType m_oceanAlbedo = FiniteElementFluxes::m_oceanAlbedo;
 
     overElementsAuto(OVER_ELEMENTS_LAMBDA(const ElementIndex i) {
         // Mass flux from open water (evaporation)
         evap[i] = dragOcean_q * rho_air[i] * windSpeed[i] * (sh_water[i] - sh_air[i]);
         // Momentum flux from open water (drag pressure)
         /* Drag the ocean experiences from the wind - still only used in the coupled case */
-        const double oceanDrag = dragOcean_m(windSpeed[i]);
+        const FloatType oceanDrag = dragOcean_m(windSpeed[i]);
         tau_x_ow[i] = rho_air[i] * oceanDrag * u_air[i] * windSpeed[i];
         tau_y_ow[i] = rho_air[i] * oceanDrag * v_air[i] * windSpeed[i];
 
@@ -276,7 +276,7 @@ void FiniteElementFluxes::updateIce(const TimestepTime& tst)
     const auto& icePenSW = icePenSWAccessor.getAutoRO(execSpace);
 
     // static members can not be captured directly
-    const double dragIce_t = FiniteElementFluxes::dragIce_t;
+    const FloatType dragIce_t = FiniteElementFluxes::dragIce_t;
 
     overElementsAuto(OVER_ELEMENTS_LAMBDA(const ElementIndex i) {
         // Mass flux ice
@@ -287,24 +287,24 @@ void FiniteElementFluxes::updateIce(const TimestepTime& tst)
         // Heat flux ice-atmosphere
         // Latent heat from sublimation
         Q_lh_ia[i] = subl[i] * latentHeatIce(tsurf[i]);
-        double dmdot_dT = dragIce_t * rho_air[i] * windSpeed[i] * dshice_dT[i];
-        double dQlh_dT = latentHeatIce(tsurf[i]) * dmdot_dT;
+        FloatType dmdot_dT = dragIce_t * rho_air[i] * windSpeed[i] * dshice_dT[i];
+        FloatType dQlh_dT = latentHeatIce(tsurf[i]) * dmdot_dT;
 
         // Sensible heat flux
         Q_sh_ia[i] = dragIce_t * rho_air[i] * cp_air[i] * windSpeed[i] * (tsurf[i] - t_air[i]);
-        double dQsh_dT = dragIce_t * rho_air[i] * cp_air[i] * windSpeed[i];
+        FloatType dQsh_dT = dragIce_t * rho_air[i] * cp_air[i] * windSpeed[i];
 
         // Shortwave flux
-        const double albedoValue = iceAlbedo[i];
-        const double i0 = icePenSW[i];
+        const FloatType albedoValue = iceAlbedo[i];
+        const FloatType i0 = icePenSW[i];
         Q_sw_ia[i] = -sw_in[i] * (1. - albedoValue) * (1. - i0);
-        const double extinction = 0.; // TODO: Replace with de Beer's law or a module
+        const FloatType extinction = 0.; // TODO: Replace with de Beer's law or a module
         penSW[i] = sw_in[i] * (1. - albedoValue) * i0 * (1. - extinction);
         Q_sw_base[i] = sw_in[i] * (1. - albedoValue) * i0 * extinction;
 
         // Longwave flux
         Q_lw_ia[i] = stefanBoltzmannLaw(tsurf[i]) - lw_in[i];
-        double dQlw_dT = 4 / kelvin(tsurf[i]) * stefanBoltzmannLaw(tsurf[i]);
+        FloatType dQlw_dT = 4 / kelvin(tsurf[i]) * stefanBoltzmannLaw(tsurf[i]);
 
         // Total flux
         qia[i] = Q_lh_ia[i] + Q_sh_ia[i] + Q_sw_ia[i] + Q_lw_ia[i];

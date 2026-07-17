@@ -10,8 +10,8 @@
 
 namespace Nextsim {
 
-double ConstantHealing::tD = 0.;
-static const double tDDefault = 15;
+FloatType ConstantHealing::tD = 0.;
+static const FloatType tDDefault = 15;
 
 static const std::map<int, std::string> keyMap
     = { { ConstantHealing::TD_KEY, "ConstantHealing.td" } };
@@ -48,9 +48,9 @@ void ConstantHealing::update(const TimestepTime& tstep)
     const auto& deltaCi = deltaCiAccessor.getAutoRO(execSpace);
     const auto& cice = ciceAccessor.getAutoRO(execSpace);
 
-    const double tD = ConstantHealing::tD;
-    const double cMin = IceMinima::c();
-    const double dt = tstep.step.seconds();
+    const FloatType tD = ConstantHealing::tD;
+    const FloatType cMin = IceMinima::c();
+    const FloatType dt = tstep.step.seconds();
 
     overElementsAuto(OVER_ELEMENTS_LAMBDA(const ElementIndex i) {
         // No ice, no healing
@@ -60,7 +60,7 @@ void ConstantHealing::update(const TimestepTime& tstep)
         }
 
         // Only lateral growth contributes to healing, not melt(!)
-        double const lateralGrowth = Utils::max(0., deltaCi[i]);
+        FloatType const lateralGrowth = Utils::max(0.0_ft, deltaCi[i]);
 
         /* 1. Lateral ice formation
          * A weighted average of the original damage, weighted by the old concentration, and the
@@ -75,7 +75,7 @@ void ConstantHealing::update(const TimestepTime& tstep)
 
         // This is what Véro did (Dansereau et al., 2016)
         damage[i] += dt / tD;
-        damage[i] = Utils::min(1., damage[i]);
+        damage[i] = Utils::min(1.0_ft, damage[i]);
     });
 }
 

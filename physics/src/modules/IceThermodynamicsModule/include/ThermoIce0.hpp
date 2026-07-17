@@ -46,8 +46,8 @@ private:
 
     ModelArrayAccessor<Shared::Q_IC, RW> qicAccessor;
 
-    static const double freezingPointIce;
-    static double kappa_s;
+    static const FloatType freezingPointIce;
+    static FloatType kappa_s;
 
     bool doFlooding = true; // TODO: read from configuration
 };

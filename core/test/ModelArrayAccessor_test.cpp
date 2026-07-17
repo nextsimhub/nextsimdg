@@ -30,7 +30,7 @@ public:
         hiceAccessor.getHostRW().reinitialize();
         swinAccessor.getHostRW().reinitialize();
     }
-    void setData(const std::vector<double>& values)
+    void setData(const std::vector<FloatType>& values)
     {
         hiceAccessor.getHostRW() = values[0];
         swinAccessor.getHostRW() = values[1];
@@ -74,7 +74,7 @@ public:
         hice[0] = hice0[0];
         thermo.update(tStep);
     }
-    void getData(double& dataOut)
+    void getData(FloatType& dataOut)
     {
         const ModelArray& hice = hiceAccessor.getHostRO();
         dataOut = hice[0];
@@ -94,8 +94,8 @@ TEST_CASE("Accessing the data")
     ModelArrayStore store;
 
     AtmIn atmIn(store);
-    double hice0 = 0.56;
-    double swin = 311;
+    FloatType hice0 = 0.56;
+    FloatType swin = 311;
     ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
     atmIn.configure();
     atmIn.setData({ hice0, swin });
@@ -105,9 +105,9 @@ TEST_CASE("Accessing the data")
     int tStep = 40;
     iceCalc.update(tStep);
 
-    double hicef;
+    FloatType hicef;
     iceCalc.getData(hicef);
-    double target = hice0 * (1. + tStep) / tStep;
+    FloatType target = hice0 * (1. + tStep) / tStep;
     REQUIRE(hicef == doctest::Approx(target).epsilon(1e-8));
 }
 
@@ -127,7 +127,7 @@ TEST_CASE("(Not) getting write access to a read only field")
         (ModelArrayAccessor<MiniModelComponent::H_ICE, RW>(store, RO)), std::logic_error);
 }
 
-static const double targetFlux = 320;
+static const FloatType targetFlux = 320;
 // "inline" here prevents warning from -Wsubobject-linkage
 // internal linkage which causes the warning would only be a problem if CouplEr was used elsewhere
 inline constexpr TextTag sw_in = { "sw_in" };

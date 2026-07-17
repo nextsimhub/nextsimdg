@@ -70,29 +70,30 @@ void KokkosCGDynamicsKernel<DGadvection>::initialise(
     std::tie(tempDataAdvectHost, tempDataAdvectDevice)
         = makeKokkosDualView("tempDataAdvect", (this->tempDataAdvect));
     ModelArray tempDataMA;
-    tempDataMADevice = makeKokkosDeviceView("tempDataMA", tempDataMA.data());
+    tempDataMADevice
+        = makeKokkosDeviceView<MakeViewOptions::ALWAYS_COPY>("tempDataMA", tempDataMA.getDataRef());
 
     assert(this->pmap);
-    divS1Device = makeKokkosDeviceViewMap("divS1", this->pmap->divS1, MakeViewOptions::DEVICE_COPY);
-    divS2Device = makeKokkosDeviceViewMap("divS2", this->pmap->divS2, MakeViewOptions::DEVICE_COPY);
-    divMDevice = makeKokkosDeviceViewMap("divM", this->pmap->divM, MakeViewOptions::DEVICE_COPY);
+    divS1Device = makeKokkosDeviceViewMap<MakeViewOptions::DEVICE_COPY>("divS1", this->pmap->divS1);
+    divS2Device = makeKokkosDeviceViewMap<MakeViewOptions::DEVICE_COPY>("divS2", this->pmap->divS2);
+    divMDevice = makeKokkosDeviceViewMap<MakeViewOptions::DEVICE_COPY>("divM", this->pmap->divM);
     iMgradXDevice
-        = makeKokkosDeviceViewMap("iMgradX", this->pmap->iMgradX, MakeViewOptions::DEVICE_COPY);
+        = makeKokkosDeviceViewMap<MakeViewOptions::DEVICE_COPY>("iMgradX", this->pmap->iMgradX);
     iMgradYDevice
-        = makeKokkosDeviceViewMap("iMgradY", this->pmap->iMgradY, MakeViewOptions::DEVICE_COPY);
-    iMMDevice = makeKokkosDeviceViewMap("iMM", this->pmap->iMM, MakeViewOptions::DEVICE_COPY);
+        = makeKokkosDeviceViewMap<MakeViewOptions::DEVICE_COPY>("iMgradY", this->pmap->iMgradY);
+    iMMDevice = makeKokkosDeviceViewMap<MakeViewOptions::DEVICE_COPY>("iMM", this->pmap->iMM);
 
-    PSIAdvectDevice = makeKokkosDeviceView(
-        "PSI<DGadvection, NGP>", PSI<DGadvection, NGP>, MakeViewOptions::DEVICE_COPY);
-    PSIStressDevice = makeKokkosDeviceView(
-        "PSI<DGstress, NGP>", PSI<DGstressComp, NGP>, MakeViewOptions::DEVICE_COPY);
+    PSIAdvectDevice = makeKokkosDeviceView<MakeViewOptions::DEVICE_COPY>(
+        "PSI<DGadvection, NGP>", PSI<DGadvection, NGP>);
+    PSIStressDevice = makeKokkosDeviceView<MakeViewOptions::DEVICE_COPY>(
+        "PSI<DGstress, NGP>", PSI<DGstressComp, NGP>);
 
-    lumpedCGMassDevice = makeKokkosDeviceView(
-        "lumpedCGMass", this->pmap->lumpedcgmass, MakeViewOptions::DEVICE_COPY);
+    lumpedCGMassDevice = makeKokkosDeviceView<MakeViewOptions::DEVICE_COPY>(
+        "lumpedCGMass", this->pmap->lumpedcgmass);
     iMJwPSIDevice
-        = makeKokkosDeviceViewMap("iMJwPSI", this->pmap->iMJwPSI, MakeViewOptions::DEVICE_COPY);
-    iMJwPSIAdvectDevice = makeKokkosDeviceViewMap(
-        "iMJwPSIAdvect", this->pmap->iMJwPSI_dam, MakeViewOptions::DEVICE_COPY);
+        = makeKokkosDeviceViewMap<MakeViewOptions::DEVICE_COPY>("iMJwPSI", this->pmap->iMJwPSI);
+    iMJwPSIAdvectDevice = makeKokkosDeviceViewMap<MakeViewOptions::DEVICE_COPY>(
+        "iMJwPSIAdvect", this->pmap->iMJwPSI_dam);
 
     const size_t n_cg = static_cast<size_t>(this->pmap->cglandmask.rows());
     std::vector<bool> cgLandMask(n_cg, false);
@@ -121,11 +122,11 @@ void KokkosCGDynamicsKernel<DGadvection>::initialise(
         dG2CGFirstOrderInterpolator
             = std::make_unique<Interpolations::KokkosDG2CGInterpolator<1, 1>>(*this->smesh);
         _dXSSHDevice
-            = makeKokkosDeviceViewMap("dXSSH", this->pmap->dX_SSH, MakeViewOptions::DEVICE_COPY);
+            = makeKokkosDeviceViewMap<MakeViewOptions::DEVICE_COPY>("dXSSH", this->pmap->dX_SSH);
         _dYSSHDevice
-            = makeKokkosDeviceViewMap("dYSSH", this->pmap->dY_SSH, MakeViewOptions::DEVICE_COPY);
-        _lumpedCG1MassDevice = makeKokkosDeviceView(
-            "lumpedCG1Mass", this->pmap->lumpedcg1mass, MakeViewOptions::DEVICE_COPY);
+            = makeKokkosDeviceViewMap<MakeViewOptions::DEVICE_COPY>("dYSSH", this->pmap->dY_SSH);
+        _lumpedCG1MassDevice = makeKokkosDeviceView<MakeViewOptions::DEVICE_COPY>(
+            "lumpedCG1Mass", this->pmap->lumpedcg1mass);
         _uGradDevice = DeviceViewCG1("uGrad", _lumpedCG1MassDevice.extent(0));
         _vGradDevice = DeviceViewCG1("vGrad", _lumpedCG1MassDevice.extent(0));
     }
@@ -262,7 +263,7 @@ template <int DGadvection> void KokkosCGDynamicsKernel<DGadvection>::prepareAdve
 
 /*************************************************************/
 template <int DGadvection>
-void KokkosCGDynamicsKernel<DGadvection>::advectDynamicsFields(double timestep)
+void KokkosCGDynamicsKernel<DGadvection>::advectDynamicsFields(FloatType timestep)
 {
     advectDGVFieldDevice(timestep, hiceDevice, 0.0);
     advectDGVFieldDevice(timestep, ciceDevice, 0.0, 1.0);
@@ -272,7 +273,7 @@ void KokkosCGDynamicsKernel<DGadvection>::advectDynamicsFields(double timestep)
 /*************************************************************/
 template <int DGadvection>
 DGVector<DGadvection>& KokkosCGDynamicsKernel<DGadvection>::advectDGVField(
-    double timestep, DGVector<DGadvection>& field, double lowerLimit, double upperLimit)
+    FloatType timestep, DGVector<DGadvection>& field, FloatType lowerLimit, FloatType upperLimit)
 {
     static KokkosTimer<DETAILED_MEASUREMENTS> timer("advectExternalGPU");
 
@@ -289,7 +290,7 @@ DGVector<DGadvection>& KokkosCGDynamicsKernel<DGadvection>::advectDGVField(
 /*************************************************************/
 template <int DGadvection>
 void KokkosCGDynamicsKernel<DGadvection>::advectDGVFieldDevice(
-    double timestep, const DeviceViewAdvect& field, FloatType lowerLimit, FloatType upperLimit)
+    FloatType timestep, const DeviceViewAdvect& field, FloatType lowerLimit, FloatType upperLimit)
 {
     dGTransportDevice->step(timestep, field);
 
@@ -312,18 +313,6 @@ void KokkosCGDynamicsKernel<DGadvection>::advectDGVFieldDevice(
 }
 
 /*************************************************************/
-template <typename Mat> void compare(const std::string& name, const Mat& m1, const Mat& m2)
-{
-    FloatType normRef = m1.norm();
-    FloatType normDiff = (m1 - m2).norm();
-    std::cout << name << " - abs: " << normDiff << ", rel: " << normDiff / normRef
-              << ", norm: " << normRef;
-    Eigen::Index maxIndex;
-    const FloatType maxVal = (m1 - m2).cwiseAbs().maxCoeff(&maxIndex);
-    std::cout << ", max diff: " << maxVal << " at " << maxIndex << " abs(" << m1(maxIndex) << "-"
-              << m2(maxIndex) << ")" << std::endl;
-}
-
 template <int DGadvection>
 void KokkosCGDynamicsKernel<DGadvection>::updateGradientOfSeaSurfaceHeight()
 {
@@ -343,7 +332,6 @@ void KokkosCGDynamicsKernel<DGadvection>::updateGradientOfSeaSurfaceHeight()
     const auto& lumpedCG1MassDevice = std::get<3>(precomputedMaps);
 
     auto execSpace = Kokkos::DefaultExecutionSpace();
-    Kokkos::deep_copy(execSpace, this->seaSurfaceHeightDevice, this->seaSurfaceHeightHost);
 
     const DeviceViewCG1 cgSeaSurfaceHeightDevice
         = DeviceViewCG1("cgSeaSurfaceHeight", lumpedCG1MassDevice.extent(0));
@@ -538,12 +526,12 @@ void KokkosCGDynamicsKernel<DGadvection>::projectVelocityToStrainDevice(
             e11.row(dgi) = iMgradX * vxLocal;
             const auto iMgradY = iMgradYDevice[dgi];
             e22.row(dgi) = iMgradY * vyLocal;
-            e12.row(dgi) = 0.5 * (iMgradX * vyLocal + iMgradY * vxLocal);
+            e12.row(dgi) = 0.5_ft * (iMgradX * vyLocal + iMgradY * vxLocal);
 
             if (coordinates == SPHERICAL) {
                 const auto iMM = iMMDevice[dgi];
                 e11.row(dgi) -= iMM * vyLocal;
-                e12.row(dgi) += 0.5 * iMM * vxLocal;
+                e12.row(dgi) += 0.5_ft * iMM * vxLocal;
             }
         });
 }
@@ -574,7 +562,7 @@ void KokkosCGDynamicsKernel<DGadvection>::computeStressDivergenceDevice(
     const DivMapDevice& divMDevice, const ConstDeviceBitset& cgLandMaskDevice, DeviceIndex nx,
     DeviceIndex ny, COORDINATES coordinates)
 {
-    using CGVec = Eigen::Vector<Nextsim::FloatType, CGdof>;
+    using CGVec = Eigen::Vector<FloatType, CGdof>;
 
     auto execSpace = Kokkos::DefaultExecutionSpace();
     Kokkos::deep_copy(execSpace, dStressXDevice, 0.0);
@@ -684,8 +672,8 @@ void KokkosCGDynamicsKernel<DGadvection>::computeShearDevice(const DeviceViewAdv
             const EdgeVec e22Gauss = e22.row(i) * PSIStress;
 
             dest.row(i) = iMJwPSIAdvectDevice[i]
-                * ((e11Gauss.array() - e22Gauss.array()).square() + 4.0 * e12Gauss.array().square()
-                    + 1.e-20)
+                * ((e11Gauss.array() - e22Gauss.array()).square()
+                    + FloatType(4) * e12Gauss.array().square() + FloatType(1.e-20))
                       .sqrt()
                       .matrix()
                       .transpose();
@@ -704,7 +692,7 @@ void KokkosCGDynamicsKernel<DGadvection>::computeTensorInvariantIDevice(
             const auto e12 = makeEigenMap(e12Device);
             const auto e22 = makeEigenMap(e22Device);
 
-            dest.row(i) = 0.5 * (e11.row(i) + e22.row(i));
+            dest.row(i) = 0.5_ft * (e11.row(i) + e22.row(i));
         });
 }
 
@@ -720,9 +708,9 @@ void KokkosCGDynamicsKernel<DGadvection>::computeTensorInvariantIIDevice(
             const auto e12 = makeEigenMap(e12Device);
             const auto e22 = makeEigenMap(e22Device);
 
-            dest.row(i)
-                = ((0.5 * (e11.row(i) - e22.row(i))).array().square() + e12.row(i).array().square())
-                      .sqrt();
+            dest.row(i) = ((0.5_ft * (e11.row(i) - e22.row(i))).array().square()
+                + e12.row(i).array().square())
+                              .sqrt();
         });
 }
 

@@ -13,7 +13,7 @@
 namespace Nextsim {
 
 ModelArray& FieldAdvection::advectField(
-    ModelArray& field, const TimestepTime& tst, double lowerLimit, double upperLimit)
+    ModelArray& field, const TimestepTime& tst, FloatType lowerLimit, FloatType upperLimit)
 {
     Module::getImplementation<IDynamics>().advectField(
         tst.step.seconds(), field, lowerLimit, upperLimit);
@@ -22,7 +22,7 @@ ModelArray& FieldAdvection::advectField(
 
 #ifdef USE_KOKKOS
 void FieldAdvection::advectField(
-    const DeviceViewMA& field, const TimestepTime& tst, double lowerLimit, double upperLimit)
+    const DeviceViewMA& field, const TimestepTime& tst, FloatType lowerLimit, FloatType upperLimit)
 {
     Module::getImplementation<IDynamics>().advectField(
         tst.step.seconds(), field, lowerLimit, upperLimit);

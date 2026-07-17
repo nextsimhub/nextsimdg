@@ -19,6 +19,7 @@
 #include "ModelMPI.hpp"
 #include "include/Halo.hpp"
 #endif
+#include "include/FloatType.hpp"
 #include "include/IStructure.hpp"
 #include "include/NextsimModule.hpp"
 #include "include/ParaGridIO.hpp"
@@ -48,9 +49,9 @@ static const int DGSTRESS = 6;
 
 const size_t nx = 10;
 const size_t ny = 9;
-const double yFactor = 0.01;
-const double xFactor = 0.1;
-const double scale = 1e5;
+const Nextsim::FloatType yFactor = 0.01;
+const Nextsim::FloatType xFactor = 0.1;
+const Nextsim::FloatType scale = 1e5;
 
 namespace Nextsim {
 
@@ -72,9 +73,9 @@ void initializeTestData(
 
     // HFields, DGField and mask
     for (size_t j = 0; j < localNY - 2 * haloWidth; ++j) {
-        double yy = scale * (j - float(ny) / 2);
+        FloatType yy = scale * (j - float(ny) / 2);
         for (size_t i = 0; i < localNX - 2 * haloWidth; ++i) {
-            double xx = scale * ((i + startX) - float(nx) / 2);
+            FloatType xx = scale * ((i + startX) - float(nx) / 2);
             x(i + haloWidth, j + haloWidth) = xx;
             y(i + haloWidth, j + haloWidth) = yy;
             frac(i + haloWidth, j + haloWidth) = j * yFactor + (i + startX) * xFactor;
@@ -95,8 +96,8 @@ void initializeTestData(
     // Vetex coordinates
     for (size_t i = 0; i < localNX - 2 * haloWidth; ++i) {
         for (size_t j = 0; j < localNY - 2 * haloWidth; ++j) {
-            double x = (i + startX) - 0.5 - float(nx) / 2;
-            double y = j - 0.5 - float(ny) / 2;
+            FloatType x = (i + startX) - 0.5 - float(nx) / 2;
+            FloatType y = j - 0.5 - float(ny) / 2;
             coordinates.components({ i + haloWidth, j + haloWidth })[0] = x * scale;
             coordinates.components({ i + haloWidth, j + haloWidth })[1] = y * scale;
         }
@@ -173,7 +174,7 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file")
     REQUIRE(coordinates.components({ 3, 8 })[1] - coordinates.components({ 3, 7 })[1] == scale);
 
     HField gridAzimuth;
-    double gridAzimuth0 = 45.;
+    FloatType gridAzimuth0 = 45.;
     gridAzimuth = gridAzimuth0;
 
     ModelState state = { {
@@ -325,7 +326,7 @@ TEST_CASE("Write a diagnostic ParaGrid file")
     DGField cice = fractionalDG + 20;
 
     HField gridAzimuth;
-    double gridAzimuth0 = 45.;
+    FloatType gridAzimuth0 = 45.;
     gridAzimuth = gridAzimuth0;
 
     ModelState state = { {
@@ -415,7 +416,7 @@ TEST_CASE("Test array ordering")
 
     REQUIRE(Module::getImplementation<IStructure>().structureType() == "parametric_rectangular");
 
-    double xFactor = 10;
+    FloatType xFactor = 10;
 
 #ifdef USE_MPI
     auto& modelMPI = ModelMPI::getInstance(test_comm);

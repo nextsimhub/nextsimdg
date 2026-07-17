@@ -17,7 +17,6 @@
 #include <vector>
 
 namespace Nextsim {
-inline constexpr double SQR(double x) { return x * x; }
 
 /*!
  * Stores the spatial mesh of the domain.
@@ -34,7 +33,7 @@ inline constexpr double SQR(double x) { return x * x; }
  *
  */
 
-typedef std::array<double, 2> Vertex;
+typedef std::array<FloatType, 2> Vertex;
 
 class ParametricMesh {
 public:
@@ -51,7 +50,7 @@ public:
     size_t nnodes; //!< total number of nodes
     size_t nelements; //!< total number of nodes
 
-    Eigen::Matrix<Nextsim::FloatType, Eigen::Dynamic, 2> vertices; // stores the
+    Eigen::Matrix<FloatType, Eigen::Dynamic, 2> vertices; // stores the
 
     /*!
      * Periodic:
@@ -119,19 +118,19 @@ public:
     void RotatePoleToGreenland()
     {
         for (size_t i = 0; i < nnodes; ++i) {
-            const double x = cos(vertices(i, 1)) * cos(vertices(i, 0));
-            const double y = cos(vertices(i, 1)) * sin(vertices(i, 0));
-            const double z = sin(vertices(i, 1));
+            const FloatType x = cos(vertices(i, 1)) * cos(vertices(i, 0));
+            const FloatType y = cos(vertices(i, 1)) * sin(vertices(i, 0));
+            const FloatType z = sin(vertices(i, 1));
 
-            double aw = 40.0 * M_PI / 180.0;
-            const double x1 = cos(aw) * x - sin(aw) * y;
-            const double y1 = sin(aw) * x + cos(aw) * y;
-            const double z1 = z;
+            FloatType aw = 40.0 * M_PI / 180.0;
+            const FloatType x1 = cos(aw) * x - sin(aw) * y;
+            const FloatType y1 = sin(aw) * x + cos(aw) * y;
+            const FloatType z1 = z;
 
-            double bw = 15.0 * M_PI / 180.0;
-            const double x2 = cos(bw) * x1 - sin(bw) * z1;
-            const double y2 = y1;
-            const double z2 = sin(bw) * x1 + cos(bw) * z1;
+            FloatType bw = 15.0 * M_PI / 180.0;
+            const FloatType x2 = cos(bw) * x1 - sin(bw) * z1;
+            const FloatType y2 = y1;
+            const FloatType z2 = sin(bw) * x1 + cos(bw) * z1;
 
             vertices(i, 1) = asin(z2);
             vertices(i, 0) = atan2(y2, x2);
@@ -142,20 +141,20 @@ public:
     void RotatePoleFromGreenland()
     {
         for (size_t i = 0; i < nnodes; ++i) {
-            const double x = cos(vertices(i, 1)) * cos(vertices(i, 0));
-            const double y = cos(vertices(i, 1)) * sin(vertices(i, 0));
-            const double z = sin(vertices(i, 1));
+            const FloatType x = cos(vertices(i, 1)) * cos(vertices(i, 0));
+            const FloatType y = cos(vertices(i, 1)) * sin(vertices(i, 0));
+            const FloatType z = sin(vertices(i, 1));
 
-            double aw = -40.0 * M_PI / 180.0;
-            double bw = -15 * M_PI / 180.0;
+            FloatType aw = -40.0 * M_PI / 180.0;
+            FloatType bw = -15 * M_PI / 180.0;
 
-            const double x1 = cos(bw) * x - sin(bw) * z;
-            const double y1 = y;
-            const double z1 = sin(bw) * x + cos(bw) * z;
+            const FloatType x1 = cos(bw) * x - sin(bw) * z;
+            const FloatType y1 = y;
+            const FloatType z1 = sin(bw) * x + cos(bw) * z;
 
-            const double x2 = cos(aw) * x1 - sin(aw) * y1;
-            const double y2 = sin(aw) * x1 + cos(aw) * y1;
-            const double z2 = z1;
+            const FloatType x2 = cos(aw) * x1 - sin(aw) * y1;
+            const FloatType y2 = sin(aw) * x1 + cos(aw) * y1;
+            const FloatType z2 = z1;
 
             vertices(i, 1) = asin(z2);
             vertices(i, 0) = atan2(y2, x2);
@@ -176,7 +175,7 @@ public:
      * all cordinates are shifted to the range 0,3 Pi by correcting
      * negative ones
      */
-    template <int N> void correctlongitude(Eigen::Matrix<Nextsim::FloatType, N, 2>& coords) const
+    template <int N> void correctlongitude(Eigen::Matrix<FloatType, N, 2>& coords) const
     {
         assert(CoordinateSystem == SPHERICAL);
         bool problem = false;
@@ -188,7 +187,7 @@ public:
         if (problem) {
             for (size_t i = 0; i < N; ++i)
                 if (coords(i, 0) < 0)
-                    coords(i, 0) += 2.0 * M_PI;
+                    coords(i, 0) += 2.0_ft * M_PI;
         }
     }
 
@@ -198,13 +197,13 @@ public:
      * If correctlongitude is set to true, the congitude coordinates will
      * be such that there is no jump (from Pi to -Pi) within the element
      */
-    const Eigen::Matrix<Nextsim::FloatType, 4, 2> coordinatesOfElement(const size_t eid) const
+    const Eigen::Matrix<FloatType, 4, 2> coordinatesOfElement(const size_t eid) const
     {
         const size_t nid = eid2nid(eid);
         assert(nid < vertices.rows());
         assert(nid + nx + 2 < vertices.rows());
-        Eigen::Matrix<Nextsim::FloatType, 4, 2> coords
-            = Eigen::Matrix<Nextsim::FloatType, 4, 2>({ { vertices(nid, 0), vertices(nid, 1) },
+        Eigen::Matrix<FloatType, 4, 2> coords
+            = Eigen::Matrix<FloatType, 4, 2>({ { vertices(nid, 0), vertices(nid, 1) },
                 { vertices(nid + 1, 0), vertices(nid + 1, 1) },
                 { vertices(nid + nx + 1, 0), vertices(nid + nx + 1, 1) },
                 { vertices(nid + nx + 2, 0), vertices(nid + nx + 2, 1) } });
@@ -221,14 +220,14 @@ public:
      * If correctlongitude is set to true, the congitude coordinates will
      * be such that there is no jump (from Pi/2 to -Pi/2) within the element
      */
-    const Eigen::Matrix<Nextsim::FloatType, 2, 2> coordinatesOfEdgeX(const size_t eid) const
+    const Eigen::Matrix<FloatType, 2, 2> coordinatesOfEdgeX(const size_t eid) const
     {
         const size_t ex = eid % nx; //! x-index of the corresponding element
         const size_t ey = eid / nx; //! y-index of the corresponding element
         const size_t nid = ey * (nx + 1) + ex; //! index of the node
 
-        Eigen::Matrix<Nextsim::FloatType, 2, 2> ecoords
-            = Eigen::Matrix<Nextsim::FloatType, 2, 2>({ { vertices(nid, 0), vertices(nid, 1) },
+        Eigen::Matrix<FloatType, 2, 2> ecoords
+            = Eigen::Matrix<FloatType, 2, 2>({ { vertices(nid, 0), vertices(nid, 1) },
                 { vertices(nid + 1, 0), vertices(nid + 1, 1) } });
 
         if (CoordinateSystem == SPHERICAL)
@@ -237,15 +236,15 @@ public:
         return ecoords;
     }
 
-    const Eigen::Matrix<Nextsim::FloatType, 2, 2> coordinatesOfEdgeY(const size_t eid) const
+    const Eigen::Matrix<FloatType, 2, 2> coordinatesOfEdgeY(const size_t eid) const
     {
         const size_t ex = eid % (nx + 1); //! x-index of the corresponding element (possibly nx+1)
         const size_t ey = eid / (nx + 1); //! y-index of the corresponding element
         assert(ey < ny);
         const size_t nid = ey * (nx + 1) + ex;
 
-        Eigen::Matrix<Nextsim::FloatType, 2, 2> ecoords
-            = Eigen::Matrix<Nextsim::FloatType, 2, 2>({ { vertices(nid, 0), vertices(nid, 1) },
+        Eigen::Matrix<FloatType, 2, 2> ecoords
+            = Eigen::Matrix<FloatType, 2, 2>({ { vertices(nid, 0), vertices(nid, 1) },
                 { vertices(nid + nx + 1, 0), vertices(nid + nx + 1, 1) } });
 
         if (CoordinateSystem == SPHERICAL)
@@ -257,12 +256,12 @@ public:
     /*!
      * return the area of the mesh element with index eid
      */
-    double area(const size_t eid) const;
+    FloatType area(const size_t eid) const;
 
     /*!
      * return the mesh size (as square root of area)  of the mesh element eid
      */
-    double h(const size_t eid) const { return sqrt(area(eid)); }
+    FloatType h(const size_t eid) const { return sqrt(area(eid)); }
 
     /*!
      * returns the cooridnate of a vertex by an index (ix,iy)
@@ -287,18 +286,19 @@ public:
             const size_t my = iy % 2;
 
             if ((cx < nx) && (cy < ny)) {
-                const Eigen::Matrix<Nextsim::FloatType, 4, 2> coe
-                    = coordinatesOfElement(nx * cy + cx);
+                const Eigen::Matrix<FloatType, 4, 2> coe = coordinatesOfElement(nx * cy + cx);
 
                 if ((my == 0) && (mx == 0))
                     return Vertex({ coe(0, 0), coe(0, 1) });
                 else if ((my == 0) && (mx == 1))
-                    return Vertex({ 0.5 * (coe(0, 0) + coe(1, 0)), 0.5 * (coe(0, 1) + coe(1, 1)) });
+                    return Vertex(
+                        { 0.5_ft * (coe(0, 0) + coe(1, 0)), 0.5_ft * (coe(0, 1) + coe(1, 1)) });
                 else if ((my == 1) && (mx == 0))
-                    return Vertex({ 0.5 * (coe(0, 0) + coe(2, 0)), 0.5 * (coe(0, 1) + coe(2, 1)) });
+                    return Vertex(
+                        { 0.5_ft * (coe(0, 0) + coe(2, 0)), 0.5_ft * (coe(0, 1) + coe(2, 1)) });
                 else if ((my == 1) && (mx == 1))
-                    return Vertex({ 0.25 * (coe(0, 0) + coe(1, 0) + coe(2, 0) + coe(3, 0)),
-                        0.25 * (coe(0, 1) + coe(1, 1) + coe(2, 1) + coe(3, 1)) });
+                    return Vertex({ 0.25_ft * (coe(0, 0) + coe(1, 0) + coe(2, 0) + coe(3, 0)),
+                        0.25_ft * (coe(0, 1) + coe(1, 1) + coe(2, 1) + coe(3, 1)) });
                 else
                     abort();
             } else if (cx < nx)
@@ -307,13 +307,13 @@ public:
             // it must be my = 0.
             {
                 assert(my == 0);
-                const Eigen::Matrix<Nextsim::FloatType, 4, 2> coe
-                    = coordinatesOfElement(nx * (cy - 1) + cx);
+                const Eigen::Matrix<FloatType, 4, 2> coe = coordinatesOfElement(nx * (cy - 1) + cx);
 
                 if (mx == 0)
                     return Vertex({ coe(2, 0), coe(2, 1) });
                 else if (mx == 1)
-                    return Vertex({ 0.5 * (coe(2, 0) + coe(3, 0)), 0.5 * (coe(2, 1) + coe(3, 1)) });
+                    return Vertex(
+                        { 0.5_ft * (coe(2, 0) + coe(3, 0)), 0.5_ft * (coe(2, 1) + coe(3, 1)) });
                 abort();
             } else if (cy < ny)
             // the node is on the right boundary of  the mesh
@@ -322,13 +322,13 @@ public:
             {
                 assert(mx == 0);
 
-                const Eigen::Matrix<Nextsim::FloatType, 4, 2> coe
-                    = coordinatesOfElement(nx * cy + cx - 1);
+                const Eigen::Matrix<FloatType, 4, 2> coe = coordinatesOfElement(nx * cy + cx - 1);
 
                 if (my == 0)
                     return Vertex({ coe(1, 0), coe(1, 1) });
                 else if (my == 1)
-                    return Vertex({ 0.5 * (coe(1, 0) + coe(3, 0)), 0.5 * (coe(1, 1) + coe(3, 1)) });
+                    return Vertex(
+                        { 0.5_ft * (coe(1, 0) + coe(3, 0)), 0.5_ft * (coe(1, 1) + coe(3, 1)) });
                 abort();
             } else // top right vertex
             {
@@ -343,17 +343,17 @@ public:
     /*!
      * computes the vector between two points n1, n2 (not normed)
      */
-    Eigen::Matrix<Nextsim::FloatType, 1, 2> edgevector(const size_t n1, const size_t n2) const
+    Eigen::Matrix<FloatType, 1, 2> edgevector(const size_t n1, const size_t n2) const
     {
         //! In spherical coordinates (and greenland) we must check for the Pi -> -Pi jump
         if (CoordinateSystem == SPHERICAL) {
-            Eigen::Matrix<Nextsim::FloatType, 1, 2> dv
+            Eigen::Matrix<FloatType, 1, 2> dv
                 = vertices.block<1, 2>(n2, 0) - vertices.block<1, 2>(n1, 0);
 
-            if (dv(0, 0) > 0.5 * M_PI)
-                dv(0, 0) -= 2.0 * M_PI;
-            if (dv(0, 0) < -0.5 * M_PI)
-                dv(0, 0) += 2.0 * M_PI;
+            if (dv(0, 0) > 0.5_ft * M_PI)
+                dv(0, 0) -= 2.0_ft * M_PI;
+            if (dv(0, 0) < -0.5_ft * M_PI)
+                dv(0, 0) += 2.0_ft * M_PI;
             return dv;
         } else if (CoordinateSystem == CARTESIAN)
             return vertices.block<1, 2>(n2, 0) - vertices.block<1, 2>(n1, 0);
@@ -378,8 +378,8 @@ public:
 
     // Global access functions
 
-    double hmin() const; //! returns the minimum mesh size
-    double area() const; //! returns the area of the domain
+    FloatType hmin() const; //! returns the minimum mesh size
+    FloatType area() const; //! returns the area of the domain
 };
 } /* namespace Nextsim */
 

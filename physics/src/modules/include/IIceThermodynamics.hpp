@@ -77,9 +77,9 @@ public:
     virtual void update(const TimestepTime& tsTime)
     {
 #ifdef USE_KOKKOS
-        FieldAdvection::advectField(tsurfAccessor.getDeviceRW(), tsTime, minT, 0.);
+        FieldAdvection::advectField(tsurfAccessor.getDeviceRW(), tsTime, minT, 0.0_ft);
 #else
-        FieldAdvection::advectField(tsurfAccessor.getHostRW(), tsTime, minT, 0.);
+        FieldAdvection::advectField(tsurfAccessor.getHostRW(), tsTime, minT, 0.0_ft);
 #endif
     }
 
@@ -136,7 +136,7 @@ protected:
     // Owned, Module-private arrays
     ModelArrayAccessor<Private::SNOW_TO_ICE, RW> snowToIceAccessor;
 
-    constexpr static double minT = -90.0;
+    constexpr static FloatType minT = -90.0;
 };
 
 } /* namespace Nextsim */
