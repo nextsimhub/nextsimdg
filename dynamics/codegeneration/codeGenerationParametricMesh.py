@@ -56,23 +56,27 @@ def dy_q1basis(i, x):
 
 
 ## q1 basis functions in the Gauss-Points
-## Generates Matrix CG_Q1_[Q]
+## Generates Matrix CG_Q1_[Q]_{dtype}
 ## where Q is the no of guass points in each direction
 ## It is a 4 - Q^2 - Matrix
-def cg_q1(g):
+def cg_q1(g, dtype):
     if g > 1:
         print(
-            "static const Eigen::Matrix<FloatType, 4, {0}, Eigen::RowMajor> CG_Q1_{1} =".format(
-                g * g, g
+            "static const Eigen::Matrix<{0}, 4, {1}, Eigen::RowMajor> CG_Q1_{2}_{3} =".format(
+                dtype, g * g, g, dtype
             )
         )
-        print("\t(Eigen::Matrix<FloatType, 4, {0}, Eigen::RowMajor>() <<".format(g * g))
+        print(
+            "\t(Eigen::Matrix<{0}, 4, {1}, Eigen::RowMajor>() <<".format(dtype, g * g)
+        )
 
     else:
         print(
-            "static const Eigen::Matrix<FloatType, 4, {0}> CG_Q1_{1} =".format(g * g, g)
+            "static const Eigen::Matrix<{0}, 4, {1}> CG_Q1_{2}_{3} =".format(
+                dtype, g * g, g, dtype
+            )
         )
-        print("\t(Eigen::Matrix<FloatType, 4, {0}>() <<".format(g * g))
+        print("\t(Eigen::Matrix<{0}, 4, {1}>() <<".format(dtype, g * g))
     print("\t", end=" ")
     for i in range(4):
         for gy in range(g):
@@ -91,25 +95,27 @@ def cg_q1(g):
 
 
 ## x- and y-derivative of the q1 basis functions in the Gauss-Points
-## Generates Matrices CG_Q1x_[Q] and CG_Q1y_[Q]
+## Generates Matrices CG_Q1x_[Q]_{dtype} and CG_Q1y_[Q]_{dtype}
 ## where Q is the no of guass points in each direction
 ## It is a 4 - Q^2
-def cg_q1grad(g):
+def cg_q1grad(g, dtype):
     if g > 1:
         print(
-            "static const Eigen::Matrix<FloatType, 4, {0}, Eigen::RowMajor> CG_Q1x_{1} =".format(
-                g * g, g
+            "static const Eigen::Matrix<{0}, 4, {1}, Eigen::RowMajor> CG_Q1x_{2}_{3} =".format(
+                dtype, g * g, g, dtype
             )
         )
-        print("\t(Eigen::Matrix<FloatType, 4, {0}, Eigen::RowMajor>() <<".format(g * g))
+        print(
+            "\t(Eigen::Matrix<{0}, 4, {1}, Eigen::RowMajor>() <<".format(dtype, g * g)
+        )
 
     else:
         print(
-            "static const Eigen::Matrix<FloatType, 4, {0}> CG_Q1x_{1} =".format(
-                g * g, g
+            "static const Eigen::Matrix<{0}, 4, {1}> CG_Q1x_{2}_{3} =".format(
+                dtype, g * g, g, dtype
             )
         )
-        print("\t(Eigen::Matrix<FloatType, 4, {0}>() <<".format(g * g))
+        print("\t(Eigen::Matrix<{0}, 4, {1}>() <<".format(dtype, g * g))
     print("\t", end=" ")
     for i in range(4):
         for gy in range(g):
@@ -124,18 +130,20 @@ def cg_q1grad(g):
 
     if g > 1:
         print(
-            "static const Eigen::Matrix<FloatType, 4, {0}, Eigen::RowMajor> CG_Q1y_{1} =".format(
-                g * g, g
+            "static const Eigen::Matrix<{0}, 4, {1}, Eigen::RowMajor> CG_Q1y_{2}_{3} =".format(
+                dtype, g * g, g, dtype
             )
         )
-        print("\t(Eigen::Matrix<FloatType, 4, {0}, Eigen::RowMajor>() <<".format(g * g))
+        print(
+            "\t(Eigen::Matrix<{0}, 4, {1}, Eigen::RowMajor>() <<".format(dtype, g * g)
+        )
     else:
         print(
-            "static const Eigen::Matrix<FloatType, 4, {0}> CG_Q1y_{1} =".format(
-                g * g, g
+            "static const Eigen::Matrix<{0}, 4, {1}> CG_Q1y_{2}_{3} =".format(
+                dtype, g * g, g, dtype
             )
         )
-        print("\t(Eigen::Matrix<FloatType, 4, {0}>() <<".format(g * g))
+        print("\t(Eigen::Matrix<{0}, 4, {1}>() <<".format(dtype, g * g))
     print("\t", end=" ")
     for i in range(4):
         for gy in range(g):
@@ -172,7 +180,8 @@ print(
 )
 
 for q in [1, 2, 3, 4]:
-    cg_q1grad(q)
+    for dtype in ["float", "double"]:
+        cg_q1grad(q, dtype)
 
 ## CG_Q1_[1-3]
 # Gradient of the Q1 test functions for mapping in the Gauss points
@@ -180,7 +189,8 @@ print(
     "//CG_Q1_[Q] stores the 4 Q1 basis fucntions in the Gauss points on the unit element"
 )
 for q in [1, 2, 3, 4]:
-    cg_q1(q)
+    for dtype in ["float", "double"]:
+        cg_q1(q, dtype)
 
 print("\n} /* namespace Nextsim */\n")
 print(f"\n#endif /* {include_guard} */")

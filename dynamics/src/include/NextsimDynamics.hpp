@@ -15,7 +15,8 @@
 
 namespace Nextsim {
 
-constexpr FloatType pi = 3.14159265358979323846;
+template <typename T = FloatType> constexpr T pi_v = 3.14159265358979323846;
+constexpr FloatType pi = pi_v<FloatType>;
 
 enum TENSOR_ELEMENT { I11, I12, I22, N_TENSOR_ELEMENTS };
 const std::array<TENSOR_ELEMENT, N_TENSOR_ELEMENTS> tensorElements = { I11, I12, I22 };
