@@ -112,7 +112,8 @@ if(ENABLE_MPI)
         add_custom_command(
             OUTPUT iodef.xml
             COMMAND
-                python3 ${CMAKE_CURRENT_SOURCE_DIR}/../src/generate_iodef.py ${DGComp}
+                "${Python_EXECUTABLE}"
+                ${CMAKE_CURRENT_SOURCE_DIR}/../src/generate_iodef.py ${DGComp}
                 ${DGStressComp} ${CMAKE_CURRENT_SOURCE_DIR}/../src/iodef.xml.jinja
                 ${CMAKE_CURRENT_BINARY_DIR}/iodef.xml
             DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/../src/iodef.xml.jinja)
