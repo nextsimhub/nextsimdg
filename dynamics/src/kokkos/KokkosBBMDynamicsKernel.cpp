@@ -53,6 +53,7 @@ void KokkosBBMDynamicsKernel<DGadvection>::updateStressHighOrderDevice(
 {
     constexpr int NGP = KokkosCGDynamicsKernel<DGadvection>::NGP;
     using EdgeVec = Eigen::Matrix<FloatType, 1, NGP * NGP>;
+    using EdgeVecF64 = Eigen::Matrix<double, 1, NGP * NGP>;
 
     Kokkos::parallel_for(
         "updateStressHighOrder", s11Device.extent(0), KOKKOS_LAMBDA(const DeviceIndex i) {
@@ -91,30 +92,39 @@ void KokkosBBMDynamicsKernel<DGadvection>::updateStressHighOrderDevice(
             EdgeVec sigma_n = 0.5_ft * (s11Gauss.array() + s22Gauss.array());
 
             //! exp(-C(1-A))
-            const EdgeVec expC = (params.compactionParam * (1.0_ft - aGauss.array())).exp().array();
+            const EdgeVecF64 expC
+                = (double(params.compactionParam) * (1.0 - aGauss.array().template cast<double>()))
+                      .exp()
+                      .array();
 
             // Eqn. 25
-            const auto powalphaexpC = (dGauss.array() * expC.array()).pow(params.alpha - 1);
-            const EdgeVec time_viscous = params.lambda0 * powalphaexpC;
+            const auto powalphaexpC
+                = (dGauss.array().template cast<double>() * expC.array()).pow(params.alpha - 1);
+            const EdgeVecF64 time_viscous = params.lambda0 * powalphaexpC;
 
             //! BBM  Computing tildeP according to (Eqn. 7b and Eqn. 8)
             // (Eqn. 8)
-            const auto Pmax = params.P0 * hGauss.array().pow(params.expPMax + 1) * expC.array();
+            const auto Pmax = double(params.P0)
+                * hGauss.array().template cast<double>().pow(params.expPMax + 1) * expC.array();
 
             // (Eqn. 7b) Prepare tildeP
             // tildeP must be capped at 1 to get an elastic response
             // (Eqn. 7b) Select case based on sigma_n
             const auto tildeP
                 = (sigma_n.array() < 0.0_ft)
-                      .select((-Pmax.array() / sigma_n.array()).min(1.0_ft).matrix(), 0.0_ft);
+                      .select((-Pmax.array() / sigma_n.array().template cast<double>())
+                                  .min(1.0)
+                                  .matrix(),
+                          0.0);
 
             // multiplicator
-            const EdgeVec multiplicator = time_viscous.array()
-                / (time_viscous.array() + (1.0_ft - tildeP.array()) * deltaT);
+            const EdgeVec multiplicator
+                = (time_viscous.array() / (time_viscous.array() + (1.0 - tildeP.array()) * deltaT))
+                      .template cast<FloatType>();
 
             //! Eqn. 9
-            const EdgeVec elasticity
-                = hGauss.array() * params.young * dGauss.array() * expC.array();
+            const EdgeVec elasticity = hGauss.array() * params.young * dGauss.array()
+                * expC.array().template cast<FloatType>();
 
             // Eqn. 12: first factor on RHS
             /* Stiffness matrix
@@ -147,15 +157,15 @@ void KokkosBBMDynamicsKernel<DGadvection>::updateStressHighOrderDevice(
 
             //! Eqn. 22
             const auto cohesion = params.cLab * scale_coef * hGauss.array();
+            const EdgeVec temp = cohesion.matrix();
             //! Eqn. 30
             const EdgeVec compr_strength = params.comprCap * scale_coef * hGauss.array();
 
             // Mohr-Coulomb failure using Mssrs. Plante & Tremblay's formulation
             // sigma_s + tan_phi*sigma_n < 0 is always inside, but gives dcrit < 0
+            const EdgeVec cond_term = (tau.array() + params.mu * sigma_n.array()).matrix();
             EdgeVec dcrit
-                = (tau.array() + params.mu * sigma_n.array() > 0.0_ft)
-                      .select(
-                          cohesion.array() / (tau.array() + params.mu * sigma_n.array()), 1.0_ft);
+                = (cond_term.array() > 0.0_ft).select(cohesion.array() / cond_term.array(), 1.0_ft);
 
             // Compressive failure using Mssrs. Plante & Tremblay's formulation
             dcrit = (sigma_n.array() < -compr_strength.array())
@@ -164,13 +174,15 @@ void KokkosBBMDynamicsKernel<DGadvection>::updateStressHighOrderDevice(
             // Only damage when we're outside
             dcrit = dcrit.array().min(1.0_ft);
 
-            // Eqn. 29
-            const auto td = cellSizeDevice(i)
-                * Kokkos::sqrt(2.0_ft * (1.0_ft + params.nu0) * params.rhoIce)
-                / elasticity.array().sqrt();
+            // Eqn. 29 inverted and multiplied by dT to reduce the number of operations and to
+            // prevent div by 0
+            const auto td_inv_dt = elasticity.array().sqrt()
+                * (deltaT
+                    / (cellSizeDevice(i)
+                        * Kokkos::sqrt(2.0_ft * (1.0_ft + params.nu0) * params.rhoIce)));
 
             // Update damage
-            const EdgeVec relaxFac = (1.0_ft - dcrit.array()) * deltaT / td.array();
+            const EdgeVec relaxFac = (1.0_ft - dcrit.array()) * td_inv_dt.array();
             dGauss.array() -= dGauss.array() * relaxFac.array();
 
             // Relax stress in Gauss points
