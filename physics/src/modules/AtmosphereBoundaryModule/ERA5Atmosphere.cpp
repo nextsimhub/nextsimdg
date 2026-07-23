@@ -74,9 +74,11 @@ void ERA5Atmosphere::update(const TimestepTime& tst)
         = { "tair", "dew2m", "pair", "sw_in", "lw_in", "wind_speed", "u", "v" };
 
     // Read ERA5 forcings at the top of the hour
-    if (std::fmod((tst.start - TimePoint()).seconds(), 3600.) == 0.0_ft) {
+    if (std::fmod((tst.start - TimePoint()).seconds(), 3600.) == 0.0_ft
+        || forcingState.data.empty()) {
         forcingState = ParaGridIO::readForcingTimeStatic(forcings, tst.start, filePath);
     }
+
     tairAccessor.getHostRW() = forcingState.data.at("tair");
     tdewAccessor.getHostRW() = forcingState.data.at("dew2m");
     pairAccessor.getHostRW() = forcingState.data.at("pair");
