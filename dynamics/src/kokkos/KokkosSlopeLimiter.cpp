@@ -19,13 +19,9 @@ KokkosSlopeLimiter<DG>::KokkosSlopeLimiter(
         minV = makeKokkosDeviceView<MakeViewOptions::ALWAYS_COPY>("minV", temp);
         maxV = makeKokkosDeviceView<MakeViewOptions::ALWAYS_COPY>("maxV", temp);
         alpha = makeKokkosDeviceView<MakeViewOptions::ALWAYS_COPY>("alpha", tempDG);
-        alphaX = makeKokkosDeviceView<MakeViewOptions::ALWAYS_COPY>("alphaX", tempDG);
     }
     if constexpr (DG >= 6) {
-        dxminV = makeKokkosDeviceView<MakeViewOptions::ALWAYS_COPY>("dxminV", temp);
-        dxmaxV = makeKokkosDeviceView<MakeViewOptions::ALWAYS_COPY>("dxmaxV", temp);
-        dyminV = makeKokkosDeviceView<MakeViewOptions::ALWAYS_COPY>("dyminV", temp);
-        dymaxV = makeKokkosDeviceView<MakeViewOptions::ALWAYS_COPY>("dymaxV", temp);
+        alphaX = makeKokkosDeviceView<MakeViewOptions::ALWAYS_COPY>("alphaX", tempDG);
         alphaY = makeKokkosDeviceView<MakeViewOptions::ALWAYS_COPY>("alphaY", tempDG);
     }
     if constexpr (DG == 8) {
@@ -36,15 +32,18 @@ KokkosSlopeLimiter<DG>::KokkosSlopeLimiter(
 
 /*************************************************************/
 template <int DG>
-void KokkosSlopeLimiter<DG>::initMinMax(DeviceViewCG1& minV, DeviceViewCG1& maxV,
+void KokkosSlopeLimiter<DG>::initMinMax(DeviceViewCG1& _minV, DeviceViewCG1& _maxV,
     const ConstDeviceViewDG& phi, DeviceIndex nx, DeviceIndex ny, DeviceIndex comp)
 {
     // relative indices of the four vertices in minV/maxV
     const Kokkos::Array<DeviceIndex, 4> cgIndices = { 0, 1, nx + 1, nx + 2 };
 
     // CPU version uses +-1.e9 but it should probably be min/max
-    Kokkos::deep_copy(minV, std::numeric_limits<FloatType>::max());
-    Kokkos::deep_copy(maxV, std::numeric_limits<FloatType>::min());
+    auto execSpace = Kokkos::DefaultExecutionSpace();
+    Kokkos::deep_copy(execSpace, _minV, std::numeric_limits<FloatType>::max());
+    Kokkos::deep_copy(execSpace, _maxV, std::numeric_limits<FloatType>::min());
+
+    assert(phi.extent(0) == nx * ny);
 
     Kokkos::parallel_for(
         "minMax", phi.extent(0), KOKKOS_LAMBDA(const DeviceIndex eid) {
@@ -55,8 +54,8 @@ void KokkosSlopeLimiter<DG>::initMinMax(DeviceViewCG1& minV, DeviceViewCG1& maxV
             const FloatType meanVal = phi(eid, comp);
             for (DeviceIndex j = 0; j < 4; ++j) {
                 const DeviceIndex destIdx = cgi + cgIndices[j];
-                Kokkos::atomic_min(&minV(destIdx), meanVal);
-                Kokkos::atomic_max(&maxV(destIdx), meanVal);
+                Kokkos::atomic_min(&_minV(destIdx), meanVal);
+                Kokkos::atomic_max(&_maxV(destIdx), meanVal);
             }
         });
 }
@@ -85,18 +84,20 @@ KOKKOS_IMPL_FUNCTION static FloatType computeLimit(FloatType midValue,
     const Kokkos::Array<FloatType, 4>& vertexValues, const ConstDeviceViewCG1& _min,
     const ConstDeviceViewCG1& _max, const Kokkos::Array<DeviceIndex, 4>& cgIndices, DeviceIndex cgi)
 {
+    constexpr FloatType eps = std::is_same_v<FloatType, float> ? 1e-6 : 1e-8;
     FloatType al = 1.0; // the limiter
+
     for (DeviceIndex i = 0; i < 4; ++i) {
         const FloatType dv = vertexValues[i] - midValue; // distance to midpoint
-        if (dv > 1.e-8) {
-            assert(_max(cgi + cgIndices[i]) >= midValue);
+        if (dv > eps) {
+            KOKKOS_ASSERT(_max(cgi + cgIndices[i]) >= midValue);
             al = Kokkos::min(al, Kokkos::min(1.0_ft, (_max(cgi + cgIndices[i]) - midValue) / dv));
         }
-        if (dv < -1.e-8) {
-            assert(_min(cgi + cgIndices[i]) <= midValue);
+        if (dv < -eps) {
+            KOKKOS_ASSERT(_min(cgi + cgIndices[i]) <= midValue);
             al = Kokkos::min(al, Kokkos::min(1.0_ft, (_min(cgi + cgIndices[i]) - midValue) / dv));
         }
-        assert(al >= 0);
+        KOKKOS_ASSERT(al >= 0);
     }
 
     return al;
@@ -110,6 +111,7 @@ void KokkosSlopeLimiter<DG>::computeAlphas(const DeviceViewDG1& alpha, const Con
     const Kokkos::Array<DeviceIndex, 4> cgIndices = { 0, 1, nx + 1, nx + 2 };
 
     assert(alpha.extent(0) == nx * ny);
+
     Kokkos::parallel_for(
         "computeAlphas", alpha.extent(0), KOKKOS_LAMBDA(const DeviceIndex c) {
             const DeviceIndex cx = c % nx;
@@ -140,6 +142,8 @@ void KokkosSlopeLimiter<DG>::computeAlphasX(const DeviceViewDG1& alphaX,
     const Kokkos::Array<DeviceIndex, 4> cgIndices = { 0, 1, nx + 1, nx + 2 };
 
     assert(alphaX.extent(0) == nx * ny);
+    assert(alphaX.extent(0) == phi.extent(0));
+
     Kokkos::parallel_for(
         "computeAlphasX", alphaX.extent(0), KOKKOS_LAMBDA(const DeviceIndex c) {
             const DeviceIndex cx = c % nx;
@@ -168,6 +172,7 @@ void KokkosSlopeLimiter<DG>::computeAlphasY(const DeviceViewDG1& alphaY,
     const Kokkos::Array<DeviceIndex, 4> cgIndices = { 0, 1, nx + 1, nx + 2 };
 
     assert(alphaY.extent(0) == nx * ny);
+    assert(alphaY.extent(0) == phi.extent(0));
     Kokkos::parallel_for(
         "computeAlphasY", alphaY.extent(0), KOKKOS_LAMBDA(const DeviceIndex c) {
             const DeviceIndex cx = c % nx;
@@ -202,32 +207,42 @@ template <int DG>
 void KokkosSlopeLimiter<DG>::limitHigherOrder(
     const DeviceViewDG& phi, const DeviceViewDG1& alpha, const DeviceViewDG1& alphaX)
 {
-    Kokkos::parallel_for(
-        "limitHigherOrder", phi.extent(0), KOKKOS_LAMBDA(const DeviceIndex c) {
-            const FloatType a = alpha(c);
-            for (int d = 1; d < 3; ++d)
-                phi(c, d) *= a;
-            const FloatType aX = alphaX(c);
-            for (int d = 3; d < DG; ++d)
-                phi(c, d) *= aX;
-        });
+    if constexpr (DG <= 3) {
+        Kokkos::parallel_for(
+            "limitHigherOrder", phi.extent(0), KOKKOS_LAMBDA(const DeviceIndex c) {
+                const FloatType a = alpha(c);
+                for (int d = 1; d < 3; ++d)
+                    phi(c, d) *= a;
+            });
+    } else {
+        Kokkos::parallel_for(
+            "limitHigherOrder", phi.extent(0), KOKKOS_LAMBDA(const DeviceIndex c) {
+                const FloatType a = alpha(c);
+                for (int d = 1; d < 3; ++d)
+                    phi(c, d) *= a;
+                const FloatType aX = alphaX(c);
+                for (int d = 3; d < DG; ++d)
+                    phi(c, d) *= aX;
+            });
+    }
 }
 
 template <int DG> void KokkosSlopeLimiter<DG>::limit(const DeviceViewDG& phi)
 {
-    if constexpr (DG == 1) // no limiting for dG0
+    if constexpr (DG == 1) { // no limiting for dG0
         return;
+    }
 
     // zero order terms & first derivative
-    initMinMax(minV, maxV, phi, mesh.nx, mesh.ny); // get max/min values in vertices
+    initMinMax(minV, maxV, phi, mesh.nx, mesh.ny, 0); // get max/min values in vertices
     computeAlphas(alpha, phi, minV, maxV, mesh.nx, mesh.ny);
 
     // derivative & second
     if constexpr (DG == 6) {
-        initMinMax(dxminV, dxmaxV, phi, mesh.nx, mesh.ny, 1); // get max/min values in vertices
-        initMinMax(dyminV, dymaxV, phi, mesh.nx, mesh.ny, 2); // get max/min values in vertices
-        computeAlphasX(alphaX, phi, dxminV, dxmaxV, mesh.nx, mesh.ny);
-        computeAlphasY(alphaY, phi, dyminV, dymaxV, mesh.nx, mesh.ny);
+        initMinMax(minV, maxV, phi, mesh.nx, mesh.ny, 1);
+        computeAlphasX(alphaX, phi, minV, maxV, mesh.nx, mesh.ny);
+        initMinMax(minV, maxV, phi, mesh.nx, mesh.ny, 2);
+        computeAlphasY(alphaY, phi, minV, maxV, mesh.nx, mesh.ny);
         limitAlphas(alpha, alphaX, alphaY);
     }
 
@@ -235,5 +250,4 @@ template <int DG> void KokkosSlopeLimiter<DG>::limit(const DeviceViewDG& phi)
 }
 
 template class KokkosSlopeLimiter<DGCOMP>;
-
 }
