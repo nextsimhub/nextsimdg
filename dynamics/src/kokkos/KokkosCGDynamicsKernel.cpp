@@ -456,12 +456,11 @@ void KokkosCGDynamicsKernel<DGadvection>::prepareIterationDevice(const DeviceVie
      */
     Kokkos::parallel_for(
         "limitCGA", cgADevice.extent(0), KOKKOS_LAMBDA(const DeviceIndex idx) {
-            cgADevice(idx) = Kokkos::fmin(Kokkos::fmax(cgADevice(idx), static_cast<FloatType>(0.0)),
-                static_cast<FloatType>(1.0));
+            cgADevice(idx) = Kokkos::fmin(Kokkos::fmax(cgADevice(idx), 0.0_ft), 1.0_ft);
         });
     Kokkos::parallel_for(
         "limitCGH", cgHDevice.extent(0), KOKKOS_LAMBDA(const DeviceIndex idx) {
-            cgHDevice(idx) = Kokkos::fmax(cgHDevice(idx), static_cast<FloatType>(0.05));
+            cgHDevice(idx) = Kokkos::fmax(cgHDevice(idx), 0.05_ft);
         });
 }
 

@@ -19,7 +19,7 @@ void limitMax(const KokkosDeviceView<DGVector<3>>& dg, FloatType max)
     Kokkos::parallel_for(
         "limitMax", dg.extent(0), KOKKOS_LAMBDA(const DeviceIndex i) {
             dg(i, 0) = Kokkos::fmin(max, dg(i, 0));
-            const FloatType l0 = static_cast<FloatType>(2.0)
+            const FloatType l0 = 2.0_ft
                 * Kokkos::fmax(Kokkos::abs(dg(i, 1) + dg(i, 2)), Kokkos::abs(dg(i, 1) - dg(i, 2)));
             if (l0 == 0)
                 return;
@@ -65,7 +65,7 @@ void limitMin(const KokkosDeviceView<DGVector<3>>& dg, FloatType min)
     Kokkos::parallel_for(
         "limitMin", dg.extent(0), KOKKOS_LAMBDA(const DeviceIndex i) {
             dg(i, 0) = Kokkos::fmax(min, dg(i, 0));
-            const FloatType l0 = static_cast<FloatType>(2.0)
+            const FloatType l0 = 2.0_ft
                 * Kokkos::fmax(Kokkos::abs(dg(i, 1) + dg(i, 2)), Kokkos::abs(dg(i, 1) - dg(i, 2)));
             if (l0 == 0)
                 return;
