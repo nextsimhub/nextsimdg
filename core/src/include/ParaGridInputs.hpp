@@ -9,6 +9,7 @@
 #include "ModelState.hpp"
 #include "Time.hpp"
 
+#include <regex>
 #include <set>
 #include <string>
 
@@ -75,8 +76,8 @@ private:
 
     void readRawForcing(RawDataMap& rawDataBefore, RawDataMap& rawDataAfter);
 
-    [[nodiscard]] RawDataMap readRawData(const std::string& fileName,
-        const std::set<std::string>& fields, size_t timeIndex = 0) const;
+    [[nodiscard]] RawDataMap readRawData(
+        const TimePoint& time, const std::set<std::string>& fields, size_t timeIndex = 0) const;
 
     [[nodiscard]] double wrapLon(const double lon) const
     {
@@ -86,6 +87,14 @@ private:
 
         wrappedLon -= 180.;
         return wrappedLon;
+    }
+
+    [[nodiscard]] std::string formatFileName(const std::string& filePathIn, const TimePoint& time,
+        const std::string& variable = "NONE") const
+    {
+        const std::regex pattern("%v");
+        const std::string temp = std::regex_replace(filePathIn, pattern, variable);
+        return time.format(temp);
     }
 };
 
