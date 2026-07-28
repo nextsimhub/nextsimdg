@@ -63,12 +63,12 @@ private:
 
     // A list of variable names for the TOPAZ inputs
     // This overrides the canonical names in gridNames.hpp
-    const std::string sstName = "sst";
-    const std::string sssName = "sss";
-    const std::string mldName = "mld";
-    const std::string uName = "u";
-    const std::string vName = "v";
-    const std::string sshName = "ssh";
+    const std::string sstName = "thetao";
+    const std::string sssName = "so";
+    const std::string mldName = "mlotst";
+    const std::string uName = "vxo";
+    const std::string vName = "vyo";
+    const std::string sshName = "zos";
 
     const std::string ncLonName = "longitude";
     const std::string ncLatName = "latitude";

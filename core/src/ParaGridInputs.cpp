@@ -9,14 +9,20 @@
 #include "include/NetCDFUtils.hpp"
 #include "include/ParaGridInputs.hpp"
 
+#include "NextsimDynamics.hpp"
+#include "include/constants.hpp"
+#include "include/indexer.hpp"
+
 namespace Nextsim {
 
-void ParaGridInputs::configure(const std::string& filePathIn, const std::string& ncLonNameIn,
-    const std::string& ncLatNameIn, const std::string& ncTimeNameIn,
+void ParaGridInputs::setData(const TimePoint& time, const std::string& filePathIn,
+    const std::string& ncLonNameIn, const std::string& ncLatNameIn, const std::string& ncTimeNameIn,
     const std::set<std::string>& forcingsIn,
     const std::set<std::pair<std::string, std::string>>& vectorsIn, const ModelArray& modelLonsIn,
     const ModelArray& modelLatsIn)
 {
+    currentTime = time;
+
     filePath = filePathIn;
     forcings = forcingsIn;
     vectors = vectorsIn;
@@ -27,6 +33,10 @@ void ParaGridInputs::configure(const std::string& filePathIn, const std::string&
 
     modelLons = modelLonsIn;
     modelLats = modelLatsIn;
+
+    forcingLonLats = readRawData(currentTime.format(filePath), { ncLatName, ncLonName });
+
+    setWeights();
 }
 
 void ParaGridInputs::update(const TimePoint& time)
@@ -34,7 +44,7 @@ void ParaGridInputs::update(const TimePoint& time)
     currentTime = time;
 
     if (time < timeRange.before || time > timeRange.after) {
-        std::map<std::string, std::vector<FloatType>> rawDataBefore, rawDataAfter;
+        RawDataMap rawDataBefore, rawDataAfter;
         readRawForcing(rawDataBefore, rawDataAfter);
 
         rotateInputVectors(rawDataBefore);
@@ -50,9 +60,10 @@ ModelArray ParaGridInputs::getField(const std::string& fieldName)
     ModelArray ma;
     ma.reinitialize();
 
-    const double frac = (currentTime - timeRange.before).seconds()
+    const FloatType frac = (currentTime - timeRange.before).seconds()
         / (timeRange.after - timeRange.before).seconds();
 
+#pragma omp parallel for
     for (size_t i = 0; i < ma.size(); ++i) {
         ma[i] = frac * forcingStateAfter.data[fieldName][i]
             + (1. - frac) * forcingStateBefore.data[fieldName][i];
@@ -61,26 +72,299 @@ ModelArray ParaGridInputs::getField(const std::string& fieldName)
     return ma;
 }
 
-ModelState ParaGridInputs::interpolateSpatially(
-    const std::map<std::string, std::vector<FloatType>>& rawData)
+void ParaGridInputs::setWeights()
+{
+    // Initialise the size of the weights and indexes
+    xi.reinitialize();
+    eta.reinitialize();
+
+    ij00.resize(xi.size());
+    ij01.resize(xi.size());
+    ij10.resize(xi.size());
+    ij11.resize(xi.size());
+
+    if (forcingLonLats.dims.size() == 1) {
+        // Lat and lon are 1D
+        setWeights1D();
+    } else if (forcingLonLats.dims.size() == 2) {
+        // Lat and lon are 2D
+        setWeights2D();
+    } else {
+        throw std::out_of_range(
+            "ParaGridInputs::setWeights: Unsupported dimensionality of forcing grid: "
+            + std::to_string(forcingLonLats.dims.size()) + ".\n");
+    }
+}
+
+void ParaGridInputs::setWeights1D()
+{
+#pragma omp parallel for
+    for (size_t i = 0; i < modelLons.size(); ++i) {
+        // Useful aliases
+        const auto& forcingLons = forcingLonLats.data[ncLonName];
+        const auto& forcingLats = forcingLonLats.data[ncLatName];
+        const auto& dims = forcingLonLats.dims;
+
+        // Find the bounding box
+        const size_t aLon = std::lower_bound(forcingLons.begin(), forcingLons.end(), modelLons[i])
+            - forcingLons.begin();
+        const size_t aLat = std::lower_bound(forcingLats.begin(), forcingLats.end(), modelLats[i])
+            - forcingLats.begin();
+
+        // Use modulo for periodic boundaries in longitude
+        const size_t bLon = (aLon + 1) % forcingLons.size();
+        const size_t bLat = (aLat + 1) % forcingLons.size();
+
+        /* Calculate the weights on a local tangent plane, with
+         * x = R \cos(\phi) \lambda
+         * y = R \phi
+         * but R and \cos(\phi) cancel out */
+        const FloatType x = modelLons[i];
+        const FloatType y = modelLats[i];
+
+        const FloatType x1 = forcingLons[aLon];
+        const FloatType x2 = forcingLons[bLon];
+        const FloatType y1 = forcingLats[aLat];
+        const FloatType y2 = forcingLats[bLat];
+
+        xi[i] = wrapLon(x - x1) / wrapLon(x2 - x1);
+        eta[i] = (y - y1) / (y2 - y1);
+
+        ij00[i] = indexer(dims, { aLon, aLat });
+        ij01[i] = indexer(dims, { aLon, bLat });
+        ij10[i] = indexer(dims, { bLon, aLat });
+        ij11[i] = indexer(dims, { bLon, bLat });
+    }
+}
+
+void ParaGridInputs::setWeights2D()
+{
+#pragma omp parallel for
+    for (size_t k = 0; k < modelLons.size(); ++k) {
+        // Careful with the C-style indexing!
+        if (!recursiveBisectSearch(k, modelLons[k], modelLats[k], 0, forcingLonLats.dims[0] - 1, 0,
+                forcingLonLats.dims[1] - 1))
+            throw std::out_of_range("ParaGridInputs::setWeights2D: Couldn't find "
+                + std::to_string(modelLons[k]) + ", " + std::to_string(modelLats[k])
+                + " in the forcing grid.\n");
+    }
+}
+
+bool ParaGridInputs::recursiveBisectSearch(const size_t k, const FloatType targetLon,
+    const FloatType targetLat, const size_t i, const size_t ii, const size_t j, const size_t jj)
+{
+    // Useful aliases
+    const auto& forcingLons = forcingLonLats.data[ncLonName];
+    const auto& forcingLats = forcingLonLats.data[ncLatName];
+    const auto& dims = forcingLonLats.dims;
+
+    // If one of the dimensions has collapsed, then the point is not here(!)
+    if (i == ii || j == jj)
+        return false;
+
+    /* Project the corner points onto an orthographic projection, centred on the target. We do the
+     * rest of the work in {x,y} coordinates. The target {x,y} is now always at the origin.
+     */
+    FloatType x00, y00, x10, y10, x01, y01, x11, y11;
+    orthographicProjection(forcingLons[indexer(dims, { i, j })],
+        forcingLats[indexer(dims, { i, j })], targetLon, targetLat, x00, y00);
+    orthographicProjection(forcingLons[indexer(dims, { ii, j })],
+        forcingLats[indexer(dims, { ii, j })], targetLon, targetLat, x10, y10);
+    orthographicProjection(forcingLons[indexer(dims, { i, jj })],
+        forcingLats[indexer(dims, { i, jj })], targetLon, targetLat, x01, y01);
+    orthographicProjection(forcingLons[indexer(dims, { ii, jj })],
+        forcingLats[indexer(dims, { ii, jj })], targetLon, targetLat, x11, y11);
+
+    // If we're not inside the bounding box, then there's no point in going further
+    if (!pointInBoundingBox({ x00, x10, x01, x11 }, { y00, y10, y01, y11 }))
+        return false;
+
+    // If the size of the box is one, then we can try to find the local coordinates
+    if (ii == i + 1 && jj == j + 1) {
+        // Save the index
+        ij00[k] = indexer(dims, { i, j });
+        ij10[k] = indexer(dims, { ii, j });
+        ij01[k] = indexer(dims, { i, jj });
+        ij11[k] = indexer(dims, { ii, jj });
+
+        // Try to find local coordinates
+        return findLocalCoordinates(k, x00, y00, x10, y10, x01, y01, x11, y11);
+    }
+
+    // Bisect and call self to continue searching
+    const size_t iHalf = i + (ii - i) / 2;
+    const size_t jHalf = j + (jj - j) / 2;
+
+    // Search quadrant 00
+    if (recursiveBisectSearch(k, targetLon, targetLat, i, iHalf, j, jHalf))
+        return true;
+
+    // Search quadrant 10
+    if (recursiveBisectSearch(k, targetLon, targetLat, iHalf, ii, j, jHalf))
+        return true;
+
+    // Search quadrant 01
+    if (recursiveBisectSearch(k, targetLon, targetLat, i, iHalf, jHalf, jj))
+        return true;
+
+    // Search quadrant 11
+    if (recursiveBisectSearch(k, targetLon, targetLat, iHalf, ii, jHalf, jj))
+        return true;
+
+    // Nothing found
+    return false;
+}
+
+void ParaGridInputs::orthographicProjection(const FloatType lon, const FloatType lat,
+    const FloatType lon0, const FloatType lat0, FloatType& x, FloatType& y) const
+{
+    const FloatType cosPhi = std::cos(lat * PhysicalConstants::deg2rad);
+    const FloatType cosPhi0 = std::cos(lat0 * PhysicalConstants::deg2rad);
+    const FloatType sinPhi = std::sin(lat * PhysicalConstants::deg2rad);
+    const FloatType sinPhi0 = std::sin(lat0 * PhysicalConstants::deg2rad);
+    const FloatType cosDeltaLambda = std::cos((lon - lon0) * PhysicalConstants::deg2rad);
+    const FloatType sinDeltaLambda = std::sin((lon - lon0) * PhysicalConstants::deg2rad);
+
+    x = cosPhi * sinDeltaLambda;
+    y = cosPhi0 * sinPhi - sinPhi0 * cosPhi * cosDeltaLambda;
+
+    // If the point is outside the projected area, then we move it to the map edge
+    if (const FloatType c = sinPhi0 * sinPhi - cosPhi0 * cosPhi * cosDeltaLambda;
+        std::cos(c) < 0.) {
+        x = std::copysign(1., x);
+        y = std::copysign(1., y);
+    }
+}
+
+bool ParaGridInputs::pointInBoundingBox(
+    const std::vector<FloatType>& xCorners, const std::vector<FloatType>& yCorners)
+{
+    const double xMin = *std::min_element(xCorners.begin(), xCorners.end());
+    const double xMax = *std::max_element(xCorners.begin(), xCorners.end());
+
+    const double yMin = *std::min_element(yCorners.begin(), yCorners.end());
+    const double yMax = *std::max_element(yCorners.begin(), yCorners.end());
+
+    // The target point is at the origin
+    return 0. >= xMin && 0. <= xMax && 0. >= yMin && 0. <= yMax;
+}
+
+bool ParaGridInputs::findLocalCoordinates(const size_t k, const FloatType x00, const FloatType y00,
+    const FloatType x10, const FloatType y10, const FloatType x01, const FloatType y01,
+    const FloatType x11, const FloatType y11)
+{
+    /*
+     * Cell corners:
+     *
+     *       p01 -------- p11
+     *        |            |
+     *        |            |
+     *       p00 -------- p10
+     *
+     * Local coordinates:
+     *
+     *       eta = 1
+     *          ^
+     *          |
+     *          |
+     *       eta = 0
+     *
+     *       xi = 0 ---> xi = 1
+     */
+
+    // Initial guess.
+    // The center of the cell is usually a reasonable starting point.
+    xi[k] = 0.5;
+    eta[k] = 0.5;
+
+    /* Newton iteration:
+     *     F(xi, eta) = mapping(xi, eta) - query_point
+     */
+    constexpr FloatType tolerance = 100 * std::numeric_limits<FloatType>::epsilon();
+    for (int iteration = 0; iteration < 20; ++iteration) {
+
+        // Bilinear mapping from local coordinates to physical coordinates.
+        const FloatType N00 = (1.0 - xi[k]) * (1.0 - eta[k]);
+        const FloatType N10 = xi[k] * (1.0 - eta[k]);
+        const FloatType N01 = (1.0 - xi[k]) * eta[k];
+        const FloatType N11 = xi[k] * eta[k];
+
+        const FloatType xp = N00 * x00 + N10 * x10 + N01 * x01 + N11 * x11;
+        const FloatType yp = N00 * y00 + N10 * y10 + N01 * y01 + N11 * y11;
+
+        // Convergence test - target is at origin
+        if (std::sqrt(xp * xp + yp * yp) < tolerance)
+            break;
+
+        /* Jacobian:
+         *     [ dx/dxi   dx/deta ]
+         * J = [                  ]
+         *     [ dy/dxi   dy/deta ]
+         */
+        const FloatType dx_dxi = (1.0 - eta[k]) * (x10 - x00) + eta[k] * (x11 - x01);
+        const FloatType dx_deta = (1.0 - xi[k]) * (x01 - x00) + xi[k] * (x11 - x10);
+        const FloatType dy_dxi = (1.0 - eta[k]) * (y10 - y00) + eta[k] * (y11 - y01);
+        const FloatType dy_deta = (1.0 - xi[k]) * (y01 - y00) + xi[k] * (y11 - y10);
+
+        const FloatType determinant = dx_dxi * dy_deta - dx_deta * dy_dxi;
+
+        // Check if the cell is degenerate
+        if (std::abs(determinant) < tolerance)
+            return false;
+
+        /* Solve:
+         *     J [d_xi ] = -F
+         *       [d_eta]
+         */
+        xi[k] -= (xp * dy_deta - dx_deta * yp) / determinant;
+        eta[k] += (dy_dxi * xp - dx_dxi * yp) / determinant;
+
+        // If the solution is far outside the cell, then this is probably not the correct cell.
+        //
+        if (xi[k] < -0.1 || xi[k] > 1.1 || eta[k] < -0.1 || eta[k] > 1.1)
+            return false;
+    }
+
+    // Check whether the point is actually inside the cell.
+    if (!(xi[k] >= 0. && xi[k] <= 1. && eta[k] >= 0. && eta[k] <= 1.))
+        return false;
+
+    return true;
+}
+
+ModelState ParaGridInputs::interpolateSpatially(const RawDataMap& rawData)
 {
     ModelState state;
-    for (const auto& [name, data] : rawData) {
+    for (const auto& dataPair : rawData.data) {
+        const std::string& name = dataPair.first;
+        const std::vector<FloatType>& data = dataPair.second;
+
         state.data[name].reinitialize();
-        for (size_t i = 0; i < data.size(); ++i) {
-            state.data[name][i] = data[i]; // TODO: Actually interpolate
+#pragma omp parallel for
+        for (size_t i = 0; i < state.data[name].size(); ++i) {
+            const FloatType f00 = data[ij00[i]];
+            const FloatType f10 = data[ij10[i]];
+            const FloatType f01 = data[ij01[i]];
+            const FloatType f11 = data[ij11[i]];
+
+            const FloatType N00 = (1.0 - xi[i]) * (1.0 - eta[i]);
+            const FloatType N10 = xi[i] * (1.0 - eta[i]);
+            const FloatType N01 = (1.0 - xi[i]) * eta[i];
+            const FloatType N11 = xi[i] * eta[i];
+
+            state.data[name][i] = N00 * f00 + N10 * f10 + N01 * f01 + N11 * f11;
         }
     }
 
     return state;
 }
 
-void ParaGridInputs::rotateInputVectors(std::map<std::string, std::vector<FloatType>>& rawData)
+void ParaGridInputs::rotateInputVectors(RawDataMap& rawData)
 {
-    auto rawDataCopy = rawData;
-    for (auto& pair : vectors) {
-        vectorRotationLogic(rawDataCopy[pair.first], rawDataCopy[pair.second], rawData[pair.first],
-            rawDataCopy[pair.second]);
+    const auto originalRotation = rawData.data;
+    for (const auto& [first, second] : vectors) {
+        vectorRotationLogic(originalRotation.at(first), originalRotation.at(second),
+            rawData.data.at(first), rawData.data.at(second));
     }
 }
 
@@ -93,8 +377,7 @@ void ParaGridInputs::vectorRotationLogic(const std::vector<FloatType>& vectorIn1
     vectorOut2nd = vectorIn2nd;
 }
 
-void ParaGridInputs::readRawForcing(std::map<std::string, std::vector<FloatType>>& rawDataBefore,
-    std::map<std::string, std::vector<FloatType>>& rawDataAfter)
+void ParaGridInputs::readRawForcing(RawDataMap& rawDataBefore, RawDataMap& rawDataAfter)
 {
     const std::string fileNameBefore = currentTime.format(filePath);
     std::string fileNameAfter = fileNameBefore;
@@ -125,7 +408,7 @@ void ParaGridInputs::readRawForcing(std::map<std::string, std::vector<FloatType>
             multiplier = 1.;
         else if (timeUnit == "minutes")
             multiplier = 60.;
-        else if (timeUnit == "hours")
+        else if (timeUnit == "hour" || timeUnit == "hours")
             multiplier = 3600.;
         else if (timeUnit == "days")
             multiplier = 24. * 3600.;
@@ -152,10 +435,8 @@ void ParaGridInputs::readRawForcing(std::map<std::string, std::vector<FloatType>
         /* We need to check if targetTIndexAfter is actually pointing at the right time, or if we
          * need to go on to the next file */
         if (TimePoint(timePointOrigin, Duration(timeVec[targetTIndexAfter])) < currentTime) {
-            targetTIndexBefore = targetTIndexAfter;
             timeRange.before = TimePoint(timePointOrigin, Duration(timeVec[targetTIndexBefore]));
-            timeRange.after = TimePoint(timePointOrigin, Duration(timeVec[targetTIndexAfter]))
-                + Duration(timeVec[1] - timeVec[0]);
+            timeRange.after = timeRange.before + Duration(timeVec[1] - timeVec[0]);
             targetTIndexAfter = 0;
             fileNameAfter = timeRange.after.format(filePath);
         }
@@ -173,19 +454,19 @@ void ParaGridInputs::readRawForcing(std::map<std::string, std::vector<FloatType>
         throw std::runtime_error(ncWhat);
     }
 
-    rawDataBefore = readRawData(fileNameBefore, targetTIndexBefore);
-    rawDataAfter = readRawData(fileNameAfter, targetTIndexAfter);
+    rawDataBefore = readRawData(fileNameBefore, forcings, targetTIndexBefore);
+    rawDataAfter = readRawData(fileNameAfter, forcings, targetTIndexAfter);
 }
 
-std::map<std::string, std::vector<FloatType>> ParaGridInputs::readRawData(
-    const std::string& fileName, const size_t timeIndex = 0) const
+ParaGridInputs::RawDataMap ParaGridInputs::readRawData(
+    const std::string& fileName, const std::set<std::string>& fields, const size_t timeIndex) const
 {
-    std::map<std::string, std::vector<FloatType>> data;
+    RawDataMap data;
     try {
         netCDF::NcFile ncFile(fileName, netCDF::NcFile::read);
 
         auto availableForcings = ncFile.getVars();
-        for (const std::string& varName : forcings) {
+        for (const std::string& varName : fields) {
             // Don't try to read non-existent data
             if (!availableForcings.count(varName)) {
                 continue;
@@ -206,14 +487,19 @@ std::map<std::string, std::vector<FloatType>> ParaGridInputs::readRawData(
                 }
             }
 
-            data[varName] = std::vector<FloatType>(
-                std::accumulate(count.begin(), count.end(), 1, std::multiplies<size_t>()));
-            readNetCDFVar(var, start, count, data[varName].data());
+            data.data[varName] = std::vector<FloatType>(std::accumulate(
+                count.begin(), count.end(), static_cast<size_t>(1), std::multiplies<>()));
+            readNetCDFVar(var, start, count, data.data[varName].data());
+
+            if (varName == ncLonName || varName == ncLatName) {
+                data.dims = count;
+                std::reverse(data.dims.begin(), data.dims.end());
+            }
         }
         ncFile.close();
     } catch (const netCDF::exceptions::NcException& nce) {
         std::string ncWhat(nce.what());
-        ncWhat += ": " + filePath;
+        ncWhat += ": " + fileName;
         throw std::runtime_error(ncWhat);
     }
     return data;
