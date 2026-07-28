@@ -34,7 +34,7 @@ void ParaGridInputs::setData(const TimePoint& time, const std::string& filePathI
     modelLons = modelLonsIn;
     modelLats = modelLatsIn;
 
-    forcingLonLats = readRawData(currentTime.format(filePath), { ncLatName, ncLonName });
+    forcingLonLats = readRawData(currentTime, { ncLatName, ncLonName });
 
     setWeights();
 }
@@ -379,8 +379,7 @@ void ParaGridInputs::vectorRotationLogic(const std::vector<FloatType>& vectorIn1
 
 void ParaGridInputs::readRawForcing(RawDataMap& rawDataBefore, RawDataMap& rawDataAfter)
 {
-    const std::string fileNameBefore = currentTime.format(filePath);
-    std::string fileNameAfter = fileNameBefore;
+    const std::string fileNameBefore = formatFileName(filePath, currentTime, *forcings.begin());
     size_t targetTIndexAfter, targetTIndexBefore;
     try {
         netCDF::NcFile ncFile(fileNameBefore, netCDF::NcFile::read);
@@ -438,7 +437,6 @@ void ParaGridInputs::readRawForcing(RawDataMap& rawDataBefore, RawDataMap& rawDa
             timeRange.before = TimePoint(timePointOrigin, Duration(timeVec[targetTIndexBefore]));
             timeRange.after = timeRange.before + Duration(timeVec[1] - timeVec[0]);
             targetTIndexAfter = 0;
-            fileNameAfter = timeRange.after.format(filePath);
         }
 
         if (targetTIndexAfter < 0 || targetTIndexBefore < 0 || targetTIndexAfter >= timeVec.size()
@@ -454,23 +452,22 @@ void ParaGridInputs::readRawForcing(RawDataMap& rawDataBefore, RawDataMap& rawDa
         throw std::runtime_error(ncWhat);
     }
 
-    rawDataBefore = readRawData(fileNameBefore, forcings, targetTIndexBefore);
-    rawDataAfter = readRawData(fileNameAfter, forcings, targetTIndexAfter);
+    rawDataBefore = readRawData(timeRange.before, forcings, targetTIndexBefore);
+    rawDataAfter = readRawData(timeRange.after, forcings, targetTIndexAfter);
 }
 
 ParaGridInputs::RawDataMap ParaGridInputs::readRawData(
-    const std::string& fileName, const std::set<std::string>& fields, const size_t timeIndex) const
+    const TimePoint& time, const std::set<std::string>& fields, const size_t timeIndex) const
 {
     RawDataMap data;
-    try {
-        netCDF::NcFile ncFile(fileName, netCDF::NcFile::read);
+    for (const std::string& varName : fields) {
+        try {
+            netCDF::NcFile ncFile(formatFileName(filePath, time, varName), netCDF::NcFile::read);
 
-        auto availableForcings = ncFile.getVars();
-        for (const std::string& varName : fields) {
             // Don't try to read non-existent data
-            if (!availableForcings.count(varName)) {
+            if (ncFile.getVars().count(varName) == 0)
                 continue;
-            }
+
             netCDF::NcVar var = ncFile.getVar(varName);
 
             std::vector<netCDF::NcDim> dims = var.getDims();
@@ -495,12 +492,11 @@ ParaGridInputs::RawDataMap ParaGridInputs::readRawData(
                 data.dims = count;
                 std::reverse(data.dims.begin(), data.dims.end());
             }
+        } catch (const netCDF::exceptions::NcException& nce) {
+            std::string ncWhat(nce.what());
+            ncWhat += ": " + formatFileName(filePath, time, varName);
+            throw std::runtime_error(ncWhat);
         }
-        ncFile.close();
-    } catch (const netCDF::exceptions::NcException& nce) {
-        std::string ncWhat(nce.what());
-        ncWhat += ": " + fileName;
-        throw std::runtime_error(ncWhat);
     }
     return data;
 }
