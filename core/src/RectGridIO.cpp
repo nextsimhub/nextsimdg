@@ -88,8 +88,10 @@ ModelState RectGridIO::getModelState(const std::string& filePath)
     // Set the origins and extensions for reading 2D data based
     // on MPI decomposition
     const auto& metadata = ModelMetadata::getInstance();
-    const std::vector<size_t> start = { metadata.getLocalCornerY(), metadata.getLocalCornerX() };
-    const std::vector<size_t> size = { metadata.getLocalExtentY(), metadata.getLocalExtentX() };
+    const std::vector<size_t> start = { static_cast<size_t>(metadata.getLocalCornerY()),
+        static_cast<size_t>(metadata.getLocalCornerX()) };
+    const std::vector<size_t> size = { static_cast<size_t>(metadata.getLocalExtentY()),
+        static_cast<size_t>(metadata.getLocalExtentX()) };
 #else
     const std::vector<size_t> start = { 0, 0 };
     const std::vector<size_t> size(ModelArray::dimensions(ModelArray::Type::H).rbegin(),
