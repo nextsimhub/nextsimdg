@@ -55,11 +55,6 @@ void TOPAZOcean::configure()
     tryConfigure(*pFreezingPoint);
 
     filePath = Configured::getConfiguration(keyMap.at(FILEPATH_KEY), std::string());
-    ModelState state;
-    ModelMetadata& metadata = ModelMetadata::getInstance();
-    metadata.affixCoordinates(state);
-    forcingState.configure(filePath, ncLonName, ncLatName, ncTimeName, forcings, vectors,
-        state.data[longitudeName], state.data[latitudeName]);
 
     slabOcean.configure();
 }
@@ -128,6 +123,12 @@ void TOPAZOcean::setFilePath(const std::string& filePathIn) { filePath = filePat
 void TOPAZOcean::setData(const ModelState::DataMap& ms)
 {
     IOceanBoundary::setData(ms);
+
+    ModelState state;
+    const ModelMetadata& metadata = ModelMetadata::getInstance();
+    metadata.affixCoordinates(state);
+    forcingState.setData(metadata.startTime(), filePath, ncLonName, ncLatName, ncTimeName, forcings,
+        vectors, state.data[longitudeName], state.data[latitudeName]);
 
     HField& sstExt = sstExtAccessor.getHostRW();
     sstExt.reinitialize();
