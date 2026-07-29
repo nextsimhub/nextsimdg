@@ -35,7 +35,7 @@ public:
 
 private:
     typedef struct {
-        std::vector<size_t> dims;
+        std::map<std::string, std::vector<size_t>> dims;
         std::map<std::string, std::vector<FloatType>> data;
     } RawDataMap;
 
@@ -79,14 +79,9 @@ private:
     [[nodiscard]] RawDataMap readRawData(
         const TimePoint& time, const std::set<std::string>& fields, size_t timeIndex = 0) const;
 
-    [[nodiscard]] double wrapLon(const double lon) const
+    [[nodiscard]] double wrapLon(const double lon, const double lon0 = 360.) const
     {
-        double wrappedLon = std::fmod(lon + 180., 360.);
-        if (wrappedLon < 0.0)
-            wrappedLon += 360.;
-
-        wrappedLon -= 180.;
-        return wrappedLon;
+        return std::fmod(std::fmod(lon, lon0) + lon0, lon0);
     }
 
     [[nodiscard]] std::string formatFileName(const std::string& filePathIn, const TimePoint& time,
