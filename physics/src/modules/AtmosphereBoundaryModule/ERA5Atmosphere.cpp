@@ -47,8 +47,8 @@ void ERA5Atmosphere::configure()
 
     filePath = Configured::getConfiguration(keyMap.at(FILEPATH_KEY), std::string());
 
-    fluxImpl = &Module::getImplementation<IFluxCalculation>();
-    tryConfigure(fluxImpl);
+    fluxImpl = std::move(Module::getInstance<IFluxCalculation>());
+    tryConfigure(*fluxImpl);
 
     addChecks({
         { "tair", tairAccessor },
@@ -69,24 +69,21 @@ ConfigMap ERA5Atmosphere::getConfiguration() const
 
 void ERA5Atmosphere::update(const TimestepTime& tst)
 {
-    // TODO: Get more authoritative names for the forcings
-    std::set<std::string> forcings
-        = { "tair", "dew2m", "pair", "sw_in", "lw_in", "wind_speed", "u", "v" };
+    forcingState.update(tst.start);
 
-    // Read ERA5 forcings at the top of the hour
-    if (std::fmod((tst.start - TimePoint()).seconds(), 3600.) == 0.0_ft) {
-        forcingState = ParaGridIO::readForcingTimeStatic(forcings, tst.start, filePath);
-    }
-    tairAccessor.getHostRW() = forcingState.data.at("tair");
-    tdewAccessor.getHostRW() = forcingState.data.at("dew2m");
-    pairAccessor.getHostRW() = forcingState.data.at("pair");
-    sw_inAccessor.getHostRW() = forcingState.data.at("sw_in");
-    lw_inAccessor.getHostRW() = forcingState.data.at("lw_in");
-    windAccessor.getHostRW() = forcingState.data.at("wind_speed");
-    uwindAccessor.getHostRW() = forcingState.data.at("u");
-    vwindAccessor.getHostRW() = forcingState.data.at("v");
-    snowAccessor.getHostRW() = 0; // FIXME get snow data
-    rainAccessor.getHostRW() = 0; // FIXME get rain data
+    tairAccessor.getHostRW() = forcingState.getField(tAirName);
+    tdewAccessor.getHostRW() = forcingState.getField(dew2mName);
+    pairAccessor.getHostRW() = forcingState.getField(pAirName);
+    sw_inAccessor.getHostRW() = forcingState.getField(swInName);
+    lw_inAccessor.getHostRW() = forcingState.getField(lwInName);
+    uwindAccessor.getHostRW() = forcingState.getField(uName);
+    vwindAccessor.getHostRW() = forcingState.getField(vName);
+    snowAccessor.getHostRW() = forcingState.getField(snowName);
+    rainAccessor.getHostRW() = forcingState.getField(rainName);
+
+    windAccessor.getHostRW()
+        = (uwindAccessor.getHostRW().data().pow(2) + vwindAccessor.getHostRW().data().pow(2))
+              .sqrt();
 
     fluxImpl->update(tst);
 
@@ -103,6 +100,12 @@ void ERA5Atmosphere::setData(const ModelState::DataMap& ms)
 {
     IAtmosphereBoundary::setData(ms);
     fluxImpl->setData(ms);
+
+    ModelState state;
+    const ModelMetadata& metadata = ModelMetadata::getInstance();
+    metadata.affixCoordinates(state);
+    forcingState.setData(metadata.startTime(), filePath, ncLonName, ncLatName, ncTimeName, forcings,
+        vectors, state.data[longitudeName], state.data[latitudeName]);
 }
 
 } /* namespace Nextsim */

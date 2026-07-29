@@ -83,57 +83,100 @@ void ParaGridInputs::setWeights()
     ij10.resize(xi.size());
     ij11.resize(xi.size());
 
-    if (forcingLonLats.dims.size() == 1) {
+    const auto& lonDimSize = forcingLonLats.dims.at(ncLonName).size();
+    const auto& latDimSize = forcingLonLats.dims.at(ncLatName).size();
+
+    if (lonDimSize == 1 && latDimSize == 1) {
         // Lat and lon are 1D
         setWeights1D();
-    } else if (forcingLonLats.dims.size() == 2) {
+    } else if (lonDimSize == 2 && latDimSize == 2) {
         // Lat and lon are 2D
         setWeights2D();
     } else {
         throw std::out_of_range(
             "ParaGridInputs::setWeights: Unsupported dimensionality of forcing grid: "
-            + std::to_string(forcingLonLats.dims.size()) + ".\n");
+            + std::to_string(lonDimSize) + " & " + std::to_string(latDimSize) + ".\n");
     }
 }
 
 void ParaGridInputs::setWeights1D()
 {
+    // We need to read one of the variables to get the grid ordering
+    const auto& choiceVar = readRawData(currentTime, { *forcings.begin() });
+    const auto& gridDims = choiceVar.dims.at(*forcings.begin());
+
+    auto forcingLons = forcingLonLats.data[ncLonName];
+    auto forcingLats = forcingLonLats.data[ncLatName];
+
+    // Careful to wrap the longitudes of the model the same as that of the data
+    FloatType lon0;
+    if (*std::min_element(forcingLons.begin(), forcingLons.end()) < 0.)
+        lon0 = 180.;
+    else
+        lon0 = 360.;
+
+    // The axis may be flipped. Probably only the latitude one ... but you never know
+    bool flippedLons = false;
+    bool flippedLats = false;
+    if (*forcingLons.begin() > *forcingLons.end()) {
+        flippedLons = true;
+        std::reverse(forcingLons.begin(), forcingLons.end());
+    }
+    if (*forcingLats.begin() > *forcingLats.end()) {
+        flippedLats = true;
+        std::reverse(forcingLats.begin(), forcingLats.end());
+    }
+
 #pragma omp parallel for
     for (size_t i = 0; i < modelLons.size(); ++i) {
-        // Useful aliases
-        const auto& forcingLons = forcingLonLats.data[ncLonName];
-        const auto& forcingLats = forcingLonLats.data[ncLatName];
-        const auto& dims = forcingLonLats.dims;
-
-        // Find the bounding box
-        const size_t aLon = std::lower_bound(forcingLons.begin(), forcingLons.end(), modelLons[i])
-            - forcingLons.begin();
-        const size_t aLat = std::lower_bound(forcingLats.begin(), forcingLats.end(), modelLats[i])
-            - forcingLats.begin();
-
-        // Use modulo for periodic boundaries in longitude
-        const size_t bLon = (aLon + 1) % forcingLons.size();
-        const size_t bLat = (aLat + 1) % forcingLons.size();
-
         /* Calculate the weights on a local tangent plane, with
          * x = R \cos(\phi) \lambda
          * y = R \phi
          * but R and \cos(\phi) cancel out */
-        const FloatType x = modelLons[i];
+
+        // This is the target
+        const FloatType x = wrapLon(modelLons[i], lon0);
         const FloatType y = modelLats[i];
 
+        // Find the bounding box
+        size_t bLon
+            = std::upper_bound(forcingLons.begin(), forcingLons.end(), x) - forcingLons.begin();
+        size_t bLat
+            = std::upper_bound(forcingLats.begin(), forcingLats.end(), y) - forcingLats.begin();
+
+        size_t aLon = bLon - 1;
+        size_t aLat = bLat - 1;
+
+        /* Use modulo for periodic boundaries in longitude. Different formulations because aLon
+         * maybe negative, but bLon is always positive.
+         */
+        aLon = (aLon % forcingLons.size() + forcingLons.size()) % forcingLons.size();
+        bLon %= forcingLons.size();
+
+        // Now for the weights
         const FloatType x1 = forcingLons[aLon];
         const FloatType x2 = forcingLons[bLon];
         const FloatType y1 = forcingLats[aLat];
         const FloatType y2 = forcingLats[bLat];
 
-        xi[i] = wrapLon(x - x1) / wrapLon(x2 - x1);
+        xi[i] = wrapLon(x - x1, lon0) / wrapLon(x2 - x1, lon0);
         eta[i] = (y - y1) / (y2 - y1);
 
-        ij00[i] = indexer(dims, { aLon, aLat });
-        ij01[i] = indexer(dims, { aLon, bLat });
-        ij10[i] = indexer(dims, { bLon, aLat });
-        ij11[i] = indexer(dims, { bLon, bLat });
+        // If we flipped the axis, we need to point to the right elements in the original vector
+        if (flippedLons) {
+            aLon = (forcingLons.size() - 1) - aLon;
+            bLon = (forcingLons.size() - 1) - bLon;
+        }
+        if (flippedLats) {
+            aLat = (forcingLats.size() - 1) - aLat;
+            bLat = (forcingLats.size() - 1) - bLat;
+        }
+
+        // Record the bounds
+        ij00[i] = indexer(gridDims, { aLon, aLat });
+        ij10[i] = indexer(gridDims, { bLon, aLat });
+        ij01[i] = indexer(gridDims, { aLon, bLat });
+        ij11[i] = indexer(gridDims, { bLon, bLat });
     }
 }
 
@@ -142,8 +185,8 @@ void ParaGridInputs::setWeights2D()
 #pragma omp parallel for
     for (size_t k = 0; k < modelLons.size(); ++k) {
         // Careful with the C-style indexing!
-        if (!recursiveBisectSearch(k, modelLons[k], modelLats[k], 0, forcingLonLats.dims[0] - 1, 0,
-                forcingLonLats.dims[1] - 1))
+        if (const auto& dims = forcingLonLats.dims.at(ncLonName);
+            !recursiveBisectSearch(k, modelLons[k], modelLats[k], 0, dims[0] - 1, 0, dims[1] - 1))
             throw std::out_of_range("ParaGridInputs::setWeights2D: Couldn't find "
                 + std::to_string(modelLons[k]) + ", " + std::to_string(modelLats[k])
                 + " in the forcing grid.\n");
@@ -153,14 +196,14 @@ void ParaGridInputs::setWeights2D()
 bool ParaGridInputs::recursiveBisectSearch(const size_t k, const FloatType targetLon,
     const FloatType targetLat, const size_t i, const size_t ii, const size_t j, const size_t jj)
 {
-    // Useful aliases
-    const auto& forcingLons = forcingLonLats.data[ncLonName];
-    const auto& forcingLats = forcingLonLats.data[ncLatName];
-    const auto& dims = forcingLonLats.dims;
-
     // If one of the dimensions has collapsed, then the point is not here(!)
     if (i == ii || j == jj)
         return false;
+
+    // Useful aliases
+    const auto& forcingLons = forcingLonLats.data.at(ncLonName);
+    const auto& forcingLats = forcingLonLats.data.at(ncLatName);
+    const auto& dims = forcingLonLats.dims.at(ncLonName);
 
     /* Project the corner points onto an orthographic projection, centred on the target. We do the
      * rest of the work in {x,y} coordinates. The target {x,y} is now always at the origin.
@@ -336,12 +379,13 @@ ModelState ParaGridInputs::interpolateSpatially(const RawDataMap& rawData)
 {
     ModelState state;
     for (const auto& dataPair : rawData.data) {
+        // Structured bindings and omp don't mesh
         const std::string& name = dataPair.first;
         const std::vector<FloatType>& data = dataPair.second;
 
         state.data[name].reinitialize();
 #pragma omp parallel for
-        for (size_t i = 0; i < state.data[name].size(); ++i) {
+        for (size_t i = 0; i < state.data.at(name).size(); ++i) {
             const FloatType f00 = data[ij00[i]];
             const FloatType f10 = data[ij10[i]];
             const FloatType f01 = data[ij01[i]];
@@ -352,7 +396,7 @@ ModelState ParaGridInputs::interpolateSpatially(const RawDataMap& rawData)
             const FloatType N01 = (1.0 - xi[i]) * eta[i];
             const FloatType N11 = xi[i] * eta[i];
 
-            state.data[name][i] = N00 * f00 + N10 * f10 + N01 * f01 + N11 * f11;
+            state.data.at(name)[i] = N00 * f00 + N10 * f10 + N01 * f01 + N11 * f11;
         }
     }
 
@@ -462,7 +506,15 @@ ParaGridInputs::RawDataMap ParaGridInputs::readRawData(
     RawDataMap data;
     for (const std::string& varName : fields) {
         try {
-            netCDF::NcFile ncFile(formatFileName(filePath, time, varName), netCDF::NcFile::read);
+
+            // We may need to be more careful selecting the right file if we're reading lat/lon info
+            std::string fileName;
+            if (varName == ncLonName || varName == ncLatName)
+                fileName = formatFileName(filePath, time, *forcings.begin());
+            else
+                fileName = formatFileName(filePath, time, varName);
+
+            netCDF::NcFile ncFile(fileName, netCDF::NcFile::read);
 
             // Don't try to read non-existent data
             if (ncFile.getVars().count(varName) == 0)
@@ -478,20 +530,21 @@ ParaGridInputs::RawDataMap ParaGridInputs::readRawData(
 
             // Pick the time slice if we have a time axis
             for (int i = 0; i < dims.size(); ++i) {
-                if (dims[0].getName() == ncTimeName) {
-                    start[0] = timeIndex;
-                    count[0] = 1;
+                if (dims[i].getName() == ncFile.getVar(ncTimeName).getDims()[0].getName()) {
+                    start[i] = timeIndex;
+                    count[i] = 1;
+                    continue;
                 }
+                // Push all non-time dimension counts to the output data map
+                data.dims[varName].push_back(count[i]);
             }
+            // Needs to be reversed because of netCDF shenanigans
+            std::reverse(data.dims[varName].begin(), data.dims[varName].end());
 
             data.data[varName] = std::vector<FloatType>(std::accumulate(
                 count.begin(), count.end(), static_cast<size_t>(1), std::multiplies<>()));
             readNetCDFVar(var, start, count, data.data[varName].data());
 
-            if (varName == ncLonName || varName == ncLatName) {
-                data.dims = count;
-                std::reverse(data.dims.begin(), data.dims.end());
-            }
         } catch (const netCDF::exceptions::NcException& nce) {
             std::string ncWhat(nce.what());
             ncWhat += ": " + formatFileName(filePath, time, varName);
