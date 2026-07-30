@@ -138,8 +138,10 @@ the submodule before building it. You can do this with the following commands:
         git submodule init
         git submodule update
         cd domain_decomp
-        cmake -Bbuild -S.
-        cmake --build build --config Release
+        mkdir -p build
+        cd build
+        cmake .. -DCMAKE_BUILD_TYPE=Release
+        make
 
 The ``domain_decomp`` library is not required to build the nextSIM-DG model but
 it is required for running the tests and for generating domain decompositions
