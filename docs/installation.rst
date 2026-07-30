@@ -156,8 +156,16 @@ After all dependencies have been installed, we can build the code:
         cd nextsimdg
         mkdir -p build
         cd build
-        cmake ..
+        cmake .. -DCMAKE_BUILD_TYPE=Release
         make
+
+.. note::
+
+   The build type is set at configure time with ``CMAKE_BUILD_TYPE``
+   (`CMake docs <https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html>`_).
+   ``Release`` enables compiler optimizations and is recommended for running
+   simulations. Use ``Debug`` instead (``-DCMAKE_BUILD_TYPE=Debug``) when
+   developing, e.g. for a build with debug symbols and no optimizations.
 
 Configuring the dynamics
 ------------------------
