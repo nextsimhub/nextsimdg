@@ -31,7 +31,7 @@ if(ENABLE_MPI)
                 # fail if test has been skipped. Without this, the test will technically pass if we
                 # run with fewer ranks than requested.
                 add_test(NAME ${test_exec} COMMAND ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG}
-                                                   ${num_ranks} ${test_exec} -ns)
+                                                   ${num_ranks} ./${test_exec} -ns)
             else()
                 message(WARNING "Could not extract MPI rank from test name: ${test_exec}")
             endif()
