@@ -32,8 +32,8 @@ RUN git clone --branch xios-3.0.6.0 https://gitlab.in2p3.fr/ipsl/projets/xios-pr
 RUN spack env activate /opt/spack-environment \
     && git clone https://github.com/nextsimhub/domain_decomp.git /decomp \
     && cd /decomp \
-    && cmake -G "Unix Makefiles" -Bbuild -S. \
-    && cmake --build build --config Release \
+    && cmake -G "Unix Makefiles" -B build -S . -DCMAKE_BUILD_TYPE=Release \
+    && cmake --build build \
     && cd - \
     && bash install-xios.sh
 
