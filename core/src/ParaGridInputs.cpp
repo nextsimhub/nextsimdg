@@ -15,7 +15,7 @@
 
 namespace Nextsim {
 
-void ParaGridInputs::setData(const TimePoint& time, const std::string& filePathIn,
+void ParaGridInputs::setData(const TimePoint& time, const std::string& pathSpecIn,
     const std::string& ncLonNameIn, const std::string& ncLatNameIn, const std::string& ncTimeNameIn,
     const std::set<std::string>& forcingsIn,
     const std::set<std::pair<std::string, std::string>>& vectorsIn, const ModelArray& modelLonsIn,
@@ -23,7 +23,7 @@ void ParaGridInputs::setData(const TimePoint& time, const std::string& filePathI
 {
     currentTime = time;
 
-    filePath = filePathIn;
+    pathSpec = pathSpecIn;
     forcings = forcingsIn;
     vectors = vectorsIn;
 
@@ -43,7 +43,10 @@ void ParaGridInputs::update(const TimePoint& time)
 {
     currentTime = time;
 
-    if (time < timeRange.before || time > timeRange.after) {
+    /* Only actually do something if we find ourselves outside the previous time range. We only
+     * check timeRange.after, because time moves forward.
+     */
+    if (time > timeRange.after) {
         RawDataMap rawDataBefore, rawDataAfter;
         readRawForcing(rawDataBefore, rawDataAfter);
 
@@ -60,6 +63,7 @@ ModelArray ParaGridInputs::getField(const std::string& fieldName)
     ModelArray ma;
     ma.reinitialize();
 
+    // Just a linear interpolation between forcing data time steps.
     const FloatType frac = (currentTime - timeRange.before).seconds()
         / (timeRange.after - timeRange.before).seconds();
 
@@ -83,9 +87,11 @@ void ParaGridInputs::setWeights()
     ij10.resize(xi.size());
     ij11.resize(xi.size());
 
+    // Useful aliases
     const auto& lonDimSize = forcingLonLats.dims.at(ncLonName).size();
     const auto& latDimSize = forcingLonLats.dims.at(ncLatName).size();
 
+    // Different methods for Mercator maps and curvilinear grids
     if (lonDimSize == 1 && latDimSize == 1) {
         // Lat and lon are 1D
         setWeights1D();
@@ -105,17 +111,10 @@ void ParaGridInputs::setWeights1D()
     const auto& choiceVar = readRawData(currentTime, { *forcings.begin() });
     const auto& gridDims = choiceVar.dims.at(*forcings.begin());
 
+    // The axis may be flipped. Probably only the latitude one ... but you never know
     auto forcingLons = forcingLonLats.data[ncLonName];
     auto forcingLats = forcingLonLats.data[ncLatName];
 
-    // Careful to wrap the longitudes of the model the same as that of the data
-    FloatType lon0;
-    if (*std::min_element(forcingLons.begin(), forcingLons.end()) < 0.)
-        lon0 = 180.;
-    else
-        lon0 = 360.;
-
-    // The axis may be flipped. Probably only the latitude one ... but you never know
     bool flippedLons = false;
     bool flippedLats = false;
     if (*forcingLons.begin() > *forcingLons.end()) {
@@ -126,6 +125,13 @@ void ParaGridInputs::setWeights1D()
         flippedLats = true;
         std::reverse(forcingLats.begin(), forcingLats.end());
     }
+
+    // Careful to wrap the longitudes of the model the same as that of the data
+    FloatType lon0;
+    if (*std::min_element(forcingLons.begin(), forcingLons.end()) < 0.)
+        lon0 = 180.;
+    else
+        lon0 = 360.;
 
 #pragma omp parallel for
     for (size_t i = 0; i < modelLons.size(); ++i) {
@@ -182,6 +188,10 @@ void ParaGridInputs::setWeights1D()
 
 void ParaGridInputs::setWeights2D()
 {
+    /* Just call recursiveBisectSearch for every model grid point. Start off with the full grid. The
+     * recursive routine returns false if it didn't find anything at the given level. So a false
+     * here means the model point is not in the forcing data set grid.
+     */
 #pragma omp parallel for
     for (size_t k = 0; k < modelLons.size(); ++k) {
         // Careful with the C-style indexing!
@@ -235,8 +245,8 @@ bool ParaGridInputs::recursiveBisectSearch(const size_t k, const FloatType targe
     }
 
     // Bisect and call self to continue searching
-    const size_t iHalf = i + (ii - i) / 2;
-    const size_t jHalf = j + (jj - j) / 2;
+    const size_t iHalf = (i + ii) / 2;
+    const size_t jHalf = (j + jj) / 2;
 
     // Search quadrant 00
     if (recursiveBisectSearch(k, targetLon, targetLat, i, iHalf, j, jHalf))
@@ -261,6 +271,9 @@ bool ParaGridInputs::recursiveBisectSearch(const size_t k, const FloatType targe
 void ParaGridInputs::orthographicProjection(const FloatType lon, const FloatType lat,
     const FloatType lon0, const FloatType lat0, FloatType& x, FloatType& y) const
 {
+    /* Most of these are used twice, but not all. But anyway, it's easier to read like this, and the
+     * compiler should optimise the excessive assignments out, right?
+     */
     const FloatType cosPhi = std::cos(lat * PhysicalConstants::deg2rad);
     const FloatType cosPhi0 = std::cos(lat0 * PhysicalConstants::deg2rad);
     const FloatType sinPhi = std::sin(lat * PhysicalConstants::deg2rad);
@@ -268,6 +281,7 @@ void ParaGridInputs::orthographicProjection(const FloatType lon, const FloatType
     const FloatType cosDeltaLambda = std::cos((lon - lon0) * PhysicalConstants::deg2rad);
     const FloatType sinDeltaLambda = std::sin((lon - lon0) * PhysicalConstants::deg2rad);
 
+    // Projected coordinates
     x = cosPhi * sinDeltaLambda;
     y = cosPhi0 * sinPhi - sinPhi0 * cosPhi * cosDeltaLambda;
 
@@ -282,11 +296,11 @@ void ParaGridInputs::orthographicProjection(const FloatType lon, const FloatType
 bool ParaGridInputs::pointInBoundingBox(
     const std::vector<FloatType>& xCorners, const std::vector<FloatType>& yCorners)
 {
-    const double xMin = *std::min_element(xCorners.begin(), xCorners.end());
-    const double xMax = *std::max_element(xCorners.begin(), xCorners.end());
+    const FloatType xMin = *std::min_element(xCorners.begin(), xCorners.end());
+    const FloatType xMax = *std::max_element(xCorners.begin(), xCorners.end());
 
-    const double yMin = *std::min_element(yCorners.begin(), yCorners.end());
-    const double yMax = *std::max_element(yCorners.begin(), yCorners.end());
+    const FloatType yMin = *std::min_element(yCorners.begin(), yCorners.end());
+    const FloatType yMax = *std::max_element(yCorners.begin(), yCorners.end());
 
     // The target point is at the origin
     return 0. >= xMin && 0. <= xMax && 0. >= yMin && 0. <= yMax;
@@ -323,8 +337,9 @@ bool ParaGridInputs::findLocalCoordinates(const size_t k, const FloatType x00, c
     /* Newton iteration:
      *     F(xi, eta) = mapping(xi, eta) - query_point
      */
-    constexpr FloatType tolerance = 100 * std::numeric_limits<FloatType>::epsilon();
     for (int iteration = 0; iteration < 20; ++iteration) {
+        // What is the right tolerance for both single and double? I guess this is fine.
+        constexpr FloatType tolerance = 10 * std::numeric_limits<FloatType>::epsilon();
 
         // Bilinear mapping from local coordinates to physical coordinates.
         const FloatType N00 = (1.0 - xi[k]) * (1.0 - eta[k]);
@@ -363,7 +378,6 @@ bool ParaGridInputs::findLocalCoordinates(const size_t k, const FloatType x00, c
         eta[k] += (dy_dxi * xp - dx_dxi * yp) / determinant;
 
         // If the solution is far outside the cell, then this is probably not the correct cell.
-        //
         if (xi[k] < -0.1 || xi[k] > 1.1 || eta[k] < -0.1 || eta[k] > 1.1)
             return false;
     }
@@ -423,16 +437,19 @@ void ParaGridInputs::vectorRotationLogic(const std::vector<FloatType>& vectorIn1
 
 void ParaGridInputs::readRawForcing(RawDataMap& rawDataBefore, RawDataMap& rawDataAfter)
 {
-    const std::string fileNameBefore = formatFileName(filePath, currentTime, *forcings.begin());
+    /* First we find the correct time, time slice, and files. For multi-file datasets we just pick
+     * any (first) file/variable.
+     */
+    const std::string fileName = formatFileName(currentTime, *forcings.begin());
     size_t targetTIndexAfter, targetTIndexBefore;
     try {
-        netCDF::NcFile ncFile(fileNameBefore, netCDF::NcFile::read);
+        netCDF::NcFile ncFile(fileName, netCDF::NcFile::read);
 
         // Read the time axis
         netCDF::NcDim timeDim = ncFile.getDim(ncTimeName);
         // Read the time variable
         netCDF::NcVar timeVar = ncFile.getVar(ncTimeName);
-        // Get the time axis as a vector
+        // Get the time axis as a vector. We use double here, because Duration expects double.
         std::vector<double> timeVec(timeDim.getSize());
         timeVar.getVar(timeVec.data());
 
@@ -464,6 +481,7 @@ void ParaGridInputs::readRawForcing(RawDataMap& rawDataBefore, RawDataMap& rawDa
 
         // Because currentTime can't be captured in the lambda function
         const TimePoint& time = currentTime;
+
         // Get the index of the first TimePoint greater than the target.
         targetTIndexAfter = std::find_if(timeVec.begin(), timeVec.end(),
                                 [time, timePointOrigin](const double t) {
@@ -476,13 +494,16 @@ void ParaGridInputs::readRawForcing(RawDataMap& rawDataBefore, RawDataMap& rawDa
         timeRange.after = TimePoint(timePointOrigin, Duration(timeVec[targetTIndexAfter]));
 
         /* We need to check if targetTIndexAfter is actually pointing at the right time, or if we
-         * need to go on to the next file */
-        if (TimePoint(timePointOrigin, Duration(timeVec[targetTIndexAfter])) < currentTime) {
-            timeRange.before = TimePoint(timePointOrigin, Duration(timeVec[targetTIndexBefore]));
+         * need to go on to the next file. Lucky for us, std::find_if returns timeVec.end() if it
+         * finds nothing, so targetTIndexBefore is always right.
+         */
+        if (targetTIndexAfter == timeVec.size()) {
+            // Assume time is increasing at a constant rate(!)
             timeRange.after = timeRange.before + Duration(timeVec[1] - timeVec[0]);
             targetTIndexAfter = 0;
         }
 
+        // Sanity check. Not really needed.
         if (targetTIndexAfter < 0 || targetTIndexBefore < 0 || targetTIndexAfter >= timeVec.size()
             || targetTIndexBefore >= timeVec.size())
             throw std::out_of_range(
@@ -492,10 +513,11 @@ void ParaGridInputs::readRawForcing(RawDataMap& rawDataBefore, RawDataMap& rawDa
         ncFile.close();
     } catch (const netCDF::exceptions::NcException& nce) {
         std::string ncWhat(nce.what());
-        ncWhat += ": " + fileNameBefore;
+        ncWhat += ": " + fileName;
         throw std::runtime_error(ncWhat);
     }
 
+    // Read the data
     rawDataBefore = readRawData(timeRange.before, forcings, targetTIndexBefore);
     rawDataAfter = readRawData(timeRange.after, forcings, targetTIndexAfter);
 }
@@ -504,15 +526,17 @@ ParaGridInputs::RawDataMap ParaGridInputs::readRawData(
     const TimePoint& time, const std::set<std::string>& fields, const size_t timeIndex) const
 {
     RawDataMap data;
+    std::string fileName;
+
+    // Loop over the variable names at the top, because we may have one variable per file.
     for (const std::string& varName : fields) {
         try {
 
             // We may need to be more careful selecting the right file if we're reading lat/lon info
-            std::string fileName;
             if (varName == ncLonName || varName == ncLatName)
-                fileName = formatFileName(filePath, time, *forcings.begin());
+                fileName = formatFileName(time, *forcings.begin());
             else
-                fileName = formatFileName(filePath, time, varName);
+                fileName = formatFileName(time, varName);
 
             netCDF::NcFile ncFile(fileName, netCDF::NcFile::read);
 
@@ -541,13 +565,14 @@ ParaGridInputs::RawDataMap ParaGridInputs::readRawData(
             // Needs to be reversed because of netCDF shenanigans
             std::reverse(data.dims[varName].begin(), data.dims[varName].end());
 
+            // Resize and read!
             data.data[varName] = std::vector<FloatType>(std::accumulate(
                 count.begin(), count.end(), static_cast<size_t>(1), std::multiplies<>()));
-            readNetCDFVar(var, start, count, data.data[varName].data());
+            var.getVar(start, count, data.data[varName].data());
 
         } catch (const netCDF::exceptions::NcException& nce) {
             std::string ncWhat(nce.what());
-            ncWhat += ": " + formatFileName(filePath, time, varName);
+            ncWhat += ": " + fileName;
             throw std::runtime_error(ncWhat);
         }
     }
