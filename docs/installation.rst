@@ -199,13 +199,13 @@ The cmake call has to enable MPI support:
 
 .. code::
 
-        cmake .. -DENABLE_MPI=ON
+        cmake .. -DENABLE_MPI=ON -DCMAKE_BUILD_TYPE=Release
 
 You might need to tell cmake which compiler to use, e.g.
 
 .. code::
 
-        cmake .. -DCMAKE_CXX_COMPILER=/usr/bin/mpicxx -DENABLE_MPI=ON
+        cmake .. -DCMAKE_CXX_COMPILER=/usr/bin/mpicxx -DENABLE_MPI=ON -DCMAKE_BUILD_TYPE=Release
 
 Dependencies and Build for GPU
 ----------------------------------------------
@@ -220,7 +220,7 @@ To build with GPU support, it is necessary to enable both the feature itself and
 
 .. code::
 
-        cmake .. -DWITH_KOKKOS=ON -DKokkos_ENABLE_CUDA=ON -DWITH_THREADS=ON
+        cmake .. -DWITH_KOKKOS=ON -DKokkos_ENABLE_CUDA=ON -DWITH_THREADS=ON -DCMAKE_BUILD_TYPE=Release
  
 While it is currently not possible to use Kokkos and MPI together, OpenMP (``WITH_THREADS``) can be enabled to run modules that have not been ported to the device in parallel on the CPU. The OpenMP backend of Kokkos can be enabled as well, however it will only be used if no device backend is enabled. Same as the device backends, it should be used in concert with the basic OpenMP parallelisation and may have different performance characteristics then ``WITH_THREADS=ON`` alone.
 
