@@ -72,6 +72,17 @@ else()
     find_package(Python COMPONENTS Interpreter)
 endif()
 
+# Do not accept unspecified CMAKE_BUILD_TYPE
+set(valid_build_types Release RelWithDebInfo Debug MinSizeRel)
+if(NOT CMAKE_BUILD_TYPE IN_LIST valid_build_types)
+    string(JOIN  ", "  pretty_build_types ${valid_build_types})
+    message(FATAL_ERROR
+        "CMAKE_BUILD_TYPE '${CMAKE_BUILD_TYPE}' is invalid. "
+        "Expected one of: ${pretty_build_types}\n"
+        "Please specify `-DCMAKE_BUILD_TYPE=<value> during configuration."
+    )
+endif()
+
 # The location of the module_builder.py scripts
 set(ScriptDirectory "${PROJECT_SOURCE_DIR}/scripts")
 set(ModuleBuilderScript "${ScriptDirectory}/module_builder.py")
