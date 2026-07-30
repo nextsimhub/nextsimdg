@@ -138,10 +138,8 @@ the submodule before building it. You can do this with the following commands:
         git submodule init
         git submodule update
         cd domain_decomp
-        mkdir -p build
-        cd build
-        cmake .. -DCMAKE_BUILD_TYPE=Release
-        make
+        cmake -B build -S . -DCMAKE_BUILD_TYPE=Release
+        cmake --build build
 
 The ``domain_decomp`` library is not required to build the nextSIM-DG model but
 it is required for running the tests and for generating domain decompositions
@@ -156,10 +154,8 @@ After all dependencies have been installed, we can build the code:
 .. code::
 
         cd nextsimdg
-        mkdir -p build
-        cd build
-        cmake .. -DCMAKE_BUILD_TYPE=Release
-        make
+        cmake -B build -S . -DCMAKE_BUILD_TYPE=Release
+        cmake --build build
 
 .. note::
 
@@ -183,7 +179,7 @@ The syntax for chosing the dynamics via CMake is the standard method of providin
 
 .. code::
 
-        cmake -DDynamicsType=DG2 ..
+        cmake -B build -S . -DDynamicsType=DG2
 
 Dependencies and Build for MPI Parallelisation
 ----------------------------------------------
@@ -201,13 +197,13 @@ The cmake call has to enable MPI support:
 
 .. code::
 
-        cmake .. -DENABLE_MPI=ON -DCMAKE_BUILD_TYPE=Release
+        cmake -B build -S . -DENABLE_MPI=ON -DCMAKE_BUILD_TYPE=Release
 
 You might need to tell cmake which compiler to use, e.g.
 
 .. code::
 
-        cmake .. -DCMAKE_CXX_COMPILER=/usr/bin/mpicxx -DENABLE_MPI=ON -DCMAKE_BUILD_TYPE=Release
+        cmake -B build -S . -DCMAKE_CXX_COMPILER=/usr/bin/mpicxx -DENABLE_MPI=ON -DCMAKE_BUILD_TYPE=Release
 
 Dependencies and Build for GPU
 ----------------------------------------------
@@ -222,7 +218,7 @@ To build with GPU support, it is necessary to enable both the feature itself and
 
 .. code::
 
-        cmake .. -DWITH_KOKKOS=ON -DKokkos_ENABLE_CUDA=ON -DWITH_THREADS=ON -DCMAKE_BUILD_TYPE=Release
+        cmake -B build -S . -DWITH_KOKKOS=ON -DKokkos_ENABLE_CUDA=ON -DWITH_THREADS=ON -DCMAKE_BUILD_TYPE=Release
  
 While it is currently not possible to use Kokkos and MPI together, OpenMP (``WITH_THREADS``) can be enabled to run modules that have not been ported to the device in parallel on the CPU. The OpenMP backend of Kokkos can be enabled as well, however it will only be used if no device backend is enabled. Same as the device backends, it should be used in concert with the basic OpenMP parallelisation and may have different performance characteristics then ``WITH_THREADS=ON`` alone.
 
@@ -232,7 +228,7 @@ With Kokkos, there is experimental support for single precision, which is contro
 
 .. code::
 
-        cmake .. -DUSE_SINGLE_PRECISION=ON
+        cmake -B build -S . -DUSE_SINGLE_PRECISION=ON
 
 When switched on all data and computations use ``float`` instead of ``double``, cutting the memory footprint in half and providing a significant speedup, especially on consumer grade GPUs. This option currently does not work with XIOS or MPI.
 
@@ -299,23 +295,23 @@ Running Tests
 
 After building the code, you can run the tests provided with the repository using `ctest`. This ensures that the installation and build process was successful.
 
-To run all tests, navigate to the `build` directory and execute:
+To run all tests, execute:
 
 .. code-block:: console
 
-    ctest
+    ctest --test-dir build
 
 If you want to see more detailed output for each test, use the `-V` option:
 
 .. code-block:: console
 
-    ctest -V
+    ctest --test-dir build -V
 
 If you want to run a subset of tests, you can use the `-R` option with a regular expression to match the test names. For example, to run only the tests related to `XIOS`, use:
 
 .. code-block:: console
 
-    ctest -R Xios
+    ctest --test-dir build -R Xios
 
 For more information on `ctest` options, you can refer to the official `ctest` documentation.
 
