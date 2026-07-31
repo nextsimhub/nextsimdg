@@ -4,6 +4,7 @@
 
 #include "include/ERA5Atmosphere.hpp"
 
+#include "include/constants.hpp"
 #include "include/Finalizer.hpp"
 #include "include/NextsimModule.hpp"
 #include "include/ParaGridIO.hpp"
@@ -71,8 +72,8 @@ void ERA5Atmosphere::update(const TimestepTime& tst)
 {
     forcingState.update(tst.start);
 
-    tairAccessor.getHostRW() = forcingState.getField(tAirName);
-    tdewAccessor.getHostRW() = forcingState.getField(dew2mName);
+    tairAccessor.getHostRW() = forcingState.getField(tAirName) - Water::Tf;
+    tdewAccessor.getHostRW() = forcingState.getField(dew2mName) - Water::Tf;
     pairAccessor.getHostRW() = forcingState.getField(pAirName);
     sw_inAccessor.getHostRW() = forcingState.getField(swInName);
     lw_inAccessor.getHostRW() = forcingState.getField(lwInName);
