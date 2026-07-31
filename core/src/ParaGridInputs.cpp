@@ -274,12 +274,12 @@ void ParaGridInputs::orthographicProjection(const FloatType lon, const FloatType
     /* Most of these are used twice, but not all. But anyway, it's easier to read like this, and the
      * compiler should optimise the excessive assignments out, right?
      */
-    const FloatType cosPhi = std::cos(lat * PhysicalConstants::deg2rad);
-    const FloatType cosPhi0 = std::cos(lat0 * PhysicalConstants::deg2rad);
-    const FloatType sinPhi = std::sin(lat * PhysicalConstants::deg2rad);
-    const FloatType sinPhi0 = std::sin(lat0 * PhysicalConstants::deg2rad);
-    const FloatType cosDeltaLambda = std::cos((lon - lon0) * PhysicalConstants::deg2rad);
-    const FloatType sinDeltaLambda = std::sin((lon - lon0) * PhysicalConstants::deg2rad);
+    const FloatType cosPhi = std::cos(radians(lat));
+    const FloatType cosPhi0 = std::cos(radians(lat0));
+    const FloatType sinPhi = std::sin(radians(lat));
+    const FloatType sinPhi0 = std::sin(radians(lat0));
+    const FloatType cosDeltaLambda = std::cos(radians(lon - lon0));
+    const FloatType sinDeltaLambda = std::sin(radians(lon - lon0));
 
     // Projected coordinates
     x = cosPhi * sinDeltaLambda;
@@ -568,7 +568,7 @@ ParaGridInputs::RawDataMap ParaGridInputs::readRawData(
             // Resize and read!
             data.data[varName] = std::vector<FloatType>(std::accumulate(
                 count.begin(), count.end(), static_cast<size_t>(1), std::multiplies<>()));
-            var.getVar(start, count, data.data[varName].data());
+            readNetCDFVar(var, start, count, data.data[varName].data());
 
         } catch (const netCDF::exceptions::NcException& nce) {
             std::string ncWhat(nce.what());

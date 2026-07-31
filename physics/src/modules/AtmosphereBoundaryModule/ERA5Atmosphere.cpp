@@ -4,10 +4,10 @@
 
 #include "include/ERA5Atmosphere.hpp"
 
-#include "include/constants.hpp"
 #include "include/Finalizer.hpp"
 #include "include/NextsimModule.hpp"
 #include "include/ParaGridIO.hpp"
+#include "include/constants.hpp"
 
 namespace Nextsim {
 
