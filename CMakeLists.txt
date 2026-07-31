@@ -188,6 +188,13 @@ endif()
 # OpenMP
 if(WITH_THREADS)
     find_package(OpenMP REQUIRED)
+    if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "IntelLLVM")
+        # Force the GCC/Clang-style -fopenmp flag instead of the Intel default
+        # (-qopenmp for classic icpc, -fiopenmp for oneAPI icpx). icpx (IntelLLVM)
+        # is Clang-based and fully compatible with -fopenmp.
+        set_property(TARGET OpenMP::OpenMP_CXX PROPERTY INTERFACE_COMPILE_OPTIONS "-fopenmp")
+        set_property(TARGET OpenMP::OpenMP_CXX PROPERTY INTERFACE_LINK_LIBRARIES "-fopenmp")
+    endif()
     target_link_libraries(nextsimlib PUBLIC OpenMP::OpenMP_CXX)
 endif()
 
