@@ -30,15 +30,7 @@ def topaz4_interpolate(target_lon, target_lat, data, data_x, data_y, proj_string
 
     field = interpolate.griddata(points, data.ravel()[nanmask], xi)
 
-    # Use griddata again to extrapolate outside the convex hull using the nearest neighbour
-    nanmask = ~np.isnan(field)
-
-    points = np.array([target_x.ravel()[nanmask], target_y.ravel()[nanmask]]).T
-    xi = np.array([target_x.ravel(), target_y.ravel()]).T
-
-    return interpolate.griddata(
-        points, field.ravel()[nanmask], xi, method="nearest"
-    ).reshape(target_lon.shape)
+    return field.reshape(target_lon.shape)
 
 
 def bilinear(eyes, jays, data):
