@@ -270,21 +270,13 @@ if(ENABLE_MPI)
                                                              "${ModulesRoot}/StructureModule")
         target_link_libraries(testRectGrid_MPI3 PRIVATE nextsimlib doctest::doctest)
 
-        add_executable(testModelMetadataCB_MPI3 "ModelMetadataCB_test.cpp" "MainMPI.cpp")
+        add_executable(testModelMetadata_MPI3 "ModelMetadata_test.cpp" "MainMPI.cpp")
         target_compile_definitions(
-            testModelMetadataCB_MPI3 PRIVATE USE_MPI TEST_FILES_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\"
-                                             TEST_FILE_SOURCE=\"${CMAKE_CURRENT_SOURCE_DIR}\")
-        target_include_directories(testModelMetadataCB_MPI3
+            testModelMetadata_MPI3 PRIVATE USE_MPI TEST_FILES_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\"
+                                           TEST_FILE_SOURCE=\"${CMAKE_CURRENT_SOURCE_DIR}\")
+        target_include_directories(testModelMetadata_MPI3
                                    PRIVATE ${MODEL_INCLUDE_DIR} "${ModulesRoot}/StructureModule")
-        target_link_libraries(testModelMetadataCB_MPI3 PRIVATE nextsimlib doctest::doctest)
-
-        add_executable(testModelMetadataPB_MPI3 "ModelMetadataPB_test.cpp" "MainMPI.cpp")
-        target_compile_definitions(
-            testModelMetadataPB_MPI3 PRIVATE USE_MPI TEST_FILES_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\"
-                                             TEST_FILE_SOURCE=\"${CMAKE_CURRENT_SOURCE_DIR}\")
-        target_include_directories(testModelMetadataPB_MPI3
-                                   PRIVATE ${MODEL_INCLUDE_DIR} "${ModulesRoot}/StructureModule")
-        target_link_libraries(testModelMetadataPB_MPI3 PRIVATE nextsimlib doctest::doctest)
+        target_link_libraries(testModelMetadata_MPI3 PRIVATE nextsimlib doctest::doctest)
 
         add_executable(testConfigOutput_MPI2 "ConfigOutput_test.cpp" "MainMPI.cpp")
         target_compile_definitions(testConfigOutput_MPI2
@@ -297,8 +289,7 @@ if(ENABLE_MPI)
             testHaloExchangeCB_MPI3
             testParaGrid_MPI2
             testRectGrid_MPI3
-            testModelMetadataCB_MPI3
-            testModelMetadataPB_MPI3
+            testModelMetadata_MPI3
             testConfigOutput_MPI2)
         add_mpi_test("${MPI_TESTS}")
     endif()
