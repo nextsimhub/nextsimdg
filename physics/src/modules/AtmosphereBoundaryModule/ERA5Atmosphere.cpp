@@ -79,8 +79,9 @@ void ERA5Atmosphere::update(const TimestepTime& tst)
     lw_inAccessor.getHostRW() = forcingState.getField(lwInName);
     uwindAccessor.getHostRW() = forcingState.getField(uName);
     vwindAccessor.getHostRW() = forcingState.getField(vName);
-    snowAccessor.getHostRW() = forcingState.getField(snowName);
-    rainAccessor.getHostRW() = forcingState.getField(rainName);
+    // TODO: Check the precipitation fields
+    snowAccessor.getHostRW() = 0.; // forcingState.getField(snowName);
+    rainAccessor.getHostRW() = 0.; // forcingState.getField(rainName);
 
     windAccessor.getHostRW()
         = (uwindAccessor.getHostRW().data().pow(2) + vwindAccessor.getHostRW().data().pow(2))
