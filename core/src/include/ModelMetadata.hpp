@@ -218,18 +218,11 @@ public:
     NeighbourArray neighbourExtents;
     NeighbourArray neighbourHaloSend;
     NeighbourArray neighbourHaloRecv;
-    NeighbourArray neighbourRanksPeriodic;
-    NeighbourArray neighbourExtentsPeriodic;
-    NeighbourArray neighbourHaloSendPeriodic;
-    NeighbourArray neighbourHaloRecvPeriodic;
 
     using CornerArray = std::array<std::vector<int>, N_CORNER>;
     CornerArray cornerRanks;
     CornerArray cornerHaloSend;
     CornerArray cornerHaloRecv;
-    CornerArray cornerRanksPeriodic;
-    CornerArray cornerHaloSendPeriodic;
-    CornerArray cornerHaloRecvPeriodic;
 #endif
 
     std::string initialFileName;

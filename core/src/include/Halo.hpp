@@ -247,10 +247,9 @@ private:
      * @param edge Edge for which to calculate positions
      * @param neighbourIndex Index of the current neighbor
      * @param cell Cell index for CGVector fields
-     * @param isPeriodic Whether the boundary is periodic
      */
     void recvPositions(int& fromRank, size_t& count, size_t& disp, size_t& recvOffset, Edge edge,
-        const size_t neighbourIndex, const size_t cell, bool isPeriodic);
+        const size_t neighbourIndex, const size_t cell);
 
     /**
      * @brief Calculate recv buffer positions and offsets (count, disp and recvOffset) for halo
@@ -261,12 +260,10 @@ private:
      * @param disp Displacement in the send buffer
      * @param recvOffset Offset in the receive buffer
      * @param corner Corner for which to calculate positions
-     * @param neighbourIndex Index of the current neighbor
      * @param cell Cell index for CGVector fields
-     * @param isPeriodic Whether the boundary is periodic
      */
     void recvPositions(int& fromRank, size_t& count, size_t& disp, size_t& recvOffset,
-        Corner corner, const size_t cell, bool isPeriodic);
+        Corner corner, const size_t cell);
 
     /*!
      * @brief Populate recv buffer with halo data from other ranks send buffers via the memory
