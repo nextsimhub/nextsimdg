@@ -59,103 +59,73 @@ void ModelMetadata::readNeighbourData(netCDF::NcFile& ncFile)
     auto& modelMPI = ModelMPI::getInstance();
     auto mpiSize = modelMPI.getSize();
     auto mpiMyRank = modelMPI.getRank();
-    enum BoundaryType { nonPeriodic, periodic };
-    for (BoundaryType btype : { nonPeriodic, periodic }) {
-        // Use btype as needed
-        std::array<std::string, 4> suffixes = { "_neighbour_ids", "_neighbour_halos",
-            "_neighbour_halo_send", "_neighbour_halo_recv" };
-        if (btype == periodic) {
-            for (auto& suffix : suffixes) {
-                suffix += "_periodic";
+
+    std::array<std::string, 4> suffixes
+        = { "_neighbour_ids", "_neighbour_halos", "_neighbour_halo_send", "_neighbour_halo_recv" };
+    for (auto edge : edges) {
+        size_t nStart = 0; // start point in metadata arrays
+        size_t count = 0; // number of elements to read from metadata arrays
+        std::vector<int> numNeighbours = std::vector<int>(mpiSize, 0);
+        std::vector<int> offsets = std::vector<int>(mpiSize, 0);
+        std::vector<std::reference_wrapper<std::vector<int>>> arrays;
+
+        arrays = { neighbourRanks[edge], neighbourExtents[edge], neighbourHaloSend[edge],
+            neighbourHaloRecv[edge] };
+
+        varName = edgeNames[edge] + "_neighbours";
+        neighbourGroup.getVar(varName).getVar(
+            { 0 }, { static_cast<size_t>(mpiSize) }, numNeighbours.data());
+
+        // compute start index for each process
+        MPI_Exscan(&numNeighbours[mpiMyRank], &nStart, 1, MPI_INT, MPI_SUM, modelMPI.getComm());
+        if (mpiMyRank == 0) {
+            // MPI_Exscan is undefined on the first rank. So to be safe we manually set nStart
+            // to 0. (see e.g., https://www.open-mpi.org/doc/v4.1/man3/MPI_Exscan.3.php)
+            nStart = 0;
+        }
+        // how many elements to read for each process
+        count = numNeighbours[mpiMyRank];
+
+        if (count) {
+            // initialize neighbour info to zero
+            for (size_t i = 0; i < arrays.size(); ++i) {
+                arrays[i].get().resize(count, 0);
+                varName = edgeNames[edge] + suffixes[i];
+                neighbourGroup.getVar(varName).getVar(
+                    { nStart }, { count }, arrays[i].get().data());
             }
         }
-        for (auto edge : edges) {
-            size_t nStart = 0; // start point in metadata arrays
-            size_t count = 0; // number of elements to read from metadata arrays
-            std::vector<int> numNeighbours = std::vector<int>(mpiSize, 0);
-            std::vector<int> offsets = std::vector<int>(mpiSize, 0);
-            std::vector<std::reference_wrapper<std::vector<int>>> arrays;
+    }
 
-            if (btype == nonPeriodic) {
-                arrays = { neighbourRanks[edge], neighbourExtents[edge], neighbourHaloSend[edge],
-                    neighbourHaloRecv[edge] };
-            } else if (btype == periodic) {
-                arrays = { neighbourRanksPeriodic[edge], neighbourExtentsPeriodic[edge],
-                    neighbourHaloSendPeriodic[edge], neighbourHaloRecvPeriodic[edge] };
-            }
+    std::array<std::string, 2> cornerSuffixes = { "_neighbour_ids", "_neighbour_send" };
+    for (auto corner : corners) {
+        size_t nStart = 0; // start index in the netCDF variable
+        size_t count = 0; // number of elements to read for this rank
+        std::vector<int> numCorners = std::vector<int>(mpiSize, 0);
+        std::vector<int> offsets = std::vector<int>(mpiSize, 0);
+        std::vector<std::reference_wrapper<std::vector<int>>> arrays;
 
-            varName = edgeNames[edge] + "_neighbours";
-            if (btype == periodic) {
-                varName += "_periodic";
-            }
-            neighbourGroup.getVar(varName).getVar(
-                { 0 }, { static_cast<size_t>(mpiSize) }, numNeighbours.data());
+        arrays = { cornerRanks[corner], cornerHaloSend[corner] };
 
-            // compute start index for each process
-            MPI_Exscan(&numNeighbours[mpiMyRank], &nStart, 1, MPI_INT, MPI_SUM, modelMPI.getComm());
-            if (mpiMyRank == 0) {
-                // MPI_Exscan is undefined on the first rank. So to be safe we manually set nStart
-                // to 0. (see e.g., https://www.open-mpi.org/doc/v4.1/man3/MPI_Exscan.3.php)
-                nStart = 0;
-            }
-            // how many elements to read for each process
-            count = numNeighbours[mpiMyRank];
+        // variable that stores *how many* corner entries each rank has
+        varName = cornerNames[corner] + "_neighbours";
+        neighbourGroup.getVar(varName).getVar(
+            { 0 }, { static_cast<size_t>(mpiSize) }, numCorners.data());
 
-            if (count) {
-                // initialize neighbour info to zero
-                for (size_t i = 0; i < arrays.size(); ++i) {
-                    arrays[i].get().resize(count, 0);
-                    varName = edgeNames[edge] + suffixes[i];
-                    neighbourGroup.getVar(varName).getVar(
-                        { nStart }, { count }, arrays[i].get().data());
-                }
-            }
+        // compute the global offset for this rank
+        MPI_Exscan(&numCorners[mpiMyRank], &nStart, 1, MPI_INT, MPI_SUM, modelMPI.getComm());
+        if (mpiMyRank == 0) {
+            nStart = 0; // MPI_Exscan undefined on rank 0 → set manually
         }
+        count = numCorners[mpiMyRank];
 
-        std::array<std::string, 2> cornerSuffixes = { "_neighbour_ids", "_neighbour_send" };
-        if (btype == periodic) {
-            for (auto& suffix : cornerSuffixes) {
-                suffix += "_periodic";
-            }
-        }
-
-        for (auto corner : corners) {
-            size_t nStart = 0; // start index in the netCDF variable
-            size_t count = 0; // number of elements to read for this rank
-            std::vector<int> numCorners = std::vector<int>(mpiSize, 0);
-            std::vector<int> offsets = std::vector<int>(mpiSize, 0);
-            std::vector<std::reference_wrapper<std::vector<int>>> arrays;
-
-            // pick the correct set of corner arrays (periodic / non‑periodic)
-            if (btype == nonPeriodic) {
-                arrays = { cornerRanks[corner], cornerHaloSend[corner] };
-            } else { // periodic
-                arrays = { cornerRanksPeriodic[corner], cornerHaloSendPeriodic[corner] };
-            }
-
-            // variable that stores *how many* corner entries each rank has
-            varName = cornerNames[corner] + "_neighbours";
-            if (btype == periodic) {
-                varName += "_periodic";
-            }
-            neighbourGroup.getVar(varName).getVar(
-                { 0 }, { static_cast<size_t>(mpiSize) }, numCorners.data());
-
-            // compute the global offset for this rank
-            MPI_Exscan(&numCorners[mpiMyRank], &nStart, 1, MPI_INT, MPI_SUM, modelMPI.getComm());
-            if (mpiMyRank == 0) {
-                nStart = 0; // MPI_Exscan undefined on rank 0 → set manually
-            }
-            count = numCorners[mpiMyRank];
-
-            if (count) {
-                // allocate and read each corner‑related array
-                for (size_t i = 0; i < arrays.size(); ++i) {
-                    arrays[i].get().resize(count, 0);
-                    varName = cornerNames[corner] + cornerSuffixes[i];
-                    neighbourGroup.getVar(varName).getVar(
-                        { nStart }, { count }, arrays[i].get().data());
-                }
+        if (count) {
+            // allocate and read each corner‑related array
+            for (size_t i = 0; i < arrays.size(); ++i) {
+                arrays[i].get().resize(count, 0);
+                varName = cornerNames[corner] + cornerSuffixes[i];
+                neighbourGroup.getVar(varName).getVar(
+                    { nStart }, { count }, arrays[i].get().data());
             }
         }
     }
@@ -201,10 +171,6 @@ void ModelMetadata::getPartitionMetadata(std::string partitionFile)
             if (cornerRanks[corner].size()) {
                 cornerHaloRecv[corner].resize(1);
                 cornerHaloRecv[corner][0] = 2 * (localExtentX + localExtentY) + corner;
-            }
-            if (cornerRanksPeriodic[corner].size()) {
-                cornerHaloRecvPeriodic[corner].resize(1);
-                cornerHaloRecvPeriodic[corner][0] = 2 * (localExtentX + localExtentY) + corner;
             }
         }
 
