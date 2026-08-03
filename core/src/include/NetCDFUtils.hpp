@@ -54,7 +54,7 @@ template <typename T>
 void readNetCDFVar(const netCDF::NcVar& var, const std::vector<size_t>& start,
     const std::vector<size_t>& size, T* dest)
 {
-    static_assert(std::is_same_v<T, float> || std::is_same_v<T, double>,
+    static_assert(std::is_same_v<T, float> || std::is_same_v<T, double> || std::is_same_v<T, short>,
         "Currently only conversion to floating point types is supported during load.");
 
     const netCDF::NcType ncType = var.getType();
