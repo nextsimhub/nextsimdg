@@ -1,10 +1,10 @@
 #! /usr/bin/env python3
 
-import netCDF4
-import numpy as np
 import time
 from pathlib import Path
 
+import netCDF4
+import numpy as np
 from interpolators import topaz4_interpolate
 from make_init_base import initMaker
 
