@@ -259,22 +259,15 @@ if(ENABLE_MPI)
                     "../../dynamics/src" "../../dynamics/src/include")
         target_link_libraries(testHaloExchangeCB_MPI3 PRIVATE nextsimlib doctest::doctest)
 
-        add_executable(testHaloExchangePB_MPI3
-            "HaloExchangePB_test.cpp"
-            "MainMPI.cpp"
-            "../src/ModelArray.cpp"
-            "../src/ModelArraySlice.cpp"
-        )
-        target_compile_definitions(testHaloExchangePB_MPI3 PRIVATE USE_MPI
-          TEST_FILES_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\")
+        add_executable(testHaloExchangePB_MPI3 "HaloExchangePB_test.cpp" "MainMPI.cpp"
+                                                "../src/ModelArray.cpp"
+                                                "../src/ModelArraySlice.cpp")
+        target_compile_definitions(testHaloExchangePB_MPI3
+                                   PRIVATE USE_MPI TEST_FILES_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\")
         target_include_directories(
-            testHaloExchangePB_MPI3 PRIVATE
-            ${MODEL_INCLUDE_DIR}
-            "${ModulesRoot}/StructureModule"
-            "../src"
-            "../../dynamics/src"
-            "../../dynamics/src/include"
-        )
+            testHaloExchangePB_MPI3
+            PRIVATE ${MODEL_INCLUDE_DIR} "${ModulesRoot}/StructureModule" "../src"
+            "../../dynamics/src" "../../dynamics/src/include")
         target_link_libraries(testHaloExchangePB_MPI3 PRIVATE nextsimlib doctest::doctest)
 
         add_executable(testParaGrid_MPI2 "ParaGrid_test.cpp" "MainMPI.cpp")
