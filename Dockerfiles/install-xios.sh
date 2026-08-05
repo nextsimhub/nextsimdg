@@ -8,9 +8,9 @@ if [ ! -d ${INSTALL_DIR} ]; then
   INSTALL_DIR="XIOS3"
 fi
 
-# If install directory doesn't exist, checkout the latest version
+# If install directory doesn't exist, clone the pinned version
 if [ ! -d ${INSTALL_DIR} ]; then
-  svn checkout http://forge.ipsl.fr/ioserver/svn/XIOS3/trunk "${INSTALL_DIR}"
+  git clone --branch xios-3.0.6.0 https://gitlab.in2p3.fr/ipsl/projets/xios-projects/xios.git "${INSTALL_DIR}"
 fi
 cd "${INSTALL_DIR}" || exit
 

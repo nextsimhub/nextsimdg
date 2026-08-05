@@ -7,7 +7,7 @@ RUN apt update \
     && rm -rf /var/lib/apt/lists/*
 
 # Pre-fetch XIOS source code
-RUN svn checkout http://forge.ipsl.fr/ioserver/svn/XIOS3/trunk /xios
+RUN git clone --branch xios-3.0.6.0 https://gitlab.in2p3.fr/ipsl/projets/xios-projects/xios.git /xios
 
 # Install software from spack.yaml
 RUN mkdir /opt/spack-environment
