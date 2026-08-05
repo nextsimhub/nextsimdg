@@ -1,9 +1,9 @@
 # Build stage with Spack pre-installed and ready to be used
 FROM spack/ubuntu-noble:latest AS builder
 
-# Install perl and subversion
+# Install perl
 RUN apt update \
-    && apt install -y --no-install-recommends libany-uri-escape-perl subversion \
+    && apt install -y --no-install-recommends libany-uri-escape-perl \
     && rm -rf /var/lib/apt/lists/*
 
 # Pre-fetch XIOS source code
