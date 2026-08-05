@@ -38,11 +38,15 @@ constexpr auto BOTTOM_LEFT = Corner::BOTTOM_LEFT;
 
 typedef std::vector<int> vec;
 
-// Check the merged neighbour metadata (former non-periodic + periodic entries, sorted by rank)
-// for each rank of the 3-process periodic-boundary partition.
-static void testMergedMetadata(int test_rank)
+TEST_SUITE_BEGIN("ModelMetadata");
+MPI_TEST_CASE("Test getPartitionMetadata for periodic boundaries", 3)
+// We only need to check periodic, because it's a superset of closed boundaries.
 {
-    auto& meta = ModelMetadata::getInstance();
+    auto& modelMPI = ModelMPI::getInstance(test_comm);
+    auto& meta = ModelMetadata::getInstance(partitionFilename);
+    REQUIRE(modelMPI.getComm() == test_comm);
+
+    // this metadata is specific to the periodic boundary conditions
     if (test_rank == 0) {
         // edges
         REQUIRE(meta.neighbourRanks[LEFT] == vec { 2 });
@@ -128,16 +132,6 @@ static void testMergedMetadata(int test_rank)
         REQUIRE(meta.cornerRanks[BOTTOM_LEFT] == vec { 1 });
         REQUIRE(meta.cornerHaloSend[BOTTOM_LEFT] == vec { 11 });
     }
-}
-
-TEST_SUITE_BEGIN("ModelMetadata");
-MPI_TEST_CASE("Test getPartitionMetadata periodic boundary", 3)
-{
-    auto& modelMPI = ModelMPI::getInstance(test_comm);
-    ModelMetadata::getInstance(partitionFilename);
-    REQUIRE(modelMPI.getComm() == test_comm);
-    // the neighbour arrays now merge the former non-periodic and periodic entries
-    testMergedMetadata(test_rank);
 }
 
 }
