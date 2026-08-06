@@ -37,6 +37,7 @@ class ConstModelArraySlice;
  */
 const static Eigen::StorageOptions majority = Eigen::RowMajor;
 
+using Indexer::deIndexer;
 using Indexer::indexer;
 
 /*!
