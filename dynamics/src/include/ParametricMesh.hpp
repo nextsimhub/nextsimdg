@@ -48,7 +48,7 @@ public:
 
     size_t nx, ny; //!< no of elements in x- and y-direction
     size_t nnodes; //!< total number of nodes
-    size_t nelements; //!< total number of nodes
+    size_t nelements; //!< total number of elements
 
     Eigen::Matrix<FloatType, Eigen::Dynamic, 2> vertices; // stores the
 
@@ -368,6 +368,16 @@ public:
      * @param coord2 y in metres or latitude in radians
      */
     void coordinatesFromModelArray(const ModelArray& coords);
+
+    /*!
+     * Copy the coordinate arrays from the arguments.
+     *
+     * @param dims dimensions of the input grid
+     * @param coord1 x in metres or longitude in radians
+     * @param coord2 y in metres or latitude in radians
+     */
+    void coordinatesFromVectors(const std::vector<size_t>& dims,
+        const std::vector<FloatType>& coord1, const std::vector<FloatType>& coord2);
 
     /*!
      * Copy the landmask from the passed ModelArray.
