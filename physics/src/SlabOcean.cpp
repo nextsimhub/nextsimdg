@@ -97,6 +97,7 @@ void SlabOcean::update(const TimestepTime& tst)
     auto& qdw = qdwAccessor.getAutoRW(execSpace);
     auto& sssSlab = sssSlabAccessor.getAutoRW(execSpace);
     const auto& fwFlux = fwFluxAccessor.getAutoRO(execSpace);
+    const auto& sFlux = sFluxAccessor.getAutoRO(execSpace);
     const auto& sssExt = sssExtAccessor.getAutoRO(execSpace);
     const auto& sst = sstAccessor.getAutoRO(execSpace);
     const auto& sstExt = sstExtAccessor.getAutoRO(execSpace);
@@ -120,6 +121,7 @@ void SlabOcean::update(const TimestepTime& tst)
         // This is simplified compared to the finiteelement.cpp calculation
         // Fdw = delS * mld * physical::rhow /(timeS*M_sss[i] - ddt*delS) where delS = sssSlab -
         // sssExt
+        // See e.g. Griffies (2004), p233
         fdw[i] = (1 - sssExt[i] / sss[i]) * arealDensity / relaxationTimeS;
 
         // the device compiler does not like a global constant appearing in the argument list of
@@ -129,7 +131,7 @@ void SlabOcean::update(const TimestepTime& tst)
         // Clamp the denominator to be at least 1 m deep, i.e. at least Water::rho kg m⁻²
         const FloatType denominator
             = Utils::max(arealDensity - (fwFlux[i] - fdw[i]) * dt, rhoOcean);
-        sssSlab[i] = sss[i] + (sss[i] * (fwFlux[i] - fdw[i]) * dt) / denominator;
+        sssSlab[i] = (sss[i] * arealDensity - sFlux[i] * dt) / denominator;
     });
     timer.stop();
 }
