@@ -22,6 +22,11 @@ RUN cd /opt/spack-environment \
     && spack install --fail-fast \
     && spack gc -y
 
+# Add the view `lib` to the LD_LIBRARY_PATH
+# This is required to make `ncgen` find  the libraries correctly
+# see: https://github.com/spack/spack/issues/52555
+ENV LD_LIBRARY_PATH=/opt/views/view/lib:$LD_LIBRARY_PATH
+
 # Download and install domain_decomp and XIOS
 COPY Dockerfiles/install-xios.sh .
 RUN spack env activate /opt/spack-environment \
@@ -56,9 +61,12 @@ COPY --from=builder /usr /usr
 COPY --from=builder /opt/views /opt/views
 
 # Create entrypoint script
+# We need to explicitly point ncgen to the view libraries:
+# https://github.com/spack/spack/issues/52555
 RUN { \
       echo '#!/bin/sh'; \
       echo '. /opt/spack-environment/activate.sh'; \
+      echo 'export LD_LIBRARY_PATH=/opt/views/view/lib:$LD_LIBRARY_PATH'; \
       echo 'exec "$@"'; \
     } > /entrypoint.sh \
     && chmod a+x /entrypoint.sh \
