@@ -107,12 +107,12 @@ void SlabOcean::update(const TimestepTime& tst)
     const auto& cpml = cpmlAccessor.getAutoRO(execSpace);
 
     const FloatType dt = tst.step.seconds();
-    const FloatType relaxationTimeT = SlabOcean::relaxationTimeT;
-    const FloatType relaxationTimeS = SlabOcean::relaxationTimeS;
+    const FloatType rRelaxationTimeT = 1. / relaxationTimeT;
+    const FloatType rRelaxationTimeS = 1. / relaxationTimeS;
 
     overElementsAuto(OVER_ELEMENTS_LAMBDA(const ElementIndex i) {
         // Slab SST update
-        qdw[i] = (sstExt[i] - sst[i]) * cpml[i] / relaxationTimeT;
+        qdw[i] = (sstExt[i] - sst[i]) * cpml[i] * rRelaxationTimeT;
         sstSlab[i] = sst[i] - dt * (qswNet[i] + qNoSun[i] - qdw[i]) / cpml[i];
 
         // Slab SSS update
@@ -122,7 +122,7 @@ void SlabOcean::update(const TimestepTime& tst)
         // Fdw = delS * mld * physical::rhow /(timeS*M_sss[i] - ddt*delS) where delS = sssSlab -
         // sssExt
         // See e.g. Griffies (2004), p233
-        fdw[i] = (1 - sssExt[i] / sss[i]) * arealDensity / relaxationTimeS;
+        fdw[i] = (1 - sssExt[i] / sss[i]) * arealDensity * rRelaxationTimeS;
 
         // the device compiler does not like a global constant appearing in the argument list of
         // a template function: "Water::rhoOcean" is undefined in device code"
