@@ -9,6 +9,11 @@ RUN apt update \
 # Pre-fetch XIOS source code
 RUN git clone --branch xios-3.0.6.0 https://gitlab.in2p3.fr/ipsl/projets/xios-projects/xios.git /xios
 
+# The ftpmirror.gnu.org is unreliable and often fails to point to a live mirror (returns 502 HTTP error)
+# To avoid this problem we patch the Spack recipe to use the cannonical GNU FTP server
+RUN find . -type f -path "*/package_repos/*/readline/package.py" \
+  -exec sed -i 's|https://ftpmirror.gnu.org|https://ftp.gnu.org/gnu|w /dev/stdout' '{}' \;
+
 # Install software from spack.yaml
 RUN mkdir /opt/spack-environment
 COPY Dockerfiles/spack.yaml /opt/spack-environment/spack.yaml
