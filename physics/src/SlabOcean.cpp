@@ -128,10 +128,8 @@ void SlabOcean::update(const TimestepTime& tst)
         // a template function: "Water::rhoOcean" is undefined in device code"
         const FloatType rhoOcean = Water::rhoOcean;
         // Mass per unit area after all the changes in water volume
-        // Clamp the denominator to be at least 1 m deep, i.e. at least Water::rho kg m⁻²
-        const FloatType denominator
-            = Utils::max(arealDensity - (fwFlux[i] - fdw[i]) * dt, rhoOcean);
-        sssSlab[i] = (sss[i] * arealDensity - sFlux[i] * dt) / denominator;
+        sssSlab[i]
+            = (sss[i] * arealDensity - sFlux[i] * dt) / (arealDensity - (fwFlux[i] - fdw[i]) * dt);
     });
     timer.stop();
 }
