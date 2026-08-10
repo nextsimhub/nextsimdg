@@ -82,6 +82,9 @@ EOF
 # Build XIOS on a Linux operating system with the GCC compiler
 ./make_xios --arch GCC_LINUX --job 8 --full --debug
 
+# Return to the previous directory
+cd -
+
 # Clean up files not needed
 rm -r \
   "${INSTALL_DIR}/arch" \
