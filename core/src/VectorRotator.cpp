@@ -37,8 +37,8 @@ VectorRotator::VectorRotator(const std::vector<size_t>& dimsIn, const std::vecto
     ey.resize(det.size());
 
     // weights to connect lower left corner with its neighbours
-    Eigen::Matrix<FloatType, 4, 1> ix({ 0, 1, 0, 1 });
-    Eigen::Matrix<FloatType, 4, 1> iy({ 0, 0, 1, 1 });
+    Eigen::Matrix<FloatType, 4, 1> ix({ -1, 1, 0, 0 });
+    Eigen::Matrix<FloatType, 4, 1> iy({ -1, 0, 1, 0 });
 
     // Loop through the full smesh grid. This leaves the upper and right outer boundary.
     for (size_t j = 0; j < smesh.ny; ++j) {
@@ -46,9 +46,7 @@ VectorRotator::VectorRotator(const std::vector<size_t>& dimsIn, const std::vecto
             const size_t eid = indexer({ smesh.nx, smesh.ny }, { i, j });
             const Eigen::Matrix<FloatType, 4, 2> coe = smesh.coordinatesOfElement(eid);
 
-            /* The two vectors spanning the element. This should be the direction of the ocean
-             * velocity.
-             */
+            // The two vectors spanning the element. This is the direction of the ocean velocity.
             const size_t k = indexer(dimsIn, { i, j });
             ex[k] = (coe.transpose() * ix).normalized();
             ey[k] = (coe.transpose() * iy).normalized();
@@ -58,72 +56,54 @@ VectorRotator::VectorRotator(const std::vector<size_t>& dimsIn, const std::vecto
 
     /* Handle the edge cases by assuming a different connectivity within the smesh element */
 
-    // weights to connect upper right corner with its neighbours.
-    ix = { -1, 0, -1, 0 };
-    iy = { -1, -1, 0, 0 };
-
     // Top row
+    // weights to connect upper left corner with its neighbours.
+    ix = { 0, 0, -1, 1 };
+    iy = { -1, 0, 1, 0 };
     for (size_t i = 0; i < smesh.nx; ++i) {
         const size_t j = smesh.ny - 1;
 
         const size_t eid = indexer({ smesh.nx, smesh.ny }, { i, j });
         const Eigen::Matrix<FloatType, 4, 2> coe = smesh.coordinatesOfElement(eid);
 
-        // Place the results into i+1 and j+1, because the reference is upper right corner
-        const size_t k = indexer(dimsIn, { i + 1, j + 1 });
+        // Place the results into i and j+1, because the reference is upper left corner
+        const size_t k = indexer(dimsIn, { i, j + 1 });
         ex[k] = (coe.transpose() * ix).normalized();
         ey[k] = (coe.transpose() * iy).normalized();
         det[k] = ex[k](0, 0) * ey[k](1, 0) - ex[k](1, 0) * ey[k](0, 0);
     }
 
     //  Last column
+    // weights to connect lower right corner with its neighbours.
+    ix = { -1, 1, 0, 0 };
+    iy = { 0, -1, 0, 1 };
     for (size_t j = 0; j < smesh.ny; ++j) {
         const size_t i = smesh.nx - 1;
 
         const size_t eid = indexer({ smesh.nx, smesh.ny }, { i, j });
         const Eigen::Matrix<FloatType, 4, 2> coe = smesh.coordinatesOfElement(eid);
 
-        // Place the results into i+1 and j+1, because the reference is upper right corner
-        const size_t k = indexer(dimsIn, { i + 1, j + 1 });
+        // Place the results into i+1 and j, because the reference is lower right corner
+        const size_t k = indexer(dimsIn, { i + 1, j });
         ex[k] = (coe.transpose() * ix).normalized();
         ey[k] = (coe.transpose() * iy).normalized();
         det[k] = ex[k](0, 0) * ey[k](1, 0) - ex[k](1, 0) * ey[k](0, 0);
     }
 
-    // Remaining corners
-    size_t i, j, k, eid;
-    Eigen::Matrix<FloatType, 4, 2> coe;
+    // The remaining upper right corner
+    // weights to connect upper right with its neighbours.
+    ix = { 0, 0, -1, 1 };
+    iy = { 0, -1, 0, 1 };
 
-    // Upper left corner
-    i = 0;
-    j = smesh.ny - 1;
+    // Upper right corner
+    const size_t i = smesh.nx - 1;
+    const size_t j = smesh.ny - 1;
 
-    // weights to connect upper left corner with its neighbours.
-    ix = { 0, 1, 0, 1 };
-    iy = { -1, -1, 0, 0 };
+    const size_t eid = indexer({ smesh.nx, smesh.ny }, { i, j });
+    const Eigen::Matrix<FloatType, 4, 2> coe = smesh.coordinatesOfElement(eid);
 
-    eid = indexer({ smesh.nx, smesh.ny }, { i, j });
-    coe = smesh.coordinatesOfElement(eid);
-
-    // Place the results into i and j+1, because the reference is upper left corner
-    k = indexer(dimsIn, { i, j + 1 });
-    ex[k] = (coe.transpose() * ix).normalized();
-    ey[k] = (coe.transpose() * iy).normalized();
-    det[k] = ex[k](0, 0) * ey[k](1, 0) - ex[k](1, 0) * ey[k](0, 0);
-
-    // Lower right corner
-    i = smesh.nx - 1;
-    j = 0;
-
-    // weights to connect lower right corner with its neighbours.
-    ix = { -1, 0, -1, 0 };
-    iy = { 0, 0, 1, 1 };
-
-    eid = indexer({ smesh.nx, smesh.ny }, { i, j });
-    coe = smesh.coordinatesOfElement(eid);
-
-    // Place the results into i+1 and j, because the reference is lower right corner
-    k = indexer(dimsIn, { i + 1, j });
+    // Place the results into i+1 and j+1, because the reference is upper right corner
+    const size_t k = indexer(dimsIn, { i + 1, j + 1 });
     ex[k] = (coe.transpose() * ix).normalized();
     ey[k] = (coe.transpose() * iy).normalized();
     det[k] = ex[k](0, 0) * ey[k](1, 0) - ex[k](1, 0) * ey[k](0, 0);
