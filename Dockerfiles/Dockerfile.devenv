@@ -1,13 +1,15 @@
 # Build stage with Spack pre-installed and ready to be used
 FROM spack/ubuntu-noble:latest AS builder
 
-# Install perl and subversion
+# Install perl
 RUN apt update \
-    && apt install -y --no-install-recommends libany-uri-escape-perl subversion \
+    && apt install -y --no-install-recommends libany-uri-escape-perl \
     && rm -rf /var/lib/apt/lists/*
 
-# Pre-fetch XIOS source code
-RUN svn checkout http://forge.ipsl.fr/ioserver/svn/XIOS3/trunk /xios
+# The ftpmirror.gnu.org is unreliable and often fails to point to a live mirror (returns 502 HTTP error)
+# To avoid this problem we patch the Spack recipe to use the cannonical GNU FTP server
+RUN find . -type f -path "*/package_repos/*/readline/package.py" \
+  -exec sed -i 's|https://ftpmirror.gnu.org|https://ftp.gnu.org/gnu|w /dev/stdout' '{}' \;
 
 # Install software from spack.yaml
 RUN mkdir /opt/spack-environment
@@ -17,8 +19,16 @@ RUN cd /opt/spack-environment \
     && spack install --fail-fast \
     && spack gc -y
 
-# Download and install domain_decomp and XIOS
+# Add the view `lib` to the LD_LIBRARY_PATH
+# This is required to make `ncgen` find  the libraries correctly
+# see: https://github.com/spack/spack/issues/52555
+ENV LD_LIBRARY_PATH=/opt/views/view/lib:$LD_LIBRARY_PATH
+
+# Pre-fetch XIOS source code
 COPY Dockerfiles/install-xios.sh .
+RUN git clone --branch xios-3.0.6.0 https://gitlab.in2p3.fr/ipsl/projets/xios-projects/xios.git /xios
+
+# Download and install domain_decomp and XIOS
 RUN spack env activate /opt/spack-environment \
     && git clone https://github.com/nextsimhub/domain_decomp.git /decomp \
     && cd /decomp \
@@ -51,9 +61,12 @@ COPY --from=builder /usr /usr
 COPY --from=builder /opt/views /opt/views
 
 # Create entrypoint script
+# We need to explicitly point ncgen to the view libraries:
+# https://github.com/spack/spack/issues/52555
 RUN { \
       echo '#!/bin/sh'; \
       echo '. /opt/spack-environment/activate.sh'; \
+      echo 'export LD_LIBRARY_PATH=/opt/views/view/lib:$LD_LIBRARY_PATH'; \
       echo 'exec "$@"'; \
     } > /entrypoint.sh \
     && chmod a+x /entrypoint.sh \

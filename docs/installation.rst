@@ -51,8 +51,8 @@ You must have root privilege :
 .. code::
 
         sudo apt-get update
-        sudo apt-get install netcdf-bin libnetcdf-c++4-dev libboost-all-dev cmake subversion libeigen3-dev
-        svn checkout http://forge.ipsl.fr/ioserver/svn/XIOS3/trunk xios
+        sudo apt-get install netcdf-bin libnetcdf-c++4-dev libboost-all-dev cmake git libeigen3-dev
+        git clone --branch xios-3.0.6.0 https://gitlab.in2p3.fr/ipsl/projets/xios-projects/xios.git xios
         cd xios
         ./make_xios --arch <your_architecture> --job <number_of_jobs>
 
