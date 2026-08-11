@@ -6,8 +6,18 @@
 #include "include/VectorRotator.hpp"
 #include "include/ParametricMesh.hpp"
 #include "include/cgVector.hpp"
+#include "include/constants.hpp"
 
 namespace Nextsim {
+
+/* An almost empty constructor with no rotation */
+VectorRotator::VectorRotator(const std::vector<size_t>& dimsIn)
+    : dims(dimsIn)
+{
+    det.assign(dims[0] * dims[1], 1.);
+    ex.assign(det.size(), { 1, 0 });
+    ey.assign(det.size(), { 0, 1 });
+}
 
 /* Constructor that uses two std::vectors of longitude and latitude to construct the unit vectors.
  * We construct a ParametricMesh object with the input coordinates at cell vertices. For most of the
@@ -15,135 +25,194 @@ namespace Nextsim {
  * column need to be handled separately.
  */
 VectorRotator::VectorRotator(const std::vector<size_t>& dimsIn, const std::vector<FloatType>& lon,
-    const std::vector<FloatType>& lat, const bool isSpherical)
+    const std::vector<FloatType>& lat, const orientation orient)
     : dims(dimsIn)
 {
-    // Build a smesh object for spherical coordinates
-    ParametricMesh smesh(isSpherical ? SPHERICAL : CARTESIAN);
-
-    // Use the lon/lat coords as input for the ParametricMesh, convert, and rotate to Greenland
-    smesh.coordinatesFromVectors(dims, lon, lat);
-    smesh.TransformToRadians();
-    if (isSpherical)
-        smesh.RotatePoleToGreenland();
-
-    /* Assemble the ex, ey, and det vectors needed by toParametricMesh and
-     * fromParametricMesh. We start by constructing the element orientation everywhere except in
-     * the last row and column by connecting the lower left corner of the grid cell with the
-     * upper left and lower right.
-     */
     det.resize(dims[0] * dims[1]);
     ex.resize(det.size());
     ey.resize(det.size());
 
-    // weights to connect lower left corner with its neighbours
-    Eigen::Matrix<FloatType, 4, 1> ix({ -1, 1, 0, 0 });
-    Eigen::Matrix<FloatType, 4, 1> iy({ -1, 0, 1, 0 });
+    if (orient == orientation::EAST_NORTH) {
+        // Call the ENOrientation routine if we're in East-North orientation
+        this->initENOrientation(lon, lat);
+    } else if (orient == orientation::GRID) {
+        // Build a smesh object for spherical coordinates
+        ParametricMesh smesh(SPHERICAL);
 
-    // Loop through the full smesh grid. This leaves the upper and right outer boundary.
-    for (size_t j = 0; j < smesh.ny; ++j) {
+        // Use the lon/lat coords as input for the ParametricMesh, convert, and rotate to Greenland
+        smesh.coordinatesFromVectors(dims, lon, lat);
+        smesh.TransformToRadians();
+        smesh.RotatePoleToGreenland();
+
+        /* Assemble the ex, ey, and det vectors needed by toParametricMesh and
+         * fromParametricMesh. We start by constructing the element orientation everywhere except in
+         * the last row and column by connecting the lower left corner of the grid cell with the
+         * upper left and lower right.
+         */
+
+        // weights to connect lower left corner with its neighbours
+        Eigen::Matrix<FloatType, 4, 1> ix({ -1, 1, 0, 0 });
+        Eigen::Matrix<FloatType, 4, 1> iy({ -1, 0, 1, 0 });
+
+        // Loop through the full smesh grid. This leaves the upper and right outer boundary.
+        for (size_t j = 0; j < smesh.ny; ++j) {
+            for (size_t i = 0; i < smesh.nx; ++i) {
+                const size_t eid = indexer({ smesh.nx, smesh.ny }, { i, j });
+                const Eigen::Matrix<FloatType, 4, 2> coe = smesh.coordinatesOfElement(eid);
+
+                // The two vectors spanning the element give the direction of the ocean velocity.
+                const size_t k = indexer(dimsIn, { i, j });
+                ex[k] = (coe.transpose() * ix).normalized();
+                ey[k] = (coe.transpose() * iy).normalized();
+                det[k] = ex[k](0) * ey[k](1) - ex[k](1) * ey[k](0);
+            }
+        }
+
+        /* Handle the edge cases by assuming a different connectivity within the smesh element */
+
+        // Top row
+        // weights to connect upper left corner with its neighbours.
+        ix = { 0, 0, -1, 1 };
+        iy = { -1, 0, 1, 0 };
         for (size_t i = 0; i < smesh.nx; ++i) {
+            const size_t j = smesh.ny - 1;
+
             const size_t eid = indexer({ smesh.nx, smesh.ny }, { i, j });
             const Eigen::Matrix<FloatType, 4, 2> coe = smesh.coordinatesOfElement(eid);
 
-            // The two vectors spanning the element. This is the direction of the ocean velocity.
-            const size_t k = indexer(dimsIn, { i, j });
+            // Place the results into i and j+1, because the reference is upper left corner
+            const size_t k = indexer(dimsIn, { i, j + 1 });
             ex[k] = (coe.transpose() * ix).normalized();
             ey[k] = (coe.transpose() * iy).normalized();
-            det[k] = ex[k](0, 0) * ey[k](1, 0) - ex[k](1, 0) * ey[k](0, 0);
+            det[k] = ex[k](0) * ey[k](1) - ex[k](1) * ey[k](0);
         }
-    }
 
-    /* Handle the edge cases by assuming a different connectivity within the smesh element */
+        //  Last column
+        // weights to connect lower right corner with its neighbours.
+        ix = { -1, 1, 0, 0 };
+        iy = { 0, -1, 0, 1 };
+        for (size_t j = 0; j < smesh.ny; ++j) {
+            const size_t i = smesh.nx - 1;
 
-    // Top row
-    // weights to connect upper left corner with its neighbours.
-    ix = { 0, 0, -1, 1 };
-    iy = { -1, 0, 1, 0 };
-    for (size_t i = 0; i < smesh.nx; ++i) {
+            const size_t eid = indexer({ smesh.nx, smesh.ny }, { i, j });
+            const Eigen::Matrix<FloatType, 4, 2> coe = smesh.coordinatesOfElement(eid);
+
+            // Place the results into i+1 and j, because the reference is lower right corner
+            const size_t k = indexer(dimsIn, { i + 1, j });
+            ex[k] = (coe.transpose() * ix).normalized();
+            ey[k] = (coe.transpose() * iy).normalized();
+            det[k] = ex[k](0) * ey[k](1) - ex[k](1) * ey[k](0);
+        }
+
+        // The remaining upper right corner
+        // weights to connect upper right with its neighbours.
+        ix = { 0, 0, -1, 1 };
+        iy = { 0, -1, 0, 1 };
+
+        // Upper right corner
+        const size_t i = smesh.nx - 1;
         const size_t j = smesh.ny - 1;
 
         const size_t eid = indexer({ smesh.nx, smesh.ny }, { i, j });
         const Eigen::Matrix<FloatType, 4, 2> coe = smesh.coordinatesOfElement(eid);
 
-        // Place the results into i and j+1, because the reference is upper left corner
-        const size_t k = indexer(dimsIn, { i, j + 1 });
+        // Place the results into i+1 and j+1, because the reference is upper right corner
+        const size_t k = indexer(dimsIn, { i + 1, j + 1 });
         ex[k] = (coe.transpose() * ix).normalized();
         ey[k] = (coe.transpose() * iy).normalized();
-        det[k] = ex[k](0, 0) * ey[k](1, 0) - ex[k](1, 0) * ey[k](0, 0);
+        det[k] = ex[k](0) * ey[k](1) - ex[k](1) * ey[k](0);
+    } else {
+        throw std::runtime_error(
+            "VectorRotator::VectorRotator: Unknown orientation in constructor.\n");
     }
-
-    //  Last column
-    // weights to connect lower right corner with its neighbours.
-    ix = { -1, 1, 0, 0 };
-    iy = { 0, -1, 0, 1 };
-    for (size_t j = 0; j < smesh.ny; ++j) {
-        const size_t i = smesh.nx - 1;
-
-        const size_t eid = indexer({ smesh.nx, smesh.ny }, { i, j });
-        const Eigen::Matrix<FloatType, 4, 2> coe = smesh.coordinatesOfElement(eid);
-
-        // Place the results into i+1 and j, because the reference is lower right corner
-        const size_t k = indexer(dimsIn, { i + 1, j });
-        ex[k] = (coe.transpose() * ix).normalized();
-        ey[k] = (coe.transpose() * iy).normalized();
-        det[k] = ex[k](0, 0) * ey[k](1, 0) - ex[k](1, 0) * ey[k](0, 0);
-    }
-
-    // The remaining upper right corner
-    // weights to connect upper right with its neighbours.
-    ix = { 0, 0, -1, 1 };
-    iy = { 0, -1, 0, 1 };
-
-    // Upper right corner
-    const size_t i = smesh.nx - 1;
-    const size_t j = smesh.ny - 1;
-
-    const size_t eid = indexer({ smesh.nx, smesh.ny }, { i, j });
-    const Eigen::Matrix<FloatType, 4, 2> coe = smesh.coordinatesOfElement(eid);
-
-    // Place the results into i+1 and j+1, because the reference is upper right corner
-    const size_t k = indexer(dimsIn, { i + 1, j + 1 });
-    ex[k] = (coe.transpose() * ix).normalized();
-    ey[k] = (coe.transpose() * iy).normalized();
-    det[k] = ex[k](0, 0) * ey[k](1, 0) - ex[k](1, 0) * ey[k](0, 0);
 }
 
 /* A constructor that uses a ModelArray with the model coordinates, and coordinates of cell vertices
  * to construct the unit vectors. Much simpler than the other one.
  */
-VectorRotator::VectorRotator(const ModelArray& coords, const bool isSpherical)
+VectorRotator::VectorRotator(const ModelArray& coords, const orientation orient)
 {
-    // Build a smesh object for spherical coordinates
-    ParametricMesh smesh(isSpherical ? SPHERICAL : CARTESIAN);
+    if (orient == orientation::EAST_NORTH) {
+        // Call the ENOrientation routine if we're in East-North orientation
+        const auto lon = std::vector(
+            coords.components(0).data(), coords.components(0).data() + coords.components(0).size());
+        const auto lat = std::vector(
+            coords.components(1).data(), coords.components(1).data() + coords.components(1).size());
+        this->initENOrientation(lon, lat);
+    } else if (orient == orientation::GRID) {
+        // Build a smesh object for spherical coordinates
+        ParametricMesh smesh(SPHERICAL);
 
-    dims = { ModelArray::size(ModelArray::Dimension::X),
-        ModelArray::size(ModelArray::Dimension::Y) };
+        dims = { ModelArray::size(ModelArray::Dimension::X),
+            ModelArray::size(ModelArray::Dimension::Y) };
 
-    // Build a ParametricMesh object and rotate to Grenland
-    smesh.coordinatesFromModelArray(coords);
-    if (isSpherical)
+        // Build a ParametricMesh object and rotate to Grenland
+        smesh.coordinatesFromModelArray(coords);
         smesh.RotatePoleToGreenland();
 
-    /* Assemble the ex, ey, and det vectors needed by toParametricMesh and
-     * fromParametricMesh. In this case, coords contains all the grid cell corners, making
-     * things easy.
-     */
-    det.resize(dims[0] * dims[1]);
-    ex.resize(det.size());
-    ey.resize(det.size());
+        /* Assemble the ex, ey, and det vectors needed by toParametricMesh and
+         * fromParametricMesh. In this case, coords contains all the grid cell corners, making
+         * things easy.
+         */
+        det.resize(dims[0] * dims[1]);
+        ex.resize(det.size());
+        ey.resize(det.size());
 
-    // Connect the edge-midpoints to get the unit-vectors
-    const Eigen::Matrix<FloatType, 4, 1> iix({ -0.5, 0.5, -0.5, 0.5 });
-    const Eigen::Matrix<FloatType, 4, 1> iiy({ -0.5, -0.5, 0.5, 0.5 });
+        // Connect the edge-midpoints to get the unit-vectors
+        const Eigen::Matrix<FloatType, 4, 1> iix({ -0.5, 0.5, -0.5, 0.5 });
+        const Eigen::Matrix<FloatType, 4, 1> iiy({ -0.5, -0.5, 0.5, 0.5 });
 
-    for (size_t eid = 0; eid < smesh.nelements; ++eid) {
-        // construct the "direction" of the element, i.e. the ocean ex,ey-vectors
-        const Eigen::Matrix<FloatType, 4, 2> coe = smesh.coordinatesOfElement(eid);
+        for (size_t eid = 0; eid < smesh.nelements; ++eid) {
+            // construct the "direction" of the element, i.e. the ocean ex,ey-vectors
+            const Eigen::Matrix<FloatType, 4, 2> coe = smesh.coordinatesOfElement(eid);
 
-        ex[eid] = (coe.transpose() * iix).normalized();
-        ey[eid] = (coe.transpose() * iiy).normalized();
-        det[eid] = ex[eid](0, 0) * ey[eid](1, 0) - ex[eid](1, 0) * ey[eid](0, 0);
+            ex[eid] = (coe.transpose() * iix).normalized();
+            ey[eid] = (coe.transpose() * iiy).normalized();
+            det[eid] = ex[eid](0) * ey[eid](1) - ex[eid](1) * ey[eid](0);
+        }
+    } else {
+        throw std::runtime_error(
+            "VectorRotator::VectorRotator: Unknown orientation in constructor.\n");
+    }
+}
+
+/* We have a closed-form solution if the input/output vectors should be oriented along east/north
+ * directions. It's just a rotation between the geographic and displaced poles with a rather
+ * complicated angle:
+ * \alpha = \atan2(\cos\phi_p \sin\Delta\lambda,
+ *                                      \sin\phi_p \cos\phi - \cos\phi_p \sin\phi \cos\Delta\lambda)
+ */
+void VectorRotator::initENOrientation(
+    const std::vector<FloatType>& lon, const std::vector<FloatType>& lat)
+{
+    // TODO: The Greenland pole shouldn't be hardcoded!
+    const FloatType polLon = radians(15.);
+    const FloatType polLat = radians(40.);
+
+    for (size_t eid = 0; eid < det.size(); ++eid) {
+        const std::vector<size_t> ij = deIndexer(dims, eid);
+        const size_t i = ij[0];
+        const size_t j = ij[1];
+
+        const FloatType rLon = radians(lon[i]);
+        const FloatType rLat = radians(lat[j]);
+
+        // alpha = atan2(a, b)
+        const FloatType deltaLon = polLon - rLon;
+        const FloatType a = std::cos(polLat) * std::sin(deltaLon);
+        const FloatType b = std::cos(rLat) * std::sin(polLat)
+            - std::sin(rLat) * std::cos(polLat) * std::cos(deltaLon);
+
+        // Instead of the atan2, cos, and sin functions
+        const FloatType sinAlpha = a / std::hypot(a, b);
+        const FloatType cosAlpha = b / std::hypot(a, b);
+
+        ex[eid] = { cosAlpha, -sinAlpha };
+        ey[eid] = { sinAlpha, cosAlpha };
+
+        // det[eid] = ex[eid](0) * ey[eid](1) - ex[eid](1) * ey[eid](0);
+        // The determinant is just one
+        det[eid] = 1.;
     }
 }
 
@@ -155,8 +224,8 @@ void VectorRotator::toParametricMesh(const std::vector<FloatType>& uIn,
 {
     for (size_t i = 0; i < uIn.size(); ++i) {
         const Eigen::Matrix<FloatType, 2, 1> pVelOut = ex[i] * uIn[i] + ey[i] * vIn[i];
-        uOut[i] = pVelOut(0, 0);
-        vOut[i] = pVelOut(1, 0);
+        uOut[i] = pVelOut(0);
+        vOut[i] = pVelOut(1);
     }
 }
 
@@ -167,8 +236,8 @@ void VectorRotator::fromParametricMesh(const std::vector<FloatType>& uIn,
     std::vector<FloatType>& vOut) const
 {
     for (size_t i = 0; i < uIn.size(); ++i) {
-        uOut[i] = -ey[i](0, 0) / det[i] * vIn[i] + ey[i](1, 0) / det[i] * uIn[i];
-        vOut[i] = +ex[i](0, 0) / det[i] * vIn[i] - ex[i](1, 0) / det[i] * uIn[i];
+        uOut[i] = -ey[i](0) / det[i] * vIn[i] + ey[i](1) / det[i] * uIn[i];
+        vOut[i] = +ex[i](0) / det[i] * vIn[i] - ex[i](1) / det[i] * uIn[i];
     }
 }
 
@@ -198,10 +267,10 @@ void VectorRotator::toParametricMesh(const std::vector<FloatType>& uIn,
                 constexpr double wgt[2][3] = { { 0.5, 0.5, 0 }, // CG1
                     { 0.5, 1.0, 0.5 } }; // CG2
 
-                uOut(n0 + (CG * dims[0] + 1) * cy + cx, 0)
-                    += wgt[CG - 1][cx] * wgt[CG - 1][cy] * Vcenter(0, 0);
-                vOut(n0 + (CG * dims[0] + 1) * cy + cx, 0)
-                    += wgt[CG - 1][cx] * wgt[CG - 1][cy] * Vcenter(1, 0);
+                uOut(n0 + (CG * dims[0] + 1) * cy + cx)
+                    += wgt[CG - 1][cx] * wgt[CG - 1][cy] * Vcenter(0);
+                vOut(n0 + (CG * dims[0] + 1) * cy + cx)
+                    += wgt[CG - 1][cx] * wgt[CG - 1][cy] * Vcenter(1);
             }
         }
     }
