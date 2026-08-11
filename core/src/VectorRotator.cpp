@@ -55,17 +55,17 @@ VectorRotator::VectorRotator(const std::vector<size_t>& dimsIn, const std::vecto
         Eigen::Matrix<FloatType, 4, 1> iy({ -1, 0, 1, 0 });
 
         // Loop through the full smesh grid. This leaves the upper and right outer boundary.
-        for (size_t j = 0; j < smesh.ny; ++j) {
-            for (size_t i = 0; i < smesh.nx; ++i) {
-                const size_t eid = indexer({ smesh.nx, smesh.ny }, { i, j });
-                const Eigen::Matrix<FloatType, 4, 2> coe = smesh.coordinatesOfElement(eid);
+#pragma omp parallel for
+        for (size_t eid = 0; eid < smesh.nelements; ++eid) {
+            const Eigen::Matrix<FloatType, 4, 2> coe = smesh.coordinatesOfElement(eid);
 
-                // The two vectors spanning the element give the direction of the ocean velocity.
-                const size_t k = indexer(dimsIn, { i, j });
-                ex[k] = (coe.transpose() * ix).normalized();
-                ey[k] = (coe.transpose() * iy).normalized();
-                det[k] = ex[k](0) * ey[k](1) - ex[k](1) * ey[k](0);
-            }
+            // The two vectors spanning the element give the direction of the ocean velocity.
+            // NB! dimsIn != { smesh.nx, smesh.ny }
+            const std::vector<size_t> ij = deIndexer({ smesh.nx, smesh.ny }, eid);
+            const size_t k = indexer(dimsIn, ij);
+            ex[k] = (coe.transpose() * ix).normalized();
+            ey[k] = (coe.transpose() * iy).normalized();
+            det[k] = ex[k](0) * ey[k](1) - ex[k](1) * ey[k](0);
         }
 
         /* Handle the edge cases by assuming a different connectivity within the smesh element */
@@ -74,6 +74,7 @@ VectorRotator::VectorRotator(const std::vector<size_t>& dimsIn, const std::vecto
         // weights to connect upper left corner with its neighbours.
         ix = { 0, 0, -1, 1 };
         iy = { -1, 0, 1, 0 };
+#pragma omp parallel for
         for (size_t i = 0; i < smesh.nx; ++i) {
             const size_t j = smesh.ny - 1;
 
@@ -91,6 +92,7 @@ VectorRotator::VectorRotator(const std::vector<size_t>& dimsIn, const std::vecto
         // weights to connect lower right corner with its neighbours.
         ix = { -1, 1, 0, 0 };
         iy = { 0, -1, 0, 1 };
+#pragma omp parallel for
         for (size_t j = 0; j < smesh.ny; ++j) {
             const size_t i = smesh.nx - 1;
 
@@ -146,7 +148,7 @@ VectorRotator::VectorRotator(const ModelArray& coords, const orientation orient)
         dims = { ModelArray::size(ModelArray::Dimension::X),
             ModelArray::size(ModelArray::Dimension::Y) };
 
-        // Build a ParametricMesh object and rotate to Grenland
+        // Build a ParametricMesh object and rotate to Greenland
         smesh.coordinatesFromModelArray(coords);
         smesh.RotatePoleToGreenland();
 
@@ -162,6 +164,7 @@ VectorRotator::VectorRotator(const ModelArray& coords, const orientation orient)
         const Eigen::Matrix<FloatType, 4, 1> iix({ -0.5, 0.5, -0.5, 0.5 });
         const Eigen::Matrix<FloatType, 4, 1> iiy({ -0.5, -0.5, 0.5, 0.5 });
 
+#pragma omp parallel for
         for (size_t eid = 0; eid < smesh.nelements; ++eid) {
             // construct the "direction" of the element, i.e. the ocean ex,ey-vectors
             const Eigen::Matrix<FloatType, 4, 2> coe = smesh.coordinatesOfElement(eid);
@@ -176,11 +179,12 @@ VectorRotator::VectorRotator(const ModelArray& coords, const orientation orient)
     }
 }
 
-/* We have a closed-form solution if the input/output vectors should be oriented along east/north
- * directions. It's just a rotation between the geographic and displaced poles with a rather
- * complicated angle:
+/* We have a closed-form solution if the input/output vectors should be oriented along
+ * east/north directions. It's just a rotation between the geographic and displaced poles with a
+ * rather complicated angle:
  * \alpha = \atan2(\cos\phi_p \sin\Delta\lambda,
- *                                      \sin\phi_p \cos\phi - \cos\phi_p \sin\phi \cos\Delta\lambda)
+ *                                      \sin\phi_p \cos\phi - \cos\phi_p \sin\phi
+ * \cos\Delta\lambda)
  */
 void VectorRotator::initENOrientation(
     const std::vector<FloatType>& lon, const std::vector<FloatType>& lat)
@@ -189,6 +193,7 @@ void VectorRotator::initENOrientation(
     const FloatType polLon = radians(15.);
     const FloatType polLat = radians(40.);
 
+#pragma omp parallel for
     for (size_t eid = 0; eid < det.size(); ++eid) {
         const std::vector<size_t> ij = deIndexer(dims, eid);
         const size_t i = ij[0];
@@ -222,6 +227,7 @@ void VectorRotator::toParametricMesh(const std::vector<FloatType>& uIn,
     const std::vector<FloatType>& vIn, std::vector<FloatType>& uOut,
     std::vector<FloatType>& vOut) const
 {
+#pragma omp parallel for
     for (size_t i = 0; i < uIn.size(); ++i) {
         const Eigen::Matrix<FloatType, 2, 1> pVelOut = ex[i] * uIn[i] + ey[i] * vIn[i];
         uOut[i] = pVelOut(0);
@@ -235,6 +241,7 @@ void VectorRotator::fromParametricMesh(const std::vector<FloatType>& uIn,
     const std::vector<FloatType>& vIn, std::vector<FloatType>& uOut,
     std::vector<FloatType>& vOut) const
 {
+#pragma omp parallel for
     for (size_t i = 0; i < uIn.size(); ++i) {
         uOut[i] = -ey[i](0) / det[i] * vIn[i] + ey[i](1) / det[i] * uIn[i];
         vOut[i] = +ex[i](0) / det[i] * vIn[i] - ex[i](1) / det[i] * uIn[i];
@@ -249,6 +256,7 @@ void VectorRotator::toParametricMesh(const std::vector<FloatType>& uIn,
     uOut.setZero();
     vOut.setZero();
 
+#pragma omp parallel for
     for (size_t i = 0; i < uIn.size(); ++i) {
         // compute center velocity in nextsim coordinate system
         const Eigen::Matrix<FloatType, 2, 1> Vcenter = ex[i] * uIn[i] + ey[i] * vIn[i];
