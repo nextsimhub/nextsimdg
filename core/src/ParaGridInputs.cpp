@@ -46,14 +46,15 @@ void ParaGridInputs::setData(const TimePoint& time, const std::string& pathSpecI
 
     // Different methods for Mercator maps and curvilinear grids
     if (lonDimSize == 1 && latDimSize == 1) {
-        // Lat and lon are 1D, so we need to construct the 2D dimensions
+        // Lat and lon are 1D, so we construct the 2D dimensions and use East-North orientation
         const std::vector dims2D
             = { forcingLonLats.dims.at(ncLonName)[0], forcingLonLats.dims.at(ncLatName)[0] };
-        rotator = std::make_unique<VectorRotator>(dims2D, forcingLons, forcingLats, true);
+        rotator = std::make_unique<VectorRotator>(
+            dims2D, forcingLons, forcingLats, VectorRotator::orientation::EAST_NORTH);
     } else if (lonDimSize == 2 && latDimSize == 2) {
         // Lat and lon are 2D
-        rotator = std::make_unique<VectorRotator>(
-            forcingLonLats.dims.at(ncLonName), forcingLons, forcingLats, true);
+        rotator = std::make_unique<VectorRotator>(forcingLonLats.dims.at(ncLonName), forcingLons,
+            forcingLats, VectorRotator::orientation::GRID);
     }
 }
 
