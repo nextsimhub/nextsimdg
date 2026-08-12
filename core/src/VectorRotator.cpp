@@ -32,10 +32,12 @@ VectorRotator::VectorRotator(const std::vector<size_t>& dimsIn, const std::vecto
     ex.resize(det.size());
     ey.resize(det.size());
 
-    if (orient == orientation::EAST_NORTH) {
+    switch (orient) {
+    case orientation::EAST_NORTH:
         // Call the ENOrientation routine if we're in East-North orientation
-        this->initENOrientation(lon, lat);
-    } else if (orient == orientation::GRID) {
+        initENOrientation(lon, lat);
+        break;
+    case orientation::GRID: {
         // Build a smesh object for spherical coordinates
         ParametricMesh smesh(SPHERICAL);
 
@@ -123,7 +125,10 @@ VectorRotator::VectorRotator(const std::vector<size_t>& dimsIn, const std::vecto
         ex[k] = (coe.transpose() * ix).normalized();
         ey[k] = (coe.transpose() * iy).normalized();
         det[k] = ex[k](0) * ey[k](1) - ex[k](1) * ey[k](0);
-    } else {
+
+        break;
+    }
+    default:
         throw std::runtime_error(
             "VectorRotator::VectorRotator: Unknown orientation in constructor.\n");
     }
@@ -134,14 +139,17 @@ VectorRotator::VectorRotator(const std::vector<size_t>& dimsIn, const std::vecto
  */
 VectorRotator::VectorRotator(const ModelArray& coords, const orientation orient)
 {
-    if (orient == orientation::EAST_NORTH) {
+    switch (orient) {
+    case orientation::EAST_NORTH: {
         // Call the ENOrientation routine if we're in East-North orientation
         const auto lon = std::vector(
             coords.components(0).data(), coords.components(0).data() + coords.components(0).size());
         const auto lat = std::vector(
             coords.components(1).data(), coords.components(1).data() + coords.components(1).size());
-        this->initENOrientation(lon, lat);
-    } else if (orient == orientation::GRID) {
+        initENOrientation(lon, lat);
+        break;
+    }
+    case orientation::GRID: {
         // Build a smesh object for spherical coordinates
         ParametricMesh smesh(SPHERICAL);
 
@@ -173,7 +181,9 @@ VectorRotator::VectorRotator(const ModelArray& coords, const orientation orient)
             ey[eid] = (coe.transpose() * iiy).normalized();
             det[eid] = ex[eid](0) * ey[eid](1) - ex[eid](1) * ey[eid](0);
         }
-    } else {
+        break;
+    }
+    default:
         throw std::runtime_error(
             "VectorRotator::VectorRotator: Unknown orientation in constructor.\n");
     }
