@@ -208,22 +208,14 @@ void ParametricMesh::coordinatesFromVectors(const std::vector<size_t>& dims,
     nnodes = (nx + 1) * (ny + 1);
     vertices.resize(nnodes, 2);
 
-    if (coord1.size() != nnodes && coord2.size() != nnodes) {
-        for (size_t j = 0; j < dims[1]; ++j) {
-            for (size_t i = 0; i < dims[0]; ++i) {
-                const size_t idx = indexer(dims, { i, j });
-                vertices(idx, 0) = coord1[i];
-                vertices(idx, 1) = coord2[j];
-            }
-        }
-    } else if (coord1.size() == nnodes && coord2.size() == nnodes) {
-        for (size_t idx = 0; idx < nnodes; ++idx) {
-            vertices(idx, 0) = coord1[idx];
-            vertices(idx, 1) = coord2[idx];
-        }
-    } else {
-        throw std::runtime_error("Error: Incompatible array sizes for coordinates: "
+    if (coord1.size() != nnodes && coord2.size() != nnodes)
+        throw std::runtime_error(
+            "ParametricMesh::coordinatesFromVectors: Incompatible array sizes for coordinates."
             + std::to_string(coord1.size()) + " and " + std::to_string(coord2.size()) + ".");
+
+    for (size_t idx = 0; idx < nnodes; ++idx) {
+        vertices(idx, 0) = coord1[idx];
+        vertices(idx, 1) = coord2[idx];
     }
 }
 
