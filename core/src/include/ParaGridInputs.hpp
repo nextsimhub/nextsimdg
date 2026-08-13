@@ -142,9 +142,16 @@ private:
         const TimePoint& time, const std::set<std::string>& fields, size_t timeIndex = 0) const;
 
     // Wrap longitudes, so that lon0 is the largest value (usually either [-180 180] or [0 360]
-    [[nodiscard]] FloatType wrapLon(const FloatType lon, const FloatType lon0 = 360.) const
+    [[nodiscard]] FloatType wrapLon(const FloatType lon, const FloatType lon0 = 0.) const
     {
-        return std::fmod(std::fmod(lon, lon0) + lon0, lon0);
+        // Shift the value relative to the lower bound so the range starts at 0
+        const FloatType shifted = lon - lon0;
+
+        // Wrap safely to [0, 360) using the branchless double fmod trick
+        const FloatType wrapped = std::fmod(std::fmod(shifted, 360._ft) + 360._ft, 360._ft);
+
+        // Shift back to the original custom baseline
+        return wrapped + lon0;
     }
 
     // Format the pathspec, replacing %v with a given variable name and using TimePoint.format()
