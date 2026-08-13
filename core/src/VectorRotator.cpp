@@ -193,8 +193,7 @@ VectorRotator::VectorRotator(const ModelArray& coords, const orientation orient)
  * east/north directions. It's just a rotation between the geographic and displaced poles with a
  * rather complicated angle:
  * \alpha = \atan2(\cos\phi_p \sin\Delta\lambda,
- *                                      \sin\phi_p \cos\phi - \cos\phi_p \sin\phi
- * \cos\Delta\lambda)
+ *                                     \sin\phi_p \cos\phi - \cos\phi_p \sin\phi \cos\Delta\lambda)
  */
 void VectorRotator::initENOrientation(
     const std::vector<FloatType>& lon, const std::vector<FloatType>& lat)
