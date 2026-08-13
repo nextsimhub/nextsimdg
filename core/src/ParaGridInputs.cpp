@@ -127,11 +127,7 @@ void ParaGridInputs::setWeights1D()
     }
 
     // Careful to wrap the longitudes of the model the same as that of the data
-    FloatType lon0;
-    if (*std::min_element(forcingLons.begin(), forcingLons.end()) < 0.)
-        lon0 = 180.;
-    else
-        lon0 = 360.;
+    const FloatType lon0 = *std::min_element(forcingLons.begin(), forcingLons.end());
 
 #pragma omp parallel for
     for (size_t i = 0; i < modelLons.size(); ++i) {
