@@ -111,16 +111,13 @@ void ParaGridInputs::setWeights1D()
     const auto& choiceVar = readRawData(currentTime, { *forcings.begin() });
     const auto& gridDims = choiceVar.dims.at(*forcings.begin());
 
-    // The axis may be flipped. Probably only the latitude one ... but you never know
-    auto forcingLons = forcingLonLats.data[ncLonName];
+    // Useful alias
+    auto& forcingLons = forcingLonLats.data[ncLonName];
+
+    // The latitude axis may be flipped, so it can't be a reference.
     auto forcingLats = forcingLonLats.data[ncLatName];
 
-    bool flippedLons = false;
     bool flippedLats = false;
-    if (*forcingLons.begin() > *forcingLons.end()) {
-        flippedLons = true;
-        std::reverse(forcingLons.begin(), forcingLons.end());
-    }
     if (*forcingLats.begin() > *forcingLats.end()) {
         flippedLats = true;
         std::reverse(forcingLats.begin(), forcingLats.end());
@@ -165,10 +162,6 @@ void ParaGridInputs::setWeights1D()
         eta[i] = (y - y1) / (y2 - y1);
 
         // If we flipped the axis, we need to point to the right elements in the original vector
-        if (flippedLons) {
-            aLon = (forcingLons.size() - 1) - aLon;
-            bLon = (forcingLons.size() - 1) - bLon;
-        }
         if (flippedLats) {
             aLat = (forcingLats.size() - 1) - aLat;
             bLat = (forcingLats.size() - 1) - bLat;
