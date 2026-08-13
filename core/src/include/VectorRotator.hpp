@@ -23,6 +23,12 @@ namespace Nextsim {
  */
 class VectorRotator {
 public:
+    /*!
+     * @brief An eunumerator class for vector orientation
+     *
+     * @enum GRID: Vectors are aligned with the grid.
+     * @enum EAST_NORTH: Vectors are aligned with the east and north directions.
+     */
     enum class orientation { GRID, EAST_NORTH };
 
     VectorRotator() = delete;
