@@ -437,6 +437,9 @@ if __name__ == "__main__":
             time_index, :, :
         ].squeeze()  # Need to squeeze. Why?
         v_source_data = v_source_file["vyo"][time_index, :, :].squeeze()
+        # We want the ocean velocity to be zero on land - not some interpolated value
+        u_source_data[np.isnan(u_source_data)] = 0.0
+        v_source_data[np.isnan(v_source_data)] = 0.0
         u_source_data_tgrid = np.zeros((nx, ny))
         v_source_data_tgrid = np.zeros((nx, ny))
         # Interpolate the current components on the TOPAZ basis on to the new grid
