@@ -124,9 +124,6 @@ void SlabOcean::update(const TimestepTime& tst)
         // See e.g. Griffies (2004), p233
         fdw[i] = (1 - sssExt[i] / sss[i]) * arealDensity * rRelaxationTimeS;
 
-        // the device compiler does not like a global constant appearing in the argument list of
-        // a template function: "Water::rhoOcean" is undefined in device code"
-        const FloatType rhoOcean = Water::rhoOcean;
         // Mass per unit area after all the changes in water volume
         sssSlab[i]
             = (sss[i] * arealDensity - sFlux[i] * dt) / (arealDensity - (fwFlux[i] - fdw[i]) * dt);
