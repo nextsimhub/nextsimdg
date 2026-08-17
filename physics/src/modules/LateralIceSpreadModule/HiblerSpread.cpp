@@ -13,27 +13,19 @@
 namespace Nextsim {
 
 FloatType HiblerSpread::h0 = 0;
-FloatType HiblerSpread::phiM = 0;
 
 static constexpr FloatType h0Default = 0.25;
-static constexpr FloatType phimDefault = 0.5;
 
 static const std::map<int, std::string> keyMap = {
     { HiblerSpread::H0_KEY, "Hibler.h0" },
-    { HiblerSpread::PHIM_KEY, "Hibler.phiM" },
 };
 
-void HiblerSpread::configure()
-{
-    h0 = Configured::getConfiguration(keyMap.at(H0_KEY), h0Default);
-    phiM = Configured::getConfiguration(keyMap.at(PHIM_KEY), phimDefault);
-}
+void HiblerSpread::configure() { h0 = Configured::getConfiguration(keyMap.at(H0_KEY), h0Default); }
 
 ConfigMap HiblerSpread::getConfiguration() const
 {
     return {
         { keyMap.at(H0_KEY), h0 },
-        { keyMap.at(PHIM_KEY), phiM },
     };
 }
 
@@ -44,8 +36,6 @@ HiblerSpread::HelpMap& HiblerSpread::getHelpText(HelpMap& map, bool getAll)
     map["HiblerSpread"] = {
         { keyMap.at(H0_KEY), ConfigType::NUMERIC, { "0", "∞" },
             ConfigurationHelp::toString(h0Default), "m", "The thickness of newly frozen ice." },
-        { keyMap.at(PHIM_KEY), ConfigType::NUMERIC, { "0", "∞" },
-            ConfigurationHelp::toString(phimDefault), "", "Power-law exponent for melting ice." },
     };
     return map;
 }
@@ -73,15 +63,15 @@ KERNEL_IMPL_FUNCTION FloatType freeze(const FloatType newIce, const FloatType h0
  * @param hice The ice-average ice thickness.
  */
 KERNEL_IMPL_FUNCTION FloatType melt(
-    const FloatType deltaHi, const FloatType cice, const FloatType hice, const FloatType phiM)
+    const FloatType deltaHi, const FloatType cice, const FloatType hice)
 {
     /* We only decrease the concentration if the ice is melting, if the ice cover is not 100%, and
      * if there's ice there in the first place. */
-    if (deltaHi < 0 && 0 < cice && cice < 1) {
+    if (deltaHi < 0._ft && 0._ft < cice && cice < 1._ft) {
         const FloatType hiOld = hice / cice - deltaHi;
-        return deltaHi * cice * phiM / hiOld;
+        return deltaHi * cice / (2._ft * hiOld);
     } else {
-        return 0.;
+        return 0._ft;
     }
 }
 
@@ -105,7 +95,6 @@ void HiblerSpread::update(const TimestepTime& tstep)
 
     // static members can not be captured directly
     const FloatType h0Local = h0;
-    const FloatType phiMLocal = phiM;
     const FloatType dt = tstep.step.seconds();
     const FloatType cMin = IceMinima::c();
     const FloatType hMin = IceMinima::h();
@@ -136,7 +125,7 @@ void HiblerSpread::update(const TimestepTime& tstep)
         }
 
         // lateralIceSpread
-        const FloatType deltaCMelt = melt(deltaHi[i], cIce[i], hIce[i], phiMLocal);
+        const FloatType deltaCMelt = melt(deltaHi[i], cIce[i], hIce[i]);
         const FloatType deltaCFreeze = freeze(newIce[i], h0Local);
         deltaCIce[i] = deltaCFreeze + deltaCMelt;
 
