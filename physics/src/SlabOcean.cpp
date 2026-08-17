@@ -125,8 +125,9 @@ void SlabOcean::update(const TimestepTime& tst)
         fdw[i] = (1 - sssExt[i] / sss[i]) * arealDensity * rRelaxationTimeS;
 
         // Mass per unit area after all the changes in water volume
-        sssSlab[i]
-            = (sss[i] * arealDensity - sFlux[i] * dt) / (arealDensity - (fwFlux[i] - fdw[i]) * dt);
+        // sFlux is in kg/m^2/s, but we need PSU/m^2/s
+        sssSlab[i] = (sss[i] * arealDensity - 1e3_ft * sFlux[i] * dt)
+            / (arealDensity - (fwFlux[i] - fdw[i]) * dt);
     });
     timer.stop();
 }
