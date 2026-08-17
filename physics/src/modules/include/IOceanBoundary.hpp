@@ -19,7 +19,7 @@ namespace Nextsim {
 class IOceanBoundary : public CheckingModelComponent {
 public:
     IOceanBoundary()
-        : qioAccessor(getStore(), RW, ModelArray::Type::H, std::pair(-1e8, 1e8))
+        : qioAccessor(getStore(), RW, ModelArray::Type::H)
         , sstAccessor(getStore(), RO, ModelArray::Type::H, std::pair(-5.0, 50.0))
         , sssAccessor(getStore(), RO, ModelArray::Type::H, std::pair(0.0, 50.0))
         , mldAccessor(getStore(), RO, ModelArray::Type::H, std::pair(1e-3, 12e3))
@@ -28,11 +28,11 @@ public:
         , uAccessor(getStore(), RO, ModelArray::Type::H, std::pair(-1.0, 1.0))
         , vAccessor(getStore(), RO, ModelArray::Type::H, std::pair(-1.0, 1.0))
         , sshAccessor(getStore(), RO, ModelArray::Type::H, std::pair(-10.0, 10.0))
-        , qNoSunAccessor(m_couplingArrays, RO, ModelArray::Type::H, std::pair(-1e6, 1e6))
+        , qNoSunAccessor(m_couplingArrays, RO, ModelArray::Type::H)
         , qswNetAccessor(m_couplingArrays, RO, ModelArray::Type::H, std::pair(-1e3, 1e3))
         , fwFluxAccessor(m_couplingArrays, RO, ModelArray::Type::H)
         , sFluxAccessor(m_couplingArrays, RO, ModelArray::Type::H)
-        , qswowAccessor(getStore(), RW, ModelArray::Type::H, std::pair(-1e3, 1e-6))
+        , qswowAccessor(getStore(), RW, ModelArray::Type::H, std::pair(-1e3, 1e-3))
         , qswBaseAccessor(getStore(), RW, ModelArray::Type::H, std::pair(-1e3, 1e-6))
         , tauXAccessor(m_couplingArrays, RO, ModelArray::Type::H, std::pair(-10.0, 10.0))
         , tauYAccessor(m_couplingArrays, RO, ModelArray::Type::H, std::pair(-10.0, 10.0))
