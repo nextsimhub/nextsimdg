@@ -164,6 +164,7 @@ void HiblerSpread::update(const TimestepTime& tstep)
             hice[i] = 0;
             cice[i] = 0;
             hsnow[i] = 0;
+            newice[i] = 0._ft;
         }
     });
     timer.stop();
