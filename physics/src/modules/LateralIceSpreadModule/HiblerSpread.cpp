@@ -135,11 +135,9 @@ void HiblerSpread::update(const TimestepTime& tstep)
         /* Snow is lost if the concentration decreases, and energy is returned to the ocean. We
          * reduce the snow volume by a "slice" of snow with the dimensions hs * deltaCIce.
          */
-        if (deltaCIce[i] < 0._ft && cIce[i] > 0._ft) {
-            const FloatType hs = hSnow[i] / cIce[i];
-            qow[i] -= deltaCIce[i] * hs * Water::Lf * Ice::rhoSnow / dt;
-            hSnow[i] += hs * deltaCIce[i];
-        } // else: Snow volume is conserved, so no change to hSnow[i]
+        const FloatType hs = hSnow[i] / std::max(cMin, cIce[i]);
+        qow[i] -= deltaCMelt * hs * Water::Lf * Ice::rhoSnow / dt;
+        hSnow[i] += hs * deltaCMelt;
 
         // Update ice concentration and volume
         cIce[i] += deltaCIce[i];
