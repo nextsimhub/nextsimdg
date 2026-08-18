@@ -118,16 +118,17 @@ void SlabOcean::update(const TimestepTime& tst)
         // Slab SSS update
         const FloatType arealDensity
             = cpml[i] / Water::cp; // density times depth, or cpml divided by cp
-        // This is simplified compared to the finiteelement.cpp calculation
-        // Fdw = delS * mld * physical::rhow /(timeS*M_sss[i] - ddt*delS) where delS = sssSlab -
-        // sssExt
-        // See e.g. Griffies (2004), p233
-        fdw[i] = (1 - sssExt[i] / sss[i]) * arealDensity * rRelaxationTimeS;
+        /* Just use a salt flux as the nudging flux. This is simplified compared to the
+         * finiteelement.cpp calculation
+         * Fdw = delS * mld * physical::rhow /(timeS*M_sss[i] - ddt*delS)
+         * where delS = sssSlab - sssExt
+         */
+        fdw[i] = (sssExt[i] - sss[i]) * arealDensity * rRelaxationTimeS;
 
         // Mass per unit area after all the changes in water volume
         // sFlux is in kg/m^2/s, but we need PSU/m^2/s
-        sssSlab[i] = (sss[i] * arealDensity - 1e3_ft * sFlux[i] * dt)
-            / (arealDensity - (fwFlux[i] - fdw[i]) * dt);
+        sssSlab[i] = (sss[i] * arealDensity - 1e3_ft * sFlux[i] * dt + fdw[i])
+            / (arealDensity - fwFlux[i] * dt);
     });
     timer.stop();
 }
