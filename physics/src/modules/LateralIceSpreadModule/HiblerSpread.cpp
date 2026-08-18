@@ -135,7 +135,9 @@ void HiblerSpread::update(const TimestepTime& tstep)
         /* Snow is lost if the concentration decreases, and energy is returned to the ocean. We
          * reduce the snow volume by a "slice" of snow with the dimensions hs * deltaCIce.
          */
-        const FloatType hs = hSnow[i] / std::max(cMin, cIce[i]);
+        // Workaround: I can't use std::max(cMin, cIce[i]) with Kokkos/GPU
+        const FloatType c = cIce[i] > cMin ? cIce[i] : cMin;
+        const FloatType hs = hSnow[i] / c;
         qow[i] -= deltaCMelt * hs * Water::Lf * Ice::rhoSnow / dt;
         hSnow[i] += hs * deltaCMelt;
 
