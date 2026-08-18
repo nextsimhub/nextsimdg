@@ -129,10 +129,6 @@ void SlabOcean::update(const TimestepTime& tst)
         sssSlab[i] = (sss[i] * arealDensity - 1e3_ft * sFlux[i] * dt)
             / (arealDensity - (fwFlux[i] - fdw[i]) * dt);
     });
-    constexpr size_t i = 52619;
-    std::cout << "SSS: " << sss[i] << " fwFlux: " << fwFlux[i] << " sFlux: " << sFlux[i]
-              << " mld: " << cpml[i] / Water::cp / Water::rhoOcean << std::endl;
-
     timer.stop();
 }
 
