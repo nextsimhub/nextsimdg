@@ -15,7 +15,7 @@
 
 namespace Nextsim {
 
-const FloatType SlabOcean::defaultRelaxationTime = 30 * 24 * 60 * 60; // 30 days in seconds
+const FloatType SlabOcean::defaultRelaxationTime = 30; // 30 days in seconds
 
 // Configuration strings
 static const std::string className = "SlabOcean";
@@ -64,10 +64,10 @@ SlabOcean::HelpMap& SlabOcean::getHelpText(HelpMap& map, bool getAll)
 {
     map[className] = {
         { keyMap.at(TIMET_KEY), ConfigType::NUMERIC, { "0", "∞" },
-            ConfigurationHelp::toString(defaultRelaxationTime), "s",
+            ConfigurationHelp::toString(defaultRelaxationTime), "days",
             "Relaxation time of the slab ocean to external temperature forcing." },
         { keyMap.at(TIMES_KEY), ConfigType::NUMERIC, { "0", "∞" },
-            ConfigurationHelp::toString(defaultRelaxationTime), "s",
+            ConfigurationHelp::toString(defaultRelaxationTime), "days",
             "Relaxation time of the slab ocean to external salinity forcing." },
     };
     return map;
@@ -107,8 +107,8 @@ void SlabOcean::update(const TimestepTime& tst)
     const auto& cpml = cpmlAccessor.getAutoRO(execSpace);
 
     const FloatType dt = tst.step.seconds();
-    const FloatType rRelaxationTimeT = 1. / relaxationTimeT;
-    const FloatType rRelaxationTimeS = 1. / relaxationTimeS;
+    const FloatType rRelaxationTimeT = 1 / (relaxationTimeT * 86400);
+    const FloatType rRelaxationTimeS = 1 / (relaxationTimeS * 86400);
 
     overElementsAuto(OVER_ELEMENTS_LAMBDA(const ElementIndex i) {
         // Slab SST update
@@ -129,6 +129,10 @@ void SlabOcean::update(const TimestepTime& tst)
         sssSlab[i] = (sss[i] * arealDensity - 1e3_ft * sFlux[i] * dt)
             / (arealDensity - (fwFlux[i] - fdw[i]) * dt);
     });
+    constexpr size_t i = 52619;
+    std::cout << "SSS: " << sss[i] << " fwFlux: " << fwFlux[i] << " sFlux: " << sFlux[i]
+              << " mld: " << cpml[i] / Water::cp / Water::rhoOcean << std::endl;
+
     timer.stop();
 }
 
