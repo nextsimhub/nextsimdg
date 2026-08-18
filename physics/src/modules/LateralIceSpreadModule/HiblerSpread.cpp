@@ -80,7 +80,7 @@ void HiblerSpread::update(const TimestepTime& tstep)
     static KokkosTimer<true> timer("HiblerSpread");
     timer.start();
 
-    constexpr auto execSpace = DefaultExecutionSpace();
+    const auto execSpace = DefaultExecutionSpace();
     auto& hSnow = hsnowAccessor.getAutoRW(execSpace);
     auto& qow = qowAccessor.getAutoRW(execSpace);
     auto& cIce = ciceAccessor.getAutoRW(execSpace);
