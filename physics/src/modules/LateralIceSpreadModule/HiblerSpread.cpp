@@ -87,6 +87,9 @@ void HiblerSpread::update(const TimestepTime& tstep)
     auto& newIce = newiceAccessor.getAutoRW(execSpace);
     auto& hIce = hiceAccessor.getAutoRW(execSpace);
     auto& deltaCIce = deltaCIceAccessor.getAutoRW(execSpace);
+    auto& deltaHice = deltaHiceAccessor.getAutoRW();
+    auto& deltaSmelt = deltaSmeltAccessor.getAutoRW();
+
     const auto& mixedLayerBulkHeatCapacity
         = mixedLayerBulkHeatCapacityAccessor.getAutoRO(execSpace);
     const auto& deltaHi = deltaHiAccessor.getAutoRO(execSpace);
@@ -119,9 +122,9 @@ void HiblerSpread::update(const TimestepTime& tstep)
             const FloatType latentFlux = coolingFlux - sensibleFlux;
 
             qow[i] = sensibleFlux;
-            newIce[i] = latentFlux * dt * (1._ft - cIce[i]) / (Ice::Lf * Ice::rho);
+            newIce[i] = latentFlux * dt * (1 - cIce[i]) / (Ice::Lf * Ice::rho);
         } else {
-            newIce[i] = 0._ft;
+            newIce[i] = 0;
         }
 
         // lateralIceSpread
@@ -145,10 +148,14 @@ void HiblerSpread::update(const TimestepTime& tstep)
         // applyLimits
         if (cIce[i] < cMin || hIce[i] < hMin) {
             qow[i] += Water::Lf * (hIce[i] * Ice::rho + hSnow[i] * Ice::rhoSnow) / dt;
-            hIce[i] = 0._ft;
-            cIce[i] = 0._ft;
-            hSnow[i] = 0._ft;
-            newIce[i] = 0._ft;
+            deltaCIce[i] = -cIce[i];
+            deltaHice[i] = -hIce[i];
+            deltaSmelt[i] = -hSnow[i];
+
+            hIce[i] = 0;
+            cIce[i] = 0;
+            hSnow[i] = 0;
+            newIce[i] = 0;
         }
     });
     timer.stop();
