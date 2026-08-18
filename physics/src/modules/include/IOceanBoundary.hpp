@@ -170,9 +170,7 @@ public:
 
             // Mass fluxes - fresh water and salt
             // ice volume change, both laterally and vertically
-            const FloatType deltaIceVol = newIce[i] + deltaHice[i] * cice[i];
-            // change in snow volume due to melting (should be < 0)
-            const FloatType meltSnowVol = deltaSmelt[i] * cice[i];
+            const FloatType deltaIceVol = newIce[i] + deltaHice[i];
             // the device compiler does not like a global constant appearing in the argument list of
             // a template function: "identifier "Ice::s" is undefined in device code"
             const FloatType s = Ice::s;
@@ -182,7 +180,8 @@ public:
 
             // Positive flux is up!
             fwFlux[i]
-                = ((1 - effectiveIceSal) * Ice::rho * deltaIceVol + Ice::rhoSnow * meltSnowVol) / dt
+                = ((1 - effectiveIceSal) * Ice::rho * deltaIceVol + Ice::rhoSnow * deltaSmelt[i])
+                    / dt
                 + (evap[i] - rain[i]) * (1 - cice[i]);
             sFlux[i] = effectiveIceSal * Ice::rho * deltaIceVol / dt;
 
