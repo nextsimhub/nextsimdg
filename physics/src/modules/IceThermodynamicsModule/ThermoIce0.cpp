@@ -69,18 +69,27 @@ void ThermoIce0::update(const TimestepTime& tsTime)
 
         // If there is too little ice, do nothing and zero out the computed arrays
         if (hice[i] <= hMin || cice[i] <= cMin) {
-            deltaHi[i] = 0.;
-            snowToIce[i] = 0.;
-            snowMelt[i] = 0.;
-            qswBase[i] = 0.;
+            if (cice[i] > 0) {
+                deltaHi[i] = hice[i] / cice[i];
+                botMelt[i] = topMelt[i] = 0.5 * deltaHi[i];
+                snowMelt[i] = hsnow[i] / cice[i];
+            } else {
+                deltaHi[i] = 0.;
+                botMelt[i] = topMelt[i] = 0.;
+                snowMelt[i] = 0.;
+            }
 
-            tsurf[i] = freezingPointIce;
+            snowToIce[i] = 0.;
+            qswBase[i] = 0.;
 
             // Add to open water flux, since cice will be set to zero
             qow[i] += (hice[i] * bulkLHFusionIce + hsnow[i] * bulkLHFusionSnow) / dt;
-            cice[i] = 0.;
-            hice[i] = 0.;
-            hsnow[i] = 0.;
+
+            cice[i] = 0;
+            hice[i] = 0;
+            hsnow[i] = 0;
+
+            tsurf[i] = freezingPointIce;
 
             return;
         }
