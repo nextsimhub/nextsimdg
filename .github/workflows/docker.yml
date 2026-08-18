@@ -33,9 +33,17 @@ concurrency:
 
 jobs:
 
-  # Build Docker container on latest Ubuntu OS
+  # Build Docker container on latest Ubuntu OS for both amd64 and arm64
   docker:
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - architecture: amd64
+            runner: ubuntu-latest
+          - architecture: arm64
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
     timeout-minutes: 120
     permissions:
       contents: read
