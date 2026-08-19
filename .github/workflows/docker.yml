@@ -39,9 +39,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - architecture: amd64
+          - architecture: x86_64_v3
             runner: ubuntu-latest
-          - architecture: arm64
+          - architecture: aarch64
             runner: ubuntu-24.04-arm
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 120
@@ -71,3 +71,5 @@ jobs:
           push: ${{ github.event_name == 'push' || github.event_name == 'schedule' }}
           file: Dockerfiles/Dockerfile.devenv
           tags: ghcr.io/nextsimhub/nextsimdg-dev-env:latest
+          build-args: |
+            TARGET=${{ matrix.architecture }}
