@@ -70,12 +70,6 @@ ENV LD_LIBRARY_PATH=/opt/views/view/lib
 # Unanswered prompts may lead to failures
 ENV DEBIAN_FRONTEND=noninteractive
 
-# We need to explicitly point ncgen to the view libraries
-# to resolve a problem of location of HDF5 libraries not being provided
-# in the executable's RPATH. See:
-# https://github.com/spack/spack/issues/52555
-ENV LD_LIBRARY_PATH=/opt/views/view/lib
-
 # Create entrypoint script
 RUN { \
       echo '#!/bin/sh'; \
