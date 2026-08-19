@@ -49,7 +49,7 @@ RUN cd /opt/spack-environment && \
     spack env activate --sh -d . > activate.sh
 
 # Bare OS image to run the installed executables
-FROM ubuntu:latest
+FROM ubuntu:noble
 
 # Copy necessary files from the builder stage
 COPY --from=builder /opt/spack-environment /opt/spack-environment
