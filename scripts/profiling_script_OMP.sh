@@ -13,12 +13,14 @@
 #SBATCH --mail-type=NONE
 
 
-# cd /home/${USER}/rds/rds-iccs-DKRMHAHoC3M/nvs31/nextsimdg/
-# source /home/${USER}/rds/rds-iccs-DKRMHAHoC3M/nvs31/nextsimdg/comp-env.sh
-# cd /home/${USER}/rds/rds-iccs-DKRMHAHoC3M/nvs31/domain_decomp
-# bash /home/${USER}/rds/rds-iccs-DKRMHAHoC3M/nvs31/domain_decomp/comp.sh
-# cd /home/${USER}/rds/rds-iccs-DKRMHAHoC3M/nvs31/nextsimdg/
-# bash /home/nvs31/rds/rds-iccs-DKRMHAHoC3M/nvs31/nextsimdg/comp-openmp.sh
+cd /home/${USER}/rds/rds-iccs-DKRMHAHoC3M/nvs31/nextsimdg/
+source /home/${USER}/rds/rds-iccs-DKRMHAHoC3M/nvs31/nextsimdg/comp-env.sh
+export LD_LIBRARY_PATH=/home/${USER}/spack/var/spack/environments/nextsimdg-scorep-gcc/.spack-env/view/lib:$LD_LIBRARY_PATH
+cd /home/${USER}/rds/rds-iccs-DKRMHAHoC3M/nvs31/domain_decomp
+bash /home/${USER}/rds/rds-iccs-DKRMHAHoC3M/nvs31/domain_decomp/comp.sh
+export PATH=$PATH:/home/${USER}/rds/rds-iccs-DKRMHAHoC3M/${USER}/domain_decomp/build
+cd /home/${USER}/rds/rds-iccs-DKRMHAHoC3M/nvs31/nextsimdg/
+bash /home/nvs31/rds/rds-iccs-DKRMHAHoC3M/nvs31/nextsimdg/comp-openmp.sh
 # module load armforge
 # module load papi/6.0.0.1/gcc/6o7wjeeo
 
