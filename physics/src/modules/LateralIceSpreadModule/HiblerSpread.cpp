@@ -68,8 +68,8 @@ KERNEL_IMPL_FUNCTION FloatType melt(
     /* We only decrease the concentration if the ice is melting, if the ice cover is not 100%, and
      * if there's ice there in the first place. */
     if (deltaHi < 0._ft && 0._ft < cice && cice < 1._ft) {
-        const FloatType hiOld = hice / cice - deltaHi;
-        return deltaHi * cice / (2._ft * hiOld);
+        const FloatType hiOld = (hice - deltaHi) / cice;
+        return deltaHi / (2._ft * hiOld);
     } else {
         return 0._ft;
     }
