@@ -176,7 +176,7 @@ public:
             const FloatType s = Ice::s;
             // Effective ice salinity is always less than or equal to the SSS, and here we use
             // the right units too
-            const FloatType effectiveIceSal = 1e-3 * Utils::min(s, sss[i]);
+            const FloatType effectiveIceSal = 1e-3_ft * Utils::min(s, sss[i]);
 
             // Positive flux is up!
             fwFlux[i]
