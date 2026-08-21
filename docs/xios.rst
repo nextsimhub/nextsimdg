@@ -11,7 +11,7 @@ widely used in the climate modelling community. While it is traditionally
 configured using user-provided XML files, nextSIM-DG configures it directly with
 API calls to reduce user requirements.
 
-.. _XIOS: https://forge.ipsl.fr/ioserver
+.. _XIOS: https://gitlab.in2p3.fr/ipsl/projets/xios-projects/xios
 
 The integration of XIOS into nextSIM-DG is built around a static ``Xios``
 handler class, which provides a C++ API for the various XIOS functions. When the
