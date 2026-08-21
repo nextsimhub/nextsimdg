@@ -15,7 +15,7 @@
 
 namespace Nextsim {
 
-const FloatType SlabOcean::defaultRelaxationTime = 30; // 30 days in seconds
+const FloatType SlabOcean::defaultRelaxationTime = 7; // Unit is days
 
 // Configuration strings
 static const std::string className = "SlabOcean";
