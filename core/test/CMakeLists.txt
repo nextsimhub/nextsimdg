@@ -30,8 +30,13 @@ if(ENABLE_MPI)
                 # In the MPI tests it's important to include the "-ns" flag which tells doctest to
                 # fail if test has been skipped. Without this, the test will technically pass if we
                 # run with fewer ranks than requested.
+                #
+                # With Intel-MPI the `mpirun` wrapper expects a path to the executable.
+                # It will not pick it up from the current working directory
+                # Hence we need to prepend the `test_exec` with `./`
+                #
                 add_test(NAME ${test_exec} COMMAND ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG}
-                                                   ${num_ranks} ${test_exec} -ns)
+                                                   ${num_ranks} ./${test_exec} -ns)
             else()
                 message(WARNING "Could not extract MPI rank from test name: ${test_exec}")
             endif()
