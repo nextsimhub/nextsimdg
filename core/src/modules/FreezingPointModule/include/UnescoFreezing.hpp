@@ -14,9 +14,9 @@ namespace Nextsim {
 
 //! The implementation class of the UNESCO model of the freezing point of
 // seawater.
-class UnescoFreezingImpl : public IFreezingPoint {
+class UnescoFreezingImpl {
 public:
-    std::string getName() const override { return "UnescoFreezing"; }
+    std::string getName() const { return "UnescoFreezing"; }
 
     /*!
      * @brief Calculates the freezing point of seawater.

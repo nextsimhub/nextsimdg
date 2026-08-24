@@ -45,17 +45,21 @@ public:
 
 //! Helper to generate implementations of IFreezingPoint based on just a scalar function calculate.
 // Base needs to inherit from IFreezingPoint and implement getName().
-template <typename Base> class FreezingPointImpl : public Base {
+template <typename Base> class FreezingPointImpl : public IFreezingPoint {
 public:
-    static_assert(
-        std::is_base_of_v<IFreezingPoint, Base>, "Base needs to inherit from IFreezingPoint");
+    std::string getName() const { return m_impl.getName(); }
 
-    FloatType operator()(FloatType sss) const override { return Base::calculate(sss); }
+    FloatType operator()(FloatType sss) const override { return m_impl.calculate(sss); }
     void update(ModelArrayAuto& tf, const ConstModelArrayAuto& sss) const override
     {
+        // we can't capture this directly because copying polymorphic objects between host and device is undefined behaviour
+        const Base& impl = m_impl;
         ModelComponent::overElementsAuto(
-            OVER_ELEMENTS_CLASS_LAMBDA(const ElementIndex i) { tf[i] = Base::calculate(sss[i]); });
+            OVER_ELEMENTS_LAMBDA(const ElementIndex i) { tf[i] = impl.calculate(sss[i]); });
     }
+
+private:
+    Base m_impl;
 };
 }
 #endif /* SRC_INCLUDE_IFREEZINGPOINT_HPP_ */

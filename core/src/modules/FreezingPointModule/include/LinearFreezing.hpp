@@ -1,6 +1,7 @@
 /*!
  *
  * @author  Tim Spain <timothy.spain@nersc.no>
+ * @author  Robert Jendersie <robert.jendersie@ovgu.de>
  */
 
 #ifndef LINEARFREEZING_HPP
@@ -12,9 +13,9 @@
 namespace Nextsim {
 
 //! The implementation class of the linear model of seawater freezing point.
-class LinearFreezingImpl : public IFreezingPoint {
+class LinearFreezingImpl {
 public:
-    std::string getName() const override { return "LinearFreezing"; }
+    std::string getName() const { return "LinearFreezing"; }
 
     /*!
      * @brief Calculates the freezing point of seawater.
