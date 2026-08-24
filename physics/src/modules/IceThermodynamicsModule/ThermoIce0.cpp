@@ -69,15 +69,9 @@ void ThermoIce0::update(const TimestepTime& tsTime)
 
         // If there is too little ice, do nothing and zero out the computed arrays
         if (hice[i] <= hMin || cice[i] <= cMin) {
-            if (cice[i] > 0) {
-                deltaHi[i] = -hice[i];
-                botMelt[i] = topMelt[i] = 0.5 * deltaHi[i];
-                snowMelt[i] = -hsnow[i];
-            } else {
-                deltaHi[i] = 0.;
-                botMelt[i] = topMelt[i] = 0.;
-                snowMelt[i] = 0.;
-            }
+            deltaHi[i] = -hice[i];
+            botMelt[i] = topMelt[i] = 0.5 * deltaHi[i];
+            snowMelt[i] = -hsnow[i];
 
             snowToIce[i] = 0.;
             qswBase[i] = 0.;

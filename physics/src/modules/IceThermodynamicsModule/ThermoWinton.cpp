@@ -243,15 +243,9 @@ void ThermoWinton::update(const TimestepTime& tst)
 
         // Take care of too thin (or no) ice
         if (cice[i] <= cMin || hice[i] <= hMin) {
-            if (cice[i] > 0) {
-                deltaHi[i] = -hice[i];
-                botMelt[i] = topMelt[i] = 0.5 * deltaHi[i];
-                snowMelt[i] = -hsnow[i];
-            } else {
-                deltaHi[i] = 0.;
-                botMelt[i] = topMelt[i] = 0.;
-                snowMelt[i] = 0.;
-            }
+            deltaHi[i] = -hice[i];
+            botMelt[i] = topMelt[i] = 0.5 * deltaHi[i];
+            snowMelt[i] = -hsnow[i];
 
             snowToIce[i] = 0.;
             qswBase[i] = 0.;
