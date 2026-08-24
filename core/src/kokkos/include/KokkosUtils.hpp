@@ -17,14 +17,19 @@ namespace Nextsim {
 
 using DeviceIndex = EIGEN_DEFAULT_DENSE_INDEX_TYPE;
 
+// Compile time condition for code that is different between GPU and CPU backends.
+// In an "if constexpr" context both branches still need to be valid code. If this is not the case,
+// use #ifdef GPU_ENABLED instead.
 template <typename ExecutionSpace> constexpr inline bool IS_GPU_EXEC_SPACE = false;
 
 #ifdef KOKKOS_ENABLE_CUDA
 template <> constexpr inline bool IS_GPU_EXEC_SPACE<Kokkos::Cuda> = true;
+#define GPU_ENABLED
 #endif
 
 #ifdef KOKKOS_ENABLE_HIP
 template <> constexpr inline bool IS_GPU_EXEC_SPACE<Kokkos::HIP> = true;
+#define GPU_ENABLED
 #endif
 
 // Land checks currently only improve performance on GPU. On CPU they lead to a slowdown so checks
@@ -108,19 +113,23 @@ template <typename EigenMat> auto makeKokkosHostView(EigenMat& mat)
 {
     // const_cast is necessary because Eigen only gives const access to the underlying pointer
     if constexpr (EigenMat::RowsAtCompileTime == 1 || EigenMat::ColsAtCompileTime == 1) {
-        return KokkosHostViewUnmanaged<EigenMat>(
-            const_cast<typename EigenMat::Scalar*>(mat.data()), mat.rows() * mat.cols());
+        return KokkosHostViewUnmanaged<EigenMat>(const_cast<typename EigenMat::Scalar*>(mat.data()),
+            static_cast<size_t>(mat.rows()) * static_cast<size_t>(mat.cols()));
+    } else {
+        return KokkosHostViewUnmanaged<EigenMat>(const_cast<typename EigenMat::Scalar*>(mat.data()),
+            static_cast<size_t>(mat.rows()), static_cast<size_t>(mat.cols()));
     }
-    return KokkosHostViewUnmanaged<EigenMat>(
-        const_cast<typename EigenMat::Scalar*>(mat.data()), mat.rows(), mat.cols());
 }
 // const overload
 template <typename EigenMat> auto makeKokkosHostView(const EigenMat& mat)
 {
     if constexpr (EigenMat::RowsAtCompileTime == 1 || EigenMat::ColsAtCompileTime == 1) {
-        return ConstKokkosHostViewUnmanaged<EigenMat>(mat.data(), mat.rows() * mat.cols());
+        return ConstKokkosHostViewUnmanaged<EigenMat>(
+            mat.data(), static_cast<size_t>(mat.rows()) * static_cast<size_t>(mat.cols()));
+    } else {
+        return ConstKokkosHostViewUnmanaged<EigenMat>(
+            mat.data(), static_cast<size_t>(mat.rows()), static_cast<size_t>(mat.cols()));
     }
-    return ConstKokkosHostViewUnmanaged<EigenMat>(mat.data(), mat.rows(), mat.cols());
 }
 
 /// Options for the creation of views based on existing data.
@@ -146,6 +155,7 @@ auto makeKokkosDeviceView(const std::string& name, EigenMat& mat)
 {
     constexpr bool IsHostOnly
         = std::is_same_v<typename KokkosDeviceView<EigenMat>::memory_space, Kokkos::HostSpace>;
+
     if constexpr (IsHostOnly && Opts != MakeViewOptions::ALWAYS_COPY) {
         return makeKokkosHostView(mat);
     } else {
@@ -153,11 +163,11 @@ auto makeKokkosDeviceView(const std::string& name, EigenMat& mat)
             // 1D matrix. Using a two arg constructor works in both cases but kokkos
             // complains when debugging is enabled.
             if constexpr (EigenMat::RowsAtCompileTime == 1 || EigenMat::ColsAtCompileTime == 1) {
-                return KokkosDeviceView<EigenMat>(
-                    Kokkos::ViewAllocateWithoutInitializing(name), mat.rows() * mat.cols());
+                return KokkosDeviceView<EigenMat>(Kokkos::ViewAllocateWithoutInitializing(name),
+                    static_cast<size_t>(mat.rows()) * static_cast<size_t>(mat.cols()));
             } else {
-                return KokkosDeviceView<EigenMat>(
-                    Kokkos::ViewAllocateWithoutInitializing(name), mat.rows(), mat.cols());
+                return KokkosDeviceView<EigenMat>(Kokkos::ViewAllocateWithoutInitializing(name),
+                    static_cast<size_t>(mat.rows()), static_cast<size_t>(mat.cols()));
             }
         }();
 
