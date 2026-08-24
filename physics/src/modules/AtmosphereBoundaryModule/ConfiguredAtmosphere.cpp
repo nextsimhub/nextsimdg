@@ -11,15 +11,15 @@
 
 namespace Nextsim {
 
-double ConfiguredAtmosphere::tair0 = 0; // Freezing
-double ConfiguredAtmosphere::tdew0 = 0; // Fog
-double ConfiguredAtmosphere::pair0 = 101325; // Mean pressure
-double ConfiguredAtmosphere::sw0 = 0; // Night
-double ConfiguredAtmosphere::lw0 = 315.637; // Stefan-Boltzmann at 0˚C
-double ConfiguredAtmosphere::snowfall0 = 0; // No snow
-double ConfiguredAtmosphere::rain0 = 0; // No rain
-double ConfiguredAtmosphere::uWind0 = 0; // Still
-double ConfiguredAtmosphere::vWind0 = 0; // Still
+FloatType ConfiguredAtmosphere::tair0 = 0; // Freezing
+FloatType ConfiguredAtmosphere::tdew0 = 0; // Fog
+FloatType ConfiguredAtmosphere::pair0 = 101325; // Mean pressure
+FloatType ConfiguredAtmosphere::sw0 = 0; // Night
+FloatType ConfiguredAtmosphere::lw0 = 315.637; // Stefan-Boltzmann at 0˚C
+FloatType ConfiguredAtmosphere::snowfall0 = 0; // No snow
+FloatType ConfiguredAtmosphere::rain0 = 0; // No rain
+FloatType ConfiguredAtmosphere::uWind0 = 0; // Still
+FloatType ConfiguredAtmosphere::vWind0 = 0; // Still
 
 static const std::string pfx = "ConfiguredAtmosphere";
 static const std::string tKey = pfx + ".t_air";
@@ -45,14 +45,14 @@ const static std::map<int, std::string> keyMap = {
 };
 
 ConfiguredAtmosphere::ConfiguredAtmosphere()
-    : fluxImpl(0)
+    : tairAccessor(getStore(), RO, ModelArray::Type::H)
+    , tdewAccessor(getStore(), RO, ModelArray::Type::H)
+    , pairAccessor(getStore(), RO, ModelArray::Type::H)
+    , sw_inAccessor(getStore(), RO, ModelArray::Type::H)
+    , lw_inAccessor(getStore(), RO, ModelArray::Type::H)
+    , windAccessor(getStore(), RO, ModelArray::Type::H)
+    , fluxImpl(nullptr)
 {
-    getStore().registerArray(Protected::T_AIR, &tair, RO);
-    getStore().registerArray(Protected::DEW_2M, &tdew, RO);
-    getStore().registerArray(Protected::P_AIR, &pair, RO);
-    getStore().registerArray(Protected::SW_IN, &sw_in, RO);
-    getStore().registerArray(Protected::LW_IN, &lw_in, RO);
-    getStore().registerArray(Protected::WIND_SPEED, &wind, RO);
 }
 
 ConfigurationHelp::HelpMap& ConfiguredAtmosphere::getHelpRecursive(HelpMap& map, bool getAll)
@@ -118,24 +118,30 @@ void ConfiguredAtmosphere::setData(const ModelState::DataMap& dm)
 {
 
     IAtmosphereBoundary::setData(dm);
-    tair.resize();
-    tdew.resize();
-    pair.resize();
-    sw_in.resize();
-    lw_in.resize();
-    wind.resize();
+    HField& tair = tairAccessor.getHostRW();
+    tair.reinitialize();
+    HField& tdew = tdewAccessor.getHostRW();
+    tdew.reinitialize();
+    HField& pair = pairAccessor.getHostRW();
+    pair.reinitialize();
+    HField& sw_in = sw_inAccessor.getHostRW();
+    sw_in.reinitialize();
+    HField& lw_in = lw_inAccessor.getHostRW();
+    lw_in.reinitialize();
+    HField& wind = windAccessor.getHostRW();
+    wind.reinitialize();
 
     tair = tair0;
     tdew = tdew0;
     pair = pair0;
     sw_in = sw0;
     lw_in = lw0;
-    snow = snowfall0;
-    rain = rain0;
+    snowAccessor.getHostRW() = snowfall0;
+    rainAccessor.getHostRW() = rain0;
     wind = std::hypot(uWind0, vWind0);
 
-    uwind = uWind0;
-    vwind = vWind0;
+    uwindAccessor.getHostRW() = uWind0;
+    vwindAccessor.getHostRW() = vWind0;
 
     fluxImpl->setData(dm);
 }

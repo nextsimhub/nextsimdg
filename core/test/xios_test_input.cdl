@@ -54,6 +54,9 @@ variables:
 	float mask(y_dim, x_dim) ;
 		mask:online_operation = "once" ;
 		mask:coordinates = "lat lon" ;
+	float sss(y_dim, x_dim) ;
+		sss:online_operation = "once" ;
+		sss:coordinates = "lat lon" ;
   // DGField variables
   float cice(y_dim, x_dim, dg_comp) ;
 		cice:online_operation = "once" ;
@@ -61,9 +64,6 @@ variables:
   float hice(y_dim, x_dim, dg_comp) ;
 		hice:online_operation = "once" ;
 		hice:coordinates = "lat lon dg_comp" ;
-  float damage(y_dim, x_dim, dg_comp) ;
-		damage:online_operation = "once" ;
-		damage:coordinates = "lat lon dg_comp" ;
   float hsnow(y_dim, x_dim, dg_comp) ;
 		hsnow:online_operation = "once" ;
 		hsnow:coordinates = "lat lon dg_comp" ;
@@ -76,9 +76,9 @@ variables:
 		tice:online_operation = "once" ;
 		tice:coordinates = "lat lon dgstress_comp" ;
   // CGField variables
-	float u(y_cg, x_cg) ;
-		u:online_operation = "once" ;
-		u:coordinates = "lat lon" ;
+	float shear(y_cg, x_cg) ;
+		shear:online_operation = "once" ;
+		shear:coordinates = "lat lon" ;
 
 // global attributes:
 		:structure_name = "parametric_rectangular" ;
@@ -107,6 +107,10 @@ data:
   0, 1, 0, 1,
   1, 1, 1, 1 ;
 
+ sss =
+  _, _, _, _,
+  _, _, _, _ ;
+
  // DGField variables
 
  cice =
@@ -120,16 +124,6 @@ data:
   18, 19, 20, 21, 22, 23 ;
 
  hice =
-  NaN, 1, NaN, 3, NaN, 5,
-  NaN, 7, NaN, 9, NaN, 11,
-  NaN, 1, NaN, 3, NaN, 5,
-  NaN, 7, NaN, 9, NaN, 11,
-  12, 13, 14, 15, 16, 17,
-  18, 19, 20, 21, 22, 23,
-  12, 13, 14, 15, 16, 17,
-  18, 19, 20, 21, 22, 23 ;
-
- damage =
   NaN, 1, NaN, 3, NaN, 5,
   NaN, 7, NaN, 9, NaN, 11,
   NaN, 1, NaN, 3, NaN, 5,
@@ -182,7 +176,7 @@ data:
 
  // CGField variables
 
- u =
+ shear =
   NaN, NaN, 3, 4, 5, NaN, 7, 8, 9,
   NaN, NaN, 6, 8, 10, NaN, 14, 16, 18,
   3, 6, 9, 12, 15, 18, 21, 24, 27,

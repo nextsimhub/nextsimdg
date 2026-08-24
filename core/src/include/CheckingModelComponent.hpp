@@ -9,6 +9,7 @@
 #define CHECKINGMODELCOMPONENT_HPP
 
 #include "include/ConfigurationHelp.hpp"
+#include "include/ModelArrayAccessor.hpp"
 #include "include/ModelComponent.hpp"
 
 namespace Nextsim {
@@ -31,7 +32,7 @@ protected:
         for (const auto& field : fieldsToCheck) {
 
             try {
-                field.arrayRef->checkLimits(oceanMask());
+                field.arrayRef.getHostRO().checkLimits(oceanMask());
             } catch (const std::exception& e) {
                 throw std::runtime_error("Check failed for '" + field.name + "': " + e.what());
             }
@@ -41,10 +42,10 @@ protected:
      * @brief Add all the fields listed to the vector fieldsToCheck so they will be checked by
      * checkFields()
      *
-     * @param fieldsToAdd An std::map of string-s and ModelArrayReference-s with field names and
+     * @param fieldsToAdd An std::map of string-s and ModelArrayAccessors-s with field names and
      * references to check.
      */
-    void addChecks(const std::map<const std::string, const ModelArray*>& fieldsToAdd)
+    void addChecks(const std::map<const std::string, ModelArrayAccessorBase<RO>>& fieldsToAdd)
     {
         for (const auto& field : fieldsToAdd)
             fieldsToCheck.emplace_back(field.first, field.second);
@@ -63,19 +64,19 @@ protected:
     }
 
 private:
-    class fieldInfo {
+    class FieldInfo {
     public:
-        fieldInfo(std::string n, const ModelArray* a)
+        FieldInfo(std::string n, const ModelArrayAccessorBase<RO>& a)
             : name(std::move(n))
             , arrayRef(a)
         {
         }
 
         const std::string name;
-        const ModelArray* arrayRef;
+        ModelArrayAccessorBase<RO> arrayRef;
     };
 
-    std::vector<fieldInfo> fieldsToCheck {};
+    std::vector<FieldInfo> fieldsToCheck {};
 };
 
 } /* namespace Nextsim */

@@ -32,8 +32,7 @@ public:
     void update(const TimestepTime& tstep) override;
 
 private:
-    static double tD;
-    void updateElement(size_t i, const TimestepTime& tstep);
+    static FloatType tD;
 };
 
 }

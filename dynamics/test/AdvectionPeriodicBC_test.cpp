@@ -16,6 +16,7 @@
 #include <iostream>
 
 using namespace doctest;
+using namespace Nextsim;
 
 /*!
  * Advection test case on a ring:
@@ -31,8 +32,8 @@ using namespace doctest;
  */
 
 namespace ProblemConfig {
-double R0 = 100000.0;
-double R1 = 250000.0;
+FloatType R0 = 100000.0;
+FloatType R1 = 250000.0;
 
 const size_t Nx0 = 32;
 const size_t Ny0 = 4;
@@ -45,7 +46,8 @@ size_t NT = NT0;
 
 bool WRITE_VTK = false; //!< set to true for vtk output
 
-double TOL = 1.e-7; //!< tolerance for checking test results
+// tolerance for checking test results
+FloatType TOL = std::is_same_v<FloatType, float> ? 1e-5 : 1.e-7;
 
 /*!
  *  Description of the test case
@@ -69,11 +71,11 @@ double TOL = 1.e-7; //!< tolerance for checking test results
 class Packman : public Nextsim::Interpolations::Function {
 
 public:
-    double operator()(double x, double y) const
+    FloatType operator()(FloatType x, FloatType y) const
     {
         //      return 1;
 
-        double r = (pow((x + 175000.0) / 50000, 2.0) + pow((y) / 50000.0, 2.0));
+        FloatType r = (pow((x + 175000.0) / 50000, 2.0) + pow((y) / 50000.0, 2.0));
         if (r < 1.0)
             return exp(1.0) * exp(-1.0 / (1.0 - r));
 
@@ -103,11 +105,17 @@ public:
 class InitialVX : public Nextsim::Interpolations::Function { // (0.5,0.2) m/s
 
 public:
-    double operator()(double x, double y) const { return y * 2.0 * M_PI / ProblemConfig::R1; }
+    FloatType operator()(FloatType x, FloatType y) const
+    {
+        return y * 2.0_ft * M_PI / ProblemConfig::R1;
+    }
 };
 class InitialVY : public Nextsim::Interpolations::Function {
 public:
-    double operator()(double x, double y) const { return -x * 2.0 * M_PI / ProblemConfig::R1; }
+    FloatType operator()(FloatType x, FloatType y) const
+    {
+        return -x * 2.0_ft * M_PI / ProblemConfig::R1;
+    }
 };
 
 //////////////////////////////////////////////////
@@ -118,7 +126,7 @@ template <int DG> class Test {
 
     size_t N; //!< size of mesh N x N
 
-    double dt; //!< time step size
+    FloatType dt; //!< time step size
 
     //! Velocity vectors and density
     Nextsim::DGVector<DG> phi;
@@ -154,7 +162,7 @@ public:
         phi.resize_by_mesh(smesh);
     }
 
-    double run()
+    FloatType run()
     {
 
         // init the test case, in particular resize vectors
@@ -165,7 +173,7 @@ public:
         Nextsim::LimitMax(phi, 1.0);
         //	Nextsim::LimitMin(phi, 0.0);
 
-        double initialmass = Nextsim::Tools::MeanValue(smesh, phi);
+        FloatType initialmass = Nextsim::Tools::MeanValue(smesh, phi);
         // velocity field
         Nextsim::DGVector<DG> vx;
         Nextsim::DGVector<DG> vy;
@@ -225,9 +233,9 @@ void create_rectanglemesh(Nextsim::ParametricMesh& smesh)
     size_t ii = 0;
     for (size_t iy = 0; iy <= ProblemConfig::Ny; ++iy)
         for (size_t ix = 0; ix <= ProblemConfig::Nx; ++ix, ++ii) {
-            double r = ProblemConfig::R0
+            FloatType r = ProblemConfig::R0
                 + (ProblemConfig::R1 - ProblemConfig::R0) * iy / ProblemConfig::Ny;
-            double p = -2.0 * M_PI * ix / ProblemConfig::Nx;
+            FloatType p = -2.0_ft * M_PI * ix / ProblemConfig::Nx;
             smesh.vertices(ii, 0) = r * cos(p);
             smesh.vertices(ii, 1) = r * sin(p);
         }
@@ -254,7 +262,7 @@ void create_rectanglemesh(Nextsim::ParametricMesh& smesh)
     }
 }
 
-template <int DG> void run(const std::array<std::array<double, 6>, 3>& exact)
+template <int DG> void run(const std::array<std::array<FloatType, 6>, 3>& exact)
 {
     Nextsim::ParametricMesh smesh(Nextsim::CARTESIAN);
 
@@ -269,7 +277,7 @@ template <int DG> void run(const std::array<std::array<double, 6>, 3>& exact)
         create_rectanglemesh(smesh);
 
         Test<DG> test(smesh);
-        double error = test.run();
+        FloatType error = test.run();
         std::cout << error << "\t" << exact[DG2DEG(DG)][it] << std::endl;
         CHECK(error == Approx(exact[DG2DEG(DG)][it]).epsilon(TOL));
     }
@@ -280,14 +288,14 @@ TEST_CASE("Advection Periodic Boundary Conditions")
 {
     // New values 07/04/25 due to new way of handling boundaries. We now include a land-layer
     // at the top and bottom. The slightly changed domain leads to changed values
-    std::array<std::array<double, 6>, 3> exact = // Exact values taken 26/06/2024
-        { std::array<double, 6>(
+    std::array<std::array<FloatType, 6>, 3> exact = // Exact values taken 26/06/2024
+        { std::array<FloatType, 6>(
               { 1.0338503986019776e+00, 1.1451366598186583e+00, 1.0681593193338459e+00,
                   9.5252231195653614e-01, 8.1458581892610615e-01, 6.8950068528265651e-01 }),
-            std::array<double, 6>(
+            std::array<FloatType, 6>(
                 { 8.7678853597311990e-01, 8.2389349440313742e-01, 5.8562737114004948e-01,
                     4.0006113872450388e-01, 2.8493698219799091e-01, 2.0801424342840488e-01 }),
-            std::array<double, 6>(
+            std::array<FloatType, 6>(
                 { 6.0231338733029061e-01, 4.6967937778236674e-01, 3.2769774426726950e-01,
                     2.3427321065537998e-01, 1.7038111756667601e-01, 1.2487338791917807e-01 }) };
 

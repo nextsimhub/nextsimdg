@@ -2,17 +2,21 @@ cmake_minimum_required(VERSION 3.12)
 
 # set globally because we have a number of independent targets
 set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 project(nextsim_dg)
 
 # user definable build options
 option(WITH_THREADS "Build with support for openmp" OFF)
+option(WITH_KOKKOS "Build the Kokkos accelerated dynamical core" OFF)
 option(ENABLE_MPI "Enable distributed-memory parallelization with MPI" OFF)
 option(ENABLE_XIOS "Enable XIOS library for IO" OFF)
 option(BUILD_TESTS "Build the tests" ON)
 set(DynamicsType
     "DG2"
     CACHE STRING "Set the discretization order for the dynamics, either DG1 or DG2")
+option(USE_SINGLE_PRECISION "Use float instead of double everywhere" OFF)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
@@ -52,7 +56,11 @@ if(BUILD_TESTS)
 endif()
 
 # Eigen
-find_package(Eigen3 3.4 REQUIRED)
+find_package(Eigen3 3.4) # Try to find Eigen 3.4
+if(NOT TARGET Eigen3::Eigen)
+    # If Eigen 3.4 was not found, require any Eigen version after 3.4.1 and before 6
+    find_package(Eigen3 3.4...5 REQUIRED NO_MODULE)
+endif()
 target_link_libraries(nextsimlib PUBLIC Eigen3::Eigen)
 
 if(DEFINED PYTHON_EXECUTABLE)
@@ -112,6 +120,31 @@ endif()
 target_compile_definitions(nextsimlib PRIVATE DGCOMP=${DGComp} DGSTRESSCOMP=${DGStressComp}
                                               CGDEGREE=${CGDegree})
 
+if(USE_SINGLE_PRECISION)
+    if(ENABLE_MPI)
+        message(SEND_ERROR "Trying to use both MPI and single precision together, which is \
+            currently not supported. Disable either ENABLE_MPI or USE_SINGLE_PRECISION.")
+    endif()
+    if(ENABLE_XIOS)
+        message(SEND_ERROR "Trying to use both XIOS and single precision together, which is \
+        currently not supported. Disable either ENABLE_XIOS or USE_SINGLE_PRECISION.")
+    endif()
+    if (NOT WITH_KOKKOS)
+        message(WARNING "Single precision has only been tested with the Kokkos implementations.")
+    endif()
+
+    # EIGEN_FAST_MATH enables an alternative sqrt implementation when used with float.
+    # This has not been sufficiently tested and may currently cause issues in the dynamics.
+    target_compile_definitions(nextsimlib PRIVATE EIGEN_FAST_MATH=0)
+
+    set(FloatType "float")
+else()
+    set(FloatType "double")
+endif()
+# set the floating point type
+target_compile_definitions(nextsimlib PUBLIC "NEXTSIM_FLOAT_TYPE=${FloatType}")
+message("FP type is set to ${FloatType}")
+
 # boost
 find_package(
     Boost
@@ -147,7 +180,7 @@ if(ENABLE_XIOS)
                 ${xios_EXTERNS}/rapidxml/include
     )
     if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-        set(FORTRAN_RUNTIME_LIB "-lgfortran")
+        set(FORTRAN_RUNTIME_LIB "-lgfortran -lmpi_mpifh")
     elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
         set(FORTRAN_RUNTIME_LIB "-lifcore")
     endif()
@@ -158,6 +191,64 @@ endif()
 if(WITH_THREADS)
     find_package(OpenMP REQUIRED)
     target_link_libraries(nextsimlib PUBLIC OpenMP::OpenMP_CXX)
+endif()
+
+# Kokkos
+if(WITH_KOKKOS)
+    if(ENABLE_MPI)
+        message(SEND_ERROR "Trying to use both MPI and Kokkos which is currently not supported. \
+                Disable either ENABLE_MPI or WITH_KOKKOS.")
+    endif()
+    # If nextsimlib is a shared library than kokkos need to be build with position independent code.
+    get_target_property(target_type nextsimlib TYPE)
+    if(${target_type} STREQUAL "SHARED_LIBRARY")
+        # target specific property is difficult here set_target_properties(kokkos PROPERTIES
+        # POSITION_INDEPENDENT_CODE ON)
+        set(CMAKE_POSITION_INDEPENDENT_CODE True)
+    endif()
+
+    find_package(Kokkos 4.3 QUIET CONFIG)
+    if(Kokkos_FOUND)
+        message(STATUS "Found Kokkos: ${Kokkos_DIR} (version \"${Kokkos_VERSION}\")")
+    else()
+        message("No kokkos installation found. Looking for local version in \"lib/\".")
+        add_subdirectory("lib/kokkos")
+    endif()
+
+    target_link_libraries(nextsimlib PUBLIC Kokkos::kokkos)
+    # define to use for conditional code inclusion
+    target_compile_definitions(nextsimlib PUBLIC USE_KOKKOS)
+
+    if(Kokkos_ENABLE_CUDA OR Kokkos_ENABLE_ROCM)
+        # Eigen's intrinsic based implementations are not valid on GPU
+        target_compile_definitions(nextsimlib PRIVATE "EIGEN_DONT_VECTORIZE")
+        # 64 bit ints are only emulated so it is better to use a smaller type
+        target_compile_definitions(nextsimlib PUBLIC EIGEN_DEFAULT_DENSE_INDEX_TYPE=int)
+    endif()
+    if(Kokkos_ENABLE_CUDA)
+        if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+            message("Clang is currently not supported with CUDA.")
+        else()
+            # Disable warning caused by Eigen: "calling a __host__ function from a __host__
+            # __device__ function is not allowed" It is not sufficient to disable this for just CUDA
+            # code, i.e. with the generator expression: $<$<COMPILE_LANGUAGE:CUDA>:-Xcudafe
+            # --diag_suppress=20014> "#68-D: integer conversion resulted in a change of sign" This
+            # warning is also caused by CPU code (e.g. Slice.hpp) and should be fixed at some point.
+            # "#611-D: overloaded virtual function "[...]" is only partially overridden in class
+            # "[...]" Caused by child classes of ModelComponent.
+            target_compile_options(
+                nextsimlib
+                PUBLIC "SHELL:-Xcudafe --diag_suppress=20014" "SHELL:-Xcudafe --diag_suppress=68"
+                       "SHELL:-Xcudafe --diag_suppress=611")
+        endif()
+    endif()
+    # stdandard is not set correctly for amdclang based on just the target property does not matter
+    # for versions >=17 because c++17 is the default
+    if(Kokkos_ENABLE_ROCM AND CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+        target_compile_options(nextsimlib PUBLIC -std=c++17)
+    endif()
+    # reset to use defaults again
+    unset(CMAKE_POSITION_INDEPENDENT_CODE)
 endif()
 
 # Set an empty list of sources

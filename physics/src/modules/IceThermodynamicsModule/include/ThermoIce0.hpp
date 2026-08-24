@@ -8,7 +8,7 @@
 
 #include "include/Configured.hpp"
 #include "include/IIceThermodynamics.hpp"
-#include "include/ModelArrayRef.hpp"
+
 namespace Nextsim {
 
 //! A class implementing IIceThermodynamics as the ThermoIce0 model.
@@ -33,15 +33,21 @@ public:
     void update(const TimestepTime& tsTime) override;
 
 private:
-    void calculateElement(size_t i, const TimestepTime& tst);
+    // local namespace to prevent conflicts with other thermodynamics implementations
+    struct Private {
+        static inline constexpr TextTag T_SNOW_MELT = "T_SNOW_MELT";
+        static inline constexpr TextTag T_TOP_MELT = "T_TOP_MELT";
+        static inline constexpr TextTag T_BOT_MELT = "T_BOT_MELT";
+    };
+    // private owned
+    ModelArrayAccessor<Private::T_SNOW_MELT, RW> snowMeltAccessor;
+    ModelArrayAccessor<Private::T_TOP_MELT, RW> topMeltAccessor;
+    ModelArrayAccessor<Private::T_BOT_MELT, RW> botMeltAccessor;
 
-    HField snowMelt;
-    HField topMelt;
-    HField botMelt;
-    HField qic;
+    ModelArrayAccessor<Shared::Q_IC, RW> qicAccessor;
 
-    static const double freezingPointIce;
-    static double kappa_s;
+    static const FloatType freezingPointIce;
+    static FloatType kappa_s;
 
     bool doFlooding = true; // TODO: read from configuration
 };

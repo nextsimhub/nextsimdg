@@ -51,8 +51,8 @@ You must have root privilege :
 .. code::
 
         sudo apt-get update
-        sudo apt-get install netcdf-bin libnetcdf-c++4-dev libboost-all-dev cmake subversion libeigen3-dev
-        svn checkout http://forge.ipsl.fr/ioserver/svn/XIOS3/trunk xios
+        sudo apt-get install netcdf-bin libnetcdf-c++4-dev libboost-all-dev cmake git libeigen3-dev
+        git clone --branch xios-3.0.6.0 https://gitlab.in2p3.fr/ipsl/projets/xios-projects/xios.git xios
         cd xios
         ./make_xios --arch <your_architecture> --job <number_of_jobs>
 
@@ -198,6 +198,33 @@ You might need to tell cmake which compiler to use, e.g.
 .. code::
 
         cmake .. -DCMAKE_CXX_COMPILER=/usr/bin/mpicxx -DENABLE_MPI=ON
+
+Dependencies and Build for GPU
+----------------------------------------------
+The GPU version of nextSIM-DG uses `Kokkos <https://github.com/kokkos/kokkos>`_ to support different devices. In principle, every target that Kokkos supports should work for nextSIM-DG as well. However, development and testing is mostly done with the CUDA backend, so expect more friction when targeting non NVIDIA GPUs. The library can be acquired through a package manager, e.g.
+
+ .. code::
+
+        sudo apt-get install kokkos
+
+In case that no suitable version of Kokkos is available on the system, a `copy <https://github.com/kokkos/kokkos/releases>`_ of the library can be placed in ``lib/kokkos``.
+To build with GPU support, it is necessary to enable both the feature itself and an appropriate `kokkos backend <https://kokkos.org/kokkos-core-wiki/get-started/configuration-guide.html>`_:
+
+.. code::
+
+        cmake .. -DWITH_KOKKOS=ON -DKokkos_ENABLE_CUDA=ON -DWITH_THREADS=ON
+ 
+While it is currently not possible to use Kokkos and MPI together, OpenMP (``WITH_THREADS``) can be enabled to run modules that have not been ported to the device in parallel on the CPU. The OpenMP backend of Kokkos can be enabled as well, however it will only be used if no device backend is enabled. Same as the device backends, it should be used in concert with the basic OpenMP parallelisation and may have different performance characteristics then ``WITH_THREADS=ON`` alone.
+
+Single Precision
+^^^^^^^^^^^^^^^^
+With Kokkos, there is experimental support for single precision, which is controlled by the option
+
+.. code::
+
+        cmake .. -DUSE_SINGLE_PRECISION=ON
+
+When switched on all data and computations use ``float`` instead of ``double``, cutting the memory footprint in half and providing a significant speedup, especially on consumer grade GPUs. This option currently does not work with XIOS or MPI.
 
 Using Dockerfiles for Development or Production Runs
 ----------------------------------------------------

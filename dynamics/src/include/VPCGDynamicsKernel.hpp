@@ -13,6 +13,7 @@
 #include "StressUpdateStep.hpp"
 #include "VPParameters.hpp"
 #include "include/constants.hpp"
+#include "kokkos/include/KokkosTimer.hpp"
 
 namespace Nextsim {
 
@@ -63,16 +64,24 @@ public:
 
     void update(const TimestepTime& tst) override
     {
-        advectDynamicsFields(tst.step.seconds());
+        static KokkosTimer<true> timerMevp("mevp");
+        static KokkosTimer<true> timerAdvection("advection");
+        static KokkosTimer<true> timerPrepIt("prepIt");
 
+        timerAdvection.start();
+        advectDynamicsFields(tst.step.seconds());
+        timerAdvection.stop();
+
+        timerPrepIt.start();
         prepareIteration({ { hiceName, hice }, { ciceName, cice } });
 
         u0 = u;
         v0 = v;
+        timerPrepIt.stop();
 
+        timerMevp.start();
         // The critical timestep for the VP solver is the advection timestep
         deltaT = tst.step.seconds();
-
         for (size_t mevpstep = 0; mevpstep < params.nSteps; ++mevpstep) {
 
             projectVelocityToStrain();
@@ -89,6 +98,7 @@ public:
 
             applyBoundaries();
         }
+        timerMevp.stop();
 
         updateIceOceanStress(u, v);
 
@@ -99,8 +109,8 @@ public:
 protected:
     StressUpdateStep<DGadvection, DGstressComp>& stressStep;
     const VPParameters& params;
-    const double alpha = 1500.;
-    const double beta = 1500.;
+    const FloatType alpha = 1500.;
+    const FloatType beta = 1500.;
 
     // Step-initial ice velocity
     CGVector<CGdegree> u0;
@@ -110,8 +120,8 @@ protected:
     {
         // Update the velocity
 
-        const double FOcean = params.COcean * params.rhoOcean;
-        const double FAtm = params.CAtm * params.rhoAtm;
+        const FloatType FOcean = params.COcean * params.rhoOcean;
+        const FloatType FAtm = params.CAtm * params.rhoAtm;
 
         //      update by a loop.. implicit parts and h-dependent
 #pragma omp parallel for
@@ -120,8 +130,8 @@ protected:
                 continue;
             auto uOcnRel = u(i) - uOcean(i);
             auto vOcnRel = v(i) - vOcean(i);
-            double absatm = sqrt(SQR(uAtmos(i)) + SQR(vAtmos(i)));
-            double absocn = sqrt(
+            FloatType absatm = sqrt(SQR(uAtmos(i)) + SQR(vAtmos(i)));
+            FloatType absocn = sqrt(
                 SQR(uOcnRel) + SQR(vOcnRel)); // note that the sign of uOcnRel is irrelevant here
             auto uPrev = u(i);
 

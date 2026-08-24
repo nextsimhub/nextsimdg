@@ -10,7 +10,6 @@
 #include "include/IFluxCalculation.hpp"
 #include "include/IIceAlbedo.hpp"
 #include "include/IIceOceanHeatFlux.hpp"
-#include "include/ModelArrayRef.hpp"
 #include "include/ModelComponent.hpp"
 
 namespace Nextsim {
@@ -20,32 +19,34 @@ class FiniteElementFluxes : public IFluxCalculation, public Configured<FiniteEle
 public:
     FiniteElementFluxes()
         : iIceAlbedoImpl(nullptr)
-        , Q_lh_ow(ModelArray::Type::H)
-        , Q_sh_ow(ModelArray::Type::H)
-        , Q_lw_ow(ModelArray::Type::H)
-        , Q_lh_ia(ModelArray::Type::H)
-        , Q_sh_ia(ModelArray::Type::H)
-        , Q_sw_ia(ModelArray::Type::H)
-        , Q_lw_ia(ModelArray::Type::H)
-        , rho_air(ModelArray::Type::H)
-        , cp_air(ModelArray::Type::H)
-        , sh_air(ModelArray::Type::H)
-        , sh_water(ModelArray::Type::H)
-        , sh_ice(ModelArray::Type::H)
-        , dshice_dT(ModelArray::Type::H)
-        , sst(getStore())
-        , sss(getStore())
-        , t_air(getStore())
-        , t_dew2(getStore())
-        , p_air(getStore())
-        , windSpeed(getStore())
-        , u_air(getStore())
-        , v_air(getStore())
-        , hsnow(getStore())
-        , cice(getStore())
-        , tsurf(getStore())
-        , sw_in(getStore())
-        , lw_in(getStore())
+        , Q_lh_owAccessor(getStore(), RO, ModelArray::Type::H)
+        , Q_sh_owAccessor(getStore(), RO, ModelArray::Type::H)
+        , Q_lw_owAccessor(getStore(), RO, ModelArray::Type::H)
+        , Q_lh_iaAccessor(getStore(), RO, ModelArray::Type::H)
+        , Q_sh_iaAccessor(getStore(), RO, ModelArray::Type::H)
+        , Q_sw_iaAccessor(getStore(), RO, ModelArray::Type::H)
+        , Q_lw_iaAccessor(getStore(), RO, ModelArray::Type::H)
+        , rho_airAccessor(getStore(), RO, ModelArray::Type::H)
+        , cp_airAccessor(getStore(), RO, ModelArray::Type::H)
+        , sh_airAccessor(getStore(), RO, ModelArray::Type::H)
+        , sh_waterAccessor(getStore(), RO, ModelArray::Type::H)
+        , sh_iceAccessor(getStore(), RO, ModelArray::Type::H)
+        , dshice_dTAccessor(getStore(), RO, ModelArray::Type::H)
+        , sstAccessor(getStore())
+        , sssAccessor(getStore())
+        , t_airAccessor(getStore())
+        , t_dew2Accessor(getStore())
+        , p_airAccessor(getStore())
+        , windSpeedAccessor(getStore())
+        , u_airAccessor(getStore())
+        , v_airAccessor(getStore())
+        , hsnowAccessor(getStore())
+        , ciceAccessor(getStore())
+        , tsurfAccessor(getStore())
+        , sw_inAccessor(getStore())
+        , lw_inAccessor(getStore())
+        , iceAlbedoAccessor(getStore())
+        , icePenSWAccessor(getStore())
     {
     }
     ~FiniteElementFluxes() = default;
@@ -81,52 +82,67 @@ public:
     void updateAtmosphere(const TimestepTime& tst);
 
 private:
+    // local namespace to prevent conflicts with other implementations
+    struct Private {
+        static inline constexpr TextTag Q_LH_OW = "Q_LH_OW";
+        static inline constexpr TextTag Q_SH_OW = "Q_SH_OW";
+        static inline constexpr TextTag Q_LW_OW = "Q_LW_OW";
+        static inline constexpr TextTag Q_LH_IA = "Q_LH_IA";
+        static inline constexpr TextTag Q_SH_IA = "Q_SH_IA";
+        static inline constexpr TextTag Q_SW_IA = "Q_SW_IA";
+        static inline constexpr TextTag Q_LW_IA = "Q_LW_IA";
+        static inline constexpr TextTag RHO_AIR = "RHO_AIR";
+        static inline constexpr TextTag CP_AIR = "CP_AIR";
+        static inline constexpr TextTag SH_AIR = "SH_AIR";
+        static inline constexpr TextTag SH_WATER = "SH_WATER";
+        static inline constexpr TextTag SH_ICE = "SH_ICE";
+        static inline constexpr TextTag DSHICE_DT = "DSHICE_DT";
+    };
     // Owned diagnostic fields
-    HField Q_lh_ow; // Open water latent heat flux [W m⁻²]
-    HField Q_sh_ow; // Open water sensible heat flux [W m⁻²]
-    HField Q_lw_ow; // Open water net longwave radiative flux [W m⁻²]
-    HField Q_lh_ia; // Ice latent heat flux [W m⁻²]
-    HField Q_sh_ia; // Ice sensible heat flux [W m⁻²]
-    HField Q_sw_ia; // Ice incident shortwave radiative flux [W m⁻²]
-    HField Q_lw_ia; // Ice net longwave radiative flux [W m⁻²]
+    ModelArrayAccessor<Private::Q_LH_OW, RW> Q_lh_owAccessor; // Open water latent heat flux [W m⁻²]
+    ModelArrayAccessor<Private::Q_SH_OW, RW>
+        Q_sh_owAccessor; // Open water sensible heat flux [W m⁻²]
+    ModelArrayAccessor<Private::Q_LW_OW, RW>
+        Q_lw_owAccessor; // Open water net longwave radiative flux [W m⁻²]
+    ModelArrayAccessor<Private::Q_LH_IA, RW> Q_lh_iaAccessor; // Ice latent heat flux [W m⁻²]
+    ModelArrayAccessor<Private::Q_SH_IA, RW> Q_sh_iaAccessor; // Ice sensible heat flux [W m⁻²]
+    ModelArrayAccessor<Private::Q_SW_IA, RW>
+        Q_sw_iaAccessor; // Ice incident shortwave radiative flux [W m⁻²]
+    ModelArrayAccessor<Private::Q_LW_IA, RW>
+        Q_lw_iaAccessor; // Ice net longwave radiative flux [W m⁻²]
     // Derived air properties
-    HField rho_air;
-    HField cp_air; // Specific heat capacity of the wet air [J kg⁻¹ K⁻¹]
+    ModelArrayAccessor<Private::RHO_AIR, RW> rho_airAccessor;
+    ModelArrayAccessor<Private::CP_AIR, RW>
+        cp_airAccessor; // Specific heat capacity of the wet air [J kg⁻¹ K⁻¹]
     // Specific humidity and T derivative
-    HField sh_air;
-    HField sh_water;
-    HField sh_ice;
-    HField dshice_dT;
+    ModelArrayAccessor<Private::SH_AIR, RW> sh_airAccessor;
+    ModelArrayAccessor<Private::SH_WATER, RW> sh_waterAccessor;
+    ModelArrayAccessor<Private::SH_ICE, RW> sh_iceAccessor;
+    ModelArrayAccessor<Private::DSHICE_DT, RW> dshice_dTAccessor;
+
     // Input fields
-    ModelArrayRef<Protected::SST> sst;
-    ModelArrayRef<Protected::SSS> sss;
-    ModelArrayRef<Protected::T_AIR> t_air;
-    ModelArrayRef<Protected::DEW_2M> t_dew2;
-    ModelArrayRef<Protected::P_AIR> p_air;
-    ModelArrayRef<Protected::WIND_SPEED> windSpeed;
-    ModelArrayRef<Protected::WIND_U> u_air;
-    ModelArrayRef<Protected::WIND_V> v_air;
-    ModelArrayRef<Shared::H_SNOW_DG> hsnow; // cell-averaged value
-    ModelArrayRef<Shared::C_ICE_DG> cice;
-    ModelArrayRef<Protected::T_SURF> tsurf;
-    ModelArrayRef<Protected::SW_IN> sw_in;
-    ModelArrayRef<Protected::LW_IN> lw_in;
+    ModelArrayAccessor<Protected::SST> sstAccessor;
+    ModelArrayAccessor<Protected::SSS> sssAccessor;
+    ModelArrayAccessor<Protected::T_AIR> t_airAccessor;
+    ModelArrayAccessor<Protected::DEW_2M> t_dew2Accessor;
+    ModelArrayAccessor<Protected::P_AIR> p_airAccessor;
+    ModelArrayAccessor<Protected::WIND_SPEED> windSpeedAccessor;
+    ModelArrayAccessor<Protected::WIND_U> u_airAccessor;
+    ModelArrayAccessor<Protected::WIND_V> v_airAccessor;
+    ModelArrayAccessor<Shared::H_SNOW_DG> hsnowAccessor; // cell-averaged value
+    ModelArrayAccessor<Shared::C_ICE_DG> ciceAccessor;
+    ModelArrayAccessor<Protected::T_SURF> tsurfAccessor;
+    ModelArrayAccessor<Protected::SW_IN> sw_inAccessor;
+    ModelArrayAccessor<Protected::LW_IN> lw_inAccessor;
 
-    void calculateOW(size_t i, const TimestepTime& tst);
-    void calculateIce(size_t i, const TimestepTime& tst);
-    void calculateAtmos(size_t i, const TimestepTime& tst);
+    ModelArrayAccessor<Protected::ICE_ALBEDO> iceAlbedoAccessor;
+    ModelArrayAccessor<Protected::ICE_PEN_SW> icePenSWAccessor;
 
-    static double dragOcean_q;
-    static double dragOcean_m(double windSpeed);
-    static double dragOcean_t;
-    static double dragIce_t;
+    static FloatType dragOcean_q;
+    static FloatType dragOcean_t;
+    static FloatType dragIce_t;
 
-    static double m_oceanAlbedo;
-
-    static double m_I0;
-
-    static double latentHeatWater(double temperature);
-    static double latentHeatIce(double temperature);
+    static FloatType m_oceanAlbedo;
 
     IIceAlbedo* iIceAlbedoImpl;
 };

@@ -7,7 +7,7 @@
 
 #include "include/Configured.hpp"
 #include "include/ModelArray.hpp"
-#include "include/ModelArrayRef.hpp"
+#include "include/ModelArrayAccessor.hpp"
 #include "include/ModelComponent.hpp"
 
 namespace Nextsim {
@@ -20,20 +20,20 @@ namespace Nextsim {
  */
 class SlabOcean : public ModelComponent, public Configured<SlabOcean> {
 public:
-    SlabOcean(ModelArrayReferenceStore& coupingArrays)
-        : qdw(ModelArray::Type::H)
-        , fdw(ModelArray::Type::H)
-        , sstSlab(ModelArray::Type::H)
-        , sssSlab(ModelArray::Type::H)
-        , sstExt(getStore())
-        , sssExt(getStore())
-        , sst(getStore())
-        , sss(getStore())
-        , cpml(getStore())
-        , qswNet(coupingArrays)
-        , qNoSun(coupingArrays)
-        , fwFlux(coupingArrays)
-        , sFlux(coupingArrays)
+    SlabOcean(ModelArrayStore& couplingArrays)
+        : qdwAccessor(getStore(), RO, ModelArray::Type::H)
+        , fdwAccessor(getStore(), RO, ModelArray::Type::H)
+        , sstSlabAccessor(getStore(), RO, ModelArray::Type::H)
+        , sssSlabAccessor(getStore(), RO, ModelArray::Type::H)
+        , sstExtAccessor(getStore())
+        , sssExtAccessor(getStore())
+        , sstAccessor(getStore())
+        , sssAccessor(getStore())
+        , cpmlAccessor(getStore())
+        , qswNetAccessor(couplingArrays)
+        , qNoSunAccessor(couplingArrays)
+        , fwFluxAccessor(couplingArrays)
+        , sFluxAccessor(couplingArrays)
     {
     }
 
@@ -56,33 +56,29 @@ public:
 
     void update(const TimestepTime&);
 
-    static const double defaultRelaxationTime; // A default value for the relaxation time in s.
+    static const FloatType defaultRelaxationTime; // A default value for the relaxation time in s.
 
 private:
     // Owned shared fields
-    HField qdw;
-    HField fdw;
-    HField sstSlab;
-    HField sssSlab;
+    ModelArrayAccessor<Protected::SLAB_QDW, RW> qdwAccessor;
+    ModelArrayAccessor<Protected::SLAB_FDW, RW> fdwAccessor;
+    ModelArrayAccessor<Protected::SLAB_SST, RW> sstSlabAccessor;
+    ModelArrayAccessor<Protected::SLAB_SSS, RW> sssSlabAccessor;
 
     // Input fields
-    ModelArrayRef<Protected::EXT_SST> sstExt;
-    ModelArrayRef<Protected::EXT_SSS> sssExt;
-    ModelArrayRef<Protected::SST> sst;
-    ModelArrayRef<Protected::SSS> sss;
-    ModelArrayRef<Protected::ML_BULK_CP> cpml;
-    ModelArrayRef<CouplingFields::Q_SS_SW, RO> qswNet;
-    ModelArrayRef<CouplingFields::Q_SS_NO_SW, RO> qNoSun;
-    ModelArrayRef<CouplingFields::FWFLUX, RO> fwFlux;
-    ModelArrayRef<CouplingFields::SFLUX, RO> sFlux;
-    // TODO ModelArrayRef to assimilation flux
+    ModelArrayAccessor<Protected::EXT_SST> sstExtAccessor;
+    ModelArrayAccessor<Protected::EXT_SSS> sssExtAccessor;
+    ModelArrayAccessor<Protected::SST> sstAccessor;
+    ModelArrayAccessor<Protected::SSS> sssAccessor;
+    ModelArrayAccessor<Protected::ML_BULK_CP> cpmlAccessor;
+    ModelArrayAccessor<CouplingFields::Q_SS_SW, RO> qswNetAccessor;
+    ModelArrayAccessor<CouplingFields::Q_SS_NO_SW, RO> qNoSunAccessor;
+    ModelArrayAccessor<CouplingFields::FWFLUX, RO> fwFluxAccessor;
+    ModelArrayAccessor<CouplingFields::SFLUX, RO> sFluxAccessor;
+    // TODO ModelArrayAccessor to assimilation flux
 
-    double relaxationTimeT = defaultRelaxationTime;
-    double relaxationTimeS = defaultRelaxationTime;
-
-    double dt;
-
-    void updateElement(size_t i, const TimestepTime& tst);
+    FloatType relaxationTimeT = defaultRelaxationTime;
+    FloatType relaxationTimeS = defaultRelaxationTime;
 };
 
 } /* namespace Nextsim */

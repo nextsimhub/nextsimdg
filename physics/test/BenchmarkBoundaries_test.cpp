@@ -27,19 +27,21 @@ TEST_CASE("OceanTest")
     benchOcean.setData(ModelState::DataMap());
 
     // Get the u and v arrays
-    ModelArrayRef<Protected::OCEAN_U> uOcean(ModelComponent::getStore());
-    ModelArrayRef<Protected::OCEAN_V> vOcean(ModelComponent::getStore());
+    ModelArrayAccessor<Protected::OCEAN_U> uOceanAccessor(ModelComponent::getStore());
+    const UField& uOcean = uOceanAccessor.getHostRO();
+    ModelArrayAccessor<Protected::OCEAN_V> vOceanAccessor(ModelComponent::getStore());
+    const VField& vOcean = vOceanAccessor.getHostRO();
     // Check the wind at an arbitrary point lies in a reasonable range
     size_t iTest = 50;
     size_t jTest = 40;
     REQUIRE(uOcean(iTest, jTest) != 0.);
     REQUIRE(vOcean(iTest, jTest) != 0.);
 
-    double vMaxOcean = 0.01;
+    const FloatType vMaxOcean = 0.01;
     REQUIRE(uOcean(0, 0) == -vMaxOcean);
     REQUIRE(vOcean(0, 0) == vMaxOcean);
-    REQUIRE(uOcean(nx - 1, ny - 1) == (ny - 2.) / ny * vMaxOcean);
-    REQUIRE(vOcean(nx - 1, ny - 1) == -(nx - 2.) / nx * vMaxOcean);
+    REQUIRE(uOcean(nx - 1, ny - 1) == (ny - FloatType(2.)) / ny * vMaxOcean);
+    REQUIRE(vOcean(nx - 1, ny - 1) == -(nx - FloatType(2.)) / nx * vMaxOcean);
 }
 
 TEST_CASE("AtmosphereTest")
@@ -60,21 +62,21 @@ TEST_CASE("AtmosphereTest")
     benchAtm.update(tst);
 
     // Get the u and v arrays
-    ModelArrayRef<Protected::WIND_U> uWind(ModelComponent::getStore());
-    ModelArrayRef<Protected::WIND_V> vWind(ModelComponent::getStore());
+    ModelArrayAccessor<Protected::WIND_U> uWindAccessor(ModelComponent::getStore());
+    ModelArrayAccessor<Protected::WIND_V> vWindAccessor(ModelComponent::getStore());
     // Check the wind at an arbitrary point lies in a reasonable range
     size_t iTest = 50;
     size_t jTest = 40;
-    double uTest = uWind(iTest, jTest);
-    double vTest = vWind(iTest, jTest);
+    const FloatType uTest = uWindAccessor.getHostRO()(iTest, jTest);
+    const FloatType vTest = vWindAccessor.getHostRO()(iTest, jTest);
     REQUIRE(uTest != 0.);
     REQUIRE(vTest != 0.);
 
     // Check that the cyclone is moving away (weakening) from the test point
     tst.start += tst.step;
     benchAtm.update(tst);
-    REQUIRE(fabs(uWind(iTest, jTest) < fabs(uTest)));
-    REQUIRE(fabs(vWind(iTest, jTest) < fabs(vTest)));
+    REQUIRE(fabs(uWindAccessor.getHostRO()(iTest, jTest) < fabs(uTest)));
+    REQUIRE(fabs(vWindAccessor.getHostRO()(iTest, jTest) < fabs(vTest)));
 }
 
 }

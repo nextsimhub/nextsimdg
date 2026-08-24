@@ -11,7 +11,6 @@
 #include "include/IIceThermodynamics.hpp"
 #include "include/ILateralIceSpread.hpp"
 #include "include/IceMinima.hpp"
-#include "include/ModelArrayRef.hpp"
 #include "include/ModelComponent.hpp"
 #include "include/Time.hpp"
 #ifdef USE_XIOS
@@ -37,8 +36,8 @@ public:
     virtual void update(const TimestepTime&) = 0;
 
 protected:
-    static void setCMin(double cMin) { IceMinima::cMin = cMin; };
-    static void setHMin(double hMin) { IceMinima::hMin = hMin; };
+    static void setCMin(FloatType cMin) { IceMinima::cMin = cMin; };
+    static void setHMin(FloatType hMin) { IceMinima::hMin = hMin; };
 };
 
 } /* namespace Nextsim */

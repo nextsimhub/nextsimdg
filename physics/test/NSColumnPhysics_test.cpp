@@ -2,7 +2,6 @@
  * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
-#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include <doctest/doctest.h>
 #include <sstream>
 
@@ -12,7 +11,6 @@
 #include "include/IAtmosphereBoundary.hpp"
 #include "include/IFreezingPoint.hpp"
 #include "include/ModelArray.hpp"
-#include "include/ModelArrayRef.hpp"
 #include "include/ModelComponent.hpp"
 #include "include/NextsimModule.hpp"
 #include "include/Time.hpp"
@@ -41,16 +39,16 @@ TEST_CASE("New ice formation")
         void setData(const ModelState::DataMap& ms) override
         {
             IAtmosphereBoundary::setData(ms);
-            qia = 305.288;
-            dqia_dt = 4.5036;
-            qow = 307.546;
-            subl = 0.; // Seems unlikely…
-            penSW = 0.;
-            snow = 0.;
-            rain = 0.;
-            evap = 0.; // Seems unlikely…
-            uwind = 0;
-            vwind = 0.;
+            qiaAccessor.getHostRW() = 305.288;
+            dqia_dtAccessor.getHostRW() = 4.5036;
+            qowAccessor.getHostRW() = 307.546;
+            sublAccessor.getHostRW() = 0.; // Seems unlikely…
+            penSWAccessor.getHostRW() = 0.;
+            snowAccessor.getHostRW() = 0.;
+            rainAccessor.getHostRW() = 0.;
+            evapAccessor.getHostRW() = 0.; // Seems unlikely…
+            uwindAccessor.getHostRW() = 0;
+            vwindAccessor.getHostRW() = 0.;
         }
     } atmBdy;
     atmBdy.setData(ModelState().data);
@@ -58,24 +56,24 @@ TEST_CASE("New ice formation")
     class PrognosticData : public ModelComponent {
     public:
         PrognosticData()
+            : hiceAccessor(getStore(), RW)
+            , ciceAccessor(getStore(), RW)
+            , hsnowAccessor(getStore(), RW)
         {
-            getStore().registerArray(Shared::H_ICE_DG, &hice, RW);
-            getStore().registerArray(Shared::C_ICE_DG, &cice, RW);
-            getStore().registerArray(Shared::H_SNOW_DG, &hsnow, RW);
         }
         std::string getName() const override { return "PrognosticData"; }
 
         void setData(const ModelState::DataMap&) override
         {
             noLandMask();
-            cice = 0.5;
-            hice = 0.1; // Cell averaged
-            hsnow = 0; // Cell averaged
+            ciceAccessor.getHostRW() = 0.5;
+            hiceAccessor.getHostRW() = 0.1; // Cell averaged
+            hsnowAccessor.getHostRW() = 0; // Cell averaged
         }
 
-        HField hice;
-        HField cice;
-        HField hsnow;
+        ModelArrayAccessor<Shared::H_ICE_DG, RW> hiceAccessor;
+        ModelArrayAccessor<Shared::C_ICE_DG, RW> ciceAccessor;
+        ModelArrayAccessor<Shared::H_SNOW_DG, RW> hsnowAccessor;
     } proData;
     proData.setData(ModelState().data);
 
@@ -83,11 +81,11 @@ TEST_CASE("New ice formation")
     ocnBdy.setQio(124.689);
     ocnBdy.setData(ModelState().data);
 
-    HField damage(ModelArray::Type::H);
-    HField oldDamage(ModelArray::Type::H);
-    damage = 1;
-    ModelComponent::getStore().registerArray(Shared::DAMAGE, &damage, RW);
-    ModelComponent::getStore().registerArray(Protected::DAMAGE, &oldDamage, RO);
+    ModelArrayAccessor<Shared::DAMAGE, RW> damageAccessor(
+        ModelComponent::getStore(), RW, ModelArray::Type::H);
+    ModelArrayAccessor<Protected::DAMAGE, RW> oldDamageAccessor(
+        ModelComponent::getStore(), RO, ModelArray::Type::H);
+    damageAccessor.getHostRW() = 1;
 
     TimestepTime tst = { TimePoint("2000-001"), Duration("P0-1") };
     NSColumnPhysics ig;
@@ -100,9 +98,10 @@ TEST_CASE("New ice formation")
     ocnBdy.updateBefore(tst);
     ig.update(tst);
 
-    ModelArrayRef<Shared::NEW_ICE, RO> newice(ModelComponent::getStore());
+    ModelArrayAccessor<Shared::NEW_ICE, RO> newiceAccessor(ModelComponent::getStore());
+    const HField& newice = newiceAccessor.getHostRO();
 
-    double prec = 1e-5;
+    FloatType prec = 1e-5;
     REQUIRE(newice[0] == doctest::Approx(0.0258264).epsilon(prec));
 }
 
@@ -122,16 +121,16 @@ TEST_CASE("Melting conditions")
         void setData(const ModelState::DataMap& ms) override
         {
             IAtmosphereBoundary::setData(ms);
-            qia = -84.5952;
-            dqia_dt = 19.7016;
-            qow = -109.923;
-            subl = -7.3858e-06;
-            penSW = 0.;
-            snow = 0.;
-            rain = 0.;
-            evap = 0.; // Seems unlikely…
-            uwind = 0;
-            vwind = 0.;
+            qiaAccessor.getHostRW() = -84.5952;
+            dqia_dtAccessor.getHostRW() = 19.7016;
+            qowAccessor.getHostRW() = -109.923;
+            sublAccessor.getHostRW() = -7.3858e-06;
+            penSWAccessor.getHostRW() = 0.;
+            snowAccessor.getHostRW() = 0.;
+            rainAccessor.getHostRW() = 0.;
+            evapAccessor.getHostRW() = 0.; // Seems unlikely…
+            uwindAccessor.getHostRW() = 0;
+            vwindAccessor.getHostRW() = 0.;
         }
         std::string getName() const override { return "AtmosphericBoundary"; }
     } atmBdy;
@@ -140,24 +139,24 @@ TEST_CASE("Melting conditions")
     class PrognosticData : public ModelComponent {
     public:
         PrognosticData()
+            : hiceAccessor(getStore(), RW)
+            , ciceAccessor(getStore(), RW)
+            , hsnowAccessor(getStore(), RW)
         {
-            getStore().registerArray(Shared::H_ICE_DG, &hice, RW);
-            getStore().registerArray(Shared::C_ICE_DG, &cice, RW);
-            getStore().registerArray(Shared::H_SNOW_DG, &hsnow, RW);
         }
         std::string getName() const override { return "PrognosticData"; }
 
         void setData(const ModelState::DataMap&) override
         {
             noLandMask();
-            cice = 0.5;
-            hice = 0.1; // Cell averaged
-            hsnow = 0.01; // Cell averaged
+            ciceAccessor.getHostRW() = 0.5;
+            hiceAccessor.getHostRW() = 0.1; // Cell averaged
+            hsnowAccessor.getHostRW() = 0.01; // Cell averaged
         }
 
-        HField hice;
-        HField cice;
-        HField hsnow;
+        ModelArrayAccessor<Shared::H_ICE_DG, RW> hiceAccessor;
+        ModelArrayAccessor<Shared::C_ICE_DG, RW> ciceAccessor;
+        ModelArrayAccessor<Shared::H_SNOW_DG, RW> hsnowAccessor;
     } proData;
     proData.setData(ModelState().data);
 
@@ -167,11 +166,11 @@ TEST_CASE("Melting conditions")
     ocnBdy.setQio(53717.8);
     ocnBdy.setData(ModelState().data);
 
-    HField damage(ModelArray::Type::H);
-    HField oldDamage(ModelArray::Type::H);
-    damage = 1;
-    ModelComponent::getStore().registerArray(Shared::DAMAGE, &damage, RW);
-    ModelComponent::getStore().registerArray(Protected::DAMAGE, &oldDamage, RO);
+    ModelArrayAccessor<Shared::DAMAGE, RW> damageAccessor(
+        ModelComponent::getStore(), RW, ModelArray::Type::H);
+    ModelArrayAccessor<Protected::DAMAGE, RW> oldDamageAccessor(
+        ModelComponent::getStore(), RO, ModelArray::Type::H);
+    damageAccessor.getHostRW() = 1;
 
     TimestepTime tst = { TimePoint("2000-001"), Duration("P0-0T0:10:0") };
     NSColumnPhysics ig;
@@ -184,12 +183,16 @@ TEST_CASE("Melting conditions")
     ocnBdy.updateBefore(tst);
     ig.update(tst);
 
-    ModelArrayRef<Shared::NEW_ICE, RO> newice(ModelComponent::getStore());
-    ModelArrayRef<Shared::H_ICE_DG, RO> hice(ModelComponent::getStore());
-    ModelArrayRef<Shared::C_ICE_DG, RO> cice(ModelComponent::getStore());
-    ModelArrayRef<Shared::H_SNOW_DG, RO> hsnow(ModelComponent::getStore());
+    ModelArrayAccessor<Shared::NEW_ICE, RO> newiceAccessor(ModelComponent::getStore());
+    const HField& newice = newiceAccessor.getHostRO();
+    ModelArrayAccessor<Shared::H_ICE_DG, RO> hiceAccessor(ModelComponent::getStore());
+    const HField& hice = hiceAccessor.getHostRO();
+    ModelArrayAccessor<Shared::C_ICE_DG, RO> ciceAccessor(ModelComponent::getStore());
+    const HField& cice = ciceAccessor.getHostRO();
+    ModelArrayAccessor<Shared::H_SNOW_DG, RO> hsnowAccessor(ModelComponent::getStore());
+    const HField& hsnow = hsnowAccessor.getHostRO();
 
-    double prec = 1e-5;
+    FloatType prec = 1e-5;
     // The thickness values from old NextSIM are cell-averaged. Perform that
     // conversion here.
     REQUIRE(cice[0] == doctest::Approx(0.368269).epsilon(prec));
@@ -215,16 +218,16 @@ TEST_CASE("Freezing conditions")
         void setData(const ModelState::DataMap& ms) override
         {
             IAtmosphereBoundary::setData(ms);
-            qia = 42.2955;
-            dqia_dt = 16.7615;
-            qow = 143.266;
-            subl = 2.15132e-6;
-            penSW = 0.;
-            snow = 1e-3;
-            rain = 0.;
-            evap = -1e-3; // E-P = 0
-            uwind = 0;
-            vwind = 0.;
+            qiaAccessor.getHostRW() = 42.2955;
+            dqia_dtAccessor.getHostRW() = 16.7615;
+            qowAccessor.getHostRW() = 143.266;
+            sublAccessor.getHostRW() = 2.15132e-6;
+            penSWAccessor.getHostRW() = 0.;
+            snowAccessor.getHostRW() = 1e-3;
+            rainAccessor.getHostRW() = 0.;
+            evapAccessor.getHostRW() = -1e-3; // E-P = 0
+            uwindAccessor.getHostRW() = 0;
+            vwindAccessor.getHostRW() = 0.;
         }
     } atmBdy;
     atmBdy.setData(ModelState().data);
@@ -232,24 +235,24 @@ TEST_CASE("Freezing conditions")
     class PrognosticData : public ModelComponent {
     public:
         PrognosticData()
+            : hiceAccessor(getStore(), RW)
+            , ciceAccessor(getStore(), RW)
+            , hsnowAccessor(getStore(), RW)
         {
-            getStore().registerArray(Shared::H_ICE_DG, &hice, RW);
-            getStore().registerArray(Shared::C_ICE_DG, &cice, RW);
-            getStore().registerArray(Shared::H_SNOW_DG, &hsnow, RW);
         }
         std::string getName() const override { return "PrognosticData"; }
 
         void setData(const ModelState::DataMap&) override
         {
             noLandMask();
-            cice = 0.5;
-            hice = 0.1; // Cell averaged
-            hsnow = 0.01; // Cell averaged
+            ciceAccessor.getHostRW() = 0.5;
+            hiceAccessor.getHostRW() = 0.1; // Cell averaged
+            hsnowAccessor.getHostRW() = 0.01; // Cell averaged
         }
 
-        HField hice;
-        HField cice;
-        HField hsnow;
+        ModelArrayAccessor<Shared::H_ICE_DG, RW> hiceAccessor;
+        ModelArrayAccessor<Shared::C_ICE_DG, RW> ciceAccessor;
+        ModelArrayAccessor<Shared::H_SNOW_DG, RW> hsnowAccessor;
     } proData;
     proData.setData(ModelState().data);
 
@@ -259,11 +262,11 @@ TEST_CASE("Freezing conditions")
     ocnBdy.setQio(73.9465);
     ocnBdy.setData(ModelState().data);
 
-    HField damage(ModelArray::Type::H);
-    HField oldDamage(ModelArray::Type::H);
-    damage = 1;
-    ModelComponent::getStore().registerArray(Shared::DAMAGE, &damage, RW);
-    ModelComponent::getStore().registerArray(Protected::DAMAGE, &oldDamage, RO);
+    ModelArrayAccessor<Shared::DAMAGE, RW> damageAccessor(
+        ModelComponent::getStore(), RW, ModelArray::Type::H);
+    ModelArrayAccessor<Protected::DAMAGE, RW> oldDamageAccessor(
+        ModelComponent::getStore(), RO, ModelArray::Type::H);
+    damageAccessor.getHostRW() = 1;
 
     TimestepTime tst = { TimePoint("2000-001"), Duration("P0-0T0:10:0") };
     NSColumnPhysics ig;
@@ -276,12 +279,16 @@ TEST_CASE("Freezing conditions")
     ocnBdy.updateBefore(tst);
     ig.update(tst);
 
-    ModelArrayRef<Shared::NEW_ICE, RO> newice(ModelComponent::getStore());
-    ModelArrayRef<Shared::H_ICE_DG, RO> hice(ModelComponent::getStore());
-    ModelArrayRef<Shared::C_ICE_DG, RO> cice(ModelComponent::getStore());
-    ModelArrayRef<Shared::H_SNOW_DG, RO> hsnow(ModelComponent::getStore());
+    ModelArrayAccessor<Shared::NEW_ICE, RO> newiceAccessor(ModelComponent::getStore());
+    const HField& newice = newiceAccessor.getHostRO();
+    ModelArrayAccessor<Shared::H_ICE_DG, RO> hiceAccessor(ModelComponent::getStore());
+    const HField& hice = hiceAccessor.getHostRO();
+    ModelArrayAccessor<Shared::C_ICE_DG, RO> ciceAccessor(ModelComponent::getStore());
+    const HField& cice = ciceAccessor.getHostRO();
+    ModelArrayAccessor<Shared::H_SNOW_DG, RO> hsnowAccessor(ModelComponent::getStore());
+    const HField& hsnow = hsnowAccessor.getHostRO();
 
-    double prec = 1e-5;
+    FloatType prec = 1e-5;
 
     // The thickness values from old NextSIM are cell-averaged. Perform that
     // conversion here.
@@ -308,47 +315,46 @@ TEST_CASE("Dummy ice")
         void setData(const ModelState::DataMap& ms) override
         {
             IAtmosphereBoundary::setData(ms);
-            qia = 0.;
-            dqia_dt = 0.;
-            qow = 0.;
-            subl = 0.;
-            penSW = 0.;
-            snow = 0.;
-            rain = 0.;
-            evap = 0.; // E-P = 0
-            uwind = 0;
-            vwind = 0.;
+            qiaAccessor.getHostRW() = 0.;
+            dqia_dtAccessor.getHostRW() = 0.;
+            qowAccessor.getHostRW() = 0.;
+            sublAccessor.getHostRW() = 0.;
+            penSWAccessor.getHostRW() = 0.;
+            snowAccessor.getHostRW() = 0.;
+            rainAccessor.getHostRW() = 0.;
+            evapAccessor.getHostRW() = 0.; // E-P = 0
+            uwindAccessor.getHostRW() = 0;
+            vwindAccessor.getHostRW() = 0.;
         }
     } atmBdy;
     atmBdy.setData(ModelState().data);
 
-    // Don't like referencing variables in the enclosing scope? FINE!
-#define cice0 0.5
-#define hice0 0.1
-#define hsnow0 0.01
-#define tice00 -5
+    static constexpr FloatType cice0 = 0.5;
+    static constexpr FloatType hice0 = 0.1;
+    static constexpr FloatType hsnow0 = 0.01;
+    static constexpr FloatType tice00 = -5;
 
     class PrognosticData : public ModelComponent {
     public:
         PrognosticData()
+            : hiceAccessor(getStore(), RW)
+            , ciceAccessor(getStore(), RW)
+            , hsnowAccessor(getStore(), RW)
         {
-            getStore().registerArray(Shared::H_ICE_DG, &hice, RW);
-            getStore().registerArray(Shared::C_ICE_DG, &cice, RW);
-            getStore().registerArray(Shared::H_SNOW_DG, &hsnow, RW);
         }
         std::string getName() const override { return "PrognosticData"; }
 
         void setData(const ModelState::DataMap&) override
         {
             noLandMask();
-            cice = cice0;
-            hice = hice0; // Cell averaged
-            hsnow = hsnow0; // Cell averaged
+            ciceAccessor.getHostRW() = cice0;
+            hiceAccessor.getHostRW() = hice0; // Cell averaged
+            hsnowAccessor.getHostRW() = hsnow0; // Cell averaged
         }
 
-        HField hice;
-        HField cice;
-        HField hsnow;
+        ModelArrayAccessor<Shared::H_ICE_DG, RW> hiceAccessor;
+        ModelArrayAccessor<Shared::C_ICE_DG, RW> ciceAccessor;
+        ModelArrayAccessor<Shared::H_SNOW_DG, RW> hsnowAccessor;
     } proData;
     proData.setData(ModelState().data);
 
@@ -356,11 +362,11 @@ TEST_CASE("Dummy ice")
     ocnBdy.setQio(0.);
     ocnBdy.setData(ModelState().data);
 
-    HField damage(ModelArray::Type::H);
-    HField oldDamage(ModelArray::Type::H);
-    damage = 1;
-    ModelComponent::getStore().registerArray(Shared::DAMAGE, &damage, RW);
-    ModelComponent::getStore().registerArray(Protected::DAMAGE, &oldDamage, RO);
+    ModelArrayAccessor<Shared::DAMAGE, RW> damageAccessor(
+        ModelComponent::getStore(), RW, ModelArray::Type::H);
+    ModelArrayAccessor<Protected::DAMAGE, RW> oldDamageAccessor(
+        ModelComponent::getStore(), RO, ModelArray::Type::H);
+    damageAccessor.getHostRW() = 1;
 
     TimestepTime tst = { TimePoint("2000-001"), Duration("P0-0T0:10:0") };
 
@@ -375,12 +381,16 @@ TEST_CASE("Dummy ice")
 
     ig.update(tst);
 
-    double prec = 1e-5;
+    //   FloatType prec = 1e-5;
 
-    ModelArrayRef<Shared::NEW_ICE, RO> newice(ModelComponent::getStore());
-    ModelArrayRef<Shared::H_ICE_DG, RO> hice(ModelComponent::getStore());
-    ModelArrayRef<Shared::C_ICE_DG, RO> cice(ModelComponent::getStore());
-    ModelArrayRef<Shared::H_SNOW_DG, RO> hsnow(ModelComponent::getStore());
+    ModelArrayAccessor<Shared::NEW_ICE, RO> newiceAccessor(ModelComponent::getStore());
+    const HField& newice = newiceAccessor.getHostRO();
+    ModelArrayAccessor<Shared::H_ICE_DG, RO> hiceAccessor(ModelComponent::getStore());
+    const HField& hice = hiceAccessor.getHostRO();
+    ModelArrayAccessor<Shared::C_ICE_DG, RO> ciceAccessor(ModelComponent::getStore());
+    const HField& cice = ciceAccessor.getHostRO();
+    ModelArrayAccessor<Shared::H_SNOW_DG, RO> hsnowAccessor(ModelComponent::getStore());
+    const HField& hsnow = hsnowAccessor.getHostRO();
 
     // The thickness values from old NextSIM are cell-averaged. Perform that
     // conversion here.
@@ -390,10 +400,6 @@ TEST_CASE("Dummy ice")
 
     REQUIRE(newice[0] == 0.);
 }
-#undef cice0
-#undef hice0
-#undef hsnow0
-#undef tice00
 
 TEST_CASE("Zero thickness")
 {
@@ -411,16 +417,16 @@ TEST_CASE("Zero thickness")
         void setData(const ModelState::DataMap& ms) override
         {
             IAtmosphereBoundary::setData(ms);
-            qia = -84.5952;
-            dqia_dt = 19.7016;
-            qow = -109.923;
-            subl = -7.3858e-06;
-            penSW = 0.;
-            snow = 0.;
-            rain = 0.;
-            evap = 0.; // Seems unlikely…
-            uwind = 0;
-            vwind = 0.;
+            qiaAccessor.getHostRW() = -84.5952;
+            dqia_dtAccessor.getHostRW() = 19.7016;
+            qowAccessor.getHostRW() = -109.923;
+            sublAccessor.getHostRW() = -7.3858e-06;
+            penSWAccessor.getHostRW() = 0.;
+            snowAccessor.getHostRW() = 0.;
+            rainAccessor.getHostRW() = 0.;
+            evapAccessor.getHostRW() = 0.; // Seems unlikely…
+            uwindAccessor.getHostRW() = 0;
+            vwindAccessor.getHostRW() = 0.;
         }
         std::string getName() const override { return "AtmosphericBoundary"; }
     } atmBdy;
@@ -429,24 +435,24 @@ TEST_CASE("Zero thickness")
     class PrognosticData : public ModelComponent {
     public:
         PrognosticData()
+            : hiceAccessor(getStore(), RW)
+            , ciceAccessor(getStore(), RW)
+            , hsnowAccessor(getStore(), RW)
         {
-            getStore().registerArray(Shared::H_ICE_DG, &hice, RW);
-            getStore().registerArray(Shared::C_ICE_DG, &cice, RW);
-            getStore().registerArray(Shared::H_SNOW_DG, &hsnow, RW);
         }
         std::string getName() const override { return "PrognosticData"; }
 
         void setData(const ModelState::DataMap&) override
         {
             noLandMask();
-            cice = 0.5;
-            hice = 0.1; // Cell averaged
-            hsnow = 0.01; // Cell averaged
+            ciceAccessor.getHostRW() = 0.5;
+            hiceAccessor.getHostRW() = 0.1; // Cell averaged
+            hsnowAccessor.getHostRW() = 0.01; // Cell averaged
         }
 
-        HField hice;
-        HField cice;
-        HField hsnow;
+        ModelArrayAccessor<Shared::H_ICE_DG, RW> hiceAccessor;
+        ModelArrayAccessor<Shared::C_ICE_DG, RW> ciceAccessor;
+        ModelArrayAccessor<Shared::H_SNOW_DG, RW> hsnowAccessor;
     } proData;
     proData.setData(ModelState().data);
 
@@ -454,20 +460,21 @@ TEST_CASE("Zero thickness")
     ocnBdy.setQio(53717.8); // 57 kW m⁻² to go from -1 to -1.75 over the whole mixed layer in 600 s
     ocnBdy.setData(ModelState().data);
 
-    HField damage(ModelArray::Type::H);
-    HField oldDamage(ModelArray::Type::H);
-    damage = 1;
-    ModelComponent::getStore().registerArray(Shared::DAMAGE, &damage, RW);
-    ModelComponent::getStore().registerArray(Protected::DAMAGE, &oldDamage, RO);
+    ModelArrayAccessor<Shared::DAMAGE, RW> damageAccessor(
+        ModelComponent::getStore(), RW, ModelArray::Type::H);
+    ModelArrayAccessor<Protected::DAMAGE, RW> oldDamageAccessor(
+        ModelComponent::getStore(), RO, ModelArray::Type::H);
+    damageAccessor.getHostRW() = 1;
 
     class ZeroThicknessIce : public IIceThermodynamics {
         void setData(const ModelState::DataMap&) override { }
         void update(const TimestepTime& tsTime) override
         {
-            deltaHi[0] = -hice[0];
+            AdvectedField& hice = hiceAccessor.getHostRW();
+            deltaHiAccessor.getHostRW()[0] = -hice[0];
             hice[0] = 0;
-            tsurf[0] = 0;
-            snowToIce[0] = 0;
+            tsurfAccessor.getHostRW()[0] = 0;
+            snowToIceAccessor.getHostRW()[0] = 0;
         }
     };
     Module::Module<IIceThermodynamics>::setExternalImplementation(
@@ -484,11 +491,14 @@ TEST_CASE("Zero thickness")
     ocnBdy.updateBefore(tst);
     ig.update(tst);
 
-    ModelArrayRef<Shared::NEW_ICE, RO> newice(ModelComponent::getStore());
-    ModelArrayRef<Shared::H_ICE_DG, RO> hice(ModelComponent::getStore());
-    ModelArrayRef<Shared::C_ICE_DG, RO> cice(ModelComponent::getStore());
+    ModelArrayAccessor<Shared::NEW_ICE, RO> newiceAccessor(ModelComponent::getStore());
+    const HField& newice = newiceAccessor.getHostRO();
+    ModelArrayAccessor<Shared::H_ICE_DG, RO> hiceAccessor(ModelComponent::getStore());
+    const HField& hice = hiceAccessor.getHostRO();
+    ModelArrayAccessor<Shared::C_ICE_DG, RO> ciceAccessor(ModelComponent::getStore());
+    const HField& cice = ciceAccessor.getHostRO();
 
-    double prec = 1e-6;
+    //    FloatType prec = 1e-6;
 
     REQUIRE(newice[0] == 0);
     REQUIRE(hice[0] == 0);
@@ -517,16 +527,16 @@ TEST_CASE("Turn off thermo")
         void setData(const ModelState::DataMap& ms) override
         {
             IAtmosphereBoundary::setData(ms);
-            qia = 42.2955;
-            dqia_dt = 16.7615;
-            qow = 143.266;
-            subl = 2.15132e-6;
-            penSW = 0.;
-            snow = 1e-3;
-            rain = 0.;
-            evap = -1e-3; // E-P = 0
-            uwind = 0;
-            vwind = 0.;
+            qiaAccessor.getHostRW() = 42.2955;
+            dqia_dtAccessor.getHostRW() = 16.7615;
+            qowAccessor.getHostRW() = 143.266;
+            sublAccessor.getHostRW() = 2.15132e-6;
+            penSWAccessor.getHostRW() = 0.;
+            snowAccessor.getHostRW() = 1e-3;
+            rainAccessor.getHostRW() = 0.;
+            evapAccessor.getHostRW() = -1e-3; // E-P = 0
+            uwindAccessor.getHostRW() = 0;
+            vwindAccessor.getHostRW() = 0.;
         }
     } atmBdy;
     atmBdy.setData(ModelState().data);
@@ -534,24 +544,24 @@ TEST_CASE("Turn off thermo")
     class PrognosticData : public ModelComponent {
     public:
         PrognosticData()
+            : hiceAccessor(getStore(), RW)
+            , ciceAccessor(getStore(), RW)
+            , hsnowAccessor(getStore(), RW)
         {
-            getStore().registerArray(Shared::H_ICE_DG, &hice, RW);
-            getStore().registerArray(Shared::C_ICE_DG, &cice, RW);
-            getStore().registerArray(Shared::H_SNOW_DG, &hsnow, RW);
         }
         std::string getName() const override { return "PrognosticData"; }
 
         void setData(const ModelState::DataMap&) override
         {
             noLandMask();
-            cice = 0.5;
-            hice = 0.1; // Cell averaged
-            hsnow = 0.01; // Cell averaged
+            ciceAccessor.getHostRW() = 0.5;
+            hiceAccessor.getHostRW() = 0.1; // Cell averaged
+            hsnowAccessor.getHostRW() = 0.01; // Cell averaged
         }
 
-        HField hice;
-        HField cice;
-        HField hsnow;
+        ModelArrayAccessor<Shared::H_ICE_DG, RW> hiceAccessor;
+        ModelArrayAccessor<Shared::C_ICE_DG, RW> ciceAccessor;
+        ModelArrayAccessor<Shared::H_SNOW_DG, RW> hsnowAccessor;
     } proData;
     proData.setData(ModelState().data);
 
@@ -563,28 +573,30 @@ TEST_CASE("Turn off thermo")
         }
         void setData(const ModelState::DataMap& state) override
         {
-            qio = 73.9465;
-            sst = -1.75;
-            sss = 32.;
-            mld = 10.25;
-            u = 0.;
-            v = 0.;
+            qioAccessor.getHostRW() = 73.9465;
+            sstAccessor.getHostRW() = -1.75;
+            sssAccessor.getHostRW() = 32.;
+            mldAccessor.getHostRW() = 10.25;
+            uAccessor.getHostRW() = 0.;
+            vAccessor.getHostRW() = 0.;
         }
         void updateBefore(const TimestepTime& tst) override
         {
             UnescoFreezing uf;
-            cpml = Water::cp * Water::rho * mld;
-            tf = uf(sss[0]);
+            const HField& mld = mldAccessor.getHostRO();
+            cpmlAccessor.getHostRW() = Water::cp * Water::rho * mld;
+            const HField& sss = sssAccessor.getHostRO();
+            tfAccessor.getHostRW() = uf(sss[0]);
         }
         void updateAfter(const TimestepTime& tst) override { }
     } ocnBdy;
     ocnBdy.setData(ModelState().data);
 
-    HField damage(ModelArray::Type::H);
-    HField oldDamage(ModelArray::Type::H);
-    damage = 1;
-    ModelComponent::getStore().registerArray(Shared::DAMAGE, &damage, RW);
-    ModelComponent::getStore().registerArray(Protected::DAMAGE, &oldDamage, RO);
+    ModelArrayAccessor<Shared::DAMAGE, RW> damageAccessor(
+        ModelComponent::getStore(), RW, ModelArray::Type::H);
+    ModelArrayAccessor<Protected::DAMAGE, RW> oldDamageAccessor(
+        ModelComponent::getStore(), RO, ModelArray::Type::H);
+    damageAccessor.getHostRW() = 1;
 
     TimestepTime tst = { TimePoint("2000-001"), Duration("P0-0T0:10:0") };
     NSColumnPhysics ig;
@@ -597,19 +609,23 @@ TEST_CASE("Turn off thermo")
     ocnBdy.updateBefore(tst);
     ig.update(tst);
 
-    ModelArrayRef<Shared::NEW_ICE, RO> newice(ModelComponent::getStore());
-    ModelArrayRef<Shared::H_ICE_DG, RO> hice(ModelComponent::getStore());
-    ModelArrayRef<Shared::C_ICE_DG, RO> cice(ModelComponent::getStore());
-    ModelArrayRef<Shared::H_SNOW_DG, RO> hsnow(ModelComponent::getStore());
+    ModelArrayAccessor<Shared::NEW_ICE, RO> newiceAccessor(ModelComponent::getStore());
+    const HField& newice = newiceAccessor.getHostRO();
+    ModelArrayAccessor<Shared::H_ICE_DG, RO> hiceAccessor(ModelComponent::getStore());
+    const HField& hice = hiceAccessor.getHostRO();
+    ModelArrayAccessor<Shared::C_ICE_DG, RO> ciceAccessor(ModelComponent::getStore());
+    const HField& cice = ciceAccessor.getHostRO();
+    ModelArrayAccessor<Shared::H_SNOW_DG, RO> hsnowAccessor(ModelComponent::getStore());
+    const HField& hsnow = hsnowAccessor.getHostRO();
 
-    double prec = 1e-5;
+    //    FloatType prec = 1e-5;
 
     // Rather than the values from old NextSIM, they should be unchanged from the definition above.
-    REQUIRE(cice[0] == 0.5);
-    REQUIRE((hice[0]) == 0.1);
-    REQUIRE((hsnow[0]) == 0.01);
+    REQUIRE(cice[0] == 0.5_ft);
+    REQUIRE((hice[0]) == 0.1_ft);
+    REQUIRE((hsnow[0]) == 0.01_ft);
 
-    REQUIRE(newice[0] == 0.0);
+    REQUIRE(newice[0] == 0.0_ft);
 }
 
 TEST_SUITE_END();

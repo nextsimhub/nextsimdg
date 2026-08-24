@@ -16,16 +16,14 @@ namespace Nextsim {
  */
 namespace Tools {
 
-    inline constexpr double SQR(double x) { return x * x; }
-
     //! Integrates over a DG Vector
-    template <int DG> double MeanValue(const ParametricMesh& smesh, const DGVector<DG>& phi)
+    template <int DG> FloatType MeanValue(const ParametricMesh& smesh, const DGVector<DG>& phi)
     {
 #define NGP 3
-        double mass = 0;
+        FloatType mass = 0;
         if (smesh.CoordinateSystem == SPHERICAL) {
             for (int i = 0; i < smesh.nelements; ++i) {
-                const Eigen::Matrix<Nextsim::FloatType, 1, NGP * NGP> cos_lat
+                const Eigen::Matrix<FloatType, 1, NGP * NGP> cos_lat
                     = (ParametricTools::getGaussPointsInElement<NGP>(smesh, i).row(1).array())
                           .cos();
                 mass += ((phi.row(i) * PSI<DG, NGP>).array() * cos_lat.array()
@@ -55,7 +53,7 @@ namespace Tools {
 #define S2A(Q) (Q == 1 ? 1 : (Q == 3 ? 3 : (Q == 6 ? 6 : (Q == 8 ? 6 : -1))))
     template <int DGs>
     DGVector<S2A(DGs)> Delta(const ParametricMesh& smesh, const DGVector<DGs>& E11,
-        const DGVector<DGs>& E12, const DGVector<DGs>& E22, const double DeltaMin)
+        const DGVector<DGs>& E12, const DGVector<DGs>& E22, const FloatType DeltaMin)
     {
         DGVector<S2A(DGs)> DELTA(smesh);
 
@@ -131,7 +129,7 @@ namespace Tools {
 
 #pragma omp parallel for
         for (size_t i = 0; i < smesh.nelements; ++i) {
-            Invariant.row(i) = 0.5 * (E11.row(i) + E22.row(i));
+            Invariant.row(i) = 0.5_ft * (E11.row(i) + E22.row(i));
         }
 
         return Invariant;
@@ -146,7 +144,7 @@ namespace Tools {
 #pragma omp parallel for
         for (size_t i = 0; i < smesh.nelements; ++i) {
             Invariant.row(i)
-                = ((0.5 * (E11.row(i) - E22.row(i))).array().pow(2) + E12.row(i).array().pow(2))
+                = ((0.5_ft * (E11.row(i) - E22.row(i))).array().pow(2) + E12.row(i).array().pow(2))
                       .sqrt();
         }
         return Invariant;

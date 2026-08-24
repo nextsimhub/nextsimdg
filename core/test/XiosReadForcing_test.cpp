@@ -98,9 +98,14 @@ MPI_TEST_CASE("TestXiosReadForcing", 2)
     for (int ts = 0; ts <= 4; ts += 2) {
         const TimePoint& time = xiosHandler.getCurrentDate();
 
-        // Read ERA5 forcings from file and check they take the expected values
-        for (const auto& [fieldName, modelarray] :
-            pio->readForcingTimeStatic(era5ForcingFieldNames, time, era5ForcingFilename).data) {
+        // Read ERA5 forcings from file, checking that they contain the expected fields and that
+        // those have the expected values
+        ModelState era5Forcings
+            = pio->readForcingTimeStatic(era5ForcingFieldNames, time, era5ForcingFilename);
+        for (const auto& fieldName : era5ForcingFieldNames) {
+            REQUIRE(era5Forcings.data.count(fieldName) > 0);
+        }
+        for (const auto& [fieldName, modelarray] : era5Forcings.data) {
             for (size_t j = 0; j < ny; ++j) {
                 for (size_t i = 0; i < nx; ++i) {
                     REQUIRE(modelarray(i, j) == doctest::Approx(0.1 * ts));
@@ -108,12 +113,16 @@ MPI_TEST_CASE("TestXiosReadForcing", 2)
             }
         }
 
-        // Read TOPAZ forcings from file and check they take the expected values
+        // Read TOPAZ forcings from file, checking that they contain the expected fields and that
+        // those have the expected values
         // NOTE: Only the first timestep has TOPAZ data
         if (ts == 0) {
-            for (const auto& [fieldName, modelarray] :
-                pio->readForcingTimeStatic(topazForcingFieldNames, time, topazForcingFilename)
-                    .data) {
+            ModelState topazForcings
+                = pio->readForcingTimeStatic(topazForcingFieldNames, time, topazForcingFilename);
+            for (const auto& fieldName : topazForcingFieldNames) {
+                REQUIRE(topazForcings.data.count(fieldName) > 0);
+            }
+            for (const auto& [fieldName, modelarray] : topazForcings.data) {
                 for (size_t j = 0; j < ny; ++j) {
                     for (size_t i = 0; i < nx; ++i) {
                         REQUIRE(modelarray(i, j) == doctest::Approx(ts + 1));

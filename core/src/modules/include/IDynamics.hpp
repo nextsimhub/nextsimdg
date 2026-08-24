@@ -5,6 +5,7 @@
 #ifndef IDYNAMICS_HPP
 #define IDYNAMICS_HPP
 
+#include "include/ModelArrayAccessor.hpp"
 #include "include/ModelComponent.hpp"
 #include "include/Time.hpp"
 #ifdef USE_XIOS
@@ -22,41 +23,38 @@ public:
     {
     }
     IDynamics(bool usesDamageIn)
-        : uice(ModelArray::Type::H)
-        , vice(ModelArray::Type::H)
-        , taux(ModelArray::Type::H)
-        , tauy(ModelArray::Type::H)
-        , shear(ModelArray::Type::H)
-        , divergence(ModelArray::Type::H)
-        , sigmaI(ModelArray::Type::H)
-        , sigmaII(ModelArray::Type::H)
-        , damage(getStore())
-        , uwind(getStore())
-        , vwind(getStore())
-        , uocean(getStore())
-        , vocean(getStore())
-        , ssh(getStore())
+        : uiceAccessor(getStore(), RO, ModelArray::Type::H)
+        , viceAccessor(getStore(), RO, ModelArray::Type::H)
+        , tauxAccessor(getStore(), RO, ModelArray::Type::H)
+        , tauyAccessor(getStore(), RO, ModelArray::Type::H)
+        , shearAccessor(getStore(), RO, ModelArray::Type::H)
+        , divergenceAccessor(getStore(), RO, ModelArray::Type::H)
+        , sigmaIAccessor(getStore(), RO, ModelArray::Type::H)
+        , sigmaIIAccessor(getStore(), RO, ModelArray::Type::H)
+        , damageAccessor(getStore())
+        , uwindAccessor(getStore())
+        , vwindAccessor(getStore())
+        , uoceanAccessor(getStore())
+        , voceanAccessor(getStore())
+        , sshAccessor(getStore())
         , m_usesDamage(usesDamageIn)
-        , hiceDG(getStore())
-        , ciceDG(getStore())
-        , hsnowDG(getStore())
+        , hiceDGAccessor(getStore())
+        , ciceDGAccessor(getStore())
+        , hsnowDGAccessor(getStore())
     {
-        getStore().registerArray(Protected::DIV, &divergence, RO);
-        getStore().registerArray(Protected::ICE_U, &uice, RO);
-        getStore().registerArray(Protected::ICE_V, &vice, RO);
-        getStore().registerArray(Protected::IO_STRESS_X, &taux, RO);
-        getStore().registerArray(Protected::IO_STRESS_Y, &tauy, RO);
-        getStore().registerArray(Protected::SHEAR, &shear, RO);
-        getStore().registerArray(Protected::SIGMAI, &sigmaI, RO);
-        getStore().registerArray(Protected::SIGMAII, &sigmaII, RO);
 
 #ifdef USE_XIOS
         // Set XIOS field types
         Xios& xiosHandler = Xios::getInstance();
-        xiosHandler.setPrognosticFieldType(coordsName, ModelArray::Type::VERTEX);
+
+        // Advective velocities
+        xiosHandler.setPrognosticFieldType(uName, ModelArray::Type::U);
+        xiosHandler.setPrognosticFieldType(vName, ModelArray::Type::V);
+
+        // Advected fields
         xiosHandler.setPrognosticFieldType(hiceName, ModelArray::AdvectionType);
         xiosHandler.setPrognosticFieldType(ciceName, ModelArray::AdvectionType);
-        xiosHandler.setPrognosticFieldType(damageName, ModelArray::AdvectionType);
+        xiosHandler.setPrognosticFieldType(damageName, ModelArray::Type::H);
         xiosHandler.setPrognosticFieldType(hsnowName, ModelArray::AdvectionType);
 #endif
     }
@@ -65,13 +63,13 @@ public:
     ModelState getStatePrognostic() const override
     {
         ModelState state = { {
-                                 { uName, uice },
-                                 { vName, vice },
+                                 { uName, uiceAccessor.getHostRO() },
+                                 { vName, viceAccessor.getHostRO() },
                              },
             getConfiguration() };
 
         if (m_usesDamage) {
-            ModelState::DataMap damageState = { { damageName, damage } };
+            ModelState::DataMap damageState = { { damageName, damageAccessor.getHostRO() } };
             state.merge(damageState);
         }
 
@@ -81,14 +79,14 @@ public:
     ModelState getStateDiagnostic() const override
     {
         ModelState state = { {
-                                 { uIOStressName, taux },
-                                 { vIOStressName, tauy },
-                                 { uName, uice },
-                                 { vName, vice },
-                                 { shearName, shear },
-                                 { divergenceName, divergence },
-                                 { sigmaIName, sigmaI },
-                                 { sigmaIIName, sigmaII },
+                                 { uIOStressName, tauxAccessor.getHostRO() },
+                                 { vIOStressName, tauyAccessor.getHostRO() },
+                                 { uName, uiceAccessor.getHostRO() },
+                                 { vName, viceAccessor.getHostRO() },
+                                 { shearName, shearAccessor.getHostRO() },
+                                 { divergenceName, divergenceAccessor.getHostRO() },
+                                 { sigmaIName, sigmaIAccessor.getHostRO() },
+                                 { sigmaIIName, sigmaIIAccessor.getHostRO() },
                              },
             {} };
         return state.merge(getStatePrognostic());
@@ -97,12 +95,18 @@ public:
     std::string getName() const override { return "IDynamics"; }
     virtual void setData(const ModelState::DataMap& ms) override
     {
-        uice.resize();
-        vice.resize();
-        shear.resize();
-        divergence.resize();
-        sigmaI.resize();
-        sigmaII.resize();
+        HField& uice = uiceAccessor.getHostRW();
+        uice.reinitialize();
+        HField& vice = viceAccessor.getHostRW();
+        vice.reinitialize();
+        HField& shear = shearAccessor.getHostRW();
+        shear.reinitialize();
+        HField& divergence = divergenceAccessor.getHostRW();
+        divergence.reinitialize();
+        HField& sigmaI = sigmaIAccessor.getHostRW();
+        sigmaI.reinitialize();
+        HField& sigmaII = sigmaIIAccessor.getHostRW();
+        sigmaII.reinitialize();
     }
 
     virtual void update(const TimestepTime& tst) = 0;
@@ -112,43 +116,51 @@ public:
      */
     virtual bool usesDamage() const { return m_usesDamage; }
 
-    virtual void advectField(double timestep, ModelArray& field,
-        double lowerLimit = -std::numeric_limits<double>::infinity(),
-        double upperLimit = std::numeric_limits<double>::infinity())
+    virtual void advectField(FloatType timestep, ModelArray& field,
+        FloatType lowerLimit = -std::numeric_limits<FloatType>::infinity(),
+        FloatType upperLimit = std::numeric_limits<FloatType>::infinity())
     {
     }
+
+#ifdef USE_KOKKOS
+    virtual void advectField(FloatType timestep, const DeviceViewMA& field,
+        FloatType lowerLimit = -std::numeric_limits<FloatType>::infinity(),
+        FloatType upperLimit = std::numeric_limits<FloatType>::infinity())
+    {
+    }
+#endif
 
     virtual void prepareAdvection() = 0;
 
 protected:
     // Shared ice velocity arrays
-    HField uice;
-    HField vice;
+    ModelArrayAccessor<Protected::ICE_U, RW> uiceAccessor;
+    ModelArrayAccessor<Protected::ICE_V, RW> viceAccessor;
     // Ice-ocean stress (for the coupler, mostly)
-    HField taux;
-    HField tauy;
+    ModelArrayAccessor<Protected::IO_STRESS_X, RW> tauxAccessor;
+    ModelArrayAccessor<Protected::IO_STRESS_Y, RW> tauyAccessor;
     // Diagnostic outputs of shear, divergence and the stress invariants
-    HField shear;
-    HField divergence;
-    HField sigmaI;
-    HField sigmaII;
+    ModelArrayAccessor<Protected::SHEAR, RW> shearAccessor;
+    ModelArrayAccessor<Protected::DIV, RW> divergenceAccessor;
+    ModelArrayAccessor<Protected::SIGMAI, RW> sigmaIAccessor;
+    ModelArrayAccessor<Protected::SIGMAII, RW> sigmaIIAccessor;
     // References to the DG0 finite volume data arrays
-    ModelArrayRef<Shared::DAMAGE, RW> damage;
+    ModelArrayAccessor<Shared::DAMAGE, RW> damageAccessor;
 
     // References to the forcing velocity arrays
-    ModelArrayRef<Protected::WIND_U> uwind;
-    ModelArrayRef<Protected::WIND_V> vwind;
-    ModelArrayRef<Protected::OCEAN_U> uocean;
-    ModelArrayRef<Protected::OCEAN_V> vocean;
-    ModelArrayRef<Protected::SSH> ssh;
+    ModelArrayAccessor<Protected::WIND_U> uwindAccessor;
+    ModelArrayAccessor<Protected::WIND_V> vwindAccessor;
+    ModelArrayAccessor<Protected::OCEAN_U> uoceanAccessor;
+    ModelArrayAccessor<Protected::OCEAN_V> voceanAccessor;
+    ModelArrayAccessor<Protected::SSH> sshAccessor;
 
     // Does this implementation of the dynamics use damage?
     bool m_usesDamage;
 
     // Store the h_ice and c_ice DG fields here, rather than in the kernel.
-    ModelArrayRef<Shared::H_ICE_DG, RW> hiceDG;
-    ModelArrayRef<Shared::C_ICE_DG, RW> ciceDG;
-    ModelArrayRef<Shared::H_SNOW_DG, RW> hsnowDG;
+    ModelArrayAccessor<Shared::H_ICE_DG, RW> hiceDGAccessor;
+    ModelArrayAccessor<Shared::C_ICE_DG, RW> ciceDGAccessor;
+    ModelArrayAccessor<Shared::H_SNOW_DG, RW> hsnowDGAccessor;
 
     /*
      * Checks and returns if the provided data map is spherical

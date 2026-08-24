@@ -6,15 +6,15 @@
 
 namespace Nextsim {
 
-double FluxConfiguredAtmosphere::qia0 = 305.288;
-double FluxConfiguredAtmosphere::dqia_dt0 = 4.5036;
-double FluxConfiguredAtmosphere::qow0 = 307.546;
-double FluxConfiguredAtmosphere::subl0 = 0;
-double FluxConfiguredAtmosphere::snowfall0 = 0;
-double FluxConfiguredAtmosphere::rain0 = 0;
-double FluxConfiguredAtmosphere::evap0 = 0;
-double FluxConfiguredAtmosphere::u0 = 0;
-double FluxConfiguredAtmosphere::v0 = 0;
+FloatType FluxConfiguredAtmosphere::qia0 = 305.288;
+FloatType FluxConfiguredAtmosphere::dqia_dt0 = 4.5036;
+FloatType FluxConfiguredAtmosphere::qow0 = 307.546;
+FloatType FluxConfiguredAtmosphere::subl0 = 0;
+FloatType FluxConfiguredAtmosphere::snowfall0 = 0;
+FloatType FluxConfiguredAtmosphere::rain0 = 0;
+FloatType FluxConfiguredAtmosphere::evap0 = 0;
+FloatType FluxConfiguredAtmosphere::u0 = 0;
+FloatType FluxConfiguredAtmosphere::v0 = 0;
 
 static const std::string pfx = "FluxConfiguredAtmosphere";
 static const std::string qiaKey = pfx + ".Q_ia";
@@ -94,27 +94,27 @@ ConfigMap FluxConfiguredAtmosphere::getConfiguration() const
 void FluxConfiguredAtmosphere::setData(const ModelState::DataMap& dm)
 {
     IAtmosphereBoundary::setData(dm);
-    qia = qia0;
-    dqia_dt = dqia_dt0;
-    qow = qow0;
-    subl = subl0;
-    snow = snowfall0;
-    rain = rain0;
-    evap = evap0;
-    uwind = u0;
-    vwind = v0;
+    qiaAccessor.getHostRW() = qia0;
+    dqia_dtAccessor.getHostRW() = dqia_dt0;
+    qowAccessor.getHostRW() = qow0;
+    sublAccessor.getHostRW() = subl0;
+    snowAccessor.getHostRW() = snowfall0;
+    rainAccessor.getHostRW() = rain0;
+    evapAccessor.getHostRW() = evap0;
+    uwindAccessor.getHostRW() = u0;
+    vwindAccessor.getHostRW() = v0;
 
     // Not configured here:
-    penSW = 0; // Penetrating shortwave radiation
-    tauXOW = 0; // x(east)-ward open ocean stress, Pa
-    tauYOW = 0; // y(north)-ward open ocean stress, Pa
+    penSWAccessor.getHostRW() = 0; // Penetrating shortwave radiation
+    tauXOWAccessor.getHostRW() = 0; // x(east)-ward open ocean stress, Pa
+    tauYOWAccessor.getHostRW() = 0; // y(north)-ward open ocean stress, Pa
 }
 
 void FluxConfiguredAtmosphere::update(const TimestepTime& tst)
 {
     /* The open water heat flux is reset by the thermodynamics, so that the (slab) ocean doesn't
      * super cool. Therefore, we have to reset it here on every update */
-    qow = qow0;
+    qowAccessor.getHostRW() = qow0;
 }
 
 } /* namespace Nextsim */

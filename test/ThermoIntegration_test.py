@@ -31,9 +31,16 @@ class SingleColumnThermo(unittest.TestCase):
         # Create the config file
         cls.__make_cfg_file()
 
+        # set environment variables
+        env = os.environ.copy()
+        # more than 1 thread slows this test down significantly
+        env["OMP_NUM_THREADS"] = "1"
         # Run the model
         subprocess.run(
-            cls.executable + " --config-file " + cls.config_file, shell=True, check=True
+            cls.executable + " --config-file " + cls.config_file,
+            shell=True,
+            check=True,
+            env=env,
         )
 
         # Load the basic variables
@@ -71,8 +78,10 @@ sss = 35
 sst = -1.89
 
 [nextsim_thermo]
-I_0 = 0.3
 ks = 0.31
+
+[MU71Albedo]
+i0 = 0.3
         """)
 
     @classmethod

@@ -2,7 +2,6 @@
  * @author  Einar Ólason <einar.olason@nersc.no>
  */
 
-#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include <doctest/doctest.h>
 
 #include "include/IDamageHealing.hpp"
@@ -36,23 +35,23 @@ TEST_CASE("Thermodynamic healing")
     class PrognosticData : public ModelComponent {
     public:
         PrognosticData()
+            : ciceAccessor(getStore(), RO)
+            , deltaCiAccessor(getStore(), RO)
+            , damageAccessor(getStore(), RW)
         {
-            getStore().registerArray(Shared::DELTA_CICE, &deltaCi, RO);
-            getStore().registerArray(Shared::C_ICE_DG, &cice, RO);
-            getStore().registerArray(Shared::DAMAGE, &damage, RW);
         }
         std::string getName() const override { return "PrognosticData"; }
 
         void setData(const ModelState::DataMap&) override
         {
             noLandMask();
-            cice = 0.5;
-            deltaCi = 0.0;
+            ciceAccessor.getHostRW() = 0.5;
+            deltaCiAccessor.getHostRW() = 0.0;
         }
 
-        HField cice;
-        HField deltaCi;
-        HField damage;
+        ModelArrayAccessor<Shared::C_ICE_DG, RW> ciceAccessor;
+        ModelArrayAccessor<Shared::DELTA_CICE, RW> deltaCiAccessor;
+        ModelArrayAccessor<Shared::DAMAGE, RW> damageAccessor;
     } iceState;
     iceState.setData(ModelState().data);
 
@@ -62,16 +61,18 @@ TEST_CASE("Thermodynamic healing")
     iHealing->setData(ModelState().data);
 
     TimestepTime tst = { TimePoint("2000-001"), Duration("P0-1T00:00:00") };
-    double prec = 1e-8;
+    FloatType prec = 1e-8;
 
-    iceState.damage = 0.5;
+    // always go through the accessor because their are be updates in between
+    iceState.damageAccessor.getHostRW() = 0.5;
     iHealing->update(tst);
-    REQUIRE(iceState.damage[0] == doctest::Approx(0.55).epsilon(prec));
+    REQUIRE(iceState.damageAccessor.getHostRO()[0] == doctest::Approx(0.55).epsilon(prec));
 
-    iceState.damage = 0.99;
+    iceState.damageAccessor.getHostRW() = 0.99;
     iHealing->update(tst);
-    REQUIRE(iceState.damage[0] <= 1.);
-    REQUIRE(iceState.damage[0] == doctest::Approx(1.).epsilon(prec));
+    const AdvectedField& damage = iceState.damageAccessor.getHostRO();
+    REQUIRE(damage[0] <= 1.);
+    REQUIRE(damage[0] == doctest::Approx(1.).epsilon(prec));
 }
 
 TEST_CASE("New ice formation")
@@ -96,23 +97,23 @@ TEST_CASE("New ice formation")
     class PrognosticData : public ModelComponent {
     public:
         PrognosticData()
+            : ciceAccessor(getStore(), RO)
+            , deltaCiAccessor(getStore(), RO)
+            , damageAccessor(getStore(), RW)
         {
-            getStore().registerArray(Shared::DELTA_CICE, &deltaCi, RO);
-            getStore().registerArray(Shared::C_ICE_DG, &cice, RO);
-            getStore().registerArray(Shared::DAMAGE, &damage, RW);
         }
         std::string getName() const override { return "PrognosticData"; }
 
         void setData(const ModelState::DataMap&) override
         {
             noLandMask();
-            cice = 0.5;
-            deltaCi = 0.1;
+            ciceAccessor.getHostRW() = 0.5;
+            deltaCiAccessor.getHostRW() = 0.1;
         }
 
-        HField cice;
-        HField deltaCi;
-        HField damage;
+        ModelArrayAccessor<Shared::C_ICE_DG, RW> ciceAccessor;
+        ModelArrayAccessor<Shared::DELTA_CICE, RW> deltaCiAccessor;
+        ModelArrayAccessor<Shared::DAMAGE, RW> damageAccessor;
     } iceState;
     iceState.setData(ModelState().data);
 
@@ -120,37 +121,38 @@ TEST_CASE("New ice formation")
     iHealing = std::move(Module::getInstance<IDamageHealing>());
 
     TimestepTime tst = { TimePoint("2000-001"), Duration("P0-1T00:00:00") };
-    double prec = 1e-8;
+    const FloatType prec = std::is_same_v<FloatType, float> ? 1e-4 : 1e-8;
 
-    iceState.cice = 0.6;
-    iceState.deltaCi = 0.3;
-    iceState.damage = 0.;
+    // always go through the accessor because there are updates in between
+    iceState.ciceAccessor.getHostRW() = 0.6;
+    iceState.deltaCiAccessor.getHostRW() = 0.3;
+    iceState.damageAccessor.getHostRW() = 0.;
     iHealing->update(tst);
-    REQUIRE(iceState.damage[0] == doctest::Approx(0.55).epsilon(prec));
+    REQUIRE(iceState.damageAccessor.getHostRO()[0] == doctest::Approx(0.55).epsilon(prec));
 
-    iceState.cice = 0.6;
-    iceState.deltaCi = 0.3;
-    iceState.damage = 0.5;
+    iceState.ciceAccessor.getHostRW() = 0.6;
+    iceState.deltaCiAccessor.getHostRW() = 0.3;
+    iceState.damageAccessor.getHostRW() = 0.5;
     iHealing->update(tst);
-    REQUIRE(iceState.damage[0] == doctest::Approx(0.80).epsilon(prec));
+    REQUIRE(iceState.damageAccessor.getHostRO()[0] == doctest::Approx(0.80).epsilon(prec));
 
-    iceState.cice = 0.5;
-    iceState.deltaCi = 0.1;
-    iceState.damage = 0.5;
+    iceState.ciceAccessor.getHostRW() = 0.5;
+    iceState.deltaCiAccessor.getHostRW() = 0.1;
+    iceState.damageAccessor.getHostRW() = 0.5;
     iHealing->update(tst);
-    REQUIRE(iceState.damage[0] == doctest::Approx(0.65).epsilon(prec));
+    REQUIRE(iceState.damageAccessor.getHostRO()[0] == doctest::Approx(0.65).epsilon(prec));
 
-    iceState.cice = 1.;
-    iceState.deltaCi = 0.1;
-    iceState.damage = 1.;
+    iceState.ciceAccessor.getHostRW() = 1.;
+    iceState.deltaCiAccessor.getHostRW() = 0.1;
+    iceState.damageAccessor.getHostRW() = 1.;
     iHealing->update(tst);
-    REQUIRE(iceState.damage[0] <= 1.);
-    REQUIRE(iceState.damage[0] <= doctest::Approx(1.).epsilon(prec));
+    REQUIRE(iceState.damageAccessor.getHostRO()[0] <= 1.);
+    REQUIRE(iceState.damageAccessor.getHostRO()[0] <= doctest::Approx(1.).epsilon(prec));
 
-    iceState.cice = 0.5;
-    iceState.deltaCi = -0.5;
-    iceState.damage = 0.5;
+    iceState.ciceAccessor.getHostRW() = 0.5;
+    iceState.deltaCiAccessor.getHostRW() = -0.5;
+    iceState.damageAccessor.getHostRW() = 0.5;
     iHealing->update(tst);
-    REQUIRE(iceState.damage[0] == doctest::Approx(0.55).epsilon(prec));
+    REQUIRE(iceState.damageAccessor.getHostRO()[0] == doctest::Approx(0.55).epsilon(prec));
 }
 }

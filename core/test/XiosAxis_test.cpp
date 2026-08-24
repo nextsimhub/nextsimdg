@@ -30,8 +30,8 @@ MPI_TEST_CASE("TestXiosAxis", 3)
 {
     std::stringstream config;
     config << "[model]" << std::endl;
-    config << "start = 2023-03-17T17:11:00Z" << std::endl;
-    config << "stop = 2023-03-17T18:11:00Z" << std::endl;
+    config << "start = 2023-03-17T00:00:00Z" << std::endl;
+    config << "stop = 2023-03-17T00:00:00Z" << std::endl;
     config << "time_step = P0-0T01:00:00" << std::endl;
     config << "partition_file = xios_test_partition_metadata_3.nc" << std::endl;
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));

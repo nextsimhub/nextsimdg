@@ -53,13 +53,13 @@ public:
     enum { CHECKFIELDS_KEY, CHECKFIELDSFAST_KEY };
 
 private:
-    double m_dt;
+    FloatType m_dt;
 
     // Full DG component arrays of thickness and concentration
-    AdvectedField hice;
-    AdvectedField cice;
-    AdvectedField damage;
-    AdvectedField hsnow; // cell averaged snow thickness
+    ModelArrayAccessor<Shared::H_ICE_DG, RW> hiceAccessor;
+    ModelArrayAccessor<Shared::C_ICE_DG, RW> ciceAccessor;
+    ModelArrayAccessor<Shared::DAMAGE, RW> damageAccessor;
+    ModelArrayAccessor<Shared::H_SNOW_DG, RW> hsnowAccessor; // cell averaged snow thickness
 
     IAtmosphereBoundary* pAtmBdy;
     IOceanBoundary* pOcnBdy;

@@ -18,7 +18,7 @@
 
 const std::string testFilesDir = TEST_FILES_DIR;
 const std::string restartFilename
-    = testFilesDir + "/restart_2023-03-17T17:11:00Z-2023-03-17T20:10:59Z.nc";
+    = testFilesDir + "/restart_2023-03-17T00:00:00Z-2023-03-17T02:59:59Z.nc";
 
 static const int DGCOMP = 6;
 static const int DGSTRESSCOMP = 8;
@@ -35,16 +35,12 @@ MPI_TEST_CASE("TestXiosReadRestart", 2)
 {
     std::stringstream config;
     config << "[model]" << std::endl;
-    config << "start = 2023-03-17T17:11:00Z" << std::endl;
-    config << "stop = 2023-03-17T23:11:00Z" << std::endl;
+    config << "start = 2023-03-17T00:00:00Z" << std::endl;
+    config << "stop = 2023-03-17T00:00:00Z" << std::endl;
     config << "time_step = P0-0T01:30:00" << std::endl;
     config << "init_file = " << restartFilename << std::endl;
     config << "restart_period = P0-0T03:00:00" << std::endl;
     config << "partition_file = xios_test_partition_metadata_2.nc" << std::endl;
-    config << "[XiosInput]" << std::endl;
-    config << "field_names = " << maskName << "," << longitudeName << "," << latitudeName << ","
-           << coordsName << "," << gridAzimuthName << "," << ciceName << "," << hiceName << ","
-           << damageName << "," << hsnowName << "," << ticeName << "," << uName << "," << std::endl;
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
 
@@ -74,13 +70,25 @@ MPI_TEST_CASE("TestXiosReadRestart", 2)
     REQUIRE(ModelArray::nComponents(ModelArray::Type::DG) == DGCOMP);
     REQUIRE(ModelArray::size(ModelArray::Dimension::DG) == DGCOMP);
 
-    // Read restarts from file and check they take the expected values
+    // Read restarts from file, checking that the expected fields are included and that they take
+    // the expected values
     // NOTE: The ParametricGrid is created and the XIOS context definition is closed in the call to
     //       StructureFactory::stateFromFile()
     int rank;
     MPI_Comm_rank(test_comm, &rank);
-    float ts = 2; // Corresponds to 2023-03-17T20:10:59Z
+    float ts = 2; // Corresponds to 2023-03-17T02:59:59Z
     ModelState modelstate = StructureFactory::stateFromFile(restartFilename);
+    REQUIRE(modelstate.data.count(maskName) > 0);
+    REQUIRE(modelstate.data.count(longitudeName) > 0);
+    REQUIRE(modelstate.data.count(latitudeName) > 0);
+    REQUIRE(modelstate.data.count(gridAzimuthName) > 0);
+    REQUIRE(modelstate.data.count(coordsName) > 0);
+    REQUIRE(modelstate.data.count(ciceName) > 0);
+    REQUIRE(modelstate.data.count(hiceName) > 0);
+    REQUIRE(modelstate.data.count(damageName) > 0);
+    REQUIRE(modelstate.data.count(hsnowName) > 0);
+    REQUIRE(modelstate.data.count(ticeName) > 0);
+    REQUIRE(modelstate.data.count(shearName) > 0);
     ModelArray& mask = modelstate.data.at(maskName);
     for (size_t j = 0; j < ny; ++j) {
         for (size_t i = 0; i < nx; ++i) {
@@ -106,6 +114,12 @@ MPI_TEST_CASE("TestXiosReadRestart", 2)
                     REQUIRE(modelarray(i, j) == doctest::Approx(0.0));
                 }
             }
+        } else if (fieldName == damageName) {
+            for (size_t j = 0; j < ny; ++j) {
+                for (size_t i = 0; i < nx; ++i) {
+                    REQUIRE(modelarray(i, j) == doctest::Approx(1.0 * ts * (i + nx * j)));
+                }
+            }
         } else if (fieldName == coordsName) {
             for (size_t j = 0; j < ny + 1; ++j) {
                 for (size_t i = 0; i < nx + 1; ++i) {
@@ -120,8 +134,7 @@ MPI_TEST_CASE("TestXiosReadRestart", 2)
                     REQUIRE(modelarray.components({ i, j })[1] == doctest::Approx(expected_y));
                 }
             }
-        } else if (fieldName == ciceName || fieldName == hiceName || fieldName == damageName
-            || fieldName == hsnowName) {
+        } else if (fieldName == ciceName || fieldName == hiceName || fieldName == hsnowName) {
             for (size_t j = 0; j < ny; ++j) {
                 for (size_t i = 0; i < nx; ++i) {
                     for (size_t d = 0; d < DGCOMP; ++d) {
@@ -149,7 +162,7 @@ MPI_TEST_CASE("TestXiosReadRestart", 2)
                     }
                 }
             }
-        } else if (fieldName == uName) {
+        } else if (fieldName == shearName) {
             for (size_t j = 0; j < CGDEGREE * ny + 1; ++j) {
                 for (size_t i = 0; i < CGDEGREE * nx + 1; ++i) {
                     if (rank == 0) {
@@ -172,8 +185,8 @@ MPI_TEST_CASE("TestXiosReadRestart", 2)
 
     // Remove the restart files
     if (rank == 0) {
-        std::filesystem::remove("restart_2023-03-17T17:11:00Z-2023-03-17T20:10:59Z.nc");
-        std::filesystem::remove("restart_2023-03-17T20:11:00Z-2023-03-17T23:10:59Z.nc");
+        std::filesystem::remove("restart_2023-03-17T00:00:00Z-2023-03-17T02:59:59Z.nc");
+        std::filesystem::remove("restart_2023-03-17T03:00:00Z-2023-03-17T05:59:59Z.nc");
     }
 
     xiosHandler.context_finalize();

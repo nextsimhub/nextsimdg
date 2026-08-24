@@ -1,19 +1,22 @@
 /*!
  * @author  Tim Spain <timothy.spain@nersc.no>
+ * @author  Robert Jendersie <robert.jendersie@ovgu.de>
  */
 
 #include "include/HiblerSpread.hpp"
+#include "include/KernelAlternatives.hpp"
+#include "kokkos/include/KokkosTimer.hpp"
 
 #include "include/IceMinima.hpp"
 #include "include/constants.hpp"
 
 namespace Nextsim {
 
-double HiblerSpread::h0 = 0;
-double HiblerSpread::phiM = 0;
+FloatType HiblerSpread::h0 = 0;
+FloatType HiblerSpread::phiM = 0;
 
-static const double h0Default = 0.25;
-static const double phimDefault = 0.5;
+static const FloatType h0Default = 0.25;
+static const FloatType phimDefault = 0.5;
 
 static const std::map<int, std::string> keyMap = {
     { HiblerSpread::H0_KEY, "Hibler.h0" },
@@ -51,75 +54,118 @@ HiblerSpread::HelpMap& HiblerSpread::getHelpRecursive(HelpMap& map, bool getAll)
     return getHelpText(map, getAll);
 }
 
-double HiblerSpread::freeze(const double newIce) { return newIce / h0; }
+/*!
+ * Updates the freezing of open water for the timestep.
+ *
+ * @param tStep The object containing the timestep start and duration times.
+ * @param newIce The positive change in ice thickness this timestep.
+ * @param deltaCFreeze The change in concentration due to freezing.
+ */
+KERNEL_IMPL_FUNCTION FloatType freeze(const FloatType newIce, const FloatType h0)
+{
+    return newIce / h0;
+}
 
-double HiblerSpread::melt(const double deltaHi, const double cice, const double hice)
+/*!
+ * Updates the lateral melting of ice for the timestep.
+ *
+ * @param tStep The object containing the timestep start and duration times.
+ * @param deltaHi The change in ice thickness this timestep.
+ * @param cice The ice concentration.
+ * @param hice The ice-average ice thickness.
+ */
+KERNEL_IMPL_FUNCTION FloatType melt(
+    FloatType deltaHi, FloatType cice, FloatType hice, FloatType phiM)
 {
     /* We only decrease the concentration if the ice is melting, if the ice cover is not 100%, and
      * if there's ice there in the first place. */
     if (deltaHi < 0 && 0 < cice && cice < 1) {
-        const double hiOld = hice / cice - deltaHi;
+        const FloatType hiOld = hice / cice - deltaHi;
         return deltaHi * cice * phiM / hiOld;
     } else {
         return 0.;
     }
 }
 
-void HiblerSpread::newIceFormation(size_t i, const TimestepTime& tst)
+void HiblerSpread::update(const TimestepTime& tstep)
 {
-    // Flux cooling the ocean from open water
-    // TODO Add assimilation fluxes here
-    double coolingFlux = qow[i];
-    // Temperature change of the mixed layer during this timestep
-    double deltaTml = -coolingFlux / mixedLayerBulkHeatCapacity[i] * tst.step;
-    // Initial temperature
-    double t0 = sst[i];
-    // Freezing point temperature
-    double tf0 = tf[i];
-    // Final temperature
-    double t1 = t0 + deltaTml;
+    static KokkosTimer<true> timer("HiblerSpread");
+    timer.start();
 
-    // deal with cooling below the freezing point
-    if (t1 < tf0) {
-        // Heat lost cooling the mixed layer to freezing point
-        double sensibleFlux = (tf0 - t0) / deltaTml * coolingFlux;
-        // Any heat beyond that is latent heat forming new ice
-        double latentFlux = coolingFlux - sensibleFlux;
+    auto execSpace = DefaultExecutionSpace();
+    auto& hsnow = hsnowAccessor.getAutoRW(execSpace);
+    auto& qow = qowAccessor.getAutoRW(execSpace);
+    auto& cice = ciceAccessor.getAutoRW(execSpace);
+    auto& newice = newiceAccessor.getAutoRW(execSpace);
+    auto& hice = hiceAccessor.getAutoRW(execSpace);
+    auto& deltaCIce = deltaCIceAccessor.getAutoRW(execSpace);
+    const auto& mixedLayerBulkHeatCapacity
+        = mixedLayerBulkHeatCapacityAccessor.getAutoRO(execSpace);
+    const auto& deltaHi = deltaHiAccessor.getAutoRO(execSpace);
+    const auto& tf = tfAccessor.getAutoRO(execSpace);
+    const auto& sst = sstAccessor.getAutoRO(execSpace);
 
-        qow[i] = sensibleFlux;
-        newice[i] = latentFlux * tst.step * (1 - cice[i]) / (Ice::Lf * Ice::rho);
-    } else {
-        newice[i] = 0;
-    }
-}
+    // static members can not be captured directly
+    const FloatType h0 = HiblerSpread::h0;
+    const FloatType phiM = HiblerSpread::phiM;
+    const FloatType dt = tstep.step.seconds();
+    const FloatType cMin = IceMinima::c();
+    const FloatType hMin = IceMinima::h();
 
-void HiblerSpread::lateralIceSpread(size_t i, const TimestepTime& tstep)
-{
-    const double deltaCMelt = melt(deltaHi[i], cice[i], hice[i]);
-    const double deltaCFreeze = freeze(newice[i]);
+    overElementsAuto(OVER_ELEMENTS_LAMBDA(const ElementIndex i) {
+        // newIceFormation
+        // Flux cooling the ocean from open water
+        // TODO Add assimilation fluxes here
+        FloatType coolingFlux = qow[i];
+        // Temperature change of the mixed layer during this timestep
+        FloatType deltaTml = -coolingFlux / mixedLayerBulkHeatCapacity[i] * dt;
+        // Initial temperature
+        FloatType t0 = sst[i];
+        // Freezing point temperature
+        FloatType tf0 = tf[i];
+        // Final temperature
+        FloatType t1 = t0 + deltaTml;
 
-    deltaCIce[i] = deltaCFreeze + deltaCMelt;
-    cice[i] = (hice[i] > 0 || newice[i] > 0) ? cice[i] + deltaCIce[i] : 0;
-    if (cice[i] >= IceMinima::c()) {
-        // The updated ice thickness must conserve volume
-        hice[i] += newice[i];
-        if (deltaCIce[i] < 0) {
-            /* Snow is lost if the concentration decreases, and energy is returned to the ocean.
-             * We reduce the snow volume by a "slice" of snow with the dimensions hs * deltaCIce. */
-            const double hs = hsnow[i] / (cice[i] - deltaCIce[i]);
-            qow[i] -= deltaCIce[i] * hs * Water::Lf * Ice::rhoSnow / tstep.step;
-            hsnow[i] += hs * deltaCIce[i];
-        } // else: Snow volume is conserved, so no change to hsnow[i]
-    }
-}
+        // deal with cooling below the freezing point
+        if (t1 < tf0) {
+            // Heat lost cooling the mixed layer to freezing point
+            FloatType sensibleFlux = (tf0 - t0) / deltaTml * coolingFlux;
+            // Any heat beyond that is latent heat forming new ice
+            FloatType latentFlux = coolingFlux - sensibleFlux;
 
-void HiblerSpread::applyLimits(size_t i, const TimestepTime& tstep)
-{
-    if (cice[i] < IceMinima::c() || hice[i] < IceMinima::h()) {
-        qow[i] += Water::Lf * (hice[i] * Ice::rho + hsnow[i] * Ice::rhoSnow) / tstep.step;
-        hice[i] = 0;
-        cice[i] = 0;
-        hsnow[i] = 0;
-    }
+            qow[i] = sensibleFlux;
+            newice[i] = latentFlux * dt * (1 - cice[i]) / (Ice::Lf * Ice::rho);
+        } else {
+            newice[i] = 0;
+        }
+
+        // lateralIceSpread
+        const FloatType deltaCMelt = melt(deltaHi[i], cice[i], hice[i], phiM);
+        const FloatType deltaCFreeze = freeze(newice[i], h0);
+
+        deltaCIce[i] = deltaCFreeze + deltaCMelt;
+        cice[i] = (hice[i] > 0 || newice[i] > 0) ? cice[i] + deltaCIce[i] : 0;
+        if (cice[i] >= cMin) {
+            // The updated ice thickness must conserve volume
+            hice[i] += newice[i];
+            if (deltaCIce[i] < 0) {
+                /* Snow is lost if the concentration decreases, and energy is returned
+                 * to the ocean. We reduce the snow volume by a "slice" of snow with the
+                 * dimensions hs * deltaCIce. */
+                const FloatType hs = hsnow[i] / (cice[i] - deltaCIce[i]);
+                qow[i] -= deltaCIce[i] * hs * Water::Lf * Ice::rhoSnow / dt;
+                hsnow[i] += hs * deltaCIce[i];
+            } // else: Snow volume is conserved, so no change to hsnow[i]
+        }
+
+        // applyLimits
+        if (cice[i] < cMin || hice[i] < hMin) {
+            qow[i] += Water::Lf * (hice[i] * Ice::rho + hsnow[i] * Ice::rhoSnow) / dt;
+            hice[i] = 0;
+            cice[i] = 0;
+            hsnow[i] = 0;
+        }
+    });
+    timer.stop();
 }
 }

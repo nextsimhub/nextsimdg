@@ -36,15 +36,15 @@ MPI_TEST_CASE("TestXiosWriteDiagnostic", 2)
 {
     std::stringstream config;
     config << "[model]" << std::endl;
-    config << "start = 2023-03-17T17:11:00Z" << std::endl;
-    config << "stop = 2023-03-17T23:11:00Z" << std::endl;
+    config << "start = 2023-03-17T00:00:00Z" << std::endl;
+    config << "stop = 2023-03-17T06:00:00Z" << std::endl;
     config << "time_step = P0-0T01:30:00" << std::endl;
     config << "init_file = " << inputFilename << std::endl;
     config << "partition_file = xios_test_partition_metadata_2.nc" << std::endl;
     config << "restart_period = P0-0T03:00:00" << std::endl;
     config << "[XiosDiagnostic]" << std::endl;
     config << "filename = " << diagnosticFilename << std::endl;
-    config << "field_names = " << hsnowName << std::endl;
+    config << "field_names = " << sssName << std::endl;
     config << "period = P0-0T03:00:00" << std::endl;
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
@@ -52,12 +52,12 @@ MPI_TEST_CASE("TestXiosWriteDiagnostic", 2)
     // Create ModelMPI instance based off the test communicator
     auto& modelMPI = ModelMPI::getInstance(test_comm);
 
-    // Create a Model and configure it so that time options are parsed
+    // Create a Model
     Model model;
     model.configureRestarts();
     model.configureTime();
 
-    // Get the Xios singleton instance and check it's initialized
+    // Get the Xios singleton instance
     // NOTE: The singleton is created when Xios::getInstance() is first called. In this test, this
     //       happens when the time sets set by ModelMetadata::setTime(). This occurs in the call to
     //       Model::configureTime() above.
@@ -76,12 +76,23 @@ MPI_TEST_CASE("TestXiosWriteDiagnostic", 2)
     ParaGridIO* pio = new ParaGridIO(grid);
     grid.setIO(pio);
 
-    // Set field type for diagnostics
-    xiosHandler.setDiagnosticFieldType(hsnowName, ModelArray::Type::H);
-
     // Create some fake data to test writing methods
-    HField hsnow(ModelArray::Type::H);
-    hsnow.resize();
+    HField longitude(ModelArray::Type::H);
+    longitude.reinitialize();
+    for (size_t j = 0; j < ny; ++j) {
+        for (size_t i = 0; i < nx; ++i) {
+            longitude(i, j) = i;
+        }
+    }
+    HField latitude(ModelArray::Type::H);
+    latitude.reinitialize();
+    for (size_t j = 0; j < ny; ++j) {
+        for (size_t i = 0; i < nx; ++i) {
+            latitude(i, j) = j;
+        }
+    }
+    HField sss(ModelArray::Type::H);
+    sss.reinitialize();
 
     // Check files with the expected names don't exist yet
     REQUIRE_FALSE(std::filesystem::exists("diagnostic*.nc"));
@@ -99,13 +110,15 @@ MPI_TEST_CASE("TestXiosWriteDiagnostic", 2)
         // Update diagnostics
         for (size_t j = 0; j < ny; ++j) {
             for (size_t i = 0; i < nx; ++i) {
-                hsnow(i, j) = 0.1 * ts;
+                sss(i, j) = 0.1 * ts;
             }
         }
 
         // Set up ModelStates for diagnostics and write out
         ModelState diagnostics = { {
-                                       { hsnowName, hsnow },
+                                       { longitudeName, longitude },
+                                       { latitudeName, latitude },
+                                       { sssName, sss },
                                    },
             {} };
         pio->writeDiagnosticTime(diagnostics, diagnosticFilename);
@@ -116,10 +129,9 @@ MPI_TEST_CASE("TestXiosWriteDiagnostic", 2)
     }
 
     // Check the files have indeed been created
-    // NOTE: Don't remove them because their contents are checked in
-    // XiosReadxios_test_diagnostic_test
-    REQUIRE(std::filesystem::exists("diagnostic_2023-03-17T17:11:00Z-2023-03-17T20:10:59Z.nc"));
-    REQUIRE(std::filesystem::exists("diagnostic_2023-03-17T20:11:00Z-2023-03-17T23:10:59Z.nc"));
+    // NOTE: Don't remove them because their contents are checked in XiosReadDiagnostic_test
+    REQUIRE(std::filesystem::exists("diagnostic_2023-03-17T00:00:00Z-2023-03-17T02:59:59Z.nc"));
+    REQUIRE(std::filesystem::exists("diagnostic_2023-03-17T03:00:00Z-2023-03-17T05:59:59Z.nc"));
 
     xiosHandler.context_finalize();
     Finalizer::finalize();

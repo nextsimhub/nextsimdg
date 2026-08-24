@@ -7,7 +7,6 @@
 
 #include "include/FieldAdvection.hpp"
 #include "include/Finalizer.hpp"
-#include "include/ModelArrayRef.hpp"
 #include "include/NextsimModule.hpp"
 #include "include/gridNames.hpp"
 
@@ -23,19 +22,15 @@ static constexpr bool checkFieldsFastDefault = true;
 
 PrognosticData::PrognosticData()
     : m_dt(1)
-    , hice(ModelArray::AdvectionType, { 0, 50 })
-    , cice(ModelArray::AdvectionType, { 0, 1 })
-    , damage(ModelArray::AdvectionType, { 0, 1 })
-    , hsnow(ModelArray::AdvectionType, { 0, 10 })
+    , hiceAccessor(getStore(), RW, ModelArray::AdvectionType, std::pair(0.0, 50.0))
+    , ciceAccessor(getStore(), RW, ModelArray::AdvectionType, std::pair(0.0, 1.0))
+    , damageAccessor(getStore(), RW, ModelArray::AdvectionType, std::pair(0.0, 1.0))
+    , hsnowAccessor(getStore(), RW, ModelArray::AdvectionType, std::pair(0.0, 10.0))
     , pAtmBdy(nullptr)
     , pOcnBdy(nullptr)
     , pDynamics(nullptr)
     , pColumnPhysics(nullptr)
 {
-    getStore().registerArray(Shared::DAMAGE, &damage, RW);
-    getStore().registerArray(Shared::H_ICE_DG, &hice, RW);
-    getStore().registerArray(Shared::C_ICE_DG, &cice, RW);
-    getStore().registerArray(Shared::H_SNOW_DG, &hsnow, RW);
 }
 
 void PrognosticData::configure()
@@ -61,13 +56,13 @@ void PrognosticData::configure()
     checkFast
         = Configured::getConfiguration(keyMap.at(CHECKFIELDSFAST_KEY), checkFieldsFastDefault);
     if (checkAll()) {
-        for (const auto& field : getStore().getAllData()) {
+        for (const auto& field : ModelArrayAccessorBase<RO>::getAll(getStore())) {
             addChecks({ { field.first, field.second } });
         }
     } else if (checkFast) {
         addChecks({
-            { "thickness", &hice },
-            { "concentration", &cice },
+            { "thickness", hiceAccessor },
+            { "concentration", ciceAccessor },
         });
     }
 }
@@ -84,6 +79,10 @@ void copyMeanComponent(const ModelArray& source, ModelArray& sink)
 
 void PrognosticData::setData(const ModelState::DataMap& ms)
 {
+    AdvectedField& hice = hiceAccessor.getHostRW();
+    AdvectedField& cice = ciceAccessor.getHostRW();
+    AdvectedField& hsnow = hsnowAccessor.getHostRW();
+    AdvectedField& damage = damageAccessor.getHostRW();
 
     if (ms.count(maskName)) {
         setOceanMask(ms.at(maskName));
@@ -156,9 +155,9 @@ ModelState PrognosticData::getStatePrognostic() const
 {
     ModelState state = { {
                              { maskName, ModelArray(oceanMask()) }, // make a copy
-                             { hiceName, hice },
-                             { ciceName, cice },
-                             { hsnowName, hsnow },
+                             { hiceName, hiceAccessor.getHostRO() },
+                             { ciceName, ciceAccessor.getHostRO() },
+                             { hsnowName, hsnowAccessor.getHostRO() },
                          },
         ModelComponent::getConfiguration() };
 
@@ -173,16 +172,15 @@ ModelState PrognosticData::getStatePrognostic() const
 
 PrognosticData::HelpMap& PrognosticData::getHelpText(HelpMap& map, bool getAll)
 {
-    map["debug"] = {
-        { checkFieldsKey, ConfigType::BOOLEAN, { "true", "false" },
-            ConfigurationHelp::toString(checkFieldsDefault), "",
-            "Set to true to check if all variables in the ModelArrayReferenceStore fall within a "
-            "reasonable physical range." },
-        { checkFieldsFastKey, ConfigType::BOOLEAN, { "true", "false" },
-            ConfigurationHelp::toString(checkFieldsFastDefault), "",
-            "Set to true to check if thickness, concentration, and velocities fall within a "
-            "reasonable physical range." }
-    };
+    map["debug"]
+        = { { checkFieldsKey, ConfigType::BOOLEAN, { "true", "false" },
+                ConfigurationHelp::toString(checkFieldsDefault), "",
+                "Set to true to check if all variables in the ModelArrayStore fall within a "
+                "reasonable physical range." },
+              { checkFieldsFastKey, ConfigType::BOOLEAN, { "true", "false" },
+                  ConfigurationHelp::toString(checkFieldsFastDefault), "",
+                  "Set to true to check if thickness, concentration, and velocities fall within a "
+                  "reasonable physical range." } };
 
     return map;
 }

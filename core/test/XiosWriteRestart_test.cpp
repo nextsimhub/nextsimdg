@@ -36,36 +36,39 @@ MPI_TEST_CASE("TestXiosWriteRestart", 2)
 {
     std::stringstream config;
     config << "[model]" << std::endl;
-    config << "start = 2023-03-17T17:11:00Z" << std::endl;
-    config << "stop = 2023-03-17T23:11:00Z" << std::endl;
+    config << "start = 2023-03-17T00:00:00Z" << std::endl;
+    config << "stop = 2023-03-17T00:00:00Z" << std::endl;
     config << "time_step = P0-0T01:30:00" << std::endl;
     config << "init_file = " << inputFilename << std::endl;
     config << "restart_file = " << outputFilename << std::endl;
     config << "partition_file = xios_test_partition_metadata_2.nc" << std::endl;
     config << "restart_period = P0-0T03:00:00" << std::endl;
-    config << "[XiosInput]" << std::endl;
-    config << "field_names = " << maskName << "," << longitudeName << "," << latitudeName << ","
-           << coordsName << "," << gridAzimuthName << "," << ciceName << "," << hiceName << ","
-           << damageName << "," << hsnowName << "," << ticeName << "," << uName << "," << std::endl;
-    config << "[XiosOutput]" << std::endl;
-    config << "field_names = " << maskName << "," << longitudeName << "," << latitudeName << ","
-           << coordsName << "," << gridAzimuthName << "," << ciceName << "," << hiceName << ","
-           << damageName << "," << hsnowName << "," << ticeName << "," << uName << "," << std::endl;
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
 
     // Create ModelMPI instance based off the test communicator
     auto& modelMPI = ModelMPI::getInstance(test_comm);
 
-    // Create a Model and configure it so that time options are parsed
+    // Create a Model
     Model model;
-    model.configure();
+    model.configureRestarts();
+    model.configureTime();
 
-    // Get the Xios singleton instance and check it's initialized
+    // Get the Xios singleton instance
     // NOTE: The singleton is created when Xios::getInstance() is first called. In this test, this
     //       happens when the time sets set by ModelMetadata::setTime(). This occurs in the call to
     //       Model::configureTime() above.
     Xios& xiosHandler = Xios::getInstance();
+
+    // Custom XIOS configuration to ensure the unit test covers all discretisation types
+    // NOTE: This needs to happen after Model::configureTime() but before the rest of
+    //       Model::configure() so is placed here. Doing this is a non-standard approach purely for
+    //       testing purposes.
+    xiosHandler.setPrognosticFieldType(ticeName, ModelArray::Type::DGSTRESS);
+    xiosHandler.setPrognosticFieldType(shearName, ModelArray::Type::CG);
+
+    // Continue configuration
+    model.configure();
 
     // Set ModelArray dimensions
     const size_t nx = ModelArray::size(ModelArray::Dimension::X);
@@ -76,28 +79,24 @@ MPI_TEST_CASE("TestXiosWriteRestart", 2)
     // The ParametricGrid structure is required by XIOS
     Module::setImplementation<IStructure>("Nextsim::ParametricGrid");
 
-    // Set field types for restarts
-    xiosHandler.setPrognosticFieldType(ticeName, ModelArray::Type::DGSTRESS);
-    xiosHandler.setPrognosticFieldType(uName, ModelArray::Type::CG);
-
     // Create some fake data to test writing methods
     HField longitude(ModelArray::Type::H);
-    longitude.resize();
+    longitude.reinitialize();
     for (size_t j = 0; j < ny; ++j) {
         for (size_t i = 0; i < nx; ++i) {
             longitude(i, j) = i;
         }
     }
     HField latitude(ModelArray::Type::H);
-    latitude.resize();
+    latitude.reinitialize();
     for (size_t j = 0; j < ny; ++j) {
         for (size_t i = 0; i < nx; ++i) {
             latitude(i, j) = j;
         }
     }
     HField grid_azimuth(ModelArray::Type::H);
-    grid_azimuth.resize();
-    grid_azimuth = 0;
+    grid_azimuth.reinitialize();
+    grid_azimuth = 0.0;
 
     /*
      * Mask definition, where 0 indicates land and 1 indicates ocean:
@@ -112,26 +111,26 @@ MPI_TEST_CASE("TestXiosWriteRestart", 2)
      * That is, mask is zero when i = 0 and j = 0 and one otherwise.
      */
     HField mask(ModelArray::Type::H);
-    mask.resize();
+    mask.reinitialize();
     for (size_t j = 0; j < ny; ++j) {
         for (size_t i = 0; i < nx; ++i) {
             mask(i, j) = (i == 0 && j == 0 ? 0.0 : 1.0);
         }
     }
     DGField cice(ModelArray::Type::DG);
-    cice.resize();
+    cice.reinitialize();
     DGField hice(ModelArray::Type::DG);
-    hice.resize();
-    DGField damage(ModelArray::Type::DG);
-    damage.resize();
+    hice.reinitialize();
+    HField damage(ModelArray::Type::H);
+    damage.reinitialize();
     DGField hsnow(ModelArray::Type::DG);
-    hsnow.resize();
+    hsnow.reinitialize();
     VertexField coords(ModelArray::Type::VERTEX);
-    coords.resize();
+    coords.reinitialize();
     DGSField tice(ModelArray::Type::DGSTRESS);
-    tice.resize();
-    CGField uice(ModelArray::Type::CG);
-    uice.resize();
+    tice.reinitialize();
+    CGField shear(ModelArray::Type::CG);
+    shear.reinitialize();
 
     // Check files with the expected names don't exist yet
     REQUIRE_FALSE(std::filesystem::exists("restart*.nc"));
@@ -146,6 +145,13 @@ MPI_TEST_CASE("TestXiosWriteRestart", 2)
     MPI_Comm_rank(test_comm, &rank);
     for (int ts = 0; ts <= 4; ts++) {
 
+        // Update HField restarts
+        for (size_t j = 0; j < ny; ++j) {
+            for (size_t i = 0; i < nx; ++i) {
+                damage(i, j) = 1.0 * ts * (i + nx * j);
+            }
+        }
+
         // Update DGField restarts
         // NOTE: NaN values for mask when i = 0 and j = 0
         for (size_t j = 0; j < ny; ++j) {
@@ -155,7 +161,6 @@ MPI_TEST_CASE("TestXiosWriteRestart", 2)
                         = (i == 0 && j == 0) ? NAN : 1.0 * ts * (d + DGCOMP * (i + nx * j));
                     cice.components({ i, j })[d] = value;
                     hice.components({ i, j })[d] = value;
-                    damage.components({ i, j })[d] = value;
                     hsnow.components({ i, j })[d] = value;
                 }
             }
@@ -220,7 +225,7 @@ MPI_TEST_CASE("TestXiosWriteRestart", 2)
                 } else {
                     value = (i == 1 && j == 1) ? NAN : 1.0 * ts * ((i + 5) * (j + 1));
                 }
-                uice(i, j) = value;
+                shear(i, j) = value;
             }
         }
 
@@ -236,7 +241,7 @@ MPI_TEST_CASE("TestXiosWriteRestart", 2)
                                     { hsnowName, hsnow },
                                     { coordsName, coords },
                                     { ticeName, tice },
-                                    { uName, uice },
+                                    { shearName, shear },
                                 },
             {} };
         StructureFactory::fileFromState(restarts, outputFilename, true);
@@ -248,8 +253,8 @@ MPI_TEST_CASE("TestXiosWriteRestart", 2)
 
     // Check the files have indeed been created
     // NOTE: Don't remove them because their contents are checked in XiosReadRestart_test
-    REQUIRE(std::filesystem::exists("restart_2023-03-17T17:11:00Z-2023-03-17T20:10:59Z.nc"));
-    REQUIRE(std::filesystem::exists("restart_2023-03-17T20:11:00Z-2023-03-17T23:10:59Z.nc"));
+    REQUIRE(std::filesystem::exists("restart_2023-03-17T00:00:00Z-2023-03-17T02:59:59Z.nc"));
+    REQUIRE(std::filesystem::exists("restart_2023-03-17T03:00:00Z-2023-03-17T05:59:59Z.nc"));
 
     xiosHandler.context_finalize();
     Finalizer::finalize();

@@ -64,18 +64,18 @@ public:
 
                 auto Uc = v(ii, 0);
                 // solution values in verticies
-                std::array<double, 4> U = { v(ii, 0), v(ii, 0), v(ii, 0), v(ii, 0) };
-                U[0] += -0.5 * v(ii, 1);
-                U[1] += 0.5 * v(ii, 1);
-                U[2] += 0.5 * v(ii, 1);
-                U[3] += -0.5 * v(ii, 1);
-                U[0] += -0.5 * v(ii, 2);
-                U[1] += -0.5 * v(ii, 2);
-                U[2] += 0.5 * v(ii, 2);
-                U[3] += 0.5 * v(ii, 2);
+                std::array<FloatType, 4> U = { v(ii, 0), v(ii, 0), v(ii, 0), v(ii, 0) };
+                U[0] += -0.5_ft * v(ii, 1);
+                U[1] += 0.5_ft * v(ii, 1);
+                U[2] += 0.5_ft * v(ii, 1);
+                U[3] += -0.5_ft * v(ii, 1);
+                U[0] += -0.5_ft * v(ii, 2);
+                U[1] += -0.5_ft * v(ii, 2);
+                U[2] += 0.5_ft * v(ii, 2);
+                U[3] += 0.5_ft * v(ii, 2);
 
                 // max and min bounds for verticies
-                std::array<double, 4> Umin, Umax;
+                std::array<FloatType, 4> Umin, Umax;
 
                 // loop over verticies taking all elements that contain vertex
                 // bottom left, bottom right, top right, top left
@@ -93,14 +93,13 @@ public:
                 }
 
                 // compute correction factor alpha
-                double alpha_e(1.0);
+                FloatType alpha_e(1.0);
                 for (j = 0; j < 4; j++) {
                     if (std::abs(U[j] - Uc) < 1e-10)
                         alpha_e = std::min(alpha_e, 1.0);
                     else if (U[j] > Uc)
-                        alpha_e = std::min(alpha_e, std::min(1.0, (Umax[j] - Uc) / (U[j] - Uc)));
-                    else
-                        alpha_e = std::min(alpha_e, std::min(1.0, (Umin[j] - Uc) / (U[j] - Uc)));
+                        alpha_e = std::min(alpha_e, std::min(1.0_ft, (Umax[j] - Uc) / (U[j] -
+Uc))); else alpha_e = std::min(alpha_e, std::min(1.0_ft, (Umin[j] - Uc) / (U[j] - Uc)));
                 }
                 alpha(ii, 0) = alpha_e;
             }
@@ -124,38 +123,38 @@ public:
 
                 // solution values in verticies
                 // Kuzmin2011 eqn 23
-                std::array<double, 4> U = { v(ii, 0), v(ii, 0), v(ii, 0), v(ii, 0) };
-                U[0] += -0.5 * v(ii, 1);
-                U[1] += 0.5 * v(ii, 1);
-                U[2] += 0.5 * v(ii, 1);
-                U[3] += -0.5 * v(ii, 1);
-                U[0] += -0.5 * v(ii, 2);
-                U[1] += -0.5 * v(ii, 2);
-                U[2] += 0.5 * v(ii, 2);
-                U[3] += 0.5 * v(ii, 2);
+                std::array<FloatType, 4> U = { v(ii, 0), v(ii, 0), v(ii, 0), v(ii, 0) };
+                U[0] += -0.5_ft * v(ii, 1);
+                U[1] += 0.5_ft * v(ii, 1);
+                U[2] += 0.5_ft * v(ii, 1);
+                U[3] += -0.5_ft * v(ii, 1);
+                U[0] += -0.5_ft * v(ii, 2);
+                U[1] += -0.5_ft * v(ii, 2);
+                U[2] += 0.5_ft * v(ii, 2);
+                U[3] += 0.5_ft * v(ii, 2);
 
                 // Kuzmin2011 eqns 21 and 22
-                std::array<double, 4> Ux = { v(ii, 1), v(ii, 1), v(ii, 1), v(ii, 1) };
-                Ux[0] += -0.5 * v(ii, 3);
-                Ux[1] += 0.5 * v(ii, 3);
-                Ux[2] += 0.5 * v(ii, 3);
-                Ux[3] += -0.5 * v(ii, 3);
-                Ux[0] += -0.5 * v(ii, 5);
-                Ux[1] += -0.5 * v(ii, 5);
-                Ux[2] += 0.5 * v(ii, 5);
-                Ux[3] += 0.5 * v(ii, 5);
-                std::array<double, 4> Uy = { v(ii, 2), v(ii, 2), v(ii, 2), v(ii, 2) };
-                Uy[0] += -0.5 * v(ii, 5);
-                Uy[1] += 0.5 * v(ii, 5);
-                Uy[2] += 0.5 * v(ii, 5);
-                Uy[3] += -0.5 * v(ii, 5);
-                Uy[0] += -0.5 * v(ii, 4);
-                Uy[1] += -0.5 * v(ii, 4);
-                Uy[2] += 0.5 * v(ii, 4);
-                Uy[3] += 0.5 * v(ii, 4);
+                std::array<FloatType, 4> Ux = { v(ii, 1), v(ii, 1), v(ii, 1), v(ii, 1) };
+                Ux[0] += -0.5_ft * v(ii, 3);
+                Ux[1] += 0.5_ft * v(ii, 3);
+                Ux[2] += 0.5_ft * v(ii, 3);
+                Ux[3] += -0.5_ft * v(ii, 3);
+                Ux[0] += -0.5_ft * v(ii, 5);
+                Ux[1] += -0.5_ft * v(ii, 5);
+                Ux[2] += 0.5_ft * v(ii, 5);
+                Ux[3] += 0.5_ft * v(ii, 5);
+                std::array<FloatType, 4> Uy = { v(ii, 2), v(ii, 2), v(ii, 2), v(ii, 2) };
+                Uy[0] += -0.5_ft * v(ii, 5);
+                Uy[1] += 0.5_ft * v(ii, 5);
+                Uy[2] += 0.5_ft * v(ii, 5);
+                Uy[3] += -0.5_ft * v(ii, 5);
+                Uy[0] += -0.5_ft * v(ii, 4);
+                Uy[1] += -0.5_ft * v(ii, 4);
+                Uy[2] += 0.5_ft * v(ii, 4);
+                Uy[3] += 0.5_ft * v(ii, 4);
 
                 // max and min bounds for verticies
-                std::array<double, 4> Umin, Umax, Uminx, Umaxx, Uminy, Umaxy;
+                std::array<FloatType, 4> Umin, Umax, Uminx, Umaxx, Uminy, Umaxy;
 
                 // loop over verticies taking all elements that contain vertex
                 // bottom left, bottom right, top right, top left
@@ -184,39 +183,34 @@ public:
                 }
 
                 // compute correction factor alpha
-                double alpha2x(1.0);
+                FloatType alpha2x(1.0);
                 for (j = 0; j < 4; j++) {
                     if (std::abs(Ux[j] - Ucx) < 1e-10)
                         alpha2x = std::min(alpha2x, 1.0);
                     else if (Ux[j] > Ucx)
                         alpha2x
-                            = std::min(alpha2x, std::min(1.0, (Umaxx[j] - Ucx) / (Ux[j] - Ucx)));
-                    else
-                        alpha2x
-                            = std::min(alpha2x, std::min(1.0, (Uminx[j] - Ucx) / (Ux[j] - Ucx)));
+                            = std::min(alpha2x, std::min(1.0_ft, (Umaxx[j] - Ucx) / (Ux[j] -
+Ucx))); else alpha2x = std::min(alpha2x, std::min(1.0_ft, (Uminx[j] - Ucx) / (Ux[j] - Ucx)));
                 }
-                double alpha2y(1.0);
+                FloatType alpha2y(1.0);
                 for (j = 0; j < 4; j++) {
                     if (std::abs(Uy[j] - Ucy) < 1e-10)
                         alpha2y = std::min(alpha2y, 1.0);
                     else if (Uy[j] > Ucy)
                         alpha2y
-                            = std::min(alpha2y, std::min(1.0, (Umaxy[j] - Ucy) / (Uy[j] - Ucy)));
-                    else
-                        alpha2y
-                            = std::min(alpha2y, std::min(1.0, (Uminy[j] - Ucy) / (Uy[j] - Ucy)));
+                            = std::min(alpha2y, std::min(1.0_ft, (Umaxy[j] - Ucy) / (Uy[j] -
+Ucy))); else alpha2y = std::min(alpha2y, std::min(1.0_ft, (Uminy[j] - Ucy) / (Uy[j] - Ucy)));
                 }
 
                 alpha(ii, 1) = std::min(alpha2x, alpha2y);
 
-                double alpha_e(1.0);
+                FloatType alpha_e(1.0);
                 for (j = 0; j < 4; j++) {
                     if (std::abs(U[j] - Uc) < 1e-10)
                         alpha_e = std::min(alpha_e, 1.0);
                     else if (U[j] > Uc)
-                        alpha_e = std::min(alpha_e, std::min(1.0, (Umax[j] - Uc) / (U[j] - Uc)));
-                    else
-                        alpha_e = std::min(alpha_e, std::min(1.0, (Umin[j] - Uc) / (U[j] - Uc)));
+                        alpha_e = std::min(alpha_e, std::min(1.0_ft, (Umax[j] - Uc) / (U[j] -
+Uc))); else alpha_e = std::min(alpha_e, std::min(1.0_ft, (Umin[j] - Uc) / (U[j] - Uc)));
                 }
 
                 alpha(ii, 0) = std::max(alpha_e, alpha(ii, 1));

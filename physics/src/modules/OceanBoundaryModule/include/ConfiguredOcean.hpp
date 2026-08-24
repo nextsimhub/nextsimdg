@@ -42,15 +42,18 @@ public:
     void updateAfter(const TimestepTime& tst) override;
 
 private:
-    static double sst0;
-    static double sss0;
-    static double mld0;
-    static double u0;
-    static double v0;
+    static FloatType sst0;
+    static FloatType sss0;
+    static FloatType mld0;
+    static FloatType u0;
+    static FloatType v0;
 
     // External SS* fields to feed the slab ocean
-    HField sstExt;
-    HField sssExt;
+    ModelArrayAccessor<Protected::EXT_SST, RW> sstExtAccessor;
+    ModelArrayAccessor<Protected::EXT_SSS, RW> sssExtAccessor;
+
+    ModelArrayAccessor<Protected::SLAB_SST, RO> sstSlabAccessor;
+    ModelArrayAccessor<Protected::SLAB_SSS, RO> sssSlabAccessor;
 
     // We need a slab ocean in this implementation
     SlabOcean slabOcean;

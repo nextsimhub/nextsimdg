@@ -73,7 +73,7 @@ void verifyTestData(T& data, size_t localNx, size_t localNy, size_t offsetX, siz
                 size_t globalI = i + offsetX;
                 size_t globalJ = j + offsetY;
 
-                double expectedValue;
+                FloatType expectedValue;
                 if (globalI < nCells || globalI >= globalNx || globalJ < nCells
                     || globalJ >= globalNy) {
                     // value at boundaries should be zero in the closed-boundary (CB) case
@@ -83,7 +83,7 @@ void verifyTestData(T& data, size_t localNx, size_t localNy, size_t offsetX, siz
                     expectedValue = (d + 1) * 100 + (globalI - nCells) * 10 + (globalJ - nCells);
                 }
 
-                double actualValue = data(d + i * numComps + j * localNx * numComps);
+                FloatType actualValue = data(d + i * numComps + j * localNx * numComps);
 
                 REQUIRE(actualValue == expectedValue);
             }
@@ -118,7 +118,7 @@ MPI_TEST_CASE("test halo exchange on 3 proc grid", 3)
 
     // create example 2D field on each process
     auto testData = ModelArray::HField();
-    testData.resize();
+    testData.reinitialize();
     testData = 0.;
 
     // create halo for testData model array
@@ -133,7 +133,7 @@ MPI_TEST_CASE("test halo exchange on 3 proc grid", 3)
     verifyTestData(testData.getDataRef(), localNx, localNy, offsetX, offsetY, nx, ny);
 
     VertexField coordinates = ModelArray::VertexField();
-    coordinates.resize();
+    coordinates.reinitialize();
     coordinates = 0.;
 
     Halo haloVertex(coordinates);
@@ -164,7 +164,7 @@ MPI_TEST_CASE("DGField", 3)
 
     // create example 2D field on each process
     auto testData = ModelArray::DGField();
-    testData.resize();
+    testData.reinitialize();
     testData = 0.;
 
     // create halo for testData model array

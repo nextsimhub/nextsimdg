@@ -58,23 +58,31 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
         const ModelArray::Type& type = xiosHandler.getFieldType(fieldId);
         if (type == ModelArray::Type::H) {
             HField field(ModelArray::Type::H);
-            field.resize();
+            field.reinitialize();
+            state.merge(ModelState { { { fieldId, field } }, {} });
+        } else if (type == ModelArray::Type::U) {
+            UField field(ModelArray::Type::U);
+            field.reinitialize();
+            state.merge(ModelState { { { fieldId, field } }, {} });
+        } else if (type == ModelArray::Type::V) {
+            VField field(ModelArray::Type::V);
+            field.reinitialize();
             state.merge(ModelState { { { fieldId, field } }, {} });
         } else if (type == ModelArray::Type::VERTEX) {
             VertexField field(ModelArray::Type::VERTEX);
-            field.resize();
+            field.reinitialize();
             state.merge(ModelState { { { fieldId, field } }, {} });
         } else if (type == ModelArray::Type::DG) {
             DGField field(ModelArray::Type::DG);
-            field.resize();
+            field.reinitialize();
             state.merge(ModelState { { { fieldId, field } }, {} });
         } else if (type == ModelArray::Type::DGSTRESS) {
             DGSField field(ModelArray::Type::DGSTRESS);
-            field.resize();
+            field.reinitialize();
             state.merge(ModelState { { { fieldId, field } }, {} });
         } else if (type == ModelArray::Type::CG) {
             CGField field(ModelArray::Type::CG);
-            field.resize();
+            field.reinitialize();
             state.merge(ModelState { { { fieldId, field } }, {} });
         } else {
             throw std::runtime_error("ParaGridIO::getModelState: field type for field " + fieldId
@@ -133,7 +141,7 @@ ModelState ParaGridIO::readForcingTimeStatic(
         // grid as ice thickness
         if (type == ModelArray::Type::H) {
             HField field(ModelArray::Type::H);
-            field.resize();
+            field.reinitialize();
             state.merge(ModelState { { { fieldId, field } }, {} });
         } else {
             throw std::runtime_error("ParaGridIO::readForcingTimeStatic: field type for field "

@@ -63,7 +63,7 @@ TEST_CASE("Higher dimensional indexing")
     }
     REQUIRE(check4d(4, 7, 2, 5) == 0);
 
-    double* data = new double[arrayLen];
+    FloatType* data = new FloatType[arrayLen];
     for (size_t i = 0; i < arrayLen; ++i) {
         data[i] = i;
     }
@@ -78,7 +78,7 @@ TEST_CASE("Higher dimensional indexing")
     }
     REQUIRE(check4d(4, 7, 2, 5) == 0);
 
-    std::vector<double> vData = std::vector<double>(arrayLen);
+    std::vector<FloatType> vData = std::vector<FloatType>(arrayLen);
     for (size_t i = 0; i < arrayLen; ++i) {
         vData[i] = i;
     }
@@ -180,8 +180,8 @@ TEST_CASE("Arithmetic tests")
     REQUIRE(negative[0] == -3);
     REQUIRE(negative[1] == 5);
 
-    double three = 3;
-    double four = 4;
+    FloatType three = 3;
+    FloatType four = 4;
     sum = lhs + three;
     REQUIRE(sum[0] == 12);
     REQUIRE(sum[1] == 13);
@@ -202,10 +202,10 @@ TEST_CASE("Arithmetic tests")
     REQUIRE(product[1] == -20);
     quotient = lhs / three;
     REQUIRE(quotient[0] == 3);
-    REQUIRE(quotient[1] == (10. / 3.));
+    REQUIRE(quotient[1] == (FloatType(10) / FloatType(3)));
     quotient = four / rhs;
-    REQUIRE(quotient[0] == (4. / 3.));
-    REQUIRE(quotient[1] == (4. / -5.));
+    REQUIRE(quotient[0] == (FloatType(4) / FloatType(3)));
+    REQUIRE(quotient[1] == (FloatType(4) / FloatType(-5)));
 
     // Finally, in-place arithmetic
     lhs += rhs;
@@ -232,10 +232,10 @@ TEST_CASE("Arithmetic tests")
     REQUIRE(lhs[1] == 27);
     lhs /= four;
     REQUIRE(lhs[0] == 6);
-    REQUIRE(lhs[1] == 6.75);
+    REQUIRE(lhs[1] == 6.75_ft);
 
     OneDField fill = ModelArray::OneDField();
-    double filldub = 5.2354;
+    FloatType filldub = 5.2354;
     fill = filldub;
 
     REQUIRE(fill[0] == filldub);
@@ -274,7 +274,7 @@ TEST_CASE("Components")
     REQUIRE(ModelArray::nComponents(ModelArray::Type::TWOCOMP) == nComp);
 
     ModelArray src(ModelArray::Type::TWOCOMP);
-    src.resize();
+    src.reinitialize();
     REQUIRE(src.nComponents() == nComp);
     // Fill src with ones
     src = 1.;
@@ -284,7 +284,7 @@ TEST_CASE("Components")
     REQUIRE(src.components(0)[0] == 2.);
     REQUIRE(src.components(0)[1] == 1.);
     ModelArray sink(ModelArray::Type::TWOD);
-    sink.resize();
+    sink.reinitialize();
     ModelArray::Type origType = sink.getType();
     sink = 3.;
     REQUIRE(sink[0] == 3.);
@@ -318,7 +318,7 @@ TEST_CASE("Direct DataType access")
     ModelArray::setDimension(ModelArray::Dimension::Y, ny);
     ModelArray::setDimension(ModelArray::Dimension::COMP, nComp);
     ModelArray twocomp(ModelArray::Type::TWOCOMP);
-    twocomp.resize();
+    twocomp.reinitialize();
     twocomp = 1.;
     REQUIRE(twocomp.components(0)[1] == 1.);
     ModelArray::DataType& tcRef = twocomp;

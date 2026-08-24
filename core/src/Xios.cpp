@@ -47,12 +47,10 @@
 
 namespace Nextsim {
 
+using Type = ModelArray::Type;
+
 static const std::string xDiagnosticPfx = "XiosDiagnostic";
 static const std::map<int, std::string> keyMap = { { Xios::ENABLED_KEY, "xios.enable" },
-    // TODO: Avoid having to parse restart fields (#1056)
-    { Xios::OUTPUT_FIELD_NAMES_KEY, "XiosOutput.field_names" },
-    // TODO: Avoid having to parse input fields (#1056)
-    { Xios::INPUT_FIELD_NAMES_KEY, "XiosInput.field_names" },
     { Xios::DIAGNOSTIC_PERIOD_KEY, xDiagnosticPfx + ".period" },
     { Xios::DIAGNOSTIC_FILE_KEY, xDiagnosticPfx + ".filename" },
     // TODO: Avoid having to parse diagnostic fields for XIOS specifically (#981)
@@ -68,14 +66,6 @@ Xios::HelpMap& Xios::getHelpText(HelpMap& map, bool getAll)
             "to be modifed by the user. Build nextSIM-DG with XIOS support with the CMake argument "
             "-DENABLE_XIOS=ON, passing the path to your XIOS installation with "
             "-Dxios_DIR=/path/to/xios." },
-    };
-    map["XiosOutput"] = {
-        { keyMap.at(OUTPUT_FIELD_NAMES_KEY), ConfigType::STRING, {}, "", "",
-            "Comma-separated list of field names to be written to the output file." },
-    };
-    map["XiosInput"] = {
-        { keyMap.at(INPUT_FIELD_NAMES_KEY), ConfigType::STRING, {}, "", "",
-            "Comma-separated list of field names to be read from the input file." },
     };
     map["XiosDiagnostic"] = {
         { keyMap.at(DIAGNOSTIC_PERIOD_KEY), ConfigType::STRING, {}, "0", "",
@@ -146,6 +136,7 @@ Xios::~Xios() { finalize(); }
 void Xios::close_context_definition()
 {
     if (isEnabled && contextStatus == DEFINITION_OPEN) {
+        setupFiles();
 
         // Special handling of input fields
         for (int ioType : { INPUT_RESTART, ERA5_FORCING, TOPAZ_FORCING }) {
@@ -170,26 +161,37 @@ void Xios::close_context_definition()
                 }
 
                 // Check the field types
-                const ModelArray::Type& inputType = getFieldType(inputFieldId);
                 if (fieldTypes.count(inputFieldId) == 0) {
-                    // getFieldType defaults to HField but doesn't set that as field type
-                    setFieldType(fieldId, inputType, ioType);
+                    if (fieldTypes.count(fieldId) > 0) {
+                        setFieldType(fieldId, getFieldType(fieldId), ioType);
+                    } else {
+                        setFieldType(fieldId, Type::H, ioType);
+                    }
                 }
+                const Type& inputType = getFieldType(inputFieldId);
                 if (fieldTypes.count(fieldId) == 0) {
                     // Unused base fields still need a field type
                     setFieldType(fieldId, inputType, NOT_READ);
                 }
-                const ModelArray::Type& baseType = getFieldType(fieldId);
-                if ((ioType == ERA5_FORCING || ioType == TOPAZ_FORCING)
-                    && baseType != ModelArray::Type::H) {
-                    throw std::runtime_error("Xios: Forcing fields must be treated as HFields");
+                const Type& baseType = getFieldType(fieldId);
+                if (ioType == ERA5_FORCING || ioType == TOPAZ_FORCING) {
+                    if (baseType != Type::H && baseType != Type::U && baseType != Type::V) {
+                        throw std::runtime_error("Xios: Forcing fields must be treated as HFields");
+                    }
                 }
 
-                if (inputType == baseType) {
+                // Set grid references
+                setFieldGridRef(fieldId, gridIds[baseType]);
+                setFieldGridRef(inputFieldId, gridIds[inputType]);
+
+                if ((inputType == baseType)
+                    || (inputType == Type::H && (baseType == Type::U || baseType == Type::V))) {
                     // Link the input field to the base field if their types align
+                    // NOTE: Here we assume that the U and V types are duplicates of H. This may not
+                    //       be the case in the future.
                     cxios_set_field_field_ref(
                         getField(inputFieldId), fieldId.c_str(), fieldId.length());
-                } else if (baseType == ModelArray::Type::DG && inputType == ModelArray::Type::H) {
+                } else if (baseType == Type::DG && inputType == Type::H) {
                     // Record fields read in as HField but treated as DGField
                     inputFieldsToConvert.insert(inputFieldId);
                 } else {
@@ -197,6 +199,27 @@ void Xios::close_context_definition()
                         "Xios: Inconsistent field types for reading and writing field '" + fieldId
                         + "'");
                 }
+            }
+        }
+
+        // Special handling of output fields
+        for (int ioType : { OUTPUT_RESTART, DIAGNOSTIC }) {
+            if (fileMap.at(ioType).empty()) {
+                continue;
+            }
+            const std::set<std::string> fieldIds
+                = (ioType == OUTPUT_RESTART) ? outputRestartFieldNames : diagnosticFieldNames;
+            for (const std::string& fieldId : fieldIds) {
+
+                // Ensure that fields have operation type 'instant' if not already defined
+                xios::CField* field = getField(fieldId);
+                if (!cxios_is_defined_field_operation(field)) {
+                    cxios_set_field_operation(field, "instant", strlen("instant"));
+                }
+
+                // Set grid references
+                const Type& type = getFieldType(fieldId);
+                setFieldGridRef(fieldId, gridIds[type]);
             }
         }
 
@@ -241,8 +264,6 @@ void Xios::configure()
         setupClient();
         setupContext();
         setupCalendar();
-        setupFiles();
-        setupFields();
     }
 }
 
@@ -266,22 +287,26 @@ std::set<std::string> str2set(const std::string& asStr, const char& delim = ',')
  */
 void Xios::parseConfig()
 {
-    // TODO: Avoid having to parse input fields (#1056)
-    inputRestartFieldNames
-        = str2set(Configured::getConfiguration(keyMap.at(INPUT_FIELD_NAMES_KEY), std::string()));
-    // TODO: Avoid having to parse restart fields (#1056)
-    outputRestartFieldNames
-        = str2set(Configured::getConfiguration(keyMap.at(OUTPUT_FIELD_NAMES_KEY), std::string()));
     // TODO: Avoid having to parse diagnostic fields for XIOS specifically (#981)
     diagnosticFieldNames = str2set(
         Configured::getConfiguration(keyMap.at(DIAGNOSTIC_FIELD_NAMES_KEY), std::string()));
 
-    // Combine all field names into a single set for easier checking later on
-    fieldNames = inputRestartFieldNames;
-    fieldNames.insert(outputRestartFieldNames.begin(), outputRestartFieldNames.end());
-    fieldNames.insert(era5ForcingFieldNames.begin(), era5ForcingFieldNames.end());
-    fieldNames.insert(topazForcingFieldNames.begin(), topazForcingFieldNames.end());
-    fieldNames.insert(diagnosticFieldNames.begin(), diagnosticFieldNames.end());
+    // Ensure the coordinate variables are included in diagnostic files
+    if (spherical) {
+        if (diagnosticFieldNames.count(longitudeName) == 0) {
+            diagnosticFieldNames.insert(longitudeName);
+        }
+        if (diagnosticFieldNames.count(latitudeName) == 0) {
+            diagnosticFieldNames.insert(latitudeName);
+        }
+    } else {
+        if (diagnosticFieldNames.count(xName) == 0) {
+            diagnosticFieldNames.insert(xName);
+        }
+        if (diagnosticFieldNames.count(yName) == 0) {
+            diagnosticFieldNames.insert(yName);
+        }
+    }
 }
 
 //! Initialize the XIOS context with ID contextId
@@ -635,7 +660,7 @@ void Xios::setupDomains()
                     throw std::runtime_error(
                         "Xios: Failed to set local starting x-index for domain '" + domainId + "'");
                 }
-                std::vector<double> lonvalue;
+                std::vector<FloatType> lonvalue;
                 for (int i = 0; i < ni; i++) {
                     lonvalue.push_back(ibegin + i);
                 }
@@ -690,7 +715,7 @@ void Xios::setupDomains()
                     throw std::runtime_error(
                         "Xios: Failed to set local starting y-index for domain '" + domainId + "'");
                 }
-                std::vector<double> latvalue;
+                std::vector<FloatType> latvalue;
                 for (int j = 0; j < nj; j++) {
                     latvalue.push_back(jbegin + j);
                 }
@@ -839,7 +864,6 @@ void Xios::createField(const std::string& fieldId, const std::string& fileId)
         setFieldReadAccess(fieldId, false);
         fileAddField(fileId, fieldId);
     } else {
-        // TODO: Allow unused fields in input files (#1060)
         throw std::runtime_error("Xios: Unknown I/O type for field '" + fieldId + "'");
     }
 }
@@ -1011,23 +1035,6 @@ void Xios::setFieldFreqOffset(const std::string& fieldId, const Duration& freqOf
 }
 
 /*!
- * Get the grid reference associated with a field with a given ID
- *
- * @param the field ID
- * @return grid reference used for the corresponding field
- */
-std::string Xios::getFieldGridRef(const std::string& fieldId)
-{
-    xios::CField* field = getField(fieldId);
-    if (!cxios_is_defined_field_grid_ref(field)) {
-        throw std::runtime_error("Xios: Undefined grid reference for field '" + fieldId + "'");
-    }
-    char cStr[cStrLen];
-    cxios_get_field_grid_ref(field, cStr, cStrLen);
-    return convertCStrToCppStr(cStr, cStrLen);
-}
-
-/*!
  * Get the read access associated with a field with a given ID
  *
  * @param the field ID
@@ -1072,7 +1079,7 @@ Duration Xios::getFieldFreqOffset(const std::string& fieldId)
 ModelArray::Type Xios::getFieldType(const std::string& fieldId)
 {
     if (fieldTypes.count(fieldId) == 0) {
-        return ModelArray::Type::H;
+        throw std::runtime_error("Xios::getFieldType: Field type not set for '" + fieldId + "'");
     }
     return fieldTypes[fieldId];
 }
@@ -1087,17 +1094,11 @@ ModelArray::Type Xios::getFieldType(const std::string& fieldId)
 void Xios::setFieldType(
     const std::string& fieldId, const ModelArray::Type& fieldType, const int ioType)
 {
-    if (fieldNames.count(fieldId) == 0) {
-        Logged::warning("Xios::setFieldType: Cannot set field type for field '" + fieldId
-            + "' because it is not in the config.");
-        return;
-    }
     const std::string ioFieldId = getFieldIOId(fieldId, ioType);
     if (fieldTypes.count(ioFieldId) > 0) {
         Logged::warning("Xios::setFieldType: Overwriting field type for field '" + ioFieldId + "'");
     }
     fieldTypes[ioFieldId] = fieldType;
-    setFieldGridRef(ioFieldId, gridIds[fieldType]);
 }
 
 /*!
@@ -1109,6 +1110,7 @@ void Xios::setFieldType(
 void Xios::setPrognosticFieldType(const std::string& fieldId, const ModelArray::Type& fieldType)
 {
     setFieldType(fieldId, fieldType, OUTPUT_RESTART);
+    outputRestartFieldNames.insert(fieldId);
 }
 
 /*!
@@ -1133,12 +1135,16 @@ void Xios::setupFields()
 {
     ModelMetadata& metadata = ModelMetadata::getInstance();
 
+    // Set dimensions based on those found in input file
+    if (!metadata.initialFileName.empty()) {
+        metadata.setDimensionsFromFile(metadata.initialFileName);
+    }
+
     for (const std::string& filename :
         { metadata.initialFileName, era5ForcingFilename, topazForcingFilename }) {
         if (filename.empty()) {
-            break;
+            continue;
         }
-        metadata.setDimensionsFromFile(filename);
 
         // Create map for field types
         const std::map<std::string, ModelArray::Type> dimensionKeys = {
@@ -1154,42 +1160,46 @@ void Xios::setupFields()
         };
 
         // Determine field types
-        std::set<std::string> configFieldIds;
         int ioType;
         if (filename == metadata.initialFileName) {
-            configFieldIds = inputRestartFieldNames;
             ioType = INPUT_RESTART;
         } else if (filename == era5ForcingFilename) {
-            configFieldIds = era5ForcingFieldNames;
             ioType = ERA5_FORCING;
         } else {
-            configFieldIds = topazForcingFieldNames;
             ioType = TOPAZ_FORCING;
         }
+
+        std::set<std::string> configFieldIds;
+        auto& modelMPI = ModelMPI::getInstance();
         try {
-            auto& modelMPI = ModelMPI::getInstance();
             netCDF::NcFilePar ncFile(filename, netCDF::NcFile::read, modelMPI.getComm());
 
             for (auto& [fieldId, var] : ncFile.getVars()) {
-                // Only consider fields that appear in the config
-                if (configFieldIds.count(fieldId) == 0) {
-                    continue;
-                }
+
                 // Determine the type from the dimensions
                 std::vector<netCDF::NcDim> varDims = var.getDims();
                 std::string dimKey = "";
                 for (netCDF::NcDim& dim : varDims) {
                     const std::string name = dim.getName();
                     // Skip the time_counter dim as it's handled differently
-                    if (name != "time_counter") {
-                        dimKey += dim.getName();
+                    if (name == "time_counter" || name == "time") {
+                        continue;
                     }
+                    dimKey += name;
                 }
-                // Skip invalid dimension keys
+
+                // Skip invalid dimension keys, otherwise add to the corresponding config section
                 if (!dimensionKeys.count(dimKey)) {
                     continue;
                 }
-                setFieldType(fieldId, dimensionKeys.at(dimKey), ioType);
+                configFieldIds.insert(fieldId);
+
+                // Set the input field type and default the base field type correspondingly
+                ModelArray::Type fieldType = dimensionKeys.at(dimKey);
+                setFieldType(fieldId, fieldType, ioType);
+                if (fieldTypes.count(fieldId) == 0) {
+                    setFieldType(fieldId, fieldType, NOT_READ);
+                }
             }
             ncFile.close();
         } catch (const netCDF::exceptions::NcException& nce) {
@@ -1197,7 +1207,20 @@ void Xios::setupFields()
             ncWhat += ": " + filename;
             throw std::runtime_error(ncWhat);
         }
+        if (filename == metadata.initialFileName) {
+            inputRestartFieldNames = configFieldIds;
+        } else if (filename == era5ForcingFilename) {
+            era5ForcingFieldNames = configFieldIds;
+        } else {
+            topazForcingFieldNames = configFieldIds;
+        }
     }
+
+    // Combine all field names into a single set for easier checking later on
+    fieldNames = inputRestartFieldNames;
+    fieldNames.insert(outputRestartFieldNames.begin(), outputRestartFieldNames.end());
+    fieldNames.insert(era5ForcingFieldNames.begin(), era5ForcingFieldNames.end());
+    fieldNames.insert(diagnosticFieldNames.begin(), diagnosticFieldNames.end());
 }
 
 /*!
@@ -1520,6 +1543,9 @@ void Xios::setupFiles()
         }
     }
 
+    // Setup fields before creating files because createFile creates the associated fields
+    setupFields();
+
     // Create files for any non-empty file IDs
     for (const std::string& fileId :
         { outputFileId, inputFileId, diagnosticFileId, era5ForcingFileId, topazForcingFileId }) {
@@ -1634,32 +1660,36 @@ void Xios::write(const std::string& fieldId, const ModelArray& modelarray)
         throw std::invalid_argument("Only ModelArrays of dimension 2 are supported");
     }
     auto& dims = modelarray.dimensions();
-    const ModelArray::Type& type = modelarray.getType();
+    const Type& type = modelarray.getType();
     domainWritten[domainIds[type]] = true;
 
     // Check the field type
-    const ModelArray::Type& expectedType = getFieldType(fieldId);
+    const Type& expectedType = getFieldType(fieldId);
     if (expectedType != type) {
         throw std::runtime_error(
             "Xios::write: field '" + fieldId + "' does not have the expected type");
     }
 
     // Write out according to field type
-    if ((type == ModelArray::Type::H) || (type == ModelArray::Type::CG)) {
+    // Provide dimension information to XIOS so that it can write the ModelArray into the NetCDF
+    // file appropriately
+    // NOTE: Here we assume that the U and V types are duplicates of H. This may not be the case in
+    //       the future.
+    if (type == Type::H || type == Type::U || type == Type::V || type == Type::CG) {
         cxios_write_data_k82(
             fieldId.c_str(), fieldId.length(), modelarray.getData(), dims[0], dims[1], -1);
-    } else if (type == ModelArray::Type::VERTEX) {
+    } else if (type == Type::VERTEX) {
         cxios_write_data_k83(fieldId.c_str(), fieldId.length(), modelarray.getData(), dims[0],
             dims[1], ModelArray::size(ModelArray::Dimension::NCOORDS), -1);
-    } else if (type == ModelArray::Type::DG) {
+    } else if (type == Type::DG) {
         cxios_write_data_k83(fieldId.c_str(), fieldId.length(), modelarray.getData(), dims[0],
             dims[1], ModelArray::size(ModelArray::Dimension::DG), -1);
-    } else if (type == ModelArray::Type::DGSTRESS) {
+    } else if (type == Type::DGSTRESS) {
         cxios_write_data_k83(fieldId.c_str(), fieldId.length(), modelarray.getData(), dims[0],
             dims[1], ModelArray::size(ModelArray::Dimension::DGSTRESS), -1);
     } else {
-        throw std::invalid_argument(
-            "Only HFields, VertexFields, DGFields, DGSFields, and CGFields are supported");
+        throw std::invalid_argument("Only HFields, UFields, VFields, VertexFields, DGFields, "
+                                    "DGSFields, and CGFields are supported");
     }
 }
 
@@ -1678,20 +1708,21 @@ void Xios::read(const std::string& fieldId, ModelArray& modelarray)
     if (modelarray.nDimensions() != 2) {
         throw std::invalid_argument("Only ModelArrays of dimension 2 are supported");
     }
-    const ModelArray::Type& type = modelarray.getType();
-    const ModelArray::Type& expectedType = getFieldType(fieldId);
+    const Type& type = modelarray.getType();
+    const Type& expectedType = getFieldType(fieldId);
 
     // Account for fields to be read in as HField but converted to DGField
+    // Other field types should not need converting
     if (inputFieldsToConvert.count(fieldId)) {
-        if (expectedType != ModelArray::Type::H) {
+        if (expectedType != Type::H) {
             throw std::runtime_error(
                 "Xios::read: field '" + fieldId + "' was expected to be read as a HField");
         }
-        if (type != ModelArray::Type::DG) {
+        if (type != Type::DG) {
             throw std::runtime_error(
                 "Xios::read: field '" + fieldId + "' was expected to be converted to a DGField");
         }
-        HField inputarray(ModelArray::Type::H);
+        HField inputarray(Type::H);
         auto& dims = inputarray.dimensions();
         cxios_read_data_k82(
             fieldId.c_str(), fieldId.length(), inputarray.getData(), dims[0], dims[1]);
@@ -1701,27 +1732,31 @@ void Xios::read(const std::string& fieldId, ModelArray& modelarray)
         return;
     }
 
-    // Other field types should not need converting
+    // Provide dimension information to XIOS so that it can read NetCDF data into the ModelArray
+    // appropriately
+    // NOTE: Here we assume that the U and V types are duplicates of H. This may not be the case in
+    //       the future.
     auto& dims = modelarray.dimensions();
-    if (type != expectedType) {
+    if (type != expectedType
+        && !(expectedType == Type::H && (type == Type::U || type == Type::V))) {
         throw std::runtime_error(
             "Xios::read: field '" + fieldId + "' does not have the expected type");
     }
-    if ((type == ModelArray::Type::H) || (type == ModelArray::Type::CG)) {
+    if (type == Type::H || type == Type::U || type == Type::V || type == Type::CG) {
         cxios_read_data_k82(
             fieldId.c_str(), fieldId.length(), modelarray.getData(), dims[0], dims[1]);
-    } else if (type == ModelArray::Type::VERTEX) {
+    } else if (type == Type::VERTEX) {
         cxios_read_data_k83(fieldId.c_str(), fieldId.length(), modelarray.getData(), dims[0],
             dims[1], ModelArray::size(ModelArray::Dimension::NCOORDS));
-    } else if (type == ModelArray::Type::DG) {
+    } else if (type == Type::DG) {
         cxios_read_data_k83(fieldId.c_str(), fieldId.length(), modelarray.getData(), dims[0],
             dims[1], ModelArray::size(ModelArray::Dimension::DG));
-    } else if (type == ModelArray::Type::DGSTRESS) {
+    } else if (type == Type::DGSTRESS) {
         cxios_read_data_k83(fieldId.c_str(), fieldId.length(), modelarray.getData(), dims[0],
             dims[1], ModelArray::size(ModelArray::Dimension::DGSTRESS));
     } else {
-        throw std::invalid_argument(
-            "Only HFields, VertexFields, DGFields, DGSFields, and CGFields are supported");
+        throw std::invalid_argument("Only HFields, UFields, VFields, VertexFields, DGFields, "
+                                    "DGSFields, and CGFields are supported");
     }
 }
 }

@@ -59,6 +59,10 @@ Model::~Model() { }
 
 void Model::configureRestarts()
 {
+    // Ensure configureRestarts is only called once
+    if (configuredRestarts) {
+        return;
+    }
     ModelMetadata& metadata = ModelMetadata::getInstance();
 
     // Parse the initial restart file name and the pattern for output restart files
@@ -74,10 +78,16 @@ void Model::configureRestarts()
 
     // Set global dimensions with an initial read of the input file
     metadata.setDimensionsFromFile(metadata.initialFileName);
+
+    configuredRestarts = true;
 }
 
 void Model::configureTime()
 {
+    // Ensure configureTime is only called once
+    if (configuredTime) {
+        return;
+    }
     ModelMetadata& metadata = ModelMetadata::getInstance();
 
 #ifdef USE_XIOS
@@ -106,6 +116,8 @@ void Model::configureTime()
         metadata.setTimes(startTimeStr, Duration(runLengthStr), stepStr);
     }
     iterator.setStartStopStep(metadata.startTime(), metadata.stopTime(), metadata.stepLength());
+
+    configuredTime = true;
 }
 
 void Model::configure()
@@ -191,6 +203,8 @@ Model::HelpMap& Model::getHelpRecursive(HelpMap& map, bool getAll)
 
 void Model::run()
 {
+    Nextsim::ModelComponent::getStore().checkAllRegistered();
+
 #ifdef USE_XIOS
     Xios& xiosHandler = Xios::getInstance();
 #endif

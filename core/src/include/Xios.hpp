@@ -16,7 +16,6 @@
 #include "include/Logged.hpp"
 #include "include/ModelArray.hpp"
 #include "include/Time.hpp"
-#include "include/gridNames.hpp"
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/format.hpp>
 #include <boost/format/group.hpp>
@@ -61,6 +60,8 @@ public:
 
     /* Configuration */
     void configure() override;
+    static void setSphericalCoordinates(const bool isSpherical) { spherical = isSpherical; }
+    static bool sphericalCoordinates() { return spherical; }
 
     /* Calendar, date and duration */
     void setCalendarStart(const TimePoint& start);
@@ -74,17 +75,11 @@ public:
     size_t getAxisSize(const std::string& axisId);
 
     /* Field */
-    const std::set<std::string> era5ForcingFieldNames
-        = { "tair", "dew2m", "pair", "sw_in", "lw_in", "wind_speed", "u", "v" };
-    const std::set<std::string> topazForcingFieldNames
-        = { sstName, sssName, mldName, uName, vName, sshName };
     void setPrognosticFieldType(const std::string& fieldId, const ModelArray::Type& type);
     void setDiagnosticFieldType(const std::string& fieldId, const ModelArray::Type& type);
 
     enum {
         ENABLED_KEY,
-        OUTPUT_FIELD_NAMES_KEY,
-        INPUT_FIELD_NAMES_KEY,
         DIAGNOSTIC_PERIOD_KEY,
         DIAGNOSTIC_FILE_KEY,
         DIAGNOSTIC_FIELD_NAMES_KEY,
@@ -106,6 +101,7 @@ private:
 
     /* Configuration */
     void parseConfig();
+    inline static bool spherical = false;
 
     /* Client */
     const std::string clientId = "client";
@@ -140,6 +136,8 @@ private:
     std::map<ModelArray::Type, std::string> domainIds = {
         // Standard cell-based x- and y-dimensions (alt. names x_dim and y_dim)
         { ModelArray::Type::H, "dim" },
+        { ModelArray::Type::U, "dim" },
+        { ModelArray::Type::V, "dim" },
         { ModelArray::Type::DG, "dim" },
         { ModelArray::Type::DGSTRESS, "dim" },
         // Vertex-based x- and y-dimensions (alt. names x_vertex and y_vertex)
@@ -160,9 +158,11 @@ private:
     xios::CGrid* getGrid(const std::string& gridId);
     std::map<ModelArray::Type, std::string> gridIds = {
         { ModelArray::Type::H, "HGrid" },
-        { ModelArray::Type::VERTEX, "VertexGrid" },
+        { ModelArray::Type::U, "UGrid" },
+        { ModelArray::Type::V, "VGrid" },
         { ModelArray::Type::DG, "DGGrid" },
         { ModelArray::Type::DGSTRESS, "DGSGrid" },
+        { ModelArray::Type::VERTEX, "VertexGrid" },
         { ModelArray::Type::CG, "CGGrid" },
     };
     void setupGrids();
@@ -173,6 +173,8 @@ private:
     std::set<std::string> outputRestartFieldNames;
     std::set<std::string> inputRestartFieldNames;
     std::set<std::string> diagnosticFieldNames;
+    std::set<std::string> era5ForcingFieldNames;
+    std::set<std::string> topazForcingFieldNames;
     std::set<std::string> fieldNames;
     void createField(const std::string& fieldId, const std::string& fileId);
     std::string getFieldIOId(const std::string& fieldId, const int ioType);
@@ -181,7 +183,6 @@ private:
     void setFieldReadAccess(const std::string& fieldId, const bool& readAccess);
     void setFieldGridRef(const std::string& fieldId, const std::string& gridRef);
     void setFieldFreqOffset(const std::string& fieldId, const Duration& freqOffset);
-    std::string getFieldGridRef(const std::string& fieldId);
     bool getFieldReadAccess(const std::string& fieldId);
     Duration getFieldFreqOffset(const std::string& fieldId);
     ModelArray::Type getFieldType(const std::string& fieldId);

@@ -38,14 +38,14 @@ namespace CheckPoints {
         file.close();
     }
 
-    template <int DG> void loadData(const std::string& path, Nextsim::DGVector<DG>& matrix)
+    template <int DG> void loadData(const std::string& path, DGVector<DG>& matrix)
     {
 
         std::ifstream indata;
         indata.open(path);
         assert(indata.is_open());
         std::string line;
-        std::vector<double> values;
+        std::vector<FloatType> values;
         size_t rows = 0;
         while (std::getline(indata, line)) {
             std::stringstream lineStream(line);
@@ -62,14 +62,14 @@ namespace CheckPoints {
                 matrix(i, j) = values[i * DG + j];
     }
 
-    template <int CG> void loadData(const std::string& path, Nextsim::CGVector<CG>& matrix)
+    template <int CG> void loadData(const std::string& path, CGVector<CG>& matrix)
     {
 
         std::ifstream indata;
         indata.open(path);
         assert(indata.is_open());
         std::string line;
-        std::vector<double> values;
+        std::vector<FloatType> values;
         size_t rows = 0;
         while (std::getline(indata, line)) {
             std::stringstream lineStream(line);

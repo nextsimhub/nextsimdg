@@ -17,10 +17,10 @@
 #define DGSTRESSCOMP (CG2DGSTRESS(CGDEGREE))
 #endif
 
-static const int CGdegree = CGDEGREE;
-static const int DGstressComp = DGSTRESSCOMP;
-static const int nGauss = CGdegree + 1;
-static const int CGdof = nGauss * nGauss;
+constexpr int CGdegree = CGDEGREE;
+constexpr int DGstressComp = DGSTRESSCOMP;
+constexpr int nGauss = CGdegree + 1;
+constexpr int CGdof = nGauss * nGauss;
 
 namespace Nextsim {
 
@@ -51,9 +51,9 @@ public:
     void applyBoundaries() override;
     void prepareAdvection() override;
 
-    DGVector<DGadvection>& advectDGVField(double timestep, DGVector<DGadvection>& field,
-        double lowerLimit = -std::numeric_limits<double>::infinity(),
-        double upperLimit = std::numeric_limits<double>::infinity()) override;
+    DGVector<DGadvection>& advectDGVField(FloatType timestep, DGVector<DGadvection>& field,
+        FloatType lowerLimit = -std::numeric_limits<FloatType>::infinity(),
+        FloatType upperLimit = std::numeric_limits<FloatType>::infinity()) override;
 
 protected:
     void addStressTensorCell(const size_t eid, const size_t cx, const size_t cy);
@@ -88,8 +88,8 @@ protected:
     CGVector<CGdegree> uIceOceanStress;
     CGVector<CGdegree> vIceOceanStress;
 
-    double cosOceanAngle = std::numeric_limits<double>::quiet_NaN();
-    double sinOceanAngle = std::numeric_limits<double>::quiet_NaN();
+    FloatType cosOceanAngle = std::numeric_limits<FloatType>::quiet_NaN();
+    FloatType sinOceanAngle = std::numeric_limits<FloatType>::quiet_NaN();
     const DynamicsParameters& baseParams;
 
     std::unique_ptr<ParametricMomentumMap<CGdegree, DGadvection>> pmap;

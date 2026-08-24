@@ -28,6 +28,12 @@ public:
         , nx(0)
         , ny(0)
     {
+#ifdef USE_XIOS
+        // Set XIOS field types for core grid-related fields
+        Xios& xiosHandler = Xios::getInstance();
+        xiosHandler.setPrognosticFieldType(xName, ModelArray::Type::H);
+        xiosHandler.setPrognosticFieldType(yName, ModelArray::Type::H);
+#endif
     }
 
     RectangularGrid(const GridDimensions& dims)

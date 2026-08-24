@@ -165,9 +165,9 @@ private:
     size_t sendBufferSize = 0;
     size_t recvBufferSize = 0;
 
-    std::vector<std::vector<double>>
+    std::vector<std::vector<FloatType>>
         send; // buffer to store halo region that will be read by other ranks
-    std::vector<std::vector<double>>
+    std::vector<std::vector<FloatType>>
         recv; // buffer to store halo region which is read from other ranks
 
     /*!

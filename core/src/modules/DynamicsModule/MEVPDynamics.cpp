@@ -77,59 +77,70 @@ void MEVPDynamics::setData(const ModelState::DataMap& ms)
 {
     IDynamics::setData(ms);
 
-    bool isSpherical = checkSpherical(ms);
+    const bool isSpherical = checkSpherical(ms);
 
     ModelArray coords = ms.at(coordsName);
     if (isSpherical) {
         coords *= PhysicalConstants::deg2rad;
     }
+
     // TODO: Some encoding of the periodic edge boundary conditions
     kernel.initialise(coords, isSpherical, ms.at(maskName));
 
-    uice = ms.at(uName);
-    vice = ms.at(vName);
+    uiceAccessor.getHostRW() = ms.at(uName);
+    viceAccessor.getHostRW() = ms.at(vName);
 
     // Set the data in the kernel arrays.
     for (const auto& fieldName : namedFields) {
         kernel.setData(fieldName, ms.at(fieldName));
     }
-
-    // Set the DG field data
-    kernel.setDGArray(hiceName, hiceDG.allComponents());
-    kernel.setDGArray(ciceName, ciceDG.allComponents());
-    kernel.setDGArray(hsnowName, hsnowDG.allComponents());
 }
 
 void MEVPDynamics::update(const TimestepTime& tst)
 {
     std::cout << tst.start << std::endl;
 
+    // set dg fields
+    // Needs to be done every step even so the field references do not change to ensure that the
+    // write accesses are registered and that needed host-device data transfers can take place.
+    kernel.setDGArray(hiceName, hiceDGAccessor.getAutoRW());
+    kernel.setDGArray(ciceName, ciceDGAccessor.getAutoRW());
+    kernel.setDGArray(hsnowName, hsnowDGAccessor.getAutoRW());
+
     // set the forcing velocities
-    kernel.setData(uWindName, uwind);
-    kernel.setData(vWindName, vwind);
-    kernel.setData(uOceanName, uocean);
-    kernel.setData(vOceanName, vocean);
-    kernel.setData(sshName, ssh);
+    kernel.setData(uWindName, uwindAccessor.getAutoRO());
+    kernel.setData(vWindName, vwindAccessor.getAutoRO());
+    kernel.setData(uOceanName, uoceanAccessor.getAutoRO());
+    kernel.setData(vOceanName, voceanAccessor.getAutoRO());
+    kernel.setData(sshName, sshAccessor.getHostRO());
 
     kernel.update(tst);
 
-    uice = kernel.getDG0Data(uName);
-    vice = kernel.getDG0Data(vName);
+    uiceAccessor.getHostRW() = kernel.getDG0Data(uName);
+    viceAccessor.getHostRW() = kernel.getDG0Data(vName);
 
-    taux = kernel.getDG0Data(uIOStressName);
-    tauy = kernel.getDG0Data(vIOStressName);
+    tauxAccessor.getHostRW() = kernel.getDG0Data(uIOStressName);
+    tauyAccessor.getHostRW() = kernel.getDG0Data(vIOStressName);
 
-    shear = kernel.getDG0Data(shearName);
-    divergence = kernel.getDG0Data(divergenceName);
-    sigmaI = kernel.getDG0Data(sigmaIName);
-    sigmaII = kernel.getDG0Data(sigmaIIName);
+    shearAccessor.getHostRW() = kernel.getDG0Data(shearName);
+    divergenceAccessor.getHostRW() = kernel.getDG0Data(divergenceName);
+    sigmaIAccessor.getHostRW() = kernel.getDG0Data(sigmaIName);
+    sigmaIIAccessor.getHostRW() = kernel.getDG0Data(sigmaIIName);
 }
 
 void MEVPDynamics::advectField(
-    double timestep, ModelArray& field, double lowerLimit, double upperLimit)
+    FloatType timestep, ModelArray& field, FloatType lowerLimit, FloatType upperLimit)
 {
     kernel.advectField(timestep, field, lowerLimit, upperLimit);
 }
+
+#ifdef USE_KOKKOS
+void MEVPDynamics::advectField(
+    FloatType timestep, const DeviceViewMA& field, FloatType lowerLimit, FloatType upperLimit)
+{
+    kernel.advectDGVFieldDevice(timestep, field, lowerLimit, upperLimit);
+}
+#endif
 
 MEVPDynamics::HelpMap& MEVPDynamics::getHelpText(HelpMap& map, bool getAll)
 {

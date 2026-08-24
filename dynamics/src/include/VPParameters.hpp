@@ -11,19 +11,19 @@
 namespace Nextsim {
 
 // static const int nStepsDefault = 100; //!< number of sub-cycling steps
-// static const double compactionParamDefault = -20.; //!< Compation parameter: Hibler's C in
+// static const FloatType compactionParamDefault = -20.; //!< Compation parameter: Hibler's C in
 // exp(-C(1-a))
-static const double pStarDefault = 27.5e3; //!< Ice strength
-static const double deltaMinDefault = 2e-9; //!< Viscous regime
+static const FloatType pStarDefault = 27.5e3; //!< Ice strength
+static const FloatType deltaMinDefault = 2e-9; //!< Viscous regime
 
 class VPParameters : public DynamicsParameters {
 
 public:
     VPParameters() = default;
 
-    double compactionParam = compactionParamDefault;
-    double pStar = pStarDefault;
-    double deltaMin = deltaMinDefault;
+    FloatType compactionParam = compactionParamDefault;
+    FloatType pStar = pStarDefault;
+    FloatType deltaMin = deltaMinDefault;
     int nSteps = nStepsDefault;
 };
 

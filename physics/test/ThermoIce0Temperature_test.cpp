@@ -107,7 +107,7 @@ TEST_CASE("Melting conditions")
     ModelArrayRef<ModelComponent::SharedArray::Q_IC, MARBackingStore, RO> qic(
         ModelComponent::getSharedArray());
 
-    double prec = 1e-5;
+    FloatType prec = 1e-5;
     REQUIRE(outState.count(tsurfName) > 0);
     REQUIRE(outState.at(tsurfName) == 0.0);
     REQUIRE(qic[0] == doctest::Approx(-4.60879).epsilon(prec));
@@ -208,7 +208,7 @@ TEST_CASE("Freezing conditions")
     ModelArrayRef<ModelComponent::SharedArray::Q_IC, MARBackingStore, RO> qic(
         ModelComponent::getSharedArray());
 
-    double prec = 1e-5;
+    FloatType prec = 1e-5;
     REQUIRE(outState.count(tsurfName) > 0);
     REQUIRE(outState.at(tsurfName) == doctest::Approx(-8.90443).epsilon(prec));
     //    REQUIRE(tice[0] == doctest::Approx(-8.90443).epsilon(prec));
