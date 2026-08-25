@@ -5,10 +5,10 @@
 #ifndef NEXTSIM_DG_PARAGRIDINPUTS_HPP
 #define NEXTSIM_DG_PARAGRIDINPUTS_HPP
 
-#include "ModelArray.hpp"
-#include "ModelState.hpp"
-#include "Time.hpp"
-#include "VectorRotator.hpp"
+#include "include/ModelArray.hpp"
+#include "include/ModelState.hpp"
+#include "include/Time.hpp"
+#include "include/VectorRotator.hpp"
 
 #include <regex>
 #include <set>
