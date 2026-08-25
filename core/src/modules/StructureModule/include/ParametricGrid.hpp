@@ -24,6 +24,20 @@ public:
     ParametricGrid()
         : pio(nullptr)
     {
+#ifdef USE_XIOS
+        // Set XIOS field types for core grid-related fields
+        Xios& xiosHandler = Xios::getInstance();
+        xiosHandler.setPrognosticFieldType(coordsName, ModelArray::Type::VERTEX);
+        if (Xios::sphericalCoordinates()) {
+            xiosHandler.setPrognosticFieldType(latitudeName, ModelArray::Type::H);
+            xiosHandler.setPrognosticFieldType(longitudeName, ModelArray::Type::H);
+        } else {
+            xiosHandler.setPrognosticFieldType(xName, ModelArray::Type::H);
+            xiosHandler.setPrognosticFieldType(yName, ModelArray::Type::H);
+        }
+        xiosHandler.setPrognosticFieldType(gridAzimuthName, ModelArray::Type::H);
+        xiosHandler.setPrognosticFieldType(maskName, ModelArray::Type::H);
+#endif
     }
     virtual ~ParametricGrid()
     {
@@ -33,26 +47,19 @@ public:
     }
 
     // Read/write override functions
-#ifdef USE_MPI
-    ModelState getModelState(const std::string& filePath, ModelMetadata& metadata) override
-    {
-        return pio ? pio->getModelState(filePath, metadata) : ModelState();
-    }
-#else
     ModelState getModelState(const std::string& filePath) override
     {
         return pio ? pio->getModelState(filePath) : ModelState();
     }
-#endif
 
-    void dumpModelState(const ModelState& state, const ModelMetadata& metadata,
-        const std::string& filePath, bool isRestart = false) const override
+    void dumpModelState(
+        const ModelState& state, const std::string& filePath, bool isRestart = false) const override
     {
         if (pio) {
             if (isRestart) {
-                pio->dumpModelState(state, metadata, filePath);
+                pio->dumpModelState(state, filePath);
             } else {
-                pio->writeDiagnosticTime(state, metadata, filePath);
+                pio->writeDiagnosticTime(state, filePath);
             }
         }
     }
@@ -66,20 +73,13 @@ public:
         }
         virtual ~IParaGridIO() = default;
 
-#ifdef USE_MPI
-        virtual ModelState getModelState(const std::string& filePath, ModelMetadata& metadata) = 0;
-#else
         virtual ModelState getModelState(const std::string& filePath) = 0;
-#endif
-        virtual void dumpModelState(
-            const ModelState& state, const ModelMetadata& metadata, const std::string& filePath)
-            = 0;
+
+        virtual void dumpModelState(const ModelState& state, const std::string& filePath) = 0;
         virtual ModelState readForcingTime(const std::set<std::string>& forcings,
             const TimePoint& time, const std::string& filePath)
             = 0;
-        virtual void writeDiagnosticTime(
-            const ModelState& state, const ModelMetadata& meta, const std::string& filePath)
-            = 0;
+        virtual void writeDiagnosticTime(const ModelState& state, const std::string& filePath) = 0;
 
     protected:
         IParaGridIO() = delete;

@@ -13,46 +13,48 @@ namespace Nextsim {
 void UniformOcean::setData(const ModelState::DataMap& ms)
 {
     IOceanBoundary::setData(ms);
-    sst = sst0;
+    sstAccessor.getHostRW() = sst0;
+    HField& sss = sssAccessor.getHostRW();
     sss = sss0;
+    HField& mld = mldAccessor.getHostRW();
     mld = mld0;
-    u = u0;
-    v = v0;
-    tf = Module::getImplementation<IFreezingPoint>()(sss[0]);
-    cpml = Water::rho * Water::cp * mld[0];
-    qio = qio0;
+    uAccessor.getHostRW() = u0;
+    vAccessor.getHostRW() = v0;
+    tfAccessor.getHostRW() = Module::getImplementation<IFreezingPoint>()(sss[0]);
+    cpmlAccessor.getHostRW() = Water::rho * Water::cp * mld[0];
+    qioAccessor.getHostRW() = qio0;
 
     /* It's only the SSH gradient which has an effect, so being able to set a constant SSH is
      * useless. */
-    ssh = 0.;
+    sshAccessor.getHostRW() = 0.;
 }
 
-UniformOcean& UniformOcean::setSST(double sstIn)
+UniformOcean& UniformOcean::setSST(FloatType sstIn)
 {
     sst0 = sstIn;
     return *this;
 }
-UniformOcean& UniformOcean::setSSS(double sssIn)
+UniformOcean& UniformOcean::setSSS(FloatType sssIn)
 {
     sss0 = sssIn;
     return *this;
 }
-UniformOcean& UniformOcean::setMLD(double mldIn)
+UniformOcean& UniformOcean::setMLD(FloatType mldIn)
 {
     mld0 = mldIn;
     return *this;
 }
-UniformOcean& UniformOcean::setU(double uIn)
+UniformOcean& UniformOcean::setU(FloatType uIn)
 {
     u0 = uIn;
     return *this;
 }
-UniformOcean& UniformOcean::setV(double vIn)
+UniformOcean& UniformOcean::setV(FloatType vIn)
 {
     v0 = vIn;
     return *this;
 }
-UniformOcean& UniformOcean::setQio(double qioIn)
+UniformOcean& UniformOcean::setQio(FloatType qioIn)
 {
     qio0 = qioIn;
     return *this;

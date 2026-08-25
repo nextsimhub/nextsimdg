@@ -15,6 +15,7 @@ namespace Nextsim {
 class MASIter;
 class ModelArraySlice;
 class ConstModelArraySlice;
+class Halo;
 std::ostream& operator<<(std::ostream& os, const MASIter& it);
 
 /*!
@@ -24,10 +25,10 @@ class MASIter {
     // Inheriting from std::iterator is deprecated after C++17
 public:
     using iterator_category = std::forward_iterator_tag;
-    using value_type = double;
+    using value_type = FloatType;
     using difference_type = std::ptrdiff_t;
-    using pointer = double*;
-    using reference = double&;
+    using pointer = FloatType*;
+    using reference = FloatType&;
     using Slice = ArraySlicer::Slice;
     using SliceIter = ArraySlicer::SliceIter;
 
@@ -36,7 +37,7 @@ public:
      * Provides read/write access to the data at the current location of the iterator.
      * @return reference access to the data the iterator refers to.
      */
-    double& operator*() const { return data[iter.index()]; }
+    FloatType& operator*() const { return data[iter.index()]; }
     //! Increments the position of the iterator.
     MASIter& operator++()
     {
@@ -64,7 +65,7 @@ public:
      * Provides member access for the data at the current location of the iterator.
      * @return a pointer to the current data
      */
-    double* operator->() const { return &data[iter.index()]; }
+    FloatType* operator->() const { return &data[iter.index()]; }
     /*!
      * Post-increments the iterator.
      * @return The state of the iterator before it was incremented.
@@ -123,7 +124,7 @@ public:
      * @param v The value to which to set the slice.
      * @return A reference to the updated ModelArraySlice.
      */
-    ModelArraySlice& operator=(double v);
+    ModelArraySlice& operator=(FloatType v);
     /*!
      * Assigns the contents of a buffer to the slice. This function copies the entire buffer.
      * @param buffer The buffer to copy the data from. Can be of any type which provides a forward
@@ -173,7 +174,7 @@ public:
      * up the second dimension. That is, a 4 x 5 slice with 3 components will create a (20, 3)
      * Eigen::Array.
      */
-    operator ModelArray::DataType();
+    operator ModelArray::DataType() const;
 
     /*!
      * Copies the contents of a slice to a ModelArray with an equal number of elements.
@@ -279,6 +280,7 @@ public:
 
     friend MASIter;
     friend ConstModelArraySlice;
+    friend Halo;
 
 private:
     static void copyBetweenMAandMASlice(

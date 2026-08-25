@@ -7,7 +7,7 @@
 Installation
 ============
 
-First step to install neXtSIM is to download this repository :
+First step to install nextSIM-DG is to download this repository :
 
 .. code::
 
@@ -25,7 +25,7 @@ It may be easier to use either the docker file (see below), or the ``spack`` ins
 Dependencies
 ------------
 
-To compile neXtSIM, you need to install first some libraries :
+To compile nextSIM-DG, you need to install first some libraries :
 
   - `NetCDF`_
   - `Boost`_
@@ -51,11 +51,18 @@ You must have root privilege :
 .. code::
 
         sudo apt-get update
-        sudo apt-get install netcdf-bin libnetcdf-c++4-dev libboost-all-dev cmake subversion libeigen3-dev
-        svn checkout http://forge.ipsl.fr/ioserver/svn/XIOS/trunk xios
+        sudo apt-get install netcdf-bin libnetcdf-c++4-dev libboost-all-dev cmake git libeigen3-dev
+        git clone --branch xios-3.0.6.0 https://gitlab.in2p3.fr/ipsl/projets/xios-projects/xios.git xios
         cd xios
-        ./make_xios --arch <your_architecture>
+        ./make_xios --arch <your_architecture> --job <number_of_jobs>
 
+There is also a ``--debug`` option to compile in debug mode. For example, to
+compile XIOS in debug mode on a Linux operating system and the GCC compiler
+using 8 parallel jobs, use:
+
+.. code::
+
+        ./make_xios --arch GCC_LINUX --job 8 --debug
 
 **Installing dependencies via conda**
 
@@ -118,8 +125,30 @@ required Python packages with
 
         pip install -r requirements.txt
 
-Building the code
------------------
+Building domain_decomp
+----------------------
+NextSIM-DG uses the ``domain_decomp`` library for generating domain
+decompositions for MPI parallel simulations. This library is included in the
+``nextsimdg`` repository as a submodule, so you need to initialize and update
+the submodule before building it. You can do this with the following commands:
+
+.. code::
+
+        cd nextsimdg
+        git submodule init
+        git submodule update
+        cd domain_decomp
+        cmake -Bbuild -S.
+        cmake --build build --config Release
+
+The ``domain_decomp`` library is not required to build the nextSIM-DG model but
+it is required for running the tests and for generating domain decompositions
+for application case studies. See the `domain_decomp repo
+<https://github.com/nextsimhub/domain_decomp>`__ for further details on how to
+build and use the library.
+
+Building nextSIM-DG
+-------------------
 After all dependencies have been installed, we can build the code:
 
 .. code::
@@ -132,7 +161,7 @@ After all dependencies have been installed, we can build the code:
 
 Configuring the dynamics
 ------------------------
-The dynamics for nextSIM are chosen at the point of configuring CMake. This is in contrast to most of the model configuration, which is done at model run time. The dynamics are set through the configuration option ``DynamicsType``. The available options for the dynamics are
+The dynamics for nextSIM-DG are chosen at the point of configuring CMake. This is in contrast to most of the model configuration, which is done at model run time. The dynamics are set through the configuration option ``DynamicsType``. The available options for the dynamics are
 
 * ``DG1``: First order discontinuous Galerkin dynamics on a 2D rectangular grid. Advection calculations are performed with 3 DG components.
 
@@ -169,6 +198,33 @@ You might need to tell cmake which compiler to use, e.g.
 .. code::
 
         cmake .. -DCMAKE_CXX_COMPILER=/usr/bin/mpicxx -DENABLE_MPI=ON
+
+Dependencies and Build for GPU
+----------------------------------------------
+The GPU version of nextSIM-DG uses `Kokkos <https://github.com/kokkos/kokkos>`_ to support different devices. In principle, every target that Kokkos supports should work for nextSIM-DG as well. However, development and testing is mostly done with the CUDA backend, so expect more friction when targeting non NVIDIA GPUs. The library can be acquired through a package manager, e.g.
+
+ .. code::
+
+        sudo apt-get install kokkos
+
+In case that no suitable version of Kokkos is available on the system, a `copy <https://github.com/kokkos/kokkos/releases>`_ of the library can be placed in ``lib/kokkos``.
+To build with GPU support, it is necessary to enable both the feature itself and an appropriate `kokkos backend <https://kokkos.org/kokkos-core-wiki/get-started/configuration-guide.html>`_:
+
+.. code::
+
+        cmake .. -DWITH_KOKKOS=ON -DKokkos_ENABLE_CUDA=ON -DWITH_THREADS=ON
+ 
+While it is currently not possible to use Kokkos and MPI together, OpenMP (``WITH_THREADS``) can be enabled to run modules that have not been ported to the device in parallel on the CPU. The OpenMP backend of Kokkos can be enabled as well, however it will only be used if no device backend is enabled. Same as the device backends, it should be used in concert with the basic OpenMP parallelisation and may have different performance characteristics then ``WITH_THREADS=ON`` alone.
+
+Single Precision
+^^^^^^^^^^^^^^^^
+With Kokkos, there is experimental support for single precision, which is controlled by the option
+
+.. code::
+
+        cmake .. -DUSE_SINGLE_PRECISION=ON
+
+When switched on all data and computations use ``float`` instead of ``double``, cutting the memory footprint in half and providing a significant speedup, especially on consumer grade GPUs. This option currently does not work with XIOS or MPI.
 
 Using Dockerfiles for Development or Production Runs
 ----------------------------------------------------
@@ -252,3 +308,38 @@ If you want to run a subset of tests, you can use the `-R` option with a regular
     ctest -R Xios
 
 For more information on `ctest` options, you can refer to the official `ctest` documentation.
+
+Building the Documentation (Locally)
+------------------------------------
+
+If you would like to build the documentation locally, follow the instructions below.
+
+A Dockerfile is provided in the ``Dockerfiles`` directory to build the documentation i.e., ``Dockerfile.sphinx``.
+
+To build the docker image run the following command from the root of the repository:
+
+.. code-block:: console
+
+    docker build --file Dockerfiles/Dockerfile.sphinx . -t nextsim-docs:latest
+
+This should create a local docker image called ``nextsim-docs:latest``.
+
+To build the documentation, run the following command from the root of the repository:
+
+.. code-block:: console
+
+    docker run --rm -v $PWD:/docs nextsim-docs:latest
+
+Optionally, you can specify the number of jobs to use for building the documentation. For example, to use 4 jobs, run:
+
+.. code-block:: console
+
+    docker run --rm -v $PWD:/docs nextsim-docs:latest 4
+
+Finally, to view the built documentation, open the file ``docs/_build/html/index.html`` in your web browser e.g.,
+
+.. code-block:: console
+
+    xdg-open docs/_build/html/index.html  # Linux
+    open docs/_build/html/index.html      # MacOS
+    start docs\_build\html\index.html     # Windows

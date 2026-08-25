@@ -43,15 +43,15 @@ protected:
     void update(const TimestepTime&) override;
 
 private:
-    static double qia0;
-    static double dqia_dt0;
-    static double qow0;
-    static double subl0;
-    static double snowfall0;
-    static double rain0;
-    static double evap0;
-    static double u0;
-    static double v0;
+    static FloatType qia0;
+    static FloatType dqia_dt0;
+    static FloatType qow0;
+    static FloatType subl0;
+    static FloatType snowfall0;
+    static FloatType rain0;
+    static FloatType evap0;
+    static FloatType u0;
+    static FloatType v0;
 };
 
 } /* namespace Nextsim */

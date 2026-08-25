@@ -11,12 +11,17 @@
 #include "include/ModelArray.hpp"
 #include "include/constants.hpp"
 
+#include "SlopeLimiter.hpp"
 #include "include/Interpolations.hpp"
 #include "include/ParametricMap.hpp"
 #include "include/VectorManipulations.hpp"
 #include "include/cgVector.hpp"
 
 #include <limits>
+
+#ifdef USE_MPI
+#include "include/Halo.hpp"
+#endif
 
 namespace Nextsim {
 
@@ -39,25 +44,39 @@ void CGDynamicsKernel<DGadvection>::initialise(
     pmap->InitializeCGLandmask();
 
     u.resize_by_mesh(*smesh);
+    u.setZero();
     v.resize_by_mesh(*smesh);
+    v.setZero();
 
     cgH.resize_by_mesh(*smesh);
+    cgH.setZero();
     cgA.resize_by_mesh(*smesh);
+    cgA.setZero();
 
     xGradSeaSurfaceHeight.resize_by_mesh(*smesh);
+    xGradSeaSurfaceHeight.setZero();
     yGradSeaSurfaceHeight.resize_by_mesh(*smesh);
+    yGradSeaSurfaceHeight.setZero();
 
     dStressX.resize_by_mesh(*smesh);
+    dStressX.setZero();
     dStressY.resize_by_mesh(*smesh);
+    dStressY.setZero();
 
     uOcean.resize_by_mesh(*smesh);
+    uOcean.setZero();
     vOcean.resize_by_mesh(*smesh);
+    vOcean.setZero();
 
     uAtmos.resize_by_mesh(*smesh);
+    uAtmos.setZero();
     vAtmos.resize_by_mesh(*smesh);
+    vAtmos.setZero();
 
     uIceOceanStress.resize_by_mesh(*smesh);
+    uIceOceanStress.setZero();
     vIceOceanStress.resize_by_mesh(*smesh);
+    vIceOceanStress.setZero();
 
     cosOceanAngle = std::cos(radians(baseParams.oceanTurningAngle));
     sinOceanAngle = std::sin(radians(baseParams.oceanTurningAngle));
@@ -137,13 +156,13 @@ void CGDynamicsKernel<DGadvection>::computeGradientOfSeaSurfaceHeight(
                 size_t cg1id = cy * (smesh->nx + 1);
                 for (size_t cx = 0; cx < smesh->nx; ++cx, ++eid, ++cg1id) {
                     // get local CG nodes
-                    Eigen::Vector<Nextsim::FloatType, 4> loc_cgSSH = { cgSeasurfaceHeight(cg1id),
+                    Eigen::Vector<FloatType, 4> loc_cgSSH = { cgSeasurfaceHeight(cg1id),
                         cgSeasurfaceHeight(cg1id + 1), cgSeasurfaceHeight(cg1id + smesh->nx + 1),
                         cgSeasurfaceHeight(cg1id + smesh->nx + 1 + 1) };
 
                     // compute grad
-                    Eigen::Vector<Nextsim::FloatType, 4> tx = pmap->dX_SSH[eid] * loc_cgSSH;
-                    Eigen::Vector<Nextsim::FloatType, 4> ty = pmap->dY_SSH[eid] * loc_cgSSH;
+                    Eigen::Vector<FloatType, 4> tx = pmap->dX_SSH[eid] * loc_cgSSH;
+                    Eigen::Vector<FloatType, 4> ty = pmap->dY_SSH[eid] * loc_cgSSH;
 
                     // add global vector
                     uGrad(cg1id) -= tx(0);
@@ -200,9 +219,9 @@ void CGDynamicsKernel<DGadvection>::computeGradientOfSeaSurfaceHeight(
         yGradSeaSurfaceHeight = vGrad;
     } else {
         // outer nodes
-        size_t icg1 = 0;
 #pragma omp parallel for
         for (size_t iy = 0; iy <= smesh->ny; ++iy) {
+            size_t icg1 = (smesh->nx + 1) * iy;
             size_t icg2 = (2 * smesh->nx + 1) * 2 * iy;
             for (size_t ix = 0; ix <= smesh->nx; ++ix, ++icg1, icg2 += 2) {
                 xGradSeaSurfaceHeight(icg2) = uGrad(icg1);
@@ -216,8 +235,8 @@ void CGDynamicsKernel<DGadvection>::computeGradientOfSeaSurfaceHeight(
             size_t icg1 = (smesh->nx + 1) * iy;
             size_t icg2 = (2 * smesh->nx + 1) * 2 * iy + 1;
             for (size_t ix = 0; ix < smesh->nx; ++ix, ++icg1, icg2 += 2) {
-                xGradSeaSurfaceHeight(icg2) = 0.5 * (uGrad(icg1) + uGrad(icg1 + 1));
-                yGradSeaSurfaceHeight(icg2) = 0.5 * (vGrad(icg1) + vGrad(icg1 + 1));
+                xGradSeaSurfaceHeight(icg2) = 0.5_ft * (uGrad(icg1) + uGrad(icg1 + 1));
+                yGradSeaSurfaceHeight(icg2) = 0.5_ft * (vGrad(icg1) + vGrad(icg1 + 1));
             }
         }
 #pragma omp parallel for
@@ -226,8 +245,8 @@ void CGDynamicsKernel<DGadvection>::computeGradientOfSeaSurfaceHeight(
             size_t icg1 = (smesh->nx + 1) * iy;
             size_t icg2 = (2 * smesh->nx + 1) * (2 * iy + 1);
             for (size_t ix = 0; ix <= smesh->nx; ++ix, ++icg1, icg2 += 2) {
-                xGradSeaSurfaceHeight(icg2) = 0.5 * (uGrad(icg1) + uGrad(icg1 + cg1row));
-                yGradSeaSurfaceHeight(icg2) = 0.5 * (vGrad(icg1) + vGrad(icg1 + cg1row));
+                xGradSeaSurfaceHeight(icg2) = 0.5_ft * (uGrad(icg1) + uGrad(icg1 + cg1row));
+                yGradSeaSurfaceHeight(icg2) = 0.5_ft * (vGrad(icg1) + vGrad(icg1 + cg1row));
             }
         }
 
@@ -257,6 +276,14 @@ template <int DGadvection> void CGDynamicsKernel<DGadvection>::prepareIteration(
     Interpolations::DG2CG(*smesh, cgA, data.at(ciceName));
     VectorManipulations::CGAveragePeriodic(*smesh, cgA);
 
+#ifdef USE_MPI
+    // Halo object only depends on shape of the array, so we can share it for all CGVectors of the
+    // same shape
+    Halo halo(cgH);
+    halo.exchangeHalos(cgH);
+    halo.exchangeHalos(cgA);
+#endif
+
     // Reinit the gradient of the sea surface height. Not done by
     // DataMap as seaSurfaceHeight is always dG(0)
     computeGradientOfSeaSurfaceHeight(DynamicsKernel<DGadvection, DGstressComp>::seaSurfaceHeight);
@@ -272,21 +299,21 @@ template <int DGadvection> void CGDynamicsKernel<DGadvection>::prepareIteration(
 }
 
 template <int CG>
-Eigen::Matrix<double, CGDOFS(CG), 1> cgLocal(
+Eigen::Matrix<FloatType, CGDOFS(CG), 1> cgLocal(
     const CGVector<CG>& globalVelocity, int cgi, int cgShift);
 
 template <>
-Eigen::Matrix<double, CGDOFS(1), 1> cgLocal(const CGVector<1>& vGlobal, int cgi, int cgShift)
+Eigen::Matrix<FloatType, CGDOFS(1), 1> cgLocal(const CGVector<1>& vGlobal, int cgi, int cgShift)
 {
-    Eigen::Matrix<double, CGDOFS(1), 1> vLocal;
+    Eigen::Matrix<FloatType, CGDOFS(1), 1> vLocal;
     vLocal << vGlobal(cgi), vGlobal(cgi + 1), vGlobal(cgi + cgShift), vGlobal(cgi + 1 + cgShift);
     return vLocal;
 }
 
 template <>
-Eigen::Matrix<double, CGDOFS(2), 1> cgLocal(const CGVector<2>& vGlobal, int cgi, int cgShift)
+Eigen::Matrix<FloatType, CGDOFS(2), 1> cgLocal(const CGVector<2>& vGlobal, int cgi, int cgShift)
 {
-    Eigen::Matrix<double, CGDOFS(2), 1> vLocal;
+    Eigen::Matrix<FloatType, CGDOFS(2), 1> vLocal;
     vLocal << vGlobal(cgi), vGlobal(cgi + 1), vGlobal(cgi + 2), vGlobal(cgi + cgShift),
         vGlobal(cgi + 1 + cgShift), vGlobal(cgi + 2 + cgShift), vGlobal(cgi + 2 * cgShift),
         vGlobal(cgi + 1 + 2 * cgShift), vGlobal(cgi + 2 + 2 * cgShift);
@@ -312,9 +339,9 @@ template <int DGadvection> void CGDynamicsKernel<DGadvection>::projectVelocityTo
                 continue;
 
             // get the local x/y - velocity coefficients on the element
-            Eigen::Matrix<double, CGDOFS(CGdegree), 1> vx_local
+            Eigen::Matrix<FloatType, CGDOFS(CGdegree), 1> vx_local
                 = cgLocal<CGdegree>(u, cgi, cgshift);
-            Eigen::Matrix<double, CGDOFS(CGdegree), 1> vy_local
+            Eigen::Matrix<FloatType, CGDOFS(CGdegree), 1> vy_local
                 = cgLocal<CGdegree>(v, cgi, cgshift);
 
             // Solve (E, Psi) = (0.5(DV + DV^T), Psi)
@@ -322,11 +349,11 @@ template <int DGadvection> void CGDynamicsKernel<DGadvection>::projectVelocityTo
             //
             e11.row(dgi) = pmap->iMgradX[dgi] * vx_local;
             e22.row(dgi) = pmap->iMgradY[dgi] * vy_local;
-            e12.row(dgi) = 0.5 * (pmap->iMgradX[dgi] * vy_local + pmap->iMgradY[dgi] * vx_local);
+            e12.row(dgi) = 0.5_ft * (pmap->iMgradX[dgi] * vy_local + pmap->iMgradY[dgi] * vx_local);
 
             if (smesh->CoordinateSystem == SPHERICAL) {
                 e11.row(dgi) -= pmap->iMM[dgi] * vy_local;
-                e12.row(dgi) += 0.5 * pmap->iMM[dgi] * vx_local;
+                e12.row(dgi) += 0.5_ft * pmap->iMM[dgi] * vx_local;
             }
         }
     }
@@ -336,9 +363,9 @@ template <int DGadvection>
 void CGDynamicsKernel<DGadvection>::addStressTensorCell(
     const size_t eid, const size_t cx, const size_t cy)
 {
-    Eigen::Vector<Nextsim::FloatType, CGdof> tx = (pmap->divS1[eid] * s11.row(eid).transpose()
+    Eigen::Vector<FloatType, CGdof> tx = (pmap->divS1[eid] * s11.row(eid).transpose()
         + pmap->divS2[eid] * s12.row(eid).transpose());
-    Eigen::Vector<Nextsim::FloatType, CGdof> ty = (pmap->divS1[eid] * s12.row(eid).transpose()
+    Eigen::Vector<FloatType, CGdof> ty = (pmap->divS1[eid] * s12.row(eid).transpose()
         + pmap->divS2[eid] * s22.row(eid).transpose());
 
     if (smesh->CoordinateSystem == SPHERICAL) {
@@ -414,13 +441,33 @@ template <int DGadvection> void CGDynamicsKernel<DGadvection>::applyBoundaries()
 
 template <int DGadvection>
 DGVector<DGadvection>& CGDynamicsKernel<DGadvection>::advectDGVField(
-    double timestep, DGVector<DGadvection>& field, double lowerLimit, double upperLimit)
+    FloatType timestep, DGVector<DGadvection>& field, FloatType lowerLimit, FloatType upperLimit)
 {
+
+#ifdef USE_MPI
+    Halo halo(field);
+    halo.exchangeHalos(field);
+#endif
+
     dgtransport->step(timestep, field);
-    if (lowerLimit > -std::numeric_limits<double>::infinity())
-        LimitMin(field, lowerLimit);
-    if (upperLimit < std::numeric_limits<double>::infinity())
-        LimitMax(field, upperLimit);
+
+    //! Slope Limiting
+    SlopeLimiter<DGadvection> SL(*smesh);
+    bool limitSlope = false;
+
+    // First, limit minimum and/or maximum of the average component
+    if (lowerLimit > -std::numeric_limits<FloatType>::infinity()) {
+        SL.limitMin(field, lowerLimit);
+        limitSlope = true;
+    }
+    if (upperLimit < std::numeric_limits<FloatType>::infinity()) {
+        SL.limitMax(field, upperLimit);
+        limitSlope = true;
+    }
+
+    // Then prevent new local minima and maxima
+    if (limitSlope)
+        SL.limit(field);
 
     return field;
 }
@@ -429,10 +476,13 @@ template <int DGadvection>
 void CGDynamicsKernel<DGadvection>::updateIceOceanStress(
     const CGVector<CGdegree>& uIce, const CGVector<CGdegree>& vIce)
 {
-    const double FOcean = baseParams.COcean * baseParams.rhoOcean;
+    const FloatType FOcean = baseParams.COcean * baseParams.rhoOcean;
 
 #pragma omp parallel for
     for (int i = 0; i < uIceOceanStress.rows(); ++i) {
+        if (pmap->cglandmask(i) == 0)
+            continue;
+
         const FloatType uOceanRel = uOcean(i) - uIce(i);
         const FloatType vOceanRel = vOcean(i) - vIce(i);
         const FloatType cPrime = FOcean * std::hypot(uOceanRel, vOceanRel);

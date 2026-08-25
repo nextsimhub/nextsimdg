@@ -6,21 +6,26 @@
 #define MODELARRAY_HPP
 
 #include <Eigen/Core>
+#include <algorithm>
+#include <array>
 #include <cstddef>
 #include <map>
 #include <string>
 #include <utility>
 #include <vector>
 
+#include "FloatType.hpp"
 #include "indexer.hpp"
 
 namespace ArraySlicer {
 class Slice;
+// class SliceIter;
 }
 
 namespace Nextsim {
 
 class ModelArraySlice;
+class Halo;
 class ConstModelArraySlice;
 /*
  * Set the storage order to row major. This matches with DGVector when there is
@@ -54,9 +59,11 @@ using Indexer::indexer;
 class ModelArray {
 public:
     using Slice = ArraySlicer::Slice;
+    // using SliceIter = ArraySlicer::SliceIter;
     // Forward defines make Eclipse less red and squiggly
     enum class Type;
     enum class Dimension;
+    enum class Base;
 
 #include "include/ModelArrayDetails.hpp"
 
@@ -84,6 +91,12 @@ public:
             this->start = 0;
         }
 #endif
+        bool operator==(const DimensionSpec& other)
+        {
+            return ((name == other.name) && (altName == other.altName)
+                && (globalLength == other.globalLength) && (localLength == other.localLength)
+                && (start == other.start));
+        }
     };
 
     using TypeDimensions = std::map<Type, std::vector<Dimension>>;
@@ -94,10 +107,12 @@ public:
     static std::map<Dimension, DimensionSpec> definedDimensions;
     //! The name of each type of ModelArray
     static const std::map<Type, std::string> typeNames;
+    //! The base type of each type of ModelArray
+    static std::map<Type, Base> baseTypes;
     // The dimension that defines the components of each ModelArray type, if any
     static const std::map<Type, Dimension> componentMap;
 
-    using DataType = Eigen::Array<double, Eigen::Dynamic, Eigen::Dynamic, majority>;
+    using DataType = Eigen::Array<FloatType, Eigen::Dynamic, Eigen::Dynamic, majority>;
 
     // Data types of all components ate a particular location.
     using Components = DataType::RowXpr;
@@ -111,12 +126,15 @@ public:
      */
     ModelArray();
     /*!
-     * @brief Construct a ModelArray of the given type and name
+     * @brief Construct a ModelArray of the given type
      *
-     * @param type The ModelArray::Type for the new object.
-     * @param name The name of the new object.
+     * @param t The ModelArray::Type for the new object.
+     * @param bounds The physical lower and upper bounds for the new object. See lowerPhysicalLimit
+     * and upperPhysicalLimit.
      */
-    ModelArray(const Type type);
+    ModelArray(const Type type,
+        const std::pair<FloatType, FloatType>& bounds
+        = { -std::numeric_limits<FloatType>::max(), std::numeric_limits<FloatType>::max() });
     //! Copy constructor
     ModelArray(const ModelArray&);
     virtual ~ModelArray() {};
@@ -124,11 +142,11 @@ public:
     //! Copy assignment operator
     ModelArray& operator=(const ModelArray&);
     /*!
-     * @brief Assigns a double value to all elements of the object.
+     * @brief Assigns a FloatType value to all elements of the object.
      *
      * @param val The value to be assigned.
      */
-    ModelArray& operator=(const double& val);
+    ModelArray& operator=(const FloatType& val);
 
     /*!
      * @brief Assigns an entire ModelArray from the data contained in a ModelArraySlice.
@@ -190,26 +208,26 @@ public:
         return *this;
     }
 
-    //! In place addition of a double
-    ModelArray& operator+=(double b)
+    //! In place addition of a FloatType
+    ModelArray& operator+=(FloatType b)
     {
         m_data += b;
         return *this;
     }
-    //! In place subtraction of a double
-    ModelArray& operator-=(double b)
+    //! In place subtraction of a FloatType
+    ModelArray& operator-=(FloatType b)
     {
         m_data -= b;
         return *this;
     }
-    //! In place multiplication by a double
-    ModelArray& operator*=(double b)
+    //! In place multiplication by a FloatType
+    ModelArray& operator*=(FloatType b)
     {
         m_data *= b;
         return *this;
     }
-    //! In place division by a double
-    ModelArray& operator/=(double b)
+    //! In place division by a FloatType
+    ModelArray& operator/=(FloatType b)
     {
         m_data /= b;
         return *this;
@@ -231,24 +249,24 @@ public:
     ModelArray operator-() const;
 
     //! Returns a ModelArray with a constant added to every element of the object.
-    ModelArray operator+(const double&) const;
+    ModelArray operator+(const FloatType&) const;
     //! Returns a ModelArray with a constant subtracted from every element of the object.
-    ModelArray operator-(const double&) const;
+    ModelArray operator-(const FloatType&) const;
     //! Returns a ModelArray with every element of the object multiplied by a constant.
-    ModelArray operator*(const double&) const;
+    ModelArray operator*(const FloatType&) const;
     //! Returns a ModelArray with every element of the object divided by a constant.
-    ModelArray operator/(const double&) const;
+    ModelArray operator/(const FloatType&) const;
 
     /*!
      * @brief Calculates element-wise maximum of the data and the given scalar value.
      * @param max the maximum value of the resultant array.
      */
-    ModelArray max(double max) const;
+    ModelArray max(FloatType max) const;
     /*!
      * @brief Calculates element-wise minimum of the data and the given scalar value.
      * @param min the minimum value of the resultant array.
      */
-    ModelArray min(double min) const;
+    ModelArray min(FloatType min) const;
     /*!
      * @brief Calculates element-wise maximum of the data and the given second array.
      * @param maxArr the array containing the maximum values.
@@ -264,12 +282,12 @@ public:
      * @brief Clamps the values in the array to the given maximum.
      * @param max the maximum value of the final array.
      */
-    ModelArray& clampAbove(double max);
+    ModelArray& clampAbove(FloatType max);
     /*!
      * @brief Clamps the values in the array to the given minimum.
      * @param min the minimum value of the final array.
      */
-    ModelArray& clampBelow(double min);
+    ModelArray& clampBelow(FloatType min);
     /*!
      * @brief Clamps the values in the array to maximum values in the given array.
      * @param maxArr the array of clamp maximum target values.
@@ -291,6 +309,7 @@ public:
     const MultiDim& dimensions() const { return dimensions(type); }
     //! Returns a vector<size_t> of the size of each dimension of the specified type of ModelArray.
     static const MultiDim& dimensions(Type type) { return m_dims.at(type); }
+
     //! Returns the total number of elements of this type of ModelArray.
     size_t size() const { return size(type); }
     //! Returns the total number of elements of the specified type of ModelArray.
@@ -301,7 +320,10 @@ public:
     static size_t size(Dimension dim) { return definedDimensions.at(dim).localLength; }
 
     //! Returns a read-only pointer to the underlying data buffer.
-    const double* getData() const { return m_data.data(); }
+    const FloatType* getData() const { return m_data.data(); }
+
+    //! Returns a reference to the underlying ModelArray::DataType object.
+    ModelArray::DataType& getDataRef() { return m_data; }
 
     //! Returns a const reference to the Eigen data
     const DataType& data() const { return m_data; }
@@ -328,7 +350,7 @@ public:
     void setDimensions(const MultiDim& dims)
     {
         setDimensions(type, dims);
-        resize();
+        reinitialize();
     }
 
     /*!
@@ -344,17 +366,14 @@ public:
     static void setDimension(Dimension dim, size_t globalLength);
 #endif
 
-    //! Conditionally updates the size of the object data buffer to match the
-    //! class specification.
-    void resize()
+    //! Updates the size of the object data buffer to match the class specification and sets every
+    //! element to 0.
+    void reinitialize()
     {
-        if (size() != trueSize()) {
-            if (hasDoF(type)) {
-                m_data.setZero(
-                    m_sz.at(type), definedDimensions.at(componentMap.at(type)).localLength);
-            } else {
-                m_data.setZero(m_sz.at(type), Eigen::NoChange);
-            }
+        if (hasDoF(type)) {
+            m_data.setZero(m_sz.at(type), definedDimensions.at(componentMap.at(type)).localLength);
+        } else {
+            m_data.setZero(m_sz.at(type), Eigen::NoChange);
         }
     }
 
@@ -363,9 +382,9 @@ public:
      *
      * @param value The new value for every element.
      */
-    void setData(double value);
+    void setData(FloatType value);
     /*!
-     * @brief Reads and sets data from a raw buffer of double data.
+     * @brief Reads and sets data from a raw buffer of FloatType data.
      *
      * @details The given pointer is the address of the first element read.
      * Subsequent doubles in memory are read until every element in the object
@@ -374,7 +393,7 @@ public:
      *
      * @param pData The pointer to the data buffer to be read.
      */
-    void setData(const double* pData);
+    void setData(const FloatType* pData);
     /*!
      * @brief Reads and sets data from an instance of the underlying data class
      * (Eigen::Array).
@@ -393,6 +412,18 @@ public:
      * @param source The object to be copied from.
      */
     void setData(const ModelArray& source);
+
+    /*!
+     * @brief Sets data from another ModelArray, respecting the type of this.
+     *
+     * @details This function copies the data from the source but keeps the
+     * the type and size of this. In case the number of components does not match, only the 0th
+     * component is copied.
+     * @param source The object to be copied from.
+     */
+    void assignData(const ModelArray& source);
+    // Move variant that takes the buffer of source if the number of components match.
+    void assignData(ModelArray&& source);
 
 private:
     // Fast special case for 1-d indexing
@@ -432,7 +463,7 @@ public:
      *
      * @param i The one dimensional index of the target point.
      */
-    const double& operator[](size_t i) const { return m_data(i, 0); }
+    const FloatType& operator[](size_t i) const { return m_data(i, 0); }
     /*!
      * @brief Returns the data at the indices.
      *
@@ -444,12 +475,12 @@ public:
      *
      * @param dims The indices of the target point.
      */
-    const double& operator[](const MultiDim& dims) const;
+    const FloatType& operator[](const MultiDim& dims) const;
 
     /*!
      * @brief Returns the data at the given set of indices
      */
-    template <typename... Args> const double& operator()(Args... args) const
+    template <typename... Args> const FloatType& operator()(Args... args) const
     {
         return (*this)[indexr(dimensions(), args...)];
     }
@@ -464,7 +495,7 @@ public:
      *
      * @param i The one dimensional index of the target point.
      */
-    double& operator[](size_t i) { return const_cast<double&>(std::as_const(*this)(i)); }
+    FloatType& operator[](size_t i) { return const_cast<FloatType&>(std::as_const(*this)(i)); }
     /*!
      * @brief Returns the data at the indices.
      *
@@ -476,13 +507,13 @@ public:
      *
      * @param dims The indices of the target point.
      */
-    double& operator[](const MultiDim&);
+    FloatType& operator[](const MultiDim&);
     //! Returns the specified point from a ModelArray. If the
     //! object holds discontinuous Galerkin components, only the cell averaged
     //! value is returned. Non-const version.
-    template <typename... Args> double& operator()(Args... args)
+    template <typename... Args> FloatType& operator()(Args... args)
     {
-        return const_cast<double&>(std::as_const(*this)(args...));
+        return const_cast<FloatType&>(std::as_const(*this)(args...));
     }
 
     /*!
@@ -617,6 +648,15 @@ public:
     //! discontinuous Galerkin components.
     static bool hasDoF(const Type type);
 
+private:
+    FloatType lowerPhysicalLimit = -std::numeric_limits<FloatType>::max();
+    FloatType upperPhysicalLimit = std::numeric_limits<FloatType>::max();
+    FloatType fillValue = 0.;
+
+public:
+    void setLimits(const FloatType lower, const FloatType upper);
+    void checkLimits(const ModelArray& mask) const;
+
 protected:
     Type type;
 
@@ -660,18 +700,19 @@ private:
     static DimensionMap m_dims;
     DataType m_data;
 
-    // ModelArraySlice needs access to the internals for fast slcing
+    // ModelArraySlice needs access to the internals for fast slicing
     friend ModelArraySlice;
+    friend Halo;
 };
 
 #include "include/ModelArrayTypedefs.hpp"
 using AdvectedField = ModelArray;
 
 // ModelArray arithmetic with doubles
-ModelArray operator+(const double&, const ModelArray&);
-ModelArray operator-(const double&, const ModelArray&);
-ModelArray operator*(const double&, const ModelArray&);
-ModelArray operator/(const double&, const ModelArray&);
+ModelArray operator+(const FloatType&, const ModelArray&);
+ModelArray operator-(const FloatType&, const ModelArray&);
+ModelArray operator*(const FloatType&, const ModelArray&);
+ModelArray operator/(const FloatType&, const ModelArray&);
 } /* namespace Nextsim */
 
 #endif /* MODELARRAY_HPP */

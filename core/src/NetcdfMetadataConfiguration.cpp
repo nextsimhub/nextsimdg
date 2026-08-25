@@ -32,6 +32,10 @@ std::stringstream NetcdfMetadataConfiguration::read(const std::string& source)
             double value;
             entry.second.getVar(&value);
             config << value;
+        } else if (entry.second.getType() == netCDF::ncFloat) {
+            float value;
+            entry.second.getVar(&value);
+            config << value;
         } else if (entry.second.getType() == netCDF::ncInt) {
             int value;
             entry.second.getVar(&value);

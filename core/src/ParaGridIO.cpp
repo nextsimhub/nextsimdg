@@ -7,7 +7,12 @@
 #include "include/CommonRestartMetadata.hpp"
 #include "include/FileCallbackCloser.hpp"
 #include "include/Finalizer.hpp"
+#ifdef USE_MPI
+#include "include/Halo.hpp"
+#include "include/ModelMPI.hpp"
+#endif
 #include "include/MissingData.hpp"
+#include "include/NetCDFUtils.hpp"
 #include "include/gridNames.hpp"
 
 #include <ncDim.h>
@@ -29,14 +34,15 @@ ParaGridIO::ParaGridIO(ParametricGrid& grid)
     , dimensionKeys({
           // clang-format off
           // Accept post-May 2024 (xdim, ydim, zdim) dimension names and pre-May 2024 (x, y, z)
-        { "yx", ModelArray::Type::H },
         { "ydimxdim", ModelArray::Type::H },
-        { "yxdg_comp", ModelArray::Type::DG },
+        { "y_dimx_dim", ModelArray::Type::H },
         { "ydimxdimdg_comp", ModelArray::Type::DG },
-        { "yxdgstress_comp", ModelArray::Type::DGSTRESS },
+        { "y_dimx_dimdg_comp", ModelArray::Type::DG },
         { "ydimxdimdgstress_comp", ModelArray::Type::DGSTRESS },
-        { "ycgxcg", ModelArray::Type::CG },
+        { "y_dimx_dimdgstress_comp", ModelArray::Type::DGSTRESS },
+        { "y_cgx_cg", ModelArray::Type::CG },
         { "yvertexxvertexncoords", ModelArray::Type::VERTEX },
+        { "y_vertexx_vertexncoords", ModelArray::Type::VERTEX },
           // clang-format on
       })
     , isDG({
@@ -75,71 +81,23 @@ bool ParaGridIO::doOnce()
 
 ParaGridIO::~ParaGridIO() = default;
 
-#ifdef USE_MPI
-ModelState ParaGridIO::getModelState(const std::string& filePath, ModelMetadata& metadata)
-#else
 ModelState ParaGridIO::getModelState(const std::string& filePath)
-#endif
 {
     ModelState state;
 
+    // Set global dimensions with an initial read of the input file
+    ModelMetadata& metadata = ModelMetadata::getInstance();
+    metadata.setDimensionsFromFile(filePath);
+
     try {
 #ifdef USE_MPI
-        netCDF::NcFilePar ncFile(filePath, netCDF::NcFile::read, metadata.mpiComm);
+        auto& modelMPI = ModelMPI::getInstance();
+        netCDF::NcFilePar ncFile(filePath, netCDF::NcFile::read, modelMPI.getComm());
 #else
         netCDF::NcFile ncFile(filePath, netCDF::NcFile::read);
 #endif
 
-        // Dimensions and DG components
-        std::multimap<std::string, netCDF::NcDim> dimMap = ncFile.getDims();
-        for (auto entry : ModelArray::definedDimensions) {
-            auto dimType = entry.first;
-            if (dimCompMap.count(dimType) > 0)
-                // TODO Assertions that DG in the file equals the compile time DG in the model. See
-                // #205
-                continue;
-
-            ModelArray::DimensionSpec& dimensionSpec = entry.second;
-            // Find dimensions in the netCDF file by their name in the ModelArray details
-            netCDF::NcDim dim = ncFile.getDim(dimensionSpec.name);
-            // Also check the old name
-            if (dim.isNull()) {
-                dim = ncFile.getDim(dimensionSpec.altName);
-            }
-            // If we didn't find a dimension with the dimensions name or altName, throw.
-            if (dim.isNull()) {
-                throw std::out_of_range(
-                    std::string("No netCDF dimension found corresponding to the dimension named ")
-                    + dimensionSpec.name + std::string(" or ") + dimensionSpec.altName);
-            }
-#ifdef USE_MPI
-            auto dimName = dim.getName();
-            size_t localLength = 0;
-            size_t start = 0;
-            if (dimType == ModelArray::Dimension::X) {
-                localLength = metadata.localExtentX;
-                start = metadata.localCornerX;
-            } else if (dimType == ModelArray::Dimension::Y) {
-                localLength = metadata.localExtentY;
-                start = metadata.localCornerY;
-            } else if (dimType == ModelArray::Dimension::XVERTEX) {
-                localLength = metadata.localExtentX + 1;
-                start = metadata.localCornerX;
-            } else if (dimType == ModelArray::Dimension::YVERTEX) {
-                localLength = metadata.localExtentY + 1;
-                start = metadata.localCornerY;
-            } else {
-                localLength = dim.getSize();
-                start = 0;
-            }
-            ModelArray::setDimension(dimType, dim.getSize(), localLength, start);
-#else
-            ModelArray::setDimension(dimType, dim.getSize());
-#endif
-        }
-
         // Get all valid variables and load them into a new ModelState
-
         for (auto entry : ncFile.getVars()) {
             const std::string& varName = entry.first;
             netCDF::NcVar& var = entry.second;
@@ -156,7 +114,7 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
             ModelArray::Type type = dimensionKeys.at(dimKey);
             state.data[varName] = ModelArray(type);
             ModelArray& data = state.data.at(varName);
-            data.resize();
+            data.reinitialize();
 
             std::vector<size_t> start;
             std::vector<size_t> count;
@@ -165,17 +123,40 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
                 start.push_back(0);
                 count.push_back(ncomps);
             }
-            for (ModelArray::Dimension dt : ModelArray::typeDimensions.at(type)) {
+
+            using Dim = ModelArray::Dimension;
+            for (Dim dt : ModelArray::typeDimensions.at(type)) {
                 auto dim = ModelArray::definedDimensions.at(dt);
-                start.push_back(dim.start);
-                count.push_back(dim.localLength);
+                size_t startIndex = dim.start;
+                size_t localLength = dim.localLength;
+#ifdef USE_MPI
+                // Halo cells (which only exist in the lateral direction) are not included in netCDF
+                // files. Only read/write the inner block
+                if (Halo::isDimLateral(dt)) {
+                    localLength = localLength - 2 * Halo::haloWidth;
+                }
+#endif
+                start.push_back(startIndex);
+                count.push_back(localLength);
             }
             // dims are looped in [dg], x, y, [z] order so start and count
-            // order must be reveresed to match order netcdf expects
+            // order must be reversed to match order netcdf expects
             std::reverse(start.begin(), start.end());
             std::reverse(count.begin(), count.end());
 
-            var.getVar(start, count, &data[0]);
+#ifdef USE_MPI
+            Halo halo(data);
+            // create and allocate temporary Eigen array
+            ModelArray::DataType tempData;
+            tempData.resize(halo.getInnerSize(), data.nComponents());
+            // populate temp Eigen array with data from netCDF file
+            readNetCDFVar(var, start, count, tempData.data());
+            // populate inner block of modelarray with data from tempData
+            halo.setInnerBlock(tempData, data.getDataRef());
+            halo.exchangeHalos(data.getDataRef());
+#else
+            readNetCDFVar(var, start, count, &data[0]);
+#endif
         }
         ncFile.close();
     } catch (const netCDF::exceptions::NcException& nce) {
@@ -213,16 +194,30 @@ ModelState ParaGridIO::readForcingTimeStatic(
             --targetTIndex;
         // ASSUME all forcings are HFields: finite volume fields on the same
         // grid as ice thickness
-        std::vector<size_t> indexArray = { targetTIndex };
-        std::vector<size_t> extentArray = { 1 };
+        std::vector<size_t> indexArray;
+        std::vector<size_t> extentArray;
 
         // Loop over the dimensions of H
-        const std::vector<ModelArray::Dimension>& dimensions
-            = ModelArray::typeDimensions.at(ModelArray::Type::H);
-        for (auto riter = dimensions.rbegin(); riter != dimensions.rend(); ++riter) {
-            indexArray.push_back(0);
-            extentArray.push_back(ModelArray::definedDimensions.at(*riter).localLength);
+        using Dim = ModelArray::Dimension;
+        for (Dim dt : ModelArray::typeDimensions.at(ModelArray::Type::H)) {
+            auto dim = ModelArray::definedDimensions.at(dt);
+            auto startIndex = dim.start;
+            auto localLength = dim.localLength;
+#ifdef USE_MPI
+            // Halo cells (which only exist in the lateral direction) are not included in netCDF
+            // files. Only read/write the inner block
+            if (Halo::isDimLateral(dt)) {
+                localLength = localLength - 2 * Halo::haloWidth;
+            }
+#endif
+            indexArray.push_back(startIndex);
+            extentArray.push_back(localLength);
         }
+
+        indexArray.push_back(targetTIndex);
+        extentArray.push_back(1);
+        std::reverse(indexArray.begin(), indexArray.end());
+        std::reverse(extentArray.begin(), extentArray.end());
 
         auto availableForcings = ncFile.getVars();
         for (const std::string& varName : forcings) {
@@ -233,9 +228,21 @@ ModelState ParaGridIO::readForcingTimeStatic(
             netCDF::NcVar var = ncFile.getVar(varName);
             state.data[varName] = ModelArray(ModelArray::Type::H);
             ModelArray& data = state.data.at(varName);
-            data.resize();
+            data.reinitialize();
 
-            var.getVar(indexArray, extentArray, &data[0]);
+#ifdef USE_MPI
+            Halo halo(data);
+            // create and allocate temporary Eigen array
+            ModelArray::DataType tempData;
+            tempData.resize(halo.getInnerSize(), data.nComponents());
+            // populate temp Eigen array with data from netCDF file
+            readNetCDFVar(var, indexArray, extentArray, tempData.data());
+            // populate inner block of modelarray with data from tempData
+            halo.setInnerBlock(tempData, data.getDataRef());
+            halo.exchangeHalos(data.getDataRef());
+#else
+            readNetCDFVar(var, indexArray, extentArray, &data[0]);
+#endif
         }
         ncFile.close();
     } catch (const netCDF::exceptions::NcException& nce) {
@@ -246,18 +253,18 @@ ModelState ParaGridIO::readForcingTimeStatic(
     return state;
 }
 
-void ParaGridIO::dumpModelState(
-    const ModelState& state, const ModelMetadata& metadata, const std::string& filePath)
+void ParaGridIO::dumpModelState(const ModelState& state, const std::string& filePath)
 {
 
 #ifdef USE_MPI
-    netCDF::NcFilePar ncFile(filePath, netCDF::NcFile::replace, metadata.mpiComm);
+    auto& modelMPI = ModelMPI::getInstance();
+    netCDF::NcFilePar ncFile(filePath, netCDF::NcFile::replace, modelMPI.getComm());
 #else
     netCDF::NcFile ncFile(filePath, netCDF::NcFile::replace);
 #endif
 
-    CommonRestartMetadata::writeStructureType(ncFile, metadata);
-    CommonRestartMetadata::writeRestartMetadata(ncFile, metadata);
+    CommonRestartMetadata::writeStructureType(ncFile);
+    CommonRestartMetadata::writeRestartMetadata(ncFile);
 
     // Dump the dimensions and number of components
     std::map<ModelArray::Dimension, netCDF::NcDim> ncFromMAMap;
@@ -287,7 +294,8 @@ void ParaGridIO::dumpModelState(
         dimMap.at(entry.second).push_back(ncFromMAMap.at(entry.first));
     }
 
-    // Assume that all fields in the supplied ModelState are necessary, and so write them to file.
+    // Assume that all fields in the supplied ModelState are necessary, and so write them to
+    // file.
     for (auto entry : state.data) {
         // Get the type, then relevant vector of NetCDF dimensions
         ModelArray::Type type = entry.second.getType();
@@ -298,10 +306,19 @@ void ParaGridIO::dumpModelState(
             start.push_back(0);
             count.push_back(ncomps);
         }
+        using Dim = ModelArray::Dimension;
         for (ModelArray::Dimension dt : entry.second.typeDimensions.at(type)) {
             auto dim = entry.second.definedDimensions.at(dt);
+            size_t localLength = dim.localLength;
+#ifdef USE_MPI
+            // Halo cells (which only exist in the lateral direction) are not included in netCDF
+            // files. Only read/write the inner block
+            if (Halo::isDimLateral(dt)) {
+                localLength = localLength - 2 * Halo::haloWidth;
+            }
+#endif
             start.push_back(dim.start);
-            count.push_back(dim.localLength);
+            count.push_back(localLength);
         }
         // dims are looped in [dg], x, y, [z] order so start and count
         // order must be reveresed to match order netcdf expects
@@ -309,16 +326,25 @@ void ParaGridIO::dumpModelState(
         std::reverse(count.begin(), count.end());
 
         std::vector<netCDF::NcDim>& ncDims = dimMap.at(type);
-        netCDF::NcVar var(ncFile.addVar(entry.first, netCDF::ncDouble, ncDims));
-        var.putAtt(mdiName, netCDF::ncDouble, MissingData::value());
+        netCDF::NcVar var(ncFile.addVar(entry.first, ToNetCDFType<FloatType>::get(), ncDims));
+        var.putAtt(mdiName, ToNetCDFType<FloatType>::get(), MissingData::value());
+
+#ifdef USE_MPI
+        auto& data = entry.second;
+        Halo halo(data);
+        ModelArray::DataType tempData;
+        tempData.resize(halo.getInnerSize(), data.nComponents());
+        halo.getInnerBlock(data.getDataRef(), tempData);
+        var.putVar(start, count, tempData.data());
+#else
         var.putVar(start, count, entry.second.getData());
+#endif
     }
 
     ncFile.close();
 }
 
-void ParaGridIO::writeDiagnosticTime(
-    const ModelState& state, const ModelMetadata& meta, const std::string& filePath)
+void ParaGridIO::writeDiagnosticTime(const ModelState& state, const std::string& filePath)
 {
     bool isNew = openFilesAndIndices.count(filePath) <= 0;
     size_t nt = (isNew) ? 0 : ++openFilesAndIndices.at(filePath).second;
@@ -328,9 +354,10 @@ void ParaGridIO::writeDiagnosticTime(
         // Piecewise construction is necessary to correctly construct the file handle/time index
         // pair
 #ifdef USE_MPI
+        auto& modelMPI = ModelMPI::getInstance();
         openFilesAndIndices.emplace(std::piecewise_construct, std::make_tuple(filePath),
             std::forward_as_tuple(std::piecewise_construct,
-                std::forward_as_tuple(filePath, netCDF::NcFile::replace, meta.mpiComm),
+                std::forward_as_tuple(filePath, netCDF::NcFile::replace, modelMPI.getComm()),
                 std::forward_as_tuple(nt)));
 #else
         openFilesAndIndices.emplace(std::piecewise_construct, std::make_tuple(filePath),
@@ -344,7 +371,7 @@ void ParaGridIO::writeDiagnosticTime(
 
     if (isNew) {
         // Write the common structure and time metadata
-        CommonRestartMetadata::writeStructureType(ncFile, meta);
+        CommonRestartMetadata::writeStructureType(ncFile);
     }
     // Get the unlimited time dimension, creating it if necessary
     netCDF::NcDim timeDim = (isNew) ? ncFile.addDim(timeName) : ncFile.getDim(timeName);
@@ -380,11 +407,20 @@ void ParaGridIO::writeDiagnosticTime(
             start.push_back(0);
             count.push_back(ncomps);
         }
+        using Dim = ModelArray::Dimension;
         for (auto dt : entry.second) {
             auto dim = ModelArray::definedDimensions.at(dt);
+            auto localLength = dim.localLength;
+#ifdef USE_MPI
+            // Halo cells (which only exist in the lateral direction) are not included in netCDF
+            // files. Only read/write the inner block
+            if (Halo::isDimLateral(dt)) {
+                localLength = localLength - 2 * Halo::haloWidth;
+            }
+#endif
             ncDims.push_back(ncFromMAMap.at(dt));
             start.push_back(dim.start);
-            count.push_back(dim.localLength);
+            count.push_back(localLength);
         }
 
         // Deal with VERTEX in each case
@@ -416,22 +452,34 @@ void ParaGridIO::writeDiagnosticTime(
             maskDims.push_back(ncFromMAMap.at(maDim));
         }
         maskIndexes = { 0, 0 };
-        maskExtents = { ModelArray::definedDimensions
-                            .at(ModelArray::typeDimensions.at(ModelArray::Type::H)[0])
-                            .localLength,
-            ModelArray::definedDimensions.at(ModelArray::typeDimensions.at(ModelArray::Type::H)[1])
-                .localLength };
+        for (auto dt : ModelArray::typeDimensions.at(ModelArray::Type::H)) {
+            auto dim = ModelArray::definedDimensions.at(dt);
+            auto localLength = dim.localLength;
+#ifdef USE_MPI
+            // Halo cells (which only exist in the lateral direction) are not included in netCDF
+            // files. Only read/write the inner block
+            if (Halo::isDimLateral(dt)) {
+                localLength = localLength - 2 * Halo::haloWidth;
+            }
+#endif
+            maskIndexes.push_back(0);
+            maskExtents.push_back(localLength);
+        }
     }
 
     // Put the time axis variable
     std::vector<netCDF::NcDim> timeDimVec = { timeDim };
     netCDF::NcVar timeVar(
         (isNew) ? ncFile.addVar(timeName, netCDF::ncDouble, timeDimVec) : ncFile.getVar(timeName));
-    double secondsSinceEpoch = (meta.time() - TimePoint()).seconds();
+    const auto& metadata = ModelMetadata::getInstance();
+    const double secondsSinceEpoch = (metadata.time() - TimePoint()).seconds();
 #ifdef USE_MPI
     netCDF::setVariableCollective(timeVar, ncFile);
 #endif
     timeVar.putVar({ nt }, { 1 }, &secondsSinceEpoch);
+
+    if (isNew)
+        timeVar.putAtt("units", "seconds since 1970-01-01 00:00:00");
 
     // Write the data
     for (auto entry : state.data) {
@@ -441,26 +489,44 @@ void ParaGridIO::writeDiagnosticTime(
             continue;
         if (entry.first == maskName) {
             // Land mask in a new file (since it was skipped above in existing files)
-            netCDF::NcVar var(ncFile.addVar(maskName, netCDF::ncDouble, maskDims));
+            netCDF::NcVar var(ncFile.addVar(maskName, ToNetCDFType<FloatType>::get(), maskDims));
             // No missing data
 #ifdef USE_MPI
             netCDF::setVariableCollective(var, ncFile);
-#endif
+            auto& data = entry.second;
+            Halo halo(data);
+            ModelArray::DataType tempData;
+            tempData.resize(halo.getInnerSize(), data.nComponents());
+            halo.getInnerBlock(data.getDataRef(), tempData);
+            var.putVar(maskIndexes, maskExtents, tempData.data());
+#else
             var.putVar(maskIndexes, maskExtents, entry.second.getData());
+#endif
 
         } else {
             std::vector<netCDF::NcDim>& ncDims = dimMap.at(type);
             // Get the variable object, either creating a new one or getting the existing one
-            netCDF::NcVar var((isNew) ? ncFile.addVar(entry.first, netCDF::ncDouble, ncDims)
-                                      : ncFile.getVar(entry.first));
+            netCDF::NcVar var((isNew)
+                    ? ncFile.addVar(entry.first, ToNetCDFType<FloatType>::get(), ncDims)
+                    : ncFile.getVar(entry.first));
             if (isNew)
-                var.putAtt(mdiName, netCDF::ncDouble, MissingData::value());
+                var.putAtt(mdiName, ToNetCDFType<FloatType>::get(), MissingData::value());
 #ifdef USE_MPI
             netCDF::setVariableCollective(var, ncFile);
-#endif
+            auto& data = entry.second;
+            Halo halo(data);
+            ModelArray::DataType tempData;
+            tempData.resize(halo.getInnerSize(), data.nComponents());
+            halo.getInnerBlock(data.getDataRef(), tempData);
+            var.putVar(startMap.at(type), countMap.at(type), tempData.data());
+#else
             var.putVar(startMap.at(type), countMap.at(type), entry.second.getData());
+#endif
         }
     }
+
+    // Flush buffer to disc for monitoring and diagnostic purposes.
+    ncFile.sync();
 }
 
 void ParaGridIO::close(const std::string& filePath)

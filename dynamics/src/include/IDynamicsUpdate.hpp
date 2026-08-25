@@ -21,11 +21,10 @@ public:
     template <int CG, int DGstress, int DGadvection>
     void stressUpdateHighOrder(std::array<DGVector<DGstress>, nSymMatrixEl> S,
         const std::array<DGVector<DGstress>, nSymMatrixEl> E, const DGVector<DGadvection>& A,
-        DGVector<DGadvection>& D, const double dt_mom)
+        DGVector<DGadvection>& D, const FloatType dt_mom)
         = 0;
 
 protected:
-    inline constexpr double SQR(double x) { return x * x; }
     const DynamicsParameters& params;
     const ParametricMesh& smesh;
 };

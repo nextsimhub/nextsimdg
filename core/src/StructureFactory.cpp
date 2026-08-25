@@ -8,10 +8,11 @@
 #include "include/Finalizer.hpp"
 #include "include/IStructure.hpp"
 #include "include/NextsimModule.hpp"
-
-#include "include/RectGridIO.hpp"
-
 #include "include/ParaGridIO.hpp"
+#include "include/RectGridIO.hpp"
+#ifdef USE_XIOS
+#include "include/Xios.hpp"
+#endif
 
 #include <ncFile.h>
 #include <ncGroupAtt.h>
@@ -42,34 +43,26 @@ std::string structureNameFromFile(const std::string& filePath)
     return structureName;
 }
 
-#ifdef USE_MPI
-ModelState StructureFactory::stateFromFile(const std::string& filePath, ModelMetadata& metadata)
-#else
 ModelState StructureFactory::stateFromFile(const std::string& filePath)
-#endif
 {
     Finalizer::registerUnique(Module::finalize<IStructure>);
 
+#ifdef USE_XIOS
+    std::string structureName = ParametricGrid::structureName;
+#else
     std::string structureName = structureNameFromFile(filePath);
+#endif
     // TODO There must be a better way
     if (RectangularGrid::structureName == structureName) {
         Module::setImplementation<IStructure>("Nextsim::RectangularGrid");
         RectangularGrid gridIn;
         gridIn.setIO(new RectGridIO(gridIn));
-#ifdef USE_MPI
-        return gridIn.getModelState(filePath, metadata);
-#else
         return gridIn.getModelState(filePath);
-#endif
     } else if (ParametricGrid::structureName == structureName) {
         Module::setImplementation<IStructure>("Nextsim::ParametricGrid");
         ParametricGrid gridIn;
         gridIn.setIO(new ParaGridIO(gridIn));
-#ifdef USE_MPI
-        return gridIn.getModelState(filePath, metadata);
-#else
         return gridIn.getModelState(filePath);
-#endif
     } else {
         throw std::invalid_argument(
             std::string("fileFromName: structure not implemented: ") + structureName);
@@ -80,18 +73,18 @@ ModelState StructureFactory::stateFromFile(const std::string& filePath)
 }
 
 void StructureFactory::fileFromState(
-    const ModelState& state, const ModelMetadata& meta, const std::string& filePath, bool isRestart)
+    const ModelState& state, const std::string& filePath, bool isRestart)
 {
     std::string structureName = Module::getImplementation<IStructure>().structureType();
 
     if (RectangularGrid::structureName == structureName) {
         RectangularGrid gridOut;
         gridOut.setIO(new RectGridIO(gridOut));
-        gridOut.dumpModelState(state, meta, filePath, isRestart);
+        gridOut.dumpModelState(state, filePath, isRestart);
     } else if (ParametricGrid::structureName == structureName) {
         ParametricGrid gridOut;
         gridOut.setIO(new ParaGridIO(gridOut));
-        gridOut.dumpModelState(state, meta, filePath, isRestart);
+        gridOut.dumpModelState(state, filePath, isRestart);
     } else {
         throw std::invalid_argument(
             std::string("fileFromName: structure not implemented: ") + structureName);

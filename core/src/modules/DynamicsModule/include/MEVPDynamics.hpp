@@ -12,6 +12,7 @@
 #include "include/IDynamics.hpp"
 #include "include/MEVPDynamicsKernel.hpp"
 #include "include/NextsimModule.hpp"
+#include "kokkos/include/KokkosMEVPDynamicsKernel.hpp"
 
 #include "include/ModelArray.hpp"
 #include "include/ModelComponent.hpp"
@@ -32,9 +33,15 @@ public:
     void prepareAdvection() override;
     void update(const TimestepTime& tst) override;
 
-    void advectField(double timestep, ModelArray& field,
-        double lowerLimit = -std::numeric_limits<double>::infinity(),
-        double upperLimit = std::numeric_limits<double>::infinity()) override;
+    void advectField(FloatType timestep, ModelArray& field,
+        FloatType lowerLimit = -std::numeric_limits<FloatType>::infinity(),
+        FloatType upperLimit = std::numeric_limits<FloatType>::infinity()) override;
+
+#ifdef USE_KOKKOS
+    void advectField(FloatType timestep, const DeviceViewMA& field,
+        FloatType lowerLimit = -std::numeric_limits<FloatType>::infinity(),
+        FloatType upperLimit = std::numeric_limits<FloatType>::infinity()) override;
+#endif
 
     void setData(const ModelState::DataMap&) override;
     void configure() override;
@@ -59,7 +66,11 @@ public:
 
 private:
     VPParameters params;
+#ifdef USE_KOKKOS
+    KokkosMEVPDynamicsKernel<DGCOMP> kernel;
+#else
     MEVPDynamicsKernel<DGCOMP> kernel;
+#endif
 };
 }
 

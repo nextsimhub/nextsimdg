@@ -15,10 +15,10 @@ ncFile = netCDF4.Dataset(f"topaz_test{nx}x{ny}.nc", "w", format="NETCDF4")
 
 ncFile.structure_name = "parametric_rectangular"
 
-xDim = ncFile.createDimension("x", nx)
-yDim = ncFile.createDimension("y", ny)
-xVertexDim = ncFile.createDimension("xvertex", nx + 1)
-yVertexDim = ncFile.createDimension("yvertex", ny + 1)
+xDim = ncFile.createDimension("x_dim", nx)
+yDim = ncFile.createDimension("y_dim", ny)
+xVertexDim = ncFile.createDimension("x_vertex", nx + 1)
+yVertexDim = ncFile.createDimension("y_vertex", ny + 1)
 n_coords_comp = ncFile.createDimension("ncoords", n_coords)
 time_dim = ncFile.createDimension("time", None)
 
@@ -29,9 +29,10 @@ formatted = ncFile.createVariable("formatted", str)
 formatted.format = "%Y-%m-%dT%H:%M:%SZ"
 formatted[0] = "2000-01-01T00:00:00Z"
 
-hfield_dims = ("y", "x")
-timefield_dims = ("time", "y", "x")
+hfield_dims = ("y_dim", "x_dim")
+timefield_dims = ("time", "y_dim", "x_dim")
 
+# fmt: off
 mask33 = np.array(
     [[0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
      [0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
@@ -66,24 +67,26 @@ mask33 = np.array(
      [1,1,1,1,1,1,1,1,1,0,1,1,1,1,1,1,1,1,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0],
      [1,1,1,1,1,1,1,1,1,0,0,0,1,1,1,1,1,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0],
      [1,1,1,1,1,1,1,1,1,0,0,1,1,1,1,1,1,1,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0]])
+# fmt: on
+
 # scipy isn't working? fine, I'll fake it
-mask129x33 = np.zeros((nx+1, 33))
+mask129x33 = np.zeros((nx + 1, 33))
 for i in range(33):
     mask129x33[:, i] = np.interp(np.arange(129) / 4, np.arange(33), mask33[:, i])
 
-mask129 = np.zeros((nx+1, ny+1))
-for i in range(nx+1):
+mask129 = np.zeros((nx + 1, ny + 1))
+for i in range(nx + 1):
     mask129[i, :] = np.interp(np.arange(129) / 4, np.arange(33), mask129x33[i, :])
 
 mask = ncFile.createVariable("mask", "f8", hfield_dims)
-mask[:,:] = np.rint(mask129[:-1, -2::-1])
+mask[:, :] = np.rint(mask129[:-1, -2::-1])
 
-antimask = 1 - mask[:,:]
+antimask = 1 - mask[:, :]
 
 # Some coordinates that don't match the land mask exactly (azimuthal equidistant)
-array_size1d = 20.
+array_size1d = 20.0
 spacing1d = 2 * array_size1d / nx
-limit1d = array_size1d # even number of points + 1
+limit1d = array_size1d  # even number of points + 1
 coord1d = np.linspace(-limit1d, limit1d, num=129)
 
 x_coords = np.zeros((nx + 1, ny + 1))
@@ -91,15 +94,15 @@ y_coords = np.zeros((nx + 1, ny + 1))
 for i in range(nx + 1):
     x_coords[:, i] = coord1d
     y_coords[i, :] = coord1d
-    
-lat = 90 - (x_coords**2 + y_coords**2)**0.5
+
+lat = 90 - (x_coords**2 + y_coords**2) ** 0.5
 lon = np.rad2deg(np.arctan2(y_coords, x_coords))
 
-coords = ncFile.createVariable("coords", "f8", ("yvertex", "xvertex", "ncoords"))
-coords[:,:,0] = lon
-coords[:,:,1] = lat
+coords = ncFile.createVariable("coords", "f8", ("y_vertex", "x_vertex", "ncoords"))
+coords[:, :, 0] = lon
+coords[:, :, 1] = lat
 
-test_data1d = np.linspace(0, nx - 1, num = nx)
+test_data1d = np.linspace(0, nx - 1, num=nx)
 thousandths = np.zeros((nx, ny))
 millionths = np.zeros((nx, ny))
 for i in range(nx):
@@ -107,7 +110,7 @@ for i in range(nx):
     millionths[:, i] = test_data1d * 1e-3
 
 test_data = thousandths + millionths
-mdi = -2.**300
+mdi = -(2.0**300)
 
 time_var = ncFile.createVariable("time", "f8", "time")
 sst = ncFile.createVariable("sst", "f8", timefield_dims)
@@ -119,21 +122,21 @@ ssh = ncFile.createVariable("ssh", "f8", timefield_dims)
 
 # 12 monthly values
 for t in range(12):
-    time_var[t] = 946684800 + 2592000 * t # 30 day months
-    
+    time_var[t] = 946684800 + 2592000 * t  # 30 day months
+
     sst[t, :, :] = (-test_data - t) * mask + mdi * antimask
     sst.missing_value = mdi
-    
+
     sss[t, :, :] = (30 + test_data + t) * mask + mdi * antimask
     sss.missing_value = mdi
-    
+
     mld[t, :, :] = (test_data + 10 + t) * mask + mdi * antimask
     mld.missing_value = mdi
-    
+
     u[t, :, :] = ((test_data + t) * 0.01) * mask + mdi * antimask
     u.missing_value = mdi
-    
-    v[t, :, :] = (200 + test_data + 100*t) * mask + mdi * antimask
+
+    v[t, :, :] = (200 + test_data + 100 * t) * mask + mdi * antimask
     v.missing_value = mdi
 
     ssh[t, :, :] = (test_data + 20 + t) * mask + mdi * antimask

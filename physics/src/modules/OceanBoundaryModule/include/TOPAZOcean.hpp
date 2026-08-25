@@ -6,9 +6,10 @@
 #ifndef TOPAZOCEAN_HPP
 #define TOPAZOCEAN_HPP
 
-#include "include/IOceanBoundary.hpp"
-
 #include "include/Configured.hpp"
+#include "include/IFreezingPoint.hpp"
+#include "include/IIceOceanHeatFlux.hpp"
+#include "include/IOceanBoundary.hpp"
 #include "include/SlabOcean.hpp"
 
 namespace Nextsim {
@@ -48,10 +49,18 @@ private:
     // be static.
     static std::string filePath;
 
-    HField sstExt;
-    HField sssExt;
+    ModelState forcingState;
+
+    ModelArrayAccessor<Protected::EXT_SST, RW> sstExtAccessor;
+    ModelArrayAccessor<Protected::EXT_SSS, RW> sssExtAccessor;
+
+    ModelArrayAccessor<Protected::SLAB_SST, RO> sstSlabAccessor;
+    ModelArrayAccessor<Protected::SLAB_SSS, RO> sssSlabAccessor;
 
     SlabOcean slabOcean;
+
+    std::unique_ptr<IIceOceanHeatFlux> pIOHeatFlux;
+    std::unique_ptr<IFreezingPoint> pFreezingPoint;
 };
 
 } /* namespace Nextsim */

@@ -13,6 +13,9 @@
 #include "include/MissingData.hpp"
 #include "include/NextsimModule.hpp"
 #include "include/StructureFactory.hpp"
+#ifdef USE_XIOS
+#include "include/Xios.hpp"
+#endif
 
 #include <string>
 
@@ -26,7 +29,6 @@ const std::string Model::restartOptionName = "model.init_file";
 // Map of all configuration keys for the main model, including those not to be
 // written to the restart file.
 static const std::map<int, std::string> keyMap = {
-#include "include/ModelConfigMapElements.ipp"
     { Model::RESTARTFILE_KEY, Model::restartOptionName },
 #ifdef USE_MPI
     { Model::PARTITIONFILE_KEY, "model.partition_file" },
@@ -40,83 +42,114 @@ static const std::map<int, std::string> keyMap = {
     { Model::RESTARTOUTFILE_KEY, "model.restart_file" },
 };
 
-#ifdef USE_MPI
-Model::Model(MPI_Comm comm)
-#else
 Model::Model()
-#endif
     : iterator(modelStep)
 {
 #ifdef USE_MPI
-    m_etadata.setMpiMetadata(comm);
+    std::string partitionFile
+        = Configured::getConfiguration(keyMap.at(PARTITIONFILE_KEY), std::string("partition.nc"));
+    auto& metadata = ModelMetadata::getInstance(partitionFile);
+#else
+    auto& metadata = ModelMetadata::getInstance();
 #endif
-    finalFileName = std::string("restart") + TimePoint::ymdhmsFormat + ".nc";
+    metadata.finalFileName = "restart" + TimePoint::ymdhmsFormat + ".nc";
 }
 
 Model::~Model() { }
+
+void Model::configureRestarts()
+{
+    // Ensure configureRestarts is only called once
+    if (configuredRestarts) {
+        return;
+    }
+    ModelMetadata& metadata = ModelMetadata::getInstance();
+
+    // Parse the initial restart file name and the pattern for output restart files
+    metadata.initialFileName
+        = Configured::getConfiguration(keyMap.at(RESTARTFILE_KEY), std::string());
+    metadata.finalFileName
+        = Configured::getConfiguration(keyMap.at(RESTARTOUTFILE_KEY), metadata.finalFileName);
+
+    // The period with which to write restart files.
+    std::string restartPeriodStr
+        = Configured::getConfiguration(keyMap.at(RESTARTPERIOD_KEY), std::string("0"));
+    metadata.restartPeriod = Duration(restartPeriodStr);
+
+    // Set global dimensions with an initial read of the input file
+    metadata.setDimensionsFromFile(metadata.initialFileName);
+
+    configuredRestarts = true;
+}
+
+void Model::configureTime()
+{
+    // Ensure configureTime is only called once
+    if (configuredTime) {
+        return;
+    }
+    ModelMetadata& metadata = ModelMetadata::getInstance();
+
+#ifdef USE_XIOS
+    // Enable XIOS in the config
+    std::stringstream config;
+    config << "[xios]" << std::endl << "enable = true" << std::endl;
+    Configurator::addStream(std::unique_ptr<std::istream>(new std::stringstream(config.str())));
+#endif
+
+    // Start/stop times. Run length will override stop time, if present.
+    std::string startTimeStr
+        = Configured::getConfiguration(keyMap.at(STARTTIME_KEY), std::string());
+    std::string stopTimeStr = Configured::getConfiguration(keyMap.at(STOPTIME_KEY), std::string());
+    std::string runLengthStr
+        = Configured::getConfiguration(keyMap.at(RUNLENGTH_KEY), std::string());
+    std::string stepStr = Configured::getConfiguration(keyMap.at(TIMESTEP_KEY), std::string());
+
+    if (runLengthStr.empty()) {
+        if (stopTimeStr.empty()) {
+            throw std::invalid_argument(std::string("At least one of ") + keyMap.at(STOPTIME_KEY)
+                + " or " + keyMap.at(RUNLENGTH_KEY) + " must be set");
+        } else {
+            metadata.setTimes(startTimeStr, TimePoint(stopTimeStr), stepStr);
+        }
+    } else {
+        metadata.setTimes(startTimeStr, Duration(runLengthStr), stepStr);
+    }
+    iterator.setStartStopStep(metadata.startTime(), metadata.stopTime(), metadata.stepLength());
+
+    configuredTime = true;
+}
 
 void Model::configure()
 {
     // Configure logging
     Logged::configure();
 
-    // Store the start/stop/step configuration directly in ModelConfig before
-    // parsing these values to the numerical time values used by the model.
-    ModelConfig::startTimeStr
-        = Configured::getConfiguration(keyMap.at(STARTTIME_KEY), std::string());
-    ModelConfig::stopTimeStr = Configured::getConfiguration(keyMap.at(STOPTIME_KEY), std::string());
-    ModelConfig::durationStr
-        = Configured::getConfiguration(keyMap.at(RUNLENGTH_KEY), std::string());
-    ModelConfig::stepStr = Configured::getConfiguration(keyMap.at(TIMESTEP_KEY), std::string());
-
-    // Set the time correspond to the current (initial) model state
-    TimePoint timeNow = iterator.parseAndSet(ModelConfig::startTimeStr, ModelConfig::stopTimeStr,
-        ModelConfig::durationStr, ModelConfig::stepStr);
-    m_etadata.setTime(timeNow);
-
     // Configure the missing data value
     MissingData::setValue(
         Configured::getConfiguration(keyMap.at(MISSINGVALUE_KEY), MissingData::defaultValue));
 
-    // Parse the initial restart file name and the pattern for output restart files
-    initialFileName = Configured::getConfiguration(keyMap.at(RESTARTFILE_KEY), std::string());
-    finalFileName = Configured::getConfiguration(keyMap.at(RESTARTOUTFILE_KEY), finalFileName);
+    configureRestarts();
 
+    // Configure parameters related to the temporal discretisation
+    configureTime();
+
+    // Configure prognostic data
     pData.configure();
 
+    auto& metadata = ModelMetadata::getInstance();
     modelStep.init();
-    modelStep.setInitFile(initialFileName);
+    modelStep.setInitFile(metadata.initialFileName);
 
-#ifdef USE_MPI
-    std::string partitionFile
-        = Configured::getConfiguration(keyMap.at(PARTITIONFILE_KEY), std::string("partition.nc"));
-    m_etadata.getPartitionMetadata(partitionFile);
-#endif
-
-#ifdef USE_MPI
-    ModelState initialState(StructureFactory::stateFromFile(initialFileName, m_etadata));
-#else
-    ModelState initialState(StructureFactory::stateFromFile(initialFileName));
-#endif
-
-    // The period with which to write restart files.
-    std::string restartPeriodStr
-        = Configured::getConfiguration(keyMap.at(RESTARTPERIOD_KEY), std::string("0"));
-    restartPeriod = Duration(restartPeriodStr);
+    // Read the initial state from file
+    ModelState initialState(StructureFactory::stateFromFile(metadata.initialFileName));
 
     // Get the coordinates from the ModelState for persistence
-    m_etadata.extractCoordinates(initialState);
+    metadata.extractCoordinates(initialState);
 
     modelStep.setData(pData);
-    modelStep.setMetadata(m_etadata);
-    modelStep.setRestartDetails(restartPeriod, finalFileName);
+    modelStep.setRestartDetails(metadata.restartPeriod, metadata.finalFileName);
     pData.setData(initialState.data);
-}
-
-ConfigMap Model::getConfig() const
-{
-    ConfigMap cMap = ModelConfig::getConfig();
-    return cMap;
 }
 
 Model::HelpMap& Model::getHelpText(HelpMap& map, bool getAll)
@@ -162,22 +195,44 @@ Model::HelpMap& Model::getHelpRecursive(HelpMap& map, bool getAll)
     getHelpText(map, getAll);
     PrognosticData::getHelpRecursive(map, getAll);
     Module::getHelpRecursive<IDiagnosticOutput>(map, getAll);
+#ifdef USE_XIOS
+    Xios::getHelpRecursive(map, getAll);
+#endif
     return map;
 }
 
 void Model::run()
 {
-    iterator.run();
+    Nextsim::ModelComponent::getStore().checkAllRegistered();
+
+#ifdef USE_XIOS
+    Xios& xiosHandler = Xios::getInstance();
+#endif
+
+    try {
+        iterator.run();
+    } catch (const std::exception& e) {
+        writeRestartFile();
+#ifdef USE_XIOS
+        xiosHandler.context_finalize();
+#endif
+        Finalizer::finalize();
+        throw;
+    }
+
     writeRestartFile();
+#ifdef USE_XIOS
+    xiosHandler.context_finalize();
+#endif
     Finalizer::finalize();
 }
 
 //! Write a restart file for the model.
 void Model::writeRestartFile()
 {
-    std::string formattedFileName = m_etadata.time().format(finalFileName);
-    pData.writeRestartFile(formattedFileName, m_etadata);
+    auto& metadata = ModelMetadata::getInstance();
+    std::string formattedFileName = metadata.time().format(metadata.finalFileName);
+    pData.writeRestartFile(formattedFileName);
 }
 
-ModelMetadata& Model::metadata() { return m_etadata; }
 } /* namespace Nextsim */

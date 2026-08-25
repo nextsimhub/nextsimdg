@@ -1,5 +1,4 @@
 /*!
- *
  * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
@@ -99,4 +98,6 @@ const ModelArray::TypeMap ModelArray::definedComp0Map()
         { Type::TWOCOMP, Type::TWOD },
     };
 };
+
+const ModelArray::Type ModelArray::AdvectionType = ModelArray::Type::TWOCOMP;
 }

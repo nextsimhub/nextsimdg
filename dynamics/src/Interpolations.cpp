@@ -47,14 +47,14 @@ namespace Interpolations {
             // coordinates is the 4 x 2 - matrix with the coords of the 4 vertices
 
             // the Gauss points in the element 2 x 4 - Matrix
-            const Eigen::Matrix<Nextsim::FloatType, 2, GAUSSPOINTS(DG)> gp
+            const Eigen::Matrix<FloatType, 2, GAUSSPOINTS(DG)> gp
                 = ParametricTools::getGaussPointsInElement<GAUSSPOINTS1D(DG)>(smesh, eid);
-            Eigen::Matrix<Nextsim::FloatType, GAUSSPOINTS(DG), 1> initial_in_gp;
+            Eigen::Matrix<FloatType, GAUSSPOINTS(DG), 1> initial_in_gp;
             for (size_t i = 0; i < GAUSSPOINTS1D(DG) * GAUSSPOINTS1D(DG); ++i)
                 initial_in_gp(i) = initial(gp(0, i), gp(1, i));
 
             if (smesh.CoordinateSystem == SPHERICAL) {
-                const Eigen::Matrix<Nextsim::FloatType, 1, GAUSSPOINTS(DG)> coslat
+                const Eigen::Matrix<FloatType, 1, GAUSSPOINTS(DG)> coslat
                     = (gp.row(1).array()).cos();
                 phi.row(eid) = SphericalTools::massMatrix<DG>(smesh, eid).inverse()
                     * ((PSI<DG, GAUSSPOINTS1D(DG)>.array().rowwise()
@@ -90,7 +90,7 @@ namespace Interpolations {
 
             size_t cgi = CG * cgshift * iy + CG * ix; //!< lower/left Index in cg vector
 
-            Eigen::Matrix<double, (CG == 2 ? 9 : 4), 1>
+            Eigen::Matrix<FloatType, (CG == 2 ? 9 : 4), 1>
                 cg_local; //!< the 9 local unknowns in the element
             if (CG == 1) {
                 cg_local << cg(cgi), cg(cgi + 1), cg(cgi + cgshift), cg(cgi + 1 + cgshift);
@@ -137,12 +137,12 @@ namespace Interpolations {
         const size_t cgi
             = CGDofsPerRow * cy + cx; //!< lower left index of CG-vector in element c = (cx,cy)
 
-        const Eigen::Matrix<double, 1, 4> At = A.row(c) * PSILagrange<DG, 2>;
+        const Eigen::Matrix<FloatType, 1, 4> At = A.row(c) * PSILagrange<DG, 2>;
 
-        cg_A(cgi) += 0.25 * At(0);
-        cg_A(cgi + 1) += 0.25 * At(1);
-        cg_A(cgi + CGDofsPerRow) += 0.25 * At(2);
-        cg_A(cgi + CGDofsPerRow + 1) += 0.25 * At(3);
+        cg_A(cgi) += 0.25_ft * At(0);
+        cg_A(cgi + 1) += 0.25_ft * At(1);
+        cg_A(cgi + CGDofsPerRow) += 0.25_ft * At(2);
+        cg_A(cgi + CGDofsPerRow + 1) += 0.25_ft * At(3);
     }
     template <int DG>
     void DG2CGCell(const ParametricMesh& smesh, const size_t c, const size_t cx, const size_t cy,
@@ -152,17 +152,17 @@ namespace Interpolations {
         const size_t cgi = 2 * CGDofsPerRow * cy
             + 2 * cx; //!< lower left index of CG-vector in element c = (cx,cy)
 
-        const Eigen::Matrix<double, 1, 9> At = A.row(c) * PSILagrange<DG, 3>;
+        const Eigen::Matrix<FloatType, 1, 9> At = A.row(c) * PSILagrange<DG, 3>;
 
-        cg_A(cgi) += 0.25 * At(0);
-        cg_A(cgi + 1) += 0.5 * At(1);
-        cg_A(cgi + 2) += 0.25 * At(2);
-        cg_A(cgi + CGDofsPerRow) += 0.5 * At(3);
+        cg_A(cgi) += 0.25_ft * At(0);
+        cg_A(cgi + 1) += 0.5_ft * At(1);
+        cg_A(cgi + 2) += 0.25_ft * At(2);
+        cg_A(cgi + CGDofsPerRow) += 0.5_ft * At(3);
         cg_A(cgi + CGDofsPerRow + 1) += At(4);
-        cg_A(cgi + CGDofsPerRow + 2) += 0.5 * At(5);
-        cg_A(cgi + 2 * CGDofsPerRow) += 0.25 * At(6);
-        cg_A(cgi + 2 * CGDofsPerRow + 1) += 0.5 * At(7);
-        cg_A(cgi + 2 * CGDofsPerRow + 2) += 0.25 * At(8);
+        cg_A(cgi + CGDofsPerRow + 2) += 0.5_ft * At(5);
+        cg_A(cgi + 2 * CGDofsPerRow) += 0.25_ft * At(6);
+        cg_A(cgi + 2 * CGDofsPerRow + 1) += 0.5_ft * At(7);
+        cg_A(cgi + 2 * CGDofsPerRow + 2) += 0.25_ft * At(8);
     }
 
     template <int CG> void DG2CGBoundary(const ParametricMesh& smesh, CGVector<CG>& cg_A)
@@ -207,23 +207,22 @@ namespace Interpolations {
     }
 
     template <int DG>
-    double L2ErrorFunctionDG(
+    FloatType L2ErrorFunctionDG(
         const ParametricMesh& smesh, const DGVector<DG>& src, const Function& initial)
     {
-        double error = 0;
+        FloatType error = 0;
 
 #pragma omp parallel for reduction(+ : error)
         for (size_t eid = 0; eid < smesh.nelements; ++eid) {
             if (!smesh.landmask[eid])
                 continue;
 
-            const Eigen::Matrix<Nextsim::FloatType, 2, GAUSSPOINTS1D(DG) * GAUSSPOINTS1D(DG)> gp
+            const Eigen::Matrix<FloatType, 2, GAUSSPOINTS1D(DG) * GAUSSPOINTS1D(DG)> gp
                 = ParametricTools::getGaussPointsInElement<GAUSSPOINTS1D(DG)>(smesh, eid);
-            const Eigen::Matrix<Nextsim::FloatType, 1, GAUSSPOINTS1D(DG) * GAUSSPOINTS1D(DG)>
-                src_in_gauss = src.row(eid) * PSI<DG, GAUSSPOINTS1D(DG)>;
+            const Eigen::Matrix<FloatType, 1, GAUSSPOINTS1D(DG) * GAUSSPOINTS1D(DG)> src_in_gauss
+                = src.row(eid) * PSI<DG, GAUSSPOINTS1D(DG)>;
 
-            Eigen::Matrix<Nextsim::FloatType, 1, GAUSSPOINTS1D(DG) * GAUSSPOINTS1D(DG)>
-                initial_in_gp;
+            Eigen::Matrix<FloatType, 1, GAUSSPOINTS1D(DG) * GAUSSPOINTS1D(DG)> initial_in_gp;
             for (size_t i = 0; i < GAUSSPOINTS1D(DG) * GAUSSPOINTS1D(DG); ++i)
                 initial_in_gp(i) = initial(gp(0, i), gp(1, i));
 
@@ -231,8 +230,8 @@ namespace Interpolations {
             // matrix of size 3 x 4
 
             if (smesh.CoordinateSystem == SPHERICAL) {
-                const Eigen::Matrix<Nextsim::FloatType, 1, GAUSSPOINTS1D(DG) * GAUSSPOINTS1D(DG)>
-                    cos_lat = (gp.row(1).array()).cos();
+                const Eigen::Matrix<FloatType, 1, GAUSSPOINTS1D(DG) * GAUSSPOINTS1D(DG)> cos_lat
+                    = (gp.row(1).array()).cos();
                 error
                     += (cos_lat.array() * ParametricTools::J<GAUSSPOINTS1D(DG)>(smesh, eid).array()
                         * GAUSSWEIGHTS<GAUSSPOINTS1D(DG)>.array()
@@ -250,10 +249,10 @@ namespace Interpolations {
     }
 
     template <int CG>
-    double L2ErrorFunctionCG(
+    FloatType L2ErrorFunctionCG(
         const ParametricMesh& smesh, const CGVector<CG>& src, const Function& initial)
     {
-        double error = 0;
+        FloatType error = 0;
 
         const int cgshift = CG * smesh.nx + 1; //!< Index shift for each row
 
@@ -270,7 +269,7 @@ namespace Interpolations {
                     continue;
 
                 // get the local CG unknowns
-                Eigen::Matrix<double, CGDOFS(CG), 1> local;
+                Eigen::Matrix<FloatType, CGDOFS(CG), 1> local;
                 if (CG == 1) {
                     local << src(cgi), src(cgi + 1), src(cgi + cgshift), src(cgi + 1 + cgshift);
                 } else if (CG == 2) {
@@ -280,18 +279,17 @@ namespace Interpolations {
                 } else
                     abort();
 
-                const Eigen::Matrix<Nextsim::FloatType, 2, 3 * 3> gp
+                const Eigen::Matrix<FloatType, 2, 3 * 3> gp
                     = ParametricTools::getGaussPointsInElement<3>(smesh, eid);
-                const Eigen::Matrix<Nextsim::FloatType, 1, 3 * 3> src_in_gauss
+                const Eigen::Matrix<FloatType, 1, 3 * 3> src_in_gauss
                     = local.transpose() * PHI<CG, 3>;
 
-                Eigen::Matrix<Nextsim::FloatType, 1, 3 * 3> initial_in_gp;
+                Eigen::Matrix<FloatType, 1, 3 * 3> initial_in_gp;
                 for (size_t i = 0; i < 3 * 3; ++i)
                     initial_in_gp(i) = initial(gp(0, i), gp(1, i));
 
                 if (smesh.CoordinateSystem == SPHERICAL) {
-                    const Eigen::Matrix<Nextsim::FloatType, 1, 3 * 3> cos_lat
-                        = (gp.row(1).array()).cos();
+                    const Eigen::Matrix<FloatType, 1, 3 * 3> cos_lat = (gp.row(1).array()).cos();
                     error += (cos_lat.array() * ParametricTools::J<3>(smesh, eid).array()
                         * GAUSSWEIGHTS<3>.array()
                         * (src_in_gauss.array() - initial_in_gp.array()).square())
@@ -337,18 +335,18 @@ namespace Interpolations {
     template void Function2DG(
         const ParametricMesh& smesh, DGVector<8>& phi, const Function& initial);
 
-    template double L2ErrorFunctionDG(
+    template FloatType L2ErrorFunctionDG(
         const ParametricMesh& smesh, const DGVector<1>& src, const Function& fct);
-    template double L2ErrorFunctionDG(
+    template FloatType L2ErrorFunctionDG(
         const ParametricMesh& smesh, const DGVector<3>& src, const Function& fct);
-    template double L2ErrorFunctionDG(
+    template FloatType L2ErrorFunctionDG(
         const ParametricMesh& smesh, const DGVector<6>& src, const Function& fct);
-    template double L2ErrorFunctionDG(
+    template FloatType L2ErrorFunctionDG(
         const ParametricMesh& smesh, const DGVector<8>& src, const Function& fct);
 
-    template double L2ErrorFunctionCG(
+    template FloatType L2ErrorFunctionCG(
         const ParametricMesh& smesh, const CGVector<1>& src, const Function& fct);
-    template double L2ErrorFunctionCG(
+    template FloatType L2ErrorFunctionCG(
         const ParametricMesh& smesh, const CGVector<2>& src, const Function& fct);
 
 }

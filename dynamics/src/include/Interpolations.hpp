@@ -31,7 +31,7 @@ namespace Interpolations {
     //! interface class to provide an analytical function
     class Function {
     public:
-        virtual double operator()(double x, double y) const = 0;
+        virtual FloatType operator()(FloatType x, FloatType y) const = 0;
     };
 
     //! Interpolates an analytic function to a CG-Vector
@@ -49,12 +49,12 @@ namespace Interpolations {
 
     //! Computes the L2 (integral) error between the DG-Vector and an analytic function
     template <int DG>
-    double L2ErrorFunctionDG(
+    FloatType L2ErrorFunctionDG(
         const ParametricMesh& smesh, const DGVector<DG>& src, const Function& fct);
 
     //! Computes the L2 (integral) error between the CG-Vector and an analytic function
     template <int DG>
-    double L2ErrorFunctionCG(
+    FloatType L2ErrorFunctionCG(
         const ParametricMesh& smesh, const CGVector<DG>& src, const Function& fct);
 
 } /* namespace Interpolation */

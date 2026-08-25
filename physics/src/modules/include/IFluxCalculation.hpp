@@ -7,7 +7,7 @@
 #define IFLUXCALCULATION_HPP
 
 #include "include/Configured.hpp"
-#include "include/ModelArrayRef.hpp"
+#include "include/ModelArrayAccessor.hpp"
 #include "include/ModelComponent.hpp"
 #include "include/ModelState.hpp"
 
@@ -16,16 +16,16 @@ namespace Nextsim {
 class IFluxCalculation : public ModelComponent {
 public:
     IFluxCalculation()
-        : qow(getStore())
-        , evap(getStore())
-        , subl(getStore())
-        , qia(getStore())
-        , penSW(getStore())
-        , dqia_dt(getStore())
-        , Q_sw_ow(getStore())
-        , Q_sw_base(getStore())
-        , tau_x_ow(getStore())
-        , tau_y_ow(getStore())
+        : qowAccessor(getStore())
+        , evapAccessor(getStore())
+        , sublAccessor(getStore())
+        , qiaAccessor(getStore())
+        , penSWAccessor(getStore())
+        , dqia_dtAccessor(getStore())
+        , Q_sw_owAccessor(getStore())
+        , Q_sw_baseAccessor(getStore())
+        , tau_x_owAccessor(getStore())
+        , tau_y_owAccessor(getStore())
     {
     }
     virtual ~IFluxCalculation() = default;
@@ -44,16 +44,16 @@ public:
 protected:
     // All fluxes are positive upwards, including incident radiation fluxes
     // The flux fields are owned by IAtmosphereBoundary
-    ModelArrayRef<Shared::Q_OW, RW> qow;
-    ModelArrayRef<Shared::EVAP, RW> evap;
-    ModelArrayRef<Shared::SUBLIM, RW> subl;
-    ModelArrayRef<Shared::Q_IA, RW> qia;
-    ModelArrayRef<Shared::Q_PEN_SW, RW> penSW;
-    ModelArrayRef<Shared::DQIA_DT, RW> dqia_dt;
-    ModelArrayRef<Shared::Q_SW_OW, RW> Q_sw_ow;
-    ModelArrayRef<Shared::Q_SW_BASE, RW> Q_sw_base;
-    ModelArrayRef<Shared::OW_STRESS_X, RW> tau_x_ow;
-    ModelArrayRef<Shared::OW_STRESS_Y, RW> tau_y_ow;
+    ModelArrayAccessor<Shared::Q_OW, RW> qowAccessor;
+    ModelArrayAccessor<Shared::EVAP, RW> evapAccessor;
+    ModelArrayAccessor<Shared::SUBLIM, RW> sublAccessor;
+    ModelArrayAccessor<Shared::Q_IA, RW> qiaAccessor;
+    ModelArrayAccessor<Shared::Q_PEN_SW, RW> penSWAccessor;
+    ModelArrayAccessor<Shared::DQIA_DT, RW> dqia_dtAccessor;
+    ModelArrayAccessor<Shared::Q_SW_OW, RW> Q_sw_owAccessor;
+    ModelArrayAccessor<Shared::Q_SW_BASE, RW> Q_sw_baseAccessor;
+    ModelArrayAccessor<Shared::OW_STRESS_X, RW> tau_x_owAccessor;
+    ModelArrayAccessor<Shared::OW_STRESS_Y, RW> tau_y_owAccessor;
 };
 }
 #endif /* IFLUXCALCULATION_HPP */

@@ -20,3 +20,7 @@
     { "delta_hice", "DELTA_HICE" }, // Change in sea ice thickness, m
     { "delta_cice", "DELTA_CICE" }, // Change in sea ice concentration
     { "new_ice", "NEW_ICE" }, // Volume of new ice formed [m]
+    { "qsw_base", "Q_SW_BASE" }, // Short-wave flux through ice base W m⁻²
+    { "qsw_ow", "Q_SW_OW" }, // Short-wave flux into ice free ocean W m⁻²
+    { "taux_ow", "OW_STRESS_X" }, // x(east)-ward open ocean stress, Pa
+    { "tauy_ow", "OW_STRESS_Y" }, // y(north)-ward open ocean stress, Pa

@@ -7,27 +7,30 @@
 
 #include "include/FieldAdvection.hpp"
 #include "include/Finalizer.hpp"
-#include "include/ModelArrayRef.hpp"
 #include "include/NextsimModule.hpp"
 #include "include/gridNames.hpp"
 
 namespace Nextsim {
 
+static const std::string checkFieldsKey = "debug.check_fields";
+static const std::string checkFieldsFastKey = "debug.check_fields_fast";
+static const std::map<int, std::string> keyMap
+    = { { PrognosticData::CHECKFIELDS_KEY, checkFieldsKey },
+          { PrognosticData::CHECKFIELDSFAST_KEY, checkFieldsFastKey } };
+static constexpr bool checkFieldsDefault = false;
+static constexpr bool checkFieldsFastDefault = true;
+
 PrognosticData::PrognosticData()
     : m_dt(1)
-    , hice(ModelArray::AdvectionType)
-    , cice(ModelArray::AdvectionType)
-    , damage(ModelArray::AdvectionType)
-    , hsnow(ModelArray::AdvectionType)
-    , pAtmBdy(0)
-    , pOcnBdy(0)
-    , pDynamics(0)
-
+    , hiceAccessor(getStore(), RW, ModelArray::AdvectionType, std::pair(0.0, 50.0))
+    , ciceAccessor(getStore(), RW, ModelArray::AdvectionType, std::pair(0.0, 1.0))
+    , damageAccessor(getStore(), RW, ModelArray::AdvectionType, std::pair(0.0, 1.0))
+    , hsnowAccessor(getStore(), RW, ModelArray::AdvectionType, std::pair(0.0, 10.0))
+    , pAtmBdy(nullptr)
+    , pOcnBdy(nullptr)
+    , pDynamics(nullptr)
+    , pColumnPhysics(nullptr)
 {
-    getStore().registerArray(Shared::DAMAGE, &damage, RW);
-    getStore().registerArray(Shared::H_ICE_DG, &hice, RW);
-    getStore().registerArray(Shared::C_ICE_DG, &cice, RW);
-    getStore().registerArray(Shared::H_SNOW_DG, &hsnow, RW);
 }
 
 void PrognosticData::configure()
@@ -46,7 +49,22 @@ void PrognosticData::configure()
     pDynamics = &Module::getImplementation<IDynamics>();
     tryConfigure(pDynamics);
 
-    tryConfigure(iceGrowth);
+    pColumnPhysics = &Module::getImplementation<IColumnPhysics>();
+    tryConfigure(pColumnPhysics);
+
+    checkAll() = Configured::getConfiguration(keyMap.at(CHECKFIELDS_KEY), checkFieldsDefault);
+    checkFast
+        = Configured::getConfiguration(keyMap.at(CHECKFIELDSFAST_KEY), checkFieldsFastDefault);
+    if (checkAll()) {
+        for (const auto& field : ModelArrayAccessorBase<RO>::getAll(getStore())) {
+            addChecks({ { field.first, field.second } });
+        }
+    } else if (checkFast) {
+        addChecks({
+            { "thickness", hiceAccessor },
+            { "concentration", ciceAccessor },
+        });
+    }
 }
 
 // Copies an HField from a source ModelArray that is either an HField or a DGField.
@@ -61,6 +79,10 @@ void copyMeanComponent(const ModelArray& source, ModelArray& sink)
 
 void PrognosticData::setData(const ModelState::DataMap& ms)
 {
+    AdvectedField& hice = hiceAccessor.getHostRW();
+    AdvectedField& cice = ciceAccessor.getHostRW();
+    AdvectedField& hsnow = hsnowAccessor.getHostRW();
+    AdvectedField& damage = damageAccessor.getHostRW();
 
     if (ms.count(maskName)) {
         setOceanMask(ms.at(maskName));
@@ -87,7 +109,7 @@ void PrognosticData::setData(const ModelState::DataMap& ms)
     pAtmBdy->setData(ms);
     pOcnBdy->setData(ms);
     pDynamics->setData(ms);
-    iceGrowth.setData(ms);
+    pColumnPhysics->setData(ms);
 }
 
 void PrognosticData::update(const TimestepTime& tst)
@@ -98,14 +120,20 @@ void PrognosticData::update(const TimestepTime& tst)
     pDynamics->prepareAdvection();
 
     // Take the updated values of the true ice and snow thicknesses, and reset hice0 and hsnow0
-    // IceGrowth updates its own fields during update
-    iceGrowth.update(tst);
+    // ColumnPhysics updates its own fields during update
+    pColumnPhysics->update(tst);
 
     // Dynamics
     pDynamics->update(tst);
 
     // Update the ocean after ice growth (or send fields to the coupler)
     pOcnBdy->updateAfter(tst);
+
+    try {
+        checkFields();
+    } catch (const std::exception& e) {
+        throw std::runtime_error("PrognosticData::update: " + std::string(e.what()));
+    }
 }
 
 // Gets the diagnostic data from all subcomponents
@@ -115,7 +143,7 @@ ModelState PrognosticData::getStateDiagnostic() const
 
     // Get the prognostic data from the dynamics, including the full dynamics state
     state.merge(pDynamics->getStateDiagnostic());
-    state.merge(iceGrowth.getStateDiagnostic());
+    state.merge(pColumnPhysics->getStateDiagnostic());
     state.merge(pAtmBdy->getStateDiagnostic());
     state.merge(pOcnBdy->getStateDiagnostic());
 
@@ -127,28 +155,42 @@ ModelState PrognosticData::getStatePrognostic() const
 {
     ModelState state = { {
                              { maskName, ModelArray(oceanMask()) }, // make a copy
-                             { hiceName, hice },
-                             { ciceName, cice },
-                             { hsnowName, hsnow },
+                             { hiceName, hiceAccessor.getHostRO() },
+                             { ciceName, ciceAccessor.getHostRO() },
+                             { hsnowName, hsnowAccessor.getHostRO() },
                          },
         ModelComponent::getConfiguration() };
 
     // Get the prognostic data from the dynamics, including the full dynamics state
     state.merge(pDynamics->getStatePrognostic());
-    state.merge(iceGrowth.getStatePrognostic());
+    state.merge(pColumnPhysics->getStatePrognostic());
     state.merge(pAtmBdy->getStatePrognostic());
     state.merge(pOcnBdy->getStatePrognostic());
 
     return state;
 }
 
-PrognosticData::HelpMap& PrognosticData::getHelpText(HelpMap& map, bool getAll) { return map; }
+PrognosticData::HelpMap& PrognosticData::getHelpText(HelpMap& map, bool getAll)
+{
+    map["debug"]
+        = { { checkFieldsKey, ConfigType::BOOLEAN, { "true", "false" },
+                ConfigurationHelp::toString(checkFieldsDefault), "",
+                "Set to true to check if all variables in the ModelArrayStore fall within a "
+                "reasonable physical range." },
+              { checkFieldsFastKey, ConfigType::BOOLEAN, { "true", "false" },
+                  ConfigurationHelp::toString(checkFieldsFastDefault), "",
+                  "Set to true to check if thickness, concentration, and velocities fall within a "
+                  "reasonable physical range." } };
+
+    return map;
+}
 PrognosticData::HelpMap& PrognosticData::getHelpRecursive(HelpMap& map, bool getAll)
 {
     Module::getHelpRecursive<IAtmosphereBoundary>(map, getAll);
     Module::getHelpRecursive<IOceanBoundary>(map, getAll);
     Module::getHelpRecursive<IDynamics>(map, getAll);
-    IceGrowth::getHelpRecursive(map, getAll);
+    Module::getHelpRecursive<IColumnPhysics>(map, getAll);
+    getHelpText(map, getAll);
     return map;
 }
 

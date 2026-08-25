@@ -10,6 +10,8 @@
 #include "include/Finalizer.hpp"
 #include "include/Logged.hpp"
 #include "include/MissingData.hpp"
+#include "include/ModelMPI.hpp"
+
 #ifdef USE_XIOS
 #include "include/Xios.hpp"
 #endif
@@ -28,177 +30,75 @@
 
 namespace Nextsim {
 
-// TODO: XIOS implementation
 ParaGridIO::ParaGridIO(ParametricGrid& grid)
     : IParaGridIO(grid)
-    , openFilesAndIndices(getOpenFilesAndIndices())
-    , dimensionKeys({
-          // clang-format off
-          // Accept post-May 2024 (xdim, ydim, zdim) dimension names and pre-May 2024 (x, y, z)
-        { "yx", ModelArray::Type::H },
-        { "ydimxdim", ModelArray::Type::H },
-        { "yxdg_comp", ModelArray::Type::DG },
-        { "ydimxdimdg_comp", ModelArray::Type::DG },
-        { "yxdgstress_comp", ModelArray::Type::DGSTRESS },
-        { "ydimxdimdgstress_comp", ModelArray::Type::DGSTRESS },
-        { "ycgxcg", ModelArray::Type::CG },
-        { "yvertexxvertexncoords", ModelArray::Type::VERTEX },
-          // clang-format on
-      })
-    , isDG({
-          // clang-format off
-        { ModelArray::Dimension::X, false },
-        { ModelArray::Dimension::Y, false },
-        { ModelArray::Dimension::XCG, true },
-        { ModelArray::Dimension::YCG, true },
-        { ModelArray::Dimension::DG, true },
-        { ModelArray::Dimension::DGSTRESS, true },
-        // NCOORDS is a number of components, but not in the same way as the DG components.
-        { ModelArray::Dimension::NCOORDS, false },
-          // clang-format on
-      })
-    , dimCompMap({
-          // clang-format off
-        { ModelArray::componentMap.at(ModelArray::Type::DG), ModelArray::Type::DG },
-        { ModelArray::componentMap.at(ModelArray::Type::DGSTRESS), ModelArray::Type::DGSTRESS },
-        { ModelArray::componentMap.at(ModelArray::Type::VERTEX), ModelArray::Type::VERTEX },
-          // clang-format on
-      })
-{
-    Logged::warning("XIOS integration has not yet been completed");
-    static bool doneOnce = doOnce();
-}
-
-bool ParaGridIO::doOnce()
 {
     Xios& xiosHandler = Xios::getInstance();
-    // NOTE: getInstance will call the constructor for the Xios handler class the first time it is
-    // called. This will automatically:
-    // * Create XIOS input and output files if the XiosInput.filename and XiosOutput.filename
-    //   entries are set in the config.
-    // * Create all fields found in the config based off the field names found in the
-    //   XiosInput.field_names and XiosOutput.field_names entries in the config.
-
-    // TODO: Register XIOS finalization and drop the following in that case.
-    // Register the finalization function here
-    Finalizer::registerUnique(closeAllFiles);
-    // Since it should only ever run once, do further one-off initialization: allow distant
-    // classes to close files via a callback.
-    FileCallbackCloser::onClose(close);
-
-    return true;
+    xiosHandler.setupDomains();
+    xiosHandler.setupGrids();
 }
 
 ParaGridIO::~ParaGridIO() = default;
 
-#ifdef USE_MPI
-ModelState ParaGridIO::getModelState(const std::string& filePath, ModelMetadata& metadata)
-#else
 ModelState ParaGridIO::getModelState(const std::string& filePath)
-#endif
 {
-    // TODO: XIOS implementation
+    // Close the XIOS context definition, if it hasn't already been closed
+    Xios& xiosHandler = Xios::getInstance();
+    xiosHandler.close_context_definition();
+
+    ModelMetadata& metadata = ModelMetadata::getInstance();
+    if (metadata.initialFileName != filePath) {
+        throw std::runtime_error("ParaGridIO::getModelState: file path '" + filePath
+            + "' is inconsistent with model.init_file '" + metadata.initialFileName + "'");
+    }
+
+    // Get all variables in the file and load them into a new ModelState
     ModelState state;
-
-    try {
-#ifdef USE_MPI
-        netCDF::NcFilePar ncFile(filePath, netCDF::NcFile::read, metadata.mpiComm);
-#else
-        netCDF::NcFile ncFile(filePath, netCDF::NcFile::read);
-#endif
-
-        // Dimensions and DG components
-        std::multimap<std::string, netCDF::NcDim> dimMap = ncFile.getDims();
-        for (auto entry : ModelArray::definedDimensions) {
-            auto dimType = entry.first;
-            if (dimCompMap.count(dimType) > 0)
-                // TODO Assertions that DG in the file equals the compile time DG in the model. See
-                // #205
-                continue;
-
-            ModelArray::DimensionSpec& dimensionSpec = entry.second;
-            // Find dimensions in the netCDF file by their name in the ModelArray details
-            netCDF::NcDim dim = ncFile.getDim(dimensionSpec.name);
-            // Also check the old name
-            if (dim.isNull()) {
-                dim = ncFile.getDim(dimensionSpec.altName);
-            }
-            // If we didn't find a dimension with the dimensions name or altName, throw.
-            if (dim.isNull()) {
-                throw std::out_of_range(
-                    std::string("No netCDF dimension found corresponding to the dimension named ")
-                    + dimensionSpec.name + std::string(" or ") + dimensionSpec.altName);
-            }
-#ifdef USE_MPI
-            auto dimName = dim.getName();
-            size_t localLength = 0;
-            size_t start = 0;
-            if (dimType == ModelArray::Dimension::X) {
-                localLength = metadata.localExtentX;
-                start = metadata.localCornerX;
-            } else if (dimType == ModelArray::Dimension::Y) {
-                localLength = metadata.localExtentY;
-                start = metadata.localCornerY;
-            } else if (dimType == ModelArray::Dimension::XVERTEX) {
-                localLength = metadata.localExtentX + 1;
-                start = metadata.localCornerX;
-            } else if (dimType == ModelArray::Dimension::YVERTEX) {
-                localLength = metadata.localExtentY + 1;
-                start = metadata.localCornerY;
-            } else {
-                localLength = dim.getSize();
-                start = 0;
-            }
-            ModelArray::setDimension(dimType, dim.getSize(), localLength, start);
-#else
-            ModelArray::setDimension(dimType, dim.getSize());
-#endif
+    for (const std::string& fieldId : xiosHandler.inputRestartFieldNames) {
+        const ModelArray::Type& type = xiosHandler.getFieldType(fieldId);
+        if (type == ModelArray::Type::H) {
+            HField field(ModelArray::Type::H);
+            field.reinitialize();
+            state.merge(ModelState { { { fieldId, field } }, {} });
+        } else if (type == ModelArray::Type::U) {
+            UField field(ModelArray::Type::U);
+            field.reinitialize();
+            state.merge(ModelState { { { fieldId, field } }, {} });
+        } else if (type == ModelArray::Type::V) {
+            VField field(ModelArray::Type::V);
+            field.reinitialize();
+            state.merge(ModelState { { { fieldId, field } }, {} });
+        } else if (type == ModelArray::Type::VERTEX) {
+            VertexField field(ModelArray::Type::VERTEX);
+            field.reinitialize();
+            state.merge(ModelState { { { fieldId, field } }, {} });
+        } else if (type == ModelArray::Type::DG) {
+            DGField field(ModelArray::Type::DG);
+            field.reinitialize();
+            state.merge(ModelState { { { fieldId, field } }, {} });
+        } else if (type == ModelArray::Type::DGSTRESS) {
+            DGSField field(ModelArray::Type::DGSTRESS);
+            field.reinitialize();
+            state.merge(ModelState { { { fieldId, field } }, {} });
+        } else if (type == ModelArray::Type::CG) {
+            CGField field(ModelArray::Type::CG);
+            field.reinitialize();
+            state.merge(ModelState { { { fieldId, field } }, {} });
+        } else {
+            throw std::runtime_error("ParaGridIO::getModelState: field type for field " + fieldId
+                + " is not supported.");
         }
+    }
 
-        // Get all valid variables and load them into a new ModelState
-
-        for (auto entry : ncFile.getVars()) {
-            const std::string& varName = entry.first;
-            netCDF::NcVar& var = entry.second;
-            // Determine the type from the dimensions
-            std::vector<netCDF::NcDim> varDims = var.getDims();
-            std::string dimKey = "";
-            for (netCDF::NcDim& dim : varDims) {
-                dimKey += dim.getName();
-            }
-            // Skip invalid dimension keys
-            if (!dimensionKeys.count(dimKey)) {
-                continue;
-            }
-            ModelArray::Type type = dimensionKeys.at(dimKey);
-            state.data[varName] = ModelArray(type);
-            ModelArray& data = state.data.at(varName);
-            data.resize();
-
-            std::vector<size_t> start;
-            std::vector<size_t> count;
-            if (ModelArray::hasDoF(type)) {
-                auto ncomps = data.nComponents();
-                start.push_back(0);
-                count.push_back(ncomps);
-            }
-            for (ModelArray::Dimension dt : ModelArray::typeDimensions.at(type)) {
-                auto dim = ModelArray::definedDimensions.at(dt);
-                start.push_back(dim.start);
-                count.push_back(dim.localLength);
-            }
-            // dims are looped in [dg], x, y, [z] order so start and count
-            // order must be reveresed to match order netcdf expects
-            std::reverse(start.begin(), start.end());
-            std::reverse(count.begin(), count.end());
-
-            var.getVar(start, count, &data[0]);
+    // Assume that all fields in the supplied ModelState are necessary, and so read them from file.
+    for (auto& [fieldId, modelarray] : state.data) {
+        const std::string inputFieldId = fieldId + "_input";
+        if (xiosHandler.inputRestartFieldNames.count(fieldId) == 0) {
+            Logged::warning(
+                "ParaGridIO::getModelState: field " + fieldId + " is not configured as a restart.");
+            continue;
         }
-        ncFile.close();
-    } catch (const netCDF::exceptions::NcException& nce) {
-        std::string ncWhat(nce.what());
-        ncWhat += ": " + filePath;
-        throw std::runtime_error(ncWhat);
+        xiosHandler.read(inputFieldId, modelarray);
     }
     return state;
 }
@@ -206,240 +106,104 @@ ModelState ParaGridIO::getModelState(const std::string& filePath)
 ModelState ParaGridIO::readForcingTimeStatic(
     const std::set<std::string>& forcings, const TimePoint& time, const std::string& filePath)
 {
-    // TODO: XIOS implementation
+    // Close the XIOS context definition, if it hasn't already been closed
+    Xios& xiosHandler = Xios::getInstance();
+    xiosHandler.close_context_definition();
 
+    // Determine which forcing type we have
+    bool era5 = (xiosHandler.era5ForcingFilename == filePath);
+    if (!era5 && xiosHandler.topazForcingFilename != filePath) {
+        throw std::runtime_error("ParaGridIO::readForcingTimeStatic: file path '" + filePath
+            + "' is inconsistent with config.");
+    }
+
+    const std::set<std::string> forcingFieldNames
+        = era5 ? xiosHandler.era5ForcingFieldNames : xiosHandler.topazForcingFieldNames;
+
+    // Get all forcings and load them into a new ModelState
     ModelState state;
+    for (const std::string& fieldId : forcings) {
+        if (era5) {
+            if (xiosHandler.era5ForcingFieldNames.count(fieldId) == 0) {
+                throw std::runtime_error("ParaGridIO::readForcingTimeStatic: field " + fieldId
+                    + " is not configured as an ERA5 forcing.");
+            }
+        } else {
 
-    try {
-        netCDF::NcFile ncFile(filePath, netCDF::NcFile::read);
-
-        // Read the time axis
-        netCDF::NcDim timeDim = ncFile.getDim(timeName);
-        // Read the time variable
-        netCDF::NcVar timeVar = ncFile.getVar(timeName);
-        // Calculate the index of the largest time value on the axis below our target
-        size_t targetTIndex;
-        // Get the time axis as a vector
-        std::vector<double> timeVec(timeDim.getSize());
-        timeVar.getVar(timeVec.data());
-        // Get the index of the largest TimePoint less than the target.
-        targetTIndex = std::find_if(std::begin(timeVec), std::end(timeVec), [time](double t) {
-            return (TimePoint() + Duration(t)) > time;
-        }) - timeVec.begin();
-        // Rather than the first that is greater than, get the last that is less
-        // than or equal to. But don't go out of bounds.
-        if (targetTIndex > 0)
-            --targetTIndex;
+            if (xiosHandler.topazForcingFieldNames.count(fieldId) == 0) {
+                throw std::runtime_error("ParaGridIO::readForcingTimeStatic: field " + fieldId
+                    + " is not configured as an TOPAZ forcing.");
+            }
+        }
+        const std::string forcingFieldId = fieldId + (era5 ? "_era5_forcing" : "_topaz_forcing");
+        const ModelArray::Type& type = xiosHandler.getFieldType(forcingFieldId);
         // ASSUME all forcings are HFields: finite volume fields on the same
         // grid as ice thickness
-        std::vector<size_t> indexArray = { targetTIndex };
-        std::vector<size_t> extentArray = { 1 };
-
-        // Loop over the dimensions of H
-        const std::vector<ModelArray::Dimension>& dimensions
-            = ModelArray::typeDimensions.at(ModelArray::Type::H);
-        for (auto riter = dimensions.rbegin(); riter != dimensions.rend(); ++riter) {
-            indexArray.push_back(0);
-            extentArray.push_back(ModelArray::definedDimensions.at(*riter).localLength);
+        if (type == ModelArray::Type::H) {
+            HField field(ModelArray::Type::H);
+            field.reinitialize();
+            state.merge(ModelState { { { fieldId, field } }, {} });
+        } else {
+            throw std::runtime_error("ParaGridIO::readForcingTimeStatic: field type for field "
+                + fieldId + " is not supported.");
         }
+    }
 
-        for (const std::string& varName : forcings) {
-            netCDF::NcVar var = ncFile.getVar(varName);
-            state.data[varName] = ModelArray(ModelArray::Type::H);
-            ModelArray& data = state.data.at(varName);
-            data.resize();
-
-            var.getVar(indexArray, extentArray, &data[0]);
+    // Read all forcings from file
+    for (auto& [fieldId, modelarray] : state.data) {
+        const std::string forcingFieldId = fieldId + (era5 ? "_era5_forcing" : "_topaz_forcing");
+        if (forcings.count(fieldId)) {
+            xiosHandler.read(forcingFieldId, modelarray);
         }
-        ncFile.close();
-    } catch (const netCDF::exceptions::NcException& nce) {
-        std::string ncWhat(nce.what());
-        ncWhat += ": " + filePath;
-        throw std::runtime_error(ncWhat);
     }
     return state;
 }
 
-void ParaGridIO::dumpModelState(
-    const ModelState& state, const ModelMetadata& metadata, const std::string& filePath)
+void ParaGridIO::dumpModelState(const ModelState& state, const std::string& filePath)
 {
+    // Close the XIOS context definition, if it hasn't already been closed
     Xios& xiosHandler = Xios::getInstance();
+    xiosHandler.close_context_definition();
 
-    // Assume that all fields in the supplied ModelState are necessary, and so write them to file.
-    for (auto entry : state.data) {
-        const std::string fieldId = entry.first;
-        if (xiosHandler.getFieldReadAccess(fieldId)) {
-            throw std::runtime_error("ParaGridIO::dumpModelState: field " + fieldId
-                + " is not configured for writing, but is being written to file.");
-        };
-        xiosHandler.write(fieldId, entry.second);
-    }
-}
+    ModelMetadata& metadata = ModelMetadata::getInstance();
 
-void ParaGridIO::writeDiagnosticTime(
-    const ModelState& state, const ModelMetadata& meta, const std::string& filePath)
-{
-    // TODO: XIOS implementation
-
-    bool isNew = openFilesAndIndices.count(filePath) <= 0;
-    size_t nt = (isNew) ? 0 : ++openFilesAndIndices.at(filePath).second;
-    if (isNew) {
-        // Open a new file and emplace it in the map of open files.
-        // Set the initial time to be zero (assigned above)
-        // Piecewise construction is necessary to correctly construct the file handle/time index
-        // pair
-#ifdef USE_MPI
-        openFilesAndIndices.emplace(std::piecewise_construct, std::make_tuple(filePath),
-            std::forward_as_tuple(std::piecewise_construct,
-                std::forward_as_tuple(filePath, netCDF::NcFile::replace, meta.mpiComm),
-                std::forward_as_tuple(nt)));
-#else
-        openFilesAndIndices.emplace(std::piecewise_construct, std::make_tuple(filePath),
-            std::forward_as_tuple(std::piecewise_construct,
-                std::forward_as_tuple(filePath, netCDF::NcFile::replace),
-                std::forward_as_tuple(nt)));
-#endif
-    }
-    // Get the file handle
-    NetCDFFileType& ncFile = openFilesAndIndices.at(filePath).first;
-
-    if (isNew) {
-        // Write the common structure and time metadata
-        CommonRestartMetadata::writeStructureType(ncFile, meta);
-    }
-    // Get the unlimited time dimension, creating it if necessary
-    netCDF::NcDim timeDim = (isNew) ? ncFile.addDim(timeName) : ncFile.getDim(timeName);
-
-    // All of the dimensions defined by the data at a particular timestep.
-    std::map<ModelArray::Dimension, netCDF::NcDim> ncFromMAMap;
-    for (auto entry : ModelArray::definedDimensions) {
-        ModelArray::Dimension dim = entry.first;
-        size_t dimSz = (dimCompMap.count(dim)) ? ModelArray::nComponents(dimCompMap.at(dim))
-                                               : dimSz = entry.second.globalLength;
-        ncFromMAMap[dim]
-            = (isNew) ? ncFile.addDim(entry.second.name, dimSz) : ncFile.getDim(entry.second.name);
+    if (filePath.find(xiosHandler.outputFileId) == std::string::npos) {
+        throw std::runtime_error("ParaGridIO::dumpModelState: file path '" + filePath
+            + "' is inconsistent with model.restart_file '" + metadata.finalFileName + "'");
     }
 
-    // Also create the sets of dimensions to be connected to the data fields
-    std::map<ModelArray::Type, std::vector<netCDF::NcDim>> dimMap;
-    // Create the index and size arrays
-    std::map<ModelArray::Type, std::vector<size_t>> startMap;
-    std::map<ModelArray::Type, std::vector<size_t>> countMap;
-    for (auto entry : ModelArray::typeDimensions) {
-        ModelArray::Type type = entry.first;
-        std::vector<netCDF::NcDim> ncDims;
-        std::vector<size_t> start;
-        std::vector<size_t> count;
-
-        // Everything that has components needs that dimension, too
-        if (ModelArray::hasDoF(type)) {
-            if (type == ModelArray::Type::VERTEX && !isNew)
-                continue;
-            auto ncomps = ModelArray::nComponents(type);
-            auto dim = ModelArray::componentMap.at(type);
-            ncDims.push_back(ncFromMAMap.at(dim));
-            start.push_back(0);
-            count.push_back(ncomps);
-        }
-        for (auto dt : entry.second) {
-            auto dim = ModelArray::definedDimensions.at(dt);
-            ncDims.push_back(ncFromMAMap.at(dt));
-            start.push_back(dim.start);
-            count.push_back(dim.localLength);
-        }
-
-        // Deal with VERTEX in each case
-        // Add the time dimension for all types that are not VERTEX
-        if (type != ModelArray::Type::VERTEX) {
-            ncDims.push_back(timeDim);
-            start.push_back(nt);
-            count.push_back(1UL);
-        } else if (!isNew) {
-            // For VERTEX in an existing file, there is nothing more to be done
+    // Assume that all fields in the supplied ModelState are necessary, and so write them to
+    // file.
+    for (const auto& [fieldId, modelarray] : state.data) {
+        if (xiosHandler.outputRestartFieldNames.count(fieldId) == 0) {
+            Logged::warning("ParaGridIO::dumpModelState: field " + fieldId
+                + " is not configured as a restart.");
             continue;
         }
-
-        std::reverse(ncDims.begin(), ncDims.end());
-        std::reverse(start.begin(), start.end());
-        std::reverse(count.begin(), count.end());
-
-        dimMap[type] = ncDims;
-        startMap[type] = start;
-        countMap[type] = count;
-    }
-
-    // Create a special timeless set of dimensions for the landmask
-    std::vector<netCDF::NcDim> maskDims;
-    std::vector<size_t> maskIndexes;
-    std::vector<size_t> maskExtents;
-    if (isNew) {
-        for (ModelArray::Dimension& maDim : ModelArray::typeDimensions.at(ModelArray::Type::H)) {
-            maskDims.push_back(ncFromMAMap.at(maDim));
-        }
-        maskIndexes = { 0, 0 };
-        maskExtents = { ModelArray::definedDimensions
-                            .at(ModelArray::typeDimensions.at(ModelArray::Type::H)[0])
-                            .localLength,
-            ModelArray::definedDimensions.at(ModelArray::typeDimensions.at(ModelArray::Type::H)[1])
-                .localLength };
-    }
-
-    // Put the time axis variable
-    std::vector<netCDF::NcDim> timeDimVec = { timeDim };
-    netCDF::NcVar timeVar(
-        (isNew) ? ncFile.addVar(timeName, netCDF::ncDouble, timeDimVec) : ncFile.getVar(timeName));
-    double secondsSinceEpoch = (meta.time() - TimePoint()).seconds();
-#ifdef USE_MPI
-    netCDF::setVariableCollective(timeVar, ncFile);
-#endif
-    timeVar.putVar({ nt }, { 1 }, &secondsSinceEpoch);
-
-    // Write the data
-    for (auto entry : state.data) {
-        ModelArray::Type type = entry.second.getType();
-        // Skip timeless fields (mask, coordinates) on existing files
-        if (!isNew && (entry.first == maskName || type == ModelArray::Type::VERTEX))
-            continue;
-        if (entry.first == maskName) {
-            // Land mask in a new file (since it was skipped above in existing files)
-            netCDF::NcVar var(ncFile.addVar(maskName, netCDF::ncDouble, maskDims));
-            // No missing data
-#ifdef USE_MPI
-            netCDF::setVariableCollective(var, ncFile);
-#endif
-            var.putVar(maskIndexes, maskExtents, entry.second.getData());
-
-        } else {
-            std::vector<netCDF::NcDim>& ncDims = dimMap.at(type);
-            // Get the variable object, either creating a new one or getting the existing one
-            netCDF::NcVar var((isNew) ? ncFile.addVar(entry.first, netCDF::ncDouble, ncDims)
-                                      : ncFile.getVar(entry.first));
-            if (isNew)
-                var.putAtt(mdiName, netCDF::ncDouble, MissingData::value());
-#ifdef USE_MPI
-            netCDF::setVariableCollective(var, ncFile);
-#endif
-            var.putVar(startMap.at(type), countMap.at(type), entry.second.getData());
-        }
+        xiosHandler.write(fieldId, modelarray);
     }
 }
 
-// TODO: This method will likely be dropped in the XIOS implementation
-void ParaGridIO::close(const std::string& filePath)
+void ParaGridIO::writeDiagnosticTime(const ModelState& state, const std::string& filePath)
 {
-    if (getOpenFilesAndIndices().count(filePath) > 0) {
-        getOpenFilesAndIndices().at(filePath).first.close();
-        getOpenFilesAndIndices().erase(filePath);
-    }
-}
+    // Close the XIOS context definition, if it hasn't already been closed
+    Xios& xiosHandler = Xios::getInstance();
+    xiosHandler.close_context_definition();
 
-// TODO: This method will likely be dropped in the XIOS implementation
-void ParaGridIO::closeAllFiles()
-{
-    std::cout << "ParaGridIO::closeAllFiles: closing " << getOpenFilesAndIndices().size()
-              << " files" << std::endl;
-    while (getOpenFilesAndIndices().size() > 0) {
-        close(getOpenFilesAndIndices().begin()->first);
+    if (filePath.find(xiosHandler.diagnosticFileId) == std::string::npos) {
+        throw std::runtime_error("ParaGridIO::writeDiagnosticTime: file path '" + filePath
+            + "' is inconsistent with XiosDiagnostic.filename '" + xiosHandler.diagnosticFilename
+            + "'");
+    }
+
+    // Assume that all fields in the supplied ModelState are necessary, and so write them to
+    // file.
+    for (const auto& [fieldId, modelarray] : state.data) {
+        if (xiosHandler.diagnosticFieldNames.count(fieldId) == 0) {
+            throw std::runtime_error("ParaGridIO::writeDiagnosticTime: field " + fieldId
+                + " is not configured as a diagnostic.");
+        }
+        xiosHandler.write(fieldId, modelarray);
     }
 }
 

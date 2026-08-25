@@ -23,19 +23,20 @@ formatted = ncFile.createVariable("formatted", str)
 formatted.format = "%Y-%m-%dT%H:%M:%SZ"
 formatted[0] = "2000-01-01T00:00:00Z"
 
-xDim = ncFile.createDimension("x", nx)
-yDim = ncFile.createDimension("y", ny)
+xDim = ncFile.createDimension("x_dim", nx)
+yDim = ncFile.createDimension("y_dim", ny)
 nLay = ncFile.createDimension("nLayers", nLayers)
-xVertexDim = ncFile.createDimension("xvertex", nx + 1)
-yVertexDim = ncFile.createDimension("yvertex", ny + 1)
+xVertexDim = ncFile.createDimension("x_vertex", nx + 1)
+yVertexDim = ncFile.createDimension("y_vertex", ny + 1)
 xcg_dim = ncFile.createDimension("x_cg", nx * ncg + 1)
 ycg_dim = ncFile.createDimension("y_cg", ny * ncg + 1)
 dg_comp = ncFile.createDimension("dg_comp", n_dg)
 dgs_comp = ncFile.createDimension("dgstress_comp", n_dgstress)
 n_coords_comp = ncFile.createDimension("ncoords", n_coords)
 
-hfield_dims = ("y", "x")
+hfield_dims = ("y_dim", "x_dim")
 
+# fmt: off
 mask33 = np.array(
     [[0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
      [0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
@@ -70,24 +71,26 @@ mask33 = np.array(
      [1,1,1,1,1,1,1,1,1,0,1,1,1,1,1,1,1,1,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0],
      [1,1,1,1,1,1,1,1,1,0,0,0,1,1,1,1,1,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0],
      [1,1,1,1,1,1,1,1,1,0,0,1,1,1,1,1,1,1,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0]])
+# fmt: on
+
 # scipy isn't working? fine, I'll fake it
-mask129x33 = np.zeros((nx+1, 33))
+mask129x33 = np.zeros((nx + 1, 33))
 for i in range(33):
     mask129x33[:, i] = np.interp(np.arange(129) / 4, np.arange(33), mask33[:, i])
 
-mask129 = np.zeros((nx+1, ny+1))
-for i in range(nx+1):
+mask129 = np.zeros((nx + 1, ny + 1))
+for i in range(nx + 1):
     mask129[i, :] = np.interp(np.arange(129) / 4, np.arange(33), mask129x33[i, :])
 
 mask = ncFile.createVariable("mask", "f8", hfield_dims)
-mask[:,:] = np.rint(mask129[:-1, -2::-1])
+mask[:, :] = np.rint(mask129[:-1, -2::-1])
 
-antimask = 1 - mask[:,:]
+antimask = 1 - mask[:, :]
 
 # Some coordinates that don't match the land mask exactly (azimuthal equidistant)
-array_size1d = 20.
+array_size1d = 20.0
 spacing1d = 2 * array_size1d / nx
-limit1d = array_size1d # even number of points + 1
+limit1d = array_size1d  # even number of points + 1
 coord1d = np.linspace(-limit1d, limit1d, num=129)
 
 x_coords = np.zeros((nx + 1, ny + 1))
@@ -95,20 +98,21 @@ y_coords = np.zeros((nx + 1, ny + 1))
 for i in range(nx + 1):
     x_coords[i, :] = coord1d
     y_coords[:, i] = coord1d
-    
-lat = 90 - (x_coords**2 + y_coords**2)**0.5
 
-lon_x0 = 270. # degrees
+lat = 90 - (x_coords**2 + y_coords**2) ** 0.5
+
+lon_x0 = 270.0  # degrees
 lon = np.rad2deg(np.arctan2(y_coords, x_coords)) + lon_x0
 # Correct the range to -180 to 180
-lon += 180.
-lon %= 360.
-lon -= 180.
+lon += 180.0
+lon %= 360.0
+lon -= 180.0
 
-coords = ncFile.createVariable("coords", "f8", ("yvertex", "xvertex", "ncoords"))
-coords[:,:,0] = lon
-coords[:,:,1] = lat
+coords = ncFile.createVariable("coords", "f8", ("y_vertex", "x_vertex", "ncoords"))
+coords[:, :, 0] = lon
+coords[:, :, 1] = lat
 
+# fmt: off
 cice33 = np.array(
     [[0.,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
@@ -144,37 +148,38 @@ cice33 = np.array(
      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]]
      )
+# fmt: on
 cice33 /= 10
-cice129x33 = np.zeros((nx+1, 33))
+cice129x33 = np.zeros((nx + 1, 33))
 for i in range(33):
     cice129x33[:, i] = np.interp(np.arange(129) / 4, np.arange(33), cice33[:, i])
 
-cice129 = np.zeros((nx+1, ny+1))
-for i in range(nx+1):
+cice129 = np.zeros((nx + 1, ny + 1))
+for i in range(nx + 1):
     cice129[i, :] = np.interp(np.arange(129) / 4, np.arange(33), cice129x33[i, :])
 
 cice = ncFile.createVariable("cice", "f8", hfield_dims)
-cice[:,:] = cice129[:-1, -2::-1]
+cice[:, :] = cice129[:-1, -2::-1]
 
 hice = ncFile.createVariable("hice", "f8", hfield_dims)
-hice[:,:] = cice[:,:] * 2
+hice[:, :] = cice[:, :] * 2
 hsnow = ncFile.createVariable("hsnow", "f8", hfield_dims)
-hsnow[:,:] = cice[:,:] / 2
-tice = ncFile.createVariable("tice", "f8", ("nLayers", "y", "x"))
-tice[0,:,:] = -0.5 - cice[:,:]
-tice[1,:,:] = -1.5 - cice[:,:]
-tice[2,:,:] = -2.5 - cice[:,:]
+hsnow[:, :] = cice[:, :] / 2
+tice = ncFile.createVariable("tice", "f8", ("nLayers", "y_dim", "x_dim"))
+tice[0, :, :] = -0.5 - cice[:, :]
+tice[1, :, :] = -1.5 - cice[:, :]
+tice[2, :, :] = -2.5 - cice[:, :]
 
-mdi = -2.**300
+mdi = -(2.0**300)
 # mask data
-cice[:,:] = cice[:,:] * mask[:,:] + antimask * mdi
+cice[:, :] = cice[:, :] * mask[:, :] + antimask * mdi
 cice.missing_value = mdi
-hice[:,:] = hice[:,:] * mask[:,:] + antimask * mdi
+hice[:, :] = hice[:, :] * mask[:, :] + antimask * mdi
 hice.missing_value = mdi
-hsnow[:,:] = hsnow[:,:] * mask[:,:] + antimask * mdi
+hsnow[:, :] = hsnow[:, :] * mask[:, :] + antimask * mdi
 hsnow.missing_value = mdi
 for k in range(3):
-    tice[k,:,:] = tice[k,:,:] * mask[:,:] + antimask * mdi
+    tice[k, :, :] = tice[k, :, :] * mask[:, :] + antimask * mdi
 tice.missing_value = mdi
 
 ncFile.close()

@@ -5,12 +5,12 @@
 #ifndef PROGNOSTICDATA_HPP
 #define PROGNOSTICDATA_HPP
 
-#include "ModelComponent.hpp"
+#include "include/CheckingModelComponent.hpp"
 #include "include/Configured.hpp"
 #include "include/IAtmosphereBoundary.hpp"
+#include "include/IColumnPhysics.hpp"
 #include "include/IDynamics.hpp"
 #include "include/IOceanBoundary.hpp"
-#include "include/IceGrowth.hpp"
 #include "include/ModelMetadata.hpp"
 #include "include/Time.hpp"
 
@@ -21,7 +21,7 @@ namespace Nextsim {
  * data values and handles their updates in the timestep, including all calls
  * to the variables those calculations depend on.
  */
-class PrognosticData : public ModelComponent, public Configured<PrognosticData> {
+class PrognosticData : public CheckingModelComponent, public Configured<PrognosticData> {
 public:
     PrognosticData();
     virtual ~PrognosticData() = default;
@@ -48,16 +48,18 @@ public:
      * Writes a restart file to the specified file path.
      * @param filePath the file path to write the restart file to.
      */
-    void writeRestartFile(const std::string& filePath, const ModelMetadata& metadata) const;
+    void writeRestartFile(const std::string& filePath) const;
+
+    enum { CHECKFIELDS_KEY, CHECKFIELDSFAST_KEY };
 
 private:
-    double m_dt;
+    FloatType m_dt;
 
     // Full DG component arrays of thickness and concentration
-    AdvectedField hice;
-    AdvectedField cice;
-    AdvectedField damage;
-    AdvectedField hsnow; // cell averaged snow thickness
+    ModelArrayAccessor<Shared::H_ICE_DG, RW> hiceAccessor;
+    ModelArrayAccessor<Shared::C_ICE_DG, RW> ciceAccessor;
+    ModelArrayAccessor<Shared::DAMAGE, RW> damageAccessor;
+    ModelArrayAccessor<Shared::H_SNOW_DG, RW> hsnowAccessor; // cell averaged snow thickness
 
     IAtmosphereBoundary* pAtmBdy;
     IOceanBoundary* pOcnBdy;
@@ -68,7 +70,7 @@ private:
     };
 
     IDynamics* pDynamics;
-    IceGrowth iceGrowth;
+    IColumnPhysics* pColumnPhysics;
 };
 
 } /* namespace Nextsim */

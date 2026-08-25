@@ -7,8 +7,6 @@
 #include "include/ModelArraySlice.hpp"
 
 #include <algorithm>
-#include <cstdarg>
-#include <iterator>
 #include <set>
 #include <string>
 #include <utility>
@@ -19,11 +17,12 @@ ModelArray::SizeMap ModelArray::m_sz;
 ModelArray::DimensionMap ModelArray::m_dims;
 bool ModelArray::areMapsInvalid = true;
 
-ModelArray::ModelArray(const Type type)
+ModelArray::ModelArray(const Type type, const std::pair<FloatType, FloatType>& bounds)
     : type(type)
 {
-    m_data.resize(std::max(std::size_t { 0 }, m_sz.at(type)), nComponents());
+    m_data.resize(m_sz.at(type), nComponents());
     validateMaps();
+    setLimits(bounds.first, bounds.second);
 }
 
 ModelArray::ModelArray(const ModelArray& orig)
@@ -44,7 +43,7 @@ ModelArray& ModelArray::operator=(const ModelArray& orig)
     return *this;
 }
 
-ModelArray& ModelArray::operator=(const double& fill)
+ModelArray& ModelArray::operator=(const FloatType& fill)
 {
     setData(fill);
 
@@ -87,51 +86,51 @@ ModelArray ModelArray::operator-() const
     return copy;
 }
 
-ModelArray ModelArray::operator+(const double& x) const
+ModelArray ModelArray::operator+(const FloatType& x) const
 {
     ModelArray result = *this;
     return result += x;
 }
 
-ModelArray ModelArray::operator-(const double& x) const
+ModelArray ModelArray::operator-(const FloatType& x) const
 {
     ModelArray result = *this;
     return result -= x;
 }
 
-ModelArray ModelArray::operator*(const double& x) const
+ModelArray ModelArray::operator*(const FloatType& x) const
 {
     ModelArray result = *this;
     return result *= x;
 }
 
-ModelArray ModelArray::operator/(const double& x) const
+ModelArray ModelArray::operator/(const FloatType& x) const
 {
     ModelArray result = *this;
     return result /= x;
 }
 
-ModelArray operator+(const double& x, const ModelArray& y) { return y + x; }
+ModelArray operator+(const FloatType& x, const ModelArray& y) { return y + x; }
 
-ModelArray operator-(const double& x, const ModelArray& y) { return -(y - x); }
+ModelArray operator-(const FloatType& x, const ModelArray& y) { return -(y - x); }
 
-ModelArray operator*(const double& x, const ModelArray& y) { return y * x; }
+ModelArray operator*(const FloatType& x, const ModelArray& y) { return y * x; }
 
-ModelArray operator/(const double& x, const ModelArray& y)
+ModelArray operator/(const FloatType& x, const ModelArray& y)
 {
     ModelArray xArray(y.getType());
     xArray.setData(x);
     return xArray /= y;
 }
 
-ModelArray ModelArray::max(double max) const
+ModelArray ModelArray::max(FloatType max) const
 {
     ModelArray maxed = ModelArray(type);
     maxed.m_data.array() = m_data.array().max(max);
     return maxed;
 }
 
-ModelArray ModelArray::min(double min) const
+ModelArray ModelArray::min(FloatType min) const
 {
     ModelArray mined = ModelArray(type);
     mined.m_data.array() = m_data.array().min(min);
@@ -152,13 +151,13 @@ ModelArray ModelArray::min(const ModelArray& minArr) const
     return mined;
 }
 
-ModelArray& ModelArray::clampAbove(double max)
+ModelArray& ModelArray::clampAbove(FloatType max)
 {
     m_data = this->max(max).m_data;
     return *this;
 }
 
-ModelArray& ModelArray::clampBelow(double min)
+ModelArray& ModelArray::clampBelow(FloatType min)
 {
     m_data = this->min(min).m_data;
     return *this;
@@ -176,15 +175,16 @@ ModelArray& ModelArray::clampBelow(const ModelArray& minArr)
     return *this;
 }
 
-void ModelArray::setData(double value)
+/*************************************************************/
+void ModelArray::setData(FloatType value)
 {
-    resize();
+    reinitialize();
     m_data = value;
 }
 
-void ModelArray::setData(const double* pData)
+void ModelArray::setData(const FloatType* pData)
 {
-    resize();
+    reinitialize();
     auto out = std::copy(pData, pData + m_sz.at(type) * nComponents(), m_data.data());
 }
 
@@ -192,6 +192,26 @@ void ModelArray::setData(const DataType& from) { m_data = from; } // setData(fro
 
 void ModelArray::setData(const ModelArray& from) { setData(from.m_data.data()); }
 
+/*************************************************************/
+void ModelArray::assignData(const ModelArray& source)
+{
+    if (source.nComponents() != nComponents()) {
+        component(0) = source.component(0);
+    } else {
+        m_data = source.m_data;
+    }
+}
+
+void ModelArray::assignData(ModelArray&& source)
+{
+    if (source.nComponents() != nComponents()) {
+        component(0) = source.component(0);
+    } else {
+        m_data = std::move(source.m_data);
+    }
+}
+
+/*************************************************************/
 void ModelArray::setDimensions(Type type, const MultiDim& newDims)
 {
     std::vector<Dimension>& dimSpecs = typeDimensions.at(type);
@@ -220,14 +240,14 @@ void ModelArray::setDimension(Dimension dim, size_t globalLength)
     validateMaps();
 }
 
-const double& ModelArray::operator[](const MultiDim& loc) const
+const FloatType& ModelArray::operator[](const MultiDim& loc) const
 {
     return (*this)[indexr(this->dimensions(), loc)];
 }
 
-double& ModelArray::operator[](const MultiDim& dims)
+FloatType& ModelArray::operator[](const MultiDim& dims)
 {
-    return const_cast<double&>(std::as_const(*this)[dims]);
+    return const_cast<FloatType&>(std::as_const(*this)[dims]);
 }
 
 ModelArraySlice ModelArray::operator[](const Slice& slice) { return ModelArraySlice(*this, slice); }
@@ -275,6 +295,54 @@ ModelArray::MultiDim ModelArray::locationFromIndex(Type type, size_t index)
         index /= theDim;
     }
     return loc;
+}
+
+void ModelArray::setLimits(const FloatType lower, const FloatType upper)
+{
+    lowerPhysicalLimit = lower;
+    upperPhysicalLimit = upper;
+    fillValue = (lowerPhysicalLimit + upperPhysicalLimit) * 0.5;
+}
+
+void ModelArray::checkLimits(const ModelArray& mask) const
+{
+    // Mask the data with the land mask
+    const auto masked = (mask.data() == 1).select(m_data.col(0), fillValue);
+
+    // Check first for NaNs. The code is different for the bounds check, because Eigen doesn't
+    // return an index for NaN-checking.
+    if (masked.isNaN().any())
+        throw std::runtime_error("Field contains NaN.");
+
+    /* Now we check the bounds and set the array index (i) and value if we're out of bounds.
+     * Here, we need to check if the values are _outside_ the bounds, and if they are, then we ask
+     * Eigen to find the offending value and its location. We then proceed to throw an error.
+     * This also means that using '<' and '>' in the checks here is consistent with checking if the
+     * value is in min <= value <= max.
+     */
+    size_t i;
+    FloatType value;
+    if (masked.minCoeff() < lowerPhysicalLimit) {
+        value = masked.col(0).minCoeff(&i);
+    } else if (masked.maxCoeff() > upperPhysicalLimit) {
+        value = masked.col(0).maxCoeff(&i);
+    } else {
+        return;
+    }
+
+    /* If we haven't returned (or thrown an exception) by now, we have an error in the field, and
+     * Eigen has found that this is at index i.
+     */
+    const std::vector<size_t> loc = locationFromIndex(type, i);
+    std::string locStr = "[";
+    for (const size_t& l : loc)
+        locStr += std::to_string(l) + ",";
+    locStr.pop_back();
+    locStr.push_back(']');
+
+    throw std::runtime_error("Field contains out-of-bounds value(s), " + std::to_string(value)
+        + " not in [" + std::to_string(lowerPhysicalLimit) + ","
+        + std::to_string(upperPhysicalLimit) + "]. Error at index " + locStr + ".");
 }
 
 void ModelArray::validateMaps()

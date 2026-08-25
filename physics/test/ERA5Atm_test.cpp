@@ -2,17 +2,12 @@
  * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
-#ifdef USE_MPI
-#include <doctest/extensions/doctest_mpi.h>
-#else
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include <doctest/doctest.h>
-#endif
 
 #include "include/ERA5Atmosphere.hpp"
 
 #include "include/IFluxCalculation.hpp"
-#include "include/ModelArrayRef.hpp"
 #include "include/NextsimModule.hpp"
 #include "include/Time.hpp"
 
@@ -41,11 +36,7 @@ public:
 std::unique_ptr<IFluxCalculation> setNullFlux() { return std::make_unique<NullFlux>(); }
 
 TEST_SUITE_BEGIN("ERA5Atmosphere");
-#ifdef USE_MPI
-MPI_TEST_CASE("ERA5Atmosphere construction test", 1)
-#else
 TEST_CASE("ERA5Atmosphere construction test")
-#endif
 {
     const std::string filePath = "era5_test128x128.nc";
     const std::string orig_file = std::string(TEST_FILES_DIR) + "/" + filePath;
@@ -57,17 +48,10 @@ TEST_CASE("ERA5Atmosphere construction test")
     size_t nxvertex = nx + 1;
     size_t nyvertex = ny + 1;
 
-#ifdef USE_MPI
-    ModelArray::setDimension(ModelArray::Dimension::X, nx, nx, 0);
-    ModelArray::setDimension(ModelArray::Dimension::XVERTEX, nxvertex, nxvertex, 0);
-    ModelArray::setDimension(ModelArray::Dimension::Y, ny, ny, 0);
-    ModelArray::setDimension(ModelArray::Dimension::YVERTEX, nyvertex, nyvertex, 0);
-#else
     ModelArray::setDimension(ModelArray::Dimension::X, nx);
     ModelArray::setDimension(ModelArray::Dimension::Y, ny);
     ModelArray::setDimension(ModelArray::Dimension::XVERTEX, nxvertex);
     ModelArray::setDimension(ModelArray::Dimension::YVERTEX, nyvertex);
-#endif
 
     ERA5Atmosphere e5;
 
@@ -76,13 +60,13 @@ TEST_CASE("ERA5Atmosphere construction test")
     e5.configure();
     e5.setFilePath(filePath);
 
-    ModelArrayRef<Protected::T_AIR> tair(ModelComponent::getStore());
-    ModelArrayRef<Protected::DEW_2M> tdew(ModelComponent::getStore());
-    ModelArrayRef<Protected::P_AIR> pair(ModelComponent::getStore());
-    ModelArrayRef<Protected::SW_IN> qswin(ModelComponent::getStore());
-    ModelArrayRef<Protected::LW_IN> qlwin(ModelComponent::getStore());
-    ModelArrayRef<Protected::WIND_SPEED> wind(ModelComponent::getStore());
-    ModelArrayRef<Protected::WIND_U> u(ModelComponent::getStore());
+    //   ModelArrayAccessor<Protected::T_AIR> tairAccessor(ModelComponent::getStore());
+    //   ModelArrayAccessor<Protected::DEW_2M> tdewAccessor(ModelComponent::getStore());
+    ModelArrayAccessor<Protected::P_AIR> pairAccessor(ModelComponent::getStore());
+    //   ModelArrayAccessor<Protected::SW_IN> qswinAccessor(ModelComponent::getStore());
+    //   ModelArrayAccessor<Protected::LW_IN> qlwinAccessor(ModelComponent::getStore());
+    ModelArrayAccessor<Protected::WIND_SPEED> windAccessor(ModelComponent::getStore());
+    ModelArrayAccessor<Protected::WIND_U> uAccessor(ModelComponent::getStore());
 
     TimePoint t1("2000-01-01T00:00:00Z");
     TimestepTime tst = { t1, Duration(600) };
@@ -90,36 +74,54 @@ TEST_CASE("ERA5Atmosphere construction test")
     // Get the forcing fields at time 0
     e5.update(tst);
 
-    REQUIRE(wind(0, 0) == 0.);
-    REQUIRE(wind(12, 12) == 12.012);
-    REQUIRE(wind(30, 20) == 20.030);
-    REQUIRE(pair(30, 20) == (1.01e5 + 20.030));
+    {
+        const HField& wind = windAccessor.getHostRO();
+        const HField& pair = pairAccessor.getHostRO();
+        REQUIRE(wind(0, 0) == 0.);
+        REQUIRE(wind(12, 12) == 12.012_ft);
+        REQUIRE(wind(30, 20) == 20.030_ft);
+        REQUIRE(pair(30, 20) == (FloatType(1.01e5) + 20.030_ft));
+    }
 
     TimePoint t2("2000-02-01T00:00:00Z");
     e5.update({ t2, Duration(600) });
 
-    REQUIRE(wind(0, 0) == 0. + 100.);
-    REQUIRE(wind(12, 12) == 12.012 + 100);
-    REQUIRE(wind(30, 20) == 20.030 + 100);
-    REQUIRE(pair(30, 20) == (1.01e5 + 20.030) + 1000);
+    {
+        const HField& wind = windAccessor.getHostRO();
+        const HField& pair = pairAccessor.getHostRO();
+        REQUIRE(wind(0, 0) == FloatType(0.) + 100.);
+        REQUIRE(wind(12, 12) == 12.012_ft + 100);
+        REQUIRE(wind(30, 20) == 20.030_ft + 100);
+        REQUIRE(pair(30, 20) == (FloatType(1.01e5) + 20.030_ft) + 1000);
+    }
 
     TimePoint t12("2000-12-01T00:00:00Z");
     e5.update({ t12, Duration(600) });
 
-    REQUIRE(wind(0, 0) == 0. + 100. * 11);
-    REQUIRE(wind(12, 12) == 12.012 + 100 * 11);
-    REQUIRE(wind(30, 20) == 20.030 + 100 * 11);
-    REQUIRE(pair(30, 20) == (1.01e5 + 20.030) + 1000 * 11);
+    {
+        const HField& wind = windAccessor.getHostRO();
+        const HField& pair = pairAccessor.getHostRO();
+        REQUIRE(wind(0, 0) == FloatType(0.) + 100. * 11);
+        REQUIRE(wind(12, 12) == 12.012_ft + 100 * 11);
+        REQUIRE(wind(30, 20) == 20.030_ft + 100 * 11);
+        REQUIRE(pair(30, 20) == (FloatType(1.01e5) + 20.030_ft) + 1000 * 11);
+    }
 
     // All times after the last time sample should use the last sample's data
     TimePoint t120("2010-01-01T00:00:00Z");
     e5.update({ t120, Duration(600) });
 
-    REQUIRE(wind(0, 0) == 0. + 100. * 11);
-    REQUIRE(wind(12, 12) == 12.012 + 100 * 11);
-    REQUIRE(wind(30, 20) == 20.030 + 100 * 11);
-    REQUIRE(pair(30, 20) == (1.01e5 + 20.030) + 1000 * 11);
-    REQUIRE(u(30, 20) == (10 + 20.030) + 10 * 11);
+    {
+        const HField& wind = windAccessor.getHostRO();
+        const HField& pair = pairAccessor.getHostRO();
+        const UField& u = uAccessor.getHostRO();
+
+        REQUIRE(wind(0, 0) == 0. + FloatType(100.) * 11);
+        REQUIRE(wind(12, 12) == 12.012_ft + 100 * 11);
+        REQUIRE(wind(30, 20) == 20.030_ft + 100 * 11);
+        REQUIRE(pair(30, 20) == (FloatType(1.01e5) + 20.030_ft) + 1000 * 11);
+        REQUIRE(u(30, 20) == (10 + 20.030_ft) + 10 * 11);
+    }
 
     std::filesystem::remove(filePath);
 }

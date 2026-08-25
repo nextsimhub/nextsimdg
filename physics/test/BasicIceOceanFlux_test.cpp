@@ -6,7 +6,6 @@
 // FiniteElementFluxes_test and I thought the tests should continue to exist
 // somewhere
 
-#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include <doctest/doctest.h>
 
 #include "include/BasicIceOceanHeatFlux.hpp"
@@ -34,37 +33,35 @@ TEST_CASE("Melting conditions")
     class ProgData : public ModelComponent {
     public:
         ProgData()
+            : hiceAccessor(getStore(), RW)
+            , ciceAccessor(getStore(), RW)
+            , hsnowAccessor(getStore(), RW)
         {
-            getStore().registerArray(Shared::H_ICE_DG, &hice, RW);
-            getStore().registerArray(Shared::C_ICE_DG, &cice, RW);
-            getStore().registerArray(Shared::H_SNOW_DG, &hsnow, RW);
         }
         std::string getName() const override { return "ProgData"; }
 
         void setData(const ModelState::DataMap&) override
         {
             noLandMask();
-            cice[0] = 0.5;
-            hice[0] = 0.1; // Here we are using the cell-averaged thicknesses
-            hsnow[0] = 0.01;
+            ciceAccessor.getHostRW()[0] = 0.5;
+            hiceAccessor.getHostRW()[0] = 0.1; // Here we are using the cell-averaged thicknesses
+            hsnowAccessor.getHostRW()[0] = 0.01;
         }
 
-        HField hice;
-        HField cice;
-        HField hsnow;
+        ModelArrayAccessor<Shared::H_ICE_DG, RW> hiceAccessor;
+        ModelArrayAccessor<Shared::C_ICE_DG, RW> ciceAccessor;
+        ModelArrayAccessor<Shared::H_SNOW_DG, RW> hsnowAccessor;
     } iceState;
     iceState.setData(ModelState().data);
 
-    HField qio;
-    qio.resize();
-    ModelComponent::getStore().registerArray(Shared::Q_IO, &qio, RW);
-
+    ModelArrayAccessor<Shared::Q_IO, RW> qioAccessor(ModelComponent::getStore());
+    qioAccessor.getHostRW().reinitialize();
     TimestepTime tst = { TimePoint("2000-001"), Duration("P0-0T0:10:0") };
     BasicIceOceanHeatFlux biohf;
     biohf.update(tst);
 
-    double prec = 1e-5;
-    REQUIRE(qio[0] == doctest::Approx(53717.8).epsilon(prec));
+    constexpr FloatType prec = 1e-5;
+    REQUIRE(qioAccessor.getHostRO()[0] == doctest::Approx(53717.8).epsilon(prec));
 }
 
 TEST_CASE("Freezing conditions")
@@ -78,38 +75,37 @@ TEST_CASE("Freezing conditions")
 
     class ProgData : public ModelComponent {
     public:
-        ProgData()
+        ProgData() // RO before the Accessor refactor but these fields have to be RW
+            : hiceAccessor(getStore(), RW) // RO
+            , ciceAccessor(getStore(), RW) // RO
+            , hsnowAccessor(getStore(), RW) // RO
         {
-            getStore().registerArray(Shared::H_ICE_DG, &hice, RO);
-            getStore().registerArray(Shared::C_ICE_DG, &cice, RO);
-            getStore().registerArray(Shared::H_SNOW_DG, &hsnow, RO);
         }
         std::string getName() const override { return "ProgData"; }
 
         void setData(const ModelState::DataMap&) override
         {
             noLandMask();
-            cice[0] = 0.5;
-            hice[0] = 0.1; // Here we are using the cell-averaged thicknesses
-            hsnow[0] = 0.01;
+            ciceAccessor.getHostRW()[0] = 0.5;
+            hiceAccessor.getHostRW()[0] = 0.1; // Here we are using the cell-averaged thicknesses
+            hsnowAccessor.getHostRW()[0] = 0.01;
         }
 
-        HField hice;
-        HField cice;
-        HField hsnow;
+        ModelArrayAccessor<Shared::H_ICE_DG, RW> hiceAccessor;
+        ModelArrayAccessor<Shared::C_ICE_DG, RW> ciceAccessor;
+        ModelArrayAccessor<Shared::H_SNOW_DG, RW> hsnowAccessor;
     } iceState;
     iceState.setData(ModelState().data);
 
-    HField qio;
-    qio.resize();
-    ModelComponent::getStore().registerArray(Shared::Q_IO, &qio, RW);
+    ModelArrayAccessor<Shared::Q_IO, RW> qioAccessor(ModelComponent::getStore());
+    qioAccessor.getHostRW().reinitialize();
 
     TimestepTime tst = { TimePoint("2000-001"), Duration("P0-0T0:10:0") };
     BasicIceOceanHeatFlux biohf;
     biohf.update(tst);
 
-    double prec = 1e-5;
-    REQUIRE(qio[0] == doctest::Approx(73.9465).epsilon(prec));
+    constexpr FloatType prec = std::is_same_v<FloatType, float> ? 1e-3 : 1e-5;
+    REQUIRE(qioAccessor.getHostRO()[0] == doctest::Approx(73.9465).epsilon(prec));
 }
 TEST_SUITE_END();
 

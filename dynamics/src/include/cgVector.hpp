@@ -16,9 +16,9 @@ namespace Nextsim {
  * (CGdegree*nx+1)*(CGdegree*ny+1) elements
  * Sorting lower left -> lower right -> ... -> upper right
  */
-template <int CGdegree> class CGVector : public Eigen::Matrix<double, Eigen::Dynamic, 1> {
+template <int CGdegree> class CGVector : public Eigen::Matrix<FloatType, Eigen::Dynamic, 1> {
 public:
-    typedef Eigen::Matrix<double, Eigen::Dynamic, 1> EigenCGVector;
+    typedef Eigen::Matrix<FloatType, Eigen::Dynamic, 1> EigenCGVector;
 
     //! empty constructor
     CGVector() { }
@@ -41,7 +41,7 @@ public:
     template <typename OtherDerived>
     CGVector& operator=(const Eigen::MatrixBase<OtherDerived>& other)
     {
-        this->Eigen::Matrix<double, Eigen::Dynamic, 1>::operator=(other);
+        this->Eigen::Matrix<FloatType, Eigen::Dynamic, 1>::operator=(other);
         return *this;
     }
 };

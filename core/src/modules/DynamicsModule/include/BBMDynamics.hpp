@@ -9,6 +9,7 @@
 #include "include/BBMDynamicsKernel.hpp"
 #include "include/BBMParameters.hpp"
 #include "include/IDynamics.hpp"
+#include "kokkos/include/KokkosBBMDynamicsKernel.hpp"
 
 #ifndef DGCOMP
 #define DGCOMP 3 // Define to prevent errors from static analysis tools
@@ -25,9 +26,15 @@ public:
     void prepareAdvection() override;
     void update(const TimestepTime& tst) override;
 
-    void advectField(double timestep, ModelArray& field,
-        double lowerLimit = -std::numeric_limits<double>::infinity(),
-        double upperLimit = std::numeric_limits<double>::infinity()) override;
+    void advectField(FloatType timestep, ModelArray& field,
+        FloatType lowerLimit = -std::numeric_limits<FloatType>::infinity(),
+        FloatType upperLimit = std::numeric_limits<FloatType>::infinity()) override;
+
+#ifdef USE_KOKKOS
+    void advectField(FloatType timestep, const DeviceViewMA& field,
+        FloatType lowerLimit = -std::numeric_limits<FloatType>::infinity(),
+        FloatType upperLimit = std::numeric_limits<FloatType>::infinity()) override;
+#endif
 
     void setData(const ModelState::DataMap&) override;
     void configure() override;
@@ -59,7 +66,11 @@ public:
 
 private:
     BBMParameters params;
+#ifdef USE_KOKKOS
+    KokkosBBMDynamicsKernel<DGCOMP> kernel;
+#else
     BBMDynamicsKernel<DGCOMP> kernel;
+#endif
 };
 
 } /* namespace Nextsim */

@@ -5,23 +5,25 @@
 #ifndef ICEMINIMA_HPP
 #define ICEMINIMA_HPP
 
+#include "include/FloatType.hpp"
+
 namespace Nextsim {
 
-class IceGrowth;
+class IColumnPhysics;
 //! A class to hold the minimum ice thresholds without having to pull in
-//! IceGrowth and its dependencies.
+//! IColumnPhysics and its dependencies.
 class IceMinima {
 public:
-    static inline double h() { return hMin; };
-    static inline double c() { return cMin; };
+    static inline FloatType h() { return hMin; };
+    static inline FloatType c() { return cMin; };
+    static const FloatType hMinDefault;
+    static const FloatType cMinDefault;
 
 private:
-    static double hMin;
-    static double cMin;
-    static const double hMinDefault;
-    static const double cMinDefault;
+    static FloatType hMin;
+    static FloatType cMin;
 
-    friend IceGrowth;
+    friend IColumnPhysics;
 };
 
 } /* namespace Nextsim */

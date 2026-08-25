@@ -1,10 +1,6 @@
 spack:
-  packages:
-    all:
-      compiler: [gcc@11.4.0]
   specs:
   - boost@1.80.0+log+program_options
-  - catch2
   - 'cmake@3.20:'
   - eigen@3.4.0
   - gmake
@@ -13,12 +9,12 @@ spack:
   - netcdf-cxx4@4.3.1
   - netcdf-fortran
   - openmpi@4.1.6
-  - trilinos
   - zlib-ng@2.1.4
   - zoltan
   concretizer:
     unify: true
   config:
     install_missing_compilers: true
-    install_tree: /opt/software
+    install_tree:
+      root: /opt/software
   view: /opt/views/view

@@ -2,7 +2,6 @@
  * @author  Tim Spain <timothy.spain@nersc.no>
  */
 
-#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include <doctest/doctest.h>
 #include <sstream>
 
@@ -12,7 +11,6 @@
 #include "include/ConfiguredModule.hpp"
 #include "include/IFreezingPoint.hpp"
 #include "include/ModelArray.hpp"
-#include "include/ModelArrayRef.hpp"
 #include "include/ModelComponent.hpp"
 #include "include/NextsimModule.hpp"
 #include "include/Time.hpp"
@@ -46,26 +44,34 @@ TEST_CASE("Melting conditions")
     class AtmosphereData : public ModelComponent {
     public:
         AtmosphereData()
+            : tairAccessor(getStore(), RO)
+            , tdewAccessor(getStore(), RO)
+            , pairAccessor(getStore(), RO)
+            , windSpeedAccessor(getStore(), RO)
+            , u_airAccessor(getStore(), RO)
+            , v_airAccessor(getStore(), RO)
+            , sw_inAccessor(getStore(), RO)
+            , lw_inAccessor(getStore(), RO)
         {
-            getStore().registerArray(Protected::T_AIR, &tair, RO);
-            getStore().registerArray(Protected::DEW_2M, &tdew, RO);
-            getStore().registerArray(Protected::P_AIR, &pair, RO);
-            getStore().registerArray(Protected::WIND_SPEED, &windSpeed, RO);
-            getStore().registerArray(Protected::WIND_U, &u_air, RO);
-            getStore().registerArray(Protected::WIND_V, &v_air, RO);
-            getStore().registerArray(Protected::SW_IN, &sw_in, RO);
-            getStore().registerArray(Protected::LW_IN, &lw_in, RO);
         }
         void setData(const ModelState::DataMap& state) override
         {
-            tair.resize();
-            tdew.resize();
-            pair.resize();
-            windSpeed.resize();
-            u_air.resize();
-            v_air.resize();
-            sw_in.resize();
-            lw_in.resize();
+            HField& tair = tairAccessor.getHostRW();
+            tair.reinitialize();
+            HField& tdew = tdewAccessor.getHostRW();
+            tdew.reinitialize();
+            HField& pair = pairAccessor.getHostRW();
+            pair.reinitialize();
+            HField& windSpeed = windSpeedAccessor.getHostRW();
+            windSpeed.reinitialize();
+            HField& u_air = u_airAccessor.getHostRW();
+            u_air.reinitialize();
+            HField& v_air = v_airAccessor.getHostRW();
+            v_air.reinitialize();
+            HField& sw_in = sw_inAccessor.getHostRW();
+            sw_in.reinitialize();
+            HField& lw_in = lw_inAccessor.getHostRW();
+            lw_in.reinitialize();
 
             tair = 3;
             tdew = 2;
@@ -79,14 +85,14 @@ TEST_CASE("Melting conditions")
         std::string getName() const override { return "AtmData"; }
 
     private:
-        HField tair;
-        HField tdew;
-        HField pair;
-        HField windSpeed;
-        HField u_air;
-        HField v_air;
-        HField sw_in;
-        HField lw_in;
+        ModelArrayAccessor<Protected::T_AIR, RW> tairAccessor;
+        ModelArrayAccessor<Protected::DEW_2M, RW> tdewAccessor;
+        ModelArrayAccessor<Protected::P_AIR, RW> pairAccessor;
+        ModelArrayAccessor<Protected::WIND_SPEED, RW> windSpeedAccessor;
+        ModelArrayAccessor<Protected::WIND_U, RW> u_airAccessor;
+        ModelArrayAccessor<Protected::WIND_V, RW> v_airAccessor;
+        ModelArrayAccessor<Protected::SW_IN, RW> sw_inAccessor;
+        ModelArrayAccessor<Protected::LW_IN, RW> lw_inAccessor;
         HField snowfall;
     } atmState;
     atmState.setData(ModelState().data);
@@ -94,68 +100,51 @@ TEST_CASE("Melting conditions")
     class ProgData : public ModelComponent {
     public:
         ProgData()
+            : hiceAccessor(getStore(), RO)
+            , ciceAccessor(getStore(), RO)
+            , hsnowAccessor(getStore(), RO)
+            , tsurfAccessor(getStore(), RO)
         {
-            getStore().registerArray(Shared::H_ICE_DG, &hice, RO);
-            getStore().registerArray(Shared::C_ICE_DG, &cice, RO);
-            getStore().registerArray(Shared::H_SNOW_DG, &hsnow, RO);
-            getStore().registerArray(Protected::T_SURF, &tsurf, RO);
         }
         std::string getName() const override { return "ProgData"; }
 
         void setData(const ModelState::DataMap&) override
         {
             noLandMask();
-            cice[0] = 0.5;
-            hice[0] = 0.1; // Here we are using the cell-averaged thicknesses
-            hsnow[0] = 0.01;
-            tsurf[0] = -1.;
+            ciceAccessor.getHostRW()[0] = 0.5;
+            hiceAccessor.getHostRW()[0] = 0.1; // Here we are using the cell-averaged thicknesses
+            hsnowAccessor.getHostRW()[0] = 0.01;
+            tsurfAccessor.getHostRW()[0] = -1.;
         }
 
-        HField hice;
-        HField cice;
-        HField hsnow;
-        HField tsurf;
+        ModelArrayAccessor<Shared::H_ICE_DG, RW> hiceAccessor;
+        ModelArrayAccessor<Shared::C_ICE_DG, RW> ciceAccessor;
+        ModelArrayAccessor<Shared::H_SNOW_DG, RW> hsnowAccessor;
+        ModelArrayAccessor<Protected::T_SURF, RW> tsurfAccessor;
     } iceState;
     iceState.setData(ModelState().data);
 
-    HField qow;
-    qow.resize();
-    ModelComponent::getStore().registerArray(Shared::Q_OW, &qow, RW);
+    ModelArrayAccessor<Shared::Q_OW, RW> qowAccessor(ModelComponent::getStore(), RW);
+    qowAccessor.getHostRW().reinitialize();
+    ModelArrayAccessor<Shared::Q_IA, RW> qiaAccessor(ModelComponent::getStore(), RW);
+    qiaAccessor.getHostRW().reinitialize();
+    ModelArrayAccessor<Shared::Q_PEN_SW, RW> penSWAccessor(ModelComponent::getStore(), RW);
+    penSWAccessor.getHostRW().reinitialize();
+    ModelArrayAccessor<Shared::Q_SW_OW, RW> qsw_owAccessor(ModelComponent::getStore(), RW);
+    qsw_owAccessor.getHostRW().reinitialize();
+    ModelArrayAccessor<Shared::Q_SW_BASE, RW> qsw_baseAccessor(ModelComponent::getStore(), RW);
+    qsw_baseAccessor.getHostRW().reinitialize();
+    ModelArrayAccessor<Shared::DQIA_DT, RW> dqia_dtAccessor(ModelComponent::getStore(), RW);
+    dqia_dtAccessor.getHostRW().reinitialize();
+    ModelArrayAccessor<Shared::SUBLIM, RW> sublAccessor(ModelComponent::getStore(), RW);
+    sublAccessor.getHostRW().reinitialize();
+    ModelArrayAccessor<Shared::EVAP, RW> evapAccessor(ModelComponent::getStore(), RW);
+    evapAccessor.getHostRW().reinitialize();
 
-    HField qia;
-    qia.resize();
-    ModelComponent::getStore().registerArray(Shared::Q_IA, &qia, RW);
-
-    HField penSW;
-    penSW.resize();
-    ModelComponent::getStore().registerArray(Shared::Q_PEN_SW, &penSW, RW);
-
-    HField qsw_ow;
-    qsw_ow.resize();
-    ModelComponent::getStore().registerArray(Shared::Q_SW_OW, &qsw_ow, RW);
-
-    HField qsw_base;
-    qsw_base.resize();
-    ModelComponent::getStore().registerArray(Shared::Q_SW_BASE, &qsw_base, RW);
-
-    HField dqia_dt;
-    dqia_dt.resize();
-    ModelComponent::getStore().registerArray(Shared::DQIA_DT, &dqia_dt, RW);
-
-    HField subl;
-    subl.resize();
-    ModelComponent::getStore().registerArray(Shared::SUBLIM, &subl, RW);
-
-    HField evap;
-    evap.resize();
-    ModelComponent::getStore().registerArray(Shared::EVAP, &evap, RW);
-
-    HField tauX;
-    HField tauY;
-    tauX.resize();
-    tauY.resize();
-    ModelComponent::getStore().registerArray(Shared::OW_STRESS_X, &tauX, RW);
-    ModelComponent::getStore().registerArray(Shared::OW_STRESS_Y, &tauY, RW);
+    ModelArrayAccessor<Shared::OW_STRESS_X, RW> tauXAccessor(ModelComponent::getStore(), RW);
+    tauXAccessor.getHostRW().reinitialize();
+    ModelArrayAccessor<Shared::OW_STRESS_Y, RW> tauYAccessor(ModelComponent::getStore(), RW);
+    tauYAccessor.getHostRW().reinitialize();
 
     TimestepTime tst = { TimePoint("2000-001"), Duration("P0-0T0:10:0") };
     // OceanState is independently updated
@@ -165,13 +154,13 @@ TEST_CASE("Melting conditions")
     ocnBdy.updateBefore(tst);
     fef.update(tst);
 
-    double prec = 1e-5;
-    REQUIRE(qow[0] == doctest::Approx(-109.923).epsilon(prec));
-    REQUIRE(qia[0] == doctest::Approx(-85.6364).epsilon(prec));
-    REQUIRE(dqia_dt[0] == doctest::Approx(19.7016).epsilon(prec));
-    REQUIRE(subl[0] == doctest::Approx(-7.3858e-06).epsilon(prec));
-    REQUIRE(tauX[0] == doctest::Approx(1.89732e-2).epsilon(prec));
-    REQUIRE(tauY[0] == doctest::Approx(2.52976e-2).epsilon(prec));
+    FloatType prec = 1e-5;
+    REQUIRE(qowAccessor.getHostRO()[0] == doctest::Approx(-109.923).epsilon(prec));
+    REQUIRE(qiaAccessor.getHostRO()[0] == doctest::Approx(-85.6364).epsilon(prec));
+    REQUIRE(dqia_dtAccessor.getHostRO()[0] == doctest::Approx(19.7016).epsilon(prec));
+    REQUIRE(sublAccessor.getHostRO()[0] == doctest::Approx(-7.3858e-06).epsilon(prec));
+    REQUIRE(tauXAccessor.getHostRO()[0] == doctest::Approx(1.89732e-2).epsilon(prec));
+    REQUIRE(tauYAccessor.getHostRO()[0] == doctest::Approx(2.52976e-2).epsilon(prec));
 }
 
 TEST_CASE("Freezing conditions")
@@ -196,26 +185,34 @@ TEST_CASE("Freezing conditions")
     class AtmosphereData : public ModelComponent {
     public:
         AtmosphereData()
+            : tairAccessor(getStore(), RO)
+            , tdewAccessor(getStore(), RO)
+            , pairAccessor(getStore(), RO)
+            , windSpeedAccessor(getStore(), RO)
+            , u_airAccessor(getStore(), RO)
+            , v_airAccessor(getStore(), RO)
+            , sw_inAccessor(getStore(), RO)
+            , lw_inAccessor(getStore(), RO)
         {
-            getStore().registerArray(Protected::T_AIR, &tair, RO);
-            getStore().registerArray(Protected::DEW_2M, &tdew, RO);
-            getStore().registerArray(Protected::P_AIR, &pair, RO);
-            getStore().registerArray(Protected::WIND_SPEED, &windSpeed, RO);
-            getStore().registerArray(Protected::WIND_U, &u_air, RO);
-            getStore().registerArray(Protected::WIND_V, &v_air, RO);
-            getStore().registerArray(Protected::SW_IN, &sw_in, RO);
-            getStore().registerArray(Protected::LW_IN, &lw_in, RO);
         }
         void setData(const ModelState::DataMap& state) override
         {
-            tair.resize();
-            tdew.resize();
-            pair.resize();
-            windSpeed.resize();
-            u_air.resize();
-            v_air.resize();
-            sw_in.resize();
-            lw_in.resize();
+            HField& tair = tairAccessor.getHostRW();
+            tair.reinitialize();
+            HField& tdew = tdewAccessor.getHostRW();
+            tdew.reinitialize();
+            HField& pair = pairAccessor.getHostRW();
+            pair.reinitialize();
+            HField& windSpeed = windSpeedAccessor.getHostRW();
+            windSpeed.reinitialize();
+            HField& u_air = u_airAccessor.getHostRW();
+            u_air.reinitialize();
+            HField& v_air = v_airAccessor.getHostRW();
+            v_air.reinitialize();
+            HField& sw_in = sw_inAccessor.getHostRW();
+            sw_in.reinitialize();
+            HField& lw_in = lw_inAccessor.getHostRW();
+            lw_in.reinitialize();
             tair = -12;
             tdew = -12;
             pair = 100000.;
@@ -228,14 +225,14 @@ TEST_CASE("Freezing conditions")
         std::string getName() const override { return "AtmData"; }
 
     private:
-        HField tair;
-        HField tdew;
-        HField pair;
-        HField windSpeed;
-        HField u_air;
-        HField v_air;
-        HField sw_in;
-        HField lw_in;
+        ModelArrayAccessor<Protected::T_AIR, RW> tairAccessor;
+        ModelArrayAccessor<Protected::DEW_2M, RW> tdewAccessor;
+        ModelArrayAccessor<Protected::P_AIR, RW> pairAccessor;
+        ModelArrayAccessor<Protected::WIND_SPEED, RW> windSpeedAccessor;
+        ModelArrayAccessor<Protected::WIND_U, RW> u_airAccessor;
+        ModelArrayAccessor<Protected::WIND_V, RW> v_airAccessor;
+        ModelArrayAccessor<Protected::SW_IN, RW> sw_inAccessor;
+        ModelArrayAccessor<Protected::LW_IN, RW> lw_inAccessor;
         HField snowfall;
     } atmState;
     atmState.setData(ModelState().data);
@@ -243,61 +240,47 @@ TEST_CASE("Freezing conditions")
     class ProgData : public ModelComponent {
     public:
         ProgData()
+            : hiceAccessor(getStore(), RO)
+            , ciceAccessor(getStore(), RO)
+            , hsnowAccessor(getStore(), RO)
+            , tsurfAccessor(getStore(), RO)
         {
-            getStore().registerArray(Shared::H_ICE_DG, &hice, RO);
-            getStore().registerArray(Shared::C_ICE_DG, &cice, RO);
-            getStore().registerArray(Shared::H_SNOW_DG, &hsnow, RO);
-            getStore().registerArray(Protected::T_SURF, &tsurf, RO);
         }
         std::string getName() const override { return "ProgData"; }
 
         void setData(const ModelState::DataMap&) override
         {
             noLandMask();
-            cice[0] = 0.5;
-            hice[0] = 0.1; // Here we are using the cell-averaged thicknesses
-            hsnow[0] = 0.01;
-            tsurf[0] = -9.;
+            ciceAccessor.getHostRW()[0] = 0.5;
+            hiceAccessor.getHostRW()[0] = 0.1; // Here we are using the cell-averaged thicknesses
+            hsnowAccessor.getHostRW()[0] = 0.01;
+            tsurfAccessor.getHostRW()[0] = -9.;
         }
 
-        HField hice;
-        HField cice;
-        HField hsnow;
-        HField tsurf;
+        ModelArrayAccessor<Shared::H_ICE_DG, RW> hiceAccessor;
+        ModelArrayAccessor<Shared::C_ICE_DG, RW> ciceAccessor;
+        ModelArrayAccessor<Shared::H_SNOW_DG, RW> hsnowAccessor;
+        ModelArrayAccessor<Protected::T_SURF, RW> tsurfAccessor;
 
     } iceState;
     iceState.setData(ModelState().data);
 
-    HField qow;
-    qow.resize();
-    ModelComponent::getStore().registerArray(Shared::Q_OW, &qow, RW);
-
-    HField qia;
-    qia.resize();
-    ModelComponent::getStore().registerArray(Shared::Q_IA, &qia, RW);
-
-    HField penSW;
-    penSW.resize();
-    ModelComponent::getStore().registerArray(Shared::Q_PEN_SW, &penSW, RW);
-
-    HField dqia_dt;
-    dqia_dt.resize();
-    ModelComponent::getStore().registerArray(Shared::DQIA_DT, &dqia_dt, RW);
-
-    HField subl;
-    subl.resize();
-    ModelComponent::getStore().registerArray(Shared::SUBLIM, &subl, RW);
-
-    HField evap;
-    evap.resize();
-    ModelComponent::getStore().registerArray(Shared::EVAP, &evap, RW);
-
-    HField tauX;
-    HField tauY;
-    tauX.resize();
-    tauY.resize();
-    ModelComponent::getStore().registerArray(Shared::OW_STRESS_X, &tauX, RW);
-    ModelComponent::getStore().registerArray(Shared::OW_STRESS_Y, &tauY, RW);
+    ModelArrayAccessor<Shared::Q_OW, RW> qowAccessor(ModelComponent::getStore(), RW);
+    qowAccessor.getHostRW().reinitialize();
+    ModelArrayAccessor<Shared::Q_IA, RW> qiaAccessor(ModelComponent::getStore(), RW);
+    qiaAccessor.getHostRW().reinitialize();
+    ModelArrayAccessor<Shared::Q_PEN_SW, RW> penSWAccessor(ModelComponent::getStore(), RW);
+    penSWAccessor.getHostRW().reinitialize();
+    ModelArrayAccessor<Shared::DQIA_DT, RW> dqia_dtAccessor(ModelComponent::getStore(), RW);
+    dqia_dtAccessor.getHostRW().reinitialize();
+    ModelArrayAccessor<Shared::SUBLIM, RW> sublAccessor(ModelComponent::getStore(), RW);
+    sublAccessor.getHostRW().reinitialize();
+    ModelArrayAccessor<Shared::EVAP, RW> evapAccessor(ModelComponent::getStore(), RW);
+    evapAccessor.getHostRW().reinitialize();
+    ModelArrayAccessor<Shared::OW_STRESS_X, RW> tauXAccessor(ModelComponent::getStore(), RW);
+    tauXAccessor.getHostRW().reinitialize();
+    ModelArrayAccessor<Shared::OW_STRESS_Y, RW> tauYAccessor(ModelComponent::getStore(), RW);
+    tauYAccessor.getHostRW().reinitialize();
 
     TimestepTime tst = { TimePoint("2000-001"), Duration("P0-0T0:10:0") };
     // OceanState is independently updated
@@ -307,13 +290,13 @@ TEST_CASE("Freezing conditions")
     fef.setData(ModelState().data);
     fef.update(tst);
 
-    double prec = 1e-5;
-    REQUIRE(qow[0] == doctest::Approx(143.266).epsilon(prec));
-    REQUIRE(qia[0] == doctest::Approx(42.2955).epsilon(prec));
-    REQUIRE(dqia_dt[0] == doctest::Approx(16.7615).epsilon(prec));
-    REQUIRE(subl[0] == doctest::Approx(2.15132e-6).epsilon(prec));
-    REQUIRE(tauX[0] == doctest::Approx(2.00279e-2).epsilon(prec));
-    REQUIRE(tauY[0] == doctest::Approx(2.67038e-2).epsilon(prec));
+    FloatType prec = 1e-5;
+    REQUIRE(qowAccessor.getHostRO()[0] == doctest::Approx(143.266).epsilon(prec));
+    REQUIRE(qiaAccessor.getHostRO()[0] == doctest::Approx(42.2955).epsilon(prec));
+    REQUIRE(dqia_dtAccessor.getHostRO()[0] == doctest::Approx(16.7615).epsilon(prec));
+    REQUIRE(sublAccessor.getHostRO()[0] == doctest::Approx(2.15132e-6).epsilon(prec));
+    REQUIRE(tauXAccessor.getHostRO()[0] == doctest::Approx(2.00279e-2).epsilon(prec));
+    REQUIRE(tauYAccessor.getHostRO()[0] == doctest::Approx(2.67038e-2).epsilon(prec));
 }
 TEST_SUITE_END();
 

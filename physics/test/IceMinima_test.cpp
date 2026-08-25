@@ -9,9 +9,9 @@
 
 namespace Nextsim {
 
-class IceGrowth {
+class IColumnPhysics {
 public:
-    inline static void setMinima(double hMin, double cMin)
+    inline static void setMinima(FloatType hMin, FloatType cMin)
     {
         IceMinima::hMin = hMin;
         IceMinima::cMin = cMin;
@@ -21,12 +21,12 @@ public:
 TEST_SUITE_BEGIN("IceMinima");
 TEST_CASE("Set and retrieve ice minima values")
 {
-    // IceGrowth is a friend of IceMinima. Here is a class IceGrowth that
-    // directly sets the minimum values without configuration.
-    const double hMinTest = 0.1;
-    const double cMinTest = 1e-6;
+    // IColumnPhysics is a friend of IceMinima. Here is a fake IColumnPhysics
+    // class that directly sets the minimum values without configuration.
+    const FloatType hMinTest = 0.1;
+    const FloatType cMinTest = 1e-6;
 
-    IceGrowth::setMinima(hMinTest, cMinTest);
+    IColumnPhysics::setMinima(hMinTest, cMinTest);
     REQUIRE(IceMinima::h() == hMinTest);
     REQUIRE(IceMinima::c() == cMinTest);
 }

@@ -1,21 +1,21 @@
 /*!
  * @author  Tim Spain <timothy.spain@nersc.no>
  * @author  Einar Ólason <einar.olason@nersc.no>
+ * @author  Robert Jendersie <robert.jendersie@ovgu.de>
  */
 
 #ifndef MODELCOMPONENT_HPP
 #define MODELCOMPONENT_HPP
 
+#include "include/Finalizer.hpp"
 #include "include/Logged.hpp"
 #include "include/MissingData.hpp"
-#include "include/ModelArrayRef.hpp"
+#include "include/ModelArrayStore.hpp"
 #include "include/ModelState.hpp"
 #include "include/OutputSpec.hpp"
 #include "include/TextTag.hpp"
 #include "include/Time.hpp"
 
-#include "ModelArrayRef.hpp"
-#include "ModelArrayReferenceStore.hpp"
 #include <functional>
 #include <string>
 #include <unordered_map>
@@ -68,6 +68,10 @@ namespace Protected {
     inline constexpr TextTag DIV = "DIV"; // Instantaneous divergence , s⁻¹
     inline constexpr TextTag SIGMAI = "SIGMAI"; // First invariant of the stress tensor Pa
     inline constexpr TextTag SIGMAII = "SIGMAII"; // First invariant of the stress tensor Pa
+
+    // Ice Albedo
+    inline constexpr TextTag ICE_ALBEDO = "ICE_ALBEDO";
+    inline constexpr TextTag ICE_PEN_SW = "ICE_PEN_SW";
 }
 
 namespace Shared {
@@ -133,12 +137,11 @@ namespace CouplingFields {
 /*!
  * A class encapsulating a component of the model. It also provide a method of
  * communicating data between ModelComponents using enums, static arrays of
- * pointers and the ModelArrayRef class.
+ * pointers and the ModelArrayAccessor class.
  */
 class ModelComponent {
 public:
     typedef Logged::level OutputLevel;
-    typedef std::function<void(size_t, const TimestepTime&)> IteratedFn;
 
     ModelComponent();
     virtual ~ModelComponent() = default;
@@ -181,18 +184,39 @@ public:
     virtual ModelState getStatePrognostic() const { return { {}, getConfiguration() }; }
 
     /*!
-     * @brief Returns the ModelArrayRef backing store for column physics fields.
+     * @brief Returns the ModelArrayAccessor backing store for column physics fields.
      */
-    static ModelArrayReferenceStore& getStore() { return columnPhysicsStore(); }
+    static ModelArrayStore& getStore() { return *columnPhysicsStore(); }
 
-protected:
-    inline static void overElements(IteratedFn fn, const TimestepTime& tst)
+    // needs to be public because it calls a device function but should be used as if protected
+#if USE_KOKKOS
+    template <typename Fn> inline static void overElementsDevice(Fn fn)
     {
+        // the static member can not be captured directly
+        const auto oceanIndexLocal = oceanIndexDevice;
+        Kokkos::parallel_for(
+            "overElements", nOcean, KOKKOS_LAMBDA(const DeviceIndex i) { fn(oceanIndexLocal[i]); });
+    }
+#endif
+
+    template <typename Fn> inline static void overElementsAuto(Fn&& fn)
+    {
+#if USE_KOKKOS
+        overElementsDevice(std::forward<Fn>(fn));
+#else
+        overElements(std::forward<Fn>(fn));
+#endif
+    }
+
+    template <typename Fn> static void overElements(Fn fn)
+    {
+#pragma omp parallel for
         for (size_t i = 0; i < nOcean; ++i) {
-            fn(oceanIndex[i], tst);
+            fn(oceanIndex[i]);
         }
     }
 
+protected:
     /*!
      * @brief Sets the model-wide land-ocean mask (for HField arrays).
      * @param mask The HField ModelArray containing the mask data.
@@ -209,8 +233,9 @@ protected:
      * @brief Returns a copy of the provided ModelArray, masked according to the
      * land-ocean mask.
      * @param data The data to be masked.
+     * @param missingValue The mask value to use (defaults to MissingData::value()).
      */
-    static ModelArray mask(const ModelArray& data);
+    static ModelArray mask(const ModelArray& data, FloatType missingValue = MissingData::value());
 
     /*!
      * @brief Returns the ocean mask.
@@ -230,14 +255,37 @@ protected:
     }
 
 private:
-    static ModelArrayReferenceStore& columnPhysicsStore()
+    static std::unique_ptr<ModelArrayStore>& columnPhysicsStore()
     {
-        static ModelArrayReferenceStore store;
-        return store;
+        static std::unique_ptr<ModelArrayStore> storePtr;
+
+        if (!storePtr) {
+            if (columnPhysicsStoreIsDestroyed) {
+                Logged::warning("Accessing the ModelComponent::getStore() after it was destroyed. "
+                                "A new store will be constructed. In a test with multiple cases "
+                                "this is the desired behaviour.");
+            }
+            storePtr = std::make_unique<ModelArrayStore>();
+            Finalizer::registerUnique(destroyModelArrayStore);
+            columnPhysicsStoreIsDestroyed = false;
+        }
+        return storePtr;
+    }
+    static void destroyModelArrayStore()
+    {
+        columnPhysicsStore().reset(nullptr);
+        columnPhysicsStoreIsDestroyed = true;
     }
 
     static size_t nOcean;
     static std::vector<size_t> oceanIndex;
+    static bool columnPhysicsStoreIsDestroyed;
+
+#if USE_KOKKOS
+    static void makeOceanIndexDevice();
+    static void destroyOceanIndex();
+    static KokkosDeviceMapView<DeviceIndex> oceanIndexDevice;
+#endif
 };
 
 } /* namespace Nextsim */

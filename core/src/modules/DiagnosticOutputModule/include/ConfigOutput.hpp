@@ -28,6 +28,7 @@ public:
     enum {
         PERIOD_KEY,
         START_KEY,
+        SNAPSHOT_KEY,
         FIELDNAMES_KEY,
         FILENAME_KEY,
         FILEPERIOD_KEY,
@@ -36,7 +37,7 @@ public:
     // IDiagnosticOutput overrides
     void setFilenamePrefix(const std::string& filePrefix) override { m_filePrefix = filePrefix; }
     void setModelStart(const TimePoint& modelStart) override;
-    void outputState(const ModelState& state, const ModelMetadata& meta) override;
+    void outputState(const ModelState& state) override;
 
     // ModelComponent overrides
     inline std::string getName() const override { return "ConfigOutput"; };
@@ -50,9 +51,9 @@ public:
 private:
     std::string m_filePrefix;
     Duration outputPeriod;
-    bool firstOutput = true;
-    bool everyTS = false;
-    bool outputAllTheFields = false;
+    bool firstOutput;
+    bool everyTS;
+    bool outputAllTheFields;
     TimePoint lastOutput;
     std::set<std::string> fieldsForOutput;
     std::string currentFileName;
@@ -65,6 +66,9 @@ private:
     static const std::string defaultLastOutput;
 
     std::map<std::string, std::string> reverseExternalNames;
+
+    bool snapshots;
+    bool resetState;
 };
 
 } /* namespace Nextsim */

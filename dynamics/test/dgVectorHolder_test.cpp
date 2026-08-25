@@ -24,14 +24,14 @@ TEST_CASE("Cast to and from")
     smesh.nelements = nx * ny;
 
     DGVector<DG>::EigenDGVector edgv(smesh.nelements, DG);
-    double e0 = 3.;
+    FloatType e0 = 3.;
     edgv.setConstant(e0);
     DGVectorHolder<DG> eHolder(edgv);
     REQUIRE(eHolder(0, 1) == e0);
 
     DGVector<DG> dgv;
     dgv.resize_by_mesh(smesh);
-    double d0 = 4.;
+    FloatType d0 = 4.;
     dgv.setConstant(d0);
     DGVectorHolder<DG> dHolder(dgv);
     REQUIRE(dHolder(0, 1) == d0);
@@ -41,8 +41,8 @@ TEST_CASE("Cast to and from")
     ModelArray::setDimension(ModelArray::Dimension::DG, DG);
 
     ModelArray ma(ModelArray::Type::DG);
-    ma.resize();
-    double ma0 = 2.;
+    ma.reinitialize();
+    FloatType ma0 = 2.;
     ma = ma0;
     DGVectorHolder<DG> mHolder(ma);
     ModelArray::DataType& ema = static_cast<ModelArray::DataType&>(ma);

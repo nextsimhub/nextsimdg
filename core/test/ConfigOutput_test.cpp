@@ -16,12 +16,16 @@
 #include "include/Finalizer.hpp"
 #include "include/IStructure.hpp"
 #include "include/ModelArray.hpp"
-#include "include/ModelArrayRef.hpp"
+#include "include/ModelArrayAccessor.hpp"
 #include "include/ModelComponent.hpp"
 #include "include/ModelMetadata.hpp"
 #include "include/ModelState.hpp"
 #include "include/NextsimModule.hpp"
 #include "include/gridNames.hpp"
+#ifdef USE_MPI
+#include "ModelMPI.hpp"
+#include "include/Halo.hpp"
+#endif
 
 #include <ncDim.h>
 #include <ncFile.h>
@@ -32,32 +36,41 @@
 
 const std::string test_files_dir = TEST_FILES_DIR;
 #ifdef USE_MPI
-const std::string partition_filename = test_files_dir + "/partition_metadata_2.nc";
+const std::string partition_filename = test_files_dir + "/paragrid_test_partition_metadata_2.nc";
 #endif
 
 namespace Nextsim {
 
-TEST_SUITE_BEGIN("ConfigOutput");
 #ifdef USE_MPI
-MPI_TEST_CASE("Test periodic output", 2)
+void runMe(const bool snapshot, MPI_Comm myMPIComm)
 #else
-TEST_CASE("Test periodic output")
+void runMe(const bool snapshot)
 #endif
 {
-    size_t nx = 2;
-    size_t ny = 5;
+    size_t nx = 10;
+    size_t ny = 9;
 
 #ifdef USE_MPI
-    if (test_rank == 0) {
-        ModelArray::setDimension(ModelArray::Dimension::X, nx, 1, 0);
-    }
-    if (test_rank == 1) {
-        ModelArray::setDimension(ModelArray::Dimension::X, nx, 1, 1);
-    }
-    ModelArray::setDimension(ModelArray::Dimension::Y, ny, ny, 0);
+    auto& modelMPI = ModelMPI::getInstance(myMPIComm);
+    auto& meta = ModelMetadata::getInstance(partition_filename);
+
+    const auto localNX = meta.getLocalExtentX() + 2 * Halo::haloWidth;
+    const auto offsetX = meta.getLocalCornerX();
+    const auto localNY = meta.getLocalExtentY() + 2 * Halo::haloWidth;
+    const auto offsetY = meta.getLocalCornerY();
+
+    ModelArray::setDimension(ModelArray::Dimension::X, nx, localNX, offsetX);
+    ModelArray::setDimension(ModelArray::Dimension::XVERTEX, nx + 1, localNX + 1, offsetX);
+    ModelArray::setDimension(ModelArray::Dimension::Y, ny, localNY, offsetY);
+    ModelArray::setDimension(ModelArray::Dimension::YVERTEX, ny + 1, localNY + 1, offsetY);
 #else
+    auto& meta = ModelMetadata::getInstance();
     ModelArray::setDimension(ModelArray::Dimension::X, nx);
     ModelArray::setDimension(ModelArray::Dimension::Y, ny);
+
+    auto offsetX = 0;
+    auto localNX = nx;
+    auto localNY = ny;
 #endif
 
     Module::Module<IDiagnosticOutput>::setImplementation("Nextsim::ConfigOutput");
@@ -75,26 +88,35 @@ TEST_CASE("Test periodic output")
 
     Module::setImplementation<IStructure>("Nextsim::ParametricGrid");
 
-    HField hice(ModelArray::Type::H);
-    HField cice(ModelArray::Type::H);
-    HField hsnow(ModelArray::Type::H);
-    HField tsurf(ModelArray::Type::H);
+    ModelArrayAccessor<Shared::H_ICE_DG, RW> hiceAccessor(
+        ModelComponent::getStore(), RO, ModelArray::Type::H);
+    ModelArrayAccessor<Shared::C_ICE_DG, RW> ciceAccessor(
+        ModelComponent::getStore(), RO, ModelArray::Type::H);
+    ModelArrayAccessor<Shared::H_SNOW_DG, RW> hsnowAccessor(
+        ModelComponent::getStore(), RO, ModelArray::Type::H);
+    ModelArrayAccessor<Protected::T_SURF, RW> tsurfAccessor(
+        ModelComponent::getStore(), RO, ModelArray::Type::H);
+
+    HField& hice = hiceAccessor.getHostRW();
+    HField& cice = ciceAccessor.getHostRW();
+    HField& hsnow = hsnowAccessor.getHostRW();
+    HField& tsurf = tsurfAccessor.getHostRW();
 
     // An internal diagnostic field, not made available through the data store
     HField topMelt(ModelArray::Type::H);
 
-    hice.resize();
-    cice.resize();
-    hsnow.resize();
-    tsurf.resize();
-    topMelt.resize();
+    hice.reinitialize();
+    cice.reinitialize();
+    hsnow.reinitialize();
+    tsurf.reinitialize();
+    topMelt.reinitialize();
 
-    ModelComponent::getStore().registerArray(Shared::H_ICE_DG, &hice);
-    ModelComponent::getStore().registerArray(Shared::C_ICE_DG, &cice);
-    ModelComponent::getStore().registerArray(Shared::H_SNOW_DG, &hsnow);
-    ModelComponent::getStore().registerArray(Protected::T_SURF, &tsurf);
+    hice = 0.;
+    cice = 0.;
+    hsnow = 0.;
+    tsurf = 0.;
+    topMelt = 0.;
 
-    ModelMetadata meta;
     // Set up the coordinates, but use arrays filled with zeros
     HField latlonData(ModelArray::Type::H);
     latlonData = 0.;
@@ -110,26 +132,31 @@ TEST_CASE("Test periodic output")
     meta.extractCoordinates(modelCoordinates);
     meta.setTime(TimePoint("2020-01-01T00:00:00Z"));
 
-#ifdef USE_MPI
-    meta.setMpiMetadata(test_comm);
-#endif
-
-    IDiagnosticOutput& ido = Module::getImplementation<IDiagnosticOutput>();
+    auto& ido = Module::getImplementation<IDiagnosticOutput>();
     tryConfigure(ido);
 
-    auto dimX = ModelArray::Dimension::X;
-    auto startX = ModelArray::definedDimensions.at(dimX).start;
-    auto localNX = ModelArray::definedDimensions.at(dimX).localLength;
-
-    for (size_t j = 0; j < ny; ++j) {
-        for (size_t i = 0; i < localNX; ++i) {
-            hice(i, j) = 0 + 0.01 * (j * nx + (i + startX));
-            cice(i, j) = 0.1 + 0.01 * (j * nx + (i + startX));
-            hsnow(i, j) = 0.2 + 0.01 * (j * nx + (i + startX));
-            tsurf(i, j) = 0.4 + 0.01 * (j * nx + (i + startX));
-            topMelt(i, j) = 0.6 + 0.01 * (j * nx + (i + startX));
+#ifdef USE_MPI
+    // offset indices by 1 (haloWidth) so only the "inner" data is initialized
+    for (size_t j = 0; j < localNY - 2 * Halo::haloWidth; ++j) {
+        for (size_t i = 0; i < localNX - 2 * Halo::haloWidth; ++i) {
+            hice(i + 1, j + 1) = 0 + 0.01 * (j * nx + (i + offsetX));
+            cice(i + 1, j + 1) = 0.1 + 0.01 * (j * nx + (i + offsetX));
+            hsnow(i + 1, j + 1) = 0.2 + 0.01 * (j * nx + (i + offsetX));
+            tsurf(i + 1, j + 1) = 0.4 + 0.01 * (j * nx + (i + offsetX));
+            topMelt(i + 1, j + 1) = 0.6 + 0.01 * (j * nx + (i + offsetX));
         }
     }
+#else
+    for (size_t j = 0; j < localNY; ++j) {
+        for (size_t i = 0; i < localNX; ++i) {
+            hice(i, j) = 0 + 0.01 * (j * nx + (i + offsetX));
+            cice(i, j) = 0.1 + 0.01 * (j * nx + (i + offsetX));
+            hsnow(i, j) = 0.2 + 0.01 * (j * nx + (i + offsetX));
+            tsurf(i, j) = 0.4 + 0.01 * (j * nx + (i + offsetX));
+            topMelt(i, j) = 0.6 + 0.01 * (j * nx + (i + offsetX));
+        }
+    }
+#endif
     std::vector<std::string> diagFiles;
     const std::string pfx = "diag01";
     const std::string sfx = ".nc";
@@ -138,19 +165,19 @@ TEST_CASE("Test periodic output")
         if (day > 10) {
             diagFiles.push_back(pfx + std::to_string(day) + sfx);
         }
-        double dayIncr = 100.;
+        FloatType dayIncr = 100.;
         hice += dayIncr;
         cice += dayIncr;
         hsnow += dayIncr;
         tsurf += dayIncr;
         for (size_t hour = 0; hour < hr_day; ++hour) {
-            double hourIncr = 1;
+            FloatType hourIncr = 1;
             hice += hourIncr;
             cice += hourIncr;
             hsnow += hourIncr;
             ModelState state = { { { "top_melt", topMelt } }, {} };
 
-            ido.outputState(state, meta);
+            ido.outputState(state);
             meta.incrementTime(Duration(3600.));
         }
     }
@@ -182,7 +209,7 @@ TEST_CASE("Test periodic output")
 
     std::multimap<std::string, netCDF::NcVar> vars(ncFile.getVars());
     REQUIRE(vars.size() == fields.size() + 1 + 4); // +1 for the time variable + 4 for the coords
-    for (auto field : fields) {
+    for (const auto& field : fields) {
         REQUIRE(vars.count(field) == 1);
     }
     REQUIRE(vars.count("time") == 1);
@@ -191,11 +218,19 @@ TEST_CASE("Test periodic output")
     ncFile.close();
 
     // Clean the testing files
-    for (auto fileName : diagFiles) {
+    for (const auto& fileName : diagFiles) {
         std::filesystem::remove(fileName);
     }
 
     Finalizer::finalize();
 }
+
+TEST_SUITE_BEGIN("ConfigOutput");
+#ifdef USE_MPI
+MPI_TEST_CASE("Test snapshot output", 2) { runMe(true, test_comm); }
+#else
+TEST_CASE("Test snapshot output") { runMe(true); }
+#endif
+
 TEST_SUITE_END();
 }

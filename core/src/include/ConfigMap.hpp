@@ -11,12 +11,13 @@
 
 namespace Nextsim {
 
-typedef std::variant<double, unsigned, int, std::string> Fusi;
+typedef std::variant<double, float, unsigned, int, std::string> Fusi;
 typedef std::map<std::string, Fusi> ConfigMap;
 
 // clang-format off
 enum ConfigMapType {
     DOUBLE,
+    FLOAT,
     UNSIGNED,
     INT,
     STRING,

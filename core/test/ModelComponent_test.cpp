@@ -5,7 +5,7 @@
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include <doctest/doctest.h>
 
-#include "include/ModelArrayRef.hpp"
+#include "include/ModelArrayAccessor.hpp"
 #include "include/ModelComponent.hpp"
 
 #include <stdexcept>
@@ -30,55 +30,53 @@ public:
 class ModuleSupplyAndWait : public ModelComponent {
 public:
     ModuleSupplyAndWait()
-        : hice(ModelArray::HField())
-        , cice_ref(getStore())
+        : hiceAccessor(getStore(), RO)
+        , cice_refAccessor(getStore())
     {
-        getStore().registerArray(Shared::H_ICE_DG, &hice, RO);
     }
-    void setData(const ModelState::DataMap& ms) override { hice[0] = hiceData; }
+    void setData(const ModelState::DataMap& ms) override { hiceAccessor.getHostRW()[0] = hiceData; }
     std::string getName() const override { return "SupplyAndWait"; }
     ModelState getStatePrognostic() const override
     {
         return { {
-                     { "hice", hice },
+                     { "hice", hiceAccessor.getHostRO() },
                  },
             {} };
     }
 
-    const double hiceData = 1.2;
-    double data() { return hice[0]; }
-    double refData() { return cice_ref[0]; }
+    const FloatType hiceData = 1.2;
+    FloatType data() { return hiceAccessor.getHostRO()[0]; }
+    FloatType refData() { return cice_refAccessor.getHostRO()[0]; }
 
 private:
-    HField hice;
-    ModelArrayRef<Shared::C_ICE_DG> cice_ref;
+    ModelArrayAccessor<Shared::H_ICE_DG, RW> hiceAccessor;
+    ModelArrayAccessor<Shared::C_ICE_DG> cice_refAccessor;
 };
 
 class ModuleRequestAndSupply : public ModelComponent {
 public:
     ModuleRequestAndSupply()
-        : cice(ModelArray::HField())
-        , hice_ref(getStore())
+        : ciceAccessor(getStore(), RO)
+        , hice_refAccessor(getStore())
     {
-        getStore().registerArray(Shared::C_ICE_DG, &cice, RO);
     }
-    void setData(const ModelState::DataMap& ms) override { cice[0] = ciceData; }
+    void setData(const ModelState::DataMap& ms) override { ciceAccessor.getHostRW()[0] = ciceData; }
     std::string getName() const override { return "SupplyAndWait"; }
     ModelState getStatePrognostic() const override
     {
         return { {
-                     { "cice", cice },
+                     { "cice", ciceAccessor.getHostRO() },
                  },
             {} };
     }
 
-    const double ciceData = 0.6;
-    double data() { return cice[0]; }
-    double refData() { return hice_ref[0]; }
+    const FloatType ciceData = 0.6;
+    FloatType data() { return ciceAccessor.getHostRO()[0]; }
+    FloatType refData() { return hice_refAccessor.getHostRO()[0]; }
 
 private:
-    HField cice;
-    ModelArrayRef<Shared::H_ICE_DG> hice_ref;
+    ModelArrayAccessor<Shared::C_ICE_DG, RW> ciceAccessor;
+    ModelArrayAccessor<Shared::H_ICE_DG> hice_refAccessor;
 };
 
 TEST_SUITE_BEGIN("ModelComponent");
@@ -95,57 +93,55 @@ TEST_CASE("Test array registration")
 class ModuleSemiShared : public ModelComponent {
 public:
     ModuleSemiShared()
-        : qic(ModelArray::HField())
-        , qio_ref(getStore())
+        : qicAccessor(getStore(), RW)
+        , qio_refAccessor(getStore())
     {
-        getStore().registerArray(Shared::Q_IC, &qic, RW);
     }
-    void setData(const ModelState::DataMap& ms) override { qic[0] = qicData; }
+    void setData(const ModelState::DataMap& ms) override { qicAccessor.getHostRW()[0] = qicData; }
     std::string getName() const override { return "SemiShared"; }
     ModelState getStatePrognostic() const override
     {
         return { {
-                     { "qic", qic },
+                     { "qic", qicAccessor.getHostRO() },
                  },
             {} };
     }
 
-    const double qicData = 123;
-    double data() { return qic[0]; }
-    double refData() { return qio_ref[0]; }
+    const FloatType qicData = 123;
+    FloatType data() { return qicAccessor.getHostRO()[0]; }
+    FloatType refData() { return qio_refAccessor.getHostRO()[0]; }
 
 private:
-    HField qic;
-    ModelArrayRef<Shared::Q_IO, RO> qio_ref;
+    ModelArrayAccessor<Shared::Q_IC, RW> qicAccessor;
+    ModelArrayAccessor<Shared::Q_IO, RO> qio_refAccessor;
 };
 
 class ModuleShared : public ModelComponent {
 public:
     ModuleShared()
-        : qio(ModelArray::HField())
-        , qic_ref(getStore())
+        : qioAccessor(getStore(), RW)
+        , qic_refAccessor(getStore())
     {
-        getStore().registerArray(Shared::Q_IO, &qio, RW);
     }
-    void setData(const ModelState::DataMap& ms) override { qio[0]; }
+    void setData(const ModelState::DataMap& ms) override { /*qio[0]; */ }
     std::string getName() const override { return "Shared"; }
     ModelState getStatePrognostic() const override
     {
         return { {
-                     { "qio", qio },
+                     { "qio", qioAccessor.getHostRO() },
                  },
             {} };
     }
 
-    const double qioData = 234;
-    const double qicData = 246;
-    double data() { return qio[0]; }
-    double& refData() { return qic_ref[0]; }
-    void setRefData() { qic_ref[0] = qicData; }
+    const FloatType qioData = 234;
+    const FloatType qicData = 246;
+    FloatType data() { return qioAccessor.getHostRO()[0]; }
+    FloatType& refData() { return qic_refAccessor.getHostRW()[0]; }
+    void setRefData() { qic_refAccessor.getHostRW()[0] = qicData; }
 
 private:
-    HField qio;
-    ModelArrayRef<Shared::Q_IC, RW> qic_ref;
+    ModelArrayAccessor<Shared::Q_IO, RW> qioAccessor;
+    ModelArrayAccessor<Shared::Q_IC, RW> qic_refAccessor;
 };
 
 TEST_CASE("Shared and semi-protected arrays")

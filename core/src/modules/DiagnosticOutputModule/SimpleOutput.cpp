@@ -5,15 +5,16 @@
 #include "include/SimpleOutput.hpp"
 
 #include "include/Logged.hpp"
-#include "include/ModelArrayRef.hpp"
+#include "include/ModelArrayAccessor.hpp"
 #include "include/StructureFactory.hpp"
 
 #include <sstream>
 
 namespace Nextsim {
 
-void SimpleOutput::outputState(const ModelState& diagState, const ModelMetadata& meta)
+void SimpleOutput::outputState(const ModelState& diagState)
 {
+    auto& meta = ModelMetadata::getInstance();
     std::stringstream startStream;
     startStream << meta.time();
     std::string timeFileName = m_filePrefix + "." + startStream.str() + ".nc";
@@ -25,11 +26,10 @@ void SimpleOutput::outputState(const ModelState& diagState, const ModelMetadata&
     // Take the passed state, and add the files in the data store
     ModelState state = diagState;
     // Create the output by iterating over all fields referenced in ModelState
-    auto storeData = ModelComponent::getStore().getAllData();
+    auto storeData = ModelArrayAccessorBase<RO>::getAll(ModelComponent::getStore());
     for (auto entry : storeData) {
-        if (entry.second)
-            state.data.at(entry.first) = *entry.second;
+        state.data.at(entry.first) = entry.second.getHostRO();
     }
-    StructureFactory::fileFromState(state, meta, timeFileName);
+    StructureFactory::fileFromState(state, timeFileName);
 }
 } /* namespace Nextsim */

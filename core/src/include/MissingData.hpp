@@ -6,19 +6,20 @@
 #define MISSINGDATA_HPP
 
 #include "include/Configured.hpp"
+#include "include/FloatType.hpp"
 
 namespace Nextsim {
 
 class MissingData : public Configured<MissingData> {
 public:
-    static constexpr double defaultValue = 1.7e38;
-    inline static double value() { return getValue(); }
-    inline static void setValue(double mdi) { getValue() = mdi; }
+    static constexpr FloatType defaultValue = 1.7e38;
+    inline static FloatType value() { return getValue(); }
+    inline static void setValue(FloatType mdi) { getValue() = mdi; }
 
 private:
-    inline static double& getValue()
+    inline static FloatType& getValue()
     {
-        static double value = defaultValue;
+        static FloatType value = defaultValue;
         return value;
     }
 };

@@ -91,7 +91,6 @@ public:
      */
     virtual void setData(const std::string& name, const ModelArray& data)
     {
-
         // Special cases: hice, cice, (damage, stress) <- not yet implemented
         if (name == hiceName || name == ciceName || name == hsnowName) {
             throw std::runtime_error(std::string("Use setDGArray() to set the data for ") + name);
@@ -139,6 +138,23 @@ public:
         }
     }
 
+    // in combination with getAutoRO() this should do the automatic switch
+    // problem: buffer is only marked dirty at the begining but the data is changed in every update
+    // solutions:
+    // * provide accessor instead
+    // * do set data in every update (error prone since it is easily forgotten)
+    // * take fields as arguments to kernel update
+    // virtual void setDGArray(const std::string& name, const DeviceViewAdvect& dgData);
+    // bad interface: copy can't be avoided, no overload possible
+    // virtual DeviceViewMA getDG0Data(const std::string& name) const;
+    // alternative:
+    // virtual void getDG0Data(const std::string& name, const DeviceViewMA& destination) const;
+    // other thinks to consider:
+    // * should make datatransfers in kernel and mirrored views obsolete
+    // * to completely eliminate host views have to also port computeSeaSurfaceHeight?
+    // * no data transfer capability in kernel would it more difficult to debug / develop new
+    // features
+
     virtual void update(const TimestepTime& tst) { ++stepNumber; }
 
     /*!
@@ -157,9 +173,9 @@ public:
      *
      * @return A reference to the advected array.
      */
-    ModelArray& advectField(double timestep, ModelArray& field,
-        double lowerLimit = -std::numeric_limits<double>::infinity(),
-        double upperLimit = std::numeric_limits<double>::infinity())
+    ModelArray& advectField(FloatType timestep, ModelArray& field,
+        FloatType lowerLimit = -std::numeric_limits<FloatType>::infinity(),
+        FloatType upperLimit = std::numeric_limits<FloatType>::infinity())
     {
         DGVectorHolder<DGadvection> holder(field);
         advectDGVField(timestep, holder, lowerLimit, upperLimit);
@@ -176,12 +192,12 @@ public:
      *
      * @return A reference to the advected array.
      */
-    virtual DGVector<DGadvection>& advectDGVField(double timestep, DGVector<DGadvection>& field,
-        double lowerLimit = -std::numeric_limits<double>::infinity(),
-        double upperLimit = std::numeric_limits<double>::infinity())
+    virtual DGVector<DGadvection>& advectDGVField(FloatType timestep, DGVector<DGadvection>& field,
+        FloatType lowerLimit = -std::numeric_limits<FloatType>::infinity(),
+        FloatType upperLimit = std::numeric_limits<FloatType>::infinity())
         = 0;
 
-    virtual void advectDynamicsFields(double timestep)
+    virtual void advectDynamicsFields(FloatType timestep)
     {
         advectDGVField(timestep, hice, 0.0);
         advectDGVField(timestep, cice, 0.0, 1.0);
@@ -204,7 +220,7 @@ protected:
 
     size_t stepNumber = 0;
 
-    double deltaT;
+    FloatType deltaT;
 
     std::unique_ptr<Nextsim::ParametricMesh> smesh;
 

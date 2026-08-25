@@ -2,21 +2,17 @@ set(ModuleDir "${CMAKE_CURRENT_SOURCE_DIR}/modules")
 
 set(IncludeDir "${CMAKE_CURRENT_SOURCE_DIR}/include")
 
-### Set the list of all cpp files
+# Set the list of all cpp files
 file(GLOB DynamicsSources *.cpp)
 
+if(WITH_KOKKOS)
+    add_subdirectory("kokkos")
+endif()
+
 set(NextsimSources
-    "${NextsimSources}"
-    "${Sources}"
-    "${ModuleSources}"
-    "${DynamicsSources}"
-    PARENT_SCOPE
-)
+    "${NextsimSources}" "${Sources}" "${ModuleSources}" "${DynamicsSources}"
+    PARENT_SCOPE)
 
 set(NextsimIncludeDirs
-    "${NextsimIncludeDirs}"
-    "${ModuleDir}"
-    "${IncludeDir}"
-    "${CMAKE_CURRENT_SOURCE_DIR}"
-    PARENT_SCOPE
-)
+    "${NextsimIncludeDirs}" "${ModuleDir}" "${IncludeDir}" "${CMAKE_CURRENT_SOURCE_DIR}"
+    PARENT_SCOPE)

@@ -37,7 +37,7 @@ TEST_CASE("CGVector from ModelArray")
     ModelArray::setDimensions(ModelArray::Type::CG, CGModelArray::cgDimensions<CG>({ nx, ny }));
 
     ModelArray maSource(ModelArray::Type::CG);
-    maSource.resize();
+    maSource.reinitialize();
     // Fill with data
     for (size_t i = 0; i < CG * nx + 1; ++i) {
         for (size_t j = 0; j < CG * ny + 1; j++) {
@@ -100,7 +100,7 @@ TEST_CASE("ModelArray from CGVector")
     CHECK(cgSource(targetPoint) == 14 * mx + 12);
 
     ModelArray maDest(ModelArray::Type::CG);
-    maDest.resize();
+    maDest.reinitialize();
     CGModelArray::cg2ma(cgSource, maDest);
 
     // Did it work?
@@ -143,7 +143,7 @@ TEST_CASE("Test with CG = 1") // (It would be a silly case to get wrong!)
     CHECK(cgSource(targetPoint) == mx * 14 + 22);
 
     ModelArray maDest(ModelArray::Type::CG);
-    maDest.resize();
+    maDest.reinitialize();
     CGModelArray::cg2ma(cgSource, maDest);
 
     // Did it work?

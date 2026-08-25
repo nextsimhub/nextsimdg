@@ -35,31 +35,7 @@ public:
      * @param timestep Timestep length.
      */
     void setStartStopStep(TimePoint startTime, TimePoint stopTime, Duration timestep);
-    /*!
-     * @brief Sets the time parameters as a start time, run length and timestep
-     * length.
-     *
-     * @param startTime Start time point.
-     * @param duration Minimum length of the run.
-     * @param timestep Timestep length.
-     */
-    void setStartDurationStep(TimePoint startTime, Duration duration, Duration timestep);
 
-    /*!
-     * @brief Parses the four strings and sets the time parameters from them.
-     *
-     * @details Give the four strings, the parser determines which ones are
-     * valid and can be used. The strings are then parsed to time values and
-     * the start time returned, as this can be considered the current time.
-     *
-     * @param startTimeStr string to parse for the model start time.
-     * @param stopTimeStr string to parse for the model stop time.
-     * @param durationStr string to parse for the model run duration.
-     * @param stepStr string to parse for the model time step length.
-     */
-    TimePoint parseAndSet(const std::string& startTimeStr, const std::string& stopTimeStr,
-        const std::string& durationStr, const std::string& stepStr);
-    //! Run the Iterant over the specified time period.
     void run();
 
 private:

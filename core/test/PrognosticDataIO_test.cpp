@@ -58,9 +58,9 @@ TEST_CASE("PrognosticData write test, including DG components")
     ModelArray latitude(ModelArray::Type::H);
     ModelArray longitude(ModelArray::Type::H);
     ModelArray coords(ModelArray::Type::VERTEX);
-    baseData.resize();
-    dgData.resize();
-    coords.resize();
+    baseData.reinitialize();
+    dgData.reinitialize();
+    coords.reinitialize();
     size_t xMul = 1000;
     size_t yMul = 100;
     size_t resn = 2;
@@ -69,8 +69,8 @@ TEST_CASE("PrognosticData write test, including DG components")
             size_t c = i * xMul + j * yMul;
             size_t idx = baseData.indexFromLocation({ i, j });
             baseData[idx] = c;
-            latitude(idx) = resn * j + 0.5 * resn;
-            longitude(idx) = resn * i + 0.5 * resn;
+            latitude(idx) = resn * j + 0.5_ft * resn;
+            longitude(idx) = resn * i + 0.5_ft * resn;
             switch (ModelArray::nComponents(ModelArray::Type::DG)) {
             case (3):
                 dgData.components(idx) << c, c + 1, c + 2;
@@ -87,7 +87,6 @@ TEST_CASE("PrognosticData write test, including DG components")
     // Loop for coords
     for (size_t j = 0; j < ModelArray::size(ModelArray::Dimension::YVERTEX); ++j) {
         for (size_t i = 0; i < ModelArray::size(ModelArray::Dimension::XVERTEX); ++i) {
-            size_t c = i * xMul + j * yMul;
             size_t idx = coords.indexFromLocation({ i, j });
             coords.components(idx) << resn * i, resn * j;
         }
@@ -118,11 +117,11 @@ TEST_CASE("PrognosticData write test, including DG components")
     PrognosticData pData;
     pData.configure();
     pData.setData(inData);
-    ModelMetadata meta;
+    auto& meta = ModelMetadata::getInstance();
     meta.setTime(TimePoint("2010-01-01T00:00:00Z"));
     meta.extractCoordinates(state);
     // Do the write
-    pData.writeRestartFile(filename, meta);
+    pData.writeRestartFile(filename);
 
     // Read the data back
     ModelState readState = StructureFactory::stateFromFile(filename);

@@ -1,0 +1,177 @@
+netcdf xios_test_era5_forcing {
+dimensions:
+	axis_nbounds = 2 ;
+	x_dim = 4 ;
+	y_dim = 2 ;
+  x_vertex = 5 ;
+  y_vertex = 3 ;
+  x_cg = 9 ;
+  y_cg = 5 ;
+  dg_comp = 3 ;
+  dgstress_comp = 8 ;
+  ncoords = 2 ;
+	time_counter = UNLIMITED ; // (3 currently)
+variables:
+	float x_dim(x_dim) ;
+		x_dim:axis = "X" ;
+		x_dim:standard_name = "longitude" ;
+		x_dim:long_name = "Longitude" ;
+		x_dim:units = "degrees_east" ;
+	float y_dim(y_dim) ;
+		y_dim:axis = "Y" ;
+		y_dim:standard_name = "latitude" ;
+		y_dim:long_name = "Latitude" ;
+		y_dim:units = "degrees_north" ;
+	double time_instant(time_counter) ;
+		time_instant:standard_name = "time" ;
+		time_instant:long_name = "Time axis" ;
+		time_instant:calendar = "gregorian" ;
+		time_instant:units = "seconds since 1970-01-01 00:00:00" ;
+		time_instant:time_origin = "1970-01-01 00:00:00" ;
+		time_instant:bounds = "time_instant_bounds" ;
+	double time_instant_bounds(time_counter, axis_nbounds) ;
+	double time_counter(time_counter) ;
+		time_counter:axis = "T" ;
+		time_counter:standard_name = "time" ;
+		time_counter:long_name = "Time axis" ;
+		time_counter:calendar = "gregorian" ;
+		time_counter:units = "seconds since 1970-01-01 00:00:00" ;
+		time_counter:time_origin = "1970-01-01 00:00:00" ;
+		time_counter:bounds = "time_counter_bounds" ;
+	double time_counter_bounds(time_counter, axis_nbounds) ;
+	float tair(time_counter, y_dim, x_dim) ;
+		tair:online_operation = "instant" ;
+		tair:interval_operation = "3600 s" ;
+		tair:interval_write = "3600 s" ;
+		tair:cell_methods = "time: point" ;
+		tair:coordinates = "time_instant" ;
+	float dew2m(time_counter, y_dim, x_dim) ;
+		dew2m:online_operation = "instant" ;
+		dew2m:interval_operation = "3600 s" ;
+		dew2m:interval_write = "3600 s" ;
+		dew2m:cell_methods = "time: point" ;
+		dew2m:coordinates = "time_instant" ;
+	float pair(time_counter, y_dim, x_dim) ;
+		pair:online_operation = "instant" ;
+		pair:interval_operation = "3600 s" ;
+		pair:interval_write = "3600 s" ;
+		pair:cell_methods = "time: point" ;
+		pair:coordinates = "time_instant" ;
+	float sw_in(time_counter, y_dim, x_dim) ;
+		sw_in:online_operation = "instant" ;
+		sw_in:interval_operation = "3600 s" ;
+		sw_in:interval_write = "3600 s" ;
+		sw_in:cell_methods = "time: point" ;
+		sw_in:coordinates = "time_instant" ;
+	float lw_in(time_counter, y_dim, x_dim) ;
+		lw_in:online_operation = "instant" ;
+		lw_in:interval_operation = "3600 s" ;
+		lw_in:interval_write = "3600 s" ;
+		lw_in:cell_methods = "time: point" ;
+		lw_in:coordinates = "time_instant" ;
+	float wind_speed(time_counter, y_dim, x_dim) ;
+		wind_speed:online_operation = "instant" ;
+		wind_speed:interval_operation = "3600 s" ;
+		wind_speed:interval_write = "3600 s" ;
+		wind_speed:cell_methods = "time: point" ;
+		wind_speed:coordinates = "time_instant" ;
+	float u(time_counter, y_dim, x_dim) ;
+		u:online_operation = "instant" ;
+		u:interval_operation = "3600 s" ;
+		u:interval_write = "3600 s" ;
+		u:cell_methods = "time: point" ;
+		u:coordinates = "time_instant" ;
+	float v(time_counter, y_dim, x_dim) ;
+		v:online_operation = "instant" ;
+		v:interval_operation = "3600 s" ;
+		v:interval_write = "3600 s" ;
+		v:cell_methods = "time: point" ;
+		v:coordinates = "time_instant" ;
+
+// global attributes:
+		:structure_name = "parametric_rectangular" ;
+		:name = "xios_test_forcing" ;
+		:description = "Test forcing file for XIOS" ;
+    :title = "XIOS test forcing" ;
+		:Conventions = "CF-1.6" ;
+
+data:
+
+ time_instant = 1679013000, 1679016600, 1679020200 ;
+
+ time_instant_bounds =
+  1679013000, 1679013000,
+  1679016600, 1679016600,
+  1679020200, 1679020200 ;
+
+ time_counter = 1679013000, 1679016600, 1679020200 ;
+
+ time_counter_bounds =
+  1679013000, 1679013000,
+  1679016600, 1679016600,
+  1679020200, 1679020200 ;
+
+ tair =
+  0.0, 0.0, 0.0, 0.0,
+  0.0, 0.0, 0.0, 0.0,
+  0.2, 0.2, 0.2, 0.2,
+  0.2, 0.2, 0.2, 0.2,
+  0.4, 0.4, 0.4, 0.4,
+  0.4, 0.4, 0.4, 0.4 ;
+
+ dew2m =
+  0.0, 0.0, 0.0, 0.0,
+  0.0, 0.0, 0.0, 0.0,
+  0.2, 0.2, 0.2, 0.2,
+  0.2, 0.2, 0.2, 0.2,
+  0.4, 0.4, 0.4, 0.4,
+  0.4, 0.4, 0.4, 0.4 ;
+
+ pair =
+  0.0, 0.0, 0.0, 0.0,
+  0.0, 0.0, 0.0, 0.0,
+  0.2, 0.2, 0.2, 0.2,
+  0.2, 0.2, 0.2, 0.2,
+  0.4, 0.4, 0.4, 0.4,
+  0.4, 0.4, 0.4, 0.4 ;
+
+ sw_in =
+  0.0, 0.0, 0.0, 0.0,
+  0.0, 0.0, 0.0, 0.0,
+  0.2, 0.2, 0.2, 0.2,
+  0.2, 0.2, 0.2, 0.2,
+  0.4, 0.4, 0.4, 0.4,
+  0.4, 0.4, 0.4, 0.4 ;
+
+ lw_in =
+  0.0, 0.0, 0.0, 0.0,
+  0.0, 0.0, 0.0, 0.0,
+  0.2, 0.2, 0.2, 0.2,
+  0.2, 0.2, 0.2, 0.2,
+  0.4, 0.4, 0.4, 0.4,
+  0.4, 0.4, 0.4, 0.4 ;
+
+ wind_speed =
+  0.0, 0.0, 0.0, 0.0,
+  0.0, 0.0, 0.0, 0.0,
+  0.2, 0.2, 0.2, 0.2,
+  0.2, 0.2, 0.2, 0.2,
+  0.4, 0.4, 0.4, 0.4,
+  0.4, 0.4, 0.4, 0.4 ;
+
+ u =
+  0.0, 0.0, 0.0, 0.0,
+  0.0, 0.0, 0.0, 0.0,
+  0.2, 0.2, 0.2, 0.2,
+  0.2, 0.2, 0.2, 0.2,
+  0.4, 0.4, 0.4, 0.4,
+  0.4, 0.4, 0.4, 0.4 ;
+
+ v =
+  0.0, 0.0, 0.0, 0.0,
+  0.0, 0.0, 0.0, 0.0,
+  0.2, 0.2, 0.2, 0.2,
+  0.2, 0.2, 0.2, 0.2,
+  0.4, 0.4, 0.4, 0.4,
+  0.4, 0.4, 0.4, 0.4 ;
+}
