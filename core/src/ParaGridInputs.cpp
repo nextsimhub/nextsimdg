@@ -8,8 +8,6 @@
 
 #include "include/NetCDFUtils.hpp"
 #include "include/ParaGridInputs.hpp"
-
-#include "NextsimDynamics.hpp"
 #include "include/constants.hpp"
 #include "include/indexer.hpp"
 

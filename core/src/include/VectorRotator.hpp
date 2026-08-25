@@ -6,9 +6,9 @@
 #ifndef VECTORROTATOR_HPP
 #define VECTORROTATOR_HPP
 
-#include "FloatType.hpp"
-#include "ModelArray.hpp"
-#include "cgVector.hpp"
+#include "include/FloatType.hpp"
+#include "include/ModelArray.hpp"
+#include "include/cgVector.hpp"
 
 #include <Eigen/src/Core/Matrix.h>
 #include <vector>
@@ -24,7 +24,7 @@ namespace Nextsim {
 class VectorRotator {
 public:
     /*!
-     * @brief An eunumerator class for vector orientation
+     * @brief An enumerator class for vector orientation
      *
      * @enum GRID: Vectors are aligned with the grid.
      * @enum EAST_NORTH: Vectors are aligned with the east and north directions.
