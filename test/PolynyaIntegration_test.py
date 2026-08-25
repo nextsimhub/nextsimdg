@@ -9,9 +9,10 @@ import numpy as np
 
 class Polynya(unittest.TestCase):
     """
-    A test class based on the Bjornsson et al. (2001) polynya case. We run the model for 5 days and check the output
-    against known values. The main purpose of this test is to check that the model is running and that the output is
-    reasonable.
+    A test class based on the Bjornsson et al. (2001) polynya case.
+
+    We run the model for 5 days and check the output against known values. The main purpose of this test is to check
+    that the model is running and that the output is reasonable.
 
     NB! This test is very sensitive to small perturbations in the model. If the test fails, run the full-resolution
     version, cited below, and compare the results. You may need to adjust the "known good values" of the test
@@ -36,12 +37,13 @@ class Polynya(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         """
-        A set-up class which,
+        Set up the testing environment.
+
+         This class does the following:
           - Creates the initialisation file, using make_init_column.py
           - Runs the model
-          - Loads the neccesary variables from the output file
+          - Loads the necessary variables from the output file
         """
-
         # Make the init column
         cls.__make_init_column()
 
@@ -52,16 +54,16 @@ class Polynya(unittest.TestCase):
         subprocess.run(cls.executable + " --config-file " + cls.config_file, shell=True, check=True)
 
         # Load the basic variables
-        root = netCDF4.Dataset(cls.diagnostics_file, "r", format="NETCDF4")
-        cls.cice = np.squeeze(np.array(root.variables["cice"][:].data))
-        cls.hice = np.squeeze(np.array(root.variables["hice"][:].data))
-        cls.uice = np.array(root.variables["u"][:].data)
-        cls.vice = np.array(root.variables["v"][:].data)
+        with netCDF4.Dataset(cls.diagnostics_file, "r", format="NETCDF4") as root:
+            cls.cice = np.squeeze(np.array(root.variables["cice"][:].data))
+            cls.hice = np.squeeze(np.array(root.variables["hice"][:].data))
+            cls.uice = np.array(root.variables["u"][:].data)
+            cls.vice = np.array(root.variables["v"][:].data)
 
     @classmethod
     def __make_cfg_file(cls):
-        cfg = open(cls.config_file, "w")
-        cfg.write("""
+        with open(cls.config_file, "w") as cfg:
+            cfg.write("""
 [model]
 init_file = init_polynya.nc
 start = 2023-01-01T00:00:00Z
@@ -96,12 +98,11 @@ dQia_dT = 0
 wind_u = 16
 wind_v = 12
         """)
-        cfg.close()
 
     @classmethod
     def __make_init_column(cls):
-        sys.path.append('../run')
-        sys.path.append('../../run')
+        sys.path.append("../run")
+        sys.path.append("../../run")
         from make_init_base import initMaker
 
         # Creates initial conditions for the Bjornsson et al. (2001) polynya case
@@ -117,7 +118,8 @@ wind_v = 12
         fname = cls.init_file
 
         # The model expects everything in metres
-        initializer = initMaker(fname, nfirst, nsecond, res*1e3, checkZeros=False)
+        initializer = initMaker(fname, checkZeros=False)
+        initializer.make_cartesian_grid(nfirst, nsecond, res*1e3)
 
         # Ice everywhere and all boundaries closed, except the x = 100 km end
         initializer.mask[:, :] = 1.
@@ -150,10 +152,7 @@ wind_v = 12
 
     @classmethod
     def tearDownClass(cls):
-        """
-        A tear-down class that deletes the netCDF output and temporary files
-        """
-
+        """Delete the netCDF output and temporary files."""
         if os.path.isfile(cls.diagnostics_file):
             os.remove(cls.diagnostics_file)
 
@@ -165,29 +164,29 @@ wind_v = 12
 
     def test_iceThickness(self):
         """
-        Test the ice thickness against standard max, min, and mean values
+        Test the ice thickness against standard max, min, and mean values.
+
         The maximum varies by (at least) 3 cm between platforms, making a test of it useless
         """
-
         mean = 0.1323
-        min = 0.0000
+        minimum = 0.0000
         hice = self.hice[:,:,:,0]
-        self.assertAlmostEqual(min, hice.min(), 4, "Min ice thickness not ~= " + str(min) + " m")
+        self.assertAlmostEqual(minimum, hice.min(), 4, "Min ice thickness not ~= " + str(minimum) + " m")
         self.assertAlmostEqual(mean, hice.mean(), 4, "Mean ice thickness not ~= " + str(mean) + " m")
 
     def test_concentration(self):
         """
-        Test the ice concentration against standard max, min, and mean values
+        Test the ice concentration against standard max, min, and mean values.
+
         The min and max are easy, but the mean is sensitive
         """
-
         mean = 0.4402
-        max = 1.0000
-        min = 0.0000
+        maximum = 1.0000
+        minimum = 0.0000
         cice = self.cice[:,:,:,0]
-        self.assertAlmostEqual(max, cice.max(), 4, "Max conentration not ~= " + str(max))
-        self.assertAlmostEqual(min, cice.min(), 4, "Min concentration not ~= " + str(min))
+        self.assertAlmostEqual(maximum, cice.max(), 4, "Max conentration not ~= " + str(maximum))
+        self.assertAlmostEqual(minimum, cice.min(), 4, "Min concentration not ~= " + str(minimum))
         self.assertAlmostEqual(mean, cice.mean(), 2, "Mean concentration not ~= " + str(mean))
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

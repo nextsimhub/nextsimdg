@@ -9,12 +9,12 @@ res = 2
 
 nfirst = y // res
 nsecond = x // res
-nLayers = 3
 
 fname = "init_polynya.nc"
 
 # The model expects everything in metres
-initializer = initMaker(fname, nfirst, nsecond, res*1e3, isWinton=True, checkZeros=False)
+initializer = initMaker(fname, checkZeros=False)
+initializer.make_cartesian_grid(nfirst, nsecond, res*1e3)
 
 # Ice everywhere and all boundaries closed, except the x = 100 km end
 initializer.mask[:, :] = 1.
@@ -41,8 +41,6 @@ ocean_salinity = ocean_temperature / mu
 initializer.sss[:, :] = ocean_salinity
 initializer.sst[:, :] = ocean_temperature
 initializer.tsurf[:, :] = ice_salinity * mu
-initializer.tbott = initializer.tsurf
-initializer.tintr = initializer.tsurf
 
 # All other variables are zero or not needed
 
