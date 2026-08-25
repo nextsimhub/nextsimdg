@@ -1,12 +1,13 @@
 #!/bin/bash
 
-export DD_PATH=/home/${USER}/rds/rds-iccs-DKRMHAHoC3M/${USER}/domain_decomp
-export VENV_PATH=/home/${USER}/nextsimdg
-export SPACK_ROOT=/home/${USER}/spack
-export SPACK_ENV_NAME=nextsimdg-scorep-gcc
-export NEXTSIMDG_PATH=/home/${USER}/rds/rds-iccs-DKRMHAHoC3M/${USER}/nextsimdg
-export BENCHMARK_PATH=/home/${USER}/rds/rds-iccs-DKRMHAHoC3M/${USER}/nextsimdg/run/run_june23
-echo "$0 $1 $2"
+export DD_PATH=/home/${USER}/rds/rds-iccs-DKRMHAHoC3M/${USER}/domain_decomp # CHANGE ME
+export VENV_PATH=/home/${USER}/nextsimdg # CHANGE ME
+export SPACK_ROOT=/home/${USER}/spack # CHAGNGE ME
+export SPACK_ENV_NAME=nextsimdg-scorep-gcc # CHNAGE ME
+export NEXTSIMDG_PATH=/home/${USER}/rds/rds-iccs-DKRMHAHoC3M/${USER}/nextsimdg # CHANGE ME
+export BENCHMARK_PATH=/home/${USER}/rds/rds-iccs-DKRMHAHoC3M/${USER}/nextsimdg/run/run_june23 # CHANGE ME
+export CONFIG_FILE_NAME=config_june23.cfg # CHANGE ME
+export PARTITION_DATA_FILE_NAME=init_25km_NH.nc # CHANGE ME
 
 source ${VENV_PATH}/.venv/bin/activate # CHANGE ME
 source ${SPACK_ROOT}/share/spack/setup-env.sh # CHANGE ME
@@ -58,20 +59,20 @@ cd ${BENCHMARK_PATH}
 for MPI_SIZE in 64
 do
 	        echo "MPI Size: ${MPI_SIZE}"
-		mpiexec -n ${MPI_SIZE} ${DD_PATH}/build/decomp -g ${BENCHMARK_PATH}/init_25km_NH.nc -x xdim -y ydim
+		mpiexec -n ${MPI_SIZE} ${DD_PATH}/build/decomp -g ${BENCHMARK_PATH}/${PARTITION_DATA_FILE_NAME} -x xdim -y ydim
 		ln -sf ${BENCHMARK_PATH}/partition_metadata_${MPI_SIZE}.nc ${BENCHMARK_PATH}/partition.nc
 		for NUM_THREADS in 1
 		do
 			export OMP_NUM_THREADS=${NUM_THREADS}
 			echo "MPI Size: ${MPI_SIZE}; Number of threads ${NUM_THREADS}, ${OMP_NUM_THREADS}"
 			if [[ "$1" == "--enable-scorep-mpi" ]]; then
-			       mpiexec -n ${MPI_SIZE} ${NEXTSIMDG_PATH}/build/nextsim --config-file config_june23.cfg
+			       mpiexec -n ${MPI_SIZE} ${NEXTSIMDG_PATH}/build/nextsim --config-file ${CONFIG_FILE_NAME}
 			elif [[ "$1" == "--enable-mpi" ]]; then
-			       time mpiexec -n ${MPI_SIZE} ${NEXTSIMDG_PATH}/build/nextsim --config-file config_june23.cfg
+			       time mpiexec -n ${MPI_SIZE} ${NEXTSIMDG_PATH}/build/nextsim --config-file ${CONFIG_FILE_NAME}
 		        elif [[ "$1" == "--enable-openmp" ]]; then
-				time ${NEXTSIMDG_PATH}/build/nextsim --config-file config_june23.cfg
+				time ${NEXTSIMDG_PATH}/build/nextsim --config-file ${CONFIG_FILE_NAME}
 			else
-				${NEXTSIMDG_PATH}/build/nextsim --config-file config_june23.cfg
+				${NEXTSIMDG_PATH}/build/nextsim --config-file ${CONFIG_FILE_NAME}
 			fi
                                			       
 		done
