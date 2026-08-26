@@ -232,28 +232,25 @@ void VectorRotator::initENOrientation(
 
 // A: From ocean to ParamMesh:
 // ocean velocity is ox * ex + ey * ey. This can directly be evaluated:
-void VectorRotator::toParametricMesh(const std::vector<FloatType>& uIn,
-    const std::vector<FloatType>& vIn, std::vector<FloatType>& uOut,
-    std::vector<FloatType>& vOut) const
+void VectorRotator::toParametricMesh(std::vector<FloatType>& u, std::vector<FloatType>& v) const
 {
 #pragma omp parallel for
-    for (size_t i = 0; i < uIn.size(); ++i) {
-        const Eigen::Matrix<FloatType, 2, 1> pVelOut = ex[i] * uIn[i] + ey[i] * vIn[i];
-        uOut[i] = pVelOut(0);
-        vOut[i] = pVelOut(1);
+    for (size_t i = 0; i < u.size(); ++i) {
+        const Eigen::Matrix<FloatType, 2, 1> pVelOut = ex[i] * u[i] + ey[i] * v[i];
+        u[i] = pVelOut(0);
+        v[i] = pVelOut(1);
     }
 }
 
 // B: from ParamMesh to ocean
 // solve linear system such that ex * ox + ey * uy = v
-void VectorRotator::fromParametricMesh(const std::vector<FloatType>& uIn,
-    const std::vector<FloatType>& vIn, std::vector<FloatType>& uOut,
-    std::vector<FloatType>& vOut) const
+void VectorRotator::fromParametricMesh(std::vector<FloatType>& u, std::vector<FloatType>& v) const
 {
 #pragma omp parallel for
-    for (size_t i = 0; i < uIn.size(); ++i) {
-        uOut[i] = -ey[i](0) / det[i] * vIn[i] + ey[i](1) / det[i] * uIn[i];
-        vOut[i] = +ex[i](0) / det[i] * vIn[i] - ex[i](1) / det[i] * uIn[i];
+    for (size_t i = 0; i < u.size(); ++i) {
+        const FloatType uOut = -ey[i](0) / det[i] * v[i] + ey[i](1) / det[i] * u[i];
+        v[i] = +ex[i](0) / det[i] * v[i] - ex[i](1) / det[i] * u[i];
+        u[i] = uOut;
     }
 }
 

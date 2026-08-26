@@ -60,27 +60,22 @@ public:
     explicit VectorRotator(const ModelArray& coords, const orientation orient);
 
     /*!
-     * @brief Transforms velocities to the parametric mesh. All vectors are at the grid cell centre.
+     * @brief Transforms velocities to the parametric mesh in place. All vectors are at the grid
+     * cell centre.
      *
-     * @param uIn The input u-velocities
-     * @param vIn The input v-velocities
-     * @param uOut The output u-velocities
-     * @param vOut The output v-velocities
+     * @param u The u-velocities
+     * @param v The v-velocities
      */
-    void toParametricMesh(const std::vector<FloatType>& uIn, const std::vector<FloatType>& vIn,
-        std::vector<FloatType>& uOut, std::vector<FloatType>& vOut) const;
+    void toParametricMesh(std::vector<FloatType>& u, std::vector<FloatType>& v) const;
 
     /*!
-     * @brief Transforms velocities from the parametric mesh. All vectors are at the grid cell
-     * centre.
+     * @brief Transforms velocities from the parametric mesh in place. All vectors are at the grid
+     * cell centre.
      *
-     * @param uIn The input u-velocities
-     * @param vIn The input v-velocities
-     * @param uOut The output u-velocities
-     * @param vOut The output v-velocities
+     * @param u The u-velocities
+     * @param v The v-velocities
      */
-    void fromParametricMesh(const std::vector<FloatType>& uIn, const std::vector<FloatType>& vIn,
-        std::vector<FloatType>& uOut, std::vector<FloatType>& vOut) const;
+    void fromParametricMesh(std::vector<FloatType>& u, std::vector<FloatType>& v) const;
 
     /*!
      * @brief Transforms velocities to the parametric mesh. Input vectors are at the grid cell
