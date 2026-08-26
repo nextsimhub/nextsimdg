@@ -15,7 +15,7 @@ namespace Nextsim {
  */
 class NSColumnPhysics : public IColumnPhysics, public Configured<NSColumnPhysics> {
 public:
-    NSColumnPhysics();
+    NSColumnPhysics() = default;
     virtual ~NSColumnPhysics() = default;
 
     enum {
@@ -47,15 +47,6 @@ private:
     std::unique_ptr<ILateralIceSpread> iLateral;
     // Damage Healing ModuleComponent & Module
     std::unique_ptr<IDamageHealing> iHealing;
-
-    // Data fields
-    ModelArrayAccessor<Shared::H_ICE_DG>
-        hiceAccessor; // Timestep initial cell averaged ice thickness, m
-    ModelArrayAccessor<Shared::H_SNOW_DG>
-        hsnowAccessor; // Timestep initial cell averaged snow thickness, m
-    ModelArrayAccessor<Shared::C_ICE_DG> ciceAccessor; // Timestep initial ice concentration
-    ModelArrayAccessor<Shared::Q_OW, RW> qowAccessor; // open water heat flux, from FluxCalculation
-    ModelArrayAccessor<Shared::DELTA_HICE> deltaHiAccessor; // New ice thickness this timestep, m
 
     bool doThermo = true; // Perform any thermodynamics calculations at all
 };

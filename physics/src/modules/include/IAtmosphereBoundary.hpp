@@ -18,7 +18,7 @@ public:
     IAtmosphereBoundary()
         : qiaAccessor(getStore(), RW, ModelArray::Type::H, std::pair(-1e4, 1e4))
         , dqia_dtAccessor(getStore(), RW, ModelArray::Type::H)
-        , qowAccessor(getStore(), RW, ModelArray::Type::H, std::pair(-1e4, 1e4))
+        , qowAccessor(getStore(), RW, ModelArray::Type::H)
         , sublAccessor(getStore(), RW, ModelArray::Type::H)
         , snowAccessor(getStore(), RO, ModelArray::Type::H, std::pair(0.0, 1e-3))
         , rainAccessor(getStore(), RO, ModelArray::Type::H, std::pair(0.0, 1e-3))
