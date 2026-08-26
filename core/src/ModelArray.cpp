@@ -342,7 +342,8 @@ void ModelArray::checkLimits(const ModelArray& mask) const
 
     throw std::runtime_error("Field contains out-of-bounds value(s), " + std::to_string(value)
         + " not in [" + std::to_string(lowerPhysicalLimit) + ","
-        + std::to_string(upperPhysicalLimit) + "]. Error at index " + locStr + ".");
+        + std::to_string(upperPhysicalLimit) + "]. Error at " + locStr + " and index "
+        + std::to_string(i) + ".\n");
 }
 
 void ModelArray::validateMaps()

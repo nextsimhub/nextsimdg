@@ -1,13 +1,15 @@
 # Build stage with Spack pre-installed and ready to be used
 FROM spack/ubuntu-noble:latest AS builder
 
-# Install perl and subversion
+# Install perl
 RUN apt update \
-    && apt install -y --no-install-recommends libany-uri-escape-perl subversion \
+    && apt install -y --no-install-recommends libany-uri-escape-perl \
     && rm -rf /var/lib/apt/lists/*
 
-# Pre-fetch XIOS source code
-RUN svn checkout http://forge.ipsl.fr/ioserver/svn/XIOS3/trunk /xios
+# The ftpmirror.gnu.org is unreliable and often fails to point to a live mirror (returns 502 HTTP error)
+# To avoid this problem we patch the Spack recipe to use the cannonical GNU FTP server
+RUN find . -type f -path "*/package_repos/*/readline/package.py" \
+  -exec sed -i 's|https://ftpmirror.gnu.org|https://ftp.gnu.org/gnu|w /dev/stdout' '{}' \;
 
 # Install software from spack.yaml
 RUN mkdir /opt/spack-environment
@@ -17,8 +19,16 @@ RUN cd /opt/spack-environment \
     && spack install --fail-fast \
     && spack gc -y
 
-# Download and install domain_decomp and XIOS
+# Add the view `lib` to the LD_LIBRARY_PATH
+# This is required to make `ncgen` find  the libraries correctly
+# see: https://github.com/spack/spack/issues/52555
+ENV LD_LIBRARY_PATH=/opt/views/view/lib
+
+# Pre-fetch XIOS source code
 COPY Dockerfiles/install-xios.sh .
+RUN git clone --branch xios-3.0.6.0 https://gitlab.in2p3.fr/ipsl/projets/xios-projects/xios.git /xios
+
+# Download and install domain_decomp and XIOS
 RUN spack env activate /opt/spack-environment \
     && git clone https://github.com/nextsimhub/domain_decomp.git /decomp \
     && cd /decomp \
@@ -39,7 +49,7 @@ RUN cd /opt/spack-environment && \
     spack env activate --sh -d . > activate.sh
 
 # Bare OS image to run the installed executables
-FROM ubuntu:latest
+FROM ubuntu:noble
 
 # Copy necessary files from the builder stage
 COPY --from=builder /opt/spack-environment /opt/spack-environment
@@ -49,6 +59,16 @@ COPY --from=builder /xios /xios
 COPY --from=builder /usr /usr
 # paths.view is a symlink, so copy the parent to avoid dereferencing and duplicating it
 COPY --from=builder /opt/views /opt/views
+
+# We need to explicitly point ncgen to the view libraries
+# to resolve a problem of location of HDF5 libraries not being provided
+# in the executable's RPATH. See:
+# https://github.com/spack/spack/issues/52555
+ENV LD_LIBRARY_PATH=/opt/views/view/lib
+
+# Prevent apt from any prompting of the user (e.g. to select region)
+# Unanswered prompts may lead to failures
+ENV DEBIAN_FRONTEND=noninteractive
 
 # Create entrypoint script
 RUN { \

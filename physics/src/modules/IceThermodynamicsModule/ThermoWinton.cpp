@@ -241,17 +241,18 @@ void ThermoWinton::update(const TimestepTime& tst)
         static const double bulkLHFusionSnow = Water::Lf * Ice::rhoSnow;
         static const double bulkLHFusionIce = Water::Lf * Ice::rho;
 
-        // Don't do anything if there is no ice
+        // Take care of too thin (or no) ice
         if (cice[i] <= cMin || hice[i] <= hMin) {
+            deltaHi[i] = -hice[i];
+            botMelt[i] = topMelt[i] = 0.5 * deltaHi[i];
+            snowMelt[i] = -hsnow[i];
 
             snowToIce[i] = 0.;
-            snowMelt[i] = 0.;
             qswBase[i] = 0.;
 
             // Add to open water flux, since cice will be set to zero
             qow[i] += (hice[i] * bulkLHFusionIce + hsnow[i] * bulkLHFusionSnow) / dt;
 
-            deltaHi[i] = 0;
             cice[i] = 0;
             hice[i] = 0;
             hsnow[i] = 0;
@@ -439,6 +440,8 @@ void ThermoWinton::update(const TimestepTime& tst)
 
         hice[i] = hi * cice[i];
         hsnow[i] = hs * cice[i];
+        deltaHi[i] *= cice[i];
+        snowMelt[i] *= cice[i];
     });
 }
 
