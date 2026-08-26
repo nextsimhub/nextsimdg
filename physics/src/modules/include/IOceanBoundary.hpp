@@ -19,7 +19,7 @@ namespace Nextsim {
 class IOceanBoundary : public CheckingModelComponent {
 public:
     IOceanBoundary()
-        : qioAccessor(getStore(), RW, ModelArray::Type::H, std::pair(-1e8, 1e8))
+        : qioAccessor(getStore(), RW, ModelArray::Type::H)
         , sstAccessor(getStore(), RO, ModelArray::Type::H, std::pair(-5.0, 50.0))
         , sssAccessor(getStore(), RO, ModelArray::Type::H, std::pair(0.0, 50.0))
         , mldAccessor(getStore(), RO, ModelArray::Type::H, std::pair(1e-3, 12e3))
@@ -28,11 +28,11 @@ public:
         , uAccessor(getStore(), RO, ModelArray::Type::H, std::pair(-1.0, 1.0))
         , vAccessor(getStore(), RO, ModelArray::Type::H, std::pair(-1.0, 1.0))
         , sshAccessor(getStore(), RO, ModelArray::Type::H, std::pair(-10.0, 10.0))
-        , qNoSunAccessor(m_couplingArrays, RO, ModelArray::Type::H, std::pair(-1e6, 1e6))
+        , qNoSunAccessor(m_couplingArrays, RO, ModelArray::Type::H)
         , qswNetAccessor(m_couplingArrays, RO, ModelArray::Type::H, std::pair(-1e3, 1e3))
         , fwFluxAccessor(m_couplingArrays, RO, ModelArray::Type::H)
         , sFluxAccessor(m_couplingArrays, RO, ModelArray::Type::H)
-        , qswowAccessor(getStore(), RW, ModelArray::Type::H, std::pair(-1e3, 1e-6))
+        , qswowAccessor(getStore(), RW, ModelArray::Type::H, std::pair(-1e3, 1e-3))
         , qswBaseAccessor(getStore(), RW, ModelArray::Type::H, std::pair(-1e3, 1e-6))
         , tauXAccessor(m_couplingArrays, RO, ModelArray::Type::H, std::pair(-10.0, 10.0))
         , tauYAccessor(m_couplingArrays, RO, ModelArray::Type::H, std::pair(-10.0, 10.0))
@@ -170,19 +170,18 @@ public:
 
             // Mass fluxes - fresh water and salt
             // ice volume change, both laterally and vertically
-            const FloatType deltaIceVol = newIce[i] + deltaHice[i] * cice[i];
-            // change in snow volume due to melting (should be < 0)
-            const FloatType meltSnowVol = deltaSmelt[i] * cice[i];
+            const FloatType deltaIceVol = newIce[i] + deltaHice[i];
             // the device compiler does not like a global constant appearing in the argument list of
             // a template function: "identifier "Ice::s" is undefined in device code"
             const FloatType s = Ice::s;
             // Effective ice salinity is always less than or equal to the SSS, and here we use
             // the right units too
-            const FloatType effectiveIceSal = 1e-3 * Utils::min(s, sss[i]);
+            const FloatType effectiveIceSal = 1e-3_ft * Utils::min(s, sss[i]);
 
             // Positive flux is up!
             fwFlux[i]
-                = ((1 - effectiveIceSal) * Ice::rho * deltaIceVol + Ice::rhoSnow * meltSnowVol) / dt
+                = ((1 - effectiveIceSal) * Ice::rho * deltaIceVol + Ice::rhoSnow * deltaSmelt[i])
+                    / dt
                 + (evap[i] - rain[i]) * (1 - cice[i]);
             sFlux[i] = effectiveIceSal * Ice::rho * deltaIceVol / dt;
 

@@ -3,8 +3,8 @@
  * @author  Einar Ólason <einar.olason@nersc.no>
  */
 
-#include "include/Finalizer.hpp"
 #include "include/NSColumnPhysics.hpp"
+#include "include/Finalizer.hpp"
 #include "include/NextsimModule.hpp"
 #include "include/constants.hpp"
 
@@ -17,16 +17,6 @@ static const std::map<int, std::string> keyMap = {
     { NSColumnPhysics::MINH_KEY, "nextsim_thermo.min_thick" },
     { NSColumnPhysics::USE_THERMO_KEY, "nextsim_thermo.use_thermo_forcing" },
 };
-
-NSColumnPhysics::NSColumnPhysics()
-    : IColumnPhysics()
-    , hiceAccessor(getStore())
-    , ciceAccessor(getStore())
-    , hsnowAccessor(getStore())
-    , qowAccessor(getStore())
-    , deltaHiAccessor(getStore())
-{
-}
 
 void NSColumnPhysics::setData(const ModelState::DataMap& ms)
 {

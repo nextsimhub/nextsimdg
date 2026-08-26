@@ -25,8 +25,8 @@ ERA5Atmosphere::ERA5Atmosphere()
     , tairAccessor(getStore(), RO, ModelArray::Type::H, std::pair(-100.0, 100.0))
     , tdewAccessor(getStore(), RO, ModelArray::Type::H, std::pair(-100.0, 100.0))
     , pairAccessor(getStore(), RO, ModelArray::Type::H, std::pair(500e2, 2000e2))
-    , sw_inAccessor(getStore(), RO, ModelArray::Type::H, std::pair(-1e-6, 1e4))
-    , lw_inAccessor(getStore(), RO, ModelArray::Type::H, std::pair(-1e-6, 1e4))
+    , sw_inAccessor(getStore(), RO, ModelArray::Type::H, std::pair(-1e-3, 1e4))
+    , lw_inAccessor(getStore(), RO, ModelArray::Type::H, std::pair(-1e-3, 1e4))
     , windAccessor(getStore(), RO, ModelArray::Type::H, std::pair(0.0, 100.0))
 {
 }
