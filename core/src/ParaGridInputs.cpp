@@ -425,10 +425,8 @@ ModelState ParaGridInputs::interpolateSpatially(const RawDataMap& rawData)
 
 void ParaGridInputs::rotateInputVectors(RawDataMap& rawData)
 {
-    const auto originalRotation = rawData.data;
     for (const auto& [first, second] : vectors) {
-        rotator->toParametricMesh(originalRotation.at(first), originalRotation.at(second),
-            rawData.data.at(first), rawData.data.at(second));
+        rotator->toParametricMesh(rawData.data.at(first), rawData.data.at(second));
     }
 }
 
