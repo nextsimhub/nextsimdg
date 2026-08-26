@@ -5,9 +5,10 @@
 #ifndef NEXTSIM_DG_PARAGRIDINPUTS_HPP
 #define NEXTSIM_DG_PARAGRIDINPUTS_HPP
 
-#include "ModelArray.hpp"
-#include "ModelState.hpp"
-#include "Time.hpp"
+#include "include/ModelArray.hpp"
+#include "include/ModelState.hpp"
+#include "include/Time.hpp"
+#include "include/VectorRotator.hpp"
 
 #include <regex>
 #include <set>
@@ -95,6 +96,7 @@ private:
     RawDataMap forcingLonLats;
     std::set<std::string> forcings;
     std::set<std::pair<std::string, std::string>> vectors;
+    std::unique_ptr<VectorRotator> rotator;
 
     // Basic weight-setting functions
     void setWeights();
@@ -128,11 +130,6 @@ private:
 
     // Rotate the vectors from the input to model grid
     void rotateInputVectors(RawDataMap& rawData);
-
-    // A placeholder for the actual vector rotation logic
-    void vectorRotationLogic(const std::vector<FloatType>& vectorIn1st,
-        const std::vector<FloatType>& vectorIn2nd, std::vector<FloatType>& vectorOut1st,
-        std::vector<FloatType>& vectorOut2nd);
 
     // Read the forcing listed in ``forcings`` at times bracketing ``currentTime``.
     void readRawForcing(RawDataMap& rawDataBefore, RawDataMap& rawDataAfter);

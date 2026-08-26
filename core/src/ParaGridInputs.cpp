@@ -8,8 +8,6 @@
 
 #include "include/NetCDFUtils.hpp"
 #include "include/ParaGridInputs.hpp"
-
-#include "NextsimDynamics.hpp"
 #include "include/constants.hpp"
 #include "include/indexer.hpp"
 
@@ -37,6 +35,25 @@ void ParaGridInputs::setData(const TimePoint& time, const std::string& pathSpecI
     forcingLonLats = readRawData(currentTime, { ncLatName, ncLonName });
 
     setWeights();
+
+    // Useful aliases
+    const auto& lonDimSize = forcingLonLats.dims.at(ncLonName).size();
+    const auto& latDimSize = forcingLonLats.dims.at(ncLatName).size();
+    const auto& forcingLons = forcingLonLats.data[ncLonName];
+    const auto& forcingLats = forcingLonLats.data[ncLatName];
+
+    // Different methods for Mercator maps and curvilinear grids
+    if (lonDimSize == 1 && latDimSize == 1) {
+        // Lat and lon are 1D, so we construct the 2D dimensions and use East-North orientation
+        const std::vector dims2D
+            = { forcingLonLats.dims.at(ncLonName)[0], forcingLonLats.dims.at(ncLatName)[0] };
+        rotator = std::make_unique<VectorRotator>(
+            dims2D, forcingLons, forcingLats, VectorRotator::orientation::EAST_NORTH);
+    } else if (lonDimSize == 2 && latDimSize == 2) {
+        // Lat and lon are 2D
+        rotator = std::make_unique<VectorRotator>(forcingLonLats.dims.at(ncLonName), forcingLons,
+            forcingLats, VectorRotator::orientation::GRID);
+    }
 }
 
 void ParaGridInputs::update(const TimePoint& time)
@@ -408,20 +425,9 @@ ModelState ParaGridInputs::interpolateSpatially(const RawDataMap& rawData)
 
 void ParaGridInputs::rotateInputVectors(RawDataMap& rawData)
 {
-    const auto originalRotation = rawData.data;
     for (const auto& [first, second] : vectors) {
-        vectorRotationLogic(originalRotation.at(first), originalRotation.at(second),
-            rawData.data.at(first), rawData.data.at(second));
+        rotator->toParametricMesh(rawData.data.at(first), rawData.data.at(second));
     }
-}
-
-void ParaGridInputs::vectorRotationLogic(const std::vector<FloatType>& vectorIn1st,
-    const std::vector<FloatType>& vectorIn2nd, std::vector<FloatType>& vectorOut1st,
-    std::vector<FloatType>& vectorOut2nd)
-{
-    // Nothing done yet
-    vectorOut1st = vectorIn1st;
-    vectorOut2nd = vectorIn2nd;
 }
 
 void ParaGridInputs::readRawForcing(RawDataMap& rawDataBefore, RawDataMap& rawDataAfter)
