@@ -62,4 +62,5 @@ jobs:
         with:
           push: ${{ github.event_name == 'push' || github.event_name == 'schedule' }}
           file: Dockerfiles/Dockerfile.devenv
+          platforms: linux/amd64,linux/arm64
           tags: ghcr.io/nextsimhub/nextsimdg-dev-env:latest
