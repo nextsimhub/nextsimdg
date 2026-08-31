@@ -1,8 +1,10 @@
 import glob
 import os
+import sys
 from pathlib import Path
 
 import xarray as xr
+from flooding import FloodInterpolator
 
 """
 Create a flooded version of TOPAZ input files. Assume we have a directory structure like this:
@@ -33,6 +35,15 @@ daily_mean_flooded
     ├── topaz_rean_200704.nc
     └── topaz_rean_200705.nc
 """
+
+if len(sys.argv) != 2 or sys.argv[1] == "--help":
+    print("Usage: python " + sys.argv[0] + " <root directory of TOPAZ files>")
+    print(
+        "  We expect a directory structure where each year is a sub-directory of the root directory given as an argument."
+    )
+    sys.exit(0)
+
+root_dir = sys.argv[1]
 
 # Create an output directory. Fail if it exists
 out_dir = root_dir.rstrip("/") + "_flooded"
