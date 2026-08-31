@@ -22,6 +22,8 @@ public:
         , mixedLayerBulkHeatCapacityAccessor(getStore())
         , sstAccessor(getStore())
         , tfAccessor(getStore())
+        , deltaHiceAccessor(getStore())
+        , deltaSmeltAccessor(getStore())
     {
     }
     virtual ~HiblerSpread() = default;
@@ -50,6 +52,8 @@ private:
     ModelArrayAccessor<Protected::SST> sstAccessor; // sea surface temperature, ˚C
     ModelArrayAccessor<Protected::TF> tfAccessor; // ocean freezing point, ˚C
     ModelArrayAccessor<Shared::H_ICE_DG, RW> hiceAccessor; // Timestep initial true ice thickness, m
+    ModelArrayAccessor<Shared::DELTA_HICE, RW> deltaHiceAccessor;
+    ModelArrayAccessor<Shared::HSNOW_MELT, RW> deltaSmeltAccessor;
 };
 
 }

@@ -69,18 +69,21 @@ void ThermoIce0::update(const TimestepTime& tsTime)
 
         // If there is too little ice, do nothing and zero out the computed arrays
         if (hice[i] <= hMin || cice[i] <= cMin) {
-            deltaHi[i] = 0.;
-            snowToIce[i] = 0.;
-            snowMelt[i] = 0.;
-            qswBase[i] = 0.;
+            deltaHi[i] = -hice[i];
+            botMelt[i] = topMelt[i] = 0.5 * deltaHi[i];
+            snowMelt[i] = -hsnow[i];
 
-            tsurf[i] = freezingPointIce;
+            snowToIce[i] = 0.;
+            qswBase[i] = 0.;
 
             // Add to open water flux, since cice will be set to zero
             qow[i] += (hice[i] * bulkLHFusionIce + hsnow[i] * bulkLHFusionSnow) / dt;
-            cice[i] = 0.;
-            hice[i] = 0.;
-            hsnow[i] = 0.;
+
+            cice[i] = 0;
+            hice[i] = 0;
+            hsnow[i] = 0;
+
+            tsurf[i] = freezingPointIce;
 
             return;
         }
@@ -153,7 +156,7 @@ void ThermoIce0::update(const TimestepTime& tsTime)
             snowToIce[i] = 0.;
 
             // Change in thickness is all of the old thickness
-            deltaHi[i] = -oldHi;
+            deltaHi[i] = -oldHi * cice[i];
 
             // Add the melt flux to open water flux, since cice will be set to zero
             qow[i] += cice[i] * (hi * bulkLHFusionIce + hs * bulkLHFusionSnow) / dt;
@@ -168,6 +171,8 @@ void ThermoIce0::update(const TimestepTime& tsTime)
             // new values
             hice[i] = hi * cice[i];
             hsnow[i] = hs * cice[i];
+            deltaHi[i] *= cice[i];
+            snowMelt[i] *= cice[i];
         }
     });
 }

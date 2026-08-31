@@ -1,3 +1,5 @@
+#! /usr/bin/env python3
+
 import argparse
 import calendar
 import time
@@ -43,7 +45,7 @@ def create_era5_times(start_tm, stop_tm):
     era5_unix = calendar.timegm(era5_epoch)
     era5_hours = era5_unix / sec_per_hr
 
-    return (unix_times, hour_times - era5_hours)
+    return unix_times, hour_times - era5_hours
 
 
 def create_topaz_times(start_tm, stop_tm):
@@ -72,7 +74,7 @@ def create_topaz_times(start_tm, stop_tm):
     topaz4_unix = calendar.timegm(topaz4_epoch)
     topaz4_hours = topaz4_unix / sec_per_hr
 
-    return (unix_times, hour_times - topaz4_hours)
+    return unix_times, hour_times - topaz4_hours
 
 
 def era5_source_file_name(field, unix_time, path):
@@ -93,7 +95,6 @@ def topaz4_source_file_name(unix_time, path):
     """
     Construct the file name that holds the TOPAZ4 data for a given field at a given time.
 
-    :param field: Name of the variable to be read in from the TOPAZ4 file
     :param unix_time: Time in Unix format
     :param path: Path for the TOPAZ4 file
     :return: File name
@@ -253,7 +254,7 @@ if __name__ == "__main__":
 
     greenland_headings = heading_to_greenland(element_lat, element_lon)
 
-    nc_times = era5_ncFile.createVariable("time", "f8", ("time"))
+    nc_times = era5_ncFile.createVariable("time", "f8", "time")
     nc_times.units = "seconds since 1970-01-01T00:00:00Z"
 
     (unix_times_e, era5_times) = create_era5_times(start_time, stop_time)
@@ -277,7 +278,6 @@ if __name__ == "__main__":
                 time_index = target_time - source_times[0]
                 source_data = source_file[era5_field][time_index, :, :]
                 # Now interpolate the source data to the target grid
-                time_data = np.zeros((ny, nx))
                 time_data = era5_interpolate(
                     element_lon, element_lat, source_data, source_lons, source_lats
                 )
@@ -319,11 +319,9 @@ if __name__ == "__main__":
                     u_data_source[-1, :] = u_data_source[-2, :]
                     v_data_source[-1, :] = u_data_source[-2, :]
                 # Now interpolate the source data to the target grid
-                u_data_target = np.zeros((ny, nx))
                 u_data_target = era5_interpolate(
                     element_lon, element_lat, u_data_source, source_lons, source_lats
                 )
-                v_data_target = np.zeros((ny, nx))
                 v_data_target = era5_interpolate(
                     element_lon, element_lat, v_data_source, source_lons, source_lats
                 )
@@ -371,7 +369,7 @@ if __name__ == "__main__":
     nc_lats = topaz_ncFile.createVariable("latitude", "f8", hfield_dims)
     nc_lats[:, :] = element_lat
 
-    nc_times = topaz_ncFile.createVariable("time", "f8", ("time"))
+    nc_times = topaz_ncFile.createVariable("time", "f8", "time")
     nc_times.units = "seconds since 1970-01-01T00:00:00Z"
 
     # TOPAZ data is daily, not hourly
@@ -399,7 +397,6 @@ if __name__ == "__main__":
                 # Index the time and squeeze the time dimension away
                 source_data = source_file[topaz_field][time_index, :, :].squeeze()
                 # Now interpolate the source data to the target grid
-                time_data = np.zeros((nx, ny))
                 proj_string = source_file["stereographic"].proj4
                 source_x = source_file["x_dim"][:]
                 source_y = source_file["y_dim"][:]
@@ -433,12 +430,12 @@ if __name__ == "__main__":
         target_time = topaz4_times[target_t_index]
         source_times = u_source_file["time"]
         time_index = (target_time - source_times[0]) // hr_per_day
-        u_source_data = u_source_file["vxo"][
-            time_index, :, :
-        ].squeeze()  # Need to squeeze. Why?
+        # Need to squeeze. Why?
+        u_source_data = u_source_file["vxo"][time_index, :, :].squeeze()
         v_source_data = v_source_file["vyo"][time_index, :, :].squeeze()
-        u_source_data_tgrid = np.zeros((nx, ny))
-        v_source_data_tgrid = np.zeros((nx, ny))
+        # We want the ocean velocity to be zero on land - not some interpolated value
+        u_source_data[np.isnan(u_source_data)] = 0.0
+        v_source_data[np.isnan(v_source_data)] = 0.0
         # Interpolate the current components on the TOPAZ basis on to the new grid
         proj_string = source_file["stereographic"].proj4
         source_x = source_file["x_dim"][:]
