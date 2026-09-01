@@ -77,8 +77,10 @@ set(ScriptDirectory "${PROJECT_SOURCE_DIR}/scripts")
 set(ModuleBuilderScript "${ScriptDirectory}/module_builder.py")
 set(ModuleHeaderScript "${ScriptDirectory}/module_header.py")
 
-# Dynamics type. Defaults to DG1. Available options are: DG1 Discontinuous Galerkin, degree 1 (3
-# components) DG2 Discontinuous Galerkin, degree 2 (6 components)
+# Dynamics type. Defaults to DG1. Available options are:
+#
+# * "DG1" Discontinuous Galerkin, degree 1 (3 components)
+# * "DG2" Discontinuous Galerkin, degree 2 (6 components)
 set(isDG FALSE)
 
 message("Dynamics is set to ${DynamicsType}")
@@ -146,9 +148,9 @@ message("FP type is set to ${FloatType}")
 # boost
 find_package(
     Boost
-    COMPONENTS program_options log
+    COMPONENTS program_options log_setup log
     REQUIRED)
-target_link_libraries(nextsimlib PUBLIC Boost::program_options Boost::log)
+target_link_libraries(nextsimlib PUBLIC Boost::program_options Boost::log_setup Boost::log)
 # Regarding Boost.Log, if our application consists of more than one modules that use it, we must
 # link to the shared version. If we have a single executable or a single module that works, we may
 # use the static version. By default, it is assumed that the library is built in static mode. Use
@@ -179,7 +181,7 @@ if(ENABLE_XIOS)
     )
     if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
         set(FORTRAN_RUNTIME_LIB "-lgfortran -lmpi_mpifh")
-    elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
+    elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
         set(FORTRAN_RUNTIME_LIB "-lifcore")
     endif()
     target_link_libraries(nextsimlib PUBLIC "${FORTRAN_RUNTIME_LIB}")
