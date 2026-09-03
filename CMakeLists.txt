@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.16)
 
 # set globally because we have a number of independent targets
 set(CMAKE_CXX_STANDARD 17)
@@ -63,14 +63,8 @@ if(NOT TARGET Eigen3::Eigen)
 endif()
 target_link_libraries(nextsimlib PUBLIC Eigen3::Eigen)
 
-if(DEFINED PYTHON_EXECUTABLE)
-    set(Python_EXECUTABLE
-        PYTHON_EXECUTABLE
-        CACHE STRING "")
-else()
-    set(Python_FIND_VIRTUALENV FIRST)
-    find_package(Python COMPONENTS Interpreter)
-endif()
+set(Python_FIND_VIRTUALENV FIRST)
+find_package(Python COMPONENTS Interpreter REQUIRED)
 
 # The location of the module_builder.py scripts
 set(ScriptDirectory "${PROJECT_SOURCE_DIR}/scripts")

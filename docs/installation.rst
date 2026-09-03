@@ -125,6 +125,13 @@ required Python packages with
 
         pip install -r requirements.txt
 
+.. note::
+
+   The build system locates the Python interpreter using CMake's ``FindPython``
+   module, preferring the interpreter of any active ``conda`` or ``virtualenv``
+   environment. If you need to point the build at a specific Python interpreter,
+   pass ``-DPython_EXECUTABLE=/path/to/python`` when configuring CMake.
+
 Building domain_decomp
 ----------------------
 NextSIM-DG uses the ``domain_decomp`` library for generating domain
