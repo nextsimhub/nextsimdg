@@ -64,9 +64,8 @@ jobs:
     - name: build and compile without XIOS or MPI
       run: |
         . /opt/spack-environment/activate.sh
-        mkdir -p build && cd build
-        cmake -DCMAKE_BUILD_TYPE=Release ..
-        make -j 4
+        cmake -B build -S . -DCMAKE_BUILD_TYPE=Release
+        cmake --build build -j 4
 
     - name: installs for python tests
       run: |
@@ -110,8 +109,8 @@ jobs:
         git submodule init
         git submodule update
         cd domain_decomp
-        cmake -G "Unix Makefiles" -Bbuild -S.
-        cmake --build build --config Release
+        cmake -G "Unix Makefiles" -B build -S . -DCMAKE_BUILD_TYPE=Release
+        cmake --build build
 
     - name: build and compile with MPI but not XIOS
       run: |
@@ -122,9 +121,8 @@ jobs:
         . /opt/spack-environment/activate.sh
         # provide path to domain_decomp binary
         export PATH="${PATH}:${PWD}/domain_decomp/build"
-        mkdir -p build && cd build
-        cmake -DENABLE_MPI=ON -DENABLE_XIOS=OFF -DCMAKE_CXX_COMPILER="$(which mpic++)" ..
-        make -j 4
+        cmake -B build -S . -DENABLE_MPI=ON -DENABLE_XIOS=OFF -DCMAKE_CXX_COMPILER="$(which mpic++)" -DCMAKE_BUILD_TYPE=Release
+        cmake --build build -j 4
 
     - name: run MPI tests
       run: |
@@ -165,8 +163,8 @@ jobs:
         git submodule init
         git submodule update
         cd domain_decomp
-        cmake -G "Unix Makefiles" -Bbuild -S.
-        cmake --build build --config Release
+        cmake -G "Unix Makefiles" -B build -S . -DCMAKE_BUILD_TYPE=Release
+        cmake --build build
 
     - name: build and compile with XIOS and MPI
       run: |
@@ -178,9 +176,8 @@ jobs:
         . $HOME/nextsim/bin/activate
         # provide path to domain_decomp binary
         export PATH="${PATH}:${PWD}/domain_decomp/build"
-        mkdir -p build && cd build
-        cmake -DENABLE_MPI=ON -Dxios_DIR="/xios" -DENABLE_XIOS=ON -DCMAKE_CXX_COMPILER="$(which mpic++)" ..
-        make -j 4
+        cmake -B build -S . -DENABLE_MPI=ON -Dxios_DIR="/xios" -DENABLE_XIOS=ON -DCMAKE_CXX_COMPILER="$(which mpic++)" -DCMAKE_BUILD_TYPE=Release
+        cmake --build build -j 4
 
     - name: run MPI tests
       run: |
@@ -234,10 +231,8 @@ jobs:
       run: |
         export CMAKE_PREFIX_PATH=/opt/homebrew/Cellar/eigen@3/3.4.1/share/eigen3/cmake
         . $HOME/nextsim/bin/activate
-        mkdir -p build
-        cd build
-        cmake -DCMAKE_BUILD_TYPE=Release -DENABLE_MPI=OFF -DENABLE_XIOS=OFF ..
-        make -j 4
+        cmake -B build -S . -DCMAKE_BUILD_TYPE=Release -DENABLE_MPI=OFF -DENABLE_XIOS=OFF
+        cmake --build build -j 4
 
     - name: run serial tests
       run: |
