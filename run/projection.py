@@ -65,6 +65,9 @@ class PolarStereoGrid:
     dx: float
     dy: float
 
+    lon_corner: np.ndarray
+    lat_corner: np.ndarray
+
     @property
     def nx(self) -> int:
         return self.x.size
@@ -256,11 +259,9 @@ class PolarStereoProjection:
         # Geographic coordinates.
         lon, lat = self.xy_to_lonlat(X, Y)
 
-        # 2D cell edge coordinates
-        Xe, Ye = np.meshgrid(xbnds, ybnds)
-
-        # Geographic coordinates
-        lonb, latb = self.xy_to_lonlat(Xe, Ye)
+        # Geographic coordinates of the grid corners.
+        Xc, Yc = np.meshgrid(xbnds, ybnds)
+        lon_corner, lat_corner = self.xy_to_lonlat(Xc, Yc)
 
         return PolarStereoGrid(
             x=x,
@@ -271,6 +272,8 @@ class PolarStereoProjection:
             Y=Y,
             lon=lon,
             lat=lat,
+            lon_corner=lon_corner,
+            lat_corner=lat_corner,
             dx=dx,
             dy=dy,
         )
