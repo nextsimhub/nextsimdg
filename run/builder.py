@@ -246,6 +246,24 @@ class GridBuilder:
                         "units": "degrees_north",
                     },
                 ),
+                "lon_corner": (
+                    ("y_bnds", "x_bnds"),
+                    self.grid.lon_corner.astype(np.float64),
+                    {
+                        "standard_name": "longitude",
+                        "long_name": "longitude at cell corners",
+                        "units": "degrees_east",
+                    },
+                ),
+                "lat_corner": (
+                    ("y_bnds", "x_bnds"),
+                    self.grid.lat_corner.astype(np.float64),
+                    {
+                        "standard_name": "latitude",
+                        "long_name": "latitude at cell corners",
+                        "units": "degrees_north",
+                    },
+                ),
                 "depth": (
                     ("y", "x"),
                     self.depth,
