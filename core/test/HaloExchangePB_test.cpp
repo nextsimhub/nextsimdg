@@ -97,14 +97,19 @@ struct DomainModel {
         , type(type)
     {
         if (type == ModelArray::Type::VERTEX) {
-            //  Vertex fields have an extra entries (e.g. 3 cells in 1D have 4 vertices)
+            // Vertex fields have extra entries (e.g. 3 cells in 1D have 4 vertices)
+            // But only for local sizes (size in each rank).
+            // Due to the periodic boundary conditions the global size is not increased
+            // because vertices on the right edge are the same vertices that are on the left edge.
             this->nx = nx;
             this->ny = ny;
             this->localNx = localNx + 1;
             this->localNy = localNy + 1;
         } else if (type == ModelArray::Type::CG) {
-            //  CG fields have an extra entries
-            //  Cells are subdivided by degrees in addition to the normal vertices
+            // CG fields are stored on the node mesh and the remark for the Vertex fields and their
+            // size applies for them as well.
+            // In addition, extra points are placed inside each cell, with the number being
+            // dependent on the degree.
             this->nx = nx * CGDEGREE;
             this->ny = ny * CGDEGREE;
             this->localNx = localNx * CGDEGREE + 1;
