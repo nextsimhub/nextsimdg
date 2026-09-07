@@ -9,7 +9,7 @@
  *  - Assigning each value in the grid with a unique id (hash) based on its global
  *    coordinates
  *  - We take care to not assign any values in the halo region for each rank
- *  - We then perform tha halo exchange
+ *  - We then perform the halo exchange
  *  - For each rank we verify that the values stored in the field match the
  *    hash
  *
@@ -135,7 +135,7 @@ struct DomainModel {
     }
 
     /**
-     * @brief Map the local coorinates of the domain to the global coordinates
+     * @brief Map the local coordinates of the domain to the global coordinates
      *
      * Assumes the periodic X and Y topology
      */
