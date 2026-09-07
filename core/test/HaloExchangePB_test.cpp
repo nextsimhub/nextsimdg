@@ -220,7 +220,9 @@ MPI_TEST_CASE("test halo exchange on 3 proc grid", 3)
     auto& modelMPI = ModelMPI::getInstance(test_comm);
     auto& metadata = ModelMetadata::getInstance(file);
 
-    // We work on signed integers to represent extents and grid
+    // We work on signed integers to represent extents and grid in contrast
+    // to the CB version of the test.
+    // It makes the wraparound calculations much easier.
     // coordinates
     // Size of the entire computational domain
     const int nx = metadata.getGlobalExtentX();
@@ -277,8 +279,9 @@ MPI_TEST_CASE("DGField", 3)
     auto& modelMPI = ModelMPI::getInstance();
     auto& metadata = ModelMetadata::getInstance();
 
-    // We work on signed integers to represent extents and grid
-    // coordinates
+    // We work on signed integers to represent extents and grid in contrast
+    // to the CB version of the test.
+    // It makes the wraparound calculations much easier.
     // Size of the entire computational domain
     const int nx = metadata.getGlobalExtentX();
     const int ny = metadata.getGlobalExtentY();
@@ -318,8 +321,9 @@ MPI_TEST_CASE("DGVector", 3)
     auto& modelMPI = ModelMPI::getInstance();
     auto& metadata = ModelMetadata::getInstance();
 
-    // We work on signed integers to represent extents and grid
-    // coordinates
+    // We work on signed integers to represent extents and grid in contrast
+    // to the CB version of the test.
+    // It makes the wraparound calculations much easier.
     // Size of the entire computational domain
     const int nx = metadata.getGlobalExtentX();
     const int ny = metadata.getGlobalExtentY();
@@ -373,8 +377,9 @@ MPI_TEST_CASE("CGVector", 3)
     auto& modelMPI = ModelMPI::getInstance();
     auto& metadata = ModelMetadata::getInstance();
 
-    // We work on signed integers to represent extents and grid
-    // coordinates
+    // We work on signed integers to represent extents and grid in contrast
+    // to the CB version of the test.
+    // It makes the wraparound calculations much easier.
     // Size of the entire computational domain
     const int nx = metadata.getGlobalExtentX();
     const int ny = metadata.getGlobalExtentY();
