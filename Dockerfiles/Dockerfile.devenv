@@ -1,6 +1,8 @@
 # Build stage with Spack pre-installed and ready to be used
 FROM spack/ubuntu-noble:latest AS builder
 
+ARG TARGET
+
 # Install perl
 RUN apt update \
     && apt install -y --no-install-recommends libany-uri-escape-perl \
@@ -12,12 +14,16 @@ RUN find . -type f -path "*/package_repos/*/readline/package.py" \
   -exec sed -i 's|https://ftpmirror.gnu.org|https://ftp.gnu.org/gnu|w /dev/stdout' '{}' \;
 
 # Install software from spack.yaml
+# If TARGET is null (not provided) we should use default architecture
+# otherwise use what is specified
 RUN mkdir /opt/spack-environment
 COPY Dockerfiles/spack.yaml /opt/spack-environment/spack.yaml
 RUN cd /opt/spack-environment \
     && spack env activate . \
-    && spack install --fail-fast \
-    && spack gc -y
+    && if [ -n "$TARGET" ]; then \
+         spack config --scope env:"$SPACK_ENV" add "packages:all:prefer:['target=${TARGET}']"; \
+       fi && \
+    spack install --fail-fast && spack gc -y
 
 # Add the view `lib` to the LD_LIBRARY_PATH
 # This is required to make `ncgen` find  the libraries correctly
