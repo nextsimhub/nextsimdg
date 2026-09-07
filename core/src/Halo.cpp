@@ -113,20 +113,13 @@ Edge Halo::edgeFromSendPos(int sendPos, int fromRank)
 }
 
 void Halo::recvPositions(int& fromRank, size_t& count, size_t& disp, size_t& recvOffset, Edge edge,
-    const size_t neighbourIndex, const size_t cell, bool isPeriodic)
+    const size_t neighbourIndex, const size_t cell)
 {
     auto& metadata = ModelMetadata::getInstance();
-    if (isPeriodic) {
-        fromRank = metadata.neighbourRanksPeriodic[edge][neighbourIndex];
-        count = metadata.neighbourExtentsPeriodic[edge][neighbourIndex];
-        disp = metadata.neighbourHaloSendPeriodic[edge][neighbourIndex];
-        recvOffset = metadata.neighbourHaloRecvPeriodic[edge][neighbourIndex];
-    } else {
-        fromRank = metadata.neighbourRanks[edge][neighbourIndex];
-        count = metadata.neighbourExtents[edge][neighbourIndex];
-        disp = metadata.neighbourHaloSend[edge][neighbourIndex];
-        recvOffset = metadata.neighbourHaloRecv[edge][neighbourIndex];
-    }
+    fromRank = metadata.neighbourRanks[edge][neighbourIndex];
+    count = metadata.neighbourExtents[edge][neighbourIndex];
+    disp = metadata.neighbourHaloSend[edge][neighbourIndex];
+    recvOffset = metadata.neighbourHaloRecv[edge][neighbourIndex];
     auto sendEdge = edgeFromSendPos(disp, fromRank);
     if (isVertex) {
         count = count + 1;
@@ -152,19 +145,13 @@ void Halo::recvPositions(int& fromRank, size_t& count, size_t& disp, size_t& rec
 }
 
 void Halo::recvPositions(int& fromRank, size_t& count, size_t& disp, size_t& recvOffset,
-    Corner corner, const size_t cell, bool isPeriodic)
+    Corner corner, const size_t cell)
 {
     count = 1; // we only have maximum of 1 corner neighbour for each corner
     auto& metadata = ModelMetadata::getInstance();
-    if (isPeriodic) {
-        fromRank = metadata.cornerRanksPeriodic[corner][0];
-        disp = metadata.cornerHaloSendPeriodic[corner][0];
-        recvOffset = metadata.cornerHaloRecvPeriodic[corner][0];
-    } else {
-        fromRank = metadata.cornerRanks[corner][0];
-        disp = metadata.cornerHaloSend[corner][0];
-        recvOffset = metadata.cornerHaloRecv[corner][0];
-    }
+    fromRank = metadata.cornerRanks[corner][0];
+    disp = metadata.cornerHaloSend[corner][0];
+    recvOffset = metadata.cornerHaloRecv[corner][0];
     auto sendEdge = edgeFromSendPos(disp, fromRank);
     if (isVertex) {
         count = 1;
@@ -219,7 +206,7 @@ void Halo::populateRecvBuffers()
         // open memory window to send buffer on other ranks
         openMemoryWindow(comp);
         auto& metadata = ModelMetadata::getInstance();
-        // get non-periodic neighbours and populate recv buffer (if the exist)
+        // get neighbours and populate recv buffer (if the exist)
         for (auto edge : edges) {
 
             // get neighbours (if they exist)
@@ -228,20 +215,7 @@ void Halo::populateRecvBuffers()
                 // get data for each neighbour that exists along a given edge
                 for (size_t i = 0; i < numNeighbours; ++i) {
                     for (size_t cell = 0; cell < nCells; ++cell) {
-                        recvPositions(fromRank, count, disp, recvOffset, edge, i, cell, false);
-                        MPI_Get(&recv[comp][recvOffset], count, MPI_DOUBLE, fromRank, disp, count,
-                            MPI_DOUBLE, m_win);
-                    }
-                }
-            }
-
-            // get periodic neighbours (if they exist)
-            numNeighbours = metadata.neighbourRanksPeriodic[edge].size();
-            if (numNeighbours) {
-                // get data for each neighbour that exists along a given edge
-                for (size_t i = 0; i < numNeighbours; ++i) {
-                    for (size_t cell = 0; cell < nCells; ++cell) {
-                        recvPositions(fromRank, count, disp, recvOffset, edge, i, cell, true);
+                        recvPositions(fromRank, count, disp, recvOffset, edge, i, cell);
                         MPI_Get(&recv[comp][recvOffset], count, MPI_DOUBLE, fromRank, disp, count,
                             MPI_DOUBLE, m_win);
                     }
@@ -249,7 +223,7 @@ void Halo::populateRecvBuffers()
             }
         }
 
-        // get non-periodic corner neighbours and populate recv buffer (if the exist)
+        // get corner neighbours and populate recv buffer (if the exist)
         for (auto corner : corners) {
 
             // get neighbours (if they exist)
@@ -257,17 +231,7 @@ void Halo::populateRecvBuffers()
             // hasCorner will either be 0 or 1
             if (hasCorner) {
                 for (size_t cell = 0; cell < nCells; ++cell) {
-                    recvPositions(fromRank, count, disp, recvOffset, corner, cell, false);
-                    MPI_Get(&recv[comp][recvOffset], count, MPI_DOUBLE, fromRank, disp, count,
-                        MPI_DOUBLE, m_win);
-                }
-            }
-
-            // get periodic neighbours (if they exist)
-            hasCorner = metadata.cornerRanksPeriodic[corner].size();
-            if (hasCorner) {
-                for (size_t cell = 0; cell < nCells; ++cell) {
-                    recvPositions(fromRank, count, disp, recvOffset, corner, cell, true);
+                    recvPositions(fromRank, count, disp, recvOffset, corner, cell);
                     MPI_Get(&recv[comp][recvOffset], count, MPI_DOUBLE, fromRank, disp, count,
                         MPI_DOUBLE, m_win);
                 }
@@ -338,38 +302,11 @@ void Halo::transposeCorners()
 {
     auto& metadata = ModelMetadata::getInstance();
     for (auto corner : corners) {
-        // non-periodic corners
-        bool hasCorner = false;
-        bool isPeriodic = false;
-
-        // Check if both periodic and non-periodic corner neighbours exist
-        if (metadata.cornerRanksPeriodic[corner].size() > 0
-            && metadata.cornerRanks[corner].size() > 0) {
-            throw std::runtime_error(
-                "It is not possible to have a non-periodic corner neighbour that is also "
-                "periodic. Please check your partition metadata file.");
-        }
-
-        if (metadata.cornerRanks[corner].size() > 0) {
-            // non-periodic case
-            hasCorner = true;
-            isPeriodic = false;
-        } else if (metadata.cornerRanksPeriodic[corner].size() > 0) {
-            // periodic case
-            hasCorner = true;
-            isPeriodic = true;
-        }
+        bool hasCorner = metadata.cornerRanks[corner].size() > 0;
 
         if (hasCorner) {
-            int fromRank;
-            size_t disp;
-            if (isPeriodic) {
-                fromRank = metadata.cornerRanksPeriodic[corner][0];
-                disp = metadata.cornerHaloSendPeriodic[corner][0];
-            } else {
-                fromRank = metadata.cornerRanks[corner][0];
-                disp = metadata.cornerHaloSend[corner][0];
-            }
+            int fromRank = metadata.cornerRanks[corner][0];
+            size_t disp = metadata.cornerHaloSend[corner][0];
 
             auto sendEdge = edgeFromSendPos(disp, fromRank);
 
