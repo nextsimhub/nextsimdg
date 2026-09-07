@@ -1,19 +1,24 @@
 /*!
  * @author  Tom Meltzer <tdm39@cam.ac.uk> & Mikolaj Adam Kowalski <mak60@cam.ac.uk>
  * @brief   Test halo exchange class for Periodic Boundaries (PB)
- * @details
  *
- * The purpose of this test is to verify the Halo exchange.
+ * @details
+ * The purpose of this test is to verify the halo exchange implementation with
+ * periodic boundary conditions.
  *
  * We accomplish that by:
- *  - Assigning each value in the grid with a unique id (hash) based on its global
- *    coordinates
- *  - We take care to not assign any values in the halo region for each rank
+ *  - Assigning each value in the grid with a unique id (hash) based on the global
+ *    coordinates. Note that the value depends only on the global position and
+ *    the component index.
+ *  - In each rank, we assign the values of the hash to the field in the interior only.
+ *    The halo regions are left uninitialized (set to zero).
  *  - We then perform the halo exchange
- *  - For each rank we verify that the values stored in the field match the
- *    hash
+ *  - On each rank, we verify that all values in the field (including those in
+ *    the halo regions) match the expected hash. It is performed for the
+ *    interior as well to detect any cases of data corruption during the halo
+ *    exchange (e.g. accidental copy outside the halo region)
  *
- * Test halo exchange class for Periodic Boundaries (PB) on following fields:
+ * We apply this verification procedure to the following fields:
  * - HField
  * - VertexField
  * - DGField
