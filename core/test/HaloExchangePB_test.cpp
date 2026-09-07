@@ -51,16 +51,35 @@ static const bool debug = false;
  * Helper class to group all domain-dependent calculations
  *
  * It is hardcoded for a periodic topology both in X and Y.
- * The interpretation of  wraparound for the cell based fields (e.g. H or DG) is
+ * The interpretation of wraparound for the cell based fields (e.g. H or DG) is
  * quite straightforward. It is just that on the right edge, the right neighbours
  * of the cells are the cells on the left edge of the domain.
+ * See the following diagram
  *
- * For point based fields there is only one caveat. The points on the right edge
- * ARE the points on the left edge. There is continuity and they need to have
- * the same identity.
+ * For an axis with size 4 and periodic boundary:
  *
- * Hence while without a periodic boundary a domain of NxM cells will have
- * (N+1)x(M+1) vertices, with periodic boundaries it will have NxM vertices only.
+ *      |     Domain    |         Domain
+ *  | 3 | 0 | 1 | 2 | 3 | 0 |     Cells
+ *
+ * For point-based fields (e.g. Vertex or CG) there is only one caveat. The
+ * points on the right edge ARE the points on the left edge. There is continuity
+ * and they need to have the same identity. Hence while without a periodic
+ * boundary a domain of NxM cells will have (N+1)x(M+1) vertices, with periodic
+ * boundaries it will have NxM vertices only.
+ *
+ * With periodic boundary and size 4 (cells):
+ *
+ *      |     Domain    |        Domain
+ *  | 3 | 0 | 1 | 2 | 3 | 0 |    Cells
+ *  ●   ●   ●   ●   ●   ●   ●    Vertices
+ *  3   0   1   2   3   0   1    Vertex global index
+ *
+ * Without periodic boundary and size 4 (cells):
+ *
+ *      |     Domain    |        Domain
+ *  | x | 0 | 1 | 2 | 3 | x |    Cells
+ *  ●   ●   ●   ●   ●   ●   ●    Vertices
+ *  x   0   1   2   3   4   x    Vertex global index
  *
  */
 struct DomainModel {
