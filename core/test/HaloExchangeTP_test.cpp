@@ -182,46 +182,46 @@ struct DomainModel {
             return ((global) % size + size) % size;
         };
 
-        const auto tripolar_point_symmetry = [](int globalX, int globalY, int nx, int ny) {
-            
-            // Since the point symmetry may contain a half, it is not representable
-            // by an integer :-/ Fortunately we only need to know 2*p to apply 
-            // point transformation formula x' = 2p - x
-            // We calculate it directly
-            const auto twice_symmetry_point_x = nx - 1;
-            const auto twice_symmetry_point_y = 2 * ny - 1;
-            
-            const auto globalX_prime = twice_symmetry_point_x - globalX;
-            const auto globalY_prime = twice_symmetry_point_y - globalY;
+        const auto tripolar_point_symmetry
+            = [](int globalX, int globalY, int twice_x_sym, int twice_y_sym) {
+                  // Since the point symmetry may contain a half, it is not representable
+                  // by an integer :-/ Fortunately we only need to know 2*p to apply
+                  // point transformation formula x' = 2p - x
+                  // We need to take them as arguments since may be different for CG/Vertex and DG
+                  // fields
+                  const auto globalX_prime = twice_x_sym - globalX;
+                  const auto globalY_prime = twice_y_sym - globalY;
 
-            return std::make_pair(globalX_prime, globalY_prime);
-        };
-
+                  return std::make_pair(globalX_prime, globalY_prime);
+              };
 
         auto globalX = x + this->offsetX - this->haloSize;
         auto globalY = y + this->offsetY - this->haloSize;
 
-        // Apply the periodicity in X
-        globalX = periodic_reflection(globalX, nx);
-
         // We need to use different logic for the point and cell based fields
         // For cells, we apply the tripolar fold for any cell outside the domain
-        // For points we need to be careful and not duplicate identity of the points 
-        // We select the leftmost half of the top edge to have unique identity 
+        // For points we need to be careful and not duplicate identity of the points
+        // We select the leftmost half of the top edge to have unique identity
         // The right half are the duplicates
         if (type == ModelArray::Type::VERTEX || type == ModelArray::Type::CG) {
-            // TODO: Not working correctly yet! Please FIXME!
-            if (globalY >= ny || globalY == (ny -1) && globalX >= nx / 2) { 
-                std::tie(globalX, globalY) = tripolar_point_symmetry(globalX, globalY, nx, ny - 1);
+            if (globalY >= ny || (globalY == (ny - 1) && globalX >= nx / 2)) {
+                const auto twice_symmetry_point_x = nx;
+                const auto twice_symmetry_point_y = 2 * (ny - 1);
+                std::tie(globalX, globalY) = tripolar_point_symmetry(
+                    globalX, globalY, twice_symmetry_point_x, twice_symmetry_point_y);
             }
-
 
         } else {
             if (globalY >= ny) {
-                std::tie(globalX, globalY) = tripolar_point_symmetry(globalX, globalY, nx, ny);
+                const auto twice_symmetry_point_x = nx - 1;
+                const auto twice_symmetry_point_y = 2 * ny - 1;
+                std::tie(globalX, globalY) = tripolar_point_symmetry(
+                    globalX, globalY, twice_symmetry_point_x, twice_symmetry_point_y);
             }
         }
 
+        // Apply the periodicity in X
+        globalX = periodic_reflection(globalX, nx);
 
         return { globalX, globalY };
     }
@@ -260,7 +260,7 @@ template <typename T> void verifyTestData(T& data, const DomainModel& domain)
                 const auto actualValue = data(d + i * numComps + j * domain.localNx * numComps);
                 data(d + i * numComps + j * domain.localNx * numComps) = expectedValue;
 
-                //REQUIRE(actualValue == expectedValue);
+                // REQUIRE(actualValue == expectedValue);
             }
         }
     }
@@ -329,7 +329,6 @@ MPI_TEST_CASE("test halo exchange on 3 proc grid", 3)
     haloVertex.exchangeHalos(coordinates.getDataRef());
 
     verifyTestData(coordinates.getDataRef(), VertexFieldDomain);
-
 }
 
 MPI_TEST_CASE("DGField", 3)
