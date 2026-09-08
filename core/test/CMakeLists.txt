@@ -313,6 +313,13 @@ if(ENABLE_MPI)
                                    PRIVATE ${MODEL_INCLUDE_DIR} "${ModulesRoot}/StructureModule")
         target_link_libraries(testModelMetadata_MPI3 PRIVATE nextsimlib doctest::doctest)
 
+        add_executable(testModelMetadataTP_MPI3 "ModelMetadataTP_test.cpp" "MainMPI.cpp")
+        target_compile_definitions(testModelMetadataTP_MPI3
+                                   PRIVATE USE_MPI TEST_FILES_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\")
+        target_include_directories(testModelMetadataTP_MPI3
+                                   PRIVATE ${MODEL_INCLUDE_DIR} "${ModulesRoot}/StructureModule")
+        target_link_libraries(testModelMetadataTP_MPI3 PRIVATE nextsimlib doctest::doctest)
+
         add_executable(testConfigOutput_MPI2 "ConfigOutput_test.cpp" "MainMPI.cpp")
         target_compile_definitions(testConfigOutput_MPI2
                                    PRIVATE USE_MPI TEST_FILES_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\")
@@ -327,6 +334,7 @@ if(ENABLE_MPI)
             testParaGrid_MPI2
             testRectGrid_MPI3
             testModelMetadata_MPI3
+            testModelMetadataTP_MPI3
             testConfigOutput_MPI2)
         add_mpi_test("${MPI_TESTS}")
     endif()
