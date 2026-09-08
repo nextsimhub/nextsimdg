@@ -238,10 +238,6 @@ private:
      */
     void readNeighbourData(netCDF::NcFile& ncFile);
 
-#ifdef USE_MPI
-    void setMpiMetadata(MPI_Comm comm);
-#endif
-
     TimePoint m_time;
     ConfigMap m_config;
 
