@@ -33,6 +33,21 @@
 #include <ncVar.h>
 #endif
 
+namespace {
+
+/**
+ * @brief Check if the rank touches the top edge
+ */
+bool rankTouchesTopEdge(int globalExtentY, int localCornerY, int localExtentY)
+{
+    const auto remainder = localCornerY + localExtentY - globalExtentY;
+    if (remainder > 0) {
+        throw std::runtime_error("Rank corner + extent exceeds global extent in Y direction.");
+    }
+    return remainder == 0;
+}
+}
+
 namespace Nextsim {
 
 const std::string& ModelMetadata::structureName() const
@@ -48,6 +63,9 @@ ModelMetadata::ModelMetadata(std::string partitionFile)
             "ModelMetadata :: getInstance() called without partition file in MPI build.");
     }
     getPartitionMetadata(partitionFile);
+
+    this->tripolarFold
+        = tripolarTopology && rankTouchesTopEdge(globalExtentY, localCornerY, localExtentY);
     static bool doneOnce = doOnce();
     isInitialized = true;
 }
@@ -137,6 +155,16 @@ void ModelMetadata::getPartitionMetadata(std::string partitionFile)
         netCDF::NcFile ncFile(partitionFile, netCDF::NcFile::read);
         int sizes = ncFile.getDim("L").getSize();
         int nBoxes = ncFile.getDim("P").getSize();
+
+        // Detect tripolar topology: attribute is written only when the domain
+        // decomposition tool was run with --tripolar (value 1). Absent or 0 means false.
+        netCDF::NcGroupAtt tripolarAtt = ncFile.getAtt("tripolar");
+        if (!tripolarAtt.isNull()) {
+            int tripolarValue = 0;
+            tripolarAtt.getValues(&tripolarValue);
+            this->tripolarTopology = (tripolarValue != 0);
+        }
+
         auto& modelMPI = ModelMPI::getInstance();
         auto mpiSize = modelMPI.getSize();
         if (nBoxes != mpiSize) {
