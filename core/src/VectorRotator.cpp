@@ -65,9 +65,7 @@ VectorRotator::VectorRotator(const std::vector<size_t>& dimsIn, const std::vecto
             // NB! dimsIn != { smesh.nx, smesh.ny }
             const std::vector<size_t> ij = deIndexer({ smesh.nx, smesh.ny }, eid);
             const size_t k = indexer(dimsIn, ij);
-            ex[k] = (coe.transpose() * ix).normalized();
-            ey[k] = (coe.transpose() * iy).normalized();
-            det[k] = ex[k](0) * ey[k](1) - ex[k](1) * ey[k](0);
+            unitVectors(k, ix, iy, coe);
         }
 
         /* Handle the edge cases by assuming a different connectivity within the smesh element */
@@ -85,9 +83,7 @@ VectorRotator::VectorRotator(const std::vector<size_t>& dimsIn, const std::vecto
 
             // Place the results into i and j+1, because the reference is upper left corner
             const size_t k = indexer(dimsIn, { i, j + 1 });
-            ex[k] = (coe.transpose() * ix).normalized();
-            ey[k] = (coe.transpose() * iy).normalized();
-            det[k] = ex[k](0) * ey[k](1) - ex[k](1) * ey[k](0);
+            unitVectors(k, ix, iy, coe);
         }
 
         //  Last column
@@ -103,9 +99,7 @@ VectorRotator::VectorRotator(const std::vector<size_t>& dimsIn, const std::vecto
 
             // Place the results into i+1 and j, because the reference is lower right corner
             const size_t k = indexer(dimsIn, { i + 1, j });
-            ex[k] = (coe.transpose() * ix).normalized();
-            ey[k] = (coe.transpose() * iy).normalized();
-            det[k] = ex[k](0) * ey[k](1) - ex[k](1) * ey[k](0);
+            unitVectors(k, ix, iy, coe);
         }
 
         // The remaining upper right corner
@@ -122,9 +116,7 @@ VectorRotator::VectorRotator(const std::vector<size_t>& dimsIn, const std::vecto
 
         // Place the results into i+1 and j+1, because the reference is upper right corner
         const size_t k = indexer(dimsIn, { i + 1, j + 1 });
-        ex[k] = (coe.transpose() * ix).normalized();
-        ey[k] = (coe.transpose() * iy).normalized();
-        det[k] = ex[k](0) * ey[k](1) - ex[k](1) * ey[k](0);
+        unitVectors(k, ix, iy, coe);
 
         break;
     }
@@ -176,10 +168,7 @@ VectorRotator::VectorRotator(const ModelArray& coords, const orientation orient)
         for (size_t eid = 0; eid < smesh.nelements; ++eid) {
             // construct the "direction" of the element, i.e. the ocean ex,ey-vectors
             const Eigen::Matrix<FloatType, 4, 2> coe = smesh.coordinatesOfElement(eid);
-
-            ex[eid] = (coe.transpose() * iix).normalized();
-            ey[eid] = (coe.transpose() * iiy).normalized();
-            det[eid] = ex[eid](0) * ey[eid](1) - ex[eid](1) * ey[eid](0);
+            unitVectors(eid, iix, iiy, coe);
         }
         break;
     }
