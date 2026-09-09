@@ -425,9 +425,56 @@ ModelState ParaGridInputs::interpolateSpatially(const RawDataMap& rawData)
 
 void ParaGridInputs::rotateInputVectors(RawDataMap& rawData)
 {
+    // Usefull aliases
+    const auto& lonDimSize = forcingLonLats.dims.at(ncLonName).size();
+    const auto& latDimSize = forcingLonLats.dims.at(ncLatName).size();
+    const auto& forcingLats = forcingLonLats.data[ncLatName];
+    const auto& dims = rawData.dims.at(vectors.begin()->first);
+
     for (const auto& [first, second] : vectors) {
-        rotator->toParametricMesh(rawData.data.at(first), rawData.data.at(second));
+        rotator->fromParametricMesh(rawData.data.at(first), rawData.data.at(second));
+
+        /* We may have a lat/lon dataset with vector data at the pole (ERA5)!
+         * Now that we've rotated the vectors, the proper value at the pole can reasonably be
+         * interpolated as the mean of all surrounding values.
+         * The longitude limit of 89.9 degrees corresponds to sin(89.9) = 0.999998 (five nines), so
+         * if we get closer to the pole thant his, then we'll have problems with the vector rotator
+         * (assuming double precision).
+         */
+        if (lonDimSize == 1 && latDimSize == 1
+            && *std::max_element(forcingLats.begin(), forcingLats.end()) >= 89.9_ft) {
+            fixLonLatPole(dims, rawData.data.at(first), forcingLats);
+            fixLonLatPole(dims, rawData.data.at(second), forcingLats);
+        }
     }
+}
+
+void ParaGridInputs::fixLonLatPole(const std::vector<size_t>& dims, std::vector<FloatType>& data,
+    const std::vector<FloatType>& forcingLats) const
+{
+    // Check if the pole is at the first or the last index
+    size_t poleIndex, belowPoleIndex;
+    if (const FloatType pole = *std::max_element(forcingLats.begin(), forcingLats.end());
+        *forcingLats.begin() == pole ) {
+        poleIndex = 0;
+        belowPoleIndex = 1;
+    } else if (*forcingLats.end() == pole) {
+        poleIndex = forcingLats.size() - 1;
+        belowPoleIndex = poleIndex - 1;
+    } else {
+        throw std::runtime_error("ParaGridInputs::fixLonLatPole(): unsupported pole location.\n");
+    }
+
+    // Calculate the value at the pole as the mean of all surrounding values
+    FloatType poleMean = 0;
+    for (size_t i = 0; i < dims[0]; ++i)
+        poleMean += data[indexer(dims, { i, belowPoleIndex })];
+
+    poleMean /= static_cast<FloatType>(dims[0]);
+
+    // Replace the pole value with the mean
+    for (size_t i = 0; i < dims[0]; ++i)
+        data[indexer(dims, { i, poleIndex })] = poleMean;
 }
 
 void ParaGridInputs::readRawForcing(RawDataMap& rawDataBefore, RawDataMap& rawDataAfter)
