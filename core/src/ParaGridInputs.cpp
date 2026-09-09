@@ -455,7 +455,7 @@ void ParaGridInputs::fixLonLatPole(const std::vector<size_t>& dims, std::vector<
     // Check if the pole is at the first or the last index
     size_t poleIndex, belowPoleIndex;
     if (const FloatType pole = *std::max_element(forcingLats.begin(), forcingLats.end());
-        *forcingLats.begin() == pole ) {
+        *forcingLats.begin() == pole) {
         poleIndex = 0;
         belowPoleIndex = 1;
     } else if (*forcingLats.end() == pole) {
