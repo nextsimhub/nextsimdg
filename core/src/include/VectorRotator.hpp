@@ -103,6 +103,14 @@ private:
     std::vector<Eigen::Matrix<FloatType, 2, 1>> ex, ey;
     std::vector<FloatType> det;
     std::vector<size_t> dims;
+
+    void unitVectors(const size_t k, const Eigen::Matrix<FloatType, 4, 1>& ix,
+        const Eigen::Matrix<FloatType, 4, 1>& iy, const Eigen::Matrix<FloatType, 4, 2>& coe)
+    {
+        ex[k] = (coe.transpose() * ix).normalized();
+        ey[k] = (coe.transpose() * iy).normalized();
+        det[k] = ex[k](0) * ey[k](1) - ex[k](1) * ey[k](0);
+    };
 };
 
 } // namespace Nextsim
