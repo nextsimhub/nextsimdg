@@ -59,11 +59,12 @@ for directory in glob.glob(root_dir + "/*"):
     os.mkdir(out_dir + "/" + basedir)
     for file in glob.glob(root_dir + "/" + basedir + "/*.nc"):
         ds = xr.open_dataset(file)
-        flooder.flood_dataset(ds)
-        flooder.flood_zeros(ds, ["vxo", "vyo", "vxsi", "vysi"])
+        flooder.flood_dataset(ds, ["thetao", "so", "mlotst", "siconc", "sithick", "sisnthick"])
+        flooder.flood_zeros(ds, ["vxo", "vyo"])
+        flooder.flood_nearest(ds, ["zos"])
 
         encoding = {
-            var: {"zlib": True, "complevel": 9, "shuffle": True} for var in ds.data_vars
+            var: {"zlib": True, "complevel": 4, "shuffle": False} for var in ds.data_vars
         }
         print(os.path.join(out_dir, basedir, os.path.basename(file)))
         ds.to_netcdf(

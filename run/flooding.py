@@ -1,6 +1,6 @@
 import numpy as np
 from scipy.sparse import csr_matrix
-from scipy.spatial import Delaunay
+from scipy.spatial import Delaunay, cKDTree
 
 
 class FloodInterpolator:
@@ -35,6 +35,19 @@ class FloodInterpolator:
             x, y, land_mask
         )
         self.land_mask = land_mask
+
+        # Grid coordinates
+        X, Y = np.meshgrid(x, y)
+
+        # Coordinates of ocean points
+        ocean_points = np.c_[X[self.ocean], Y[self.ocean]]
+
+        # Build nearest-neighbour search tree
+        self.nearest_tree = cKDTree(ocean_points)
+
+        # For every land point, find the nearest ocean point
+        land_points = np.c_[X[self.land], Y[self.land]]
+        _, self.nearest_ocean = self.nearest_tree.query(land_points)
 
     def __build_flood_operator(self, x, y, land_mask):
         """
@@ -160,3 +173,18 @@ class FloodInterpolator:
         """
         for var in fields:
             ds[var].values[np.stack([self.land_mask] * ds[var].values.shape[0])] = 0
+
+    def flood_nearest(self, ds, fields):
+        """
+        Flood selected variables using the nearest ocean point.
+
+        Parameters
+        ----------
+        ds : xarray dataset
+            The dataset to be flooded.
+        fields : iterable of str
+            A list of the variable names to be flooded.
+        """
+        for var in fields:
+            data = ds[var].values
+            data[:, self.land] = data[:, self.ocean][:, self.nearest_ocean]
