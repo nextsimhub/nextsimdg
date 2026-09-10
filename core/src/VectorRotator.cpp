@@ -279,4 +279,38 @@ void VectorRotator::toParametricMesh(const std::vector<FloatType>& uIn,
     }
 }
 
+void VectorRotator::fixLonLatPole(std::vector<FloatType>& uData, std::vector<FloatType>& vData,
+    const std::vector<double>& lat) const
+{
+    // Check if the pole is at the first or the last index
+    size_t poleIndex, belowPoleIndex;
+    if (const FloatType pole = *std::max_element(lat.begin(), lat.end()); *lat.begin() == pole) {
+        poleIndex = 0;
+        belowPoleIndex = 1;
+    } else if (*lat.end() == pole) {
+        poleIndex = lat.size() - 1;
+        belowPoleIndex = poleIndex - 1;
+    } else {
+        throw std::runtime_error("ParaGridInputs::fixLonLatPole(): unsupported pole location.\n");
+    }
+
+    // Calculate the value at the pole as the mean of all surrounding values
+    FloatType uPoleMean = 0, vPoleMean = 0;
+    for (size_t i = 0; i < dims[0]; ++i) {
+        const size_t k = indexer(dims, { i, belowPoleIndex });
+        uPoleMean += uData[k];
+        vPoleMean += vData[k];
+    }
+
+    uPoleMean /= static_cast<FloatType>(dims[0]);
+    vPoleMean /= static_cast<FloatType>(dims[0]);
+
+    // Replace the pole value with the mean
+    for (size_t i = 0; i < dims[0]; ++i) {
+        const size_t k = indexer(dims, { i, poleIndex });
+        uData[k] = uPoleMean;
+        vData[k] = vPoleMean;
+    }
+}
+
 } // namespace Nextsim
