@@ -72,6 +72,8 @@ void ERA5Atmosphere::update(const TimestepTime& tst)
 {
     forcingState.update(tst.start);
 
+    // Fetch the raw data fields and convert and fix
+    // Temperatures in Celsius
     tairAccessor.getHostRW() = forcingState.getField(tAirName) - Water::Tf;
     tdewAccessor.getHostRW() = forcingState.getField(dew2mName) - Water::Tf;
     pairAccessor.getHostRW() = forcingState.getField(pAirName);
@@ -79,9 +81,9 @@ void ERA5Atmosphere::update(const TimestepTime& tst)
     lw_inAccessor.getHostRW() = forcingState.getField(lwInName);
     uwindAccessor.getHostRW() = forcingState.getField(uName);
     vwindAccessor.getHostRW() = forcingState.getField(vName);
-    // TODO: Check the precipitation fields
-    snowAccessor.getHostRW() = 0.; // forcingState.getField(snowName);
-    rainAccessor.getHostRW() = 0.; // forcingState.getField(rainName);
+    snowAccessor.getHostRW() = forcingState.getField(snowName);
+    // Rain from ERA5 is actually total precipitation - so subtract the snowfall
+    rainAccessor.getHostRW() = forcingState.getField(rainName) - snowAccessor.getHostRW();
 
     windAccessor.getHostRW()
         = (uwindAccessor.getHostRW().data().pow(2) + vwindAccessor.getHostRW().data().pow(2))
@@ -92,7 +94,7 @@ void ERA5Atmosphere::update(const TimestepTime& tst)
     try {
         checkFields();
     } catch (const std::exception& e) {
-        throw std::runtime_error("ERA5Atmosphere:update: " + std::string(e.what()));
+        throw std::runtime_error("ERA5Atmosphere::update:: " + std::string(e.what()));
     }
 }
 
