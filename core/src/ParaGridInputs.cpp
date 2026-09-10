@@ -160,6 +160,12 @@ void ParaGridInputs::setWeights1D()
         size_t bLat
             = std::upper_bound(forcingLats.begin(), forcingLats.end(), y) - forcingLats.begin();
 
+        // Just a quick check on latitude.
+        // TODO: Check also longitude, taking periodicity into account.
+        if (bLat == forcingLats.size())
+            throw std::out_of_range("ParaGridInputs::setWeights1D: Couldn't find "
+                + std::to_string(x) + ", " + std::to_string(y) + " in the forcing grid.\n");
+
         size_t aLon = bLon - 1;
         size_t aLat = bLat - 1;
 
