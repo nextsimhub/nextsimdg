@@ -11,6 +11,7 @@
 #include "include/cgVector.hpp"
 
 #include <Eigen/src/Core/Matrix.h>
+#include <boost/proto/transform/env.hpp>
 #include <vector>
 
 namespace Nextsim {
@@ -49,7 +50,7 @@ public:
      * @param orient Vector orientation (GRID or EAST_NORTH)
      */
     VectorRotator(const std::vector<size_t>& dimsIn, const std::vector<FloatType>& lon,
-        const std::vector<FloatType>& lat, const orientation orient);
+        const std::vector<FloatType>& lat, orientation orient);
 
     /*!
      * @brief Constructor for the VectorRotator class based on a the coordinates in a ModelArray
@@ -57,7 +58,7 @@ public:
      * @param coords A ModelArray containing the coordinates of the grid points
      * @param orient Vector orientation (GRID or EAST_NORTH)
      */
-    explicit VectorRotator(const ModelArray& coords, const orientation orient);
+    explicit VectorRotator(const ModelArray& coords, orientation orient);
 
     /*!
      * @brief Transforms velocities to the parametric mesh in place. All vectors are at the grid
@@ -89,6 +90,19 @@ public:
     template <int CG>
     void toParametricMesh(const std::vector<FloatType>& uIn, const std::vector<FloatType>& vIn,
         CGVector<CG>& uOut, CGVector<CG>& vOut) const;
+
+    /*!
+     * @brief Compute vector orientation at (or extremely near) the north pole, for a east/north
+     * oriented vector field on a lat/lon grid. This is developed for ERA5, but may be applicable to
+     * other datasets.
+     *
+     * @param uData The u-component of the vector field
+     * @param vData The v-component of the vector field
+     * @param lat The latitude coordinates of the field (1D)
+     *
+     */
+    void fixLonLatPole(std::vector<FloatType>& uData, std::vector<FloatType>& vData,
+        const std::vector<double>& lat) const;
 
 private:
     /*!
