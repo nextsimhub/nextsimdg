@@ -71,9 +71,9 @@ public:
 
 private:
     // Useful structs
-    struct RawDataMap {
+    template <typename T> struct RawDataMap {
         std::map<std::string, std::vector<size_t>> dims;
-        std::map<std::string, std::vector<FloatType>> data;
+        std::map<std::string, std::vector<T>> data;
     };
 
     struct {
@@ -89,7 +89,7 @@ private:
     ModelState forcingStateBefore, forcingStateAfter;
     std::string pathSpec, ncTimeName, ncLonName, ncLatName;
     ModelArray modelLons, modelLats;
-    RawDataMap forcingLonLats;
+    RawDataMap<double> forcingLonLats;
     std::set<std::string> forcings;
     std::set<std::pair<std::string, std::string>> vectors;
     std::unique_ptr<VectorRotator> rotator;
@@ -107,7 +107,7 @@ private:
 
     // Project {lon, lat} onto the orthographic coordinates {x,y} with {lon0, lat0} at its centre.
     static void orthographicProjection(
-        FloatType lon, FloatType lat, FloatType lon0, FloatType lat0, FloatType& x, FloatType& y);
+        double lon, double lat, double lon0, double lat0, FloatType& x, FloatType& y);
 
     /* Do a quick axis-aligned bounding box check to see if a point is (probably) in the grid cell.
      * This is a necessary condition, not a sufficient one.
@@ -122,16 +122,17 @@ private:
         FloatType y10, FloatType x01, FloatType y01, FloatType x11, FloatType y11);
 
     // Apply the weights to do a bi-linear interpolation
-    [[nodiscard]] ModelState interpolateSpatially(const RawDataMap& rawData);
+    [[nodiscard]] ModelState interpolateSpatially(const RawDataMap<FloatType>& rawData);
 
     // Rotate the vectors from the input to model grid
-    void rotateInputVectors(RawDataMap& rawData);
+    void rotateInputVectors(RawDataMap<FloatType>& rawData);
 
     // Read the forcing listed in ``forcings`` at times bracketing ``currentTime``.
-    void readRawForcing(RawDataMap& rawDataBefore, RawDataMap& rawDataAfter);
+    void readRawForcing(RawDataMap<FloatType>& rawDataBefore, RawDataMap<FloatType>& rawDataAfter);
 
     // The function that actually reads data from the netCDF file
-    [[nodiscard]] RawDataMap readRawData(
+    template <typename T>
+    [[nodiscard]] RawDataMap<T> readRawData(
         const TimePoint& time, const std::set<std::string>& fields, size_t timeIndex = 0) const;
 
     // Wrap longitudes, so that lon0 is the largest value (usually either [-180 180] or [0 360]
