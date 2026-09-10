@@ -24,8 +24,8 @@ VectorRotator::VectorRotator(const std::vector<size_t>& dimsIn)
  * domain, the unit vectors are calculated from the lower left corner, but the top row and last
  * column need to be handled separately.
  */
-VectorRotator::VectorRotator(const std::vector<size_t>& dimsIn, const std::vector<FloatType>& lon,
-    const std::vector<FloatType>& lat, const orientation orient)
+VectorRotator::VectorRotator(const std::vector<size_t>& dimsIn, const std::vector<double>& lon,
+    const std::vector<double>& lat, const orientation orient)
     : dims(dimsIn)
 {
     det.resize(dims[0] * dims[1]);
@@ -183,6 +183,8 @@ VectorRotator::VectorRotator(const ModelArray& coords, const orientation orient)
  * rather complicated angle:
  * \alpha = \atan2(\cos\phi_p \sin\Delta\lambda,
  *                                     \sin\phi_p \cos\phi - \cos\phi_p \sin\phi \cos\Delta\lambda)
+ * However, this requires lat and lon as doubles, otherwise we start to loose precision further
+ * north than approx asin(1-1e-3) = 87.4°N.
  */
 void VectorRotator::initENOrientation(
     const std::vector<FloatType>& lon, const std::vector<FloatType>& lat)
