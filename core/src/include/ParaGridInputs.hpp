@@ -131,10 +131,6 @@ private:
     // Rotate the vectors from the input to model grid
     void rotateInputVectors(RawDataMap& rawData);
 
-    // Average the values around the pole, so that we can have ok vectors there
-    void fixLonLatPole(const std::vector<size_t>& dims, std::vector<FloatType>& data,
-        const std::vector<FloatType>& forcingLats) const;
-
     // Read the forcing listed in ``forcings`` at times bracketing ``currentTime``.
     void readRawForcing(RawDataMap& rawDataBefore, RawDataMap& rawDataAfter);
 
