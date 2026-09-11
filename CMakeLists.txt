@@ -265,7 +265,7 @@ foreach(compo ${CodeComponents})
 endforeach()
 
 target_sources(nextsimlib PRIVATE ${NextsimSources})
-target_include_directories(nextsimlib PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" "${NextsimIncludeDirs}")
+target_include_directories(nextsimlib PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}" "${NextsimIncludeDirs}")
 
 # main executable
 add_executable(nextsim "./core/src/main.cpp")

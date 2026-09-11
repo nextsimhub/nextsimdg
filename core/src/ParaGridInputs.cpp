@@ -8,8 +8,6 @@
 
 #include "include/NetCDFUtils.hpp"
 #include "include/ParaGridInputs.hpp"
-
-#include "NextsimDynamics.hpp"
 #include "include/constants.hpp"
 #include "include/indexer.hpp"
 
@@ -34,9 +32,28 @@ void ParaGridInputs::setData(const TimePoint& time, const std::string& pathSpecI
     modelLons = modelLonsIn;
     modelLats = modelLatsIn;
 
-    forcingLonLats = readRawData(currentTime, { ncLatName, ncLonName });
+    forcingLonLats = readRawData<double>(currentTime, { ncLatName, ncLonName });
 
     setWeights();
+
+    // Useful aliases
+    const auto& lonDimSize = forcingLonLats.dims.at(ncLonName).size();
+    const auto& latDimSize = forcingLonLats.dims.at(ncLatName).size();
+    const auto& forcingLons = forcingLonLats.data[ncLonName];
+    const auto& forcingLats = forcingLonLats.data[ncLatName];
+
+    // Different methods for Mercator maps and curvilinear grids
+    if (lonDimSize == 1 && latDimSize == 1) {
+        // Lat and lon are 1D, so we construct the 2D dimensions and use East-North orientation
+        const std::vector dims2D
+            = { forcingLonLats.dims.at(ncLonName)[0], forcingLonLats.dims.at(ncLatName)[0] };
+        rotator = std::make_unique<VectorRotator>(
+            dims2D, forcingLons, forcingLats, VectorRotator::orientation::EAST_NORTH);
+    } else if (lonDimSize == 2 && latDimSize == 2) {
+        // Lat and lon are 2D
+        rotator = std::make_unique<VectorRotator>(forcingLonLats.dims.at(ncLonName), forcingLons,
+            forcingLats, VectorRotator::orientation::GRID);
+    }
 }
 
 void ParaGridInputs::update(const TimePoint& time)
@@ -47,7 +64,7 @@ void ParaGridInputs::update(const TimePoint& time)
      * check timeRange.after, because time moves forward.
      */
     if (time > timeRange.after) {
-        RawDataMap rawDataBefore, rawDataAfter;
+        RawDataMap<FloatType> rawDataBefore, rawDataAfter;
         readRawForcing(rawDataBefore, rawDataAfter);
 
         rotateInputVectors(rawDataBefore);
@@ -108,7 +125,7 @@ void ParaGridInputs::setWeights()
 void ParaGridInputs::setWeights1D()
 {
     // We need to read one of the variables to get the grid ordering
-    const auto& choiceVar = readRawData(currentTime, { *forcings.begin() });
+    const auto& choiceVar = readRawData<FloatType>(currentTime, { *forcings.begin() });
     const auto& gridDims = choiceVar.dims.at(*forcings.begin());
 
     // Useful alias
@@ -133,7 +150,7 @@ void ParaGridInputs::setWeights1D()
          * y = R \phi
          * but R and \cos(\phi) cancel out */
 
-        // This is the target
+        // This is the target. It can be FloatType, because we don't use any trigometric functions
         const FloatType x = wrapLon(modelLons[i], lon0);
         const FloatType y = modelLats[i];
 
@@ -142,6 +159,12 @@ void ParaGridInputs::setWeights1D()
             = std::upper_bound(forcingLons.begin(), forcingLons.end(), x) - forcingLons.begin();
         size_t bLat
             = std::upper_bound(forcingLats.begin(), forcingLats.end(), y) - forcingLats.begin();
+
+        // Just a quick check on latitude.
+        // TODO: Check also longitude, taking periodicity into account.
+        if (bLat == forcingLats.size())
+            throw std::out_of_range("ParaGridInputs::setWeights1D: Couldn't find "
+                + std::to_string(x) + ", " + std::to_string(y) + " in the forcing grid.\n");
 
         size_t aLon = bLon - 1;
         size_t aLat = bLat - 1;
@@ -257,26 +280,25 @@ bool ParaGridInputs::recursiveBisectSearch(const size_t k, const FloatType targe
     return false;
 }
 
-void ParaGridInputs::orthographicProjection(const FloatType lon, const FloatType lat,
+void ParaGridInputs::orthographicProjection(const double lon, const double lat,
     const FloatType lon0, const FloatType lat0, FloatType& x, FloatType& y) const
 {
     /* Most of these are used twice, but not all. But anyway, it's easier to read like this, and the
      * compiler should optimise the excessive assignments out, right?
      */
-    const FloatType cosPhi = std::cos(radians(lat));
-    const FloatType cosPhi0 = std::cos(radians(lat0));
-    const FloatType sinPhi = std::sin(radians(lat));
-    const FloatType sinPhi0 = std::sin(radians(lat0));
-    const FloatType cosDeltaLambda = std::cos(radians(lon - lon0));
-    const FloatType sinDeltaLambda = std::sin(radians(lon - lon0));
+    const double cosPhi = std::cos(radians(lat));
+    const double cosPhi0 = std::cos(radians(lat0));
+    const double sinPhi = std::sin(radians(lat));
+    const double sinPhi0 = std::sin(radians(lat0));
+    const double cosDeltaLambda = std::cos(radians(lon - lon0));
+    const double sinDeltaLambda = std::sin(radians(lon - lon0));
 
     // Projected coordinates
     x = cosPhi * sinDeltaLambda;
     y = cosPhi0 * sinPhi - sinPhi0 * cosPhi * cosDeltaLambda;
 
     // If the point is outside the projected area, then we move it to the map edge
-    if (const FloatType c = sinPhi0 * sinPhi - cosPhi0 * cosPhi * cosDeltaLambda;
-        std::cos(c) < 0.) {
+    if (const double c = sinPhi0 * sinPhi - cosPhi0 * cosPhi * cosDeltaLambda; std::cos(c) < 0.) {
         x = std::copysign(1., x);
         y = std::copysign(1., y);
     }
@@ -378,7 +400,7 @@ bool ParaGridInputs::findLocalCoordinates(const size_t k, const FloatType x00, c
     return true;
 }
 
-ModelState ParaGridInputs::interpolateSpatially(const RawDataMap& rawData)
+ModelState ParaGridInputs::interpolateSpatially(const RawDataMap<FloatType>& rawData)
 {
     ModelState state;
     for (const auto& dataPair : rawData.data) {
@@ -406,25 +428,35 @@ ModelState ParaGridInputs::interpolateSpatially(const RawDataMap& rawData)
     return state;
 }
 
-void ParaGridInputs::rotateInputVectors(RawDataMap& rawData)
+void ParaGridInputs::rotateInputVectors(RawDataMap<FloatType>& rawData)
 {
-    const auto originalRotation = rawData.data;
-    for (const auto& [first, second] : vectors) {
-        vectorRotationLogic(originalRotation.at(first), originalRotation.at(second),
-            rawData.data.at(first), rawData.data.at(second));
+    // Usefull aliases
+    const auto& lonDimSize = forcingLonLats.dims.at(ncLonName).size();
+    const auto& latDimSize = forcingLonLats.dims.at(ncLatName).size();
+    const auto& forcingLats = forcingLonLats.data[ncLatName];
+
+    for (const auto& [uName, vName] : vectors) {
+        auto& uData = rawData.data.at(uName);
+        auto& vData = rawData.data.at(vName);
+
+        rotator->fromParametricMesh(uData, vData);
+
+        /* We may have a lat/lon dataset with vector data at the pole (ERA5)!
+         * Now that we've rotated the vectors, the proper value at the pole can reasonably be
+         * interpolated as the mean of all surrounding values.
+         * The longitude limit of 89.9 degrees corresponds to sin(89.9) = 0.999998 (five nines), so
+         * if we get closer to the pole thant his, then we'll have problems with the vector rotator
+         * (assuming double precision).
+         */
+        if (lonDimSize == 1 && latDimSize == 1
+            && *std::max_element(forcingLats.begin(), forcingLats.end()) >= 89.9) {
+            rotator->fixLonLatPole(uData, vData, forcingLats);
+        }
     }
 }
 
-void ParaGridInputs::vectorRotationLogic(const std::vector<FloatType>& vectorIn1st,
-    const std::vector<FloatType>& vectorIn2nd, std::vector<FloatType>& vectorOut1st,
-    std::vector<FloatType>& vectorOut2nd)
-{
-    // Nothing done yet
-    vectorOut1st = vectorIn1st;
-    vectorOut2nd = vectorIn2nd;
-}
-
-void ParaGridInputs::readRawForcing(RawDataMap& rawDataBefore, RawDataMap& rawDataAfter)
+void ParaGridInputs::readRawForcing(
+    RawDataMap<FloatType>& rawDataBefore, RawDataMap<FloatType>& rawDataAfter)
 {
     /* First we find the correct time, time slice, and files. For multi-file datasets we just pick
      * any (first) file/variable.
@@ -507,14 +539,15 @@ void ParaGridInputs::readRawForcing(RawDataMap& rawDataBefore, RawDataMap& rawDa
     }
 
     // Read the data
-    rawDataBefore = readRawData(timeRange.before, forcings, targetTIndexBefore);
-    rawDataAfter = readRawData(timeRange.after, forcings, targetTIndexAfter);
+    rawDataBefore = readRawData<FloatType>(timeRange.before, forcings, targetTIndexBefore);
+    rawDataAfter = readRawData<FloatType>(timeRange.after, forcings, targetTIndexAfter);
 }
 
-ParaGridInputs::RawDataMap ParaGridInputs::readRawData(
+template <typename T>
+ParaGridInputs::RawDataMap<T> ParaGridInputs::readRawData(
     const TimePoint& time, const std::set<std::string>& fields, const size_t timeIndex) const
 {
-    RawDataMap data;
+    RawDataMap<T> data;
     std::string fileName;
 
     // Loop over the variable names at the top, because we may have one variable per file.
@@ -555,7 +588,7 @@ ParaGridInputs::RawDataMap ParaGridInputs::readRawData(
             std::reverse(data.dims[varName].begin(), data.dims[varName].end());
 
             // Resize and read!
-            data.data[varName] = std::vector<FloatType>(std::accumulate(
+            data.data[varName] = std::vector<T>(std::accumulate(
                 count.begin(), count.end(), static_cast<size_t>(1), std::multiplies<>()));
             readNetCDFVar(var, start, count, data.data[varName].data());
 
