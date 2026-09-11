@@ -10,6 +10,7 @@
 #include "include/IFreezingPoint.hpp"
 #include "include/IIceOceanHeatFlux.hpp"
 #include "include/IOceanBoundary.hpp"
+#include "include/ParaGridInputs.hpp"
 #include "include/SlabOcean.hpp"
 
 namespace Nextsim {
@@ -49,8 +50,6 @@ private:
     // be static.
     static std::string filePath;
 
-    ModelState forcingState;
-
     ModelArrayAccessor<Protected::EXT_SST, RW> sstExtAccessor;
     ModelArrayAccessor<Protected::EXT_SSS, RW> sssExtAccessor;
 
@@ -61,6 +60,24 @@ private:
 
     std::unique_ptr<IIceOceanHeatFlux> pIOHeatFlux;
     std::unique_ptr<IFreezingPoint> pFreezingPoint;
+
+    // A list of variable names for the TOPAZ inputs
+    // This overrides the canonical names in gridNames.hpp
+    const std::string sstName = "thetao";
+    const std::string sssName = "so";
+    const std::string mldName = "mlotst";
+    const std::string uName = "vxo";
+    const std::string vName = "vyo";
+    const std::string sshName = "zos";
+
+    const std::string ncLonName = "longitude";
+    const std::string ncLatName = "latitude";
+    const std::string ncTimeName = "time";
+
+    const std::set<std::string> forcings = { sstName, sssName, mldName, uName, vName, sshName };
+    const std::set<std::pair<std::string, std::string>> vectors = { { uName, vName } };
+
+    ParaGridInputs forcingState;
 };
 
 } /* namespace Nextsim */

@@ -9,7 +9,6 @@
 #include "include/NextsimModule.hpp"
 #include "include/ParaGridIO.hpp"
 #include "include/constants.hpp"
-#include "include/gridNames.hpp"
 
 // testing
 #include "kokkos/include/KokkosTimer.hpp"
@@ -62,24 +61,19 @@ void TOPAZOcean::configure()
 
 ConfigMap TOPAZOcean::getConfiguration() const { return { { keyMap.at(FILEPATH_KEY), filePath } }; }
 
-static const std::set<std::string> forcings = { sstName, sssName, mldName, uName, vName, sshName };
-
 void TOPAZOcean::updateBefore(const TimestepTime& tst)
 {
-    // Read TOPAZ forcings at midnight
-    if (std::fmod((tst.start - TimePoint()).seconds(), 86400.) == 0.0_ft) {
-        forcingState = ParaGridIO::readForcingTimeStatic(forcings, tst.start, filePath);
-    }
+    forcingState.update(tst.start);
 
-    sstExtAccessor.getHostRW() = forcingState.data.at(sstName);
-    sssExtAccessor.getHostRW() = forcingState.data.at(sssName);
-    mldAccessor.getHostRW() = forcingState.data.at(mldName);
-    uAccessor.getHostRW() = forcingState.data.at(uName);
-    vAccessor.getHostRW() = forcingState.data.at(vName);
+    sstExtAccessor.getHostRW() = forcingState.getField(sstName);
+    sssExtAccessor.getHostRW() = forcingState.getField(sssName);
+    mldAccessor.getHostRW() = forcingState.getField(mldName);
+    uAccessor.getHostRW() = forcingState.getField(uName);
+    vAccessor.getHostRW() = forcingState.getField(vName);
     HField& ssh = sshAccessor.getHostRW();
 
-    if (forcingState.data.count(sshName)) {
-        ssh = forcingState.data.at(sshName);
+    if (forcingState.isValid(sshName)) {
+        ssh = forcingState.getField(sshName);
     } else {
         ssh = 0.;
     }
@@ -129,6 +123,12 @@ void TOPAZOcean::setFilePath(const std::string& filePathIn) { filePath = filePat
 void TOPAZOcean::setData(const ModelState::DataMap& ms)
 {
     IOceanBoundary::setData(ms);
+
+    ModelState state;
+    const ModelMetadata& metadata = ModelMetadata::getInstance();
+    metadata.affixCoordinates(state);
+    forcingState.setData(metadata.startTime(), filePath, ncLonName, ncLatName, ncTimeName, forcings,
+        vectors, state.data[longitudeName], state.data[latitudeName]);
 
     HField& sstExt = sstExtAccessor.getHostRW();
     sstExt.reinitialize();
