@@ -22,33 +22,34 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 import xarray as xr
+from gebco import GEBCO
 from ibcao import IBCAO
 from projection import PolarStereoProjection
+from scipy.ndimage import label
 
 
 class GridBuilder:
     """
-    Build an ocean-model grid from IBCAO.
+    Build an ocean-model grid from IBCAO or GEBCO bathymetry.
 
     Parameters
     ----------
-    ibcao_file : str or pathlib.Path
-        IBCAO GeoTIFF.
+    bathy_file : str or pathlib.Path
+        IBCAO GeoTIFF or GEBCO NetCDF file.
 
     rotation : float, optional
         Counter-clockwise rotation of the model grid [degrees].
     """
 
-    def __init__(self, ibcao_file, rotation=0.0):
+    def __init__(self, bathy_file, rotation=0.0):
 
-        self.ibcao_file = Path(ibcao_file)
+        self.bathy_file = Path(bathy_file)
 
-        if not self.ibcao_file.exists():
-            msg = f"IBCAO file not found: {self.ibcao_file}"
+        if not self.bathy_file.exists():
+            msg = f"Bathymetry file not found: {self.bathy_file}"
             raise FileNotFoundError(msg)
 
         self.rotation = float(rotation)
-
         self.projection = PolarStereoProjection(rotation=self.rotation)
 
         self.grid = None
@@ -81,10 +82,19 @@ class GridBuilder:
             xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, dx=resolution
         )
 
-        with IBCAO(self.ibcao_file) as ibcao:
-            self.depth, self.ocean_mask = ibcao.average_to_grid(
-                self.grid, self.projection
-            )
+        if "gebco" in self.bathy_file.name.casefold():
+            with GEBCO(self.bathy_file) as gebco:
+                self.depth, self.ocean_mask = gebco.average_to_grid(
+                    self.grid, self.projection
+                )
+        elif "ibcao" in self.bathy_file.name.casefold():
+            with IBCAO(self.bathy_file) as ibcao:
+                self.depth, self.ocean_mask = ibcao.average_to_grid(
+                    self.grid, self.projection
+                )
+        else:
+            msg = f"Bathymetry file not recognised: {self.bathy_file}. File name must contain 'ibcao' or 'gebco'."
+            raise ValueError(msg)
 
         # --------------------------------------------------------------
         # Flood isolated wet regions
@@ -98,14 +108,7 @@ class GridBuilder:
     # Plot
     # ------------------------------------------------------------------
 
-    def plot(
-        self,
-        ax=None,
-        cmap="viridis",
-        vmin=None,
-        vmax=None,
-        figsize=(10, 10),
-    ):
+    def plot(self, ax=None, cmap="viridis", vmin=None, vmax=None, figsize=(10, 10)):
         """
         Plot the generated model grid.
 
@@ -322,8 +325,8 @@ class GridBuilder:
             },
             attrs={
                 "title": "Arctic ocean model grid",
-                "source": "IBCAO",
-                "ibcao_file": str(self.ibcao_file),
+                "source": "IBCAO/GEBCO",
+                "bathimetry_file": str(self.bathy_file),
                 "projection": "EPSG:3996",
                 "rotation": self.rotation,
                 "grid_resolution": self.grid.dx,
@@ -374,7 +377,6 @@ class GridBuilder:
         }
 
         ds.to_netcdf(output_file, encoding=encoding)
-
         ds.close()
 
         return output_file
@@ -413,8 +415,6 @@ class GridBuilder:
             msg = "connectivity must be either 4 or 8"
             raise ValueError(msg)
 
-        from scipy.ndimage import label
-
         ocean = np.isfinite(depth) & ocean_mask
 
         structure = np.array(
@@ -430,13 +430,9 @@ class GridBuilder:
 
         if nlabels > 0:
             sizes = np.bincount(labels.ravel())
-
             sizes[0] = 0
-
             largest_label = np.argmax(sizes)
-
             connected_ocean = labels == largest_label
-
         else:
             connected_ocean = np.zeros_like(ocean, dtype=bool)
 
@@ -445,7 +441,6 @@ class GridBuilder:
         # --------------------------------------------------------------
 
         flooded_depth = np.full_like(depth, np.nan, dtype=np.float32)
-
         flooded_depth[connected_ocean] = depth[connected_ocean]
 
         return (flooded_depth, connected_ocean)
