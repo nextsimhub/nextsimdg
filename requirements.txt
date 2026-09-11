@@ -1,9 +1,15 @@
 breathe
+dataclasses
 exhale
 jinja2
+matplotlib
 myst_parser>=0.15.2
 netCDF4<1.7.4
+numpy
 pyproj
+rasterio
+scikit-image
 scipy
 sphinx>=4.4.0
 sphinx_rtd_theme
+xarray
