@@ -264,23 +264,8 @@ class GEBCO:
         xl = np.full_like(t, x0)
         yl = y1 - t * (y1 - y0)
 
-        x = np.concatenate(
-            [
-                xb,
-                xr[1:],
-                xt[1:],
-                xl[1:],
-            ]
-        )
-
-        y = np.concatenate(
-            [
-                yb,
-                yr[1:],
-                yt[1:],
-                yl[1:],
-            ]
-        )
+        x = np.concatenate([xb, xr[1:], xt[1:], xl[1:]])
+        y = np.concatenate([yb, yr[1:], yt[1:], yl[1:]])
 
         return x, y
 
@@ -352,58 +337,37 @@ class GEBCO:
     # Longitude intervals
     # ------------------------------------------------------------------
 
-    def _longitude_intervals(self, lon):
-        """Return the smallest longitude interval(s) containing lon."""
-        lon = self._gebco_lon(np.asarray(lon))
+    def _longitude_interval(self, lon):
+        """Return the smallest circular longitude interval.
 
-        period = 360.0
+        The interval is returned as an unwrapped range in [0, 360)
+        coordinates. The end coordinate may therefore be greater than
+        360 degrees.
 
-        if self.lon_min >= 0.0:
-            lon = lon % period
-        else:
-            lon = self._wrap_lon(lon)
+        For example, an interval crossing the dateline might be returned
+        as
 
-        lon = np.sort(lon)
+            (147.75, 231.87)
 
-        extended = np.concatenate(
-            [
-                lon,
-                [lon[0] + period],
-            ]
-        )
+        rather than as two intervals around +/-180 degrees.
+        """
+        lon = np.asarray(lon, dtype=float)
 
+        # Convert everything to [0, 360).
+        lon360 = lon % 360.0
+        lon360 = np.sort(lon360)
+
+        # Find the largest gap on the circle.
+        extended = np.concatenate([lon360, [lon360[0] + 360.0]])
         gaps = np.diff(extended)
 
         k = int(np.argmax(gaps))
 
+        # The desired interval is the complement of the largest gap.
         start = extended[k + 1]
-        end = extended[k] + period
+        end = extended[k] + 360.0
 
-        width = end - start
-
-        if width >= period - 1e-10:
-            return [
-                (
-                    self.lon_min,
-                    self.lon_max,
-                )
-            ]
-
-        start %= period
-        end %= period
-
-        if self.lon_min < 0.0:
-            start = float(self._wrap_lon(start))
-            end = float(self._wrap_lon(end))
-
-        else:
-            start = float(start)
-            end = float(end)
-
-        if start <= end:
-            return [(start, end)]
-
-        return [(start, self.lon_max), (self.lon_min, end)]
+        return float(start), float(end)
 
     # ------------------------------------------------------------------
     # Read GEBCO subset
@@ -429,8 +393,7 @@ class GEBCO:
                 continue
 
             subset = self.elevation.sel(
-                lon=slice(lon0, lon1),
-                lat=slice(lat_min, lat_max),
+                lon=slice(lon0, lon1), lat=slice(lat_min, lat_max)
             )
 
             if subset.sizes.get("lon", 0) == 0:
@@ -463,55 +426,58 @@ class GEBCO:
     # Get tile subset
     # ------------------------------------------------------------------
 
-    def _get_tile_subset(
-        self,
-        grid,
-        projection,
-        i0,
-        i1,
-        j0,
-        j1,
-    ):
+    def _get_tile_subset(self, grid, projection, i0, i1, j0, j1):
         """Determine and read the GEBCO subset for one non-pole tile."""
         lon, lat = self._tile_lonlat(grid, projection, i0, i1, j0, j1)
 
         margin = self._tile_margin(grid, projection, i0, i1, j0, j1)
 
         lat_min = max(self.lat_min, float(np.min(lat)) - margin)
-
         lat_max = min(self.lat_max, float(np.max(lat)) + margin)
 
-        intervals = self._longitude_intervals(lon)
+        # --------------------------------------------------------------
+        # Find one continuous longitude interval in unwrapped
+        # [0, 360) coordinates.
+        # --------------------------------------------------------------
+        lon0, lon1 = self._longitude_interval(lon)
 
-        expanded = []
+        # Apply the margin exactly once.
+        lon0 -= margin
+        lon1 += margin
 
-        for lon0, lon1 in intervals:
-            lon0 -= margin
-            lon1 += margin
-
-            if self.lon_min < 0.0:
-                if lon0 < self.lon_min:
-                    expanded.append((lon0 + 360.0, self.lon_max))
-                    expanded.append((self.lon_min, lon1))
-
-                elif lon1 > self.lon_max:
-                    expanded.append((lon0, self.lon_max))
-                    expanded.append((self.lon_min, lon1 - 360.0))
-
-                else:
-                    expanded.append((lon0, lon1))
-
+        # --------------------------------------------------------------
+        # Convert the unwrapped interval into one or two intervals in
+        # the actual GEBCO longitude convention.
+        # --------------------------------------------------------------
+        if self.lon_min >= 0.0:
+            # GEBCO uses [0, 360].
+            if lon1 - lon0 >= 360.0:
+                intervals = [(self.lon_min, self.lon_max)]
             else:
-                lon0 %= 360.0
-                lon1 %= 360.0
+                a = lon0 % 360.0
+                b = lon1 % 360.0
 
-                if lon0 <= lon1:
-                    expanded.append((lon0, lon1))
+                if a <= b:
+                    intervals = [(a, b)]
                 else:
-                    expanded.append((lon0, 360.0))
-                    expanded.append((0.0, lon1))
+                    intervals = [(a, self.lon_max), (self.lon_min, b)]
 
-        return self._read_subset(expanded, lat_min, lat_max)
+        # GEBCO uses [-180, 180].
+        elif lon1 - lon0 >= 360.0:
+            intervals = [(self.lon_min, self.lon_max)]
+        else:
+            # Convert the two endpoints independently to
+            # [-180, 180), but retain the information that the
+            # interval may cross the dateline.
+            a = ((lon0 + 180.0) % 360.0) - 180.0
+            b = ((lon1 + 180.0) % 360.0) - 180.0
+
+            if a <= b and lon1 - lon0 <= 180.0:
+                intervals = [(a, b)]
+            else:
+                intervals = [(a, self.lon_max), (self.lon_min, b)]
+
+        return self._read_subset(intervals, lat_min, lat_max)
 
     # ------------------------------------------------------------------
     # Source transform
@@ -559,24 +525,16 @@ class GEBCO:
         tile.dy = grid.dy
 
         tile.xbnds = grid.xbnds[j0 : j1 + 1]
-
         tile.ybnds = grid.ybnds[i0 : i1 + 1]
 
         subset = self._get_tile_subset(grid, projection, i0, i1, j0, j1)
 
         source = subset.load().values.astype(np.float32, copy=False)
-
         source = np.flipud(source)
-
         source_transform = self._source_transform(subset)
-
         target_transform = self._target_transform(tile, projection)
 
-        elevation = np.full(
-            (tile.ny, tile.nx),
-            np.nan,
-            dtype=np.float32,
-        )
+        elevation = np.full((tile.ny, tile.nx), np.nan, dtype=np.float32)
 
         reproject(
             source=source,
@@ -598,13 +556,7 @@ class GEBCO:
     # Pole subdivision
     # ------------------------------------------------------------------
 
-    def _split_tile(
-        self,
-        i0,
-        i1,
-        j0,
-        j1,
-    ):
+    def _split_tile(self, i0, i1, j0, j1):
         """Split a tile into up to four approximately equal children."""
         im = (i0 + i1) // 2
         jm = (j0 + j1) // 2
@@ -714,9 +666,7 @@ class GEBCO:
 
         # Determine the tile latitude range from its perimeter.
         _, lat = self._tile_lonlat(grid, projection, i0, i1, j0, j1)
-
         margin = self._tile_margin(grid, projection, i0, i1, j0, j1)
-
         lat_min = max(self.lat_min, float(np.min(lat)) - margin)
 
         # Because the pole is inside the tile, we need to include
@@ -728,18 +678,13 @@ class GEBCO:
         # --------------------------------------------------------------
 
         subset = self.elevation.sel(
-            lon=slice(self.lon_min, self.lon_max),
-            lat=slice(lat_min, lat_max),
+            lon=slice(self.lon_min, self.lon_max), lat=slice(lat_min, lat_max)
         )
 
         source = subset.load().values.astype(np.float32, copy=False)
-
         source = np.flipud(source)
-
         source_transform = self._source_transform(subset)
-
         target_transform = self._target_transform(tile, projection)
-
         elevation = np.full((tile.ny, tile.nx), np.nan, dtype=np.float32)
 
         reproject(
@@ -852,10 +797,9 @@ class GEBCO:
 
             if self.progress:
                 percent = 100.0 * number / total_tiles
-
                 print(
-                    f"\rGEBCO: tile {number}/{total_tiles} ({percent:5.1f}%)",
-                    end="",
+                    f"GEBCO: tile {number}/{total_tiles} ({percent:4.0f}%)",
+                    end="\r",
                     flush=True,
                 )
 
