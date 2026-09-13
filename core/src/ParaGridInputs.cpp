@@ -32,14 +32,20 @@ void ParaGridInputs::setData(const TimePoint& time, const std::string& pathSpecI
     modelLons = modelLonsIn;
     modelLats = modelLatsIn;
 
+    /* Here we:
+     *  - Read the dimensions in the netCDF file
+     *  - Read the lon/lat coordinates
+     *  - Calculate the weights
+     *  - Calculate a reduced domain
+     *  - Re-read the lon/lat coordinates
+     * Now, everything should just work on the reduced coordinates. This reduces memory usage, and
+     * is also good for MPI).
+     */
     readDims();
-
     forcingLonLats = readRawData<double>(currentTime, { ncLatName, ncLonName });
-
     setWeights();
-
-    // TODO: Recalculate gridDims, gridStart, gridCount, and ij00, et al. so that we only load the
-    // data we know we'll need. We then also have to re-read latitude and longitude.
+    tightenGrid();
+    forcingLonLats = readRawData<double>(currentTime, { ncLatName, ncLonName });
 
     // Useful aliases
     const auto& forcingLons = forcingLonLats.at(ncLonName);
@@ -53,6 +59,37 @@ void ParaGridInputs::setData(const TimePoint& time, const std::string& pathSpecI
         orient = VectorRotator::orientation::GRID;
 
     rotator = std::make_unique<VectorRotator>(gridDims, forcingLons, forcingLats, orient);
+}
+
+void ParaGridInputs::tightenGrid()
+{
+    gridStart = { std::numeric_limits<size_t>::max(), std::numeric_limits<size_t>::max() };
+    std::vector<size_t> gridEnd = { 0, 0 };
+
+    // Loop over all the points in the corner lists to find the grid boundaries
+    for (const auto& corner : { ij00, ij01, ij10, ij11 }) {
+        for (const auto& point : corner) {
+            const auto ij = deIndexer(gridDims, point);
+            for (size_t k = 0; k < ij.size(); k++) {
+                gridStart[k] = std::min(gridStart[k], ij[k]);
+                gridEnd[k] = std::max(gridEnd[k], ij[k]);
+            }
+        }
+    }
+
+    // Update grid dimensions, now that we have start and end values
+    // Careful with one-off!
+    const std::vector<size_t> oldDims = gridDims;
+    gridDims[0] = gridEnd[0] - gridStart[0] + 1;
+    gridDims[1] = gridEnd[1] - gridStart[1] + 1;
+
+    // Loop again over the corner lists to shift the coordinates
+    for (auto* cornerPtr : { &ij00, &ij01, &ij10, &ij11 }) {
+        for (auto& point : *cornerPtr) {
+            const auto ij = deIndexer(oldDims, point);
+            point = indexer(gridDims, { ij[0] - gridStart[0], ij[1] - gridStart[1] });
+        }
+    }
 }
 
 void ParaGridInputs::readDims()
@@ -74,7 +111,6 @@ void ParaGridInputs::readDims()
         // Needs to be reversed because of netCDF shenanigans
         std::reverse(gridDims.begin(), gridDims.end());
         gridStart.assign(gridDims.size(), 0);
-        gridCount = gridDims;
 
         // Read the dimensions of lat and long variables
         const std::vector<netCDF::NcDim> lonDims = ncFile.getVar(ncLonName).getDims();
@@ -590,7 +626,7 @@ ParaGridInputs::RawDataMap<T> ParaGridInputs::readRawData(
             netCDF::NcVar var = ncFile.getVar(varName);
             std::vector<netCDF::NcDim> dims = var.getDims();
 
-            /* Populate start and count, based on the already established gridStart and gridCount,
+            /* Populate start and count, based on the already established gridStart and gridDims,
              * while taking the time dimension into account.
              * NB! j needs to run backwards because of netCDF shenanigans
              * NB! If we're reading lon/lat from a Mercator map we can assume lon is the first and
@@ -611,7 +647,7 @@ ParaGridInputs::RawDataMap<T> ParaGridInputs::readRawData(
                         count.push_back(1);
                     } else {
                         start.push_back(gridStart[j]);
-                        count.push_back(gridCount[j]);
+                        count.push_back(gridDims[j]);
                         --j;
                     }
                 }

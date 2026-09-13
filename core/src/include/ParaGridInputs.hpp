@@ -94,11 +94,14 @@ private:
     std::set<std::string> forcings;
     std::set<std::pair<std::string, std::string>> vectors;
     std::unique_ptr<VectorRotator> rotator;
-    std::vector<size_t> gridDims, gridStart, gridCount;
+    std::vector<size_t> gridDims, gridStart;
     bool lonLat1D;
 
     // Read the netCDF file dimensions
     void readDims();
+
+    // Reduce the read-in domain
+    void tightenGrid();
 
     // Basic weight-setting functions
     void setWeights();
