@@ -47,10 +47,6 @@ void ParaGridInputs::setData(const TimePoint& time, const std::string& pathSpecI
     tightenGrid();
     forcingLonLats = readRawData<double>(currentTime, { ncLatName, ncLonName });
 
-    // Useful aliases
-    const auto& forcingLons = forcingLonLats.at(ncLonName);
-    const auto& forcingLats = forcingLonLats.at(ncLatName);
-
     // Different methods for Mercator maps and curvilinear grids
     VectorRotator::orientation orient;
     if (lonLat1D)
@@ -58,7 +54,8 @@ void ParaGridInputs::setData(const TimePoint& time, const std::string& pathSpecI
     else
         orient = VectorRotator::orientation::GRID;
 
-    rotator = std::make_unique<VectorRotator>(gridDims, forcingLons, forcingLats, orient);
+    rotator = std::make_unique<VectorRotator>(
+        gridDims, forcingLonLats.at(ncLonName), forcingLonLats.at(ncLatName), orient);
 }
 
 void ParaGridInputs::tightenGrid()
@@ -68,6 +65,7 @@ void ParaGridInputs::tightenGrid()
 
     // Loop over all the points in the corner lists to find the grid boundaries
     for (const auto& corner : { ij00, ij01, ij10, ij11 }) {
+#pragma omp parallel for
         for (const auto& point : corner) {
             const auto ij = deIndexer(gridDims, point);
             for (size_t k = 0; k < ij.size(); k++) {
@@ -85,6 +83,7 @@ void ParaGridInputs::tightenGrid()
 
     // Loop again over the corner lists to shift the coordinates
     for (auto* cornerPtr : { &ij00, &ij01, &ij10, &ij11 }) {
+#pragma omp parallel for
         for (auto& point : *cornerPtr) {
             const auto ij = deIndexer(oldDims, point);
             point = indexer(gridDims, { ij[0] - gridStart[0], ij[1] - gridStart[1] });
@@ -94,7 +93,6 @@ void ParaGridInputs::tightenGrid()
 
 void ParaGridInputs::readDims()
 {
-
     // Get the grid dimensions from the frist variable in forcings
     const std::string& varName = *forcings.begin();
     const std::string fileName = formatFileName(currentTime, varName);
@@ -116,15 +114,33 @@ void ParaGridInputs::readDims()
         const std::vector<netCDF::NcDim> lonDims = ncFile.getVar(ncLonName).getDims();
         const std::vector<netCDF::NcDim> latDims = ncFile.getVar(ncLatName).getDims();
 
-        if (latDims.size() == 1 && lonDims.size() == 1)
+        if (latDims.size() == 1 && lonDims.size() == 1) {
             lonLat1D = true;
-        else if (latDims.size() == 2 && lonDims.size() == 2)
+            if (lonDims[0].getSize() != gridDims[0] || latDims[0].getSize() != gridDims[1])
+                throw std::runtime_error(
+                    "ParaGridInputs::readDims: Inconsistent dimension sizes for " + varName
+                    + " and longitude and latitude variables: [" + std::to_string(gridDims[0]) + ","
+                    + std::to_string(gridDims[1]) + "] and [" + std::to_string(lonDims[0].getSize())
+                    + "," + std::to_string(latDims[0].getSize()) + "] respectively.\n");
+        } else if (latDims.size() == 2 && lonDims.size() == 2) {
             lonLat1D = false;
-        else
+            if (latDims[1].getSize() != gridDims[0] || latDims[0].getSize() != gridDims[1])
+                throw std::runtime_error(
+                    "ParaGridInputs::readDims: Inconsistent dimension sizes for " + varName
+                    + " and longitude and latitude variables: [" + std::to_string(gridDims[0]) + ","
+                    + std::to_string(gridDims[1]) + "] and [" + std::to_string(latDims[0].getSize())
+                    + "," + std::to_string(latDims[1].getSize()) + "] respectively.\n");
+            if (lonDims[1].getSize() != gridDims[0] || lonDims[0].getSize() != gridDims[1])
+                throw std::runtime_error(
+                    "ParaGridInputs::readDims: Inconsistent dimension sizes for " + varName
+                    + " and longitude and latitude variables: [" + std::to_string(gridDims[0]) + ","
+                    + std::to_string(gridDims[1]) + "] and [" + std::to_string(lonDims[0].getSize())
+                    + "," + std::to_string(lonDims[1].getSize()) + "] respectively.\n");
+        } else {
             throw std::runtime_error("ParaGridInputs::readDims: Inconsistent dimension size for "
                 + ncLonName + " and " + ncLatName + " " + std::to_string(lonDims.size()) + " and "
                 + std::to_string(latDims.size()) + " respectively.\n");
-
+        }
     } catch (const netCDF::exceptions::NcException& nce) {
         std::string ncWhat(nce.what());
         ncWhat += ": " + fileName;
