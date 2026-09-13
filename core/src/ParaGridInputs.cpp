@@ -32,27 +32,67 @@ void ParaGridInputs::setData(const TimePoint& time, const std::string& pathSpecI
     modelLons = modelLonsIn;
     modelLats = modelLatsIn;
 
+    readDims();
+
     forcingLonLats = readRawData<double>(currentTime, { ncLatName, ncLonName });
 
     setWeights();
 
+    // TODO: Recalculate gridDims, gridStart, gridCount, and ij00, et al. so that we only load the
+    // data we know we'll need. We then also have to re-read latitude and longitude.
+
     // Useful aliases
-    const auto& lonDimSize = forcingLonLats.dims.at(ncLonName).size();
-    const auto& latDimSize = forcingLonLats.dims.at(ncLatName).size();
-    const auto& forcingLons = forcingLonLats.data[ncLonName];
-    const auto& forcingLats = forcingLonLats.data[ncLatName];
+    const auto& forcingLons = forcingLonLats.at(ncLonName);
+    const auto& forcingLats = forcingLonLats.at(ncLatName);
 
     // Different methods for Mercator maps and curvilinear grids
-    if (lonDimSize == 1 && latDimSize == 1) {
-        // Lat and lon are 1D, so we construct the 2D dimensions and use East-North orientation
-        const std::vector dims2D
-            = { forcingLonLats.dims.at(ncLonName)[0], forcingLonLats.dims.at(ncLatName)[0] };
-        rotator = std::make_unique<VectorRotator>(
-            dims2D, forcingLons, forcingLats, VectorRotator::orientation::EAST_NORTH);
-    } else if (lonDimSize == 2 && latDimSize == 2) {
-        // Lat and lon are 2D
-        rotator = std::make_unique<VectorRotator>(forcingLonLats.dims.at(ncLonName), forcingLons,
-            forcingLats, VectorRotator::orientation::GRID);
+    VectorRotator::orientation orient;
+    if (lonLat1D)
+        orient = VectorRotator::orientation::EAST_NORTH;
+    else
+        orient = VectorRotator::orientation::GRID;
+
+    rotator = std::make_unique<VectorRotator>(gridDims, forcingLons, forcingLats, orient);
+}
+
+void ParaGridInputs::readDims()
+{
+
+    // Get the grid dimensions from the frist variable in forcings
+    const std::string& varName = *forcings.begin();
+    const std::string fileName = formatFileName(currentTime, varName);
+    try {
+        const netCDF::NcFile ncFile(fileName, netCDF::NcFile::read);
+
+        const std::vector<netCDF::NcDim> dims = ncFile.getVar(varName).getDims();
+        const std::string timeDimName = ncFile.getVar(ncTimeName).getDims()[0].getName();
+        for (const auto& dim : dims) {
+            if (dim.getName() != timeDimName)
+                gridDims.push_back(dim.getSize());
+        }
+
+        // Needs to be reversed because of netCDF shenanigans
+        std::reverse(gridDims.begin(), gridDims.end());
+        gridStart.assign(gridDims.size(), 0);
+        gridCount = gridDims;
+
+        // Read the dimensions of lat and long variables
+        const std::vector<netCDF::NcDim> lonDims = ncFile.getVar(ncLonName).getDims();
+        const std::vector<netCDF::NcDim> latDims = ncFile.getVar(ncLatName).getDims();
+
+        if (latDims.size() == 1 && lonDims.size() == 1)
+            lonLat1D = true;
+        else if (latDims.size() == 2 && lonDims.size() == 2)
+            lonLat1D = false;
+        else
+            throw std::runtime_error("ParaGridInputs::readDims: Inconsistent dimension size for "
+                + ncLonName + " and " + ncLatName + " " + std::to_string(lonDims.size()) + " and "
+                + std::to_string(latDims.size()) + " respectively.\n");
+
+    } catch (const netCDF::exceptions::NcException& nce) {
+        std::string ncWhat(nce.what());
+        ncWhat += ": " + fileName;
+        throw std::runtime_error(ncWhat);
     }
 }
 
@@ -104,35 +144,20 @@ void ParaGridInputs::setWeights()
     ij10.resize(xi.size());
     ij11.resize(xi.size());
 
-    // Useful aliases
-    const auto& lonDimSize = forcingLonLats.dims.at(ncLonName).size();
-    const auto& latDimSize = forcingLonLats.dims.at(ncLatName).size();
-
     // Different methods for Mercator maps and curvilinear grids
-    if (lonDimSize == 1 && latDimSize == 1) {
-        // Lat and lon are 1D
+    if (lonLat1D)
         setWeights1D();
-    } else if (lonDimSize == 2 && latDimSize == 2) {
-        // Lat and lon are 2D
+    else
         setWeights2D();
-    } else {
-        throw std::out_of_range(
-            "ParaGridInputs::setWeights: Unsupported dimensionality of forcing grid: "
-            + std::to_string(lonDimSize) + " & " + std::to_string(latDimSize) + ".\n");
-    }
 }
 
 void ParaGridInputs::setWeights1D()
 {
-    // We need to read one of the variables to get the grid ordering
-    const auto& choiceVar = readRawData<FloatType>(currentTime, { *forcings.begin() });
-    const auto& gridDims = choiceVar.dims.at(*forcings.begin());
-
     // Useful alias
-    auto& forcingLons = forcingLonLats.data[ncLonName];
+    auto& forcingLons = forcingLonLats.at(ncLonName);
 
     // The latitude axis may be flipped, so it can't be a reference.
-    auto forcingLats = forcingLonLats.data[ncLatName];
+    auto forcingLats = forcingLonLats.at(ncLatName);
 
     bool flippedLats = false;
     if (*forcingLats.begin() > *forcingLats.end()) {
@@ -207,8 +232,8 @@ void ParaGridInputs::setWeights2D()
 #pragma omp parallel for
     for (size_t k = 0; k < modelLons.size(); ++k) {
         // Careful with the C-style indexing!
-        if (const auto& dims = forcingLonLats.dims.at(ncLonName);
-            !recursiveBisectSearch(k, modelLons[k], modelLats[k], 0, dims[0] - 1, 0, dims[1] - 1))
+        if (!recursiveBisectSearch(
+                k, modelLons[k], modelLats[k], 0, gridDims[0] - 1, 0, gridDims[1] - 1))
             throw std::out_of_range("ParaGridInputs::setWeights2D: Couldn't find "
                 + std::to_string(modelLons[k]) + ", " + std::to_string(modelLats[k])
                 + " in the forcing grid.\n");
@@ -223,22 +248,21 @@ bool ParaGridInputs::recursiveBisectSearch(const size_t k, const FloatType targe
         return false;
 
     // Useful aliases
-    const auto& forcingLons = forcingLonLats.data.at(ncLonName);
-    const auto& forcingLats = forcingLonLats.data.at(ncLatName);
-    const auto& dims = forcingLonLats.dims.at(ncLonName);
+    const auto& forcingLons = forcingLonLats.at(ncLonName);
+    const auto& forcingLats = forcingLonLats.at(ncLatName);
 
     /* Project the corner points onto an orthographic projection, centred on the target. We do the
      * rest of the work in {x,y} coordinates. The target {x,y} is now always at the origin.
      */
     FloatType x00, y00, x10, y10, x01, y01, x11, y11;
-    orthographicProjection(forcingLons[indexer(dims, { i, j })],
-        forcingLats[indexer(dims, { i, j })], targetLon, targetLat, x00, y00);
-    orthographicProjection(forcingLons[indexer(dims, { ii, j })],
-        forcingLats[indexer(dims, { ii, j })], targetLon, targetLat, x10, y10);
-    orthographicProjection(forcingLons[indexer(dims, { i, jj })],
-        forcingLats[indexer(dims, { i, jj })], targetLon, targetLat, x01, y01);
-    orthographicProjection(forcingLons[indexer(dims, { ii, jj })],
-        forcingLats[indexer(dims, { ii, jj })], targetLon, targetLat, x11, y11);
+    orthographicProjection(forcingLons[indexer(gridDims, { i, j })],
+        forcingLats[indexer(gridDims, { i, j })], targetLon, targetLat, x00, y00);
+    orthographicProjection(forcingLons[indexer(gridDims, { ii, j })],
+        forcingLats[indexer(gridDims, { ii, j })], targetLon, targetLat, x10, y10);
+    orthographicProjection(forcingLons[indexer(gridDims, { i, jj })],
+        forcingLats[indexer(gridDims, { i, jj })], targetLon, targetLat, x01, y01);
+    orthographicProjection(forcingLons[indexer(gridDims, { ii, jj })],
+        forcingLats[indexer(gridDims, { ii, jj })], targetLon, targetLat, x11, y11);
 
     // If we're not inside the bounding box, then there's no point in going further
     if (!pointInBoundingBox({ x00, x10, x01, x11 }, { y00, y10, y01, y11 }))
@@ -247,10 +271,10 @@ bool ParaGridInputs::recursiveBisectSearch(const size_t k, const FloatType targe
     // If the size of the box is one, then we can try to find the local coordinates
     if (ii == i + 1 && jj == j + 1) {
         // Save the index
-        ij00[k] = indexer(dims, { i, j });
-        ij10[k] = indexer(dims, { ii, j });
-        ij01[k] = indexer(dims, { i, jj });
-        ij11[k] = indexer(dims, { ii, jj });
+        ij00[k] = indexer(gridDims, { i, j });
+        ij10[k] = indexer(gridDims, { ii, j });
+        ij01[k] = indexer(gridDims, { i, jj });
+        ij11[k] = indexer(gridDims, { ii, jj });
 
         // Try to find local coordinates
         return findLocalCoordinates(k, x00, y00, x10, y10, x01, y01, x11, y11);
@@ -281,7 +305,7 @@ bool ParaGridInputs::recursiveBisectSearch(const size_t k, const FloatType targe
 }
 
 void ParaGridInputs::orthographicProjection(const double lon, const double lat,
-    const FloatType lon0, const FloatType lat0, FloatType& x, FloatType& y) const
+    const FloatType lon0, const FloatType lat0, FloatType& x, FloatType& y)
 {
     /* Most of these are used twice, but not all. But anyway, it's easier to read like this, and the
      * compiler should optimise the excessive assignments out, right?
@@ -403,7 +427,7 @@ bool ParaGridInputs::findLocalCoordinates(const size_t k, const FloatType x00, c
 ModelState ParaGridInputs::interpolateSpatially(const RawDataMap<FloatType>& rawData)
 {
     ModelState state;
-    for (const auto& dataPair : rawData.data) {
+    for (const auto& dataPair : rawData) {
         // Structured bindings and omp don't mesh
         const std::string& name = dataPair.first;
         const std::vector<FloatType>& data = dataPair.second;
@@ -430,14 +454,12 @@ ModelState ParaGridInputs::interpolateSpatially(const RawDataMap<FloatType>& raw
 
 void ParaGridInputs::rotateInputVectors(RawDataMap<FloatType>& rawData)
 {
-    // Usefull aliases
-    const auto& lonDimSize = forcingLonLats.dims.at(ncLonName).size();
-    const auto& latDimSize = forcingLonLats.dims.at(ncLatName).size();
-    const auto& forcingLats = forcingLonLats.data[ncLatName];
+    // Useful alias
+    const auto& forcingLats = forcingLonLats.at(ncLatName);
 
     for (const auto& [uName, vName] : vectors) {
-        auto& uData = rawData.data.at(uName);
-        auto& vData = rawData.data.at(vName);
+        auto& uData = rawData.at(uName);
+        auto& vData = rawData.at(vName);
 
         rotator->fromParametricMesh(uData, vData);
 
@@ -448,8 +470,7 @@ void ParaGridInputs::rotateInputVectors(RawDataMap<FloatType>& rawData)
          * if we get closer to the pole thant his, then we'll have problems with the vector rotator
          * (assuming double precision).
          */
-        if (lonDimSize == 1 && latDimSize == 1
-            && *std::max_element(forcingLats.begin(), forcingLats.end()) >= 89.9) {
+        if (lonLat1D && *std::max_element(forcingLats.begin(), forcingLats.end()) >= 89.9) {
             rotator->fixLonLatPole(uData, vData, forcingLats);
         }
     }
@@ -567,30 +588,39 @@ ParaGridInputs::RawDataMap<T> ParaGridInputs::readRawData(
                 continue;
 
             netCDF::NcVar var = ncFile.getVar(varName);
-
             std::vector<netCDF::NcDim> dims = var.getDims();
-            std::vector<size_t> start(dims.size(), 0);
-            std::vector<size_t> count(dims.size());
-            for (int i = 0; i < count.size(); ++i)
-                count[i] = dims[i].getSize();
 
-            // Pick the time slice if we have a time axis
-            for (int i = 0; i < dims.size(); ++i) {
-                if (dims[i].getName() == ncFile.getVar(ncTimeName).getDims()[0].getName()) {
-                    start[i] = timeIndex;
-                    count[i] = 1;
-                    continue;
+            /* Populate start and count, based on the already established gridStart and gridCount,
+             * while taking the time dimension into account.
+             * NB! j needs to run backwards because of netCDF shenanigans
+             * NB! If we're reading lon/lat from a Mercator map we can assume lon is the first and
+             * lat the second dimension.
+             */
+            std::vector<size_t> start, count;
+            if (lonLat1D && varName == ncLonName) {
+                start.push_back(gridStart[0]);
+                count.push_back(gridDims[0]);
+            } else if (lonLat1D && varName == ncLatName) {
+                start.push_back(gridStart[1]);
+                count.push_back(gridDims[1]);
+            } else {
+                size_t j = gridDims.size() - 1;
+                for (const auto& dim : dims) {
+                    if (dim.getName() == ncFile.getVar(ncTimeName).getDims()[0].getName()) {
+                        start.push_back(timeIndex);
+                        count.push_back(1);
+                    } else {
+                        start.push_back(gridStart[j]);
+                        count.push_back(gridCount[j]);
+                        --j;
+                    }
                 }
-                // Push all non-time dimension counts to the output data map
-                data.dims[varName].push_back(count[i]);
             }
-            // Needs to be reversed because of netCDF shenanigans
-            std::reverse(data.dims[varName].begin(), data.dims[varName].end());
 
             // Resize and read!
-            data.data[varName] = std::vector<T>(std::accumulate(
+            data[varName] = std::vector<T>(std::accumulate(
                 count.begin(), count.end(), static_cast<size_t>(1), std::multiplies<>()));
-            readNetCDFVar(var, start, count, data.data[varName].data());
+            readNetCDFVar(var, start, count, data.at(varName).data());
 
         } catch (const netCDF::exceptions::NcException& nce) {
             std::string ncWhat(nce.what());
