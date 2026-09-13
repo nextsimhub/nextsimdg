@@ -70,11 +70,8 @@ public:
     }
 
 private:
-    // Useful structs
-    template <typename T> struct RawDataMap {
-        std::map<std::string, std::vector<size_t>> dims;
-        std::map<std::string, std::vector<T>> data;
-    };
+    // Useful structs and aliases
+    template <typename T> using RawDataMap = std::map<std::string, std::vector<T>>;
 
     struct {
         TimePoint before, after;
@@ -93,6 +90,11 @@ private:
     std::set<std::string> forcings;
     std::set<std::pair<std::string, std::string>> vectors;
     std::unique_ptr<VectorRotator> rotator;
+    std::vector<size_t> gridDims, gridStart, gridCount;
+    bool lonLat1D;
+
+    // Read the netCDF file dimensions
+    void readDims();
 
     // Basic weight-setting functions
     void setWeights();
