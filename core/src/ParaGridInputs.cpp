@@ -52,11 +52,11 @@ void ParaGridInputs::setData(const TimePoint& time, const std::string& pathSpecI
     forcingLonLats = readRawData<double>(currentTime, { ncLatName, ncLonName });
 
     // Different methods for Mercator maps and curvilinear grids
-    VectorRotator::orientation orient;
+    VectorRotator::Orientation orient;
     if (lonLat1D)
-        orient = VectorRotator::orientation::EAST_NORTH;
+        orient = VectorRotator::Orientation::EAST_NORTH;
     else
-        orient = VectorRotator::orientation::GRID;
+        orient = VectorRotator::Orientation::GRID;
 
     rotator = std::make_unique<VectorRotator>(
         gridDims, forcingLonLats.at(ncLonName), forcingLonLats.at(ncLatName), orient);
