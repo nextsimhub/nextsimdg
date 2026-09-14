@@ -64,9 +64,9 @@ void ParaGridInputs::tightenGrid()
     std::vector<size_t> gridEnd = { 0, 0 };
 
     // Loop over all the points in the corner lists to find the grid boundaries
-    for (const auto& corner : { ij00, ij01, ij10, ij11 }) {
+    for (const auto* cornerPtr : { &ij00, &ij01, &ij10, &ij11 }) {
 #pragma omp parallel for
-        for (const auto& point : corner) {
+        for (const auto& point : *cornerPtr) {
             const auto ij = deIndexer(gridDims, point);
             for (size_t k = 0; k < ij.size(); k++) {
                 gridStart[k] = std::min(gridStart[k], ij[k]);
