@@ -1,0 +1,28 @@
+spack:
+  packages:
+    c:
+      require:
+      - gcc@11.3.0
+    cxx:
+      require:
+      - gcc@11.3.0
+    fortran:
+      require:
+      - gcc@11.3.0
+  specs:
+  - boost@1.90+log+program_options
+  - 'cmake@3.20:'
+  - eigen@3.4.0
+  - gmake
+  - hdf5@1.14.3
+  - openmpi@5.0.10
+  - netcdf-c@4.9.2+mpi+parallel-netcdf
+  - netcdf-cxx4@4.3.1
+  - netcdf-fortran
+  - scorep@9.4
+  - zlib-ng@2.1.4
+  - zoltan
+  concretizer:
+    unify: true
+    reuse: false
+  view: true
