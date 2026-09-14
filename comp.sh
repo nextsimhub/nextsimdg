@@ -1,4 +1,16 @@
 #!/bin/bash
+#SBATCH -J MPI76profiling-june-23-config
+#SBATCH -A ICCS-SL2-CPU
+#SBATCH --output=scaling_MPI76_scorep.out
+#SBATCH --error=scaling_MPI76_scorep.err
+
+#SBATCH --nodes=1
+#SBATCH --exclusive
+#SBATCH --time=01:00:00
+#SBATCH --mem=40000mb
+
+#SBATCH -p icelake
+#SBATCH --mail-type=NONE
 
 export DD_PATH=/home/${USER}/rds/rds-iccs-DKRMHAHoC3M/${USER}/domain_decomp # CHANGE ME
 export VENV_PATH=/home/${USER}/nextsimdg # CHANGE ME
@@ -27,7 +39,7 @@ cmake .. -DCMAKE_CXX_COMPILER=$(which mpic++) -DCMAKE_C_COMPILER=$(which mpicc) 
 
 export PATH=$PATH:${DD_PATH}/build
 
-make -j 4
+make -j 64
 make test
 make install
 
@@ -51,12 +63,12 @@ else
 	cmake .. -DCMAKE_EXPORT_COMPILE_COMMANDS=1 -DCMAKE_C_COMPILER=$(which gcc) -DCMAKE_CXX_COMPILER=$(which g++) -DENABLE_MPI=OFF -DWITH_THREADS=OFF -DPython_EXECUTABLE=$(which python) -DCMAKE_BUILD_TYPE=Release
 fi
 
-make -j 4
+make -j 64
 make test
 
 cd ${BENCHMARK_PATH}
 
-for MPI_SIZE in 64
+for MPI_SIZE in 64 32 16 8 4 2 1
 do
 	        echo "MPI Size: ${MPI_SIZE}"
 		mpiexec -n ${MPI_SIZE} ${DD_PATH}/build/decomp -g ${BENCHMARK_PATH}/${PARTITION_DATA_FILE_NAME} -x xdim -y ydim
