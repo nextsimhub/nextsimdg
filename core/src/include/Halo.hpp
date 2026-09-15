@@ -36,6 +36,47 @@
 
 namespace Nextsim {
 
+namespace HaloExchange {
+
+    /*!
+     * @brief
+     */
+    class TripolarFold {
+    public:
+        enum class DataType { DG, CG, VERTEX };
+
+        TripolarFold(const DataType dataType)
+            : m_dataType(dataType)
+        {
+        }
+
+        void flipCommTransaction(FloatType* data, std::size_t len) const;
+
+        static DataType dataTypeFromModelArrayType(const ModelArray::Type type)
+        {
+            switch (type) {
+            case ModelArray::Type::VERTEX:
+                return DataType::VERTEX;
+                break;
+            case ModelArray::Type::H:
+            case ModelArray::Type::DG:
+                return DataType::DG;
+                break;
+            case ModelArray::Type::CG:
+                return DataType::CG;
+                break;
+            default:
+                exit(1);
+                throw std::runtime_error("Unrecognised ModelArray type for tripolar fold");
+            }
+        }
+
+    private:
+        DataType m_dataType;
+    };
+
+}
+
 /*!
  * @brief A class to facilitate halo exchange between MPI ranks
  */
@@ -46,9 +87,11 @@ public:
      * @param ma ModelArray object to create halo from
      */
     Halo(ModelArray& ma)
+        : m_tripolarFoldOp(HaloExchange::TripolarFold::dataTypeFromModelArrayType(ma.getType()))
     {
         m_numComps = ma.nComponents();
         isVertex = ma.getType() == ModelArray::Type::VERTEX;
+        setTripolarFlags();
         setSpatialDims();
         initializeHaloMetadata();
     }
@@ -67,9 +110,12 @@ public:
      * @brief Constructs a halo object from DGVector
      * @param dgv DGVector object to create halo from
      */
-    template <int N> Halo(DGVector<N>& dgv)
+    template <int N>
+    Halo(DGVector<N>& dgv)
+        : m_tripolarFoldOp(HaloExchange::TripolarFold::DataType::DG)
     {
         m_numComps = N;
+        setTripolarFlags();
         setSpatialDims();
         initializeHaloMetadata();
     }
@@ -78,12 +124,15 @@ public:
      * @brief Constructs a halo object from CGVector
      * @param cgv CGVector object to create halo from
      */
-    template <int N> Halo(CGVector<N>& cgv)
+    template <int N>
+    Halo(CGVector<N>& cgv)
+        : m_tripolarFoldOp(HaloExchange::TripolarFold::DataType::CG)
     {
         m_numComps = 1;
         isCG = true;
         CGdegree = N;
         nCells = CGdegree;
+        setTripolarFlags();
         setSpatialDims();
         initializeHaloMetadata();
     }
@@ -112,6 +161,8 @@ private:
     std::array<size_t, Edge::N_EDGE> m_edgeLengths; // array containing length of each edge
     std::array<Edge, Edge::N_EDGE> edges = ModelMetadata::edges; // array of edge enums
     std::array<Corner, Corner::N_CORNER> corners = ModelMetadata::corners; // array of edge enums
+
+    void setTripolarFlags();
 
     /**
      * @brief Sets the spatial dimensions of the domain
@@ -164,6 +215,10 @@ private:
     size_t CGdegree = 0;
     size_t sendBufferSize = 0;
     size_t recvBufferSize = 0;
+
+    bool m_tripolarFold = false; // does this rank need tripolar fold treatment
+    HaloExchange::TripolarFold
+        m_tripolarFoldOp; // tripolar fold operation for this rank's data type
 
     std::vector<std::vector<FloatType>>
         send; // buffer to store halo region that will be read by other ranks
@@ -410,6 +465,11 @@ private:
         }
     }
 
+    /**
+     *
+     */
+    void rotateTopEdgeInBuffer();
+
 public:
     /**
      * @brief Check if dimension is in the lateral direction i.e., X, Y, XVERTEX, or YVERTEX
@@ -482,6 +542,9 @@ public:
     {
         populateSendBuffers(target);
         populateRecvBuffers();
+        if (m_tripolarFold) {
+            rotateTopEdgeInBuffer();
+        }
         if (isCG) {
             transposeCorners();
         }
