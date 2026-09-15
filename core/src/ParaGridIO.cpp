@@ -378,7 +378,7 @@ void ParaGridIO::writeDiagnosticTime(const ModelState& state, const std::string&
 
     // All of the dimensions defined by the data at a particular timestep.
     std::map<ModelArray::Dimension, netCDF::NcDim> ncFromMAMap;
-    for (auto entry : ModelArray::definedDimensions) {
+    for (const auto& entry : ModelArray::definedDimensions) {
         ModelArray::Dimension dim = entry.first;
         size_t dimSz = (dimCompMap.count(dim)) ? ModelArray::nComponents(dimCompMap.at(dim))
                                                : dimSz = entry.second.globalLength;
@@ -391,7 +391,7 @@ void ParaGridIO::writeDiagnosticTime(const ModelState& state, const std::string&
     // Create the index and size arrays
     std::map<ModelArray::Type, std::vector<size_t>> startMap;
     std::map<ModelArray::Type, std::vector<size_t>> countMap;
-    for (auto entry : ModelArray::typeDimensions) {
+    for (const auto& entry : ModelArray::typeDimensions) {
         ModelArray::Type type = entry.first;
         std::vector<netCDF::NcDim> ncDims;
         std::vector<size_t> start;
@@ -409,7 +409,7 @@ void ParaGridIO::writeDiagnosticTime(const ModelState& state, const std::string&
         }
         using Dim = ModelArray::Dimension;
         for (auto dt : entry.second) {
-            auto dim = ModelArray::definedDimensions.at(dt);
+            const auto& dim = ModelArray::definedDimensions.at(dt);
             auto localLength = dim.localLength;
 #ifdef USE_MPI
             // Halo cells (which only exist in the lateral direction) are not included in netCDF
@@ -453,7 +453,7 @@ void ParaGridIO::writeDiagnosticTime(const ModelState& state, const std::string&
         }
         maskIndexes = { 0, 0 };
         for (auto dt : ModelArray::typeDimensions.at(ModelArray::Type::H)) {
-            auto dim = ModelArray::definedDimensions.at(dt);
+            const auto& dim = ModelArray::definedDimensions.at(dt);
             auto localLength = dim.localLength;
 #ifdef USE_MPI
             // Halo cells (which only exist in the lateral direction) are not included in netCDF
@@ -482,7 +482,7 @@ void ParaGridIO::writeDiagnosticTime(const ModelState& state, const std::string&
         timeVar.putAtt("units", "seconds since 1970-01-01 00:00:00");
 
     // Write the data
-    for (auto entry : state.data) {
+    for (const auto& entry : state.data) {
         ModelArray::Type type = entry.second.getType();
         // Skip timeless fields (mask, coordinates) on existing files
         if (!isNew && (entry.first == maskName || type == ModelArray::Type::VERTEX))
