@@ -113,15 +113,17 @@ void ConfigOutput::configure()
         for (std::string line; std::getline(fieldStream, line, ',');) {
             fieldsForOutput.insert(line);
         }
-        // Sort through the list of fields and create lists of Shared- or ProtectedArrays that
-        // correspond to the fields.
-        for (const std::string& fieldName : fieldsForOutput) {
-            if (externalNames.count(fieldName)) {
-                internalFieldsForOutput.insert(externalNames.at(fieldName));
-            } else {
+        // Check the inputs
+        for (const std::string& fieldName : fieldsForOutput)
+            if (externalNames.count(fieldName) == 0)
                 Logged::warning(
                     "ConfigOutput: No field with the name \"" + fieldName + "\" was found.");
-            }
+    }
+
+    // Fill the reverse lookup table between external and internal names
+    for (const auto& [external, internal] : externalNames) {
+        if (!reverseExternalNames.count(internal)) {
+            reverseExternalNames[internal] = external;
         }
     }
 
@@ -148,11 +150,13 @@ void ConfigOutput::setModelStart(const TimePoint& modelStart)
 
 void ConfigOutput::outputState(const ModelState& diagState)
 {
-    auto& meta = ModelMetadata::getInstance();
-    const TimePoint& time = meta.time();
-    if (currentFileName == "" || (lastFileChange + fileChangePeriod <= time)) {
-        std::string newFileName = time.format(m_filePrefix) + ".nc";
-        if (newFileName != currentFileName) {
+    const auto& meta = ModelMetadata::getInstance();
+
+    // Open a new file if needed
+    if (const TimePoint& time = meta.time();
+        currentFileName.empty() || lastFileChange + fileChangePeriod <= time) {
+        if (const std::string newFileName = time.format(m_filePrefix) + ".nc";
+            newFileName != currentFileName) {
             // TODO: Close the file currentFileName
             FileCallbackCloser::close(currentFileName);
             currentFileName = newFileName;
@@ -162,46 +166,27 @@ void ConfigOutput::outputState(const ModelState& diagState)
 
     FloatType averagingFactor = meta.stepLength().seconds() / outputPeriod.seconds();
     ModelState state = { {}, diagState.config };
-    auto storeData = ModelArrayAccessorBase<RO>::getAll(ModelComponent::getStore());
-    if (outputAllTheFields) {
-        // If the internal to external name lookup table is still empty, fill it
-        if (reverseExternalNames.empty()) {
-            for (auto entry : externalNames) {
-                // Add the reverse lookup between external and internal names, if one has not been
-                // added
-                if (!reverseExternalNames.count(entry.second)) {
-                    reverseExternalNames[entry.second] = entry.first;
-                }
-            }
-        }
+    const auto storeData = ModelArrayAccessorBase<>::getAll(getStore());
 
-        // Output every entry in storeData, as either its external name if
-        // defined, or as its internal name.
-        for (auto entry : storeData) {
-            const ModelArray& modelArray = entry.second.getHostRO();
-            if (modelArray.trueSize()) {
-                if (reverseExternalNames.count(entry.first)) {
-                    state.data[reverseExternalNames.at(entry.first)] = modelArray;
-                } else {
-                    state.data[entry.first] = modelArray;
-                }
+    // Output every entry in storeData, as either its external name if
+    // defined, or as its internal name.
+    for (const auto& [internalName, arrayRef] : storeData) {
+        if (const ModelArray& modelArray = arrayRef.getHostRO(); modelArray.trueSize()) {
+            if (reverseExternalNames.count(internalName)) {
+                if (const auto externalName = reverseExternalNames.at(internalName);
+                    outputAllTheFields || fieldsForOutput.count(externalName))
+                    state.data[externalName] = modelArray;
+            } else {
+                if (outputAllTheFields)
+                    state.data[internalName] = modelArray;
             }
         }
-    } else {
-        // Filter the passed state by the field names for output
-        for (auto& entry : diagState.data) {
-            if (fieldsForOutput.count(entry.first) > 0) {
-                state.data[entry.first] = entry.second;
-            }
-        }
+    }
 
-        // Get data from the data store for any named fields that have an external name that
-        // matches.
-        for (const auto& fieldExtName : fieldsForOutput) {
-            if (externalNames.count(fieldExtName)
-                && storeData.count(externalNames.at(fieldExtName))) {
-                state.data[fieldExtName] = storeData.at(externalNames.at(fieldExtName)).getHostRO();
-            }
+    // Filter the passed state by the field names for output
+    for (const auto& [key, arrayRef] : diagState.data) {
+        if (fieldsForOutput.count(key) > 0) {
+            state.data[key] = arrayRef;
         }
     }
 
@@ -211,8 +196,7 @@ void ConfigOutput::outputState(const ModelState& diagState)
      *    • whenever the current time is an integer number of time periods from the
      *      last output time.
      */
-    Duration timeSinceOutput = meta.time() - lastOutput;
-    if (timeSinceOutput.seconds() > 0
+    if (const Duration timeSinceOutput = meta.time() - lastOutput; timeSinceOutput.seconds() > 0
         && (everyTS || std::fmod(timeSinceOutput.seconds(), outputPeriod.seconds()) == 0.0_ft)) {
         Logged::info("ConfigOutput: Outputting " + std::to_string(state.data.size()) + " fields to "
             + currentFileName + " at " + meta.time().format() + "\n");
