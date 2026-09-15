@@ -20,6 +20,12 @@ namespace Nextsim {
 using Edge = ModelMetadata::Edge;
 using Corner = ModelMetadata::Corner;
 
+void Halo::setTripolarFlags()
+{
+    auto& metadata = ModelMetadata::getInstance();
+    m_tripolarFold = metadata.needsTripolarFold();
+}
+
 void Halo::setSpatialDims()
 {
     auto& metadata = ModelMetadata::getInstance();
@@ -244,6 +250,31 @@ void Halo::populateRecvBuffers()
     }
 }
 
+void Halo::rotateTopEdgeInBuffer()
+{
+    // Protect against control flow errors.
+    if (!m_tripolarFold) {
+        throw std::runtime_error(
+            "rotateTopEdgeInBuffer called on rank that does not need tripolar fold");
+    }
+    const auto& metadata = ModelMetadata::getInstance();
+    const Edge edge = Edge::TOP;
+
+    // We fixup the order of data component by component
+    for (size_t comp = 0; comp < m_numComps; ++comp) {
+        // We loop over all edge-based memory transactions on the top edge
+        auto numNeighbours = metadata.neighbourRanks[edge].size();
+        for (std::size_t i = 0; i < numNeighbours; ++i) {
+            int fromRank;
+            std::size_t count, disp_ignore, recvOffset;
+            const std::size_t cell = 0;
+            recvPositions(fromRank, count, disp_ignore, recvOffset, edge, i, cell);
+
+            m_tripolarFoldOp.flipCommTransaction(&recv[comp][recvOffset], count);
+        }
+    }
+}
+
 void Halo::sendBufferPositions(int& idx_a, int& idx_b, int& offset, const Edge edge)
 {
     int vertexOffset = 0;
@@ -318,6 +349,28 @@ void Halo::transposeCorners()
                     rmap.block(offset, 0, nCells, nCells).transposeInPlace();
                 }
             }
+        }
+    }
+}
+
+namespace HaloExchange {
+
+    void TripolarFold::flipCommTransaction(FloatType* data, std::size_t len) const
+    {
+        FloatType* start = data;
+        FloatType* end = data + len;
+
+        switch (m_dataType) {
+        case DataType::VERTEX:
+        case DataType::DG:
+            std::reverse(start, end);
+            break;
+        case DataType::CG:
+            // TODO: Implement
+            break;
+        default:
+            // TODO: Use nextsim proper error handling conventions
+            throw std::runtime_error("Unrecognised data type for tripolar fold");
         }
     }
 }
