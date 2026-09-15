@@ -265,12 +265,37 @@ void Halo::rotateTopEdgeInBuffer()
         // We loop over all edge-based memory transactions on the top edge
         auto numNeighbours = metadata.neighbourRanks[edge].size();
         for (std::size_t i = 0; i < numNeighbours; ++i) {
-            int fromRank;
-            std::size_t count, disp_ignore, recvOffset;
-            const std::size_t cell = 0;
-            recvPositions(fromRank, count, disp_ignore, recvOffset, edge, i, cell);
+            // Left -> Right flip
+            for (size_t cell = 0; cell < nCells; ++cell) {
+                int fromRank;
+                std::size_t count, disp_ignore, recvOffset;
+                recvPositions(fromRank, count, disp_ignore, recvOffset, edge, i, cell);
+                m_tripolarFoldOp.flipCommTransaction(&recv[comp][recvOffset], count);
+            }
 
-            m_tripolarFoldOp.flipCommTransaction(&recv[comp][recvOffset], count);
+            if (nCells > 1) {
+                // In the buffer we have `nCells` number of rows that we need to swap
+                // Hence we iterate over each pair, for odd `nCells`, the middle row is left
+                // untouched.
+                std::size_t midPoint = nCells / 2;
+                for (std::size_t cell = 0; cell < midPoint; cell++) {
+                    std::size_t otherCell = nCells - 1 - cell;
+
+                    // Calculate the range in the buffer for each row
+                    int fromRank;
+                    std::size_t disp_ignore;
+                    std::size_t count_1, recvOffset_1;
+                    recvPositions(fromRank, count_1, disp_ignore, recvOffset_1, edge, i, cell);
+                    std::size_t count_2, recvOffset_2;
+                    recvPositions(fromRank, count_2, disp_ignore, recvOffset_2, edge, i, otherCell);
+
+                    // Swap the data
+                    FloatType* start_1 = &recv[comp][recvOffset_1];
+                    FloatType* end_1 = start_1 + count_1;
+                    FloatType* start_2 = &recv[comp][recvOffset_2];
+                    std::swap_ranges(start_1, end_1, start_2);
+                }
+            }
         }
     }
 }
@@ -363,10 +388,8 @@ namespace HaloExchange {
         switch (m_dataType) {
         case DataType::VERTEX:
         case DataType::DG:
-            std::reverse(start, end);
-            break;
         case DataType::CG:
-            // TODO: Implement
+            std::reverse(start, end);
             break;
         default:
             // TODO: Use nextsim proper error handling conventions
