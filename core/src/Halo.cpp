@@ -118,6 +118,26 @@ Edge Halo::edgeFromSendPos(int sendPos, int fromRank)
     }
 }
 
+int Halo::recvPosFromEdge(Edge edge) const
+{
+    // extents of the local domain (buffer-map row unit, matching recvPositions)
+    int extentX = m_innerNx;
+    int extentY = m_innerNy;
+
+    switch (edge) {
+    case Edge::BOTTOM:
+        return 0;
+    case Edge::RIGHT:
+        return extentX;
+    case Edge::TOP:
+        return extentX + extentY;
+    case Edge::LEFT:
+        return 2 * extentX + extentY;
+    default:
+        throw std::runtime_error("Halo :: Invalid edge enum");
+    }
+}
+
 void Halo::recvPositions(int& fromRank, size_t& count, size_t& disp, size_t& recvOffset, Edge edge,
     const size_t neighbourIndex, const size_t cell)
 {
@@ -128,14 +148,53 @@ void Halo::recvPositions(int& fromRank, size_t& count, size_t& disp, size_t& rec
     recvOffset = metadata.neighbourHaloRecv[edge][neighbourIndex];
     auto sendEdge = edgeFromSendPos(disp, fromRank);
     if (isVertex) {
+        recvOffset = recvOffset + edge;
+        const bool isFirstTransaction = (recvOffset == recvPosFromEdge(edge));
+
         count = count + 1;
         disp = disp + sendEdge;
-        recvOffset = recvOffset + edge;
+
+        if (!isFirstTransaction) {
+            count = count - 1;
+            recvOffset = recvOffset + 1;
+            disp = disp + 1;
+
+            // Explain the logic behind this.
+            // I managed to convince myself there is one...
+            // It is that we need to cut data from a different side
+            // FIXME
+            if (m_tripolarFold && edge == Edge::TOP) {
+                disp = disp - 1;
+            }
+        }
     }
     if (isCG) {
+        // Note that the CG memory transactions are overlapping
+        // We need to make them non-overlapping to support th tripolar grid
+
+        // We need to detect the first transaction along the edge (identified by the recv offset
+        // matching the start of the edge). For the following transactions we need to shift
+        // displacement by +1 and count by -1
+        recvOffset = (recvOffset > 0) ? CGdegree * recvOffset + edge : 0;
+
+        const bool isFirstTransaction = (recvOffset == recvPosFromEdge(edge));
+
         count = CGdegree * count + 1;
         disp = (disp > 0) ? CGdegree * disp + sendEdge : 0;
-        recvOffset = (recvOffset > 0) ? CGdegree * recvOffset + edge : 0;
+
+        if (!isFirstTransaction) {
+            count = count - 1;
+            recvOffset = recvOffset + 1;
+            disp = disp + 1;
+
+            // Explain the logic behind this.
+            // I managed to convince myself there is one...
+            // It is that we need to cut data from a different side
+            // FIXME
+            if (m_tripolarFold && edge == Edge::TOP) {
+                disp = disp - 1;
+            }
+        }
 
         // recvOffset is the offset in the recv buffer and this belongs to the current rank
         recvOffset = recvOffset + recvBufferSize / nCells * cell;
