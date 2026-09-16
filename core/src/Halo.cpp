@@ -256,6 +256,10 @@ void Halo::recvPositions(int& fromRank, size_t& count, size_t& disp, size_t& rec
         // recvOffset is the offset in the recv buffer and this belongs to the current rank
         recvOffset = recvOffset + recvBufferSize / nCells * cell;
 
+        if (m_tripolarFold && (corner == Corner::TOP_LEFT || corner == Corner::TOP_RIGHT)) {
+            corner = corner == Corner::TOP_LEFT ? Corner::BOTTOM_RIGHT : Corner::BOTTOM_LEFT;
+        }
+
         // disp is the offset in the "sending" buffer which belongs to rank "fromRank"
         // Therefore we need to compute how many halo cells that rank has to work out the offset
         // for each cell
@@ -367,6 +371,53 @@ void Halo::rotateTopEdgeInBuffer()
                     std::swap_ranges(start_1, end_1, start_2);
                 }
             }
+        }
+
+        // For the CG case we need to transpose the corners
+        if (isCG) {
+            constexpr static std::array<Corner, 2> TOP_CORNERS { Corner::TOP_LEFT,
+                Corner::TOP_RIGHT };
+
+            for (const auto& corner : TOP_CORNERS) {
+                auto hasCorner = metadata.cornerRanks[corner].size();
+                if (!hasCorner) {
+                    continue;
+                }
+
+                // Left-right flip
+                for (size_t cell = 0; cell < nCells; ++cell) {
+                    int fromRank;
+                    std::size_t count, disp_ignore, recvOffset;
+                    recvPositions(fromRank, count, disp_ignore, recvOffset, corner, cell);
+                    m_tripolarFoldOp.flipCommTransaction(&recv[comp][recvOffset], count);
+                }
+
+                // Up down flip
+                std::size_t midPoint = nCells / 2;
+                for (std::size_t cell = 0; cell < midPoint; cell++) {
+                    std::size_t otherCell = nCells - 1 - cell;
+
+                    // Calculate the range in the buffer for each row
+                    int fromRank;
+                    std::size_t disp_ignore;
+                    std::size_t count_1, recvOffset_1;
+                    recvPositions(fromRank, count_1, disp_ignore, recvOffset_1, corner, cell);
+                    std::size_t count_2, recvOffset_2;
+                    recvPositions(fromRank, count_2, disp_ignore, recvOffset_2, corner, otherCell);
+
+                    // Swap the data
+                    FloatType* start_1 = &recv[comp][recvOffset_1];
+                    FloatType* end_1 = start_1 + count_1;
+                    FloatType* start_2 = &recv[comp][recvOffset_2];
+                    std::swap_ranges(start_1, end_1, start_2);
+                }
+            }
+            // for (auto corner : { Corner::TOP_LEFT, Corner::TOP_RIGHT }) {
+            //     int fromRank;
+            //     std::size_t count, disp_ignore, recvOffset;
+            //     recvPositions(fromRank, count, disp_ignore, recvOffset, corner, 0);
+            //     m_tripolarFoldOp.flipCommTransaction(&recv[comp][recvOffset], count);
+            // }
         }
     }
 }
