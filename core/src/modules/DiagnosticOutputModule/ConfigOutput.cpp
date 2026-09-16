@@ -49,7 +49,7 @@ ConfigOutput::ConfigOutput()
     , lastOutput(defaultLastOutput)
     , fieldsForOutput()
     , currentFileName()
-    , snapshots(true)
+    , snapshots(false)
     , resetState(true)
 {
 }
@@ -165,20 +165,32 @@ void ConfigOutput::outputState(const ModelState& diagState)
     }
 
     FloatType averagingFactor = meta.stepLength().seconds() / outputPeriod.seconds();
-    ModelState state = { {}, diagState.config };
+    if (snapshots) {
+        averagingFactor = 1.0;
+        state = { {}, diagState.config };
+    }
     const auto storeData = ModelArrayAccessorBase<>::getAll(getStore());
+
+    auto addToState = [averagingFactor](const std::string& name, ModelState& state,
+                          const ModelArray& modelArray) -> void {
+        if (state.data.count(name) == 0) {
+            state.data[name] = ModelArray(ModelArray::Type::H);
+            state.data.at(name).reinitialize();
+        }
+        state.data.at(name) += modelArray * averagingFactor;
+    };
 
     // Output every entry in storeData, as either its external name if
     // defined, or as its internal name.
     for (const auto& [internalName, arrayRef] : storeData) {
         if (const ModelArray& modelArray = arrayRef.getHostRO(); modelArray.trueSize()) {
             if (reverseExternalNames.count(internalName)) {
-                if (const auto externalName = reverseExternalNames.at(internalName);
+                if (const auto& externalName = reverseExternalNames.at(internalName);
                     outputAllTheFields || fieldsForOutput.count(externalName))
-                    state.data[externalName] = modelArray;
+                    addToState(externalName, state, modelArray);
             } else {
                 if (outputAllTheFields)
-                    state.data[internalName] = modelArray;
+                    addToState(internalName, state, modelArray);
             }
         }
     }
@@ -186,7 +198,7 @@ void ConfigOutput::outputState(const ModelState& diagState)
     // Filter the passed state by the field names for output
     for (const auto& [key, arrayRef] : diagState.data) {
         if (fieldsForOutput.count(key) > 0) {
-            state.data[key] = arrayRef;
+            addToState(key, state, arrayRef);
         }
     }
 

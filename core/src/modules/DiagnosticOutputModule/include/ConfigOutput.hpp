@@ -68,6 +68,8 @@ private:
 
     bool snapshots;
     bool resetState;
+
+    ModelState state = { .data = {}, .config = {} };
 };
 
 } /* namespace Nextsim */
