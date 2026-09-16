@@ -292,6 +292,19 @@ private:
     Edge edgeFromSendPos(int sendPos, int fromRank);
 
     /**
+     * @brief Calculate the starting position of the given edge in the local receive buffer
+     *
+     * The recv buffer lays out edge data in order BOTTOM, RIGHT, TOP, LEFT, so an edge starts
+     * after all preceding edge lengths. Positions are expressed in the buffer-map row unit
+     * (buffer_len, as in recvPositions/populateTarget): multiply edge lengths by nCells for
+     * CGVector fields, where each halo "cell" expands to nCells points.
+     *
+     * @param edge Edge for which to calculate the recv buffer position
+     * @return Starting position in the recv buffer for the specified edge
+     */
+    int recvPosFromEdge(Edge edge) const;
+
+    /**
      * @brief Calculate recv buffer positions and offsets (count, disp and recvOffset) for halo
      * transfer
      *
