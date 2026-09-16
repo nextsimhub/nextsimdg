@@ -245,6 +245,9 @@ void ConfigOutput::outputState(const ModelState& diagState)
         meta.affixCoordinates(outputState);
         StructureFactory::fileFromState(outputState, currentFileName, false);
         lastOutput = meta.time();
+
+        // Reset output state
+        state = { .data = {}, .config = diagState.config };
     }
 }
 
