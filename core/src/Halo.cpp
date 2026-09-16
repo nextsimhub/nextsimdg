@@ -163,6 +163,18 @@ void Halo::recvPositions(int& fromRank, size_t& count, size_t& disp, size_t& rec
         count = 1;
         disp = disp + sendEdge;
         recvOffset = recvOffset + Edge::N_EDGE;
+
+        // FIXE: Dirty patch fix
+        // This For the purpose of the patch below a Tripolar fold top corners
+        // are flipped (since correct we communicate with the flipped image)
+        // This monster below flips:
+        //  TOP_LEFT -> BOTTOM_RIGHT
+        //  TOP_RIGHT -> BOTTOM_LEFT
+        // To be refactored. It makes eyes bleed and ears ringing as it is now...
+        if (m_tripolarFold && (corner == Corner::TOP_LEFT || corner == Corner::TOP_RIGHT)) {
+            corner = corner == Corner::TOP_LEFT ? Corner::BOTTOM_RIGHT : Corner::BOTTOM_LEFT;
+        }
+
         // Account for the fact that the vertex field is split differently to the face centered
         // fields. We dont take the data directly adjacent to the halo, but the one after that.
         // e.g., if you have two adjacent domains, the vertex on the far right of the left-hand
