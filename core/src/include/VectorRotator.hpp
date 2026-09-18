@@ -67,7 +67,7 @@ public:
      * @param u The u-velocities
      * @param v The v-velocities
      */
-    void toParametricMesh(std::vector<FloatType>& u, std::vector<FloatType>& v) const;
+    void toParametricMesh(ModelArray& u, ModelArray& v) const;
 
     /*!
      * @brief Transforms velocities from the parametric mesh in place. All vectors are at the grid
@@ -88,8 +88,8 @@ public:
      * @param vOut The output v-velocities
      */
     template <int CG>
-    void toParametricMesh(const std::vector<FloatType>& uIn, const std::vector<FloatType>& vIn,
-        CGVector<CG>& uOut, CGVector<CG>& vOut) const;
+    void toParametricMesh(
+        const ModelArray& uIn, const ModelArray& vIn, CGVector<CG>& uOut, CGVector<CG>& vOut) const;
 
     /*!
      * @brief Compute vector orientation at (or extremely near) the north pole, for a east/north
