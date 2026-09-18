@@ -4,6 +4,8 @@
  */
 
 #include "include/VectorRotator.hpp"
+#include "include/Model.hpp"
+#include "include/ModelArray.hpp"
 #include "include/ParametricMesh.hpp"
 #include "include/cgVector.hpp"
 #include "include/constants.hpp"
@@ -130,23 +132,22 @@ VectorRotator::VectorRotator(const std::vector<size_t>& dimsIn, const std::vecto
  * to construct the unit vectors. Much simpler than the other one.
  */
 VectorRotator::VectorRotator(const ModelArray& coords, const orientation orient)
+    : dims(
+        { ModelArray::size(ModelArray::Dimension::X), ModelArray::size(ModelArray::Dimension::Y) })
 {
+    det.resize((dims[0] + 1) * (dims[1] + 1));
+    ex.resize(det.size());
+    ey.resize(det.size());
+
     switch (orient) {
     case orientation::EAST_NORTH: {
         // Call the ENOrientation routine if we're in East-North orientation
-        const auto lon = std::vector(
-            coords.components(0).data(), coords.components(0).data() + coords.components(0).size());
-        const auto lat = std::vector(
-            coords.components(1).data(), coords.components(1).data() + coords.components(1).size());
-        initENOrientation(lon, lat);
+        initENOrientation(coords.component(0), coords.component(1));
         break;
     }
     case orientation::GRID: {
         // Build a smesh object for spherical coordinates
         ParametricMesh smesh(SPHERICAL);
-
-        dims = { ModelArray::size(ModelArray::Dimension::X),
-            ModelArray::size(ModelArray::Dimension::Y) };
 
         // Build a ParametricMesh object and rotate to Greenland
         smesh.coordinatesFromModelArray(coords);
@@ -186,8 +187,7 @@ VectorRotator::VectorRotator(const ModelArray& coords, const orientation orient)
  * However, this requires lat and lon as doubles, otherwise we start to loose precision further
  * north than approx asin(1-1e-3) = 87.4°N.
  */
-void VectorRotator::initENOrientation(
-    const std::vector<FloatType>& lon, const std::vector<FloatType>& lat)
+template <typename T> void VectorRotator::initENOrientation(const T& lon, const T& lat)
 {
     // TODO: The Greenland pole shouldn't be hardcoded!
     const FloatType polLon = radians(15.);
