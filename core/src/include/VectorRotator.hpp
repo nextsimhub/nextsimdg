@@ -112,7 +112,7 @@ private:
      * @param lon The longitudes of the grid points
      * @param lat The latitudes of the grid points
      */
-    void initENOrientation(const std::vector<FloatType>& lon, const std::vector<FloatType>& lat);
+    template <typename T> void initENOrientation(const T& lon, const T& lat);
 
     std::vector<Eigen::Matrix<FloatType, 2, 1>> ex, ey;
     std::vector<FloatType> det;
