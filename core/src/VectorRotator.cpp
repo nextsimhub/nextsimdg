@@ -223,7 +223,7 @@ void VectorRotator::initENOrientation(
 
 // A: From ocean to ParamMesh:
 // ocean velocity is ox * ex + ey * ey. This can directly be evaluated:
-void VectorRotator::toParametricMesh(std::vector<FloatType>& u, std::vector<FloatType>& v) const
+void VectorRotator::toParametricMesh(ModelArray& u, ModelArray& v) const
 {
 #pragma omp parallel for
     for (size_t i = 0; i < u.size(); ++i) {
@@ -247,8 +247,8 @@ void VectorRotator::fromParametricMesh(std::vector<FloatType>& u, std::vector<Fl
 
 // A version of toParametricMesh which interpolates the output to CGVectors
 template <int CG>
-void VectorRotator::toParametricMesh(const std::vector<FloatType>& uIn,
-    const std::vector<FloatType>& vIn, CGVector<CG>& uOut, CGVector<CG>& vOut) const
+void VectorRotator::toParametricMesh(
+    const ModelArray& uIn, const ModelArray& vIn, CGVector<CG>& uOut, CGVector<CG>& vOut) const
 {
     uOut.setZero();
     vOut.setZero();
