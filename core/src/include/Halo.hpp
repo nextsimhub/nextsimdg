@@ -86,6 +86,7 @@ namespace HaloExchange {
         }
     }
 
+    std::vector<FloatType> rotate180ComponentCorrections(ModelArray::Type type);
 }
 
 /*!
@@ -102,6 +103,7 @@ public:
         m_numComps = ma.nComponents();
         isVertex = ma.getType() == ModelArray::Type::VERTEX;
         setTripolarFlags();
+        m_tripolarComponentCorrection = HaloExchange::rotate180ComponentCorrections(ma.getType());
         setSpatialDims();
         initializeHaloMetadata();
     }
@@ -120,11 +122,12 @@ public:
      * @brief Constructs a halo object from DGVector
      * @param dgv DGVector object to create halo from
      */
-    template <int N>
-    Halo(DGVector<N>& dgv)
+    template <int N> Halo(DGVector<N>& dgv)
     {
         m_numComps = N;
         setTripolarFlags();
+        m_tripolarComponentCorrection
+            = HaloExchange::rotate180ComponentCorrections(ModelArray::Type::DG);
         setSpatialDims();
         initializeHaloMetadata();
     }
@@ -133,14 +136,15 @@ public:
      * @brief Constructs a halo object from CGVector
      * @param cgv CGVector object to create halo from
      */
-    template <int N>
-    Halo(CGVector<N>& cgv)
+    template <int N> Halo(CGVector<N>& cgv)
     {
         m_numComps = 1;
         isCG = true;
         CGdegree = N;
         nCells = CGdegree;
         setTripolarFlags();
+        m_tripolarComponentCorrection
+            = HaloExchange::rotate180ComponentCorrections(ModelArray::Type::CG);
         setSpatialDims();
         initializeHaloMetadata();
     }
@@ -225,6 +229,8 @@ private:
     size_t recvBufferSize = 0;
 
     bool m_tripolarFold = false; // does this rank need tripolar fold treatment
+    std::vector<FloatType>
+        m_tripolarComponentCorrection; // component correction factors for tripolar fold
 
     std::vector<std::vector<FloatType>>
         send; // buffer to store halo region that will be read by other ranks
