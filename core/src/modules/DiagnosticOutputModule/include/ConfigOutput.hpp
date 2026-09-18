@@ -72,7 +72,8 @@ private:
     bool snapshots;
     bool resetState;
 
-    std::vector<std::pair<std::string, std::string>> vectors = { { uName, vName } };
+    std::vector<std::pair<std::string, std::string>> vectors
+        = { { uName, vName }, { uWindName, vWindName }, { uOceanName, vOceanName } };
     std::unique_ptr<VectorRotator> rotator;
 };
 
