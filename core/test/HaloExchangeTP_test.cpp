@@ -198,13 +198,16 @@ struct DomainModel {
         auto globalX = x + this->offsetX - this->haloSize;
         auto globalY = y + this->offsetY - this->haloSize;
 
+        // Apply the periodicity in X
+        globalX = periodic_reflection(globalX, nx);
+
         // We need to use different logic for the point and cell based fields
         // For cells, we apply the tripolar fold for any cell outside the domain
         // For points we need to be careful and not duplicate identity of the points
         // We select the leftmost half of the top edge to have unique identity
         // The right half are the duplicates
         if (type == ModelArray::Type::VERTEX || type == ModelArray::Type::CG) {
-            if (globalY >= ny || (globalY == (ny - 1) && globalX >= nx / 2)) {
+            if (globalY >= ny || (globalY == (ny - 1) && (globalX >= nx / 2 || globalX < 0))) {
                 const auto twice_symmetry_point_x = nx;
                 const auto twice_symmetry_point_y = 2 * (ny - 1);
                 std::tie(globalX, globalY) = tripolar_point_symmetry(
