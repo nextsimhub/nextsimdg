@@ -26,6 +26,7 @@ static const std::string startKey = pfx + ".start";
 static const std::string fieldNamesKey = pfx + ".field_names";
 static const std::string fileNameKey = pfx + ".filename";
 static const std::string filePeriodKey = pfx + ".file_period";
+static const std::string orientationKey = pfx + ".vector_orientation";
 
 // Access the model.start key. There's no clean way of getting this from Model, I think.
 static const std::string modelStartKey = "model.start";
@@ -37,6 +38,7 @@ static const std::map<int, std::string> keyMap = {
     { ConfigOutput::FIELDNAMES_KEY, fieldNamesKey },
     { ConfigOutput::FILENAME_KEY, fileNameKey },
     { ConfigOutput::FILEPERIOD_KEY, filePeriodKey },
+    { ConfigOutput::ORIENTATION_KEY, orientationKey },
 };
 
 ConfigOutput::ConfigOutput()
@@ -71,6 +73,8 @@ ConfigurationHelp::HelpMap& ConfigOutput::getHelpText(HelpMap& map, bool getAll)
             "included as in std::put_time()." },
         { filePeriodKey, ConfigType::STRING, {}, "", "",
             "The period with which diagnostic files are created." },
+        { orientationKey, ConfigType::STRING, { "grid", "east_north", "native" }, "grid", "",
+            "The orientation of the vectors in the output." },
     };
     return map;
 }
@@ -140,11 +144,30 @@ void ConfigOutput::configure()
     lastFileChange = lastOutput;
 }
 
-void ConfigOutput::setModelStart(const TimePoint& modelStart)
+void ConfigOutput::setData(const TimePoint& modelStart)
 {
     // Set the lastOutput time to the model start if the default value has not yet been replaced.
     if (lastOutput == TimePoint(defaultLastOutput)) {
         lastOutput = modelStart;
+    }
+
+    // Prep vector rotator
+    const auto& meta = ModelMetadata::getInstance();
+    ModelState state;
+    meta.affixCoordinates(state);
+    if (const std::string orientationStr
+        = Configured::getConfiguration(keyMap.at(ORIENTATION_KEY), std::string("grid"));
+        orientationStr == "native") {
+        rotator = std::make_unique<VectorRotator>(state.data.at(coordsName).dimensions());
+    } else if (orientationStr == "grid") {
+        rotator = std::make_unique<VectorRotator>(
+            state.data.at(coordsName), VectorRotator::orientation::GRID);
+    } else if (orientationStr == "east_north") {
+        rotator = std::make_unique<VectorRotator>(
+            state.data.at(coordsName), VectorRotator::orientation::EAST_NORTH);
+    } else {
+        throw std::invalid_argument("ConfigOutput::configure: Invalid vector orientation: "
+            + orientationStr + ". Valid options are 'grid', 'east_north', or 'native'.\n");
     }
 }
 
@@ -212,6 +235,10 @@ void ConfigOutput::outputState(const ModelState& diagState)
 
             outputState.data[key] = mask(modelArray);
         }
+
+        for (const auto& [u, v] : vectors)
+            if (outputState.data.count(u) && outputState.data.count(v))
+                rotator->toParametricMesh(outputState.data.at(u), outputState.data.at(v));
 
         meta.affixCoordinates(outputState);
         StructureFactory::fileFromState(outputState, currentFileName, false);
