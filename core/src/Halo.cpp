@@ -336,88 +336,49 @@ void Halo::rotateTopEdgeInBuffer()
     const Edge edge = Edge::TOP;
 
     // We fixup the order of data component by component
-    for (size_t comp = 0; comp < m_numComps; ++comp) {
+    for (std::size_t comp = 0; comp < m_numComps; ++comp) {
         // We loop over all edge-based memory transactions on the top edge
         auto numNeighbours = metadata.neighbourRanks[edge].size();
         for (std::size_t i = 0; i < numNeighbours; ++i) {
-            // Left -> Right flip
-            for (size_t cell = 0; cell < nCells; ++cell) {
+            // Collect the buffer ranges of the `nCells` rows received in this transaction
+            std::vector<FloatType*> starts;
+            std::vector<FloatType*> ends;
+            starts.reserve(nCells);
+            ends.reserve(nCells);
+            for (std::size_t cell = 0; cell < nCells; ++cell) {
                 int fromRank;
                 std::size_t count, disp_ignore, recvOffset;
                 recvPositions(fromRank, count, disp_ignore, recvOffset, edge, i, cell);
-                m_tripolarFoldOp.flipCommTransaction(&recv[comp][recvOffset], count);
+                starts.push_back(&recv[comp][recvOffset]);
+                ends.push_back(&recv[comp][recvOffset] + count);
             }
-
-            if (nCells > 1) {
-                // In the buffer we have `nCells` number of rows that we need to swap
-                // Hence we iterate over each pair, for odd `nCells`, the middle row is left
-                // untouched.
-                std::size_t midPoint = nCells / 2;
-                for (std::size_t cell = 0; cell < midPoint; cell++) {
-                    std::size_t otherCell = nCells - 1 - cell;
-
-                    // Calculate the range in the buffer for each row
-                    int fromRank;
-                    std::size_t disp_ignore;
-                    std::size_t count_1, recvOffset_1;
-                    recvPositions(fromRank, count_1, disp_ignore, recvOffset_1, edge, i, cell);
-                    std::size_t count_2, recvOffset_2;
-                    recvPositions(fromRank, count_2, disp_ignore, recvOffset_2, edge, i, otherCell);
-
-                    // Swap the data
-                    FloatType* start_1 = &recv[comp][recvOffset_1];
-                    FloatType* end_1 = start_1 + count_1;
-                    FloatType* start_2 = &recv[comp][recvOffset_2];
-                    std::swap_ranges(start_1, end_1, start_2);
-                }
-            }
+            // The tripolar fold is a 180-degree rotation of the received rows
+            HaloExchange::rotate180InPlace(starts, ends);
         }
 
         // For the CG case we need to transpose the corners
         if (isCG) {
-            constexpr static std::array<Corner, 2> TOP_CORNERS { Corner::TOP_LEFT,
-                Corner::TOP_RIGHT };
-
-            for (const auto& corner : TOP_CORNERS) {
+            for (const auto corner : { Corner::TOP_LEFT, Corner::TOP_RIGHT }) {
                 auto hasCorner = metadata.cornerRanks[corner].size();
                 if (!hasCorner) {
                     continue;
                 }
 
-                // Left-right flip
-                for (size_t cell = 0; cell < nCells; ++cell) {
+                // Collect the buffer ranges of the `nCells` rows received for this corner
+                std::vector<FloatType*> starts;
+                std::vector<FloatType*> ends;
+                starts.reserve(nCells);
+                ends.reserve(nCells);
+                for (std::size_t cell = 0; cell < nCells; ++cell) {
                     int fromRank;
                     std::size_t count, disp_ignore, recvOffset;
                     recvPositions(fromRank, count, disp_ignore, recvOffset, corner, cell);
-                    m_tripolarFoldOp.flipCommTransaction(&recv[comp][recvOffset], count);
+                    starts.push_back(&recv[comp][recvOffset]);
+                    ends.push_back(&recv[comp][recvOffset] + count);
                 }
-
-                // Up down flip
-                std::size_t midPoint = nCells / 2;
-                for (std::size_t cell = 0; cell < midPoint; cell++) {
-                    std::size_t otherCell = nCells - 1 - cell;
-
-                    // Calculate the range in the buffer for each row
-                    int fromRank;
-                    std::size_t disp_ignore;
-                    std::size_t count_1, recvOffset_1;
-                    recvPositions(fromRank, count_1, disp_ignore, recvOffset_1, corner, cell);
-                    std::size_t count_2, recvOffset_2;
-                    recvPositions(fromRank, count_2, disp_ignore, recvOffset_2, corner, otherCell);
-
-                    // Swap the data
-                    FloatType* start_1 = &recv[comp][recvOffset_1];
-                    FloatType* end_1 = start_1 + count_1;
-                    FloatType* start_2 = &recv[comp][recvOffset_2];
-                    std::swap_ranges(start_1, end_1, start_2);
-                }
+                // The tripolar fold is a 180-degree rotation of the received rows
+                HaloExchange::rotate180InPlace(starts, ends);
             }
-            // for (auto corner : { Corner::TOP_LEFT, Corner::TOP_RIGHT }) {
-            //     int fromRank;
-            //     std::size_t count, disp_ignore, recvOffset;
-            //     recvPositions(fromRank, count, disp_ignore, recvOffset, corner, 0);
-            //     m_tripolarFoldOp.flipCommTransaction(&recv[comp][recvOffset], count);
-            // }
         }
     }
 }
