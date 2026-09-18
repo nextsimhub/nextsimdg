@@ -213,6 +213,7 @@ void Halo::recvPositions(int& fromRank, size_t& count, size_t& disp, size_t& rec
         disp = disp + sendEdge;
 
         avoidOverlapInMemoryTransactions(count, disp, recvOffset);
+        return;
     }
     if (isCG) {
         recvOffset = correctRecvOffset(recvOffset);
@@ -232,6 +233,7 @@ void Halo::recvPositions(int& fromRank, size_t& count, size_t& disp, size_t& rec
         auto extentY = CGdegree * metadata.getRankExtentsY()[fromRank] + 1;
         auto fromRankSendBufferSize = 2 * haloWidth * CGdegree * (extentX + extentY);
         disp = disp + fromRankSendBufferSize / nCells * cell;
+        return;
     }
 }
 
