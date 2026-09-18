@@ -461,25 +461,5 @@ void Halo::transposeCorners()
     }
 }
 
-namespace HaloExchange {
-
-    void TripolarFold::flipCommTransaction(FloatType* data, std::size_t len) const
-    {
-        FloatType* start = data;
-        FloatType* end = data + len;
-
-        switch (m_dataType) {
-        case DataType::VERTEX:
-        case DataType::DG:
-        case DataType::CG:
-            std::reverse(start, end);
-            break;
-        default:
-            // TODO: Use nextsim proper error handling conventions
-            throw std::runtime_error("Unrecognised data type for tripolar fold");
-        }
-    }
-}
-
 } // end of nextsim namespace
 #endif // USE_MPI
