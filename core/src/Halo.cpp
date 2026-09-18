@@ -20,6 +20,28 @@ namespace Nextsim {
 using Edge = ModelMetadata::Edge;
 using Corner = ModelMetadata::Corner;
 
+namespace HaloExchange {
+    std::vector<FloatType> rotate180ComponentCorrections(ModelArray::Type type)
+    {
+        switch (type) {
+        case ModelArray::Type::VERTEX:
+            // I assume that the vertex field represents 2D vectors
+            return { 1.0, -1.0 };
+        case ModelArray::Type::H:
+        case ModelArray::Type::DG:
+        case ModelArray::Type::DGSTRESS:
+            return { 1.0, -1.0, -1.0, 1.0, 1.0, 1.0, -1.0, -1.0 };
+        case ModelArray::Type::CG:
+            return { 1.0 };
+        case ModelArray::Type::V:
+        case ModelArray::Type::U:
+            throw std::runtime_error("U and V fields are not implemented yet");
+        default:
+            throw std::invalid_argument("Unknown ModelArray type");
+        }
+    }
+} // namespace HaloExchange
+
 void Halo::setTripolarFlags()
 {
     auto& metadata = ModelMetadata::getInstance();
@@ -427,6 +449,36 @@ void Halo::rotateTopEdgeInBuffer()
                 }
                 // The tripolar fold is a 180-degree rotation of the received rows
                 HaloExchange::rotate180InPlace(starts, ends);
+            }
+        }
+    }
+
+    // Apply correcton to the components
+    // We need to touch all points on the top edge and TOP_RIGHT and TOP_LEFT corners, which are the
+    // last `recvBufferSize` points in the buffer
+    const std::size_t topEdgeStart = recvPosFromEdge(Edge::TOP);
+    const std::size_t topEdgeEnd = recvPosFromEdge(Edge::LEFT);
+    for (std::size_t comp = 0; comp < m_numComps; ++comp) {
+        const auto correction = m_tripolarComponentCorrection.at(comp);
+        for (std::size_t i = topEdgeStart; i < topEdgeEnd; ++i) {
+            recv[comp][i] *= correction;
+        }
+    }
+
+    // Correct the corners
+    // FIXME: there should be nicer way to do it
+    for (const auto corner : { Corner::TOP_LEFT, Corner::TOP_RIGHT }) {
+        auto hasCorner = metadata.cornerRanks[corner].size();
+        if (!hasCorner) {
+            continue;
+        }
+        for (std::size_t comp = 0; comp < m_numComps; ++comp) {
+            const auto correction = m_tripolarComponentCorrection.at(comp);
+            for (std::size_t cell = 0; cell < nCells; ++cell) {
+                int fromRank;
+                std::size_t count, disp_ignore, recvOffset;
+                recvPositions(fromRank, count, disp_ignore, recvOffset, corner, cell);
+                recv[comp][recvOffset] *= correction;
             }
         }
     }
