@@ -39,43 +39,6 @@ namespace Nextsim {
 
 namespace HaloExchange {
 
-    /*!
-     * @brief
-     */
-    class TripolarFold {
-    public:
-        enum class DataType { DG, CG, VERTEX };
-
-        TripolarFold(const DataType dataType)
-            : m_dataType(dataType)
-        {
-        }
-
-        void flipCommTransaction(FloatType* data, std::size_t len) const;
-
-        static DataType dataTypeFromModelArrayType(const ModelArray::Type type)
-        {
-            switch (type) {
-            case ModelArray::Type::VERTEX:
-                return DataType::VERTEX;
-                break;
-            case ModelArray::Type::H:
-            case ModelArray::Type::DG:
-                return DataType::DG;
-                break;
-            case ModelArray::Type::CG:
-                return DataType::CG;
-                break;
-            default:
-                exit(1);
-                throw std::runtime_error("Unrecognised ModelArray type for tripolar fold");
-            }
-        }
-
-    private:
-        DataType m_dataType;
-    };
-
     /**
      * @brief Rotate a matrix with non uniform strides 180°
      *
@@ -135,7 +98,6 @@ public:
      * @param ma ModelArray object to create halo from
      */
     Halo(ModelArray& ma)
-        : m_tripolarFoldOp(HaloExchange::TripolarFold::dataTypeFromModelArrayType(ma.getType()))
     {
         m_numComps = ma.nComponents();
         isVertex = ma.getType() == ModelArray::Type::VERTEX;
@@ -160,7 +122,6 @@ public:
      */
     template <int N>
     Halo(DGVector<N>& dgv)
-        : m_tripolarFoldOp(HaloExchange::TripolarFold::DataType::DG)
     {
         m_numComps = N;
         setTripolarFlags();
@@ -174,7 +135,6 @@ public:
      */
     template <int N>
     Halo(CGVector<N>& cgv)
-        : m_tripolarFoldOp(HaloExchange::TripolarFold::DataType::CG)
     {
         m_numComps = 1;
         isCG = true;
@@ -265,8 +225,6 @@ private:
     size_t recvBufferSize = 0;
 
     bool m_tripolarFold = false; // does this rank need tripolar fold treatment
-    HaloExchange::TripolarFold
-        m_tripolarFoldOp; // tripolar fold operation for this rank's data type
 
     std::vector<std::vector<FloatType>>
         send; // buffer to store halo region that will be read by other ranks
