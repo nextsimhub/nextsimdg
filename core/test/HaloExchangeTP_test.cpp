@@ -228,6 +228,26 @@ struct DomainModel {
 
         return { globalX, globalY };
     }
+
+    /**
+     * @brief Check if coordinates are in unpopulated region
+     *
+     * The halo region at the bottom of the boundary as well as the top left and right
+     * corners of the boundary are not populated in the halo exchange. We need to exclude
+     * them from the verification
+     */
+    bool inNotPopulatedHalo(int i, int j) const
+    {
+        const auto [globalI, globalJ] = global_coordinates(i, j);
+        const auto notReflectedI = i + offsetX - haloSize;
+        const auto notReflectedJ = j + offsetY - haloSize;
+
+        bool lowerHalo = (notReflectedJ < 0);
+        bool upperLeftCornerHalo = (notReflectedJ >= ny && notReflectedI < 0);
+        bool upperRightCornerHalo = (notReflectedJ >= ny && notReflectedI >= nx);
+
+        return lowerHalo || upperLeftCornerHalo || upperRightCornerHalo;
+    }
 };
 
 template <typename T> void initializeTestData(T& data, const DomainModel& domain)
@@ -259,11 +279,15 @@ template <typename T> void verifyTestData(T& data, const DomainModel& domain)
             for (int d = 0; d < numComps; d++) {
                 const auto [globalI, globalJ] = domain.global_coordinates(i, j);
 
+                if (domain.inNotPopulatedHalo(i, j)) {
+                    // The halo region is not populated and we do not check it
+                    continue;
+                }
+
                 const auto expectedValue = domain.data_point_unique_id(d, i, j);
                 const auto actualValue = data(d + i * numComps + j * domain.localNx * numComps);
-                data(d + i * numComps + j * domain.localNx * numComps) = expectedValue;
 
-                // REQUIRE(actualValue == expectedValue);
+                REQUIRE(actualValue == expectedValue);
             }
         }
     }
