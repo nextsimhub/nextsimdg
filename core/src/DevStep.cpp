@@ -19,7 +19,7 @@ DevStep::DevStep()
 void DevStep::init()
 {
     Finalizer::registerUnique(Module::finalize<IDiagnosticOutput>);
-    IDiagnosticOutput& ido = Module::getImplementation<IDiagnosticOutput>();
+    auto& ido = Module::getImplementation<IDiagnosticOutput>();
     ido.setFilenamePrefix("diagnostic");
     tryConfigure(ido);
 }
@@ -40,7 +40,7 @@ void DevStep::iterate(const TimestepTime& tst)
     auto& mData = ModelMetadata::getInstance();
     mData.incrementTime(tst.step);
     if ((m_restartPeriod.seconds() > 0) && (mData.time() >= lastOutput + m_restartPeriod)) {
-        std::string currentFileName = mData.time().format(m_restartFileName);
+        const std::string currentFileName = mData.time().format(m_restartFileName);
         pData->writeRestartFile(currentFileName);
         lastOutput = mData.time();
     }
