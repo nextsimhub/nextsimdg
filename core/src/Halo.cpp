@@ -246,35 +246,63 @@ void Halo::recvPositions(int& fromRank, size_t& count, size_t& disp, size_t& rec
     disp = metadata.cornerHaloSend[corner][0];
     recvOffset = metadata.cornerHaloRecv[corner][0];
     auto sendEdge = edgeFromSendPos(disp, fromRank);
-    if (isVertex) {
-        count = 1;
-        disp = disp + sendEdge;
-        recvOffset = recvOffset + Edge::N_EDGE;
 
-        // FIXE: Dirty patch fix
-        // This For the purpose of the patch below a Tripolar fold top corners
-        // are flipped (since correct we communicate with the flipped image)
-        // This monster below flips:
-        //  TOP_LEFT -> BOTTOM_RIGHT
-        //  TOP_RIGHT -> BOTTOM_LEFT
-        // To be refactored. It makes eyes bleed and ears ringing as it is now...
-        if (m_tripolarFold && (corner == Corner::TOP_LEFT || corner == Corner::TOP_RIGHT)) {
-            corner = corner == Corner::TOP_LEFT ? Corner::BOTTOM_RIGHT : Corner::BOTTOM_LEFT;
+    // The metadata information tells us what cell is the corner neighbour.
+    // It is sufficient for DG fields, but for Vertex and CG there are multiple
+    // nodes in a cell and we need to select a subset of them.
+    //
+    // The correct subset depends on the orientation of the neighbours, so
+    // in case of transaction over the folded tripolar top edge, we need to correct
+    // the orientation for the purpose of selecting the right nodes.
+    auto correctTripolarCornerOrientation = [&](Corner corner) {
+        switch (corner) {
+        case Corner::TOP_LEFT:
+            return Corner::BOTTOM_RIGHT;
+            break;
+        case Corner::TOP_RIGHT:
+            return Corner::BOTTOM_LEFT;
+            break;
+        default:
+            throw std::runtime_error("Halo :: Invalid corner enum for tripolar fold");
+            break;
         }
+    };
 
+    auto selectDispBasedOnOrientation = [&](Corner corner, Edge sendEdge, auto disp) {
         // Account for the fact that the vertex field is split differently to the face centered
         // fields. We dont take the data directly adjacent to the halo, but the one after that.
         // e.g., if you have two adjacent domains, the vertex on the far right of the left-hand
         // domain is the same as the vertex on the far left of the right-hand domain. We need
         // the vertex which is the next one along for halo exchange.
-        if ((sendEdge == Edge::TOP or sendEdge == Edge::BOTTOM)
-            and (corner == Corner::TOP_RIGHT or corner == Corner::BOTTOM_RIGHT)) {
-            disp = disp + 1;
+        const bool topOrBottomEdge = (sendEdge == Edge::TOP or sendEdge == Edge::BOTTOM);
+        switch (corner) {
+        case Corner::TOP_RIGHT:
+            return disp + 1;
+        case Corner::TOP_LEFT:
+            return topOrBottomEdge ? disp : disp + 1;
+        case Corner::BOTTOM_RIGHT:
+            return topOrBottomEdge ? disp + 1 : disp;
+        case Corner::BOTTOM_LEFT:
+            return disp;
+        default:
+            throw std::runtime_error("Halo :: Invalid corner enum");
+            break;
         }
-        if ((sendEdge == Edge::LEFT or sendEdge == Edge::RIGHT)
-            and (corner == Corner::TOP_RIGHT or corner == Corner::TOP_LEFT)) {
-            disp = disp + 1;
+    };
+
+    const bool isCornerOverTripolarTopEdge
+        = m_tripolarFold && (corner == Corner::TOP_LEFT || corner == Corner::TOP_RIGHT);
+
+    if (isVertex) {
+        count = 1;
+        disp = disp + sendEdge;
+        recvOffset = recvOffset + Edge::N_EDGE;
+
+        if (isCornerOverTripolarTopEdge) {
+            corner = correctTripolarCornerOrientation(corner);
         }
+
+        disp = selectDispBasedOnOrientation(corner, sendEdge, disp);
     }
     if (isCG) {
         count = CGdegree * count;
@@ -284,8 +312,8 @@ void Halo::recvPositions(int& fromRank, size_t& count, size_t& disp, size_t& rec
         // recvOffset is the offset in the recv buffer and this belongs to the current rank
         recvOffset = recvOffset + recvBufferSize / nCells * cell;
 
-        if (m_tripolarFold && (corner == Corner::TOP_LEFT || corner == Corner::TOP_RIGHT)) {
-            corner = corner == Corner::TOP_LEFT ? Corner::BOTTOM_RIGHT : Corner::BOTTOM_LEFT;
+        if (isCornerOverTripolarTopEdge) {
+            corner = correctTripolarCornerOrientation(corner);
         }
 
         // disp is the offset in the "sending" buffer which belongs to rank "fromRank"
@@ -295,14 +323,7 @@ void Halo::recvPositions(int& fromRank, size_t& count, size_t& disp, size_t& rec
         auto extentY = CGdegree * metadata.getRankExtentsY()[fromRank] + 1;
         auto fromRankSendBufferSize = 2 * haloWidth * CGdegree * (extentX + extentY);
         disp = disp + fromRankSendBufferSize / nCells * cell;
-        if ((sendEdge == Edge::TOP or sendEdge == Edge::BOTTOM)
-            and (corner == Corner::TOP_RIGHT or corner == Corner::BOTTOM_RIGHT)) {
-            disp = disp + 1;
-        }
-        if ((sendEdge == Edge::LEFT or sendEdge == Edge::RIGHT)
-            and (corner == Corner::TOP_RIGHT or corner == Corner::TOP_LEFT)) {
-            disp = disp + 1;
-        }
+        disp = selectDispBasedOnOrientation(corner, sendEdge, disp);
     }
 }
 
