@@ -11,6 +11,8 @@
 #include "include/Configured.hpp"
 #include "include/ModelComponent.hpp"
 #include "include/Time.hpp"
+#include "include/VectorRotator.hpp"
+#include "include/gridNames.hpp"
 
 #include <set>
 
@@ -32,11 +34,12 @@ public:
         FIELDNAMES_KEY,
         FILENAME_KEY,
         FILEPERIOD_KEY,
+        ORIENTATION_KEY,
     };
 
     // IDiagnosticOutput overrides
     void setFilenamePrefix(const std::string& filePrefix) override { m_filePrefix = filePrefix; }
-    void setModelStart(const TimePoint& modelStart) override;
+    void setData(const TimePoint& modelStart) override;
     void outputState(const ModelState& diagState) override;
 
     // ModelComponent overrides
@@ -68,6 +71,9 @@ private:
 
     bool snapshots;
     bool resetState;
+
+    std::vector<std::pair<std::string, std::string>> vectors = { { uName, vName } };
+    std::unique_ptr<VectorRotator> rotator;
 };
 
 } /* namespace Nextsim */

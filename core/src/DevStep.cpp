@@ -29,7 +29,7 @@ void DevStep::start(const TimePoint& startTime)
     // Set the last output time for the restart files to the model start time
     lastOutput = startTime;
     // Set the model start time for the diagnostic output files
-    Module::getImplementation<IDiagnosticOutput>().setModelStart(startTime);
+    Module::getImplementation<IDiagnosticOutput>().setData(startTime);
 }
 
 void DevStep::iterate(const TimestepTime& tst)

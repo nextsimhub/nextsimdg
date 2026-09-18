@@ -23,7 +23,7 @@ public:
      */
 #include "include/ProtectedArrayNames.ipp"
 #include "include/SharedArrayNames.ipp"
-          })
+        })
     {
     }
     virtual ~IDiagnosticOutput() = default;
@@ -51,7 +51,7 @@ public:
      *
      * @brief modelStart the TimePoint of the start of the model run.
      */
-    virtual void setModelStart(const TimePoint& ModelStart) { }
+    virtual void setData(const TimePoint& ModelStart) { }
 
 protected:
     const std::map<std::string, std::string> externalNames;
