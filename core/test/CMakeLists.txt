@@ -327,6 +327,13 @@ if(ENABLE_MPI)
                                                                  "../../dynamics/src/include")
         target_link_libraries(testConfigOutput_MPI2 PRIVATE nextsimlib doctest::doctest)
 
+        add_executable(testHaloUtils "HaloUtils_test.cpp" "MainTest.cpp")
+        target_compile_definitions(testHaloUtils PRIVATE USE_MPI)
+        target_include_directories(
+            testHaloUtils PRIVATE ${MODEL_INCLUDE_DIR} "${ModulesRoot}/StructureModule"
+                                       "../src" "../../dynamics/src" "../../dynamics/src/include")
+        target_link_libraries(testHaloUtils PRIVATE nextsimlib doctest::doctest)
+
         set(MPI_TESTS
             testHaloExchangeCB_MPI3
             testHaloExchangePB_MPI3
@@ -337,6 +344,8 @@ if(ENABLE_MPI)
             testModelMetadataTP_MPI3
             testConfigOutput_MPI2)
         add_mpi_test("${MPI_TESTS}")
+
+        add_test(NAME testHaloUtils COMMAND testHaloUtils)
     endif()
 
 else()

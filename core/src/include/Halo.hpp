@@ -18,6 +18,7 @@
 
 #include <cstddef>
 #include <numeric>
+#include <type_traits>
 #include <vector>
 
 #include "Slice.hpp"
@@ -74,6 +75,53 @@ namespace HaloExchange {
     private:
         DataType m_dataType;
     };
+
+    /**
+     * @brief Rotate a matrix with non uniform strides 180°
+     *
+     * The matrix here is represented by contiguous columns or rows, but they themselves
+     * are in random locations in memory (i.e. strides are not uniform)
+     *
+     * @tparam T A Forward iterator
+     *
+     * @param starts A vector of pointers to the start of each column/row
+     * @param ends A vector of pointers to the end of each column/row
+     *
+     * Note that the result is undefined if any of the ranges overlap in memory!
+     *
+     */
+    template <typename T> void rotate180InPlace(std::vector<T> starts, std::vector<T> ends)
+    {
+        // Fail to compile if T is not a forward iterator
+        static_assert(std::is_base_of_v<std::forward_iterator_tag,
+                          typename std::iterator_traits<T>::iterator_category>,
+            "T must be a forward iterator");
+
+        // Assert that the rows and columns match in size
+        if (starts.size() != ends.size()) {
+            throw std::invalid_argument("Starts and ends vectors must be of the same size");
+        }
+        if (starts.empty()) {
+            return; // Nothing to do for empty matrix
+        }
+
+        const auto row_size = std::distance(starts[0], ends[0]);
+        for (std::size_t i = 1; i < starts.size(); i++) {
+            if (std::distance(starts[i], ends[i]) != row_size) {
+                throw std::invalid_argument("All ranges must be of the same size");
+            }
+        }
+
+        // Preform the transpose
+        // Flip left->right
+        for (std::size_t i = 0; i < starts.size(); i++) {
+            std::reverse(starts[i], ends[i]);
+        }
+        // Flip top->bottom
+        for (std::size_t i = 0, midPoint = starts.size() / 2; i < midPoint; i++) {
+            std::swap_ranges(starts[i], ends[i], starts[starts.size() - 1 - i]);
+        }
+    }
 
 }
 
