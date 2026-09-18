@@ -248,6 +248,16 @@ struct DomainModel {
 
         return lowerHalo || upperLeftCornerHalo || upperRightCornerHalo;
     }
+
+    /*
+     * @brief Mark top halo edge where components of fields will be altered
+     */
+    bool inTopEdgeHalo(int /*i*/, int j) const
+    {
+        const auto notReflectedJ = j + offsetY - haloSize;
+        bool upperEdgeHalo = (notReflectedJ >= ny);
+        return upperEdgeHalo;
+    }
 };
 
 template <typename T> void initializeTestData(T& data, const DomainModel& domain)
@@ -273,6 +283,8 @@ template <typename T> void verifyTestData(T& data, const DomainModel& domain)
     const int nCells = domain.haloSize;
     const auto numComps = static_cast<int>(data.cols());
 
+    const auto componentCorrection = HaloExchange::rotate180ComponentCorrections(domain.type);
+
     // Verify the test data
     for (int j = 0; j < domain.localNy; j++) {
         for (int i = 0; i < domain.localNx; i++) {
@@ -283,8 +295,8 @@ template <typename T> void verifyTestData(T& data, const DomainModel& domain)
                     // The halo region is not populated and we do not check it
                     continue;
                 }
-
-                const auto expectedValue = domain.data_point_unique_id(d, i, j);
+                const auto factor = domain.inTopEdgeHalo(i, j) ? componentCorrection.at(d) : 1.0;
+                const auto expectedValue = domain.data_point_unique_id(d, i, j) * factor;
                 const auto actualValue = data(d + i * numComps + j * domain.localNx * numComps);
 
                 REQUIRE(actualValue == expectedValue);
