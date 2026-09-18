@@ -121,8 +121,8 @@ Edge Halo::edgeFromSendPos(int sendPos, int fromRank)
 int Halo::recvPosFromEdge(Edge edge) const
 {
     // extents of the local domain (buffer-map row unit, matching recvPositions)
-    int extentX = m_innerNx;
-    int extentY = m_innerNy;
+    const int extentX = m_innerNx;
+    const int extentY = m_innerNy;
 
     switch (edge) {
     case Edge::BOTTOM:
@@ -138,8 +138,8 @@ int Halo::recvPosFromEdge(Edge edge) const
     }
 }
 
-void Halo::recvPositions(int& fromRank, size_t& count, size_t& disp, size_t& recvOffset, Edge edge,
-    const size_t neighbourIndex, const size_t cell)
+void Halo::recvPositions(int& fromRank, size_t& count, size_t& disp, size_t& recvOffset,
+    const Edge edge, const size_t neighbourIndex, const size_t cell)
 {
     auto& metadata = ModelMetadata::getInstance();
     fromRank = metadata.neighbourRanks[edge][neighbourIndex];
@@ -147,54 +147,80 @@ void Halo::recvPositions(int& fromRank, size_t& count, size_t& disp, size_t& rec
     disp = metadata.neighbourHaloSend[edge][neighbourIndex];
     recvOffset = metadata.neighbourHaloRecv[edge][neighbourIndex];
     auto sendEdge = edgeFromSendPos(disp, fromRank);
-    if (isVertex) {
-        recvOffset = recvOffset + edge;
-        const bool isFirstTransaction = (recvOffset == recvPosFromEdge(edge));
 
+    // The data stored in Metadata is calculated for the DG fields only
+    // The Vertex and CG fields have larger size and hence the size of the recv
+    // buffer is changed
+    auto correctRecvOffset = [&](size_t recvOffset) {
+        // WARNING: here we assume the that the order in the Edge enum matches the
+        // order in the recv buffer. Things will break if it changes
+        static_assert(Edge::BOTTOM == 0);
+        static_assert(Edge::RIGHT == 1);
+        static_assert(Edge::TOP == 2);
+        static_assert(Edge::LEFT == 3);
+        // recvPosFormEdge(Edge::BOTTOM) == 0 as well but we cannot static assert it
+
+        if (isCG) {
+            return CGdegree * recvOffset + edge;
+        } else if (isVertex) {
+            return recvOffset + edge;
+        } else {
+            return recvOffset;
+        }
+    };
+
+    // For Vertex and CG fields, when the Halo is copied into the recv buffer we need
+    // to decide how to handle the extra point
+    // Previously we would just copy the overlapping ranges into the recv buffer.
+    // This was technically a race condition but since the identity of the points
+    // was the same, so were the values.
+    //
+    // However, to support tripolar topology, we copy the values to the recv buffer
+    // and only later perform the 180deg flip. This means that the overlapping points
+    // are no longer identical and we need to avoid the overlap.
+    //
+    // Hence we handle the extra point by using a longer memory transaction for
+    // the 1st transfer in the edge. Subsequent transfers are shorter by one point
+    // and we need to correct length and input and output locations to reflect it.
+    //
+    // There is a final trap for the tripolar case. Since we are flipping the data,
+    // to get the right data in, we need to shorten the range at the end, not the
+    // beginning. Thus, the input location remain unaffected for tripolar flipped
+    // transaction.
+    //
+    auto avoidOverlapInMemoryTransactions
+        = [this, edge](std::size_t& count, size_t& disp, size_t& recvOffset) {
+              // DG fields are unaffected
+              if (!(isCG || isVertex)) {
+                  return;
+              }
+              const bool notFirstTransaction = (recvOffset != recvPosFromEdge(edge));
+              const bool notTripolarFlippedTransaction = !(m_tripolarFold && edge == Edge::TOP);
+
+              if (notFirstTransaction) {
+                  count = count - 1;
+                  recvOffset = recvOffset + 1;
+
+                  if (notTripolarFlippedTransaction) {
+                      disp = disp + 1;
+                  }
+              }
+          };
+
+    if (isVertex) {
+        recvOffset = correctRecvOffset(recvOffset);
         count = count + 1;
         disp = disp + sendEdge;
 
-        if (!isFirstTransaction) {
-            count = count - 1;
-            recvOffset = recvOffset + 1;
-            disp = disp + 1;
-
-            // Explain the logic behind this.
-            // I managed to convince myself there is one...
-            // It is that we need to cut data from a different side
-            // FIXME
-            if (m_tripolarFold && edge == Edge::TOP) {
-                disp = disp - 1;
-            }
-        }
+        avoidOverlapInMemoryTransactions(count, disp, recvOffset);
     }
     if (isCG) {
-        // Note that the CG memory transactions are overlapping
-        // We need to make them non-overlapping to support th tripolar grid
-
-        // We need to detect the first transaction along the edge (identified by the recv offset
-        // matching the start of the edge). For the following transactions we need to shift
-        // displacement by +1 and count by -1
-        recvOffset = (recvOffset > 0) ? CGdegree * recvOffset + edge : 0;
-
-        const bool isFirstTransaction = (recvOffset == recvPosFromEdge(edge));
+        recvOffset = correctRecvOffset(recvOffset);
 
         count = CGdegree * count + 1;
         disp = (disp > 0) ? CGdegree * disp + sendEdge : 0;
 
-        if (!isFirstTransaction) {
-            count = count - 1;
-            recvOffset = recvOffset + 1;
-            disp = disp + 1;
-
-            // Explain the logic behind this.
-            // I managed to convince myself there is one...
-            // It is that we need to cut data from a different side
-            // FIXME
-            if (m_tripolarFold && edge == Edge::TOP) {
-                disp = disp - 1;
-            }
-        }
+        avoidOverlapInMemoryTransactions(count, disp, recvOffset);
 
         // recvOffset is the offset in the recv buffer and this belongs to the current rank
         recvOffset = recvOffset + recvBufferSize / nCells * cell;
