@@ -70,11 +70,15 @@ VectorRotator::VectorRotator(const std::vector<size_t>& dimsIn, const std::vecto
          * upper left and lower right.
          */
 
-        // weights to connect lower left corner with its neighbours
-        Eigen::Matrix<FloatType, 4, 1> ix({ -1, 1, 0, 0 });
-        Eigen::Matrix<FloatType, 4, 1> iy({ -1, 0, 1, 0 });
+        // weights to connect different corner with its neighbours
+        Eigen::Matrix<FloatType, 4, 1> ixLower({ -1, 1, 0, 0 });
+        Eigen::Matrix<FloatType, 4, 1> iyLeft({ -1, 0, 1, 0 });
+        Eigen::Matrix<FloatType, 4, 1> ixUpper({ 0, 0, -1, 1 });
+        Eigen::Matrix<FloatType, 4, 1> iyRight({ 0, -1, 0, 1 });
 
-        // Loop through the full smesh grid. This leaves the upper and right outer boundary.
+        /* Loop through the full smesh grid, with the lower left corner as reference. This leaves
+         * the upper and right outer boundary.
+         */
 #pragma omp parallel for
         for (size_t eid = 0; eid < smesh.nelements; ++eid) {
             const Eigen::Matrix<FloatType, 4, 2> coe = smesh.coordinatesOfElement(eid);
@@ -83,15 +87,12 @@ VectorRotator::VectorRotator(const std::vector<size_t>& dimsIn, const std::vecto
             // NB! dimsIn != { smesh.nx, smesh.ny }
             const std::vector<size_t> ij = deIndexer({ smesh.nx, smesh.ny }, eid);
             const size_t k = indexer(dimsIn, ij);
-            unitVectors(k, ix, iy, coe);
+            unitVectors(k, ixLower, iyLeft, coe);
         }
 
         /* Handle the edge cases by assuming a different connectivity within the smesh element */
 
-        // Top row
-        // weights to connect upper left corner with its neighbours.
-        ix = { 0, 0, -1, 1 };
-        iy = { -1, 0, 1, 0 };
+        // Top row, using upper left corner as reference
 #pragma omp parallel for
         for (size_t i = 0; i < smesh.nx; ++i) {
             const size_t j = smesh.ny - 1;
@@ -101,13 +102,10 @@ VectorRotator::VectorRotator(const std::vector<size_t>& dimsIn, const std::vecto
 
             // Place the results into i and j+1, because the reference is upper left corner
             const size_t k = indexer(dimsIn, { i, j + 1 });
-            unitVectors(k, ix, iy, coe);
+            unitVectors(k, ixUpper, iyLeft, coe);
         }
 
-        //  Last column
-        // weights to connect lower right corner with its neighbours.
-        ix = { -1, 1, 0, 0 };
-        iy = { 0, -1, 0, 1 };
+        //  Last column, using lower right corner as reference
 #pragma omp parallel for
         for (size_t j = 0; j < smesh.ny; ++j) {
             const size_t i = smesh.nx - 1;
@@ -117,15 +115,10 @@ VectorRotator::VectorRotator(const std::vector<size_t>& dimsIn, const std::vecto
 
             // Place the results into i+1 and j, because the reference is lower right corner
             const size_t k = indexer(dimsIn, { i + 1, j });
-            unitVectors(k, ix, iy, coe);
+            unitVectors(k, ixLower, iyRight, coe);
         }
 
         // The remaining upper right corner
-        // weights to connect upper right with its neighbours.
-        ix = { 0, 0, -1, 1 };
-        iy = { 0, -1, 0, 1 };
-
-        // Upper right corner
         const size_t i = smesh.nx - 1;
         const size_t j = smesh.ny - 1;
 
@@ -134,7 +127,7 @@ VectorRotator::VectorRotator(const std::vector<size_t>& dimsIn, const std::vecto
 
         // Place the results into i+1 and j+1, because the reference is upper right corner
         const size_t k = indexer(dimsIn, { i + 1, j + 1 });
-        unitVectors(k, ix, iy, coe);
+        unitVectors(k, ixUpper, iyRight, coe);
 
         break;
     }
