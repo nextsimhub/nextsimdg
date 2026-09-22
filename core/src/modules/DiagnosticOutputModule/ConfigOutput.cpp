@@ -234,9 +234,13 @@ void ConfigOutput::outputState(const ModelState& diagState)
             outputState.data[key] = mask(modelArray);
         }
 
-        for (const auto& [u, v] : vectors)
-            if (outputState.data.count(u) && outputState.data.count(v))
+        for (const auto& [u, v] : vectors) {
+            if (outputState.data.count(u) && outputState.data.count(v)) {
                 rotator->toParametricMesh(outputState.data.at(u), outputState.data.at(v));
+                outputState.data.at(u) = mask(outputState.data.at(u));
+                outputState.data.at(v) = mask(outputState.data.at(v));
+            }
+        }
 
         meta.affixCoordinates(outputState);
         StructureFactory::fileFromState(outputState, currentFileName, false);
