@@ -160,11 +160,9 @@ void ConfigOutput::setData(const TimePoint& modelStart)
         orientationStr == "native") {
         rotator = std::make_unique<VectorRotator>(state.data.at(coordsName).dimensions());
     } else if (orientationStr == "grid") {
-        rotator = std::make_unique<VectorRotator>(
-            state.data.at(coordsName), VectorRotator::orientation::GRID);
+        rotator = std::make_unique<VectorRotator>(state, VectorRotator::orientation::GRID);
     } else if (orientationStr == "east_north") {
-        rotator = std::make_unique<VectorRotator>(
-            state.data.at(coordsName), VectorRotator::orientation::EAST_NORTH);
+        rotator = std::make_unique<VectorRotator>(state, VectorRotator::orientation::EAST_NORTH);
     } else {
         throw std::invalid_argument("ConfigOutput::configure: Invalid vector orientation: "
             + orientationStr + ". Valid options are 'grid', 'east_north', or 'native'.\n");

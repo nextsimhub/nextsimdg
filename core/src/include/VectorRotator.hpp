@@ -8,6 +8,7 @@
 
 #include "include/FloatType.hpp"
 #include "include/ModelArray.hpp"
+#include "include/ModelState.hpp"
 #include "include/cgVector.hpp"
 
 #include <Eigen/src/Core/Matrix.h>
@@ -49,16 +50,16 @@ public:
      * @param lat The latitudes of the grid points
      * @param orient Vector orientation (GRID or EAST_NORTH)
      */
-    VectorRotator(const std::vector<size_t>& dimsIn, const std::vector<FloatType>& lon,
-        const std::vector<FloatType>& lat, orientation orient);
+    VectorRotator(const std::vector<size_t>& dimsIn, const std::vector<FloatType>& lonIn,
+        const std::vector<FloatType>& latIn, orientation orient);
 
     /*!
      * @brief Constructor for the VectorRotator class based on a the coordinates in a ModelArray
      *
-     * @param coords A ModelArray containing the coordinates of the grid points
+     * @param state A ModelState containing the coordinates of the grid points
      * @param orient Vector orientation (GRID or EAST_NORTH)
      */
-    explicit VectorRotator(const ModelArray& coords, orientation orient);
+    explicit VectorRotator(const ModelState& state, orientation orient);
 
     /*!
      * @brief Transforms velocities to the parametric mesh in place. All vectors are at the grid

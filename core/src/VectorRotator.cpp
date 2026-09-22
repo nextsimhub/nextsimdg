@@ -26,13 +26,29 @@ VectorRotator::VectorRotator(const std::vector<size_t>& dimsIn)
  * domain, the unit vectors are calculated from the lower left corner, but the top row and last
  * column need to be handled separately.
  */
-VectorRotator::VectorRotator(const std::vector<size_t>& dimsIn, const std::vector<double>& lon,
-    const std::vector<double>& lat, const orientation orient)
+VectorRotator::VectorRotator(const std::vector<size_t>& dimsIn, const std::vector<double>& lonIn,
+    const std::vector<double>& latIn, const orientation orient)
     : dims(dimsIn)
 {
     det.resize(dims[0] * dims[1]);
     ex.resize(det.size());
     ey.resize(det.size());
+
+    /* We may need to create a meshed version of the input coordinates.
+     *  This probably only happens if we're in East-North orientation. However, using
+     * orientation::GRID in that case is a useful test. */
+    std::vector<double> lon, lat;
+    if (lonIn.size() != latIn.size()) {
+        for (size_t j = 0; j < dims[1]; ++j) {
+            for (size_t i = 0; i < dims[0]; ++i) {
+                lon.push_back(lonIn[i]);
+                lat.push_back(latIn[j]);
+            }
+        }
+    } else {
+        lon = lonIn;
+        lat = latIn;
+    }
 
     switch (orient) {
     case orientation::EAST_NORTH:
@@ -131,18 +147,18 @@ VectorRotator::VectorRotator(const std::vector<size_t>& dimsIn, const std::vecto
 /* A constructor that uses a ModelArray with the model coordinates, and coordinates of cell vertices
  * to construct the unit vectors. Much simpler than the other one.
  */
-VectorRotator::VectorRotator(const ModelArray& coords, const orientation orient)
+VectorRotator::VectorRotator(const ModelState& state, const orientation orient)
     : dims(
         { ModelArray::size(ModelArray::Dimension::X), ModelArray::size(ModelArray::Dimension::Y) })
 {
-    det.resize((dims[0] + 1) * (dims[1] + 1));
+    det.resize(dims[0] * dims[1]);
     ex.resize(det.size());
     ey.resize(det.size());
 
     switch (orient) {
     case orientation::EAST_NORTH: {
         // Call the ENOrientation routine if we're in East-North orientation
-        initENOrientation(coords.component(0), coords.component(1));
+        initENOrientation(state.data.at(longitudeName), state.data.at(latitudeName));
         break;
     }
     case orientation::GRID: {
@@ -150,16 +166,14 @@ VectorRotator::VectorRotator(const ModelArray& coords, const orientation orient)
         ParametricMesh smesh(SPHERICAL);
 
         // Build a ParametricMesh object and rotate to Greenland
-        smesh.coordinatesFromModelArray(coords);
+        smesh.coordinatesFromModelArray(state.data.at(coordsName));
+        smesh.TransformToRadians();
         smesh.RotatePoleToGreenland();
 
         /* Assemble the ex, ey, and det vectors needed by toParametricMesh and
          * fromParametricMesh. In this case, coords contains all the grid cell corners, making
          * things easy.
          */
-        det.resize(dims[0] * dims[1]);
-        ex.resize(det.size());
-        ey.resize(det.size());
 
         // Connect the edge-midpoints to get the unit-vectors
         const Eigen::Matrix<FloatType, 4, 1> iix({ -0.5, 0.5, -0.5, 0.5 });
@@ -190,17 +204,13 @@ VectorRotator::VectorRotator(const ModelArray& coords, const orientation orient)
 template <typename T> void VectorRotator::initENOrientation(const T& lon, const T& lat)
 {
     // TODO: The Greenland pole shouldn't be hardcoded!
-    const FloatType polLon = radians(15.);
-    const FloatType polLat = radians(40.);
+    const FloatType polLon = radians(-40.);
+    const FloatType polLat = radians(75.);
 
 #pragma omp parallel for
     for (size_t eid = 0; eid < det.size(); ++eid) {
-        const std::vector<size_t> ij = deIndexer(dims, eid);
-        const size_t i = ij[0];
-        const size_t j = ij[1];
-
-        const FloatType rLon = radians(lon[i]);
-        const FloatType rLat = radians(lat[j]);
+        const FloatType rLon = radians(lon[eid]);
+        const FloatType rLat = radians(lat[eid]);
 
         // alpha = atan2(a, b)
         const FloatType deltaLon = polLon - rLon;
