@@ -430,7 +430,7 @@ ModelState ParaGridInputs::interpolateSpatially(const RawDataMap<FloatType>& raw
 
 void ParaGridInputs::rotateInputVectors(RawDataMap<FloatType>& rawData)
 {
-    // Usefull aliases
+    // Useful aliases
     const auto& lonDimSize = forcingLonLats.dims.at(ncLonName).size();
     const auto& latDimSize = forcingLonLats.dims.at(ncLatName).size();
     const auto& forcingLats = forcingLonLats.data[ncLatName];

@@ -64,7 +64,7 @@ VectorRotator::VectorRotator(const std::vector<size_t>& dimsIn, const std::vecto
         smesh.TransformToRadians();
         smesh.RotatePoleToGreenland();
 
-        /* Assemble the ex, ey, and det vectors needed by toParametricMesh and
+        /* Assemble the ex, ey, and det vectors needed by fromDisplacedPole and
          * fromParametricMesh. We start by constructing the element orientation everywhere except in
          * the last row and column by connecting the lower left corner of the grid cell with the
          * upper left and lower right.
@@ -163,7 +163,7 @@ VectorRotator::VectorRotator(const ModelState& state, const orientation orient)
         smesh.TransformToRadians();
         smesh.RotatePoleToGreenland();
 
-        /* Assemble the ex, ey, and det vectors needed by toParametricMesh and
+        /* Assemble the ex, ey, and det vectors needed by fromDisplacedPole and
          * fromParametricMesh. In this case, coords contains all the grid cell corners, making
          * things easy.
          */
@@ -215,8 +215,8 @@ template <typename T> void VectorRotator::initENOrientation(const T& lon, const 
         const FloatType sinAlpha = a / std::hypot(a, b);
         const FloatType cosAlpha = b / std::hypot(a, b);
 
-        ex[eid] = { cosAlpha, -sinAlpha };
-        ey[eid] = { sinAlpha, cosAlpha };
+        ex[eid] = { cosAlpha, sinAlpha };
+        ey[eid] = { -sinAlpha, cosAlpha };
 
         // det[eid] = ex[eid](0) * ey[eid](1) - ex[eid](1) * ey[eid](0);
         // The determinant is just one
@@ -224,9 +224,9 @@ template <typename T> void VectorRotator::initENOrientation(const T& lon, const 
     }
 }
 
-// A: From ocean to ParamMesh:
+// A: From ParamMesh to displaced pole:
 // ocean velocity is ox * ex + ey * ey. This can directly be evaluated:
-void VectorRotator::toParametricMesh(ModelArray& u, ModelArray& v) const
+void VectorRotator::fromParametricMesh(std::vector<FloatType>& u, std::vector<FloatType>& v) const
 {
 #pragma omp parallel for
     for (size_t i = 0; i < u.size(); ++i) {
@@ -236,9 +236,9 @@ void VectorRotator::toParametricMesh(ModelArray& u, ModelArray& v) const
     }
 }
 
-// B: from ParamMesh to ocean
+// B: from displaced pole to ParamMesh
 // solve linear system such that ex * ox + ey * uy = v
-void VectorRotator::fromParametricMesh(std::vector<FloatType>& u, std::vector<FloatType>& v) const
+void VectorRotator::fromDisplacedPole(ModelArray& u, ModelArray& v) const
 {
 #pragma omp parallel for
     for (size_t i = 0; i < u.size(); ++i) {
@@ -248,10 +248,10 @@ void VectorRotator::fromParametricMesh(std::vector<FloatType>& u, std::vector<Fl
     }
 }
 
-// A version of toParametricMesh which interpolates the output to CGVectors
+// A version of fromParametricMesh which interpolates the output to CGVectors
 template <int CG>
-void VectorRotator::toParametricMesh(
-    const ModelArray& uIn, const ModelArray& vIn, CGVector<CG>& uOut, CGVector<CG>& vOut) const
+void VectorRotator::fromParametricMesh(const std::vector<FloatType>& uIn,
+    const std::vector<FloatType>& vIn, CGVector<CG>& uOut, CGVector<CG>& vOut) const
 {
     uOut.setZero();
     vOut.setZero();
