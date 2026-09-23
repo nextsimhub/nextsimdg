@@ -236,7 +236,7 @@ void ConfigOutput::outputState(const ModelState& diagState)
 
         for (const auto& [u, v] : vectors) {
             if (outputState.data.count(u) && outputState.data.count(v)) {
-                rotator->toParametricMesh(outputState.data.at(u), outputState.data.at(v));
+                rotator->fromDisplacedPole(outputState.data.at(u), outputState.data.at(v));
                 outputState.data.at(u) = mask(outputState.data.at(u));
                 outputState.data.at(v) = mask(outputState.data.at(v));
             }
