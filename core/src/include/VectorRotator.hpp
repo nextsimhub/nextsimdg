@@ -21,7 +21,7 @@ namespace Nextsim {
  * A class to perform vector rotations for inputs and outputs between the nextsim, displaced-pole
  * coordinate system and that of an arbitrary input or output grid. The constructor calculates the
  * unit vectors of the input/output grid in the nextsim coordinate system. These are then used to
- * transform input vectors in toParametricMesh and fromParametricMesh.
+ * transform input vectors in fromDisplacedPole and fromParametricMesh.
  */
 class VectorRotator {
 public:
@@ -68,7 +68,7 @@ public:
      * @param u The u-velocities
      * @param v The v-velocities
      */
-    void toParametricMesh(ModelArray& u, ModelArray& v) const;
+    void fromDisplacedPole(ModelArray& u, ModelArray& v) const;
 
     /*!
      * @brief Transforms velocities from the parametric mesh in place. All vectors are at the grid
@@ -89,8 +89,8 @@ public:
      * @param vOut The output v-velocities
      */
     template <int CG>
-    void toParametricMesh(
-        const ModelArray& uIn, const ModelArray& vIn, CGVector<CG>& uOut, CGVector<CG>& vOut) const;
+    void fromParametricMesh(const std::vector<FloatType>& uIn, const std::vector<FloatType>& vIn,
+        CGVector<CG>& uOut, CGVector<CG>& vOut) const;
 
     /*!
      * @brief Compute vector orientation at (or extremely near) the north pole, for a east/north
