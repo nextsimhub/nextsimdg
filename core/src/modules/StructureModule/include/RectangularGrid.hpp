@@ -55,8 +55,8 @@ public:
         return pio ? pio->getModelState(filePath) : ModelState();
     }
 
-    void dumpModelState(
-        const ModelState& state, const std::string& filePath, bool isRestart = false) const override
+    void dumpModelState(const TimePoint& time, const ModelState& state, const std::string& filePath,
+        bool isRestart = false) const override
     {
         if (pio)
             pio->dumpModelState(state, filePath, isRestart);

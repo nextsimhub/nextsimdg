@@ -62,20 +62,15 @@ public:
     }
 
     /*!
-     * @brief Dumps the data to a file path.
-     *
-     * @param filePath The path to attempt writing the data to.
-     */
-    //    virtual void dump(const std::string& filePath) const = 0;
-
-    /*!
      * @brief Dumps the given ModelState to the given file path.
      *
+     * @param time The time written out to the model state dump
      * @param state The ModelState data
      * @param filePath The path to attempt to write the data to.
+     * @param isRestart Whether the dump is for a restart file
      */
-    virtual void dumpModelState(
-        const ModelState& state, const std::string& filePath, bool isRestart) const
+    virtual void dumpModelState(const TimePoint& time, const ModelState& state,
+        const std::string& filePath, bool isRestart) const
         = 0;
 
     //! The name of the group holding the definitive structure type

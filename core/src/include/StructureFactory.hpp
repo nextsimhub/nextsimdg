@@ -28,11 +28,13 @@ public:
      * @brief Takes a ModelState and a template file name to write the state
      * out to a target file path.
      *
+     * @param time
      * @param state the ModelState to be written.
      * @param filePath the path for the file to be written to.
+     * @param isRestart whether the file being written is a restart file
      */
-    static void fileFromState(
-        const ModelState& state, const std::string& filePath, bool isRestart = false);
+    static void fileFromState(const TimePoint& time, const ModelState& state,
+        const std::string& filePath, bool isRestart = false);
 
     static void finaliseAllFiles();
 

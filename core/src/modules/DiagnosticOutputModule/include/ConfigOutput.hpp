@@ -33,7 +33,6 @@ public:
         SNAPSHOT_KEY,
         FIELDNAMES_KEY,
         FILENAME_KEY,
-        FILEPERIOD_KEY,
         ORIENTATION_KEY,
     };
 
@@ -62,7 +61,6 @@ private:
     std::string currentFileName;
 
     TimePoint lastFileChange;
-    Duration fileChangePeriod;
 
     static const std::string all;
     static const std::string defaultLastOutput;

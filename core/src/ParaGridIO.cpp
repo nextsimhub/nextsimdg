@@ -344,7 +344,8 @@ void ParaGridIO::dumpModelState(const ModelState& state, const std::string& file
     ncFile.close();
 }
 
-void ParaGridIO::writeDiagnosticTime(const ModelState& state, const std::string& filePath)
+void ParaGridIO::writeDiagnosticTime(
+    const TimePoint& time, const ModelState& state, const std::string& filePath)
 {
     bool isNew = openFilesAndIndices.count(filePath) <= 0;
     size_t nt = (isNew) ? 0 : ++openFilesAndIndices.at(filePath).second;
@@ -471,8 +472,7 @@ void ParaGridIO::writeDiagnosticTime(const ModelState& state, const std::string&
     std::vector<netCDF::NcDim> timeDimVec = { timeDim };
     netCDF::NcVar timeVar(
         (isNew) ? ncFile.addVar(timeName, netCDF::ncDouble, timeDimVec) : ncFile.getVar(timeName));
-    const auto& metadata = ModelMetadata::getInstance();
-    const double secondsSinceEpoch = (metadata.time() - TimePoint()).seconds();
+    const double secondsSinceEpoch = (time - TimePoint()).seconds();
 #ifdef USE_MPI
     netCDF::setVariableCollective(timeVar, ncFile);
 #endif
