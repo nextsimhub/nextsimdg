@@ -26,10 +26,10 @@ void SimpleOutput::outputState(const ModelState& diagState)
     // Take the passed state, and add the files in the data store
     ModelState state = diagState;
     // Create the output by iterating over all fields referenced in ModelState
-    auto storeData = ModelArrayAccessorBase<RO>::getAll(ModelComponent::getStore());
-    for (auto entry : storeData) {
+    const auto storeData = ModelArrayAccessorBase<RO>::getAll(ModelComponent::getStore());
+    for (auto& entry : storeData) {
         state.data.at(entry.first) = entry.second.getHostRO();
     }
-    StructureFactory::fileFromState(state, timeFileName);
+    StructureFactory::fileFromState(meta.time(), state, timeFileName);
 }
 } /* namespace Nextsim */

@@ -15,9 +15,9 @@ void PrognosticData::writeRestartFile(const std::string& filePath) const
 
     ModelState state = getStatePrognostic();
 
-    auto& meta = ModelMetadata::getInstance();
+    const auto& meta = ModelMetadata::getInstance();
     meta.affixCoordinates(state);
 
-    StructureFactory::fileFromState(state, filePath, true);
+    StructureFactory::fileFromState(meta.time(), state, filePath, true);
 }
 }

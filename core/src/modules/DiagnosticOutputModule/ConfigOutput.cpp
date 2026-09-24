@@ -25,7 +25,6 @@ static const std::string snapshotKey = pfx + ".snapshots";
 static const std::string startKey = pfx + ".start";
 static const std::string fieldNamesKey = pfx + ".field_names";
 static const std::string fileNameKey = pfx + ".filename";
-static const std::string filePeriodKey = pfx + ".file_period";
 
 // Access the model.start key. There's no clean way of getting this from Model, I think.
 static const std::string modelStartKey = "model.start";
@@ -36,7 +35,6 @@ static const std::map<int, std::string> keyMap = {
     { ConfigOutput::SNAPSHOT_KEY, snapshotKey },
     { ConfigOutput::FIELDNAMES_KEY, fieldNamesKey },
     { ConfigOutput::FILENAME_KEY, fileNameKey },
-    { ConfigOutput::FILEPERIOD_KEY, filePeriodKey },
 };
 
 ConfigOutput::ConfigOutput()
@@ -69,8 +67,6 @@ ConfigurationHelp::HelpMap& ConfigOutput::getHelpText(HelpMap& map, bool getAll)
         { fileNameKey, ConfigType::STRING, {}, "", "",
             "Filename pattern for the output diagnostic files. Date and time elements can be "
             "included as in std::put_time()." },
-        { filePeriodKey, ConfigType::STRING, {}, "", "",
-            "The period with which diagnostic files are created." },
     };
     return map;
 }
@@ -133,10 +129,6 @@ void ConfigOutput::configure()
     std::regex_search(rawFileName, match, ncSuffix);
     m_filePrefix = match.empty() ? rawFileName : match.prefix();
 
-    // The default string is the number of seconds in 10000 years of 365 days
-    std::string newFilePeriodStr
-        = Configured::getConfiguration(keyMap.at(FILEPERIOD_KEY), std::string("315360000000"));
-    fileChangePeriod = Duration(newFilePeriodStr);
     lastFileChange = lastOutput;
 }
 
@@ -151,18 +143,6 @@ void ConfigOutput::setModelStart(const TimePoint& modelStart)
 void ConfigOutput::outputState(const ModelState& diagState)
 {
     const auto& meta = ModelMetadata::getInstance();
-
-    // Open a new file if needed
-    if (const TimePoint& time = meta.time();
-        currentFileName.empty() || lastFileChange + fileChangePeriod <= time) {
-        if (const std::string newFileName = time.format(m_filePrefix) + ".nc";
-            newFileName != currentFileName) {
-            // TODO: Close the file currentFileName
-            FileCallbackCloser::close(currentFileName);
-            currentFileName = newFileName;
-        }
-        lastFileChange = time;
-    }
 
     FloatType averagingFactor = meta.stepLength().seconds() / outputPeriod.seconds();
     if (snapshots) {
@@ -210,6 +190,17 @@ void ConfigOutput::outputState(const ModelState& diagState)
      */
     if (const Duration timeSinceOutput = meta.time() - lastOutput; timeSinceOutput.seconds() > 0
         && (everyTS || std::fmod(timeSinceOutput.seconds(), outputPeriod.seconds()) == 0.0_ft)) {
+
+        // Open a new file if needed
+        const TimePoint& timeStamp
+            = meta.time() - outputPeriod * 0.5_ft * static_cast<FloatType>(!snapshots);
+        if (const std::string newFileName = timeStamp.format(m_filePrefix) + ".nc";
+            newFileName != currentFileName) {
+            // TODO: Close the file currentFileName
+            FileCallbackCloser::close(currentFileName);
+            currentFileName = newFileName;
+        }
+
         Logged::info("ConfigOutput: Outputting " + std::to_string(state.data.size()) + " fields to "
             + currentFileName + " at " + meta.time().format() + "\n");
 
@@ -226,11 +217,11 @@ void ConfigOutput::outputState(const ModelState& diagState)
         }
 
         meta.affixCoordinates(outputState);
-        StructureFactory::fileFromState(outputState, currentFileName, false);
+        StructureFactory::fileFromState(timeStamp, outputState, currentFileName, false);
         lastOutput = meta.time();
 
         // Reset output state
-        state = { .data = {}, .config = diagState.config };
+        state.data = {};
     }
 }
 

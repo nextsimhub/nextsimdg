@@ -64,10 +64,12 @@ public:
     /*!
      * @brief Writes diagnostic data to a file.
      *
+     * @param time
      * @param state The state to write to the file.
      * @param filePath Path of the file to write to.
      */
-    void writeDiagnosticTime(const ModelState& state, const std::string& filePath) override;
+    void writeDiagnosticTime(
+        const TimePoint& time, const ModelState& state, const std::string& filePath) override;
 
 #ifndef USE_XIOS
     /*!

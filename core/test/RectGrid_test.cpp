@@ -142,7 +142,7 @@ TEST_CASE("Write and read a ModelState-based RectGrid restart file")
     metadata.extractCoordinates(coordState);
     // Then immediately extract them to the output state
     metadata.affixCoordinates(state);
-    grid.dumpModelState(state, filename);
+    grid.dumpModelState(metadata.time(), state, filename);
 
     // Reset dimensions so it is possible to check if they
     // are read correctly from refeence file

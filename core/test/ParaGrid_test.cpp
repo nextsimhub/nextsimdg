@@ -200,7 +200,7 @@ TEST_CASE("Write and read a ModelState-based ParaGrid restart file")
     // coordinates is the correct way to add coordinates to a ModelState
     metadata.extractCoordinates(coordState);
     metadata.affixCoordinates(state);
-    grid.dumpModelState(state, filename, true);
+    grid.dumpModelState(metadata.time(), state, filename, true);
 
     REQUIRE(std::filesystem::exists(std::filesystem::path(filename)));
 
@@ -365,7 +365,7 @@ TEST_CASE("Write a diagnostic ParaGrid file")
             {} };
         metadata.incrementTime(Duration(3600));
 
-        grid.dumpModelState(state, diagFile, false);
+        grid.dumpModelState(metadata.time(), state, diagFile, false);
     }
     pio->close(diagFile);
 
