@@ -277,18 +277,174 @@ void ParaGridInputs::setWeights1D()
 
 void ParaGridInputs::setWeights2D()
 {
-    /* Just call recursiveBisectSearch for every model grid point. Start off with the full grid. The
-     * recursive routine returns false if it didn't find anything at the given level. So a false
-     * here means the model point is not in the forcing data set grid.
+    /* Call recursiveBisectSearch for the first point in each row of the model grid, starting off
+     * with the full grid. The recursive routine returns false if it didn't find anything at the
+     * given level, so a false here means the model point is not in the forcing data set grid.
+     *
+     * This recursiveBisectSearch call then gives us a starting point for findCellByWalking, which
+     * uses cross multiplication to walk from an initial grid cell to a chosen neighbour. It is much
+     * faster, but assumes that the grid is uniform and well behaved. This assumption is only true
+     * locally - hence the initial search with recursiveBisectSearch.
      */
 #pragma omp parallel for
-    for (size_t k = 0; k < modelLons.size(); ++k) {
-        // Careful with the C-style indexing!
-        if (!recursiveBisectSearch(
+    for (size_t j = 0; j < modelLons.dimensions()[1]; ++j) {
+        if (const size_t k = indexer(modelLons.dimensions(), { 0, j }); !recursiveBisectSearch(
                 k, modelLons[k], modelLats[k], 0, gridDims[0] - 1, 0, gridDims[1] - 1))
             throw std::out_of_range("ParaGridInputs::setWeights2D: Couldn't find "
                 + std::to_string(modelLons[k]) + ", " + std::to_string(modelLats[k])
                 + " in the forcing grid.\n");
+
+        for (size_t i = 1; i < modelLons.dimensions()[0]; ++i) {
+            // Find cell by walking through the source grid - starting from the previous cell.
+            const size_t k = indexer(modelLons.dimensions(), { i, j });
+            ij00[k] = ij00[k - 1];
+            ij01[k] = ij01[k - 1];
+            ij10[k] = ij10[k - 1];
+            ij11[k] = ij11[k - 1];
+            findCellByWalking(modelLons[k], modelLats[k], k);
+        }
+    }
+}
+
+void ParaGridInputs::findCellByWalking(
+    const FloatType targetLon, const FloatType targetLat, const size_t k)
+{
+    while (true) {
+        /* Cell corners, counter-clockwise:
+         *
+         *       p01 -------- p11
+         *        |            |
+         *        |            |
+         *       p00 -------- p10
+         */
+
+        // Useful aliases
+        const auto& forcingLons = forcingLonLats.at(ncLonName);
+        const auto& forcingLats = forcingLonLats.at(ncLatName);
+
+        /* Project the corner points onto an orthographic projection, centred on the target. We do
+         * the rest of the work in {x,y} coordinates. The target {x,y} is now always at the origin.
+         */
+        FloatType x00, y00, x10, y10, x01, y01, x11, y11;
+        orthographicProjection(
+            forcingLons[ij00[k]], forcingLats[ij00[k]], targetLon, targetLat, x00, y00);
+        orthographicProjection(
+            forcingLons[ij10[k]], forcingLats[ij10[k]], targetLon, targetLat, x10, y10);
+        orthographicProjection(
+            forcingLons[ij01[k]], forcingLats[ij01[k]], targetLon, targetLat, x01, y01);
+        orthographicProjection(
+            forcingLons[ij11[k]], forcingLats[ij11[k]], targetLon, targetLat, x11, y11);
+
+        /* Rotate the coordinates, so that the projected plane aligns with the source grid (at least
+         * locally). */
+
+        // Coordinates-of-element matrix in a 00-10-01-11 order as in ParametricMesh
+        const Eigen::Matrix<FloatType, 2, 4> coe(
+            { { x00, x10, x01, x11 }, { y00, y10, y01, y11 } });
+
+        // Connect the edge-midpoints to get the unit-vectors
+        const Eigen::Matrix<FloatType, 4, 1> ix({ -0.5, 0.5, -0.5, 0.5 });
+        const Eigen::Matrix<FloatType, 4, 1> iy({ -0.5, -0.5, 0.5, 0.5 });
+
+        // Calculate unit vectors
+        const Eigen::Matrix<FloatType, 2, 1> ex = (coe * ix).normalized();
+        const Eigen::Matrix<FloatType, 2, 1> ey = (coe * iy).normalized();
+
+        // Rotate the coordinates
+        auto rot = [ex, ey](FloatType& x, FloatType& y) -> void {
+            const Eigen::Matrix<FloatType, 2, 1> coordVec = ex * x + ey * y;
+            x = coordVec(0);
+            y = coordVec(1);
+        };
+        rot(x00, y00);
+        rot(x10, y10);
+        rot(x01, y01);
+        rot(x11, y11);
+
+        // Test the four edges.
+        auto cross = [](const FloatType x0, const FloatType y0, const FloatType x1,
+                         const FloatType y1) -> FloatType { return x0 * y1 - y0 * x1; };
+
+        const std::array<double, 4> c = {
+            cross(x10 - x00, y10 - y00, -x00, -y00), // bottom
+            cross(x11 - x10, y11 - y10, -x10, -y10), // right
+            cross(x01 - x11, y01 - y11, -x11, -y11), // top
+            cross(x00 - x01, y00 - y01, -x01, -y01) // left
+        };
+
+        const auto it = std::min_element(c.begin(), c.end());
+        const auto worst_edge = static_cast<size_t>(std::distance(c.begin(), it));
+
+        if (*it >= -std::numeric_limits<FloatType>::epsilon()) // Point is inside the cell
+        {
+            if (findLocalCoordinates(k, x00, y00, x10, y10, x01, y01, x11, y11))
+                return;
+            else
+                throw std::logic_error("ParaGridInputs::findCellByWalking: Point was detected as "
+                                       "inside the cell, but we failed to find local coordinates: "
+                    + std::to_string(targetLon) + ", " + std::to_string(targetLat));
+        }
+
+        const std::string errorMessage = "ParaGridInputs::findCellByWalking: Point "
+            + std::to_string(targetLon) + ", " + std::to_string(targetLat)
+            + " is outside the grid.\n";
+        switch (worst_edge) {
+        case 0: // bottom --j;
+        {
+            if (deIndexer(gridDims, ij00[k])[1] == 0 || deIndexer(gridDims, ij01[k])[1] == 0
+                || deIndexer(gridDims, ij10[k])[1] == 0 || deIndexer(gridDims, ij11[k])[1] == 0)
+                throw std::out_of_range(errorMessage);
+
+            ij00[k] -= gridDims[0];
+            ij01[k] -= gridDims[0];
+            ij10[k] -= gridDims[0];
+            ij11[k] -= gridDims[0];
+            break;
+        }
+        case 1: // right ++i;
+        {
+            if (deIndexer(gridDims, ij00[k])[0] == gridDims[0] - 1
+                || deIndexer(gridDims, ij01[k])[0] == gridDims[0] - 1
+                || deIndexer(gridDims, ij10[k])[0] == gridDims[0] - 1
+                || deIndexer(gridDims, ij11[k])[0] == gridDims[0] - 1)
+                throw std::out_of_range(errorMessage);
+
+            ij00[k] += 1;
+            ij01[k] += 1;
+            ij10[k] += 1;
+            ij11[k] += 1;
+            break;
+        }
+        case 2: // top ++j;
+        {
+            if (deIndexer(gridDims, ij00[k])[1] == gridDims[1] - 1
+                || deIndexer(gridDims, ij01[k])[1] == gridDims[1] - 1
+                || deIndexer(gridDims, ij10[k])[1] == gridDims[1] - 1
+                || deIndexer(gridDims, ij11[k])[1] == gridDims[1] - 1)
+                throw std::out_of_range(errorMessage);
+
+            ij00[k] += gridDims[0];
+            ij01[k] += gridDims[0];
+            ij10[k] += gridDims[0];
+            ij11[k] += gridDims[0];
+            break;
+        }
+        case 3: // left --i;
+        {
+            if (deIndexer(gridDims, ij00[k])[0] == 0 || deIndexer(gridDims, ij01[k])[0] == 0
+                || deIndexer(gridDims, ij10[k])[0] == 0 || deIndexer(gridDims, ij11[k])[0] == 0)
+                throw std::out_of_range(errorMessage);
+
+            ij00[k] -= 1;
+            ij01[k] -= 1;
+            ij10[k] -= 1;
+            ij11[k] -= 1;
+            break;
+        }
+        default:
+            throw std::logic_error("ParaGridInputs::findCellByWalking: Invalid worst_edge value "
+                + std::to_string(worst_edge) + ".\n");
+        }
     }
 }
 
