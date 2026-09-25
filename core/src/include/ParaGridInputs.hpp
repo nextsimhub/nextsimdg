@@ -111,8 +111,13 @@ private:
     /* Does a recursive search for the grid cell with corners i, ii, j, and jj, in which the point
      * {targetLon, targetLat} is found.
      */
-    bool recursiveBisectSearch(size_t k, FloatType targetLon, FloatType targetLat, size_t i,
-        size_t ii, size_t j, size_t jj);
+    [[nodiscard]] bool recursiveBisectSearch(size_t k, FloatType targetLon, FloatType targetLat,
+        size_t i, size_t ii, size_t j, size_t jj);
+
+    /* Search for the grid cell in which the point {targetLon, targetLat} is found, by walking
+     * through the source grid.
+     */
+    void findCellByWalking(FloatType targetLon, FloatType targetLat, size_t k);
 
     // Project {lon, lat} onto the orthographic coordinates {x,y} with {lon0, lat0} at its centre.
     static void orthographicProjection(
