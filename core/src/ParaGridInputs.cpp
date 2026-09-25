@@ -309,7 +309,10 @@ void ParaGridInputs::setWeights2D()
 void ParaGridInputs::findCellByWalking(
     const FloatType targetLon, const FloatType targetLat, const size_t k)
 {
-    while (true) {
+
+    // A while(true) should work, but better safe than sorry!
+    const size_t maxSteps = gridDims[0] * gridDims[1];
+    for (size_t step = 0; step < maxSteps; ++step) {
         /* Cell corners, counter-clockwise:
          *
          *       p01 -------- p11
@@ -373,22 +376,20 @@ void ParaGridInputs::findCellByWalking(
         };
 
         const auto it = std::min_element(c.begin(), c.end());
-        const auto worst_edge = static_cast<size_t>(std::distance(c.begin(), it));
+        const auto worstEdge = static_cast<size_t>(std::distance(c.begin(), it));
 
-        if (*it >= -std::numeric_limits<FloatType>::epsilon()) // Point is inside the cell
-        {
+        /* If the smallest cross product is positive, the point is inside the cell. However, with
+         * limited machine precision, findLocalCoordinates may not agree. If that's the case, we
+         * should continue searching.
+         */
+        if (*it >= -10._ft * std::numeric_limits<FloatType>::epsilon())
             if (findLocalCoordinates(k, x00, y00, x10, y10, x01, y01, x11, y11))
                 return;
-            else
-                throw std::logic_error("ParaGridInputs::findCellByWalking: Point was detected as "
-                                       "inside the cell, but we failed to find local coordinates: "
-                    + std::to_string(targetLon) + ", " + std::to_string(targetLat));
-        }
 
         const std::string errorMessage = "ParaGridInputs::findCellByWalking: Point "
             + std::to_string(targetLon) + ", " + std::to_string(targetLat)
             + " is outside the grid.\n";
-        switch (worst_edge) {
+        switch (worstEdge) {
         case 0: // bottom --j;
         {
             if (deIndexer(gridDims, ij00[k])[1] == 0 || deIndexer(gridDims, ij01[k])[1] == 0
@@ -443,9 +444,12 @@ void ParaGridInputs::findCellByWalking(
         }
         default:
             throw std::logic_error("ParaGridInputs::findCellByWalking: Invalid worst_edge value "
-                + std::to_string(worst_edge) + ".\n");
+                + std::to_string(worstEdge) + ".\n");
         }
     }
+
+    throw std::runtime_error("ParaGridInputs::findCellByWalking: Failed to find the cell after "
+        + std::to_string(maxSteps) + " steps.");
 }
 
 bool ParaGridInputs::recursiveBisectSearch(const size_t k, const FloatType targetLon,
