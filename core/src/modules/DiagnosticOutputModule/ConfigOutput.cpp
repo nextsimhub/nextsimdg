@@ -145,7 +145,6 @@ void ConfigOutput::setData(const TimePoint& modelStart)
 
     // Prep vector rotator
     const auto& meta = ModelMetadata::getInstance();
-    ModelState state;
     meta.affixCoordinates(state);
     if (const std::string orientationStr
         = Configured::getConfiguration(keyMap.at(ORIENTATION_KEY), std::string("grid"));
