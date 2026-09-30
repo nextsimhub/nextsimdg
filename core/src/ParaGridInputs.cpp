@@ -369,7 +369,7 @@ void ParaGridInputs::findCellByWalking(
         auto cross = [](const FloatType x0, const FloatType y0, const FloatType x1,
                          const FloatType y1) -> FloatType { return x0 * y1 - y0 * x1; };
 
-        const std::array<double, 4> c = {
+        const std::array<FloatType, 4> c = {
             cross(x10 - x00, y10 - y00, -x00, -y00), // bottom
             cross(x11 - x10, y11 - y10, -x10, -y10), // right
             cross(x01 - x11, y01 - y11, -x11, -y11), // top
@@ -377,7 +377,7 @@ void ParaGridInputs::findCellByWalking(
         };
 
         const auto it = std::min_element(c.begin(), c.end());
-        const auto worstEdge = static_cast<size_t>(std::distance(c.begin(), it));
+        const auto worstEdge = it - c.begin();
 
         /* If the smallest cross product is positive, the point is inside the cell. However, with
          * limited machine precision, findLocalCoordinates may not agree. If that's the case, we
