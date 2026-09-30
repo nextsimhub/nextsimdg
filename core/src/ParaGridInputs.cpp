@@ -199,7 +199,6 @@ ModelArray ParaGridInputs::getField(const std::string& fieldName) const
 #pragma omp parallel for
     for (size_t i = 0; i < ma.size(); ++i)
         ma[i] = frac * after[i] + (1. - frac) * before[i];
-
     return ma;
 }
 
