@@ -306,34 +306,42 @@ void ModelArray::setLimits(const FloatType lower, const FloatType upper)
 
 void ModelArray::checkLimits(const ModelArray& mask) const
 {
-    // Mask the data with the land mask
-    const DataType masked = (mask.data() == 1).select(m_data.col(0), fillValue);
+    assert(mask.trueSize() == trueSize());
 
-    // Check first for NaNs. The code is different for the bounds check, because Eigen doesn't
-    // return an index for NaN-checking.
-    if (masked.isNaN().any())
-        throw std::runtime_error("Field contains NaN.");
-
-    /* Now we check the bounds and set the array index (i) and value if we're out of bounds.
-     * Here, we need to check if the values are _outside_ the bounds, and if they are, then we ask
-     * Eigen to find the offending value and its location. We then proceed to throw an error.
-     * This also means that using '<' and '>' in the checks here is consistent with checking if the
-     * value is in min <= value <= max.
-     */
-    size_t i;
     FloatType value;
-    if (masked.minCoeff() < lowerPhysicalLimit) {
-        value = masked.col(0).minCoeff(&i);
-    } else if (masked.maxCoeff() > upperPhysicalLimit) {
-        value = masked.col(0).maxCoeff(&i);
-    } else {
+    size_t idx = std::numeric_limits<size_t>::max();
+
+    for (size_t i = 0; i < trueSize(); ++i) {
+        // Mask the data with the land mask
+        if (mask[i] == 0) {
+            continue;
+        }
+
+        value = m_data(i, 0);
+        if (std::isnan(value)) {
+            throw std::runtime_error("Field contains NaN.");
+        }
+        /* Now we check the bounds and set the array index (i) and value if we're out of bounds.
+         * Here, we need to check if the values are _outside_ the bounds, and if they are, then we
+         * ask Eigen to find the offending value and its location. We then proceed to throw an
+         * error. This also means that using '<' and '>' in the checks here is consistent with
+         * checking if the value is in min <= value <= max.
+         */
+        if (value < lowerPhysicalLimit || value > upperPhysicalLimit) {
+            idx = i;
+            break;
+        }
+    }
+
+    // no problem value found
+    if (idx >= trueSize()) {
         return;
     }
 
     /* If we haven't returned (or thrown an exception) by now, we have an error in the field, and
      * Eigen has found that this is at index i.
      */
-    const std::vector<size_t> loc = locationFromIndex(type, i);
+    const std::vector<size_t> loc = locationFromIndex(type, idx);
     std::string locStr = "[";
     for (const size_t& l : loc)
         locStr += std::to_string(l) + ",";
@@ -343,7 +351,7 @@ void ModelArray::checkLimits(const ModelArray& mask) const
     throw std::runtime_error("Field contains out-of-bounds value(s), " + std::to_string(value)
         + " not in [" + std::to_string(lowerPhysicalLimit) + ","
         + std::to_string(upperPhysicalLimit) + "]. Error at " + locStr + " and index "
-        + std::to_string(i) + ".\n");
+        + std::to_string(idx) + ".\n");
 }
 
 void ModelArray::validateMaps()
