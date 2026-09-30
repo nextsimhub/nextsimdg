@@ -177,12 +177,12 @@ ModelArray ParaGridInputs::getField(const std::string& fieldName)
     const FloatType frac = (currentTime - timeRange.before).seconds()
         / (timeRange.after - timeRange.before).seconds();
 
+    const ModelArray& before = forcingStateBefore.data[fieldName];
+    const ModelArray& after = forcingStateAfter.data[fieldName];
 #pragma omp parallel for
     for (size_t i = 0; i < ma.size(); ++i) {
-        ma[i] = frac * forcingStateAfter.data[fieldName][i]
-            + (1. - frac) * forcingStateBefore.data[fieldName][i];
+        ma[i] = frac * after[i] + (1. - frac) * before[i];
     }
-
     return ma;
 }
 
