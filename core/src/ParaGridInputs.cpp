@@ -380,67 +380,63 @@ void ParaGridInputs::findCellByWalking(
         const auto worstEdge = it - c.begin();
 
         /* If the smallest cross product is positive, the point is inside the cell. However, with
-         * limited machine precision, findLocalCoordinates may not agree. If that's the case, we
+         * finite machine precision, findLocalCoordinates may not agree. If that's the case, we
          * should continue searching.
          */
         if (*it >= -10._ft * std::numeric_limits<FloatType>::epsilon())
             if (findLocalCoordinates(k, x00, y00, x10, y10, x01, y01, x11, y11))
                 return;
 
-        const std::string errorMessage = "ParaGridInputs::findCellByWalking: Point "
-            + std::to_string(targetLon) + ", " + std::to_string(targetLat)
-            + " is outside the grid.\n";
+        // A lambda to shift the index by dij and check for bounds violation.
+        auto shift = [targetLon, targetLat](const std::vector<size_t>& dims, const size_t loc,
+                         const std::vector<int>& dij) -> size_t {
+            std::vector<size_t> ij = deIndexer(dims, loc);
+            ij[0] += dij[0];
+            ij[1] += dij[1];
+
+            if (ij[0] < 0 || ij[1] < 0 || ij[0] >= dims[0] || ij[1] >= dims[1])
+                throw std::out_of_range("ParaGridInputs::findCellByWalking: Point "
+                    + std::to_string(targetLon) + ", " + std::to_string(targetLat)
+                    + " is outside the grid.\n");
+
+            return indexer(dims, ij);
+        };
+
         switch (worstEdge) {
         case 0: // bottom --j;
         {
-            if (deIndexer(gridDims, ij00[k])[1] == 0 || deIndexer(gridDims, ij01[k])[1] == 0
-                || deIndexer(gridDims, ij10[k])[1] == 0 || deIndexer(gridDims, ij11[k])[1] == 0)
-                throw std::out_of_range(errorMessage);
-
-            ij00[k] -= gridDims[0];
-            ij01[k] -= gridDims[0];
-            ij10[k] -= gridDims[0];
-            ij11[k] -= gridDims[0];
+            const std::vector dij = { 0, -1 };
+            ij00[k] = shift(gridDims, ij00[k], dij);
+            ij01[k] = shift(gridDims, ij01[k], dij);
+            ij10[k] = shift(gridDims, ij10[k], dij);
+            ij11[k] = shift(gridDims, ij11[k], dij);
             break;
         }
         case 1: // right ++i;
         {
-            if (deIndexer(gridDims, ij00[k])[0] == gridDims[0] - 1
-                || deIndexer(gridDims, ij01[k])[0] == gridDims[0] - 1
-                || deIndexer(gridDims, ij10[k])[0] == gridDims[0] - 1
-                || deIndexer(gridDims, ij11[k])[0] == gridDims[0] - 1)
-                throw std::out_of_range(errorMessage);
-
-            ij00[k] += 1;
-            ij01[k] += 1;
-            ij10[k] += 1;
-            ij11[k] += 1;
+            const std::vector dij = { 1, 0 };
+            ij00[k] = shift(gridDims, ij00[k], dij);
+            ij01[k] = shift(gridDims, ij01[k], dij);
+            ij10[k] = shift(gridDims, ij10[k], dij);
+            ij11[k] = shift(gridDims, ij11[k], dij);
             break;
         }
         case 2: // top ++j;
         {
-            if (deIndexer(gridDims, ij00[k])[1] == gridDims[1] - 1
-                || deIndexer(gridDims, ij01[k])[1] == gridDims[1] - 1
-                || deIndexer(gridDims, ij10[k])[1] == gridDims[1] - 1
-                || deIndexer(gridDims, ij11[k])[1] == gridDims[1] - 1)
-                throw std::out_of_range(errorMessage);
-
-            ij00[k] += gridDims[0];
-            ij01[k] += gridDims[0];
-            ij10[k] += gridDims[0];
-            ij11[k] += gridDims[0];
+            const std::vector dij = { 0, 1 };
+            ij00[k] = shift(gridDims, ij00[k], dij);
+            ij01[k] = shift(gridDims, ij01[k], dij);
+            ij10[k] = shift(gridDims, ij10[k], dij);
+            ij11[k] = shift(gridDims, ij11[k], dij);
             break;
         }
         case 3: // left --i;
         {
-            if (deIndexer(gridDims, ij00[k])[0] == 0 || deIndexer(gridDims, ij01[k])[0] == 0
-                || deIndexer(gridDims, ij10[k])[0] == 0 || deIndexer(gridDims, ij11[k])[0] == 0)
-                throw std::out_of_range(errorMessage);
-
-            ij00[k] -= 1;
-            ij01[k] -= 1;
-            ij10[k] -= 1;
-            ij11[k] -= 1;
+            const std::vector dij = { -1, 0 };
+            ij00[k] = shift(gridDims, ij00[k], dij);
+            ij01[k] = shift(gridDims, ij01[k], dij);
+            ij10[k] = shift(gridDims, ij10[k], dij);
+            ij11[k] = shift(gridDims, ij11[k], dij);
             break;
         }
         default:
