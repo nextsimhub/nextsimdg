@@ -304,7 +304,7 @@ void ModelArray::setLimits(const FloatType lower, const FloatType upper)
     fillValue = (lowerPhysicalLimit + upperPhysicalLimit) * 0.5;
 }
 
-void ModelArray::checkLimits(const ModelArray& mask) const
+std::optional<std::string> ModelArray::checkLimits(const ModelArray& mask) const
 {
     assert(mask.trueSize() == trueSize());
 
@@ -319,7 +319,7 @@ void ModelArray::checkLimits(const ModelArray& mask) const
 
         value = m_data(i, 0);
         if (std::isnan(value)) {
-            throw std::runtime_error("Field contains NaN.");
+            return std::make_optional("Field contains NaN.");
         }
         /* Now we check the bounds and set the array index (i) and value if we're out of bounds.
          * Here, we need to check if the values are _outside_ the bounds, and if they are, then we
@@ -335,7 +335,7 @@ void ModelArray::checkLimits(const ModelArray& mask) const
 
     // no problem value found
     if (idx >= trueSize()) {
-        return;
+        return std::nullopt;
     }
 
     /* If we haven't returned (or thrown an exception) by now, we have an error in the field, and
@@ -348,7 +348,7 @@ void ModelArray::checkLimits(const ModelArray& mask) const
     locStr.pop_back();
     locStr.push_back(']');
 
-    throw std::runtime_error("Field contains out-of-bounds value(s), " + std::to_string(value)
+    return std::make_optional("Field contains out-of-bounds value(s), " + std::to_string(value)
         + " not in [" + std::to_string(lowerPhysicalLimit) + ","
         + std::to_string(upperPhysicalLimit) + "]. Error at " + locStr + " and index "
         + std::to_string(idx) + ".\n");

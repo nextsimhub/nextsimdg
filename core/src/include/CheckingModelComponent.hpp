@@ -29,13 +29,20 @@ protected:
         if (!checkFast && !checkAll())
             return;
 
-        for (const auto& field : fieldsToCheck) {
+        std::string errorMsg;
 
-            try {
-                field.arrayRef.getHostRO().checkLimits(oceanMask());
-            } catch (const std::exception& e) {
-                throw std::runtime_error("Check failed for '" + field.name + "': " + e.what());
+#pragma omp parallel for
+        for (auto it = fieldsToCheck.begin(); it < fieldsToCheck.end(); ++it) {
+            const auto& field = *it;
+            if (std::optional<std::string> e
+                = field.arrayRef.getHostRO().checkLimits(oceanMask())) {
+#pragma omp critical
+                errorMsg = "Check failed for '" + field.name + "': " + *e;
             }
+        }
+
+        if (!errorMsg.empty()) {
+            throw std::runtime_error(errorMsg);
         }
     }
     /*!

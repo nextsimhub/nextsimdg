@@ -10,6 +10,7 @@
 #include <array>
 #include <cstddef>
 #include <map>
+#include <optional>
 #include <string>
 #include <utility>
 #include <vector>
@@ -656,7 +657,8 @@ private:
 
 public:
     void setLimits(const FloatType lower, const FloatType upper);
-    void checkLimits(const ModelArray& mask) const;
+    //! Returns an error message if the limits are violated.
+    std::optional<std::string> checkLimits(const ModelArray& mask) const;
 
 protected:
     Type type;
