@@ -308,50 +308,77 @@ std::optional<std::string> ModelArray::checkLimits(const ModelArray& mask) const
 {
     assert(mask.trueSize() == trueSize());
 
-    FloatType value;
-    size_t idx = std::numeric_limits<size_t>::max();
+    struct ExtremeVal {
+        FloatType val;
+        size_t idx;
+    };
 
-    for (size_t i = 0; i < trueSize(); ++i) {
+#pragma omp declare reduction(minimum : struct ExtremeVal : omp_out                                \
+        = omp_in.val < omp_out.val ? omp_in : omp_out) initializer(omp_priv = omp_orig)
+#pragma omp declare reduction(maximum : struct ExtremeVal : omp_out                                \
+        = omp_in.val > omp_out.val ? omp_in : omp_out) initializer(omp_priv = omp_orig)
+
+    ExtremeVal minVal
+        = { std::numeric_limits<FloatType>::max(), std::numeric_limits<size_t>::max() };
+    ExtremeVal maxVal
+        = { std::numeric_limits<FloatType>::lowest(), std::numeric_limits<size_t>::max() };
+    bool hasNan = false;
+    const size_t n = trueSize();
+
+#pragma omp parallel for reduction(minimum : minVal) reduction(maximum : maxVal)                   \
+    reduction(| : hasNan)
+    for (size_t i = 0; i < n; ++i) {
         // Mask the data with the land mask
-        if (mask[i] == 0) {
-            continue;
+        const FloatType value = mask[i] == 1 ? m_data(i, 0) : fillValue;
+
+        hasNan |= std::isnan(value);
+
+        if (value < minVal.val) {
+            minVal.val = value;
+            minVal.idx = i;
         }
 
-        value = m_data(i, 0);
-        if (std::isnan(value)) {
-            return std::make_optional("Field contains NaN.");
-        }
-        /* Now we check the bounds and set the array index (i) and value if we're out of bounds.
-         * Here, we need to check if the values are _outside_ the bounds, and if they are, then we
-         * ask Eigen to find the offending value and its location. We then proceed to throw an
-         * error. This also means that using '<' and '>' in the checks here is consistent with
-         * checking if the value is in min <= value <= max.
-         */
-        if (value < lowerPhysicalLimit || value > upperPhysicalLimit) {
-            idx = i;
-            break;
+        if (value > maxVal.val) {
+            maxVal.val = value;
+            maxVal.idx = i;
         }
     }
 
-    // no problem value found
-    if (idx >= trueSize()) {
+    // Check first for NaNs. The code is different for the bounds check for legacy reasons.
+    // A custom reduction should work as well if the index is desired.
+    if (hasNan) {
+        return std::make_optional("Field contains NaN.");
+    }
+
+    /* Now we check the bounds and set the array index (i) and value if we're out of bounds.
+     * Here, we need to check if the values are _outside_ the bounds, and if they are, then we
+     * ask Eigen to find the offending value and its location. We then proceed to throw an
+     * error. This also means that using '<' and '>' in the checks here is consistent with
+     * checking if the value is in min <= value <= max.
+     */
+    ExtremeVal invalidVal;
+    if (minVal.val < lowerPhysicalLimit) {
+        invalidVal = minVal;
+    } else if (maxVal.val > upperPhysicalLimit) {
+        invalidVal = maxVal;
+    } else { // no problem value found
         return std::nullopt;
     }
 
     /* If we haven't returned (or thrown an exception) by now, we have an error in the field, and
      * Eigen has found that this is at index i.
      */
-    const std::vector<size_t> loc = locationFromIndex(type, idx);
+    const std::vector<size_t> loc = locationFromIndex(type, invalidVal.idx);
     std::string locStr = "[";
     for (const size_t& l : loc)
         locStr += std::to_string(l) + ",";
     locStr.pop_back();
     locStr.push_back(']');
 
-    return std::make_optional("Field contains out-of-bounds value(s), " + std::to_string(value)
-        + " not in [" + std::to_string(lowerPhysicalLimit) + ","
+    return std::make_optional("Field contains out-of-bounds value(s), "
+        + std::to_string(invalidVal.val) + " not in [" + std::to_string(lowerPhysicalLimit) + ","
         + std::to_string(upperPhysicalLimit) + "]. Error at " + locStr + " and index "
-        + std::to_string(idx) + ".\n");
+        + std::to_string(invalidVal.idx) + ".\n");
 }
 
 void ModelArray::validateMaps()

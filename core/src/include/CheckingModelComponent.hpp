@@ -1,7 +1,6 @@
 /*!
  * @file CheckingModelComponent.hpp
  *
- * @date 02 Jun 2025
  * @author Einar Ólason <einar.olason@nersc.no>
  */
 
@@ -23,28 +22,8 @@ protected:
      * @brief Check fields listed in fieldsToCheck. Throw a runtime_error if values are outside
      * bounds.
      */
-    void checkFields() const
-    {
-        // Do nothing if checks are not enabled
-        if (!checkFast && !checkAll())
-            return;
+    void checkFields() const;
 
-        std::string errorMsg;
-
-#pragma omp parallel for
-        for (auto it = fieldsToCheck.begin(); it < fieldsToCheck.end(); ++it) {
-            const auto& field = *it;
-            if (std::optional<std::string> e
-                = field.arrayRef.getHostRO().checkLimits(oceanMask())) {
-#pragma omp critical
-                errorMsg = "Check failed for '" + field.name + "': " + *e;
-            }
-        }
-
-        if (!errorMsg.empty()) {
-            throw std::runtime_error(errorMsg);
-        }
-    }
     /*!
      * @brief Add all the fields listed to the vector fieldsToCheck so they will be checked by
      * checkFields()
@@ -52,11 +31,7 @@ protected:
      * @param fieldsToAdd An std::map of string-s and ModelArrayAccessors-s with field names and
      * references to check.
      */
-    void addChecks(const std::map<const std::string, ModelArrayAccessorBase<RO>>& fieldsToAdd)
-    {
-        for (const auto& field : fieldsToAdd)
-            fieldsToCheck.emplace_back(field.first, field.second);
-    }
+    void addChecks(const std::map<const std::string, ModelArrayAccessorBase<RO>>& fieldsToAdd);
 
     //! @param checkFast Set to true to do a quick check of the main prognostics in PrognosticData
     bool checkFast = false;
