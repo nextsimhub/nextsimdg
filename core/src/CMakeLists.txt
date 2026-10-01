@@ -41,6 +41,7 @@ set(BaseSources
     "ModelArraySlice.cpp"
     "ModelArrayStore.cpp"
     "ModelComponent.cpp"
+    "CheckingModelComponent.cpp"
     "ModelMetadata.cpp"
     "NetcdfMetadataConfiguration.cpp"
     "PrognosticData.cpp"
