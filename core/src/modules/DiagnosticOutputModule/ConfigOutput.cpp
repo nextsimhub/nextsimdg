@@ -26,6 +26,7 @@ static const std::string startKey = pfx + ".start";
 static const std::string fieldNamesKey = pfx + ".field_names";
 static const std::string fileNameKey = pfx + ".filename";
 static const std::string filePeriodKey = pfx + ".file_period";
+static const std::string orientationKey = pfx + ".vector_orientation";
 
 // Access the model.start key. There's no clean way of getting this from Model, I think.
 static const std::string modelStartKey = "model.start";
@@ -37,6 +38,7 @@ static const std::map<int, std::string> keyMap = {
     { ConfigOutput::FIELDNAMES_KEY, fieldNamesKey },
     { ConfigOutput::FILENAME_KEY, fileNameKey },
     { ConfigOutput::FILEPERIOD_KEY, filePeriodKey },
+    { ConfigOutput::ORIENTATION_KEY, orientationKey },
 };
 
 ConfigOutput::ConfigOutput()
@@ -71,6 +73,8 @@ ConfigurationHelp::HelpMap& ConfigOutput::getHelpText(HelpMap& map, bool getAll)
             "included as in std::put_time()." },
         { filePeriodKey, ConfigType::STRING, {}, "", "",
             "The period with which diagnostic files are created." },
+        { orientationKey, ConfigType::STRING, { "grid", "east_north", "native" }, "grid", "",
+            "The orientation of the vectors in the output." },
     };
     return map;
 }
@@ -113,15 +117,17 @@ void ConfigOutput::configure()
         for (std::string line; std::getline(fieldStream, line, ',');) {
             fieldsForOutput.insert(line);
         }
-        // Sort through the list of fields and create lists of Shared- or ProtectedArrays that
-        // correspond to the fields.
-        for (const std::string& fieldName : fieldsForOutput) {
-            if (externalNames.count(fieldName)) {
-                internalFieldsForOutput.insert(externalNames.at(fieldName));
-            } else {
+        // Check the inputs
+        for (const std::string& fieldName : fieldsForOutput)
+            if (externalNames.count(fieldName) == 0)
                 Logged::warning(
                     "ConfigOutput: No field with the name \"" + fieldName + "\" was found.");
-            }
+    }
+
+    // Fill the reverse lookup table between external and internal names
+    for (const auto& [external, internal] : externalNames) {
+        if (!reverseExternalNames.count(internal)) {
+            reverseExternalNames[internal] = external;
         }
     }
 
@@ -138,21 +144,40 @@ void ConfigOutput::configure()
     lastFileChange = lastOutput;
 }
 
-void ConfigOutput::setModelStart(const TimePoint& modelStart)
+void ConfigOutput::setData(const TimePoint& modelStart)
 {
     // Set the lastOutput time to the model start if the default value has not yet been replaced.
     if (lastOutput == TimePoint(defaultLastOutput)) {
         lastOutput = modelStart;
     }
+
+    // Prep vector rotator
+    const auto& meta = ModelMetadata::getInstance();
+    ModelState state;
+    meta.affixCoordinates(state);
+    if (const std::string orientationStr
+        = Configured::getConfiguration(keyMap.at(ORIENTATION_KEY), std::string("grid"));
+        orientationStr == "native") {
+        rotator = std::make_unique<VectorRotator>(state.data.at(coordsName).dimensions());
+    } else if (orientationStr == "grid") {
+        rotator = std::make_unique<VectorRotator>(state, VectorRotator::orientation::GRID);
+    } else if (orientationStr == "east_north") {
+        rotator = std::make_unique<VectorRotator>(state, VectorRotator::orientation::EAST_NORTH);
+    } else {
+        throw std::invalid_argument("ConfigOutput::configure: Invalid vector orientation: "
+            + orientationStr + ". Valid options are 'grid', 'east_north', or 'native'.\n");
+    }
 }
 
 void ConfigOutput::outputState(const ModelState& diagState)
 {
-    auto& meta = ModelMetadata::getInstance();
-    const TimePoint& time = meta.time();
-    if (currentFileName == "" || (lastFileChange + fileChangePeriod <= time)) {
-        std::string newFileName = time.format(m_filePrefix) + ".nc";
-        if (newFileName != currentFileName) {
+    const auto& meta = ModelMetadata::getInstance();
+
+    // Open a new file if needed
+    if (const TimePoint& time = meta.time();
+        currentFileName.empty() || lastFileChange + fileChangePeriod <= time) {
+        if (const std::string newFileName = time.format(m_filePrefix) + ".nc";
+            newFileName != currentFileName) {
             // TODO: Close the file currentFileName
             FileCallbackCloser::close(currentFileName);
             currentFileName = newFileName;
@@ -162,46 +187,27 @@ void ConfigOutput::outputState(const ModelState& diagState)
 
     FloatType averagingFactor = meta.stepLength().seconds() / outputPeriod.seconds();
     ModelState state = { {}, diagState.config };
-    auto storeData = ModelArrayAccessorBase<RO>::getAll(ModelComponent::getStore());
-    if (outputAllTheFields) {
-        // If the internal to external name lookup table is still empty, fill it
-        if (reverseExternalNames.empty()) {
-            for (auto entry : externalNames) {
-                // Add the reverse lookup between external and internal names, if one has not been
-                // added
-                if (!reverseExternalNames.count(entry.second)) {
-                    reverseExternalNames[entry.second] = entry.first;
-                }
-            }
-        }
+    const auto storeData = ModelArrayAccessorBase<>::getAll(getStore());
 
-        // Output every entry in storeData, as either its external name if
-        // defined, or as its internal name.
-        for (auto entry : storeData) {
-            const ModelArray& modelArray = entry.second.getHostRO();
-            if (modelArray.trueSize()) {
-                if (reverseExternalNames.count(entry.first)) {
-                    state.data[reverseExternalNames.at(entry.first)] = modelArray;
-                } else {
-                    state.data[entry.first] = modelArray;
-                }
+    // Output every entry in storeData, as either its external name if
+    // defined, or as its internal name.
+    for (const auto& [internalName, arrayRef] : storeData) {
+        if (const ModelArray& modelArray = arrayRef.getHostRO(); modelArray.trueSize()) {
+            if (reverseExternalNames.count(internalName)) {
+                if (const auto externalName = reverseExternalNames.at(internalName);
+                    outputAllTheFields || fieldsForOutput.count(externalName))
+                    state.data[externalName] = modelArray;
+            } else {
+                if (outputAllTheFields)
+                    state.data[internalName] = modelArray;
             }
         }
-    } else {
-        // Filter the passed state by the field names for output
-        for (auto& entry : diagState.data) {
-            if (fieldsForOutput.count(entry.first) > 0) {
-                state.data[entry.first] = entry.second;
-            }
-        }
+    }
 
-        // Get data from the data store for any named fields that have an external name that
-        // matches.
-        for (const auto& fieldExtName : fieldsForOutput) {
-            if (externalNames.count(fieldExtName)
-                && storeData.count(externalNames.at(fieldExtName))) {
-                state.data[fieldExtName] = storeData.at(externalNames.at(fieldExtName)).getHostRO();
-            }
+    // Filter the passed state by the field names for output
+    for (const auto& [key, arrayRef] : diagState.data) {
+        if (fieldsForOutput.count(key) > 0) {
+            state.data[key] = arrayRef;
         }
     }
 
@@ -211,13 +217,33 @@ void ConfigOutput::outputState(const ModelState& diagState)
      *    • whenever the current time is an integer number of time periods from the
      *      last output time.
      */
-    Duration timeSinceOutput = meta.time() - lastOutput;
-    if (timeSinceOutput.seconds() > 0
+    if (const Duration timeSinceOutput = meta.time() - lastOutput; timeSinceOutput.seconds() > 0
         && (everyTS || std::fmod(timeSinceOutput.seconds(), outputPeriod.seconds()) == 0.0_ft)) {
         Logged::info("ConfigOutput: Outputting " + std::to_string(state.data.size()) + " fields to "
             + currentFileName + " at " + meta.time().format() + "\n");
-        meta.affixCoordinates(state);
-        StructureFactory::fileFromState(state, currentFileName, false);
+
+        // Mask and toss out the higher order DG components
+        ModelState outputState = { .data = {}, .config = state.config };
+        for (const auto& [key, arrayRef] : state.data) {
+            auto modelArray = ModelArray(ModelArray::Type::H);
+            if (arrayRef.getType() == ModelArray::Type::DG)
+                modelArray.setData(arrayRef.component(0));
+            else
+                modelArray = arrayRef;
+
+            outputState.data[key] = mask(modelArray);
+        }
+
+        for (const auto& [u, v] : vectors) {
+            if (outputState.data.count(u) && outputState.data.count(v)) {
+                rotator->fromDisplacedPole(outputState.data.at(u), outputState.data.at(v));
+                outputState.data.at(u) = mask(outputState.data.at(u));
+                outputState.data.at(v) = mask(outputState.data.at(v));
+            }
+        }
+
+        meta.affixCoordinates(outputState);
+        StructureFactory::fileFromState(outputState, currentFileName, false);
         lastOutput = meta.time();
     }
 }
