@@ -387,8 +387,9 @@ ModelState ParaGridInputs::interpolateSpatially(const RawDataMap& rawData)
         const std::vector<FloatType>& data = dataPair.second;
 
         state.data[name].reinitialize();
+        ModelArray& ma = state.data.at(name);
 #pragma omp parallel for
-        for (size_t i = 0; i < state.data.at(name).size(); ++i) {
+        for (size_t i = 0; i < ma.size(); ++i) {
             const FloatType f00 = data[ij00[i]];
             const FloatType f10 = data[ij10[i]];
             const FloatType f01 = data[ij01[i]];
@@ -399,7 +400,7 @@ ModelState ParaGridInputs::interpolateSpatially(const RawDataMap& rawData)
             const FloatType N01 = (1.0 - xi[i]) * eta[i];
             const FloatType N11 = xi[i] * eta[i];
 
-            state.data.at(name)[i] = N00 * f00 + N10 * f10 + N01 * f01 + N11 * f11;
+            ma[i] = N00 * f00 + N10 * f10 + N01 * f01 + N11 * f11;
         }
     }
 
