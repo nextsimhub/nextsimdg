@@ -1,3 +1,5 @@
+#! /usr/bin/env python3
+
 import time
 from pathlib import Path
 
@@ -77,7 +79,7 @@ if __name__ == "__main__":
         init_base.make_geographic_grid(
             grid_file, "p", plon_name="plon", plat_name="plat"
         )
-        mask = netCDF4.Dataset(grid_name + ".nc", "r")
+        mask = netCDF4.Dataset(grid_file, "r")
         init_base.mask[:, :] = mask["mask"][:, :]
     elif args.grid_type == "ibcao":
         init_base.make_geographic_grid(
@@ -181,3 +183,5 @@ if __name__ == "__main__":
         source_y,
         proj_string,
     )
+
+    init_base.mask[:, :] *= ~np.isnan(init_base.sst[:, :])
