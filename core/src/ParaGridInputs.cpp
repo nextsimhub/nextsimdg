@@ -60,27 +60,37 @@ void ParaGridInputs::setData(const TimePoint& time, const std::string& pathSpecI
 
 void ParaGridInputs::tightenGrid()
 {
-    gridStart = { std::numeric_limits<size_t>::max(), std::numeric_limits<size_t>::max() };
-    std::vector<size_t> gridEnd = { 0, 0 };
+    // OpenMP can't deal with vectors in the reduction clause
+    size_t gridStart0 = std::numeric_limits<size_t>::max();
+    size_t gridStart1 = std::numeric_limits<size_t>::max();
+    size_t gridEnd0 = 0;
+    size_t gridEnd1 = 0;
 
     // Loop over all the points in the corner lists to find the grid boundaries
     for (const auto* cornerPtr : { &ij00, &ij01, &ij10, &ij11 }) {
-#pragma omp parallel for
+#pragma omp parallel for default(none) shared(cornerPtr) reduction(min : gridStart0, gridStart1)   \
+    reduction(max : gridEnd0, gridEnd1)
         for (const auto& point : *cornerPtr) {
             const auto ij = deIndexer(gridDims, point);
-#pragma omp critical
-            for (size_t k = 0; k < ij.size(); k++) {
-                gridStart[k] = std::min(gridStart[k], ij[k]);
-                gridEnd[k] = std::max(gridEnd[k], ij[k]);
-            }
+
+            // And apparently we shouldn't use std::min and std::max together with omp reduction
+            if (ij[0] < gridStart0)
+                gridStart0 = ij[0];
+            if (ij[1] < gridStart1)
+                gridStart1 = ij[1];
+            if (ij[0] > gridEnd0)
+                gridEnd0 = ij[0];
+            if (ij[1] > gridEnd1)
+                gridEnd1 = ij[1];
         }
     }
 
     // Update grid dimensions, now that we have start and end values
     // Careful with one-off!
     const std::vector<size_t> oldDims = gridDims;
-    gridDims[0] = gridEnd[0] - gridStart[0] + 1;
-    gridDims[1] = gridEnd[1] - gridStart[1] + 1;
+    gridStart = { gridStart0, gridStart1 };
+    gridDims[0] = gridEnd0 - gridStart[0] + 1;
+    gridDims[1] = gridEnd1 - gridStart[1] + 1;
 
     // Loop again over the corner lists to shift the coordinates
     for (auto* cornerPtr : { &ij00, &ij01, &ij10, &ij11 }) {
