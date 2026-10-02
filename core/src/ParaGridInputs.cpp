@@ -187,12 +187,12 @@ ModelArray ParaGridInputs::getField(const std::string& fieldName)
     const FloatType frac = (currentTime - timeRange.before).seconds()
         / (timeRange.after - timeRange.before).seconds();
 
+    const ModelArray& before = forcingStateBefore.data[fieldName];
+    const ModelArray& after = forcingStateAfter.data[fieldName];
 #pragma omp parallel for
     for (size_t i = 0; i < ma.size(); ++i) {
-        ma[i] = frac * forcingStateAfter.data[fieldName][i]
-            + (1. - frac) * forcingStateBefore.data[fieldName][i];
+        ma[i] = frac * after[i] + (1. - frac) * before[i];
     }
-
     return ma;
 }
 
@@ -288,19 +288,175 @@ void ParaGridInputs::setWeights1D()
 
 void ParaGridInputs::setWeights2D()
 {
-    /* Just call recursiveBisectSearch for every model grid point. Start off with the full grid. The
-     * recursive routine returns false if it didn't find anything at the given level. So a false
-     * here means the model point is not in the forcing data set grid.
+    /* Call recursiveBisectSearch for the first point in each row of the model grid, starting off
+     * with the full grid. The recursive routine returns false if it didn't find anything at the
+     * given level, so a false here means the model point is not in the forcing data set grid.
+     *
+     * This recursiveBisectSearch call then gives us a starting point for findCellByWalking, which
+     * uses cross multiplication to walk from an initial grid cell to a chosen neighbour. It is much
+     * faster, but assumes that the grid is uniform and well behaved. This assumption is only true
+     * locally - hence the initial search with recursiveBisectSearch.
      */
 #pragma omp parallel for
-    for (size_t k = 0; k < modelLons.size(); ++k) {
-        // Careful with the C-style indexing!
-        if (!recursiveBisectSearch(
+    for (size_t j = 0; j < modelLons.dimensions()[1]; ++j) {
+        if (const size_t k = indexer(modelLons.dimensions(), { 0, j }); !recursiveBisectSearch(
                 k, modelLons[k], modelLats[k], 0, gridDims[0] - 1, 0, gridDims[1] - 1))
             throw std::out_of_range("ParaGridInputs::setWeights2D: Couldn't find "
                 + std::to_string(modelLons[k]) + ", " + std::to_string(modelLats[k])
                 + " in the forcing grid.\n");
+
+        for (size_t i = 1; i < modelLons.dimensions()[0]; ++i) {
+            // Find cell by walking through the source grid - starting from the previous cell.
+            const size_t k = indexer(modelLons.dimensions(), { i, j });
+            ij00[k] = ij00[k - 1];
+            ij01[k] = ij01[k - 1];
+            ij10[k] = ij10[k - 1];
+            ij11[k] = ij11[k - 1];
+            findCellByWalking(modelLons[k], modelLats[k], k);
+        }
     }
+}
+
+void ParaGridInputs::findCellByWalking(
+    const FloatType targetLon, const FloatType targetLat, const size_t k)
+{
+
+    // A while(true) should work, but better safe than sorry!
+    const size_t maxSteps = gridDims[0] * gridDims[1];
+    for (size_t step = 0; step < maxSteps; ++step) {
+        /* Cell corners, counter-clockwise:
+         *
+         *       p01 -------- p11
+         *        |            |
+         *        |            |
+         *       p00 -------- p10
+         */
+
+        // Useful aliases
+        const auto& forcingLons = forcingLonLats.at(ncLonName);
+        const auto& forcingLats = forcingLonLats.at(ncLatName);
+
+        /* Project the corner points onto an orthographic projection, centred on the target. We do
+         * the rest of the work in {x,y} coordinates. The target {x,y} is now always at the origin.
+         */
+        FloatType x00, y00, x10, y10, x01, y01, x11, y11;
+        orthographicProjection(
+            forcingLons[ij00[k]], forcingLats[ij00[k]], targetLon, targetLat, x00, y00);
+        orthographicProjection(
+            forcingLons[ij10[k]], forcingLats[ij10[k]], targetLon, targetLat, x10, y10);
+        orthographicProjection(
+            forcingLons[ij01[k]], forcingLats[ij01[k]], targetLon, targetLat, x01, y01);
+        orthographicProjection(
+            forcingLons[ij11[k]], forcingLats[ij11[k]], targetLon, targetLat, x11, y11);
+
+        /* Rotate the coordinates, so that the projected plane aligns with the source grid (at least
+         * locally). */
+
+        // Coordinates-of-element matrix in a 00-10-01-11 order as in ParametricMesh
+        const Eigen::Matrix<FloatType, 2, 4> coe(
+            { { x00, x10, x01, x11 }, { y00, y10, y01, y11 } });
+
+        // Connect the edge-midpoints to get the unit-vectors
+        const Eigen::Matrix<FloatType, 4, 1> ix({ -0.5, 0.5, -0.5, 0.5 });
+        const Eigen::Matrix<FloatType, 4, 1> iy({ -0.5, -0.5, 0.5, 0.5 });
+
+        // Calculate unit vectors
+        const Eigen::Matrix<FloatType, 2, 1> ex = (coe * ix).normalized();
+        const Eigen::Matrix<FloatType, 2, 1> ey = (coe * iy).normalized();
+
+        // Rotate the coordinates
+        auto rot = [ex, ey](FloatType& x, FloatType& y) -> void {
+            const Eigen::Matrix<FloatType, 2, 1> coordVec = ex * x + ey * y;
+            x = coordVec(0);
+            y = coordVec(1);
+        };
+        rot(x00, y00);
+        rot(x10, y10);
+        rot(x01, y01);
+        rot(x11, y11);
+
+        // Test the four edges.
+        auto cross = [](const FloatType x0, const FloatType y0, const FloatType x1,
+                         const FloatType y1) -> FloatType { return x0 * y1 - y0 * x1; };
+
+        const std::array<FloatType, 4> c = {
+            cross(x10 - x00, y10 - y00, -x00, -y00), // bottom
+            cross(x11 - x10, y11 - y10, -x10, -y10), // right
+            cross(x01 - x11, y01 - y11, -x11, -y11), // top
+            cross(x00 - x01, y00 - y01, -x01, -y01) // left
+        };
+
+        const auto it = std::min_element(c.begin(), c.end());
+        const auto worstEdge = it - c.begin();
+
+        /* If the smallest cross product is positive, the point is inside the cell. However, with
+         * finite machine precision, findLocalCoordinates may not agree. If that's the case, we
+         * should continue searching.
+         */
+        if (*it >= -10._ft * std::numeric_limits<FloatType>::epsilon())
+            if (findLocalCoordinates(k, x00, y00, x10, y10, x01, y01, x11, y11))
+                return;
+
+        // A lambda to shift the index by dij and check for bounds violation.
+        auto shift = [targetLon, targetLat](const std::vector<size_t>& dims, const size_t loc,
+                         const std::vector<int>& dij) -> size_t {
+            std::vector<size_t> ij = deIndexer(dims, loc);
+            ij[0] += dij[0];
+            ij[1] += dij[1];
+
+            if (ij[0] < 0 || ij[1] < 0 || ij[0] >= dims[0] || ij[1] >= dims[1])
+                throw std::out_of_range("ParaGridInputs::findCellByWalking: Point "
+                    + std::to_string(targetLon) + ", " + std::to_string(targetLat)
+                    + " is outside the grid.\n");
+
+            return indexer(dims, ij);
+        };
+
+        switch (worstEdge) {
+        case 0: // bottom --j;
+        {
+            const std::vector dij = { 0, -1 };
+            ij00[k] = shift(gridDims, ij00[k], dij);
+            ij01[k] = shift(gridDims, ij01[k], dij);
+            ij10[k] = shift(gridDims, ij10[k], dij);
+            ij11[k] = shift(gridDims, ij11[k], dij);
+            break;
+        }
+        case 1: // right ++i;
+        {
+            const std::vector dij = { 1, 0 };
+            ij00[k] = shift(gridDims, ij00[k], dij);
+            ij01[k] = shift(gridDims, ij01[k], dij);
+            ij10[k] = shift(gridDims, ij10[k], dij);
+            ij11[k] = shift(gridDims, ij11[k], dij);
+            break;
+        }
+        case 2: // top ++j;
+        {
+            const std::vector dij = { 0, 1 };
+            ij00[k] = shift(gridDims, ij00[k], dij);
+            ij01[k] = shift(gridDims, ij01[k], dij);
+            ij10[k] = shift(gridDims, ij10[k], dij);
+            ij11[k] = shift(gridDims, ij11[k], dij);
+            break;
+        }
+        case 3: // left --i;
+        {
+            const std::vector dij = { -1, 0 };
+            ij00[k] = shift(gridDims, ij00[k], dij);
+            ij01[k] = shift(gridDims, ij01[k], dij);
+            ij10[k] = shift(gridDims, ij10[k], dij);
+            ij11[k] = shift(gridDims, ij11[k], dij);
+            break;
+        }
+        default:
+            throw std::logic_error("ParaGridInputs::findCellByWalking: Invalid worst_edge value "
+                + std::to_string(worstEdge) + ".\n");
+        }
+    }
+
+    throw std::runtime_error("ParaGridInputs::findCellByWalking: Failed to find the cell after "
+        + std::to_string(maxSteps) + " steps.");
 }
 
 bool ParaGridInputs::recursiveBisectSearch(const size_t k, const FloatType targetLon,
