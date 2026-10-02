@@ -351,9 +351,9 @@ std::optional<std::string> ModelArray::checkLimits(const ModelArray& mask) const
     }
 
     /* Now we check the bounds and set the array index (i) and value if we're out of bounds.
-     * Here, we need to check if the values are _outside_ the bounds, and if they are, then we
-     * ask Eigen to find the offending value and its location. We then proceed to throw an
-     * error. This also means that using '<' and '>' in the checks here is consistent with
+     * Here, we check if the values are _outside_ the bounds, and if they are, then we
+     * record the offending value and its location. We then proceed to throw an error.
+     * This also means that using '<' and '>' in the checks here is consistent with
      * checking if the value is in min <= value <= max.
      */
     ExtremeVal invalidVal;
