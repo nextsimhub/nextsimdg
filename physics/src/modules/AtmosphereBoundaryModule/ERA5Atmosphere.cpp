@@ -72,27 +72,44 @@ void ERA5Atmosphere::update(const TimestepTime& tst)
 {
     forcingState.update(tst.start);
 
-    tairAccessor.getHostRW() = forcingState.getField(tAirName) - Water::Tf;
-    tdewAccessor.getHostRW() = forcingState.getField(dew2mName) - Water::Tf;
+    // Fetch the raw data fields
+    tairAccessor.getHostRW() = forcingState.getField(tAirName);
+    tdewAccessor.getHostRW() = forcingState.getField(dew2mName);
     pairAccessor.getHostRW() = forcingState.getField(pAirName);
     sw_inAccessor.getHostRW() = forcingState.getField(swInName);
     lw_inAccessor.getHostRW() = forcingState.getField(lwInName);
     uwindAccessor.getHostRW() = forcingState.getField(uName);
     vwindAccessor.getHostRW() = forcingState.getField(vName);
-    // TODO: Check the precipitation fields
-    snowAccessor.getHostRW() = 0.; // forcingState.getField(snowName);
-    rainAccessor.getHostRW() = 0.; // forcingState.getField(rainName);
+    snowAccessor.getHostRW() = forcingState.getField(snowName);
+    // Rain from ERA5 is actually total precipitation - so subtract the snowfall
+    rainAccessor.getHostRW() = forcingState.getField(rainName) - snowAccessor.getHostRW();
 
-    windAccessor.getHostRW()
-        = (uwindAccessor.getHostRW().data().pow(2) + vwindAccessor.getHostRW().data().pow(2))
-              .sqrt();
+    // Postprocess the data fields
+    auto& tair = tairAccessor.getAutoRW();
+    auto& tdew = tdewAccessor.getAutoRW();
+    auto& rain = rainAccessor.getAutoRW();
+    const auto& snow = snowAccessor.getAutoRO();
+    auto& wind = windAccessor.getAutoRW();
+    const auto& uWind = uwindAccessor.getAutoRO();
+    const auto& vWind = vwindAccessor.getAutoRO();
+    overElementsAuto(OVER_ELEMENTS_LAMBDA(const ElementIndex i) {
+        // Temperatures in Celsius
+        tair[i] -= Water::Tf;
+        tdew[i] -= Water::Tf;
+
+        // Rain from ERA5 is actually total precipitation - so subtract the snowfall
+        rain[i] -= snow[i];
+
+        // Calculate wind speed from components
+        wind[i] = std::sqrt(uWind[i] * uWind[i] + vWind[i] * vWind[i]);
+    });
 
     fluxImpl->update(tst);
 
     try {
         checkFields();
     } catch (const std::exception& e) {
-        throw std::runtime_error("ERA5Atmosphere:update: " + std::string(e.what()));
+        throw std::runtime_error("ERA5Atmosphere::update:: " + std::string(e.what()));
     }
 }
 
