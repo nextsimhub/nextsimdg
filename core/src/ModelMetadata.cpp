@@ -72,8 +72,8 @@ void ModelMetadata::readNeighbourData(netCDF::NcFile& ncFile)
         for (auto edge : edges) {
             size_t nStart = 0; // start point in metadata arrays
             size_t count = 0; // number of elements to read from metadata arrays
-            std::vector<int> numNeighbours = std::vector<int>(mpiSize, 0);
-            std::vector<int> offsets = std::vector<int>(mpiSize, 0);
+            std::vector<size_t> numNeighbours = std::vector<size_t>(mpiSize, 0);
+            std::vector<size_t> offsets = std::vector<size_t>(mpiSize, 0);
             std::vector<std::reference_wrapper<std::vector<int>>> arrays;
 
             if (btype == nonPeriodic) {
@@ -92,7 +92,8 @@ void ModelMetadata::readNeighbourData(netCDF::NcFile& ncFile)
                 { 0 }, { static_cast<size_t>(mpiSize) }, numNeighbours.data());
 
             // compute start index for each process
-            MPI_Exscan(&numNeighbours[mpiMyRank], &nStart, 1, MPI_INT, MPI_SUM, modelMPI.getComm());
+            MPI_Exscan(&numNeighbours[mpiMyRank], &nStart, 1, MPI_UNSIGNED_LONG, MPI_SUM,
+                modelMPI.getComm());
             if (mpiMyRank == 0) {
                 // MPI_Exscan is undefined on the first rank. So to be safe we manually set nStart
                 // to 0. (see e.g., https://www.open-mpi.org/doc/v4.1/man3/MPI_Exscan.3.php)
@@ -122,8 +123,8 @@ void ModelMetadata::readNeighbourData(netCDF::NcFile& ncFile)
         for (auto corner : corners) {
             size_t nStart = 0; // start index in the netCDF variable
             size_t count = 0; // number of elements to read for this rank
-            std::vector<int> numCorners = std::vector<int>(mpiSize, 0);
-            std::vector<int> offsets = std::vector<int>(mpiSize, 0);
+            std::vector<size_t> numCorners = std::vector<size_t>(mpiSize, 0);
+            std::vector<size_t> offsets = std::vector<size_t>(mpiSize, 0);
             std::vector<std::reference_wrapper<std::vector<int>>> arrays;
 
             // pick the correct set of corner arrays (periodic / non‑periodic)
@@ -142,7 +143,8 @@ void ModelMetadata::readNeighbourData(netCDF::NcFile& ncFile)
                 { 0 }, { static_cast<size_t>(mpiSize) }, numCorners.data());
 
             // compute the global offset for this rank
-            MPI_Exscan(&numCorners[mpiMyRank], &nStart, 1, MPI_INT, MPI_SUM, modelMPI.getComm());
+            MPI_Exscan(
+                &numCorners[mpiMyRank], &nStart, 1, MPI_UNSIGNED_LONG, MPI_SUM, modelMPI.getComm());
             if (mpiMyRank == 0) {
                 nStart = 0; // MPI_Exscan undefined on rank 0 → set manually
             }
