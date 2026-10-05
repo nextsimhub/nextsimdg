@@ -482,7 +482,7 @@ void ParaGridIO::writeDiagnosticTime(const ModelState& state, const std::string&
         timeVar.putAtt("units", "seconds since 1970-01-01 00:00:00");
 
     // Write the data
-    for (const auto& entry : state.data) {
+    for (auto entry : state.data) {
         ModelArray::Type type = entry.second.getType();
         // Skip timeless fields (mask, coordinates) on existing files
         if (!isNew && (entry.first == maskName || type == ModelArray::Type::VERTEX))
