@@ -310,6 +310,9 @@ void ParaGridInputs::setWeights2D()
 void ParaGridInputs::findCellByWalking(
     const FloatType targetLon, const FloatType targetLat, const size_t k)
 {
+    // Useful aliases
+    const auto& forcingLons = forcingLonLats.at(ncLonName);
+    const auto& forcingLats = forcingLonLats.at(ncLatName);
 
     // A while(true) should work, but better safe than sorry!
     const size_t maxSteps = gridDims[0] * gridDims[1];
@@ -321,10 +324,6 @@ void ParaGridInputs::findCellByWalking(
          *        |            |
          *       p00 -------- p10
          */
-
-        // Useful aliases
-        const auto& forcingLons = forcingLonLats.at(ncLonName);
-        const auto& forcingLats = forcingLonLats.at(ncLatName);
 
         /* Project the corner points onto an orthographic projection, centred on the target. We do
          * the rest of the work in {x,y} coordinates. The target {x,y} is now always at the origin.
