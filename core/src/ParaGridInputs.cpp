@@ -52,11 +52,11 @@ void ParaGridInputs::setData(const TimePoint& time, const std::string& pathSpecI
         const std::vector dims2D
             = { forcingLonLats.dims.at(ncLonName)[0], forcingLonLats.dims.at(ncLatName)[0] };
         rotator = std::make_unique<VectorRotator>(
-            dims2D, forcingLons, forcingLats, VectorRotator::orientation::EAST_NORTH);
+            dims2D, forcingLons, forcingLats, VectorRotator::Orientation::EAST_NORTH);
     } else if (lonDimSize == 2 && latDimSize == 2) {
         // Lat and lon are 2D
         rotator = std::make_unique<VectorRotator>(forcingLonLats.dims.at(ncLonName), forcingLons,
-            forcingLats, VectorRotator::orientation::GRID);
+            forcingLats, VectorRotator::Orientation::GRID);
     }
 }
 
