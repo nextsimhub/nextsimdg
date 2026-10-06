@@ -30,7 +30,7 @@ public:
      * @enum GRID: Vectors are aligned with the grid.
      * @enum EAST_NORTH: Vectors are aligned with the east and north directions.
      */
-    enum class orientation { GRID, EAST_NORTH };
+    enum class Orientation { GRID, EAST_NORTH };
 
     VectorRotator() = delete;
 
@@ -50,7 +50,7 @@ public:
      * @param orient Vector orientation (GRID or EAST_NORTH)
      */
     VectorRotator(const std::vector<size_t>& dimsIn, const std::vector<FloatType>& lon,
-        const std::vector<FloatType>& lat, orientation orient);
+        const std::vector<FloatType>& lat, Orientation orient);
 
     /*!
      * @brief Constructor for the VectorRotator class based on a the coordinates in a ModelArray
@@ -58,7 +58,7 @@ public:
      * @param coords A ModelArray containing the coordinates of the grid points
      * @param orient Vector orientation (GRID or EAST_NORTH)
      */
-    explicit VectorRotator(const ModelArray& coords, orientation orient);
+    explicit VectorRotator(const ModelArray& coords, Orientation orient);
 
     /*!
      * @brief Transforms velocities to the parametric mesh in place. All vectors are at the grid
