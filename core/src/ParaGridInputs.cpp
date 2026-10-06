@@ -262,7 +262,7 @@ bool ParaGridInputs::recursiveBisectSearch(const size_t k, const FloatType targe
 }
 
 void ParaGridInputs::orthographicProjection(const FloatType lon, const FloatType lat,
-    const FloatType lon0, const FloatType lat0, FloatType& x, FloatType& y) const
+    const FloatType lon0, const FloatType lat0, FloatType& x, FloatType& y)
 {
     /* Most of these are used twice, but not all. But anyway, it's easier to read like this, and the
      * compiler should optimise the excessive assignments out, right?
