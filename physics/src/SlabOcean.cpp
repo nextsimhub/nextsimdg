@@ -106,29 +106,42 @@ void SlabOcean::update(const TimestepTime& tst)
     const auto& qNoSun = qNoSunAccessor.getAutoRO(execSpace);
     const auto& cpml = cpmlAccessor.getAutoRO(execSpace);
 
-    const FloatType dt = tst.step.seconds();
-    const FloatType rRelaxationTimeT = 1 / (relaxationTimeT * 86400);
-    const FloatType rRelaxationTimeS = 1 / (relaxationTimeS * 86400);
+    // Compute in double because the flux computations are sensitive to catastrophic cancellation.
+    const double dt = tst.step.seconds();
+    const double rRelaxationTimeT = 1.0 / (relaxationTimeT * 86400.0);
+    const double rRelaxationTimeS = 1.0 / (relaxationTimeS * 86400.0);
 
     overElementsAuto(OVER_ELEMENTS_LAMBDA(const ElementIndex i) {
         // Slab SST update
-        qdw[i] = (sstExt[i] - sst[i]) * cpml[i] * rRelaxationTimeT;
-        sstSlab[i] = sst[i] - dt * (qswNet[i] + qNoSun[i] - qdw[i]) / cpml[i];
+        const double sstExtD = static_cast<double>(sstExt[i]);
+        const double sstD = static_cast<double>(sst[i]);
+        const double cpmlD = static_cast<double>(cpml[i]);
+        const double qswNetD = static_cast<double>(qswNet[i]);
+        const double qNoSunD = static_cast<double>(qNoSun[i]);
+
+        const double qdwD = (sstExtD - sstD) * cpmlD * rRelaxationTimeT;
+        qdw[i] = qdwD;
+        sstSlab[i] = sstD - dt * (qswNetD + qNoSunD - qdwD) / cpmlD;
 
         // Slab SSS update
-        const FloatType arealDensity
-            = cpml[i] / Water::cp; // density times depth, or cpml divided by cp
+        const double sssD = static_cast<double>(sss[i]);
+        const double sssExtD = static_cast<double>(sssExt[i]);
+        const double sFluxD = static_cast<double>(sFlux[i]);
+        const double fwFluxD = static_cast<double>(fwFlux[i]);
+
+        const double arealDensity = cpmlD / Water::cp; // density times depth, or cpml divided by cp
         /* Just use a salt flux as the nudging flux. This is simplified compared to the
          * finiteelement.cpp calculation
          * Fdw = delS * mld * physical::rhow /(timeS*M_sss[i] - ddt*delS)
          * where delS = sssSlab - sssExt
          */
-        fdw[i] = (sssExt[i] - sss[i]) * arealDensity * rRelaxationTimeS;
+        const double fdwD = (sssExtD - sssD) * arealDensity * rRelaxationTimeS;
+        fdw[i] = fdwD;
 
         // Mass per unit area after all the changes in water volume
         // sFlux is in kg/m^2/s, but we need PSU/m^2/s
-        sssSlab[i] = (sss[i] * arealDensity + (fdw[i] - 1e3_ft * sFlux[i]) * dt)
-            / (arealDensity - fwFlux[i] * dt);
+        sssSlab[i]
+            = (sssD * arealDensity + (fdwD - 1e3 * sFluxD) * dt) / (arealDensity - fwFluxD * dt);
     });
     timer.stop();
 }
