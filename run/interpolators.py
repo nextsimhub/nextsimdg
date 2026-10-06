@@ -23,7 +23,7 @@ def topaz4_interpolate(target_lon, target_lat, data, data_x, data_y, proj_string
 
     interp = interpolate.RegularGridInterpolator((data_x, data_y), data.T)
 
-    return interp((target_x,target_y))
+    return interp((target_x, target_y))
 
 
 def bilinear(eyes, jays, data):
