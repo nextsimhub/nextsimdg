@@ -143,8 +143,8 @@ VectorRotator::VectorRotator(const std::vector<size_t>& dimsIn, const std::vecto
  * to construct the unit vectors. Much simpler than the other one.
  */
 VectorRotator::VectorRotator(const ModelState& state, const Orientation orient)
-    : dims(
-        { ModelArray::size(ModelArray::Dimension::X), ModelArray::size(ModelArray::Dimension::Y) })
+    : dims({ ModelArray::size(ModelArray::Dimension::X),
+          ModelArray::size(ModelArray::Dimension::Y) })
 {
     det.resize(dims[0] * dims[1]);
     ex.resize(det.size());
