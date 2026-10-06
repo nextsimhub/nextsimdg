@@ -134,7 +134,7 @@ TEST_CASE("PrognosticData write test, including DG components")
     REQUIRE(readData.count(ciceName) > 0);
     ModelArray& cice = readData.at(ciceName);
     REQUIRE(cice.getType() == ModelArray::Type::DG);
-    size_t testComponent = 4;
+    const size_t testComponent = ModelArray::nComponents(ModelArray::Type::DG) - 2;
     REQUIRE(cice.components(cice.indexFromLocation({ 1, 1 }))[testComponent]
         == 1 * xMul + 1 * yMul + testComponent + offsets[ciceName]);
 
