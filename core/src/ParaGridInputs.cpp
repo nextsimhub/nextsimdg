@@ -393,10 +393,11 @@ void ParaGridInputs::findCellByWalking(
             ij[0] += dij[0];
             ij[1] += dij[1];
 
-            if (ij[0] < 0 || ij[1] < 0 || ij[0] >= dims[0] || ij[1] >= dims[1])
+            if (ij[0] < 0 || ij[1] < 0 || ij[0] >= dims[0] || ij[1] >= dims[1]) {
                 throw std::out_of_range("ParaGridInputs::findCellByWalking: Point "
                     + std::to_string(targetLon) + ", " + std::to_string(targetLat)
                     + " is outside the grid.\n");
+            }
 
             return indexer(dims, ij);
         };
