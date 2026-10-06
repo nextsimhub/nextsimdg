@@ -6,7 +6,8 @@ if(ENABLE_XIOS)
     set(NextsimIncludeDirs "${NextsimIncludeDirs}" "${XIOS_INCLUDE_LIST}")
     set(ParaGridIOImplSource "${CMAKE_CURRENT_SOURCE_DIR}/ParaGridIO_Xios.cpp")
 else()
-    set(ParaGridIOImplSource "${CMAKE_CURRENT_SOURCE_DIR}/ParaGridIO.cpp")
+    set(ParaGridIOImplSource "${CMAKE_CURRENT_SOURCE_DIR}/ParaGridIO.cpp"
+                             "${CMAKE_CURRENT_SOURCE_DIR}/ParaGridInputs.cpp")
 endif()
 
 # Create a stable generated include dir and copy the chosen ModelArrayDetails.hpp
