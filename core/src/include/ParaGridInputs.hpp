@@ -76,11 +76,7 @@ private:
     };
 
     struct {
-        /* The initialisation is important, because init time should always be larger than
-         * timeRange.after
-         */
-        TimePoint before = std::numeric_limits<TimePoint>::min(),
-                  after = std::numeric_limits<TimePoint>::min();
+        TimePoint before, after;
     } timeRange;
 
     // Weights and coordinate pointers for the bi-linear interpolation
