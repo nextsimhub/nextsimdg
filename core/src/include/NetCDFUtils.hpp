@@ -34,10 +34,10 @@ namespace Details {
         DestT offset;
         DestT scale;
         try {
-            const netCDF::NcVarAtt scaleAtt = var.getAtt("scale_factor");
             const netCDF::NcVarAtt offsetAtt = var.getAtt("add_offset");
-            scaleAtt.getValues(&scale);
+            const netCDF::NcVarAtt scaleAtt = var.getAtt("scale_factor");
             offsetAtt.getValues(&offset);
+            scaleAtt.getValues(&scale);
         } catch (const netCDF::exceptions::NcException&) {
             // Ignore missing attributes
             offset = 0;
