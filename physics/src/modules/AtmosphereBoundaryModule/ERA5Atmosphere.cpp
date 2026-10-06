@@ -48,7 +48,7 @@ void ERA5Atmosphere::configure()
 
     filePath = Configured::getConfiguration(keyMap.at(FILEPATH_KEY), std::string());
 
-    fluxImpl = std::move(Module::getInstance<IFluxCalculation>());
+    fluxImpl = Module::getInstance<IFluxCalculation>();
     tryConfigure(*fluxImpl);
 
     addChecks({
