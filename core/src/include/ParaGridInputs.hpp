@@ -56,7 +56,7 @@ public:
      * @param fieldName Name of the field to retrieve
      * @return Forcing data for the specified field
      */
-    [[nodiscard]] ModelArray getField(const std::string& fieldName);
+    [[nodiscard]] ModelArray getField(const std::string& fieldName) const;
 
     /*!
      * @brief Check if a field can be read in from the forcing data set.
@@ -77,11 +77,7 @@ private:
     };
 
     struct {
-        /* The initialisation is important, because init time should always be larger than
-         * timeRange.after
-         */
-        TimePoint before = std::numeric_limits<TimePoint>::min(),
-                  after = std::numeric_limits<TimePoint>::min();
+        TimePoint before, after;
     } timeRange;
 
     // Weights and coordinate pointers for the bi-linear interpolation
@@ -110,13 +106,13 @@ private:
         size_t ii, size_t j, size_t jj);
 
     // Project {lon, lat} onto the orthographic coordinates {x,y} with {lon0, lat0} at its centre.
-    void orthographicProjection(
-        double lon, double lat, double lon0, double lat0, FloatType& x, FloatType& y) const;
+    static void orthographicProjection(
+        double lon, double lat, double lon0, double lat0, FloatType& x, FloatType& y);
 
     /* Do a quick axis-aligned bounding box check to see if a point is (probably) in the grid cell.
      * This is a necessary condition, not a sufficient one.
      */
-    [[nodiscard]] bool pointInBoundingBox(
+    [[nodiscard]] static bool pointInBoundingBox(
         const std::vector<FloatType>& xCorners, const std::vector<FloatType>& yCorners);
 
     /* Find the local coordinates and weights {xi, eta} for a bi-linear interpolation on a
@@ -140,7 +136,7 @@ private:
         const TimePoint& time, const std::set<std::string>& fields, size_t timeIndex = 0) const;
 
     // Wrap longitudes, so that lon0 is the largest value (usually either [-180 180] or [0 360]
-    [[nodiscard]] FloatType wrapLon(const FloatType lon, const FloatType lon0 = 0.) const
+    [[nodiscard]] static FloatType wrapLon(const FloatType lon, const FloatType lon0 = 0.)
     {
         // Shift the value relative to the lower bound so the range starts at 0
         const FloatType shifted = lon - lon0;

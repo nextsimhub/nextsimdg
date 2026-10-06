@@ -48,7 +48,7 @@ void ERA5Atmosphere::configure()
 
     filePath = Configured::getConfiguration(keyMap.at(FILEPATH_KEY), std::string());
 
-    fluxImpl = std::move(Module::getInstance<IFluxCalculation>());
+    fluxImpl = Module::getInstance<IFluxCalculation>();
     tryConfigure(*fluxImpl);
 
     addChecks({
@@ -72,10 +72,9 @@ void ERA5Atmosphere::update(const TimestepTime& tst)
 {
     forcingState.update(tst.start);
 
-    // Fetch the raw data fields and convert and fix
-    // Temperatures in Celsius
-    tairAccessor.getHostRW() = forcingState.getField(tAirName) - Water::Tf;
-    tdewAccessor.getHostRW() = forcingState.getField(dew2mName) - Water::Tf;
+    // Fetch the raw data fields
+    tairAccessor.getHostRW() = forcingState.getField(tAirName);
+    tdewAccessor.getHostRW() = forcingState.getField(dew2mName);
     pairAccessor.getHostRW() = forcingState.getField(pAirName);
     sw_inAccessor.getHostRW() = forcingState.getField(swInName);
     lw_inAccessor.getHostRW() = forcingState.getField(lwInName);
@@ -85,9 +84,25 @@ void ERA5Atmosphere::update(const TimestepTime& tst)
     // Rain from ERA5 is actually total precipitation - so subtract the snowfall
     rainAccessor.getHostRW() = forcingState.getField(rainName) - snowAccessor.getHostRW();
 
-    windAccessor.getHostRW()
-        = (uwindAccessor.getHostRW().data().pow(2) + vwindAccessor.getHostRW().data().pow(2))
-              .sqrt();
+    // Postprocess the data fields
+    auto& tair = tairAccessor.getAutoRW();
+    auto& tdew = tdewAccessor.getAutoRW();
+    auto& rain = rainAccessor.getAutoRW();
+    const auto& snow = snowAccessor.getAutoRO();
+    auto& wind = windAccessor.getAutoRW();
+    const auto& uWind = uwindAccessor.getAutoRO();
+    const auto& vWind = vwindAccessor.getAutoRO();
+    overElementsAuto(OVER_ELEMENTS_LAMBDA(const ElementIndex i) {
+        // Temperatures in Celsius
+        tair[i] -= Water::Tf;
+        tdew[i] -= Water::Tf;
+
+        // Rain from ERA5 is actually total precipitation - so subtract the snowfall
+        rain[i] -= snow[i];
+
+        // Calculate wind speed from components
+        wind[i] = std::sqrt(uWind[i] * uWind[i] + vWind[i] * vWind[i]);
+    });
 
     fluxImpl->update(tst);
 
