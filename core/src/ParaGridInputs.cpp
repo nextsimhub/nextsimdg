@@ -1,5 +1,5 @@
 /*!
- * @author  Einar Olason on 21/07/2026.
+ * @author  Einar Olason <einar.olason@nersc.no>
  */
 
 #include <ncDim.h>
