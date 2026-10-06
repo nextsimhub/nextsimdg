@@ -269,8 +269,8 @@ void VectorRotator::toParametricMesh(const std::vector<FloatType>& uIn,
         for (size_t cy = 0; cy <= CG; ++cy) {
             for (size_t cx = 0; cx <= CG; ++cx) {
                 // weights for averaging from cell center to vertices
-                constexpr double wgt[2][3] = { { 0.5, 0.5, 0 }, // CG1
-                    { 0.5, 1.0, 0.5 } }; // CG2
+                constexpr FloatType wgt[2][3] = { { 0.5_ft, 0.5_ft, 0._ft }, // CG1
+                    { 0.5_ft, 1._ft, 0.5_ft } }; // CG2
 
                 uOut(n0 + (CG * dims[0] + 1) * cy + cx)
                     += wgt[CG - 1][cx] * wgt[CG - 1][cy] * Vcenter(0);
