@@ -11,16 +11,13 @@ namespace Nextsim {
 KERNEL_IMPL_FUNCTION static FloatType doOne(
     FloatType tBot, FloatType sst, FloatType mlBulkCp, FloatType timeT)
 {
-    // The ice-ocean flux is extremely sensitive to the small difference (sst - tf) and the large
-    // multiplication by mlBulkCp / timeT amplifies any rounding error. In single precision this
-    // difference suffers from catastrophic cancellation, which can drive spurious freezing/melting
-    // and cause runaway ice growth in longer simulations.
+    // Compute in double because the flux computations are sensitive to catastrophic cancellation.
     const double sstD = static_cast<double>(sst);
     const double tBotD = static_cast<double>(tBot);
     const double mlBulkCpD = static_cast<double>(mlBulkCp);
     const double timeTD = static_cast<double>(timeT);
     // Transfer rate depends on the mixed layer depth and the relaxation time scale
-    return static_cast<FloatType>((sstD - tBotD) * mlBulkCpD / timeTD);
+    return (sstD - tBotD) * mlBulkCpD / timeTD;
 }
 
 void BasicIceOceanHeatFlux::update(const TimestepTime& tst)
