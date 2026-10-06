@@ -1,5 +1,5 @@
 /*!
- * @author  Einar Olason on 21/07/2026.
+ * @author  Einar Olason <einar.olason@nersc.no>
  */
 
 #include <ncDim.h>
@@ -20,6 +20,10 @@ void ParaGridInputs::setData(const TimePoint& time, const std::string& pathSpecI
     const ModelArray& modelLatsIn)
 {
     currentTime = time;
+
+    // An artificial time range ending before the current time. Needed for ParaGridInputs::update
+    timeRange.before = time - Duration(2);
+    timeRange.after = time - Duration(1);
 
     pathSpec = pathSpecIn;
     forcings = forcingsIn;
@@ -48,11 +52,11 @@ void ParaGridInputs::setData(const TimePoint& time, const std::string& pathSpecI
     forcingLonLats = readRawData<double>(currentTime, { ncLatName, ncLonName });
 
     // Different methods for Mercator maps and curvilinear grids
-    VectorRotator::orientation orient;
+    VectorRotator::Orientation orient;
     if (lonLat1D)
-        orient = VectorRotator::orientation::EAST_NORTH;
+        orient = VectorRotator::Orientation::EAST_NORTH;
     else
-        orient = VectorRotator::orientation::GRID;
+        orient = VectorRotator::Orientation::GRID;
 
     rotator = std::make_unique<VectorRotator>(
         gridDims, forcingLonLats.at(ncLonName), forcingLonLats.at(ncLatName), orient);
@@ -178,7 +182,7 @@ void ParaGridInputs::update(const TimePoint& time)
     }
 }
 
-ModelArray ParaGridInputs::getField(const std::string& fieldName)
+ModelArray ParaGridInputs::getField(const std::string& fieldName) const
 {
     ModelArray ma;
     ma.reinitialize();
@@ -187,11 +191,11 @@ ModelArray ParaGridInputs::getField(const std::string& fieldName)
     const FloatType frac = (currentTime - timeRange.before).seconds()
         / (timeRange.after - timeRange.before).seconds();
 
+    auto& before = forcingStateBefore.data.at(fieldName);
+    auto& after = forcingStateAfter.data.at(fieldName);
 #pragma omp parallel for
-    for (size_t i = 0; i < ma.size(); ++i) {
-        ma[i] = frac * forcingStateAfter.data[fieldName][i]
-            + (1. - frac) * forcingStateBefore.data[fieldName][i];
-    }
+    for (size_t i = 0; i < ma.size(); ++i)
+        ma[i] = frac * after[i] + (1. - frac) * before[i];
 
     return ma;
 }
@@ -496,8 +500,9 @@ ModelState ParaGridInputs::interpolateSpatially(const RawDataMap<FloatType>& raw
         const std::vector<FloatType>& data = dataPair.second;
 
         state.data[name].reinitialize();
+        ModelArray& ma = state.data.at(name);
 #pragma omp parallel for
-        for (size_t i = 0; i < state.data.at(name).size(); ++i) {
+        for (size_t i = 0; i < ma.size(); ++i) {
             const FloatType f00 = data[ij00[i]];
             const FloatType f10 = data[ij10[i]];
             const FloatType f01 = data[ij01[i]];
@@ -508,7 +513,7 @@ ModelState ParaGridInputs::interpolateSpatially(const RawDataMap<FloatType>& raw
             const FloatType N01 = (1.0 - xi[i]) * eta[i];
             const FloatType N11 = xi[i] * eta[i];
 
-            state.data.at(name)[i] = N00 * f00 + N10 * f10 + N01 * f01 + N11 * f11;
+            ma[i] = N00 * f00 + N10 * f10 + N01 * f01 + N11 * f11;
         }
     }
 
@@ -609,8 +614,7 @@ void ParaGridInputs::readRawForcing(
         }
 
         // Sanity check. Not really needed.
-        if (targetTIndexAfter < 0 || targetTIndexBefore < 0 || targetTIndexAfter >= timeVec.size()
-            || targetTIndexBefore >= timeVec.size())
+        if (targetTIndexAfter >= timeVec.size() || targetTIndexBefore >= timeVec.size())
             throw std::out_of_range(
                 "ParaGridInputs::readRawForcing::Target time index is out of range "
                 "- how could this happen?\n");
