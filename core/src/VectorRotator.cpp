@@ -25,7 +25,7 @@ VectorRotator::VectorRotator(const std::vector<size_t>& dimsIn)
  * column need to be handled separately.
  */
 VectorRotator::VectorRotator(const std::vector<size_t>& dimsIn, const std::vector<double>& lon,
-    const std::vector<double>& lat, const orientation orient)
+    const std::vector<double>& lat, const Orientation orient)
     : dims(dimsIn)
 {
     det.resize(dims[0] * dims[1]);
@@ -33,11 +33,11 @@ VectorRotator::VectorRotator(const std::vector<size_t>& dimsIn, const std::vecto
     ey.resize(det.size());
 
     switch (orient) {
-    case orientation::EAST_NORTH:
+    case Orientation::EAST_NORTH:
         // Call the ENOrientation routine if we're in East-North orientation
         initENOrientation(lon, lat);
         break;
-    case orientation::GRID: {
+    case Orientation::GRID: {
         // Build a smesh object for spherical coordinates
         ParametricMesh smesh(SPHERICAL);
 
@@ -129,10 +129,10 @@ VectorRotator::VectorRotator(const std::vector<size_t>& dimsIn, const std::vecto
 /* A constructor that uses a ModelArray with the model coordinates, and coordinates of cell vertices
  * to construct the unit vectors. Much simpler than the other one.
  */
-VectorRotator::VectorRotator(const ModelArray& coords, const orientation orient)
+VectorRotator::VectorRotator(const ModelArray& coords, const Orientation orient)
 {
     switch (orient) {
-    case orientation::EAST_NORTH: {
+    case Orientation::EAST_NORTH: {
         // Call the ENOrientation routine if we're in East-North orientation
         const auto lon = std::vector(
             coords.components(0).data(), coords.components(0).data() + coords.components(0).size());
@@ -141,7 +141,7 @@ VectorRotator::VectorRotator(const ModelArray& coords, const orientation orient)
         initENOrientation(lon, lat);
         break;
     }
-    case orientation::GRID: {
+    case Orientation::GRID: {
         // Build a smesh object for spherical coordinates
         ParametricMesh smesh(SPHERICAL);
 
