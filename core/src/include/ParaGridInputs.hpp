@@ -70,10 +70,10 @@ public:
 
 private:
     // Useful structs
-    typedef struct {
+    struct RawDataMap {
         std::map<std::string, std::vector<size_t>> dims;
         std::map<std::string, std::vector<FloatType>> data;
-    } RawDataMap;
+    };
 
     struct {
         /* The initialisation is important, because init time should always be larger than
