@@ -55,7 +55,7 @@ public:
      * @param fieldName Name of the field to retrieve
      * @return Forcing data for the specified field
      */
-    [[nodiscard]] ModelArray getField(const std::string& fieldName);
+    [[nodiscard]] ModelArray getField(const std::string& fieldName) const;
 
     /*!
      * @brief Check if a field can be read in from the forcing data set.

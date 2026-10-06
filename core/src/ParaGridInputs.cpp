@@ -58,7 +58,7 @@ void ParaGridInputs::update(const TimePoint& time)
     }
 }
 
-ModelArray ParaGridInputs::getField(const std::string& fieldName)
+ModelArray ParaGridInputs::getField(const std::string& fieldName) const
 {
     ModelArray ma;
     ma.reinitialize();
@@ -67,11 +67,11 @@ ModelArray ParaGridInputs::getField(const std::string& fieldName)
     const FloatType frac = (currentTime - timeRange.before).seconds()
         / (timeRange.after - timeRange.before).seconds();
 
+    auto& before = forcingStateBefore.data.at(fieldName);
+    auto& after = forcingStateAfter.data.at(fieldName);
 #pragma omp parallel for
-    for (size_t i = 0; i < ma.size(); ++i) {
-        ma[i] = frac * forcingStateAfter.data[fieldName][i]
-            + (1. - frac) * forcingStateBefore.data[fieldName][i];
-    }
+    for (size_t i = 0; i < ma.size(); ++i)
+        ma[i] = frac * after[i] + (1. - frac) * before[i];
 
     return ma;
 }
