@@ -498,8 +498,7 @@ void ParaGridInputs::readRawForcing(RawDataMap& rawDataBefore, RawDataMap& rawDa
         }
 
         // Sanity check. Not really needed.
-        if (targetTIndexAfter < 0 || targetTIndexBefore < 0 || targetTIndexAfter >= timeVec.size()
-            || targetTIndexBefore >= timeVec.size())
+        if (targetTIndexAfter >= timeVec.size() || targetTIndexBefore >= timeVec.size())
             throw std::out_of_range(
                 "ParaGridInputs::readRawForcing::Target time index is out of range "
                 "- how could this happen?\n");
