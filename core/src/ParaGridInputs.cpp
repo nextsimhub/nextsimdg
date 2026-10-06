@@ -131,26 +131,29 @@ void ParaGridInputs::readDims()
 
         if (latDims.size() == 1 && lonDims.size() == 1) {
             lonLat1D = true;
-            if (lonDims[0].getSize() != gridDims[0] || latDims[0].getSize() != gridDims[1])
+            if (lonDims[0].getSize() != gridDims[0] || latDims[0].getSize() != gridDims[1]) {
                 throw std::runtime_error(
                     "ParaGridInputs::readDims: Inconsistent dimension sizes for " + varName
                     + " and longitude and latitude variables: [" + std::to_string(gridDims[0]) + ","
                     + std::to_string(gridDims[1]) + "] and [" + std::to_string(lonDims[0].getSize())
                     + "," + std::to_string(latDims[0].getSize()) + "] respectively.\n");
+            }
         } else if (latDims.size() == 2 && lonDims.size() == 2) {
             lonLat1D = false;
-            if (latDims[1].getSize() != gridDims[0] || latDims[0].getSize() != gridDims[1])
+            if (latDims[1].getSize() != gridDims[0] || latDims[0].getSize() != gridDims[1]) {
                 throw std::runtime_error(
                     "ParaGridInputs::readDims: Inconsistent dimension sizes for " + varName
                     + " and longitude and latitude variables: [" + std::to_string(gridDims[0]) + ","
                     + std::to_string(gridDims[1]) + "] and [" + std::to_string(latDims[0].getSize())
                     + "," + std::to_string(latDims[1].getSize()) + "] respectively.\n");
-            if (lonDims[1].getSize() != gridDims[0] || lonDims[0].getSize() != gridDims[1])
+            }
+            if (lonDims[1].getSize() != gridDims[0] || lonDims[0].getSize() != gridDims[1]) {
                 throw std::runtime_error(
                     "ParaGridInputs::readDims: Inconsistent dimension sizes for " + varName
                     + " and longitude and latitude variables: [" + std::to_string(gridDims[0]) + ","
                     + std::to_string(gridDims[1]) + "] and [" + std::to_string(lonDims[0].getSize())
                     + "," + std::to_string(lonDims[1].getSize()) + "] respectively.\n");
+            }
         } else {
             throw std::runtime_error("ParaGridInputs::readDims: Inconsistent dimension size for "
                 + ncLonName + " and " + ncLatName + " " + std::to_string(lonDims.size()) + " and "
