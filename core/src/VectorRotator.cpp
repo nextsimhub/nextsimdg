@@ -187,11 +187,11 @@ VectorRotator::VectorRotator(const ModelArray& coords, const Orientation orient)
  * north than approx asin(1-1e-3) = 87.4°N.
  */
 void VectorRotator::initENOrientation(
-    const std::vector<FloatType>& lon, const std::vector<FloatType>& lat)
+    const std::vector<double>& lon, const std::vector<double>& lat)
 {
     // TODO: The Greenland pole shouldn't be hardcoded!
-    const FloatType polLon = radians(15.);
-    const FloatType polLat = radians(40.);
+    const double polLon = radians(15.);
+    const double polLat = radians(40.);
 
 #pragma omp parallel for
     for (size_t eid = 0; eid < det.size(); ++eid) {
@@ -199,18 +199,18 @@ void VectorRotator::initENOrientation(
         const size_t i = ij[0];
         const size_t j = ij[1];
 
-        const FloatType rLon = radians(lon[i]);
-        const FloatType rLat = radians(lat[j]);
+        const double rLon = radians(lon[i]);
+        const double rLat = radians(lat[j]);
 
         // alpha = atan2(a, b)
-        const FloatType deltaLon = polLon - rLon;
-        const FloatType a = std::cos(polLat) * std::sin(deltaLon);
-        const FloatType b = std::cos(rLat) * std::sin(polLat)
+        const double deltaLon = polLon - rLon;
+        const double a = std::cos(polLat) * std::sin(deltaLon);
+        const double b = std::cos(rLat) * std::sin(polLat)
             - std::sin(rLat) * std::cos(polLat) * std::cos(deltaLon);
 
         // Instead of the atan2, cos, and sin functions
-        const FloatType sinAlpha = a / std::hypot(a, b);
-        const FloatType cosAlpha = b / std::hypot(a, b);
+        const double sinAlpha = a / std::hypot(a, b);
+        const double cosAlpha = b / std::hypot(a, b);
 
         ex[eid] = { cosAlpha, -sinAlpha };
         ey[eid] = { sinAlpha, cosAlpha };
