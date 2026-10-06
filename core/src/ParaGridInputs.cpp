@@ -23,6 +23,10 @@ void ParaGridInputs::setData(const TimePoint& time, const std::string& pathSpecI
 {
     currentTime = time;
 
+    // An artificial time range ending before the current time. Needed for ParaGridInputs::update
+    timeRange.before = time - Duration(2);
+    timeRange.after = time - Duration(1);
+
     pathSpec = pathSpecIn;
     forcings = forcingsIn;
     vectors = vectorsIn;
