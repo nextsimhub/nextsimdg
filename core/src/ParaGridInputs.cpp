@@ -1,5 +1,5 @@
 /*!
- * @author  Einar Olason on 21/07/2026.
+ * @author  Einar Olason <einar.olason@nersc.no>
  */
 
 #include <ncDim.h>
@@ -20,6 +20,10 @@ void ParaGridInputs::setData(const TimePoint& time, const std::string& pathSpecI
     const ModelArray& modelLatsIn)
 {
     currentTime = time;
+
+    // An artificial time range ending before the current time. Needed for ParaGridInputs::update
+    timeRange.before = time - Duration(2);
+    timeRange.after = time - Duration(1);
 
     pathSpec = pathSpecIn;
     forcings = forcingsIn;
@@ -48,11 +52,11 @@ void ParaGridInputs::setData(const TimePoint& time, const std::string& pathSpecI
     forcingLonLats = readRawData<double>(currentTime, { ncLatName, ncLonName });
 
     // Different methods for Mercator maps and curvilinear grids
-    VectorRotator::orientation orient;
+    VectorRotator::Orientation orient;
     if (lonLat1D)
-        orient = VectorRotator::orientation::EAST_NORTH;
+        orient = VectorRotator::Orientation::EAST_NORTH;
     else
-        orient = VectorRotator::orientation::GRID;
+        orient = VectorRotator::Orientation::GRID;
 
     rotator = std::make_unique<VectorRotator>(
         gridDims, forcingLonLats.at(ncLonName), forcingLonLats.at(ncLatName), orient);
@@ -60,27 +64,37 @@ void ParaGridInputs::setData(const TimePoint& time, const std::string& pathSpecI
 
 void ParaGridInputs::tightenGrid()
 {
-    gridStart = { std::numeric_limits<size_t>::max(), std::numeric_limits<size_t>::max() };
-    std::vector<size_t> gridEnd = { 0, 0 };
+    // OpenMP can't deal with vectors in the reduction clause
+    size_t gridStart0 = std::numeric_limits<size_t>::max();
+    size_t gridStart1 = std::numeric_limits<size_t>::max();
+    size_t gridEnd0 = 0;
+    size_t gridEnd1 = 0;
 
     // Loop over all the points in the corner lists to find the grid boundaries
     for (const auto* cornerPtr : { &ij00, &ij01, &ij10, &ij11 }) {
-#pragma omp parallel for
+#pragma omp parallel for default(none) shared(cornerPtr) reduction(min : gridStart0, gridStart1)   \
+    reduction(max : gridEnd0, gridEnd1)
         for (const auto& point : *cornerPtr) {
             const auto ij = deIndexer(gridDims, point);
-#pragma omp critical
-            for (size_t k = 0; k < ij.size(); k++) {
-                gridStart[k] = std::min(gridStart[k], ij[k]);
-                gridEnd[k] = std::max(gridEnd[k], ij[k]);
-            }
+
+            // And apparently we shouldn't use std::min and std::max together with omp reduction
+            if (ij[0] < gridStart0)
+                gridStart0 = ij[0];
+            if (ij[1] < gridStart1)
+                gridStart1 = ij[1];
+            if (ij[0] > gridEnd0)
+                gridEnd0 = ij[0];
+            if (ij[1] > gridEnd1)
+                gridEnd1 = ij[1];
         }
     }
 
     // Update grid dimensions, now that we have start and end values
     // Careful with one-off!
     const std::vector<size_t> oldDims = gridDims;
-    gridDims[0] = gridEnd[0] - gridStart[0] + 1;
-    gridDims[1] = gridEnd[1] - gridStart[1] + 1;
+    gridStart = { gridStart0, gridStart1 };
+    gridDims[0] = gridEnd0 - gridStart[0] + 1;
+    gridDims[1] = gridEnd1 - gridStart[1] + 1;
 
     // Loop again over the corner lists to shift the coordinates
     for (auto* cornerPtr : { &ij00, &ij01, &ij10, &ij11 }) {
@@ -117,26 +131,29 @@ void ParaGridInputs::readDims()
 
         if (latDims.size() == 1 && lonDims.size() == 1) {
             lonLat1D = true;
-            if (lonDims[0].getSize() != gridDims[0] || latDims[0].getSize() != gridDims[1])
+            if (lonDims[0].getSize() != gridDims[0] || latDims[0].getSize() != gridDims[1]) {
                 throw std::runtime_error(
                     "ParaGridInputs::readDims: Inconsistent dimension sizes for " + varName
                     + " and longitude and latitude variables: [" + std::to_string(gridDims[0]) + ","
                     + std::to_string(gridDims[1]) + "] and [" + std::to_string(lonDims[0].getSize())
                     + "," + std::to_string(latDims[0].getSize()) + "] respectively.\n");
+            }
         } else if (latDims.size() == 2 && lonDims.size() == 2) {
             lonLat1D = false;
-            if (latDims[1].getSize() != gridDims[0] || latDims[0].getSize() != gridDims[1])
+            if (latDims[1].getSize() != gridDims[0] || latDims[0].getSize() != gridDims[1]) {
                 throw std::runtime_error(
                     "ParaGridInputs::readDims: Inconsistent dimension sizes for " + varName
                     + " and longitude and latitude variables: [" + std::to_string(gridDims[0]) + ","
                     + std::to_string(gridDims[1]) + "] and [" + std::to_string(latDims[0].getSize())
                     + "," + std::to_string(latDims[1].getSize()) + "] respectively.\n");
-            if (lonDims[1].getSize() != gridDims[0] || lonDims[0].getSize() != gridDims[1])
+            }
+            if (lonDims[1].getSize() != gridDims[0] || lonDims[0].getSize() != gridDims[1]) {
                 throw std::runtime_error(
                     "ParaGridInputs::readDims: Inconsistent dimension sizes for " + varName
                     + " and longitude and latitude variables: [" + std::to_string(gridDims[0]) + ","
                     + std::to_string(gridDims[1]) + "] and [" + std::to_string(lonDims[0].getSize())
                     + "," + std::to_string(lonDims[1].getSize()) + "] respectively.\n");
+            }
         } else {
             throw std::runtime_error("ParaGridInputs::readDims: Inconsistent dimension size for "
                 + ncLonName + " and " + ncLatName + " " + std::to_string(lonDims.size()) + " and "
@@ -168,7 +185,7 @@ void ParaGridInputs::update(const TimePoint& time)
     }
 }
 
-ModelArray ParaGridInputs::getField(const std::string& fieldName)
+ModelArray ParaGridInputs::getField(const std::string& fieldName) const
 {
     ModelArray ma;
     ma.reinitialize();
@@ -177,12 +194,11 @@ ModelArray ParaGridInputs::getField(const std::string& fieldName)
     const FloatType frac = (currentTime - timeRange.before).seconds()
         / (timeRange.after - timeRange.before).seconds();
 
-    const ModelArray& before = forcingStateBefore.data[fieldName];
-    const ModelArray& after = forcingStateAfter.data[fieldName];
+    const ModelArray& before = forcingStateBefore.data.at(fieldName);
+    const ModelArray& after = forcingStateAfter.data.at(fieldName);
 #pragma omp parallel for
-    for (size_t i = 0; i < ma.size(); ++i) {
+    for (size_t i = 0; i < ma.size(); ++i)
         ma[i] = frac * after[i] + (1. - frac) * before[i];
-    }
     return ma;
 }
 
@@ -642,8 +658,9 @@ ModelState ParaGridInputs::interpolateSpatially(const RawDataMap<FloatType>& raw
         const std::vector<FloatType>& data = dataPair.second;
 
         state.data[name].reinitialize();
+        ModelArray& ma = state.data.at(name);
 #pragma omp parallel for
-        for (size_t i = 0; i < state.data.at(name).size(); ++i) {
+        for (size_t i = 0; i < ma.size(); ++i) {
             const FloatType f00 = data[ij00[i]];
             const FloatType f10 = data[ij10[i]];
             const FloatType f01 = data[ij01[i]];
@@ -654,7 +671,7 @@ ModelState ParaGridInputs::interpolateSpatially(const RawDataMap<FloatType>& raw
             const FloatType N01 = (1.0 - xi[i]) * eta[i];
             const FloatType N11 = xi[i] * eta[i];
 
-            state.data.at(name)[i] = N00 * f00 + N10 * f10 + N01 * f01 + N11 * f11;
+            ma[i] = N00 * f00 + N10 * f10 + N01 * f01 + N11 * f11;
         }
     }
 
@@ -755,8 +772,7 @@ void ParaGridInputs::readRawForcing(
         }
 
         // Sanity check. Not really needed.
-        if (targetTIndexAfter < 0 || targetTIndexBefore < 0 || targetTIndexAfter >= timeVec.size()
-            || targetTIndexBefore >= timeVec.size())
+        if (targetTIndexAfter >= timeVec.size() || targetTIndexBefore >= timeVec.size())
             throw std::out_of_range(
                 "ParaGridInputs::readRawForcing::Target time index is out of range "
                 "- how could this happen?\n");

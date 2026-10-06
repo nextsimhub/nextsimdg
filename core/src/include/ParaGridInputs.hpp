@@ -56,7 +56,7 @@ public:
      * @param fieldName Name of the field to retrieve
      * @return Forcing data for the specified field
      */
-    [[nodiscard]] ModelArray getField(const std::string& fieldName);
+    [[nodiscard]] ModelArray getField(const std::string& fieldName) const;
 
     /*!
      * @brief Check if a field can be read in from the forcing data set.
@@ -74,11 +74,7 @@ private:
     template <typename T> using RawDataMap = std::map<std::string, std::vector<T>>;
 
     struct {
-        /* The initialisation is important, because init time should always be larger than
-         * timeRange.after
-         */
-        TimePoint before = std::numeric_limits<TimePoint>::min(),
-                  after = std::numeric_limits<TimePoint>::min();
+        TimePoint before, after;
     } timeRange;
 
     // Weights and coordinate pointers for the bi-linear interpolation

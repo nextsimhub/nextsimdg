@@ -27,7 +27,7 @@ VectorRotator::VectorRotator(const std::vector<size_t>& dimsIn)
  * column need to be handled separately.
  */
 VectorRotator::VectorRotator(const std::vector<size_t>& dimsIn, const std::vector<double>& lonIn,
-    const std::vector<double>& latIn, const orientation orient)
+    const std::vector<double>& latIn, const Orientation orient)
     : dims(dimsIn)
 {
     det.resize(dims[0] * dims[1]);
@@ -39,6 +39,8 @@ VectorRotator::VectorRotator(const std::vector<size_t>& dimsIn, const std::vecto
      * orientation::GRID in that case is a useful test. */
     std::vector<double> lon, lat;
     if (lonIn.size() != latIn.size()) {
+        lon.reserve(dims[0] * dims[1]);
+        lat.reserve(dims[0] * dims[1]);
         for (size_t j = 0; j < dims[1]; ++j) {
             for (size_t i = 0; i < dims[0]; ++i) {
                 lon.push_back(lonIn[i]);
@@ -51,11 +53,11 @@ VectorRotator::VectorRotator(const std::vector<size_t>& dimsIn, const std::vecto
     }
 
     switch (orient) {
-    case orientation::EAST_NORTH:
+    case Orientation::EAST_NORTH:
         // Call the ENOrientation routine if we're in East-North orientation
         initENOrientation(lon, lat);
         break;
-    case orientation::GRID: {
+    case Orientation::GRID: {
         // Build a smesh object for spherical coordinates
         ParametricMesh smesh(SPHERICAL);
 
@@ -140,21 +142,21 @@ VectorRotator::VectorRotator(const std::vector<size_t>& dimsIn, const std::vecto
 /* A constructor that uses a ModelArray with the model coordinates, and coordinates of cell vertices
  * to construct the unit vectors. Much simpler than the other one.
  */
-VectorRotator::VectorRotator(const ModelState& state, const orientation orient)
-    : dims(
-        { ModelArray::size(ModelArray::Dimension::X), ModelArray::size(ModelArray::Dimension::Y) })
+VectorRotator::VectorRotator(const ModelState& state, const Orientation orient)
+    : dims({ ModelArray::size(ModelArray::Dimension::X),
+          ModelArray::size(ModelArray::Dimension::Y) })
 {
     det.resize(dims[0] * dims[1]);
     ex.resize(det.size());
     ey.resize(det.size());
 
     switch (orient) {
-    case orientation::EAST_NORTH: {
+    case Orientation::EAST_NORTH: {
         // Call the ENOrientation routine if we're in East-North orientation
         initENOrientation(state.data.at(longitudeName), state.data.at(latitudeName));
         break;
     }
-    case orientation::GRID: {
+    case Orientation::GRID: {
         // Build a smesh object for spherical coordinates
         ParametricMesh smesh(SPHERICAL);
 
@@ -197,23 +199,23 @@ VectorRotator::VectorRotator(const ModelState& state, const orientation orient)
 template <typename T> void VectorRotator::initENOrientation(const T& lon, const T& lat)
 {
     // TODO: The Greenland pole shouldn't be hardcoded!
-    const FloatType polLon = radians(-40.);
-    const FloatType polLat = radians(75.);
+    const double polLon = radians(-40.);
+    const double polLat = radians(75.);
 
 #pragma omp parallel for
     for (size_t eid = 0; eid < det.size(); ++eid) {
-        const FloatType rLon = radians(lon[eid]);
-        const FloatType rLat = radians(lat[eid]);
+        const double rLon = radians(lon[eid]);
+        const double rLat = radians(lat[eid]);
 
         // alpha = atan2(a, b)
-        const FloatType deltaLon = polLon - rLon;
-        const FloatType a = std::cos(polLat) * std::sin(deltaLon);
-        const FloatType b = std::cos(rLat) * std::sin(polLat)
+        const double deltaLon = polLon - rLon;
+        const double a = std::cos(polLat) * std::sin(deltaLon);
+        const double b = std::cos(rLat) * std::sin(polLat)
             - std::sin(rLat) * std::cos(polLat) * std::cos(deltaLon);
 
         // Instead of the atan2, cos, and sin functions
-        const FloatType sinAlpha = a / std::hypot(a, b);
-        const FloatType cosAlpha = b / std::hypot(a, b);
+        const double sinAlpha = a / std::hypot(a, b);
+        const double cosAlpha = b / std::hypot(a, b);
 
         ex[eid] = { cosAlpha, sinAlpha };
         ey[eid] = { -sinAlpha, cosAlpha };
@@ -272,8 +274,8 @@ void VectorRotator::fromParametricMesh(const std::vector<FloatType>& uIn,
         for (size_t cy = 0; cy <= CG; ++cy) {
             for (size_t cx = 0; cx <= CG; ++cx) {
                 // weights for averaging from cell center to vertices
-                constexpr double wgt[2][3] = { { 0.5, 0.5, 0 }, // CG1
-                    { 0.5, 1.0, 0.5 } }; // CG2
+                constexpr FloatType wgt[2][3] = { { 0.5_ft, 0.5_ft, 0._ft }, // CG1
+                    { 0.5_ft, 1._ft, 0.5_ft } }; // CG2
 
                 uOut(n0 + (CG * dims[0] + 1) * cy + cx)
                     += wgt[CG - 1][cx] * wgt[CG - 1][cy] * Vcenter(0);
