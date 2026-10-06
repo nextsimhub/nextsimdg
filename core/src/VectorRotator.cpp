@@ -39,6 +39,8 @@ VectorRotator::VectorRotator(const std::vector<size_t>& dimsIn, const std::vecto
      * orientation::GRID in that case is a useful test. */
     std::vector<double> lon, lat;
     if (lonIn.size() != latIn.size()) {
+        lon.reserve(dims[0] * dims[1]);
+        lat.reserve(dims[0] * dims[1]);
         for (size_t j = 0; j < dims[1]; ++j) {
             for (size_t i = 0; i < dims[0]; ++i) {
                 lon.push_back(lonIn[i]);
