@@ -47,7 +47,7 @@ public:
 // Base needs to inherit from IFreezingPoint and implement getName().
 template <typename Base> class FreezingPointImpl : public IFreezingPoint {
 public:
-    std::string getName() const { return m_impl.getName(); }
+    std::string getName() const override { return m_impl.getName(); }
 
     FloatType operator()(FloatType sss) const override { return m_impl.calculate(sss); }
     void update(ModelArrayAuto& tf, const ConstModelArrayAuto& sss) const override
