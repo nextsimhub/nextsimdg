@@ -28,7 +28,7 @@ template <int DG> class SlopeLimiter {
     DGVector<1> alpha, alphaX, alphaY;
 
 public:
-    SlopeLimiter<DG>(const ParametricMesh& _mesh)
+    SlopeLimiter(const ParametricMesh& _mesh)
         : mesh(_mesh)
     {
         if (DG >= 3) {
