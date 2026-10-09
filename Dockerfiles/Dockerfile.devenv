@@ -1,6 +1,10 @@
 # Build stage with Spack pre-installed and ready to be used
 FROM spack/ubuntu-noble:latest AS builder
 
+# Specify git revision (commit hash, branch name, or tag) of domain_decomp to be used
+# in the image
+ARG DECOMP_REV=main
+
 # Install perl
 RUN apt update \
     && apt install -y --no-install-recommends libany-uri-escape-perl \
@@ -32,6 +36,7 @@ RUN git clone --branch xios-3.0.6.0 https://gitlab.in2p3.fr/ipsl/projets/xios-pr
 RUN spack env activate /opt/spack-environment \
     && git clone https://github.com/nextsimhub/domain_decomp.git /decomp \
     && cd /decomp \
+    && git checkout ${DECOMP_REV} \
     && cmake -G "Unix Makefiles" -B build -S . -DCMAKE_BUILD_TYPE=Release \
     && cmake --build build \
     && cd - \
