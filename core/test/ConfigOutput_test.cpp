@@ -191,7 +191,7 @@ void runMe(const bool snapshot)
             hsnow += hourIncr;
             ModelState state = { { { "top_melt", topMelt } }, {} };
 
-            ido.outputState(state);
+            ido.outputState();
             meta.incrementTime(timeStep);
         }
     }
@@ -211,7 +211,7 @@ void runMe(const bool snapshot)
 
     const int day = 14;
     const std::string specFile = diagFiles[day - 1 - 10]; // We only write files after day 10
-    std::set<std::string> fields = { "hice", "cice", "tsurf", "top_melt" };
+    std::set<std::string> fields = { "hice", "cice", "tsurf" };
 
     // Read the netCDF file directly
     netCDF::NcFile ncFile(specFile, netCDF::NcFile::read);

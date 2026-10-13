@@ -12,7 +12,7 @@
 
 namespace Nextsim {
 
-void SimpleOutput::outputState(const ModelState& diagState)
+void SimpleOutput::outputState()
 {
     auto& meta = ModelMetadata::getInstance();
     std::stringstream startStream;
@@ -24,7 +24,7 @@ void SimpleOutput::outputState(const ModelState& diagState)
         "Outputting " + std::to_string(externalNames.size()) + " fields to " + timeFileName + "\n");
 
     // Take the passed state, and add the files in the data store
-    ModelState state = diagState;
+    ModelState state;
     // Create the output by iterating over all fields referenced in ModelState
     auto storeData = ModelArrayAccessorBase<RO>::getAll(ModelComponent::getStore());
     for (auto entry : storeData) {

@@ -16,7 +16,7 @@ public:
 
     void setFilenamePrefix(const std::string& filePrefix) override { m_filePrefix = filePrefix; }
 
-    void outputState(const ModelState& state) override;
+    void outputState() override;
 
     // ModelComponent functions
     std::string getName() const override { return "SimpleOutput"; }

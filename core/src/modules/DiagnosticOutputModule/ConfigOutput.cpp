@@ -159,14 +159,14 @@ void ConfigOutput::setData(const TimePoint& modelStart)
     }
 }
 
-void ConfigOutput::outputState(const ModelState& diagState)
+void ConfigOutput::outputState()
 {
     const auto& meta = ModelMetadata::getInstance();
 
     FloatType averagingFactor = meta.stepLength().seconds() / outputPeriod.seconds();
     if (snapshots) {
         averagingFactor = 1.0;
-        state = { {}, diagState.config };
+        state = {};
     }
     const auto storeData = ModelArrayAccessorBase<>::getAll(getStore());
 
@@ -191,13 +191,6 @@ void ConfigOutput::outputState(const ModelState& diagState)
                 if (outputAllTheFields)
                     addToState(internalName, state, modelArray);
             }
-        }
-    }
-
-    // Filter the passed state by the field names for output
-    for (const auto& [key, arrayRef] : diagState.data) {
-        if (fieldsForOutput.count(key) > 0) {
-            addToState(key, state, arrayRef);
         }
     }
 
@@ -246,7 +239,7 @@ void ConfigOutput::outputState(const ModelState& diagState)
         lastOutput = meta.time();
 
         // Reset output state
-        state = { .data = {}, .config = diagState.config };
+        state = {};
     }
 }
 

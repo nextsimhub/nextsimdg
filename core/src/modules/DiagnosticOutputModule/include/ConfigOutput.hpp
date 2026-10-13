@@ -39,7 +39,7 @@ public:
     // IDiagnosticOutput overrides
     void setFilenamePrefix(const std::string& filePrefix) override { m_filePrefix = filePrefix; }
     void setData(const TimePoint& modelStart) override;
-    void outputState(const ModelState& diagState) override;
+    void outputState() override;
 
     // ModelComponent overrides
     inline std::string getName() const override { return "ConfigOutput"; };

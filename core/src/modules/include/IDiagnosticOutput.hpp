@@ -40,7 +40,7 @@ public:
      *
      * @param state The model state to be written out.
      */
-    virtual void outputState(const ModelState& state) = 0;
+    virtual void outputState() = 0;
 
     // Define some of the ModelComponent class functions
     // No data to be set
