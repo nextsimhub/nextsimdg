@@ -47,8 +47,9 @@ void runMe(const bool snapshot, MPI_Comm myMPIComm)
 void runMe(const bool snapshot)
 #endif
 {
-    size_t nx = 10;
-    size_t ny = 9;
+    constexpr size_t nx = 10;
+    constexpr size_t ny = 9;
+    constexpr size_t nt = 8; // Output every three hours to daily files: nt = 24 / 3
 
 #ifdef USE_MPI
     auto& modelMPI = ModelMPI::getInstance(myMPIComm);
@@ -76,11 +77,11 @@ void runMe(const bool snapshot)
     Module::Module<IDiagnosticOutput>::setImplementation("Nextsim::ConfigOutput");
     std::stringstream config;
     config << "[ConfigOutput]" << std::endl;
-    config << "period = P0-0T03:00:00" << std::endl; // Output every three hours
+    config << "period = " << 24. / nt * 3600. << std::endl; // Output every three hours
     config << "start = 2020-01-11T00:00:00Z" << std::endl; // start after 10 days
     config << "field_names = " << hiceName << "," << ciceName << "," << tsurfName << ","
            << "top_melt" << std::endl;
-    config << "filename = diag%m%d.nc" << std::endl;
+    config << "filename = diag%m%d.nc" << std::endl; // Daily outputs
     config << "vector_orientation = native" << std::endl; // Don't test vector rotation
     if (snapshot)
         config << "snapshots = true" << std::endl;
@@ -220,7 +221,7 @@ void runMe(const bool snapshot)
     netCDF::NcDim timeDim = ncFile.getDim(timeName);
     // Read the time variable
     netCDF::NcVar timeVar = ncFile.getVar(timeName);
-    REQUIRE(timeDim.getSize() == hr_day / 3);
+    REQUIRE(timeDim.getSize() == nt);
 
     std::multimap<std::string, netCDF::NcVar> vars(ncFile.getVars());
     REQUIRE(vars.size() == fields.size() + 1 + 4); // +1 for the time variable + 4 for the coords
@@ -231,7 +232,7 @@ void runMe(const bool snapshot)
     REQUIRE(vars.count("hsnow") == 0);
 
     const netCDF::NcVar& var = ncFile.getVar("cice");
-    std::vector<double> conc(nx * ny * 24 / 3);
+    std::vector<double> conc(nx * ny * nt);
     var.getVar(&conc[0]);
 
     constexpr int i = 3;

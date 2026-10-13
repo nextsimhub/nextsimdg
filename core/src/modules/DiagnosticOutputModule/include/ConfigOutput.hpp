@@ -72,7 +72,7 @@ private:
         = { { uName, vName }, { uWindName, vWindName }, { uOceanName, vOceanName } };
     std::unique_ptr<VectorRotator> rotator;
 
-    ModelState state = { .data = {}, .config = {} };
+    ModelState state = {};
 };
 
 } /* namespace Nextsim */
