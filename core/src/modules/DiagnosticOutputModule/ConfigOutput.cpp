@@ -173,7 +173,7 @@ void ConfigOutput::outputState()
     auto addToState = [averagingFactor](const std::string& name, ModelState& state,
                           const ModelArray& modelArray) -> void {
         if (state.data.count(name) == 0) {
-            state.data[name] = ModelArray(ModelArray::Type::H);
+            state.data[name] = ModelArray(modelArray.getType());
             state.data.at(name).reinitialize();
         }
         state.data.at(name) += modelArray * averagingFactor;
