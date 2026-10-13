@@ -81,7 +81,6 @@ void runMe(const bool snapshot)
     config << "field_names = " << hiceName << "," << ciceName << "," << tsurfName << ","
            << "top_melt" << std::endl;
     config << "filename = diag%m%d.nc" << std::endl;
-    config << "file_period = 86400" << std::endl; // Files every day
     config << "vector_orientation = native" << std::endl; // Don't test vector rotation
     if (snapshot)
         config << "snapshots = true" << std::endl;
