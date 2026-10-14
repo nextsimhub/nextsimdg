@@ -43,6 +43,7 @@ namespace Details {
             offset = 0;
             scale = 1;
         }
+#pragma omp parallel for
         for (size_t i = 0; i < numElem; ++i) {
             dest[i] = static_cast<DestT>(buf[i] * scale + offset);
         }
