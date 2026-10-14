@@ -113,21 +113,21 @@ void SlabOcean::update(const TimestepTime& tst)
 
     overElementsAuto(OVER_ELEMENTS_LAMBDA(const ElementIndex i) {
         // Slab SST update
-        const double sstExtD = static_cast<double>(sstExt[i]);
-        const double sstD = static_cast<double>(sst[i]);
-        const double cpmlD = static_cast<double>(cpml[i]);
-        const double qswNetD = static_cast<double>(qswNet[i]);
-        const double qNoSunD = static_cast<double>(qNoSun[i]);
+        const double sstExtD = sstExt[i];
+        const double sstD = sst[i];
+        const double cpmlD = cpml[i];
+        const double qswNetD = qswNet[i];
+        const double qNoSunD = qNoSun[i];
 
         const double qdwD = (sstExtD - sstD) * cpmlD * rRelaxationTimeT;
         qdw[i] = qdwD;
         sstSlab[i] = sstD - dt * (qswNetD + qNoSunD - qdwD) / cpmlD;
 
         // Slab SSS update
-        const double sssD = static_cast<double>(sss[i]);
-        const double sssExtD = static_cast<double>(sssExt[i]);
-        const double sFluxD = static_cast<double>(sFlux[i]);
-        const double fwFluxD = static_cast<double>(fwFlux[i]);
+        const double sssD = sss[i];
+        const double sssExtD = sssExt[i];
+        const double sFluxD = sFlux[i];
+        const double fwFluxD = fwFlux[i];
 
         const double arealDensity = cpmlD / Water::cp; // density times depth, or cpml divided by cp
         /* Just use a salt flux as the nudging flux. This is simplified compared to the

@@ -167,11 +167,11 @@ public:
 
         overElementsAuto(OVER_ELEMENTS_LAMBDA(const ElementIndex i) {
             // Heat fluxes - partitioned in solar and non-solar
-            const double ciceD = static_cast<double>(cice[i]);
-            const double qswBaseD = static_cast<double>(qswBase[i]);
-            const double qioD = static_cast<double>(qio[i]);
-            const double qswowD = static_cast<double>(qswow[i]);
-            const double qowD = static_cast<double>(qow[i]);
+            const double ciceD = cice[i];
+            const double qswBaseD = qswBase[i];
+            const double qioD = qio[i];
+            const double qswowD = qswow[i];
+            const double qowD = qow[i];
 
             const double qswNetD = ciceD * qswBaseD + (1.0 - ciceD) * qswowD;
             const double qNoSunD = ciceD * qioD + (1.0 - ciceD) * qowD - qswNetD;
@@ -179,20 +179,20 @@ public:
             qNoSun[i] = qNoSunD;
 
             // Mass fluxes - fresh water and salt
-            const double deltaHiceD = static_cast<double>(deltaHice[i]);
-            const double newIceD = static_cast<double>(newIce[i]);
+            const double deltaHiceD = deltaHice[i];
+            const double newIceD = newIce[i];
             // ice volume change, both laterally and vertically
             const double deltaIceVol = newIceD + deltaHiceD;
             // the device compiler does not like a global constant appearing in the argument list of
             // a template function: "identifier "Ice::s" is undefined in device code"
-            const double s = static_cast<double>(Ice::s);
-            const double sssD = static_cast<double>(sss[i]);
+            const double s = Ice::s;
+            const double sssD = sss[i];
             // Effective ice salinity is always less than or equal to the SSS, and here we use
             // the right units too
             const double effectiveIceSal = 1e-3 * Utils::min(s, sssD);
-            const double deltaSmeltD = static_cast<double>(deltaSmelt[i]);
-            const double evapD = static_cast<double>(evap[i]);
-            const double rainD = static_cast<double>(rain[i]);
+            const double deltaSmeltD = deltaSmelt[i];
+            const double evapD = evap[i];
+            const double rainD = rain[i];
             // Positive flux is up!
             const double fwFluxD
                 = ((1.0 - effectiveIceSal) * Ice::rho * deltaIceVol + Ice::rhoSnow * deltaSmeltD)
@@ -202,10 +202,10 @@ public:
             sFlux[i] = effectiveIceSal * Ice::rho * deltaIceVol / dt;
 
             // Momentum fluxes
-            const double tauXIOD = static_cast<double>(tauXIO[i]);
-            const double tauYIOD = static_cast<double>(tauYIO[i]);
-            const double tauXOWD = static_cast<double>(tauXOW[i]);
-            const double tauYOWD = static_cast<double>(tauYOW[i]);
+            const double tauXIOD = tauXIO[i];
+            const double tauYIOD = tauYIO[i];
+            const double tauXOWD = tauXOW[i];
+            const double tauYOWD = tauYOW[i];
 
             tauX[i] = ciceD * tauXIOD + (1.0 - ciceD) * tauXOWD;
             tauY[i] = ciceD * tauYIOD + (1.0 - ciceD) * tauYOWD;
