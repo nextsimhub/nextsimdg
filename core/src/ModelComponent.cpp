@@ -72,6 +72,7 @@ ModelArray ModelComponent::mask(const ModelArray& data, const FloatType missingV
 {
     auto copy = data;
     copy = missingValue;
+#pragma omp parallel for
     for (size_t iOcean = 0; iOcean < nOcean; ++iOcean) {
         copy(oceanIndex[iOcean]) = data(oceanIndex[iOcean]);
     }

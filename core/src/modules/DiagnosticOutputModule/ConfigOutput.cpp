@@ -173,10 +173,14 @@ void ConfigOutput::outputState()
     auto addToState = [averagingFactor](const std::string& name, ModelState& state,
                           const ModelArray& modelArray) -> void {
         if (state.data.count(name) == 0) {
-            state.data[name] = ModelArray(modelArray.getType());
+            state.data[name] = ModelArray(ModelArray::Type::H);
             state.data.at(name).reinitialize();
         }
-        state.data.at(name) += modelArray * averagingFactor;
+        auto& stateAlias = state.data.at(name);
+#pragma omp parallel for
+        for (size_t i = 0; i < stateAlias.size(); ++i) {
+            stateAlias[i] += modelArray.component(0)[i] * averagingFactor;
+        }
     };
 
     // Output every entry in storeData, as either its external name if
@@ -214,25 +218,16 @@ void ConfigOutput::outputState()
         Logged::info("ConfigOutput: Outputting " + std::to_string(state.data.size()) + " fields to "
             + currentFileName + " at " + meta.time().format() + "\n");
 
-        // Mask and toss out the higher order DG components
-        ModelState outputState = { .data = {}, .config = state.config };
-        for (const auto& [key, arrayRef] : state.data) {
-            auto modelArray = ModelArray(ModelArray::Type::H);
-            if (arrayRef.getType() == ModelArray::Type::DG)
-                modelArray.setData(arrayRef.component(0));
-            else
-                modelArray = arrayRef;
-
-            outputState.data[key] = mask(modelArray);
-        }
-
+        // Rotate the vectors first
         for (const auto& [u, v] : vectors) {
-            if (outputState.data.count(u) && outputState.data.count(v)) {
-                rotator->fromDisplacedPole(outputState.data.at(u), outputState.data.at(v));
-                outputState.data.at(u) = mask(outputState.data.at(u));
-                outputState.data.at(v) = mask(outputState.data.at(v));
-            }
+            if (state.data.count(u) && state.data.count(v))
+                rotator->fromDisplacedPole(state.data.at(u), state.data.at(v));
         }
+
+        // Mask the field (requires a copy)
+        ModelState outputState = { .data = {}, .config = state.config };
+        for (const auto& [key, arrayRef] : state.data)
+            outputState.data[key] = mask(arrayRef);
 
         meta.affixCoordinates(outputState);
         StructureFactory::fileFromState(outputState, currentFileName, false);
