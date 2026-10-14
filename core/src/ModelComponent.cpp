@@ -7,7 +7,7 @@
 namespace Nextsim {
 
 size_t ModelComponent::nOcean = 0;
-std::vector<size_t> ModelComponent::oceanIndex;
+std::vector<size_t> ModelComponent::oceanIndex, ModelComponent::landIndex;
 bool ModelComponent::columnPhysicsStoreIsDestroyed; // initialized to 0 because of static lifetime
 
 #if USE_KOKKOS
@@ -37,10 +37,14 @@ void ModelComponent::setOceanMask(const ModelArray& mask)
             ++nOcean;
     }
     oceanIndex.resize(nOcean);
+    landIndex.resize(ModelArray::size(ModelArray::Type::H) - nOcean);
     size_t iOceanIndex = 0;
+    size_t iLandIndex = 0;
     for (size_t i = 0; i < ModelArray::size(ModelArray::Type::H); ++i) {
         if (oceanMask()[i] > 0) {
             oceanIndex[iOceanIndex++] = i;
+        } else {
+            landIndex[iLandIndex++] = i;
         }
     }
 
@@ -59,6 +63,7 @@ void ModelComponent::noLandMask()
 
     nOcean = ModelArray::size(ModelArray::Type::H);
     oceanIndex.resize(nOcean);
+    landIndex.resize(0);
     for (size_t i = 0; i < ModelArray::size(ModelArray::Type::H); ++i) {
         oceanIndex[i] = i;
     }
@@ -77,6 +82,14 @@ ModelArray ModelComponent::mask(const ModelArray& data, const FloatType missingV
         copy(oceanIndex[iOcean]) = data(oceanIndex[iOcean]);
     }
     return copy;
+}
+
+void ModelComponent::maskInPlace(ModelArray& data, const FloatType missingValue)
+{
+#pragma omp parallel for
+    for (size_t iLand = 0; iLand < landIndex.size(); ++iLand) {
+        data(landIndex[iLand]) = missingValue;
+    }
 }
 
 const ModelArray& ModelComponent::oceanMask() { return oceanMaskSingleton(); }

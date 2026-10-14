@@ -238,6 +238,13 @@ protected:
     static ModelArray mask(const ModelArray& data, FloatType missingValue = MissingData::value());
 
     /*!
+     * @brief Masks the provided ModelArray in place, according to the land-ocean mask.
+     * @param data The data to be masked.
+     * @param missingValue The mask value to use (defaults to MissingData::value()).
+     */
+    static void maskInPlace(ModelArray& data, FloatType missingValue = MissingData::value());
+
+    /*!
      * @brief Returns the ocean mask.
      */
     static const ModelArray& oceanMask();
@@ -278,7 +285,7 @@ private:
     }
 
     static size_t nOcean;
-    static std::vector<size_t> oceanIndex;
+    static std::vector<size_t> oceanIndex, landIndex;
     static bool columnPhysicsStoreIsDestroyed;
 
 #if USE_KOKKOS

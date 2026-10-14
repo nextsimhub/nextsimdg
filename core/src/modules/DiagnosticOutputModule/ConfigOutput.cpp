@@ -224,13 +224,12 @@ void ConfigOutput::outputState()
                 rotator->fromDisplacedPole(state.data.at(u), state.data.at(v));
         }
 
-        // Mask the field (requires a copy)
-        ModelState outputState = { .data = {}, .config = state.config };
+        // Mask the fields
         for (const auto& [key, arrayRef] : state.data)
-            outputState.data[key] = mask(arrayRef);
+            maskInPlace(state.data[key], MissingData::value());
 
-        meta.affixCoordinates(outputState);
-        StructureFactory::fileFromState(outputState, currentFileName, false);
+        meta.affixCoordinates(state);
+        StructureFactory::fileFromState(state, currentFileName, false);
         lastOutput = meta.time();
 
         // Reset output state
