@@ -12,10 +12,10 @@ KERNEL_IMPL_FUNCTION static FloatType doOne(
     FloatType tBot, FloatType sst, FloatType mlBulkCp, FloatType timeT)
 {
     // Compute in double because the flux computations are sensitive to catastrophic cancellation.
-    const double sstD = static_cast<double>(sst);
-    const double tBotD = static_cast<double>(tBot);
-    const double mlBulkCpD = static_cast<double>(mlBulkCp);
-    const double timeTD = static_cast<double>(timeT);
+    const double sstD = sst;
+    const double tBotD = tBot;
+    const double mlBulkCpD = mlBulkCp;
+    const double timeTD = timeT;
     // Transfer rate depends on the mixed layer depth and the relaxation time scale
     return (sstD - tBotD) * mlBulkCpD / timeTD;
 }
