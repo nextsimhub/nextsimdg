@@ -53,7 +53,7 @@ namespace HaloExchange {
      * Note that the result is undefined if any of the ranges overlap in memory!
      *
      */
-    template <typename T> void rotate180InPlace(std::vector<T> starts, std::vector<T> ends)
+    template <typename T> void rotate180InPlace(const std::vector<T>& starts, const std::vector<T>& ends)
     {
         // Fail to compile if T is not a forward iterator
         static_assert(std::is_base_of_v<std::forward_iterator_tag,
