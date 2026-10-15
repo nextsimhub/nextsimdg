@@ -61,7 +61,7 @@ private:
     const std::string ncTimeName = "time";
 
     const std::set<std::string> forcings
-        = { tAirName, dew2mName, pAirName, swInName, lwInName, uName, vName };
+        = { dew2mName, lwInName, pAirName, rainName, snowName, swInName, tAirName, uName, vName };
     const std::set<std::pair<std::string, std::string>> vectors = { { uName, vName } };
 
     ParaGridInputs forcingState;
