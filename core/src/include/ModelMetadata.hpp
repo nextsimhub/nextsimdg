@@ -206,7 +206,7 @@ public:
      * @brief True if we are using a tripolar grid topology, false otherwise.
      *
      */
-    bool usingTripolarTopology() const { return tripolarTopology; }
+    bool usingTripolarTopology() const { return m_tripolarTopology; }
 
     /*!
      * @brief True if the rank needs to account for the tripolar fold
@@ -215,7 +215,7 @@ public:
      * when communicating with their neighbours over the top edge.
      *
      */
-    bool needsTripolarFold() const { return tripolarFold; }
+    bool needsTripolarFold() const { return m_tripolarFold; }
 
     enum Edge { BOTTOM, RIGHT, TOP, LEFT, N_EDGE };
     // An array to allow the edges to be accessed in the correct order.
@@ -282,10 +282,10 @@ private:
     std::vector<int> rankExtentsY; // vector containing domain extents for each rank y-direction
     const std::string bboxName = "bounding_boxes";
     const std::string neighbourName = "connectivity";
-    bool tripolarTopology = false;
+    bool m_tripolarTopology = false;
     // Marks the rank as a one that needs to account for the Tripolar grid fold
     // when communicating with neighbour over top edge.
-    bool tripolarFold = false;
+    bool m_tripolarFold = false;
 #endif
 };
 
