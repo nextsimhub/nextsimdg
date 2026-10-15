@@ -26,9 +26,6 @@
  * - DGVector
  * - CGVector
  *
- * @note This test is currently a skeleton. The topological transformation for
- *       the tripolar fold is not yet implemented in the DomainModel helper
- *       class. The test is expected to fail until this is done.
  */
 
 #include <doctest/extensions/doctest_mpi.h>
