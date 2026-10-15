@@ -82,6 +82,7 @@ void runMe(const bool snapshot)
            << "top_melt" << std::endl;
     config << "filename = diag%m%d.nc" << std::endl;
     config << "file_period = 86400" << std::endl; // Files every day
+    config << "vector_orientation = native" << std::endl; // Don't test vector rotation
 
     std::unique_ptr<std::istream> pcstream(new std::stringstream(config.str()));
     Configurator::addStream(std::move(pcstream));
@@ -134,6 +135,7 @@ void runMe(const bool snapshot)
 
     auto& ido = Module::getImplementation<IDiagnosticOutput>();
     tryConfigure(ido);
+    ido.setData(TimePoint("2020-01-01T00:00:00Z"));
 
 #ifdef USE_MPI
     // offset indices by 1 (haloWidth) so only the "inner" data is initialized
