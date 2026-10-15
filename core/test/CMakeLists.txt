@@ -93,6 +93,13 @@ if(ENABLE_MPI)
                 -g halo_test_mask.nc --output-prefix halo_pb_test --px --py
         DEPENDS halo_test_mask.nc
     )
+    add_custom_command(
+        OUTPUT halo_tp_test_partition_metadata_3.nc
+        COMMAND
+            ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} 3 decomp -m mask -o xy
+                -g halo_test_mask.nc --output-prefix halo_tp_test --tripolar
+        DEPENDS halo_test_mask.nc
+    )
     add_custom_target(
         generate_partition_files
         ALL
@@ -100,6 +107,7 @@ if(ENABLE_MPI)
         paragrid_test_partition_metadata_2.nc
         halo_cb_test_partition_metadata_3.nc
         halo_pb_test_partition_metadata_3.nc
+        halo_tp_test_partition_metadata_3.nc
     )
 
     if(ENABLE_XIOS)
@@ -271,6 +279,17 @@ if(ENABLE_MPI)
             "../../dynamics/src" "../../dynamics/src/include")
         target_link_libraries(testHaloExchangePB_MPI3 PRIVATE nextsimlib doctest::doctest)
 
+        add_executable(testHaloExchangeTP_MPI3 "HaloExchangeTP_test.cpp" "MainMPI.cpp"
+                                                "../src/ModelArray.cpp"
+                                                "../src/ModelArraySlice.cpp")
+        target_compile_definitions(testHaloExchangeTP_MPI3
+                                   PRIVATE USE_MPI TEST_FILES_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\")
+        target_include_directories(
+            testHaloExchangeTP_MPI3
+            PRIVATE ${MODEL_INCLUDE_DIR} "${ModulesRoot}/StructureModule" "../src"
+            "../../dynamics/src" "../../dynamics/src/include")
+        target_link_libraries(testHaloExchangeTP_MPI3 PRIVATE nextsimlib doctest::doctest)
+
         add_executable(testParaGrid_MPI2 "ParaGrid_test.cpp" "MainMPI.cpp")
         target_compile_definitions(
             testParaGrid_MPI2 PRIVATE USE_MPI TEST_FILES_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\"
@@ -287,21 +306,20 @@ if(ENABLE_MPI)
                                                              "${ModulesRoot}/StructureModule")
         target_link_libraries(testRectGrid_MPI3 PRIVATE nextsimlib doctest::doctest)
 
-        add_executable(testModelMetadataCB_MPI3 "ModelMetadataCB_test.cpp" "MainMPI.cpp")
+        add_executable(testModelMetadata_MPI3 "ModelMetadata_test.cpp" "MainMPI.cpp")
         target_compile_definitions(
-            testModelMetadataCB_MPI3 PRIVATE USE_MPI TEST_FILES_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\"
-                                             TEST_FILE_SOURCE=\"${CMAKE_CURRENT_SOURCE_DIR}\")
-        target_include_directories(testModelMetadataCB_MPI3
+            testModelMetadata_MPI3 PRIVATE USE_MPI TEST_FILES_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\"
+                                           TEST_FILE_SOURCE=\"${CMAKE_CURRENT_SOURCE_DIR}\")
+        target_include_directories(testModelMetadata_MPI3
                                    PRIVATE ${MODEL_INCLUDE_DIR} "${ModulesRoot}/StructureModule")
-        target_link_libraries(testModelMetadataCB_MPI3 PRIVATE nextsimlib doctest::doctest)
+        target_link_libraries(testModelMetadata_MPI3 PRIVATE nextsimlib doctest::doctest)
 
-        add_executable(testModelMetadataPB_MPI3 "ModelMetadataPB_test.cpp" "MainMPI.cpp")
-        target_compile_definitions(
-            testModelMetadataPB_MPI3 PRIVATE USE_MPI TEST_FILES_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\"
-                                             TEST_FILE_SOURCE=\"${CMAKE_CURRENT_SOURCE_DIR}\")
-        target_include_directories(testModelMetadataPB_MPI3
+        add_executable(testModelMetadataTP_MPI3 "ModelMetadataTP_test.cpp" "MainMPI.cpp")
+        target_compile_definitions(testModelMetadataTP_MPI3
+                                   PRIVATE USE_MPI TEST_FILES_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\")
+        target_include_directories(testModelMetadataTP_MPI3
                                    PRIVATE ${MODEL_INCLUDE_DIR} "${ModulesRoot}/StructureModule")
-        target_link_libraries(testModelMetadataPB_MPI3 PRIVATE nextsimlib doctest::doctest)
+        target_link_libraries(testModelMetadataTP_MPI3 PRIVATE nextsimlib doctest::doctest)
 
         add_executable(testConfigOutput_MPI2 "ConfigOutput_test.cpp" "MainMPI.cpp")
         target_compile_definitions(testConfigOutput_MPI2
@@ -310,15 +328,25 @@ if(ENABLE_MPI)
                                                                  "../../dynamics/src/include")
         target_link_libraries(testConfigOutput_MPI2 PRIVATE nextsimlib doctest::doctest)
 
+        add_executable(testHaloUtils "HaloUtils_test.cpp" "MainTest.cpp")
+        target_compile_definitions(testHaloUtils PRIVATE USE_MPI)
+        target_include_directories(
+            testHaloUtils PRIVATE ${MODEL_INCLUDE_DIR} "${ModulesRoot}/StructureModule"
+                                       "../src" "../../dynamics/src" "../../dynamics/src/include")
+        target_link_libraries(testHaloUtils PRIVATE nextsimlib doctest::doctest)
+
         set(MPI_TESTS
             testHaloExchangeCB_MPI3
             testHaloExchangePB_MPI3
+            testHaloExchangeTP_MPI3
             testParaGrid_MPI2
             testRectGrid_MPI3
-            testModelMetadataCB_MPI3
-            testModelMetadataPB_MPI3
+            testModelMetadata_MPI3
+            testModelMetadataTP_MPI3
             testConfigOutput_MPI2)
         add_mpi_test("${MPI_TESTS}")
+
+        add_test(NAME testHaloUtils COMMAND testHaloUtils)
     endif()
 
 else()

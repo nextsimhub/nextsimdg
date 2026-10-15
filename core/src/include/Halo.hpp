@@ -18,6 +18,7 @@
 
 #include <cstddef>
 #include <numeric>
+#include <type_traits>
 #include <vector>
 
 #include "Slice.hpp"
@@ -36,6 +37,59 @@
 
 namespace Nextsim {
 
+namespace HaloExchange {
+
+    /**
+     * @brief Rotate a matrix with non uniform strides 180°
+     *
+     * The matrix here is represented by contiguous columns or rows, but they themselves
+     * are in random locations in memory (i.e. strides are not uniform)
+     *
+     * @tparam T A Forward iterator
+     *
+     * @param starts A vector of pointers to the start of each column/row
+     * @param ends A vector of pointers to the end of each column/row
+     *
+     * Note that the result is undefined if any of the ranges overlap in memory!
+     *
+     */
+    template <typename T>
+    void rotate180InPlace(const std::vector<T>& starts, const std::vector<T>& ends)
+    {
+        // Fail to compile if T is not a forward iterator
+        static_assert(std::is_base_of_v<std::forward_iterator_tag,
+                          typename std::iterator_traits<T>::iterator_category>,
+            "T must be a forward iterator");
+
+        // Assert that the rows and columns match in size
+        if (starts.size() != ends.size()) {
+            throw std::invalid_argument("Starts and ends vectors must be of the same size");
+        }
+        if (starts.empty()) {
+            return; // Nothing to do for empty matrix
+        }
+
+        const auto row_size = std::distance(starts[0], ends[0]);
+        for (std::size_t i = 1; i < starts.size(); i++) {
+            if (std::distance(starts[i], ends[i]) != row_size) {
+                throw std::invalid_argument("All ranges must be of the same size");
+            }
+        }
+
+        // Preform the transpose
+        // Flip left->right
+        for (std::size_t i = 0; i < starts.size(); i++) {
+            std::reverse(starts[i], ends[i]);
+        }
+        // Flip top->bottom
+        for (std::size_t i = 0, midPoint = starts.size() / 2; i < midPoint; i++) {
+            std::swap_ranges(starts[i], ends[i], starts[starts.size() - 1 - i]);
+        }
+    }
+
+    std::vector<FloatType> rotate180ComponentCorrections(ModelArray::Type type);
+}
+
 /*!
  * @brief A class to facilitate halo exchange between MPI ranks
  */
@@ -49,6 +103,8 @@ public:
     {
         m_numComps = ma.nComponents();
         isVertex = ma.getType() == ModelArray::Type::VERTEX;
+        setTripolarFlags();
+        m_tripolarComponentCorrection = HaloExchange::rotate180ComponentCorrections(ma.getType());
         setSpatialDims();
         initializeHaloMetadata();
     }
@@ -70,6 +126,9 @@ public:
     template <int N> Halo(DGVector<N>& dgv)
     {
         m_numComps = N;
+        setTripolarFlags();
+        m_tripolarComponentCorrection
+            = HaloExchange::rotate180ComponentCorrections(ModelArray::Type::DG);
         setSpatialDims();
         initializeHaloMetadata();
     }
@@ -84,6 +143,9 @@ public:
         isCG = true;
         CGdegree = N;
         nCells = CGdegree;
+        setTripolarFlags();
+        m_tripolarComponentCorrection
+            = HaloExchange::rotate180ComponentCorrections(ModelArray::Type::CG);
         setSpatialDims();
         initializeHaloMetadata();
     }
@@ -112,6 +174,8 @@ private:
     std::array<size_t, Edge::N_EDGE> m_edgeLengths; // array containing length of each edge
     std::array<Edge, Edge::N_EDGE> edges = ModelMetadata::edges; // array of edge enums
     std::array<Corner, Corner::N_CORNER> corners = ModelMetadata::corners; // array of edge enums
+
+    void setTripolarFlags();
 
     /**
      * @brief Sets the spatial dimensions of the domain
@@ -164,6 +228,10 @@ private:
     size_t CGdegree = 0;
     size_t sendBufferSize = 0;
     size_t recvBufferSize = 0;
+
+    bool m_tripolarFold = false; // does this rank need tripolar fold treatment
+    std::vector<FloatType>
+        m_tripolarComponentCorrection; // component correction factors for tripolar fold
 
     std::vector<std::vector<FloatType>>
         send; // buffer to store halo region that will be read by other ranks
@@ -237,6 +305,19 @@ private:
     Edge edgeFromSendPos(int sendPos, int fromRank);
 
     /**
+     * @brief Calculate the starting position of the given edge in the local receive buffer
+     *
+     * The recv buffer lays out edge data in order BOTTOM, RIGHT, TOP, LEFT, so an edge starts
+     * after all preceding edge lengths. Positions are expressed in the buffer-map row unit
+     * (buffer_len, as in recvPositions/populateTarget): multiply edge lengths by nCells for
+     * CGVector fields, where each halo "cell" expands to nCells points.
+     *
+     * @param edge Edge for which to calculate the recv buffer position
+     * @return Starting position in the recv buffer for the specified edge
+     */
+    int recvPosFromEdge(Edge edge) const;
+
+    /**
      * @brief Calculate recv buffer positions and offsets (count, disp and recvOffset) for halo
      * transfer
      *
@@ -247,10 +328,9 @@ private:
      * @param edge Edge for which to calculate positions
      * @param neighbourIndex Index of the current neighbor
      * @param cell Cell index for CGVector fields
-     * @param isPeriodic Whether the boundary is periodic
      */
     void recvPositions(int& fromRank, size_t& count, size_t& disp, size_t& recvOffset, Edge edge,
-        const size_t neighbourIndex, const size_t cell, bool isPeriodic);
+        const size_t neighbourIndex, const size_t cell);
 
     /**
      * @brief Calculate recv buffer positions and offsets (count, disp and recvOffset) for halo
@@ -261,12 +341,10 @@ private:
      * @param disp Displacement in the send buffer
      * @param recvOffset Offset in the receive buffer
      * @param corner Corner for which to calculate positions
-     * @param neighbourIndex Index of the current neighbor
      * @param cell Cell index for CGVector fields
-     * @param isPeriodic Whether the boundary is periodic
      */
     void recvPositions(int& fromRank, size_t& count, size_t& disp, size_t& recvOffset,
-        Corner corner, const size_t cell, bool isPeriodic);
+        Corner corner, const size_t cell);
 
     /*!
      * @brief Populate recv buffer with halo data from other ranks send buffers via the memory
@@ -413,6 +491,11 @@ private:
         }
     }
 
+    /**
+     *
+     */
+    void rotateTopEdgeInBuffer();
+
 public:
     /**
      * @brief Check if dimension is in the lateral direction i.e., X, Y, XVERTEX, or YVERTEX
@@ -485,6 +568,9 @@ public:
     {
         populateSendBuffers(target);
         populateRecvBuffers();
+        if (m_tripolarFold) {
+            rotateTopEdgeInBuffer();
+        }
         if (isCG) {
             transposeCorners();
         }
