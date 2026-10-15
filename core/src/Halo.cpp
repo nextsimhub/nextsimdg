@@ -276,7 +276,7 @@ void Halo::recvPositions(int& fromRank, size_t& count, size_t& disp, size_t& rec
     // The correct subset depends on the orientation of the neighbours, so
     // in case of transaction over the folded tripolar top edge, we need to correct
     // the orientation for the purpose of selecting the right nodes.
-    auto correctTripolarCornerOrientation = [&](Corner corner) {
+    auto correctTripolarCornerOrientation = [](Corner corner) {
         switch (corner) {
         case Corner::TOP_LEFT:
             return Corner::BOTTOM_RIGHT;
@@ -290,7 +290,7 @@ void Halo::recvPositions(int& fromRank, size_t& count, size_t& disp, size_t& rec
         }
     };
 
-    auto selectDispBasedOnOrientation = [&](Corner corner, Edge sendEdge, auto disp) {
+    auto selectDispBasedOnOrientation = [](Corner corner, Edge sendEdge, auto disp) {
         // Account for the fact that the vertex field is split differently to the face centered
         // fields. We dont take the data directly adjacent to the halo, but the one after that.
         // e.g., if you have two adjacent domains, the vertex on the far right of the left-hand
