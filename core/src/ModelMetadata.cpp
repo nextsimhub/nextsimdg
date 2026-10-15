@@ -33,19 +33,16 @@
 #include <ncVar.h>
 #endif
 
-namespace {
-
 /**
  * @brief Check if the rank touches the top edge
  */
-bool rankTouchesTopEdge(int globalExtentY, int localCornerY, int localExtentY)
+static bool rankTouchesTopEdge(int globalExtentY, int localCornerY, int localExtentY)
 {
     const auto remainder = localCornerY + localExtentY - globalExtentY;
     if (remainder > 0) {
         throw std::runtime_error("Rank corner + extent exceeds global extent in Y direction.");
     }
     return remainder == 0;
-}
 }
 
 namespace Nextsim {
