@@ -19,3 +19,6 @@ execute_process(
     COMMAND "${Python_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/make_init_benchmark.py"
     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
 )
+execute_process(
+    COMMAND "${Python_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/make_init_polynya.py"
+    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}")
