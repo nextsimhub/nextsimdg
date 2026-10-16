@@ -81,8 +81,7 @@ void ERA5Atmosphere::update(const TimestepTime& tst)
     uwindAccessor.getHostRW() = forcingState.getField(uName);
     vwindAccessor.getHostRW() = forcingState.getField(vName);
     snowAccessor.getHostRW() = forcingState.getField(snowName);
-    // Rain from ERA5 is actually total precipitation - so subtract the snowfall
-    rainAccessor.getHostRW() = forcingState.getField(rainName) - snowAccessor.getHostRW();
+    rainAccessor.getHostRW() = forcingState.getField(rainName);
 
     // Postprocess the data fields
     auto& tair = tairAccessor.getAutoRW();
