@@ -129,12 +129,10 @@ public:
                 + s12Gauss.array().square())
                                     .sqrt();
 
-            const FloatType scale_coef = std::sqrt(0.1 / smesh.h(i));
-
             //! Eqn. 22
-            const EdgeVec cohesion = params.cLab * scale_coef * hGauss.array();
+            const EdgeVec cohesion = params.cohesion * hGauss.array();
             //! Eqn. 30
-            const EdgeVec compr_strength = params.comprCap * scale_coef * hGauss.array();
+            const EdgeVec compr_strength = params.comprCap * hGauss.array();
 
             // Mohr-Coulomb failure using Mssrs. Plante & Tremblay's formulation
             // sigma_s + tan_phi*sigma_n < 0 is always inside, but gives dcrit < 0
@@ -149,17 +147,13 @@ public:
             // Only damage when we're outside
             dcrit = dcrit.array().min(1.0_ft);
 
-            // Eqn. 29
-            const EdgeVec td = smesh.h(i) * std::sqrt(2. * (1. + params.nu0) * params.rhoIce)
-                / elasticity.array().sqrt();
-
             // Update damage
-            dGauss.array() -= dGauss.array() * (1. - dcrit.array()) * deltaT / td.array();
+            dGauss.array() -= dGauss.array() * (1. - dcrit.array());
 
             // Relax stress in Gassus points
-            s11Gauss.array() -= s11Gauss.array() * (1. - dcrit.array()) * deltaT / td.array();
-            s12Gauss.array() -= s12Gauss.array() * (1. - dcrit.array()) * deltaT / td.array();
-            s22Gauss.array() -= s22Gauss.array() * (1. - dcrit.array()) * deltaT / td.array();
+            s11Gauss.array() -= s11Gauss.array() * (1. - dcrit.array());
+            s12Gauss.array() -= s12Gauss.array() * (1. - dcrit.array());
+            s22Gauss.array() -= s22Gauss.array() * (1. - dcrit.array());
 
             // INTEGRATION OF STRESS AND DAMAGE
             // get the inverse of the mass matrix scaled with the test-functions in the gauss

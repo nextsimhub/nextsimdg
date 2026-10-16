@@ -46,7 +46,7 @@ void BBMDynamics::configure()
     params.expPMax = Configured::getConfiguration(keyMap.at(EXPPMAX_KEY), expPMaxDefault);
     params.mu = Configured::getConfiguration(keyMap.at(MU_KEY), muDefault);
     params.comprCap = Configured::getConfiguration(keyMap.at(NMAX_KEY), comprCapDefault);
-    params.cLab = Configured::getConfiguration(keyMap.at(CLAB_KEY), cLabDefault);
+    params.cohesion = Configured::getConfiguration(keyMap.at(CLAB_KEY), cohesionDefault);
     params.nSteps = Configured::getConfiguration(keyMap.at(NSTEPS_KEY), nStepsDefault);
     params.rhoIce = Configured::getConfiguration(keyMap.at(RHOI_KEY), rhoIceDefault);
     params.rhoAtm = Configured::getConfiguration(keyMap.at(RHOA_KEY), rhoAtmDefault);
@@ -70,7 +70,7 @@ ConfigMap BBMDynamics::getConfiguration() const
         { keyMap.at(EXPPMAX_KEY), params.expPMax },
         { keyMap.at(MU_KEY), params.mu },
         { keyMap.at(NMAX_KEY), params.comprCap },
-        { keyMap.at(CLAB_KEY), params.cLab },
+        { keyMap.at(CLAB_KEY), params.cohesion },
         { keyMap.at(NSTEPS_KEY), params.nSteps },
         { keyMap.at(RHOI_KEY), params.rhoIce },
         { keyMap.at(RHOA_KEY), params.rhoAtm },
@@ -206,7 +206,7 @@ BBMDynamics::HelpMap& BBMDynamics::getHelpText(HelpMap& map, bool getAll)
             ConfigurationHelp::toString(expPMaxDefault), "Pa",
             "Maximum compressive strength (at the lab scale)" },
         { keyMap.at(CLAB_KEY), ConfigType::NUMERIC, { "0", "∞" },
-            ConfigurationHelp::toString(cLabDefault), "Pa", "Cohesion (at the lab scale)" },
+            ConfigurationHelp::toString(cohesionDefault), "Pa", "Cohesion (at the lab scale)" },
         { keyMap.at(NSTEPS_KEY), ConfigType::NUMERIC, { "1", "∞" },
             ConfigurationHelp::toString(nStepsDefault), "[No unit]",
             "The number of sub-cycling steps" },

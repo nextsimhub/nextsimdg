@@ -142,13 +142,10 @@ void KokkosBBMDynamicsKernel<DGadvection>::updateStressHighOrderDevice(
             EdgeVec tau = (0.25_ft * (s11Gauss.array() - s22Gauss.array()).square()
                 + s12Gauss.array().square())
                               .sqrt();
-
-            const FloatType scale_coef = Kokkos::sqrt(0.1_ft / cellSizeDevice(i));
-
             //! Eqn. 22
-            const auto cohesion = params.cLab * scale_coef * hGauss.array();
+            const auto cohesion = params.cohesion * hGauss.array();
             //! Eqn. 30
-            const EdgeVec compr_strength = params.comprCap * scale_coef * hGauss.array();
+            const EdgeVec compr_strength = params.comprCap * hGauss.array();
 
             // Mohr-Coulomb failure using Mssrs. Plante & Tremblay's formulation
             // sigma_s + tan_phi*sigma_n < 0 is always inside, but gives dcrit < 0
@@ -164,13 +161,8 @@ void KokkosBBMDynamicsKernel<DGadvection>::updateStressHighOrderDevice(
             // Only damage when we're outside
             dcrit = dcrit.array().min(1.0_ft);
 
-            // Eqn. 29
-            const auto td = cellSizeDevice(i)
-                * Kokkos::sqrt(2.0_ft * (1.0_ft + params.nu0) * params.rhoIce)
-                / elasticity.array().sqrt();
-
             // Update damage
-            const EdgeVec relaxFac = (1.0_ft - dcrit.array()) * deltaT / td.array();
+            const EdgeVec relaxFac = 1.0_ft - dcrit.array();
             dGauss.array() -= dGauss.array() * relaxFac.array();
 
             // Relax stress in Gauss points

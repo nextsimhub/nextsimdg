@@ -19,8 +19,8 @@ static int alphaDefault = 5;
 static FloatType expPMaxDefault = 1.5; //! \param Power of ice thickness in the pressure coefficient
 static FloatType muDefault = 0.7; //!< \param tan_phi (FloatType) Internal friction coefficient (mu)
 static FloatType comprCapDefault
-    = 1e10; //! \param compr_strength (FloatType) Maximum compressive strength [N/m2]
-static FloatType cLabDefault = 2e6; //! \param C_lab (FloatType) Test [Pa]
+    = 1e7; //! \param compr_strength (FloatType) Maximum compressive strength [N/m2]
+static FloatType cohesionDefault = 7.5e3; //! \param Cohesion (FloatType) Test [Pa]
 // static const int nStepsDefault = 120; //!< Number of sub-steps
 
 class BBMParameters : public DynamicsParameters {
@@ -37,7 +37,7 @@ public:
     FloatType expPMax = expPMaxDefault;
     FloatType mu = muDefault;
     FloatType comprCap = comprCapDefault;
-    FloatType cLab = cLabDefault;
+    FloatType cohesion = cohesionDefault;
     int nSteps = nStepsDefault;
 
     FloatType c0 = 10e3; //! \param
