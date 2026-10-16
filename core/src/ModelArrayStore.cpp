@@ -20,14 +20,17 @@ HostViewMA ModelArrayStore::ExtModelArray::hostView()
 const DeviceViewMA& ModelArrayStore::ExtModelArray::deviceView()
 {
     assert(modelArray.trueSize() > 0 && "ModelArray is allocated");
-    if constexpr (IS_GPU_EXEC_SPACE<Kokkos::DefaultExecutionSpace>) {
-        if (!m_deviceModelArray.m_deviceView.is_allocated()) {
-            m_deviceModelArray.m_deviceView = makeKokkosDeviceView(name, modelArray.getDataRef());
-        }
-    } else {
-        // in host mode there is only one buffer, owned by the ModelArray, which can be reallocated
-        m_deviceModelArray.m_deviceView = hostView();
+
+    // We can't use "if constexpr" here because the else branch needs to be valid code even if the
+    // condition is false. The assignment only works if device space and host space are the same.
+#ifdef GPU_ENABLED
+    if (!m_deviceModelArray.m_deviceView.is_allocated()) {
+        m_deviceModelArray.m_deviceView = makeKokkosDeviceView(name, modelArray.getDataRef());
     }
+#else
+    // in host mode there is only one buffer, owned by the ModelArray, which can be reallocated
+    m_deviceModelArray.m_deviceView = hostView();
+#endif
 
     return m_deviceModelArray.m_deviceView;
 }
