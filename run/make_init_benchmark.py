@@ -6,7 +6,7 @@ from make_init_base import initMaker
 
 # Domain size [km]
 L = 512
-for res in [2, 4, 8, 16]:
+for res in [0.25, 0.5, 1, 2, 4, 8, 16]:
     nfirst = int(L / res)
     nsecond = int(L / res)
 
