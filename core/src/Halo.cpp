@@ -32,6 +32,9 @@ namespace HaloExchange {
         case ModelArray::Type::DGSTRESS:
             return { 1.0, -1.0, -1.0, 1.0, 1.0, 1.0, -1.0, -1.0 };
         case ModelArray::Type::CG:
+            // Note: This is ok for scalars, May be incorrect vertical components
+            // of a vector field. Ideally these should be represented by a CGVector
+            // class instead.
             return { 1.0 };
         case ModelArray::Type::V:
         case ModelArray::Type::U:

@@ -18,7 +18,9 @@
 
 #include <cstddef>
 #include <numeric>
+#include <stdexcept>
 #include <type_traits>
+#include <utility>
 #include <vector>
 
 #include "Slice.hpp"
@@ -136,16 +138,29 @@ public:
     /*!
      * @brief Constructs a halo object from CGVector
      * @param cgv CGVector object to create halo from
+     * @param tripolarComponentCorrection Component correction factors applied over the
+     * tripolar fold. Should be 1.0 for horizontal vector components and scalars,
+     * -1.0 for vertical vector components.
+     *
+     * CGVector often represents a single component of a vector field but we
+     * don't have any information about the orientation of the component in the
+     * class itself. This is a challenge for the tripolar fold since th horizontal
+     * and vertical components must be treated differently. We solve this problem
+     * by requiring the user to indicate how we need to handle orientation.
+     *
      */
-    template <int N> Halo(CGVector<N>& cgv)
+    template <int N> Halo(CGVector<N>& cgv, std::vector<FloatType> tripolarComponentCorrection)
     {
         m_numComps = 1;
         isCG = true;
         CGdegree = N;
         nCells = CGdegree;
         setTripolarFlags();
-        m_tripolarComponentCorrection
-            = HaloExchange::rotate180ComponentCorrections(ModelArray::Type::CG);
+        if (tripolarComponentCorrection.size() != m_numComps) {
+            throw std::invalid_argument(
+                "tripolarComponentCorrection must have one entry per field component");
+        }
+        m_tripolarComponentCorrection = std::move(tripolarComponentCorrection);
         setSpatialDims();
         initializeHaloMetadata();
     }
