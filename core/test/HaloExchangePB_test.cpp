@@ -441,7 +441,7 @@ MPI_TEST_CASE("CGVector", 3)
     initializeTestData(cgVector, CGDomain);
 
     // create halo and exchange
-    Halo halo(cgVector);
+    Halo halo(cgVector, { 1.0 });
     halo.exchangeHalos(cgVector);
 
     verifyTestData(cgVector, CGDomain);

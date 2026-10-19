@@ -140,8 +140,12 @@ public:
 
 #ifdef USE_MPI
         // Note: we only need to create one halo object per array type,
-        // dimensionality and size.
-        Halo halo(u);
+        // dimensionality and size. u and v need separate halo objects because
+        // they carry different tripolar component corrections: the horizontal
+        // (u) component is unchanged over the fold, while the vertical (v)
+        // component flips sign.
+        Halo haloU(u, { 1.0 });
+        Halo haloV(v, { -1.0 });
 #endif
 
         for (size_t subStep = 0; subStep < params.nSteps; ++subStep) {
@@ -161,8 +165,8 @@ public:
             applyBoundaries();
 
 #ifdef USE_MPI
-            halo.exchangeHalos(u);
-            halo.exchangeHalos(v);
+            haloU.exchangeHalos(u);
+            haloV.exchangeHalos(v);
 #endif
 
             // Land mask

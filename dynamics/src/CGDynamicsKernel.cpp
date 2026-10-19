@@ -278,8 +278,8 @@ template <int DGadvection> void CGDynamicsKernel<DGadvection>::prepareIteration(
 
 #ifdef USE_MPI
     // Halo object only depends on shape of the array, so we can share it for all CGVectors of the
-    // same shape
-    Halo halo(cgH);
+    // same shape. cgH and cgA are scalar fields, so both use the identity component correction.
+    Halo halo(cgH, { 1.0 });
     halo.exchangeHalos(cgH);
     halo.exchangeHalos(cgA);
 #endif

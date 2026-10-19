@@ -275,12 +275,12 @@ template <typename T> void initializeTestData(T& data, const DomainModel& domain
     }
 }
 
-template <typename T> void verifyTestData(T& data, const DomainModel& domain)
+template <typename T>
+void verifyTestData(
+    T& data, const DomainModel& domain, const std::vector<FloatType>& componentCorrection)
 {
     const int nCells = domain.haloSize;
     const auto numComps = static_cast<int>(data.cols());
-
-    const auto componentCorrection = HaloExchange::rotate180ComponentCorrections(domain.type);
 
     // Verify the test data
     for (int j = 0; j < domain.localNy; j++) {
@@ -350,7 +350,8 @@ MPI_TEST_CASE("test halo exchange on 3 proc grid", 3)
     halo.exchangeHalos(testData.getDataRef());
 
     // Verify the test data after halo exchange
-    verifyTestData(testData.getDataRef(), HFieldDomain);
+    verifyTestData(testData.getDataRef(), HFieldDomain,
+        HaloExchange::rotate180ComponentCorrections(ModelArray::Type::H));
 
     DomainModel VertexFieldDomain { nx, ny, localNx, localNy, offsetX, offsetY,
         ModelArray::Type::VERTEX };
@@ -364,7 +365,8 @@ MPI_TEST_CASE("test halo exchange on 3 proc grid", 3)
 
     haloVertex.exchangeHalos(coordinates.getDataRef());
 
-    verifyTestData(coordinates.getDataRef(), VertexFieldDomain);
+    verifyTestData(coordinates.getDataRef(), VertexFieldDomain,
+        HaloExchange::rotate180ComponentCorrections(ModelArray::Type::VERTEX));
 }
 
 MPI_TEST_CASE("DGField", 3)
@@ -405,7 +407,8 @@ MPI_TEST_CASE("DGField", 3)
     // exchange halos
     halo.exchangeHalos(testData.getDataRef());
 
-    verifyTestData(testData.getDataRef(), DGFieldDomain);
+    verifyTestData(testData.getDataRef(), DGFieldDomain,
+        HaloExchange::rotate180ComponentCorrections(ModelArray::Type::DG));
 }
 
 MPI_TEST_CASE("DGVector", 3)
@@ -460,7 +463,8 @@ MPI_TEST_CASE("DGVector", 3)
     // exchange halos
     halo.exchangeHalos(testData);
 
-    verifyTestData(testData, DGVectorDomain);
+    verifyTestData(testData, DGVectorDomain,
+        HaloExchange::rotate180ComponentCorrections(ModelArray::Type::DG));
 }
 
 MPI_TEST_CASE("CGVector", 3)
@@ -508,13 +512,89 @@ MPI_TEST_CASE("CGVector", 3)
     cgVector.resize_by_mesh(smesh);
     cgVector.zero();
 
-    // initialize data
-    initializeTestData(cgVector, CGDomain);
+    // Horizontal component case
+    {
+        cgVector.zero();
+        // initialize data
+        initializeTestData(cgVector, CGDomain);
 
-    // create halo and exchange
-    Halo halo(cgVector);
-    halo.exchangeHalos(cgVector);
+        // create halo and exchange
+        // cgVector is treated as a scalar field, so it uses the identity component correction
+        Halo halo(cgVector, { 1.0 });
+        halo.exchangeHalos(cgVector);
 
-    verifyTestData(cgVector, CGDomain);
+        verifyTestData(cgVector, CGDomain, { 1.0 });
+    }
+
+    // Horizontal vertical component case
+    {
+        cgVector.zero();
+        // initialize data
+        initializeTestData(cgVector, CGDomain);
+
+        // create halo and exchange
+        // cgVector is treated as a scalar field, so it uses the identity component correction
+        Halo halo(cgVector, { -1.0 });
+        halo.exchangeHalos(cgVector);
+
+        verifyTestData(cgVector, CGDomain, { -1.0 });
+    }
 }
+
+// MPI_TEST_CASE("CGVector vertical component", 3)
+// {
+//     auto& modelMPI = ModelMPI::getInstance();
+//     auto& metadata = ModelMetadata::getInstance();
+
+//     // We work on signed integers to represent extents and grid
+//     // coordinates
+//     // Size of the entire computational domain
+//     const int nx = metadata.getGlobalExtentX();
+//     const int ny = metadata.getGlobalExtentY();
+
+//     // Size of the domain of the current rank with halo
+//     const int localNx = metadata.getLocalExtentX() + 2 * static_cast<int>(Halo::haloWidth);
+//     const int localNy = metadata.getLocalExtentY() + 2 * static_cast<int>(Halo::haloWidth);
+
+//     // Position of the lower left corner of the patch (excluding halo) in the global
+//     // mesh
+//     const int offsetX = metadata.getLocalCornerX();
+//     const int offsetY = metadata.getLocalCornerY();
+
+//     ModelArray::setDimension(ModelArray::Dimension::X, nx, localNx, offsetX);
+//     ModelArray::setDimension(ModelArray::Dimension::Y, ny, localNy, offsetY);
+//     ModelArray::setNComponents(ModelArray::Type::DG, DG);
+
+//     ParametricMesh smesh(CARTESIAN);
+//     smesh.nx = localNx;
+//     smesh.ny = localNy;
+//     smesh.nelements = localNx * localNy;
+//     smesh.nnodes = (localNx + 1) * (localNy + 1);
+//     smesh.vertices.resize(smesh.nnodes, Eigen::NoChange);
+//     for (size_t i = 0; i < localNx + 1; ++i) {
+//         for (size_t j = 0; j < localNy + 1; ++j) {
+//             smesh.vertices(i * (localNy + 1) + j, 0) = i;
+//             smesh.vertices(i * (localNy + 1) + j, 1) = j;
+//         }
+//     }
+
+//     // create CGVector
+//     // The CGVector is not a ModelArray, but it lives on a shared-node lattice that
+//     // subdivides each cell CGDEGREE times, which Type::CG encodes in DomainModel
+//     DomainModel CGDomain { nx, ny, localNx, localNy, offsetX, offsetY, ModelArray::Type::CG };
+//     CGVector<CGDEGREE> cgVector;
+//     cgVector.resize_by_mesh(smesh);
+//     cgVector.zero();
+
+//     // initialize data
+//     initializeTestData(cgVector, CGDomain);
+
+//     // create halo and exchange
+//     // cgVector represents the vertical (v) component of a vector field, so the
+//     // component correction flips its sign over the tripolar fold
+//     Halo halo(cgVector, { -1.0 });
+//     halo.exchangeHalos(cgVector);
+
+//     verifyTestData(cgVector, CGDomain, { -1.0 });
+// }
 }

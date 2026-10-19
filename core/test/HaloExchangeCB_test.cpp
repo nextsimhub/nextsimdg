@@ -316,7 +316,7 @@ MPI_TEST_CASE("CGVector", 3)
     initializeTestData(cgVector, CGLocalNx, CGLocalNy, CGoffsetX, CGoffsetY, isCG);
 
     // create halo for testData model array
-    Halo halo(cgVector);
+    Halo halo(cgVector, { 1.0 });
     halo.exchangeHalos(cgVector);
 
     verifyTestData(cgVector, CGLocalNx, CGLocalNy, CGoffsetX, CGoffsetY, CGNx, CGNy, isCG);
