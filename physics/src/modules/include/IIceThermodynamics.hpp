@@ -42,7 +42,7 @@ public:
          * zero. It's a safe approximation, and it seems the user doesn't
          * really care! */
         try {
-            tsurf = ms.at(tsurfName);
+            tsurf.assignData(ms.at(tsurfName));
         } catch (const std::out_of_range& e) {
             Logged::info("No " + tsurfName + " field in restart file. Setting it to 0°C.\n");
             tsurf = 0.;

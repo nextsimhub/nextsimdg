@@ -145,40 +145,50 @@ void KokkosCGDynamicsKernel<DGadvection>::initialise(
 template <int DGadvection>
 ModelArray KokkosCGDynamicsKernel<DGadvection>::getDG0Data(const std::string& name) const
 {
+    // Do not return directly from the dG2MA call, because then the compiler can not see that we are
+    // returning a local object, preventing return-value optimization.
     if (name == shearName) {
         computeShearDevice(tempDataAdvectDevice, e11Device, e12Device, e22Device, PSIStressDevice,
             meshData->landMaskDevice, iMJwPSIAdvectDevice);
         HField data(ModelArray::Type::H);
-        return dG2MA(data, tempDataAdvectDevice);
+        dG2MA(data, tempDataAdvectDevice);
+        return data;
     } else if (name == divergenceName) {
         computeTensorInvariantIDevice(tempDataDevice, e11Device, e12Device, e22Device);
         Kokkos::deep_copy(this->tempDataHost, this->tempDataDevice);
         HField data(ModelArray::Type::H);
-        return dG2MA(data, tempDataAdvectDevice);
+        dG2MA(data, tempDataAdvectDevice);
+        return data;
     } else if (name == sigmaIName) {
         computeTensorInvariantIDevice(tempDataDevice, s11Device, s12Device, s22Device);
         HField data(ModelArray::Type::H);
-        return dG2MA(data, tempDataAdvectDevice);
+        dG2MA(data, tempDataAdvectDevice);
+        return data;
     } else if (name == sigmaIIName) {
         computeTensorInvariantIIDevice(tempDataDevice, s11Device, s12Device, s22Device);
         HField data(ModelArray::Type::H);
-        return dG2MA(data, tempDataAdvectDevice);
+        dG2MA(data, tempDataAdvectDevice);
+        return data;
     } else if (name == uName) {
         (*cG2DGAdvectInterpolator)(tempDataAdvectDevice, uDevice);
         HField data(ModelArray::Type::U);
-        return dG2MA(data, tempDataAdvectDevice);
+        dG2MA(data, tempDataAdvectDevice);
+        return data;
     } else if (name == vName) {
         (*cG2DGAdvectInterpolator)(tempDataAdvectDevice, vDevice);
         HField data(ModelArray::Type::V);
-        return dG2MA(data, tempDataAdvectDevice);
+        dG2MA(data, tempDataAdvectDevice);
+        return data;
     } else if (name == uIOStressName) {
         (*cG2DGAdvectInterpolator)(tempDataAdvectDevice, uIceOceanStressDevice);
         HField data(ModelArray::Type::U);
-        return dG2MA(data, tempDataAdvectDevice);
+        dG2MA(data, tempDataAdvectDevice);
+        return data;
     } else if (name == vIOStressName) {
         (*cG2DGAdvectInterpolator)(tempDataAdvectDevice, vIceOceanStressDevice);
         HField data(ModelArray::Type::V);
-        return dG2MA(data, tempDataAdvectDevice);
+        dG2MA(data, tempDataAdvectDevice);
+        return data;
     } else {
         return CGDynamicsKernel<DGadvection>::getDG0Data(name);
     }
