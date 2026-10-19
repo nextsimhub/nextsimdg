@@ -18,6 +18,7 @@
 
 #include <cstddef>
 #include <numeric>
+#include <stdexcept>
 #include <type_traits>
 #include <vector>
 
@@ -96,6 +97,18 @@ namespace HaloExchange {
 class Halo {
 public:
     /*!
+     * @brief Orientation of the field that a CGVector represents
+     *
+     * CGVector often represents a single component of a vector field but we
+     * don't have any information about the orientation of the component in
+     * the class itself. This is a challenge for the tripolar fold since the
+     * horizontal and vertical components must be treated differently: vertical
+     * components flip sign over the fold, while scalars and horizontal
+     * components are unchanged.
+     */
+    enum class Orientation { Scalar, HorizontalComponent, VerticalComponent };
+
+    /*!
      * @brief Constructs a halo object from ModelArray
      * @param ma ModelArray object to create halo from
      */
@@ -136,16 +149,29 @@ public:
     /*!
      * @brief Constructs a halo object from CGVector
      * @param cgv CGVector object to create halo from
+     * @param orientation Orientation of the field that the CGVector represents
+     * (see Orientation). It determines the component correction factor applied
+     * over the tripolar fold: scalar fields and horizontal vector components
+     * are unchanged (1.0), while vertical vector components flip sign (-1.0).
      */
-    template <int N> Halo(CGVector<N>& cgv)
+    template <int N> Halo(CGVector<N>& cgv, Orientation orientation)
     {
         m_numComps = 1;
         isCG = true;
         CGdegree = N;
         nCells = CGdegree;
         setTripolarFlags();
-        m_tripolarComponentCorrection
-            = HaloExchange::rotate180ComponentCorrections(ModelArray::Type::CG);
+        switch (orientation) {
+        case Orientation::Scalar:
+        case Orientation::HorizontalComponent:
+            m_tripolarComponentCorrection = { 1.0 };
+            break;
+        case Orientation::VerticalComponent:
+            m_tripolarComponentCorrection = { -1.0 };
+            break;
+        default:
+            throw std::invalid_argument("Unrecognised orientation");
+        }
         setSpatialDims();
         initializeHaloMetadata();
     }
