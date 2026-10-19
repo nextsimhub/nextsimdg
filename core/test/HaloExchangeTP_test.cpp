@@ -275,12 +275,12 @@ template <typename T> void initializeTestData(T& data, const DomainModel& domain
     }
 }
 
-template <typename T> void verifyTestData(T& data, const DomainModel& domain)
+template <typename T>
+void verifyTestData(
+    T& data, const DomainModel& domain, const std::vector<FloatType>& componentCorrection)
 {
     const int nCells = domain.haloSize;
     const auto numComps = static_cast<int>(data.cols());
-
-    const auto componentCorrection = HaloExchange::rotate180ComponentCorrections(domain.type);
 
     // Verify the test data
     for (int j = 0; j < domain.localNy; j++) {
@@ -350,7 +350,8 @@ MPI_TEST_CASE("test halo exchange on 3 proc grid", 3)
     halo.exchangeHalos(testData.getDataRef());
 
     // Verify the test data after halo exchange
-    verifyTestData(testData.getDataRef(), HFieldDomain);
+    verifyTestData(testData.getDataRef(), HFieldDomain,
+        HaloExchange::rotate180ComponentCorrections(ModelArray::Type::H));
 
     DomainModel VertexFieldDomain { nx, ny, localNx, localNy, offsetX, offsetY,
         ModelArray::Type::VERTEX };
@@ -364,7 +365,8 @@ MPI_TEST_CASE("test halo exchange on 3 proc grid", 3)
 
     haloVertex.exchangeHalos(coordinates.getDataRef());
 
-    verifyTestData(coordinates.getDataRef(), VertexFieldDomain);
+    verifyTestData(coordinates.getDataRef(), VertexFieldDomain,
+        HaloExchange::rotate180ComponentCorrections(ModelArray::Type::VERTEX));
 }
 
 MPI_TEST_CASE("DGField", 3)
@@ -405,7 +407,8 @@ MPI_TEST_CASE("DGField", 3)
     // exchange halos
     halo.exchangeHalos(testData.getDataRef());
 
-    verifyTestData(testData.getDataRef(), DGFieldDomain);
+    verifyTestData(testData.getDataRef(), DGFieldDomain,
+        HaloExchange::rotate180ComponentCorrections(ModelArray::Type::DG));
 }
 
 MPI_TEST_CASE("DGVector", 3)
@@ -460,7 +463,8 @@ MPI_TEST_CASE("DGVector", 3)
     // exchange halos
     halo.exchangeHalos(testData);
 
-    verifyTestData(testData, DGVectorDomain);
+    verifyTestData(testData, DGVectorDomain,
+        HaloExchange::rotate180ComponentCorrections(ModelArray::Type::DG));
 }
 
 MPI_TEST_CASE("CGVector", 3)
@@ -508,13 +512,34 @@ MPI_TEST_CASE("CGVector", 3)
     cgVector.resize_by_mesh(smesh);
     cgVector.zero();
 
-    // initialize data
-    initializeTestData(cgVector, CGDomain);
+    // Horizontal component case
+    {
+        cgVector.zero();
+        // initialize data
+        initializeTestData(cgVector, CGDomain);
 
-    // create halo and exchange
-    Halo halo(cgVector);
-    halo.exchangeHalos(cgVector);
+        // create halo and exchange
+        // the horizontal component of a vector field is unchanged over the
+        // tripolar fold
+        Halo halo(cgVector, Halo::Orientation::HorizontalComponent);
+        halo.exchangeHalos(cgVector);
 
-    verifyTestData(cgVector, CGDomain);
+        verifyTestData(cgVector, CGDomain, { 1.0 });
+    }
+
+    // Vertical component case
+    {
+        cgVector.zero();
+        // initialize data
+        initializeTestData(cgVector, CGDomain);
+
+        // create halo and exchange
+        // the vertical component of a vector field flips sign over the
+        // tripolar fold
+        Halo halo(cgVector, Halo::Orientation::VerticalComponent);
+        halo.exchangeHalos(cgVector);
+
+        verifyTestData(cgVector, CGDomain, { -1.0 });
+    }
 }
 }
