@@ -50,10 +50,10 @@ public:
         const BBMParameters& params = reinterpret_cast<const BBMParameters&>(dParams);
 
 //! Stress and Damage Update
-std::vector<FloatType> cellSize(this->smesh->nelements);
+std::vector<FloatType> cellSize(smesh.nelements);
 #pragma omp parallel for
-        for (size_t i = 0; i < this->smesh->nelements; ++i){
-            cellSize[i] = this->smesh->h(i);
+        for (size_t i = 0; i < smesh.nelements; ++i){
+            cellSize[i] = smesh.h(i);
         }
 
 #pragma omp parallel for
