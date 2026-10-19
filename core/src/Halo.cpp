@@ -456,15 +456,21 @@ void Halo::rotateTopEdgeInBuffer()
         }
     }
 
-    // Apply correcton to the components
-    // We need to touch all points on the top edge and TOP_RIGHT and TOP_LEFT corners, which are the
-    // last `recvBufferSize` points in the buffer
+    // Apply correction to the components
+    // We need to touch all points on the top edge and TOP_RIGHT and TOP_LEFT corners.
+    // The recv buffer consists of `nCells` blocks of `buffer_len` points (one block per
+    // halo cell for CG fields, a single block otherwise), each laid out as BOTTOM, RIGHT,
+    // TOP, LEFT edge followed by the corner points.
+    const std::size_t buffer_len = recvBufferSize / nCells;
     const std::size_t topEdgeStart = recvPosFromEdge(Edge::TOP);
     const std::size_t topEdgeEnd = recvPosFromEdge(Edge::LEFT);
     for (std::size_t comp = 0; comp < m_numComps; ++comp) {
         const auto correction = m_tripolarComponentCorrection.at(comp);
-        for (std::size_t i = topEdgeStart; i < topEdgeEnd; ++i) {
-            recv[comp][i] *= correction;
+        for (std::size_t cell = 0; cell < nCells; ++cell) {
+            const std::size_t blockOffset = cell * buffer_len;
+            for (std::size_t i = topEdgeStart; i < topEdgeEnd; ++i) {
+                recv[comp][blockOffset + i] *= correction;
+            }
         }
     }
 
@@ -481,7 +487,10 @@ void Halo::rotateTopEdgeInBuffer()
                 int fromRank;
                 std::size_t count, disp_ignore, recvOffset;
                 recvPositions(fromRank, count, disp_ignore, recvOffset, corner, cell);
-                recv[comp][recvOffset] *= correction;
+                // a corner spans `count` points per halo cell
+                for (std::size_t i = 0; i < count; ++i) {
+                    recv[comp][recvOffset + i] *= correction;
+                }
             }
         }
     }
