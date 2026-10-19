@@ -31,8 +31,8 @@ public:
 
     inline ModelState& merge(ModelState&& source)
     {
-        data.merge(source.data);
-        config.merge(source.config);
+        data.merge(std::move(source.data));
+        config.merge(std::move(source.config));
         return *this;
     }
 
@@ -44,7 +44,7 @@ public:
 
     inline ModelState& merge(ConfigMap&& configSrc)
     {
-        config.merge(configSrc);
+        config.merge(std::move(configSrc));
         return *this;
     }
 
@@ -56,7 +56,7 @@ public:
 
     inline ModelState& merge(DataMap&& dataSrc)
     {
-        data.merge(dataSrc);
+        data.merge(std::move(dataSrc));
         return *this;
     }
 };
