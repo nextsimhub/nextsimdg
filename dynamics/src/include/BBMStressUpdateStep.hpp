@@ -50,6 +50,12 @@ public:
         const BBMParameters& params = reinterpret_cast<const BBMParameters&>(dParams);
 
 //! Stress and Damage Update
+std::vector<FloatType> cellSize(this->smesh->nelements);
+#pragma omp parallel for
+        for (size_t i = 0; i < this->smesh->nelements; ++i){
+            cellSize[i] = this->smesh->h(i);
+        }
+
 #pragma omp parallel for
         for (size_t i = 0; i < smesh.nelements; ++i) {
 
@@ -150,7 +156,7 @@ public:
             dcrit = dcrit.array().min(1.0_ft);
 
             // Eqn. 29
-            const EdgeVec td = smesh.h(i) * std::sqrt(2. * (1. + params.nu0) * params.rhoIce)
+            const EdgeVec td = cellSize[i] * std::sqrt(2. * (1. + params.nu0) * params.rhoIce)
                 / elasticity.array().sqrt();
 
             // Update damage
