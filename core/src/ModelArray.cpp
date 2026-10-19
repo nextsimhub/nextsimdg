@@ -34,11 +34,15 @@ ModelArray::ModelArray(const ModelArray& orig)
 ModelArray& ModelArray::operator=(const ModelArray& orig)
 {
     if (orig.nComponents() == 1 && nComponents() != 1) {
-        component(0) = orig.data();
-    } else {
-        type = orig.type;
-        setData(orig.m_data);
+        // can't use the logger here because many tests use ModelArray but don not link boost and
+        // logged.cpp.
+        std::cout
+            << "Doing a copy assignment on a ModelArray where the left-hand side has multiple "
+               "components. This operation overwrites the number of components. If you intended to "
+               "just assign the 0-th component, use ModelArray::assignData instead.\n";
     }
+    type = orig.type;
+    setData(orig.m_data);
 
     return *this;
 }
@@ -315,10 +319,10 @@ void ModelArray::checkLimits(const ModelArray& mask) const
         throw std::runtime_error("Field contains NaN.");
 
     /* Now we check the bounds and set the array index (i) and value if we're out of bounds.
-     * Here, we need to check if the values are _outside_ the bounds, and if they are, then we ask
-     * Eigen to find the offending value and its location. We then proceed to throw an error.
-     * This also means that using '<' and '>' in the checks here is consistent with checking if the
-     * value is in min <= value <= max.
+     * Here, we need to check if the values are _outside_ the bounds, and if they are, then we
+     * ask Eigen to find the offending value and its location. We then proceed to throw an
+     * error. This also means that using '<' and '>' in the checks here is consistent with
+     * checking if the value is in min <= value <= max.
      */
     size_t i;
     FloatType value;
@@ -330,8 +334,8 @@ void ModelArray::checkLimits(const ModelArray& mask) const
         return;
     }
 
-    /* If we haven't returned (or thrown an exception) by now, we have an error in the field, and
-     * Eigen has found that this is at index i.
+    /* If we haven't returned (or thrown an exception) by now, we have an error in the field,
+     * and Eigen has found that this is at index i.
      */
     const std::vector<size_t> loc = locationFromIndex(type, i);
     std::string locStr = "[";

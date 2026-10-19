@@ -137,10 +137,14 @@ public:
         = { -std::numeric_limits<FloatType>::max(), std::numeric_limits<FloatType>::max() });
     //! Copy constructor
     ModelArray(const ModelArray&);
+    //! Move constructor
+    ModelArray(ModelArray&&) = default;
     virtual ~ModelArray() {};
 
     //! Copy assignment operator
     ModelArray& operator=(const ModelArray&);
+    //! Move assignment operator
+    ModelArray& operator=(ModelArray&&) = default;
     /*!
      * @brief Assigns a FloatType value to all elements of the object.
      *
