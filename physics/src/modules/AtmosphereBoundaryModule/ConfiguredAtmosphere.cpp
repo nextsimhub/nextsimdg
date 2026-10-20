@@ -12,7 +12,7 @@
 namespace Nextsim {
 
 FloatType ConfiguredAtmosphere::tair0 = 0; // Freezing
-FloatType ConfiguredAtmosphere::tdew0 = 0; // Fog
+FloatType ConfiguredAtmosphere::sphum0 = 3.775e-3; // Sphum at t_dew = 0 (Fog)
 FloatType ConfiguredAtmosphere::pair0 = 101325; // Mean pressure
 FloatType ConfiguredAtmosphere::sw0 = 0; // Night
 FloatType ConfiguredAtmosphere::lw0 = 315.637; // Stefan-Boltzmann at 0˚C
@@ -23,7 +23,7 @@ FloatType ConfiguredAtmosphere::vWind0 = 0; // Still
 
 static const std::string pfx = "ConfiguredAtmosphere";
 static const std::string tKey = pfx + ".t_air";
-static const std::string tdewKey = pfx + ".t_dew";
+static const std::string sphumKey = pfx + ".sphum";
 static const std::string pKey = pfx + ".pmsl";
 static const std::string swKey = pfx + ".sw_in";
 static const std::string lwKey = pfx + ".lw_in";
@@ -34,7 +34,7 @@ static const std::string vWindKey = pfx + ".wind_v";
 
 const static std::map<int, std::string> keyMap = {
     { ConfiguredAtmosphere::TAIR_KEY, tKey },
-    { ConfiguredAtmosphere::TDEW_KEY, tdewKey },
+    { ConfiguredAtmosphere::SPHUM_KEY, sphumKey },
     { ConfiguredAtmosphere::PAIR_KEY, pKey },
     { ConfiguredAtmosphere::SW_KEY, swKey },
     { ConfiguredAtmosphere::LW_KEY, lwKey },
@@ -46,7 +46,7 @@ const static std::map<int, std::string> keyMap = {
 
 ConfiguredAtmosphere::ConfiguredAtmosphere()
     : tairAccessor(getStore(), RO, ModelArray::Type::H)
-    , tdewAccessor(getStore(), RO, ModelArray::Type::H)
+    , sphumAccessor(getStore(), RO, ModelArray::Type::H)
     , pairAccessor(getStore(), RO, ModelArray::Type::H)
     , sw_inAccessor(getStore(), RO, ModelArray::Type::H)
     , lw_inAccessor(getStore(), RO, ModelArray::Type::H)
@@ -60,8 +60,8 @@ ConfigurationHelp::HelpMap& ConfiguredAtmosphere::getHelpRecursive(HelpMap& map,
     map[pfx] = {
         { tKey, ConfigType::NUMERIC, { "-210", "374" }, ConfigurationHelp::toString(tair0), "",
             "Air temperature at 2 m (˚C)." },
-        { tdewKey, ConfigType::NUMERIC, { "-273", "374" }, ConfigurationHelp::toString(tdew0), "",
-            "Dew point temperature at 2 m (˚C)." },
+        { sphumKey, ConfigType::NUMERIC, { "0", "0.1" }, ConfigurationHelp::toString(sphum0), "",
+            "Specific humidity at 2 m (kg kg⁻¹)." },
         { pKey, ConfigType::NUMERIC, { "0", "3395800" }, ConfigurationHelp::toString(pair0), "",
             "Surface air pressure (Pa)." },
         { swKey, ConfigType::NUMERIC, { "0", "1.390e122" }, ConfigurationHelp::toString(sw0), "",
@@ -85,7 +85,7 @@ ConfigurationHelp::HelpMap& ConfiguredAtmosphere::getHelpRecursive(HelpMap& map,
 void ConfiguredAtmosphere::configure()
 {
     tair0 = Configured::getConfiguration(keyMap.at(TAIR_KEY), tair0);
-    tdew0 = Configured::getConfiguration(keyMap.at(TDEW_KEY), tdew0);
+    sphum0 = Configured::getConfiguration(keyMap.at(SPHUM_KEY), sphum0);
     pair0 = Configured::getConfiguration(keyMap.at(PAIR_KEY), pair0);
     sw0 = Configured::getConfiguration(keyMap.at(SW_KEY), sw0);
     lw0 = Configured::getConfiguration(keyMap.at(LW_KEY), lw0);
@@ -103,7 +103,7 @@ ConfigMap ConfiguredAtmosphere::getConfiguration() const
 {
     return {
         { keyMap.at(TAIR_KEY), tair0 },
-        { keyMap.at(TDEW_KEY), tdew0 },
+        { keyMap.at(SPHUM_KEY), sphum0 },
         { keyMap.at(PAIR_KEY), pair0 },
         { keyMap.at(SW_KEY), sw0 },
         { keyMap.at(LW_KEY), lw0 },
@@ -120,8 +120,8 @@ void ConfiguredAtmosphere::setData(const ModelState::DataMap& dm)
     IAtmosphereBoundary::setData(dm);
     HField& tair = tairAccessor.getHostRW();
     tair.reinitialize();
-    HField& tdew = tdewAccessor.getHostRW();
-    tdew.reinitialize();
+    HField& sphum = sphumAccessor.getHostRW();
+    sphum.reinitialize();
     HField& pair = pairAccessor.getHostRW();
     pair.reinitialize();
     HField& sw_in = sw_inAccessor.getHostRW();
@@ -132,7 +132,7 @@ void ConfiguredAtmosphere::setData(const ModelState::DataMap& dm)
     wind.reinitialize();
 
     tair = tair0;
-    tdew = tdew0;
+    sphum = sphum0;
     pair = pair0;
     sw_in = sw0;
     lw_in = lw0;

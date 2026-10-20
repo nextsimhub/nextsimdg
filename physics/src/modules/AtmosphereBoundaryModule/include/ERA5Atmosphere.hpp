@@ -69,7 +69,7 @@ private:
     std::unique_ptr<IForcingInput> forcingState;
 
     ModelArrayAccessor<Protected::T_AIR, RW> tairAccessor;
-    ModelArrayAccessor<Protected::DEW_2M, RW> tdewAccessor;
+    ModelArrayAccessor<Protected::SPHUM, RW> spHumAccessor;
     ModelArrayAccessor<Protected::P_AIR, RW> pairAccessor;
     ModelArrayAccessor<Protected::SW_IN, RW> sw_inAccessor;
     ModelArrayAccessor<Protected::LW_IN, RW> lw_inAccessor;

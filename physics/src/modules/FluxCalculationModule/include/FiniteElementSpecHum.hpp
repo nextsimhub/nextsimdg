@@ -14,23 +14,24 @@ namespace Nextsim {
 class FiniteElementSpecHum {
 public:
     // device functions need to be defined inline
-    KERNEL_IMPL_FUNCTION FloatType operator()(FloatType temperature, FloatType pressure) const
+    KERNEL_IMPL_FUNCTION FloatType operator()(
+        const FloatType temperature, const FloatType pressure) const
     {
         return operator()(temperature, pressure, 0);
     }
     KERNEL_IMPL_FUNCTION FloatType operator()(
-        FloatType temperature, FloatType pressure, FloatType salinity) const
+        const FloatType temperature, const FloatType pressure, const FloatType salinity) const
     {
         return calculate<false>(temperature, pressure, salinity);
     }
 
-    KERNEL_IMPL_FUNCTION Utils::pair<FloatType, FloatType> valueAndDerivative(
-        FloatType temperature, FloatType pressure) const
+    KERNEL_IMPL_FUNCTION [[nodiscard]] Utils::pair<FloatType, FloatType> valueAndDerivative(
+        const FloatType temperature, const FloatType pressure) const
     {
         return valueAndDerivative(temperature, pressure, 0);
     }
-    KERNEL_IMPL_FUNCTION Utils::pair<FloatType, FloatType> valueAndDerivative(
-        FloatType temperature, FloatType pressure, FloatType salinity) const
+    KERNEL_IMPL_FUNCTION [[nodiscard]] Utils::pair<FloatType, FloatType> valueAndDerivative(
+        const FloatType temperature, const FloatType pressure, const FloatType salinity) const
     {
         return calculate<true>(temperature, pressure, salinity);
     }
@@ -43,8 +44,8 @@ public:
     static FiniteElementSpecHum& ice() { return m_ice; }
 
 private:
-    FiniteElementSpecHum(FloatType a, FloatType b, FloatType c, FloatType d, FloatType bigA,
-        FloatType bigB, FloatType bigC)
+    FiniteElementSpecHum(const FloatType a, const FloatType b, const FloatType c, const FloatType d,
+        const FloatType bigA, const FloatType bigB, const FloatType bigC)
         : m_a(a)
         , m_b(b)
         , m_c(c)
@@ -58,8 +59,8 @@ private:
     }
 
     template <bool doDeriv>
-    KERNEL_IMPL_FUNCTION auto calculate(
-        FloatType temperature, FloatType pressure, FloatType salinity) const
+    KERNEL_IMPL_FUNCTION [[nodiscard]] auto calculate(
+        const FloatType temperature, const FloatType pressure, const FloatType salinity) const
         -> std::conditional_t<doDeriv, Utils::pair<FloatType, FloatType>, FloatType>
     {
         const FloatType estCalc = est(temperature, salinity);
@@ -85,14 +86,16 @@ private:
     }
 
     // Specific humidity terms
-    KERNEL_IMPL_FUNCTION FloatType f(FloatType temperature, FloatType pressurePa) const
+    KERNEL_IMPL_FUNCTION [[nodiscard]] FloatType f(
+        const FloatType temperature, const FloatType pressurePa) const
     {
-        const FloatType pressure_mb = pressurePa * 0.01;
-        return 1 + m_bigA + pressure_mb * (m_bigB + m_bigC * temperature * temperature);
+        const FloatType pressure_mb = pressurePa * 0.01_ft;
+        return 1._ft + m_bigA + pressure_mb * (m_bigB + m_bigC * temperature * temperature);
     }
-    KERNEL_IMPL_FUNCTION FloatType est(FloatType temperature, FloatType salinity) const
+    KERNEL_IMPL_FUNCTION [[nodiscard]] FloatType est(
+        const FloatType temperature, const FloatType salinity) const
     {
-        FloatType salFactor = 1 - 5.37e-4 * salinity;
+        const FloatType salFactor = 1._ft - 5.37e-4_ft * salinity;
         return m_a * Utils::exp((m_b - temperature / m_d) * temperature / (temperature + m_c))
             * salFactor;
     }

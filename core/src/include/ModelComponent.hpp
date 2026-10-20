@@ -31,7 +31,7 @@ namespace Protected {
     inline constexpr TextTag DAMAGE = "DAMAGE0"; // Ice damage 0–1
     // External data fields
     inline constexpr TextTag T_AIR = "T_AIR"; // Air temperature, ˚C
-    inline constexpr TextTag DEW_2M = "DEW_2M"; // Dew point at 2 m, ˚C
+    inline constexpr TextTag SPHUM = "SPHUM"; // Specific humidity at 2 m, kg/kg
     inline constexpr TextTag P_AIR = "P_AIR"; // sea level air pressure, Pa
     inline constexpr TextTag MIXRAT = "MIXRAT"; // water vapour mass mixing ratio
     inline constexpr TextTag SW_IN = "SW_IN"; // incoming shortwave flux, W m⁻²

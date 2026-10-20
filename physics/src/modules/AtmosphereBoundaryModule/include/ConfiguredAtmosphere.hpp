@@ -15,11 +15,10 @@ namespace Nextsim {
 class ConfiguredAtmosphere : public IAtmosphereBoundary, public Configured<ConfiguredAtmosphere> {
 public:
     ConfiguredAtmosphere();
-    ~ConfiguredAtmosphere() = default;
 
     enum {
         TAIR_KEY,
-        TDEW_KEY,
+        SPHUM_KEY,
         PAIR_KEY,
         SW_KEY,
         LW_KEY,
@@ -42,7 +41,7 @@ public:
 
 private:
     static FloatType tair0;
-    static FloatType tdew0;
+    static FloatType sphum0;
     static FloatType pair0;
     static FloatType sw0;
     static FloatType lw0;
@@ -52,7 +51,7 @@ private:
     static FloatType vWind0;
 
     ModelArrayAccessor<Protected::T_AIR, RW> tairAccessor;
-    ModelArrayAccessor<Protected::DEW_2M, RW> tdewAccessor;
+    ModelArrayAccessor<Protected::SPHUM, RW> sphumAccessor;
     ModelArrayAccessor<Protected::P_AIR, RW> pairAccessor;
     ModelArrayAccessor<Protected::SW_IN, RW> sw_inAccessor;
     ModelArrayAccessor<Protected::LW_IN, RW> lw_inAccessor;

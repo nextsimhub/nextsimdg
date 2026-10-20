@@ -9,6 +9,7 @@
 
 #include "include/Configurator.hpp"
 #include "include/ConfiguredModule.hpp"
+#include "include/FiniteElementSpecHum.hpp"
 #include "include/IFreezingPoint.hpp"
 #include "include/ModelArray.hpp"
 #include "include/ModelComponent.hpp"
@@ -45,7 +46,7 @@ TEST_CASE("Melting conditions")
     public:
         AtmosphereData()
             : tairAccessor(getStore(), RO)
-            , tdewAccessor(getStore(), RO)
+            , sphumAccessor(getStore(), RO)
             , pairAccessor(getStore(), RO)
             , windSpeedAccessor(getStore(), RO)
             , u_airAccessor(getStore(), RO)
@@ -58,8 +59,8 @@ TEST_CASE("Melting conditions")
         {
             HField& tair = tairAccessor.getHostRW();
             tair.reinitialize();
-            HField& tdew = tdewAccessor.getHostRW();
-            tdew.reinitialize();
+            HField& sphum = sphumAccessor.getHostRW();
+            sphum.reinitialize();
             HField& pair = pairAccessor.getHostRW();
             pair.reinitialize();
             HField& windSpeed = windSpeedAccessor.getHostRW();
@@ -74,8 +75,9 @@ TEST_CASE("Melting conditions")
             lw_in.reinitialize();
 
             tair = 3;
-            tdew = 2;
             pair = 100000.;
+            const FiniteElementSpecHum specHumWater = FiniteElementSpecHum::water();
+            sphum = specHumWater(tair(0), pair(0));
             windSpeed = 5;
             u_air = 3;
             v_air = 4;
@@ -86,7 +88,7 @@ TEST_CASE("Melting conditions")
 
     private:
         ModelArrayAccessor<Protected::T_AIR, RW> tairAccessor;
-        ModelArrayAccessor<Protected::DEW_2M, RW> tdewAccessor;
+        ModelArrayAccessor<Protected::SPHUM, RW> sphumAccessor;
         ModelArrayAccessor<Protected::P_AIR, RW> pairAccessor;
         ModelArrayAccessor<Protected::WIND_SPEED, RW> windSpeedAccessor;
         ModelArrayAccessor<Protected::WIND_U, RW> u_airAccessor;
@@ -186,7 +188,7 @@ TEST_CASE("Freezing conditions")
     public:
         AtmosphereData()
             : tairAccessor(getStore(), RO)
-            , tdewAccessor(getStore(), RO)
+            , sphumAccessor(getStore(), RO)
             , pairAccessor(getStore(), RO)
             , windSpeedAccessor(getStore(), RO)
             , u_airAccessor(getStore(), RO)
@@ -199,8 +201,8 @@ TEST_CASE("Freezing conditions")
         {
             HField& tair = tairAccessor.getHostRW();
             tair.reinitialize();
-            HField& tdew = tdewAccessor.getHostRW();
-            tdew.reinitialize();
+            HField& sphum = sphumAccessor.getHostRW();
+            sphum.reinitialize();
             HField& pair = pairAccessor.getHostRW();
             pair.reinitialize();
             HField& windSpeed = windSpeedAccessor.getHostRW();
@@ -214,8 +216,9 @@ TEST_CASE("Freezing conditions")
             HField& lw_in = lw_inAccessor.getHostRW();
             lw_in.reinitialize();
             tair = -12;
-            tdew = -12;
             pair = 100000.;
+            const FiniteElementSpecHum specHumWater = FiniteElementSpecHum::water();
+            sphum = specHumWater(tair(0), pair(0));
             windSpeed = 5;
             u_air = 3;
             v_air = 4;
@@ -226,7 +229,7 @@ TEST_CASE("Freezing conditions")
 
     private:
         ModelArrayAccessor<Protected::T_AIR, RW> tairAccessor;
-        ModelArrayAccessor<Protected::DEW_2M, RW> tdewAccessor;
+        ModelArrayAccessor<Protected::SPHUM, RW> sphumAccessor;
         ModelArrayAccessor<Protected::P_AIR, RW> pairAccessor;
         ModelArrayAccessor<Protected::WIND_SPEED, RW> windSpeedAccessor;
         ModelArrayAccessor<Protected::WIND_U, RW> u_airAccessor;

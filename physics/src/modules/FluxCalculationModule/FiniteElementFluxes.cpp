@@ -89,7 +89,6 @@ void FiniteElementFluxes::setData(const ModelState::DataMap& ms)
     Q_lw_iaAccessor.getHostRW().reinitialize();
     rho_airAccessor.getHostRW().reinitialize();
     cp_airAccessor.getHostRW().reinitialize();
-    sh_airAccessor.getHostRW().reinitialize();
     sh_waterAccessor.getHostRW().reinitialize();
     sh_iceAccessor.getHostRW().reinitialize();
     dshice_dTAccessor.getHostRW().reinitialize();
@@ -166,12 +165,11 @@ void FiniteElementFluxes::updateAtmosphere(const TimestepTime& tst)
     auto& cp_air = cp_airAccessor.getAutoRW(execSpace);
     auto& dshice_dT = dshice_dTAccessor.getAutoRW(execSpace);
     auto& rho_air = rho_airAccessor.getAutoRW(execSpace);
-    auto& sh_air = sh_airAccessor.getAutoRW(execSpace);
+    const auto& sh_air = sh_airAccessor.getAutoRO(execSpace);
     const auto& p_air = p_airAccessor.getAutoRO(execSpace);
     const auto& sss = sssAccessor.getAutoRO(execSpace);
     const auto& sst = sstAccessor.getAutoRO(execSpace);
     const auto& t_air = t_airAccessor.getAutoRO(execSpace);
-    const auto& t_dew2 = t_dew2Accessor.getAutoRO(execSpace);
     const auto& tsurf = tsurfAccessor.getAutoRO(execSpace);
 
     const FiniteElementSpecHum specHumWater = FiniteElementSpecHum::water();
@@ -179,8 +177,6 @@ void FiniteElementFluxes::updateAtmosphere(const TimestepTime& tst)
 
     overElementsAuto(OVER_ELEMENTS_LAMBDA(const ElementIndex i) {
         // Specific humidity of...
-        // ...the air
-        sh_air[i] = specHumWater(t_dew2[i], p_air[i]);
         // ...over the open ocean
         sh_water[i] = specHumWater(sst[i], p_air[i], sss[i]);
         // ...over the ice

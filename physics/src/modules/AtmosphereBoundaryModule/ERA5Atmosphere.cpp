@@ -4,6 +4,7 @@
 
 #include "include/ERA5Atmosphere.hpp"
 
+#include "FluxCalculationModule/include/FiniteElementSpecHum.hpp"
 #include "include/Finalizer.hpp"
 #include "include/NextsimModule.hpp"
 #include "include/ParaGridIO.hpp"
@@ -23,7 +24,7 @@ static const std::map<int, std::string> keyMap = {
 ERA5Atmosphere::ERA5Atmosphere()
     : fluxImpl(nullptr)
     , tairAccessor(getStore(), RO, ModelArray::Type::H, std::pair(-100.0, 100.0))
-    , tdewAccessor(getStore(), RO, ModelArray::Type::H, std::pair(-100.0, 100.0))
+    , spHumAccessor(getStore(), RO, ModelArray::Type::H, std::pair(0.0, 1.0))
     , pairAccessor(getStore(), RO, ModelArray::Type::H, std::pair(500e2, 2000e2))
     , sw_inAccessor(getStore(), RO, ModelArray::Type::H, std::pair(-1e-3, 1e4))
     , lw_inAccessor(getStore(), RO, ModelArray::Type::H, std::pair(-1e-3, 1e4))
@@ -56,7 +57,6 @@ void ERA5Atmosphere::configure()
 
     addChecks({
         { "tair", tairAccessor },
-        { "tdew", tdewAccessor },
         { "pair", pairAccessor },
         { "sw_in", sw_inAccessor },
         { "lw_in", lw_inAccessor },
@@ -77,7 +77,7 @@ void ERA5Atmosphere::update(const TimestepTime& tst)
 
     // Fetch the raw data fields
     tairAccessor.getHostRW() = forcingState->getField(tAirName);
-    tdewAccessor.getHostRW() = forcingState->getField(dew2mName);
+    spHumAccessor.getHostRW() = forcingState->getField(dew2mName);
     pairAccessor.getHostRW() = forcingState->getField(pAirName);
     sw_inAccessor.getHostRW() = forcingState->getField(swInName);
     lw_inAccessor.getHostRW() = forcingState->getField(lwInName);
@@ -111,16 +111,21 @@ void ERA5Atmosphere::update(const TimestepTime& tst)
 
     // Postprocess the data fields
     auto& tair = tairAccessor.getAutoRW();
-    auto& tdew = tdewAccessor.getAutoRW();
+    auto& spHum = spHumAccessor.getAutoRW();
+    const auto& pair = pairAccessor.getAutoRO();
+    const FiniteElementSpecHum specHumWater = FiniteElementSpecHum::water();
+
     auto& rain = rainAccessor.getAutoRW();
     const auto& snow = snowAccessor.getAutoRO();
+
     auto& wind = windAccessor.getAutoRW();
     const auto& uWind = uwindAccessor.getAutoRO();
     const auto& vWind = vwindAccessor.getAutoRO();
+
     overElementsAuto(OVER_ELEMENTS_LAMBDA(const ElementIndex i) {
         // Temperatures in Celsius
         tair[i] -= Water::Tf;
-        tdew[i] -= Water::Tf;
+        spHum[i] = specHumWater(tair[i], pair[i]);
 
         // Rain from ERA5 is actually total precipitation - so subtract the snowfall
         rain[i] -= snow[i];

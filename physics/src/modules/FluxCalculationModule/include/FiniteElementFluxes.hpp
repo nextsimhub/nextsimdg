@@ -28,14 +28,13 @@ public:
         , Q_lw_iaAccessor(getStore(), RO, ModelArray::Type::H)
         , rho_airAccessor(getStore(), RO, ModelArray::Type::H)
         , cp_airAccessor(getStore(), RO, ModelArray::Type::H)
-        , sh_airAccessor(getStore(), RO, ModelArray::Type::H)
         , sh_waterAccessor(getStore(), RO, ModelArray::Type::H)
         , sh_iceAccessor(getStore(), RO, ModelArray::Type::H)
         , dshice_dTAccessor(getStore(), RO, ModelArray::Type::H)
         , sstAccessor(getStore())
         , sssAccessor(getStore())
         , t_airAccessor(getStore())
-        , t_dew2Accessor(getStore())
+        , sh_airAccessor(getStore())
         , p_airAccessor(getStore())
         , windSpeedAccessor(getStore())
         , u_airAccessor(getStore())
@@ -93,7 +92,6 @@ private:
         static inline constexpr TextTag Q_LW_IA = "Q_LW_IA";
         static inline constexpr TextTag RHO_AIR = "RHO_AIR";
         static inline constexpr TextTag CP_AIR = "CP_AIR";
-        static inline constexpr TextTag SH_AIR = "SH_AIR";
         static inline constexpr TextTag SH_WATER = "SH_WATER";
         static inline constexpr TextTag SH_ICE = "SH_ICE";
         static inline constexpr TextTag DSHICE_DT = "DSHICE_DT";
@@ -115,7 +113,6 @@ private:
     ModelArrayAccessor<Private::CP_AIR, RW>
         cp_airAccessor; // Specific heat capacity of the wet air [J kg⁻¹ K⁻¹]
     // Specific humidity and T derivative
-    ModelArrayAccessor<Private::SH_AIR, RW> sh_airAccessor;
     ModelArrayAccessor<Private::SH_WATER, RW> sh_waterAccessor;
     ModelArrayAccessor<Private::SH_ICE, RW> sh_iceAccessor;
     ModelArrayAccessor<Private::DSHICE_DT, RW> dshice_dTAccessor;
@@ -124,7 +121,7 @@ private:
     ModelArrayAccessor<Protected::SST> sstAccessor;
     ModelArrayAccessor<Protected::SSS> sssAccessor;
     ModelArrayAccessor<Protected::T_AIR> t_airAccessor;
-    ModelArrayAccessor<Protected::DEW_2M> t_dew2Accessor;
+    ModelArrayAccessor<Protected::SPHUM> sh_airAccessor;
     ModelArrayAccessor<Protected::P_AIR> p_airAccessor;
     ModelArrayAccessor<Protected::WIND_SPEED> windSpeedAccessor;
     ModelArrayAccessor<Protected::WIND_U> u_airAccessor;
