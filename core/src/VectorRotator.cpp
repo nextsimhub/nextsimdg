@@ -4,6 +4,8 @@
  */
 
 #include "include/VectorRotator.hpp"
+#include "include/Model.hpp"
+#include "include/ModelArray.hpp"
 #include "include/ParametricMesh.hpp"
 #include "include/cgVector.hpp"
 #include "include/constants.hpp"
@@ -24,13 +26,31 @@ VectorRotator::VectorRotator(const std::vector<size_t>& dimsIn)
  * domain, the unit vectors are calculated from the lower left corner, but the top row and last
  * column need to be handled separately.
  */
-VectorRotator::VectorRotator(const std::vector<size_t>& dimsIn, const std::vector<double>& lon,
-    const std::vector<double>& lat, const Orientation orient)
+VectorRotator::VectorRotator(const std::vector<size_t>& dimsIn, const std::vector<double>& lonIn,
+    const std::vector<double>& latIn, const Orientation orient)
     : dims(dimsIn)
 {
     det.resize(dims[0] * dims[1]);
     ex.resize(det.size());
     ey.resize(det.size());
+
+    /* We may need to create a meshed version of the input coordinates.
+     *  This probably only happens if we're in East-North orientation. However, using
+     * orientation::GRID in that case is a useful test. */
+    std::vector<double> lon, lat;
+    if (lonIn.size() != latIn.size()) {
+        lon.reserve(dims[0] * dims[1]);
+        lat.reserve(dims[0] * dims[1]);
+        for (size_t j = 0; j < dims[1]; ++j) {
+            for (size_t i = 0; i < dims[0]; ++i) {
+                lon.push_back(lonIn[i]);
+                lat.push_back(latIn[j]);
+            }
+        }
+    } else {
+        lon = lonIn;
+        lat = latIn;
+    }
 
     switch (orient) {
     case Orientation::EAST_NORTH:
@@ -46,17 +66,21 @@ VectorRotator::VectorRotator(const std::vector<size_t>& dimsIn, const std::vecto
         smesh.TransformToRadians();
         smesh.RotatePoleToGreenland();
 
-        /* Assemble the ex, ey, and det vectors needed by toParametricMesh and
+        /* Assemble the ex, ey, and det vectors needed by fromDisplacedPole and
          * fromParametricMesh. We start by constructing the element orientation everywhere except in
          * the last row and column by connecting the lower left corner of the grid cell with the
          * upper left and lower right.
          */
 
-        // weights to connect lower left corner with its neighbours
-        Eigen::Matrix<FloatType, 4, 1> ix({ -1, 1, 0, 0 });
-        Eigen::Matrix<FloatType, 4, 1> iy({ -1, 0, 1, 0 });
+        // weights to connect different corner with its neighbours
+        Eigen::Matrix<FloatType, 4, 1> ixLower({ -1, 1, 0, 0 });
+        Eigen::Matrix<FloatType, 4, 1> iyLeft({ -1, 0, 1, 0 });
+        Eigen::Matrix<FloatType, 4, 1> ixUpper({ 0, 0, -1, 1 });
+        Eigen::Matrix<FloatType, 4, 1> iyRight({ 0, -1, 0, 1 });
 
-        // Loop through the full smesh grid. This leaves the upper and right outer boundary.
+        /* Loop through the full smesh grid, with the lower left corner as reference. This leaves
+         * the upper and right outer boundary.
+         */
 #pragma omp parallel for
         for (size_t eid = 0; eid < smesh.nelements; ++eid) {
             const Eigen::Matrix<FloatType, 4, 2> coe = smesh.coordinatesOfElement(eid);
@@ -65,15 +89,12 @@ VectorRotator::VectorRotator(const std::vector<size_t>& dimsIn, const std::vecto
             // NB! dimsIn != { smesh.nx, smesh.ny }
             const std::vector<size_t> ij = deIndexer({ smesh.nx, smesh.ny }, eid);
             const size_t k = indexer(dimsIn, ij);
-            unitVectors(k, ix, iy, coe);
+            unitVectors(k, ixLower, iyLeft, coe);
         }
 
         /* Handle the edge cases by assuming a different connectivity within the smesh element */
 
-        // Top row
-        // weights to connect upper left corner with its neighbours.
-        ix = { 0, 0, -1, 1 };
-        iy = { -1, 0, 1, 0 };
+        // Top row, using upper left corner as reference
 #pragma omp parallel for
         for (size_t i = 0; i < smesh.nx; ++i) {
             const size_t j = smesh.ny - 1;
@@ -83,13 +104,10 @@ VectorRotator::VectorRotator(const std::vector<size_t>& dimsIn, const std::vecto
 
             // Place the results into i and j+1, because the reference is upper left corner
             const size_t k = indexer(dimsIn, { i, j + 1 });
-            unitVectors(k, ix, iy, coe);
+            unitVectors(k, ixUpper, iyLeft, coe);
         }
 
-        //  Last column
-        // weights to connect lower right corner with its neighbours.
-        ix = { -1, 1, 0, 0 };
-        iy = { 0, -1, 0, 1 };
+        //  Last column, using lower right corner as reference
 #pragma omp parallel for
         for (size_t j = 0; j < smesh.ny; ++j) {
             const size_t i = smesh.nx - 1;
@@ -99,15 +117,10 @@ VectorRotator::VectorRotator(const std::vector<size_t>& dimsIn, const std::vecto
 
             // Place the results into i+1 and j, because the reference is lower right corner
             const size_t k = indexer(dimsIn, { i + 1, j });
-            unitVectors(k, ix, iy, coe);
+            unitVectors(k, ixLower, iyRight, coe);
         }
 
         // The remaining upper right corner
-        // weights to connect upper right with its neighbours.
-        ix = { 0, 0, -1, 1 };
-        iy = { 0, -1, 0, 1 };
-
-        // Upper right corner
         const size_t i = smesh.nx - 1;
         const size_t j = smesh.ny - 1;
 
@@ -116,7 +129,7 @@ VectorRotator::VectorRotator(const std::vector<size_t>& dimsIn, const std::vecto
 
         // Place the results into i+1 and j+1, because the reference is upper right corner
         const size_t k = indexer(dimsIn, { i + 1, j + 1 });
-        unitVectors(k, ix, iy, coe);
+        unitVectors(k, ixUpper, iyRight, coe);
 
         break;
     }
@@ -129,36 +142,33 @@ VectorRotator::VectorRotator(const std::vector<size_t>& dimsIn, const std::vecto
 /* A constructor that uses a ModelArray with the model coordinates, and coordinates of cell vertices
  * to construct the unit vectors. Much simpler than the other one.
  */
-VectorRotator::VectorRotator(const ModelArray& coords, const Orientation orient)
+VectorRotator::VectorRotator(const ModelState& state, const Orientation orient)
+    : dims({ ModelArray::size(ModelArray::Dimension::X),
+          ModelArray::size(ModelArray::Dimension::Y) })
 {
+    det.resize(dims[0] * dims[1]);
+    ex.resize(det.size());
+    ey.resize(det.size());
+
     switch (orient) {
     case Orientation::EAST_NORTH: {
         // Call the ENOrientation routine if we're in East-North orientation
-        const auto lon = std::vector(
-            coords.components(0).data(), coords.components(0).data() + coords.components(0).size());
-        const auto lat = std::vector(
-            coords.components(1).data(), coords.components(1).data() + coords.components(1).size());
-        initENOrientation(lon, lat);
+        initENOrientation(state.data.at(longitudeName), state.data.at(latitudeName));
         break;
     }
     case Orientation::GRID: {
         // Build a smesh object for spherical coordinates
         ParametricMesh smesh(SPHERICAL);
 
-        dims = { ModelArray::size(ModelArray::Dimension::X),
-            ModelArray::size(ModelArray::Dimension::Y) };
-
         // Build a ParametricMesh object and rotate to Greenland
-        smesh.coordinatesFromModelArray(coords);
+        smesh.coordinatesFromModelArray(state.data.at(coordsName));
+        smesh.TransformToRadians();
         smesh.RotatePoleToGreenland();
 
-        /* Assemble the ex, ey, and det vectors needed by toParametricMesh and
+        /* Assemble the ex, ey, and det vectors needed by fromDisplacedPole and
          * fromParametricMesh. In this case, coords contains all the grid cell corners, making
          * things easy.
          */
-        det.resize(dims[0] * dims[1]);
-        ex.resize(det.size());
-        ey.resize(det.size());
 
         // Connect the edge-midpoints to get the unit-vectors
         const Eigen::Matrix<FloatType, 4, 1> iix({ -0.5, 0.5, -0.5, 0.5 });
@@ -186,21 +196,16 @@ VectorRotator::VectorRotator(const ModelArray& coords, const Orientation orient)
  * However, this requires lat and lon as doubles, otherwise we start to loose precision further
  * north than approx asin(1-1e-3) = 87.4°N.
  */
-void VectorRotator::initENOrientation(
-    const std::vector<double>& lon, const std::vector<double>& lat)
+template <typename T> void VectorRotator::initENOrientation(const T& lon, const T& lat)
 {
     // TODO: The Greenland pole shouldn't be hardcoded!
-    const double polLon = radians(15.);
-    const double polLat = radians(40.);
+    const double polLon = radians(-40.);
+    const double polLat = radians(75.);
 
 #pragma omp parallel for
     for (size_t eid = 0; eid < det.size(); ++eid) {
-        const std::vector<size_t> ij = deIndexer(dims, eid);
-        const size_t i = ij[0];
-        const size_t j = ij[1];
-
-        const double rLon = radians(lon[i]);
-        const double rLat = radians(lat[j]);
+        const double rLon = radians(lon[eid]);
+        const double rLat = radians(lat[eid]);
 
         // alpha = atan2(a, b)
         const double deltaLon = polLon - rLon;
@@ -212,8 +217,8 @@ void VectorRotator::initENOrientation(
         const double sinAlpha = a / std::hypot(a, b);
         const double cosAlpha = b / std::hypot(a, b);
 
-        ex[eid] = { cosAlpha, -sinAlpha };
-        ey[eid] = { sinAlpha, cosAlpha };
+        ex[eid] = { cosAlpha, sinAlpha };
+        ey[eid] = { -sinAlpha, cosAlpha };
 
         // det[eid] = ex[eid](0) * ey[eid](1) - ex[eid](1) * ey[eid](0);
         // The determinant is just one
@@ -221,9 +226,9 @@ void VectorRotator::initENOrientation(
     }
 }
 
-// A: From ocean to ParamMesh:
+// A: From ParamMesh to displaced pole:
 // ocean velocity is ox * ex + ey * ey. This can directly be evaluated:
-void VectorRotator::toParametricMesh(std::vector<FloatType>& u, std::vector<FloatType>& v) const
+void VectorRotator::fromParametricMesh(std::vector<FloatType>& u, std::vector<FloatType>& v) const
 {
 #pragma omp parallel for
     for (size_t i = 0; i < u.size(); ++i) {
@@ -233,9 +238,9 @@ void VectorRotator::toParametricMesh(std::vector<FloatType>& u, std::vector<Floa
     }
 }
 
-// B: from ParamMesh to ocean
+// B: from displaced pole to ParamMesh
 // solve linear system such that ex * ox + ey * uy = v
-void VectorRotator::fromParametricMesh(std::vector<FloatType>& u, std::vector<FloatType>& v) const
+void VectorRotator::fromDisplacedPole(ModelArray& u, ModelArray& v) const
 {
 #pragma omp parallel for
     for (size_t i = 0; i < u.size(); ++i) {
@@ -245,9 +250,9 @@ void VectorRotator::fromParametricMesh(std::vector<FloatType>& u, std::vector<Fl
     }
 }
 
-// A version of toParametricMesh which interpolates the output to CGVectors
+// A version of fromParametricMesh which interpolates the output to CGVectors
 template <int CG>
-void VectorRotator::toParametricMesh(const std::vector<FloatType>& uIn,
+void VectorRotator::fromParametricMesh(const std::vector<FloatType>& uIn,
     const std::vector<FloatType>& vIn, CGVector<CG>& uOut, CGVector<CG>& vOut) const
 {
     uOut.setZero();

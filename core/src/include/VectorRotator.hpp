@@ -8,6 +8,7 @@
 
 #include "include/FloatType.hpp"
 #include "include/ModelArray.hpp"
+#include "include/ModelState.hpp"
 #include "include/cgVector.hpp"
 
 #include <Eigen/src/Core/Matrix.h>
@@ -20,7 +21,7 @@ namespace Nextsim {
  * A class to perform vector rotations for inputs and outputs between the nextsim, displaced-pole
  * coordinate system and that of an arbitrary input or output grid. The constructor calculates the
  * unit vectors of the input/output grid in the nextsim coordinate system. These are then used to
- * transform input vectors in toParametricMesh and fromParametricMesh.
+ * transform input vectors in fromDisplacedPole and fromParametricMesh.
  */
 class VectorRotator {
 public:
@@ -49,16 +50,16 @@ public:
      * @param lat The latitudes of the grid points
      * @param orient Vector orientation (GRID or EAST_NORTH)
      */
-    VectorRotator(const std::vector<size_t>& dimsIn, const std::vector<FloatType>& lon,
-        const std::vector<FloatType>& lat, Orientation orient);
+    VectorRotator(const std::vector<size_t>& dimsIn, const std::vector<FloatType>& lonIn,
+        const std::vector<FloatType>& latIn, Orientation orient);
 
     /*!
      * @brief Constructor for the VectorRotator class based on a the coordinates in a ModelArray
      *
-     * @param coords A ModelArray containing the coordinates of the grid points
+     * @param state A ModelState containing the coordinates of the grid points
      * @param orient Vector orientation (GRID or EAST_NORTH)
      */
-    explicit VectorRotator(const ModelArray& coords, Orientation orient);
+    explicit VectorRotator(const ModelState& state, Orientation orient);
 
     /*!
      * @brief Transforms velocities to the parametric mesh in place. All vectors are at the grid
@@ -67,7 +68,7 @@ public:
      * @param u The u-velocities
      * @param v The v-velocities
      */
-    void toParametricMesh(std::vector<FloatType>& u, std::vector<FloatType>& v) const;
+    void fromDisplacedPole(ModelArray& u, ModelArray& v) const;
 
     /*!
      * @brief Transforms velocities from the parametric mesh in place. All vectors are at the grid
@@ -88,7 +89,7 @@ public:
      * @param vOut The output v-velocities
      */
     template <int CG>
-    void toParametricMesh(const std::vector<FloatType>& uIn, const std::vector<FloatType>& vIn,
+    void fromParametricMesh(const std::vector<FloatType>& uIn, const std::vector<FloatType>& vIn,
         CGVector<CG>& uOut, CGVector<CG>& vOut) const;
 
     /*!
@@ -112,7 +113,7 @@ private:
      * @param lon The longitudes of the grid points
      * @param lat The latitudes of the grid points
      */
-    void initENOrientation(const std::vector<FloatType>& lon, const std::vector<FloatType>& lat);
+    template <typename T> void initENOrientation(const T& lon, const T& lat);
 
     std::vector<Eigen::Matrix<FloatType, 2, 1>> ex, ey;
     std::vector<FloatType> det;

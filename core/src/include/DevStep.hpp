@@ -35,7 +35,7 @@ public:
     // Member functions inherited from Iterant
     void init() override;
     void start(const TimePoint& startTime) override;
-    void iterate(const TimestepTime& dt) override;
+    void iterate(const TimestepTime& tst) override;
     void stop(const TimePoint& stopTime) override {};
 
 private:

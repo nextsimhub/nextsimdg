@@ -26,10 +26,10 @@ static const std::string divergenceName = "divergence";
 static const std::string sigmaIName = "sigmaI";
 static const std::string sigmaIIName = "sigmaII";
 
-static const std::string uWindName = "uwind";
-static const std::string vWindName = "vwind";
-static const std::string uOceanName = "uocean";
-static const std::string vOceanName = "vocean";
+static const std::string uWindName = "wind_u";
+static const std::string vWindName = "wind_v";
+static const std::string uOceanName = "ocean_u";
+static const std::string vOceanName = "ocean_v";
 static const std::string sshName = "ssh";
 // Mixed layer depth
 static const std::string mldName = "mld";
