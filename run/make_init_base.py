@@ -30,19 +30,16 @@ class initMaker:
      4. The init file is written when the initialiser object goes out of scope (e.g. when the program ends or at the end of a loop).
     """
 
-    def __init__(
-        self,
-        fname,
-        nCg=1,
-        nDg=1,
-        nDgStress=3,
-        nCoords=2,
-        checkZeros=True,
-    ):
+    def __init__(self, fname, *, nCg=1, nDg=1, nDgStress=3, nCoords=2, checkZeros=True):
         """
         Initialise basic internal variables, but we must call make_cartesian_grid or make_geographic_grid before continuing.
 
         :param fname: Name of the file to write the output into
+        :param nCg: number of CG points
+        :param nDg: number of DG points
+        :param nDgStress: number of DG points for stress
+        :param nCoords: number of coordinates
+        :param checkZeros: check for zeros
         """
         # Set the file name
         self._fname = fname
@@ -56,10 +53,16 @@ class initMaker:
         # Do we check for zeros?
         self._checkZeros = checkZeros
 
+        # More initialisation
+        self._plat = None
+        self._plon = None
+
     def _init_vars_and_file(self, nFirst, nSecond):
         """
-        Initialise the arrays. Open the netCDF file for writing and create the dimensions and basic structure. This must
-        be called from inside make_cartesian_grid or make_geographic_grid.
+        Initialise the arrays.
+
+        Open the netCDF file for writing and create the dimensions and basic structure. This must be called from inside
+        make_cartesian_grid or make_geographic_grid.
 
         :param nFirst: The number of rows (first dimension)
         :param nSecond: The number of columns (second dimension)
@@ -145,10 +148,11 @@ class initMaker:
         self,
         grid_file,
         pos,
+        *,
         plon_name="plon",
         plat_name="plat",
-        qlon_name="qlon",
-        qlat_name="qlat",
+        qlon_name=None,
+        qlat_name=None,
     ):
         """
         Create a geographic grid from a file containing coordinates.
@@ -163,9 +167,9 @@ class initMaker:
         """
         grid = netCDF4.Dataset(f"{grid_file}", "r")
 
-        # Grid dimensions. We're dealing with files written in and for FORTRAN, so y is the first dimension and x the second.
-        nfirst = grid.dimensions["y_dim"].size
-        nsecond = grid.dimensions["x_dim"].size
+        # Grid dimensions.
+        nfirst = grid.dimensions["y"].size
+        nsecond = grid.dimensions["x"].size
 
         # Initialise the arrays and the output file
         self._init_vars_and_file(nfirst, nsecond)
@@ -212,7 +216,7 @@ class initMaker:
             node_lon[1:, 1:] = qlon[:, :]
             node_lat[1:, 1:] = qlat[:, :]
 
-        elif pos == "p":
+        elif pos == "p" and qlon_name is None and qlat_name is None:
             """
             This is for grids with plon and plat at the centre of the grid cell.
             That means making up the locations of the grid nodes/vertices.
@@ -273,10 +277,20 @@ class initMaker:
             (node_lat, node_lon) = self._rotate_pole_from_greenland(node_lat, node_lon)
             node_lon = self._wrap_to_180(node_lon)
 
+        elif pos == "p" and qlon_name is not None and qlat_name is not None:
+            """
+            This is for grids with plon and plat at the centre of the grid cell and also the coordinates of the grid
+            corners. We use the qlon_name and qlat_name, but in fact, these should be m+1, n+1 arrays.
+            """
+            self._plon = grid.variables[plon_name][:, :]
+            self._plat = grid.variables[plat_name][:, :]
+
+            node_lon = grid.variables[qlon_name][:, :]
+            node_lat = grid.variables[qlat_name][:, :]
+
         else:
-            raise ValueError(
-                f"Position {pos} not yet implemented (expected 'ur', 'll', or 'p')."
-            )
+            msg = f"Position {pos} not yet implemented (expected 'ur', 'll', or 'p')."
+            raise ValueError(msg)
 
         coords = self._ncFile.createVariable("coords", "f8", self._coord_dims)
         coords[:, :, 0] = node_lon
@@ -300,7 +314,8 @@ class initMaker:
 
     def _rotate_pole_to_greenland(self, lat, lon):
         """
-        Rotates the mesh such that the singularities are in Greenland / Antarctica at 75°N / 40°W and 75°S / 140°E
+        Rotates the mesh such that the singularities are in Greenland / Antarctica at 75°N / 40°W and 75°S / 140°E.
+
         This is a copy of ParametricMesh::RotatePoleToGreenland in dynamics/src/include/ParametricMesh.hpp.
 
         :param lat: Latitudes of the mesh
@@ -324,11 +339,12 @@ class initMaker:
         y2 = y1
         z2 = np.sin(bw) * x1 + np.cos(bw) * z1
 
-        return (np.rad2deg(np.arcsin(z2)), np.rad2deg(np.arctan2(y2, x2)))
+        return np.rad2deg(np.arcsin(z2)), np.rad2deg(np.arctan2(y2, x2))
 
     def _rotate_pole_from_greenland(self, lat, lon):
         """
         Rotates back the mesh from having the singularities in Greenland / Antarctica at 75°N / 40°W and 75°S / 140°E to the original coordinates.
+
         This is a copy of ParametricMesh::RotatePoleFromGreenland in dynamics/src/include/ParametricMesh.hpp.
 
         :param lat: Latitudes of the rotated mesh
@@ -353,7 +369,7 @@ class initMaker:
         y2 = np.sin(aw) * x1 + np.cos(aw) * y1
         z2 = z1
 
-        return (np.rad2deg(np.arcsin(z2)), np.rad2deg(np.arctan2(y2, x2)))
+        return np.rad2deg(np.arcsin(z2)), np.rad2deg(np.arctan2(y2, x2))
 
     def _wrap_to_180(self, x_in):
         """
@@ -424,7 +440,7 @@ class initMaker:
 
     def get_element_longitude(self):
         """
-        Returns the longitude of the grid cell centre.
+        Calculate the longitude of the grid cell centre.
 
         :return: Longitude of the grid cell centre.
         """
@@ -432,7 +448,7 @@ class initMaker:
 
     def get_element_latitude(self):
         """
-        Returns the latitude of the grid cell centre.
+        Calculate the latitude of the grid cell centre.
 
         :return: Latitude of the grid cell centre.
         """
