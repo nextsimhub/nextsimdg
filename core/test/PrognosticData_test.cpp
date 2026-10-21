@@ -30,7 +30,8 @@ TEST_CASE("PrognosticData call order test")
     std::stringstream config;
     config << "[ConfiguredAtmosphere]" << std::endl;
     config << "t_air = 3" << std::endl;
-    config << "t_dew = 2" << std::endl;
+    // sphum is from FiniteElementSpecHum::water(2,1000e2)
+    config << "sphum = 4.41973e-3" << std::endl;
     config << "pmsl = 100000" << std::endl;
     config << "sw_in = 50" << std::endl;
     config << "lw_in = 330" << std::endl;

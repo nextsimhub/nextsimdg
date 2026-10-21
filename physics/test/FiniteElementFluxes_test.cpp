@@ -77,7 +77,7 @@ TEST_CASE("Melting conditions")
             tair = 3;
             pair = 100000.;
             const FiniteElementSpecHum specHumWater = FiniteElementSpecHum::water();
-            sphum = specHumWater(tair(0), pair(0));
+            sphum = specHumWater(2, pair(0));
             windSpeed = 5;
             u_air = 3;
             v_air = 4;
@@ -218,7 +218,7 @@ TEST_CASE("Freezing conditions")
             tair = -12;
             pair = 100000.;
             const FiniteElementSpecHum specHumWater = FiniteElementSpecHum::water();
-            sphum = specHumWater(tair(0), pair(0));
+            sphum = specHumWater(-12, pair(0));
             windSpeed = 5;
             u_air = 3;
             v_air = 4;
