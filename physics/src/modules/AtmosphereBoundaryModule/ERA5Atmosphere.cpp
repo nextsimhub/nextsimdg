@@ -22,13 +22,14 @@ static const std::map<int, std::string> keyMap = {
 };
 
 ERA5Atmosphere::ERA5Atmosphere()
-    : fluxImpl(nullptr)
+    : forcingState()
     , tairAccessor(getStore(), RO, ModelArray::Type::H, std::pair(-100.0, 100.0))
     , spHumAccessor(getStore(), RO, ModelArray::Type::H, std::pair(0.0, 1.0))
     , pairAccessor(getStore(), RO, ModelArray::Type::H, std::pair(500e2, 2000e2))
     , sw_inAccessor(getStore(), RO, ModelArray::Type::H, std::pair(-1e-3, 1e4))
     , lw_inAccessor(getStore(), RO, ModelArray::Type::H, std::pair(-1e-3, 1e4))
     , windAccessor(getStore(), RO, ModelArray::Type::H, std::pair(0.0, 100.0))
+    , fluxImpl(nullptr)
 {
 }
 

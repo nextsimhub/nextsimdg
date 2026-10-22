@@ -314,9 +314,10 @@ void GeoreferencedInput::setWeights2D()
     for (size_t j = 0; j < modelLons.dimensions()[1]; ++j) {
         if (const size_t k = indexer(modelLons.dimensions(), { 0, j }); !recursiveBisectSearch(
                 k, modelLons[k], modelLats[k], 0, gridDims[0] - 1, 0, gridDims[1] - 1))
-            throw std::out_of_range("GeoreferencedInput::setWeights2D: Couldn't find "
-                + std::to_string(modelLons[k]) + ", " + std::to_string(modelLats[k])
-                + " in the forcing grid.\n");
+            throw std::out_of_range(
+                "GeoreferencedInput::setWeights2D: Couldn't find the first point of row "
+                + std::to_string(j) + " (" + std::to_string(modelLons[k]) + ", "
+                + std::to_string(modelLats[k]) + "), in the forcing grid.\n");
 
         for (size_t i = 1; i < modelLons.dimensions()[0]; ++i) {
             // Find cell by walking through the source grid - starting from the previous cell.
