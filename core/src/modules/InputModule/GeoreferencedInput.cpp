@@ -119,9 +119,13 @@ void GeoreferencedInput::readDims()
         const std::vector<netCDF::NcDim> dims = ncFile.getVar(varName).getDims();
         const std::string timeDimName = ncFile.getVar(ncTimeName).getDims()[0].getName();
         for (const auto& dim : dims) {
-            if (dim.getName() != timeDimName)
+            if (dim.getName() != timeDimName && dim.getSize() > 1)
                 gridDims.push_back(dim.getSize());
         }
+
+        if (gridDims.size() > 2)
+            throw std::runtime_error(
+                "ParaGridInputs::readDims: Grid has more than 2 dimensions larger than 1.\n");
 
         // Needs to be reversed because of netCDF shenanigans
         std::reverse(gridDims.begin(), gridDims.end());
@@ -868,6 +872,9 @@ GeoreferencedInput::RawDataMap<T> GeoreferencedInput::readRawData(
                 for (const auto& dim : dims) {
                     if (dim.getName() == ncFile.getVar(ncTimeName).getDims()[0].getName()) {
                         start.push_back(timeIndex);
+                        count.push_back(1);
+                    } else if (dim.getSize() == 1) {
+                        start.push_back(0);
                         count.push_back(1);
                     } else {
                         start.push_back(gridStart[j]);
