@@ -144,8 +144,8 @@ public:
         // they carry different tripolar component corrections: the horizontal
         // (u) component is unchanged over the fold, while the vertical (v)
         // component flips sign.
-        Halo haloU(u, { 1.0 });
-        Halo haloV(v, { -1.0 });
+        Halo haloU(u, Halo::Orientation::HorizontalComponent);
+        Halo haloV(v, Halo::Orientation::VerticalComponent);
 #endif
 
         for (size_t subStep = 0; subStep < params.nSteps; ++subStep) {
