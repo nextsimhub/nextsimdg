@@ -34,7 +34,7 @@ namespace HaloExchange {
         case ModelArray::Type::CG:
             // Note: This is ok for scalars, May be incorrect vertical components
             // of a vector field. Ideally these should be represented by a CGVector
-            // class instead.
+            // class instead, where the Orientation is given explicitly.
             return { 1.0 };
         case ModelArray::Type::V:
         case ModelArray::Type::U:

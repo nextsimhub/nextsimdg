@@ -20,7 +20,6 @@
 #include <numeric>
 #include <stdexcept>
 #include <type_traits>
-#include <utility>
 #include <vector>
 
 #include "Slice.hpp"
@@ -98,6 +97,18 @@ namespace HaloExchange {
 class Halo {
 public:
     /*!
+     * @brief Orientation of the field that a CGVector represents
+     *
+     * CGVector often represents a single component of a vector field but we
+     * don't have any information about the orientation of the component in
+     * the class itself. This is a challenge for the tripolar fold since the
+     * horizontal and vertical components must be treated differently: vertical
+     * components flip sign over the fold, while scalars and horizontal
+     * components are unchanged.
+     */
+    enum class Orientation { Scalar, HorizontalComponent, VerticalComponent };
+
+    /*!
      * @brief Constructs a halo object from ModelArray
      * @param ma ModelArray object to create halo from
      */
@@ -138,29 +149,29 @@ public:
     /*!
      * @brief Constructs a halo object from CGVector
      * @param cgv CGVector object to create halo from
-     * @param tripolarComponentCorrection Component correction factors applied over the
-     * tripolar fold. Should be 1.0 for horizontal vector components and scalars,
-     * -1.0 for vertical vector components.
-     *
-     * CGVector often represents a single component of a vector field but we
-     * don't have any information about the orientation of the component in the
-     * class itself. This is a challenge for the tripolar fold since th horizontal
-     * and vertical components must be treated differently. We solve this problem
-     * by requiring the user to indicate how we need to handle orientation.
-     *
+     * @param orientation Orientation of the field that the CGVector represents
+     * (see Orientation). It determines the component correction factor applied
+     * over the tripolar fold: scalar fields and horizontal vector components
+     * are unchanged (1.0), while vertical vector components flip sign (-1.0).
      */
-    template <int N> Halo(CGVector<N>& cgv, std::vector<FloatType> tripolarComponentCorrection)
+    template <int N> Halo(CGVector<N>& cgv, Orientation orientation)
     {
         m_numComps = 1;
         isCG = true;
         CGdegree = N;
         nCells = CGdegree;
         setTripolarFlags();
-        if (tripolarComponentCorrection.size() != m_numComps) {
-            throw std::invalid_argument(
-                "tripolarComponentCorrection must have one entry per field component");
+        switch (orientation) {
+        case Orientation::Scalar:
+        case Orientation::HorizontalComponent:
+            m_tripolarComponentCorrection = { 1.0 };
+            break;
+        case Orientation::VerticalComponent:
+            m_tripolarComponentCorrection = { -1.0 };
+            break;
+        default:
+            throw std::invalid_argument("Unrecognised orientation");
         }
-        m_tripolarComponentCorrection = std::move(tripolarComponentCorrection);
         setSpatialDims();
         initializeHaloMetadata();
     }
