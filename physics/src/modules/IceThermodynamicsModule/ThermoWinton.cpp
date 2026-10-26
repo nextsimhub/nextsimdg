@@ -125,7 +125,7 @@ void ThermoWinton::setData(const ModelState::DataMap& state)
     /* If the internal temperature is not in the restart file, then we simply set it to the freezing
      * point of seawater. It's a safe approximation, and it seems the user doesn't really care! */
     try {
-        tInternal = state.at(tInteriorName);
+        tInternal.assignData(state.at(tInteriorName));
     } catch (const std::out_of_range& e) {
         Logged::info("No " + tInteriorName
             + " field in restart file. Setting it to the melting point of ice.\n");
@@ -133,7 +133,7 @@ void ThermoWinton::setData(const ModelState::DataMap& state)
     }
 
     try {
-        tBottom = state.at(tBottomName);
+        tBottom.assignData(state.at(tBottomName));
     } catch (const std::out_of_range& e) {
         Logged::info("No " + tBottomName
             + " field in restart file. Setting it to the melting point of ice.\n");

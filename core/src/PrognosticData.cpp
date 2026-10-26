@@ -95,13 +95,13 @@ void PrognosticData::setData(const ModelState::DataMap& ms)
     cice = 0;
     hsnow = 0;
     damage = 0;
-    hice = ms.at(hiceName);
-    cice = ms.at(ciceName);
-    hsnow = ms.at(hsnowName);
+    hice.assignData(ms.at(hiceName));
+    cice.assignData(ms.at(ciceName));
+    hsnow.assignData(ms.at(hsnowName));
     // Damage is an optional field, and defaults to 1 in the mean field, 0 in higher components
     // if absent.
     if (ms.count(damageName) > 0) {
-        damage = ms.at(damageName);
+        damage.assignData(ms.at(damageName));
     } else {
         damage.component(0) = 1.;
     }
