@@ -64,9 +64,9 @@ void KokkosCGDynamicsKernel<DGadvection>::initialise(
     std::tie(e12Host, e12Device) = makeKokkosDualView("e12", this->e12);
     std::tie(e22Host, e22Device) = makeKokkosDualView("e22", this->e22);
 
-    tempDataAdvect.resize_by_mesh(*this->smesh);
-    std::tie(tempDataHost, tempDataDevice) = makeKokkosDualView("tempData", (this->tempData));
     tempData.resize_by_mesh(*this->smesh);
+    std::tie(tempDataHost, tempDataDevice) = makeKokkosDualView("tempData", (this->tempData));
+    tempDataAdvect.resize_by_mesh(*this->smesh);
     std::tie(tempDataAdvectHost, tempDataAdvectDevice)
         = makeKokkosDualView("tempDataAdvect", (this->tempDataAdvect));
     ModelArray tempDataMA;
@@ -155,19 +155,18 @@ ModelArray KokkosCGDynamicsKernel<DGadvection>::getDG0Data(const std::string& na
         return data;
     } else if (name == divergenceName) {
         computeTensorInvariantIDevice(tempDataDevice, e11Device, e12Device, e22Device);
-        Kokkos::deep_copy(this->tempDataHost, this->tempDataDevice);
         HField data(ModelArray::Type::H);
-        dG2MA(data, tempDataAdvectDevice);
+        dG2MA(data, tempDataDevice);
         return data;
     } else if (name == sigmaIName) {
         computeTensorInvariantIDevice(tempDataDevice, s11Device, s12Device, s22Device);
         HField data(ModelArray::Type::H);
-        dG2MA(data, tempDataAdvectDevice);
+        dG2MA(data, tempDataDevice);
         return data;
     } else if (name == sigmaIIName) {
         computeTensorInvariantIIDevice(tempDataDevice, s11Device, s12Device, s22Device);
         HField data(ModelArray::Type::H);
-        dG2MA(data, tempDataAdvectDevice);
+        dG2MA(data, tempDataDevice);
         return data;
     } else if (name == uName) {
         (*cG2DGAdvectInterpolator)(tempDataAdvectDevice, uDevice);
@@ -722,18 +721,6 @@ void KokkosCGDynamicsKernel<DGadvection>::computeTensorInvariantIIDevice(
                 + e12.row(i).array().square())
                               .sqrt();
         });
-}
-
-/*************************************************************/
-template <int DGadvection>
-ModelArray& KokkosCGDynamicsKernel<DGadvection>::dG2MA(
-    ModelArray& ma, const ConstDeviceViewAdvect& dg) const
-{
-    kokkosDG2MA<DGadvection>(tempDataMADevice, dg);
-    const auto maView = makeKokkosHostView(ma.getDataRef());
-    Kokkos::deep_copy(maView, tempDataMADevice);
-
-    return ma;
 }
 
 /*************************************************************/

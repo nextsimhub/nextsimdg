@@ -159,7 +159,21 @@ protected:
     }
 
     // copy data from a dg field on device to a host ModelArray
-    ModelArray& dG2MA(ModelArray& ma, const ConstDeviceViewAdvect& dg) const;
+    template <typename... Args>
+    ModelArray& dG2MA(ModelArray& ma, const Kokkos::View<Args...>& dg) const
+    {
+        constexpr int N = static_cast<int>(dg.static_extent(1));
+        static_assert(N == DGadvection || N == DGstressComp,
+            "dG2MA expects a dG field, either from the advection or stress space.");
+
+        // kokkosDG2MA takes a const view
+        const ConstKokkosEigenView<DGVector<N>> dgConst = dg;
+        kokkosDG2MA<N>(tempDataMADevice, dg);
+        const auto maView = makeKokkosHostView(ma.getDataRef());
+        Kokkos::deep_copy(maView, tempDataMADevice);
+
+        return ma;
+    }
 
     // named fields for setData
     std::unordered_map<std::string, DeviceViewCG> namedCGFields;
