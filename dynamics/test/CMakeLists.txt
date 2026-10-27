@@ -85,6 +85,14 @@ if(NOT ENABLE_MPI)
                                                    "${CoreDir}/${ModelArrayStructure}")
     target_link_libraries(testDGLimit LINK_PUBLIC doctest::doctest Eigen3::Eigen)
 
+    add_executable(
+        testAdvectionDGVelocity
+        AdvectionDGVelocity_test.cpp "${SRC_DIR}/DGTransport.cpp" "${SRC_DIR}/ParametricMap.cpp"
+        "${SRC_DIR}/Interpolations.cpp")
+    target_include_directories(testAdvectionDGVelocity PRIVATE "${CoreDir}" "${SRC_DIR}"
+                                                               "${CoreDir}/${ModelArrayStructure}")
+    target_link_libraries(testAdvectionDGVelocity LINK_PUBLIC doctest::doctest Eigen3::Eigen)
+
     set(TEST_EXECUTABLES
         testDGModelArray
         testDGVectorHolder
@@ -95,7 +103,8 @@ if(NOT ENABLE_MPI)
         testAdvectionPeriodicBC
         testDGBasis
         testDGMomentumMap
-        testDGLimit)
+        testDGLimit
+        testAdvectionDGVelocity)
 
     foreach(test_exec IN LISTS TEST_EXECUTABLES)
         add_test(NAME ${test_exec} COMMAND ${test_exec})

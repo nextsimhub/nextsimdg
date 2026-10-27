@@ -4,6 +4,7 @@
 
 #include "DGTransport.hpp"
 #include "Interpolations.hpp"
+#include "ParametricTools.hpp"
 #include "codeGenerationDGinGauss.hpp"
 #include "dgEdgeTools.hpp"
 
@@ -127,6 +128,120 @@ void DGTransport<DG>::prepareAdvection(const CGVector<CG>& cg_vx, const CGVector
     Nextsim::Interpolations::CG2DG(smesh, GetVx(), cg_vx);
     Nextsim::Interpolations::CG2DG(smesh, GetVy(), cg_vy);
     reinitnormalvelocity();
+}
+
+/*!
+ * Prepares the advection step with a DG velocity (LDG momentum), see DGTransport.hpp.
+ * velx/vely hold the velocity projected onto DG (the basis is hierarchical and orthogonal),
+ * they are not used by the transport with the full velocity.
+ */
+template <int DG>
+template <int DGm>
+void DGTransport<DG>::prepareAdvectionDG(
+    const DGVector<DGm>& dg_vx, const DGVector<DGm>& dg_vy, const FloatType a)
+{
+    if (!smesh.periodic.empty()) {
+        std::cerr << "DGTransport::prepareAdvectionDG: periodic boundaries not supported"
+                  << std::endl;
+        abort();
+    }
+    if (cellTermFullX.empty())
+        InitializeCellTermsFull();
+
+    constexpr int minDG = std::min(DG, DGm);
+    velx.setZero();
+    vely.setZero();
+    velx.leftCols(minDG) = dg_vx.leftCols(minDG);
+    vely.leftCols(minDG) = dg_vy.leftCols(minDG);
+
+    // cell term: full velocity in the NGP_CELL^2 Gauss points of each cell
+    cellVel_X.resize(smesh.nelements, NGP_CELL * NGP_CELL);
+    cellVel_Y.resize(smesh.nelements, NGP_CELL * NGP_CELL);
+#pragma omp parallel for
+    for (size_t eid = 0; eid < smesh.nelements; ++eid) {
+        cellVel_X.row(eid) = dg_vx.row(eid) * PSI<DGm, NGP_CELL>;
+        cellVel_Y.row(eid) = dg_vy.row(eid) * PSI<DGm, NGP_CELL>;
+    }
+
+    constexpr int NGP = NGP_EDGE;
+    const size_t nx = smesh.nx;
+    const size_t ny = smesh.ny;
+
+    // 0 on edges touching land
+    edgeNormalVel_X.setZero(nx * (ny + 1), NGP);
+    edgeNormalVel_Y.setZero((nx + 1) * ny, NGP);
+
+    // trace of the velocity on side 'side' of 'cell' in the Gauss points
+    auto trace = [&](const DGVector<DGm>& v, size_t cell, int side) -> LocalEdgeVector<NGP> {
+        if (side == 0)
+            return bottomedgeofcell<DGm>(v, cell) * PSIe<EDGEDOFS(DGm), NGP>;
+        else if (side == 1)
+            return rightedgeofcell<DGm>(v, cell) * PSIe<EDGEDOFS(DGm), NGP>;
+        else if (side == 2)
+            return topedgeofcell<DGm>(v, cell) * PSIe<EDGEDOFS(DGm), NGP>;
+        else
+            return leftedgeofcell<DGm>(v, cell) * PSIe<EDGEDOFS(DGm), NGP>;
+    };
+
+    // X-edges (horizontal), normal (-ty, tx) to +y. Below the edge c1 (top side), above c2
+    // (bottom side). Edge iy*nx+ix is the bottom edge of cell (ix,iy).
+#pragma omp parallel for
+    for (size_t iy = 0; iy <= ny; ++iy)
+        for (size_t ix = 0; ix < nx; ++ix) {
+            const bool hasBelow = (iy > 0) && smesh.landmask[(iy - 1) * nx + ix];
+            const bool hasAbove = (iy < ny) && smesh.landmask[iy * nx + ix];
+            const bool landBelow = (iy > 0) && !smesh.landmask[(iy - 1) * nx + ix];
+            const bool landAbove = (iy < ny) && !smesh.landmask[iy * nx + ix];
+            if (landBelow || landAbove || (!hasBelow && !hasAbove))
+                continue;
+            LocalEdgeVector<NGP> ux, uy;
+            if (hasBelow && hasAbove) {
+                ux = (0.5_ft + a) * trace(dg_vx, (iy - 1) * nx + ix, 2)
+                    + (0.5_ft - a) * trace(dg_vx, iy * nx + ix, 0);
+                uy = (0.5_ft + a) * trace(dg_vy, (iy - 1) * nx + ix, 2)
+                    + (0.5_ft - a) * trace(dg_vy, iy * nx + ix, 0);
+            } else if (hasBelow) { // top boundary
+                ux = trace(dg_vx, (iy - 1) * nx + ix, 2);
+                uy = trace(dg_vy, (iy - 1) * nx + ix, 2);
+            } else { // bottom boundary
+                ux = trace(dg_vx, iy * nx + ix, 0);
+                uy = trace(dg_vy, iy * nx + ix, 0);
+            }
+            const size_t node = iy * (nx + 1) + ix;
+            const Eigen::Matrix<FloatType, 1, 2> t = smesh.edgevector(node, node + 1);
+            edgeNormalVel_X.row(iy * nx + ix) = -t(0, 1) * ux + t(0, 0) * uy;
+        }
+
+    // Y-edges (vertical), normal (ty, -tx) to +x. Left of the edge c1 (right side), right c2
+    // (left side). Edge iy*(nx+1)+ix is the left edge of cell (ix,iy).
+#pragma omp parallel for
+    for (size_t iy = 0; iy < ny; ++iy)
+        for (size_t ix = 0; ix <= nx; ++ix) {
+            const bool hasLeft = (ix > 0) && smesh.landmask[iy * nx + ix - 1];
+            const bool hasRight = (ix < nx) && smesh.landmask[iy * nx + ix];
+            const bool landLeft = (ix > 0) && !smesh.landmask[iy * nx + ix - 1];
+            const bool landRight = (ix < nx) && !smesh.landmask[iy * nx + ix];
+            if (landLeft || landRight || (!hasLeft && !hasRight))
+                continue;
+            LocalEdgeVector<NGP> ux, uy;
+            if (hasLeft && hasRight) {
+                ux = (0.5_ft + a) * trace(dg_vx, iy * nx + ix - 1, 1)
+                    + (0.5_ft - a) * trace(dg_vx, iy * nx + ix, 3);
+                uy = (0.5_ft + a) * trace(dg_vy, iy * nx + ix - 1, 1)
+                    + (0.5_ft - a) * trace(dg_vy, iy * nx + ix, 3);
+            } else if (hasLeft) { // right boundary
+                ux = trace(dg_vx, iy * nx + ix - 1, 1);
+                uy = trace(dg_vy, iy * nx + ix - 1, 1);
+            } else { // left boundary
+                ux = trace(dg_vx, iy * nx + ix, 3);
+                uy = trace(dg_vy, iy * nx + ix, 3);
+            }
+            const size_t ie = iy * (nx + 1) + ix;
+            const Eigen::Matrix<FloatType, 1, 2> t = smesh.edgevector(ie, ie + nx + 1);
+            edgeNormalVel_Y.row(ie) = t(0, 1) * ux - t(0, 0) * uy;
+        }
+
+    projectVelocity = false;
 }
 
 ////////////////////////////////////////////////// CELL TERM
@@ -294,6 +409,129 @@ inline void DGTransport<DG>::edge_term_Y(const ParametricMesh& smesh, const Floa
     phiup.row(c2) += dt * tmp * PSIe_w<DG, GAUSSPOINTS1D(DG), 3>;
 }
 
+// Cell term with the full velocity: same matrices as
+// ParametricTransportMap::InitializeAdvectionCellTerms, with NGP_CELL Gauss points
+template <int DG> void DGTransport<DG>::InitializeCellTermsFull()
+{
+    constexpr int Q = NGP_CELL;
+    cellTermFullX.resize(smesh.nelements);
+    cellTermFullY.resize(smesh.nelements);
+
+#pragma omp parallel for
+    for (size_t eid = 0; eid < smesh.nelements; ++eid) {
+        const Eigen::Matrix<FloatType, 2, Q * Q> dxT
+            = ParametricTools::dxT<Q>(smesh, eid).array().rowwise() * GAUSSWEIGHTS<Q>.array();
+        const Eigen::Matrix<FloatType, 2, Q * Q> dyT
+            = ParametricTools::dyT<Q>(smesh, eid).array().rowwise() * GAUSSWEIGHTS<Q>.array();
+
+        // [J dT^{-T} nabla phi]_1, [J dT^{-T} nabla phi]_2
+        cellTermFullX[eid] = PSIx<DG, Q>.array().rowwise() * dyT.row(1).array()
+            - PSIy<DG, Q>.array().rowwise() * dxT.row(1).array();
+        cellTermFullY[eid] = PSIy<DG, Q>.array().rowwise() * dxT.row(0).array()
+            - PSIx<DG, Q>.array().rowwise() * dyT.row(0).array();
+    }
+}
+
+template <int DG>
+void DGTransport<DG>::cell_term_full(
+    DGVector<DG>& phiup, const DGVector<DG>& phi, const FloatType dt, const size_t eid)
+{
+    if constexpr (DG == 1) {
+        return; // dG0: grad psi = 0
+    } else {
+        if (smesh.landmask[eid] == 0)
+            return;
+        constexpr int Q = NGP_CELL;
+        const Eigen::Matrix<FloatType, 1, Q * Q> phi_gauss = phi.row(eid) * PSI<DG, Q>;
+        phiup.row(eid) += dt
+            * (cellTermFullX[eid].array().rowwise() * cellVel_X.row(eid).array()
+                + cellTermFullY[eid].array().rowwise() * cellVel_Y.row(eid).array())
+                  .matrix()
+            * phi_gauss.transpose();
+    }
+}
+
+// Edge terms with the full velocity: u_hat.n * length is given in the NGP_EDGE Gauss
+// points, upwind in each Gauss point
+template <int DG>
+void DGTransport<DG>::edge_term_X_full(DGVector<DG>& phiup, const DGVector<DG>& phi,
+    const FloatType dt, const size_t c1, const size_t c2, const size_t ie)
+{
+    if (smesh.landmask[c1] == 0 || smesh.landmask[c2] == 0)
+        return;
+    constexpr int NGP = NGP_EDGE;
+    const LocalEdgeVector<NGP> vel = edgeNormalVel_X.row(ie);
+    // phi of c1 (below) where u_hat.n > 0, of c2 (above) where < 0
+    const LocalEdgeVector<NGP> flux = (vel.array().max(0)
+            * (topedgeofcell<DG>(phi, c1) * PSIe<EDGEDOFS(DG), NGP>).array()
+        + vel.array().min(0) * (bottomedgeofcell<DG>(phi, c2) * PSIe<EDGEDOFS(DG), NGP>).array())
+                                          .matrix();
+    phiup.row(c1) -= dt * flux * PSIe_w<DG, NGP, 2>;
+    phiup.row(c2) += dt * flux * PSIe_w<DG, NGP, 0>;
+}
+
+template <int DG>
+void DGTransport<DG>::edge_term_Y_full(DGVector<DG>& phiup, const DGVector<DG>& phi,
+    const FloatType dt, const size_t c1, const size_t c2, const size_t ie)
+{
+    if (smesh.landmask[c1] == 0 || smesh.landmask[c2] == 0)
+        return;
+    constexpr int NGP = NGP_EDGE;
+    const LocalEdgeVector<NGP> vel = edgeNormalVel_Y.row(ie);
+    // phi of c1 (left) where u_hat.n > 0, of c2 (right) where < 0
+    const LocalEdgeVector<NGP> flux
+        = (vel.array().max(0) * (rightedgeofcell<DG>(phi, c1) * PSIe<EDGEDOFS(DG), NGP>).array()
+            + vel.array().min(0) * (leftedgeofcell<DG>(phi, c2) * PSIe<EDGEDOFS(DG), NGP>).array())
+              .matrix();
+    phiup.row(c1) -= dt * flux * PSIe_w<DG, NGP, 1>;
+    phiup.row(c2) += dt * flux * PSIe_w<DG, NGP, 3>;
+}
+
+// Outer boundary edge: upwind flux as in edge_term_X/Y_full, the missing neighbour is the
+// exterior state boundaryInflowValue. Normals to +y / +x as in the interior.
+template <int DG>
+template <int Side>
+void DGTransport<DG>::boundary_term_full(
+    DGVector<DG>& phiup, const DGVector<DG>& phi, const FloatType dt, const size_t cell)
+{
+    if (smesh.landmask[cell] == 0)
+        return;
+    constexpr int NGP = NGP_EDGE;
+    const size_t nx = smesh.nx;
+    const size_t ix = cell % nx;
+    const size_t iy = cell / nx;
+    const LocalEdgeVector<NGP> phiExt = LocalEdgeVector<NGP>::Constant(boundaryInflowValue);
+
+    if constexpr (Side == 0) { // bottom: exterior below, cell above
+        const LocalEdgeVector<NGP> vel = edgeNormalVel_X.row(cell);
+        const LocalEdgeVector<NGP> phiCell
+            = bottomedgeofcell<DG>(phi, cell) * PSIe<EDGEDOFS(DG), NGP>;
+        const LocalEdgeVector<NGP> flux
+            = (vel.array().max(0) * phiExt.array() + vel.array().min(0) * phiCell.array()).matrix();
+        phiup.row(cell) += dt * flux * PSIe_w<DG, NGP, 0>;
+    } else if constexpr (Side == 1) { // right: cell left, exterior right
+        const LocalEdgeVector<NGP> vel = edgeNormalVel_Y.row(iy * (nx + 1) + ix + 1);
+        const LocalEdgeVector<NGP> phiCell
+            = rightedgeofcell<DG>(phi, cell) * PSIe<EDGEDOFS(DG), NGP>;
+        const LocalEdgeVector<NGP> flux
+            = (vel.array().max(0) * phiCell.array() + vel.array().min(0) * phiExt.array()).matrix();
+        phiup.row(cell) -= dt * flux * PSIe_w<DG, NGP, 1>;
+    } else if constexpr (Side == 2) { // top: cell below, exterior above
+        const LocalEdgeVector<NGP> vel = edgeNormalVel_X.row(cell + nx);
+        const LocalEdgeVector<NGP> phiCell = topedgeofcell<DG>(phi, cell) * PSIe<EDGEDOFS(DG), NGP>;
+        const LocalEdgeVector<NGP> flux
+            = (vel.array().max(0) * phiCell.array() + vel.array().min(0) * phiExt.array()).matrix();
+        phiup.row(cell) -= dt * flux * PSIe_w<DG, NGP, 2>;
+    } else { // left: exterior left, cell right
+        const LocalEdgeVector<NGP> vel = edgeNormalVel_Y.row(iy * (nx + 1) + ix);
+        const LocalEdgeVector<NGP> phiCell
+            = leftedgeofcell<DG>(phi, cell) * PSIe<EDGEDOFS(DG), NGP>;
+        const LocalEdgeVector<NGP> flux
+            = (vel.array().max(0) * phiExt.array() + vel.array().min(0) * phiCell.array()).matrix();
+        phiup.row(cell) += dt * flux * PSIe_w<DG, NGP, 3>;
+    }
+}
+
 template <int DG>
 void DGTransport<DG>::DGTransportOperator(const ParametricMesh& smesh, const FloatType dt,
     const DGVector<DG>& vx, const DGVector<DG>& vy, const EdgeVector<EDGEDOFS(DG)>& normalvel_X,
@@ -304,15 +542,21 @@ void DGTransport<DG>::DGTransportOperator(const ParametricMesh& smesh, const Flo
     // Cell terms
 #pragma omp parallel for
     for (size_t eid = 0; eid < smesh.nelements; ++eid)
-        cell_term(smesh, dt, phiup, phi, vx, vy, eid);
+        if (projectVelocity)
+            cell_term(smesh, dt, phiup, phi, vx, vy, eid);
+        else
+            cell_term_full(phiup, phi, dt, eid);
 
-        // Y - edges, only inner ones
+    // Y - edges, only inner ones
 #pragma omp parallel for
     for (size_t iy = 0; iy < smesh.ny; ++iy) {
         size_t ic = iy * smesh.nx; // first index of left cell in row
         size_t ie = iy * (smesh.nx + 1) + 1; // first index of inner velocity in row
         for (size_t i = 0; i < smesh.nx - 1; ++i, ++ic, ++ie)
-            edge_term_Y(smesh, dt, phiup, phi, normalvel_Y, ic, ic + 1, ie);
+            if (projectVelocity)
+                edge_term_Y(smesh, dt, phiup, phi, normalvel_Y, ic, ic + 1, ie);
+            else
+                edge_term_Y_full(phiup, phi, dt, ic, ic + 1, ie);
     }
 
     // X - edges, only inner ones
@@ -321,7 +565,10 @@ void DGTransport<DG>::DGTransportOperator(const ParametricMesh& smesh, const Flo
         size_t ic = ix; // first index of left cell in column
         size_t ie = ix + smesh.nx; // first index of inner velocity in column
         for (size_t i = 0; i < smesh.ny - 1; ++i, ic += smesh.nx, ie += smesh.nx)
-            edge_term_X(smesh, dt, phiup, phi, normalvel_X, ic, ic + smesh.nx, ie);
+            if (projectVelocity)
+                edge_term_X(smesh, dt, phiup, phi, normalvel_X, ic, ic + smesh.nx, ie);
+            else
+                edge_term_X_full(phiup, phi, dt, ic, ic + smesh.nx, ie);
     }
 
     // Periodic
@@ -355,7 +602,19 @@ void DGTransport<DG>::DGTransportOperator(const ParametricMesh& smesh, const Flo
     // TO DISCUSS: there can't be in/outflow and periodic on the same edge. We either need a
     // structure for in/outflow or we say: either there is an in/outflow boundary or periodic. But
     // not both..
-    if (smesh.periodic.size() == 0) {
+    if (!projectVelocity) {
+        // full velocity: upwind with the exterior state on the outer boundary
+#pragma omp parallel for
+        for (size_t i = 0; i < smesh.nx; ++i) {
+            boundary_term_full<0>(phiup, phi, dt, i);
+            boundary_term_full<2>(phiup, phi, dt, i + smesh.nx * (smesh.ny - 1));
+        }
+#pragma omp parallel for
+        for (size_t i = 0; i < smesh.ny; ++i) {
+            boundary_term_full<3>(phiup, phi, dt, i * smesh.nx);
+            boundary_term_full<1>(phiup, phi, dt, (i + 1) * smesh.nx - 1);
+        }
+    } else if (smesh.periodic.size() == 0) {
 #pragma omp parallel for
         for (size_t i = 0; i < smesh.nx; ++i) {
             const size_t element_lower = i;
@@ -454,5 +713,39 @@ template void DGTransport<4>::prepareAdvection(const CGVector<2>& cg_vx, const C
 template void DGTransport<6>::prepareAdvection(const CGVector<1>& cg_vx, const CGVector<1>& cg_vy);
 template void DGTransport<6>::prepareAdvection(const CGVector<2>& cg_vx, const CGVector<2>& cg_vy);
 template void DGTransport<8>::prepareAdvection(const CGVector<2>& cg_vx, const CGVector<2>& cg_vy);
+
+// transport with the DG velocity of the LDG momentum
+template void DGTransport<1>::prepareAdvectionDG(
+    const DGVector<3>& dg_vx, const DGVector<3>& dg_vy, const FloatType a);
+template void DGTransport<1>::prepareAdvectionDG(
+    const DGVector<4>& dg_vx, const DGVector<4>& dg_vy, const FloatType a);
+template void DGTransport<1>::prepareAdvectionDG(
+    const DGVector<6>& dg_vx, const DGVector<6>& dg_vy, const FloatType a);
+template void DGTransport<1>::prepareAdvectionDG(
+    const DGVector<9>& dg_vx, const DGVector<9>& dg_vy, const FloatType a);
+template void DGTransport<3>::prepareAdvectionDG(
+    const DGVector<3>& dg_vx, const DGVector<3>& dg_vy, const FloatType a);
+template void DGTransport<3>::prepareAdvectionDG(
+    const DGVector<4>& dg_vx, const DGVector<4>& dg_vy, const FloatType a);
+template void DGTransport<3>::prepareAdvectionDG(
+    const DGVector<6>& dg_vx, const DGVector<6>& dg_vy, const FloatType a);
+template void DGTransport<3>::prepareAdvectionDG(
+    const DGVector<9>& dg_vx, const DGVector<9>& dg_vy, const FloatType a);
+template void DGTransport<4>::prepareAdvectionDG(
+    const DGVector<3>& dg_vx, const DGVector<3>& dg_vy, const FloatType a);
+template void DGTransport<4>::prepareAdvectionDG(
+    const DGVector<4>& dg_vx, const DGVector<4>& dg_vy, const FloatType a);
+template void DGTransport<4>::prepareAdvectionDG(
+    const DGVector<6>& dg_vx, const DGVector<6>& dg_vy, const FloatType a);
+template void DGTransport<4>::prepareAdvectionDG(
+    const DGVector<9>& dg_vx, const DGVector<9>& dg_vy, const FloatType a);
+template void DGTransport<6>::prepareAdvectionDG(
+    const DGVector<3>& dg_vx, const DGVector<3>& dg_vy, const FloatType a);
+template void DGTransport<6>::prepareAdvectionDG(
+    const DGVector<4>& dg_vx, const DGVector<4>& dg_vy, const FloatType a);
+template void DGTransport<6>::prepareAdvectionDG(
+    const DGVector<6>& dg_vx, const DGVector<6>& dg_vy, const FloatType a);
+template void DGTransport<6>::prepareAdvectionDG(
+    const DGVector<9>& dg_vx, const DGVector<9>& dg_vy, const FloatType a);
 
 } /* namespace Nextsim */
