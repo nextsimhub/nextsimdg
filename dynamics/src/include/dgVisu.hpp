@@ -266,40 +266,20 @@ public:
 
         ii = 0;
         for (size_t iy = 0; iy < smesh.ny; ++iy)
-            for (size_t ix = 0; ix < smesh.nx; ++ix, ++ii) {
-                std::array<FloatType, 4> interpolate = { v(ii, 0), v(ii, 0), v(ii, 0), v(ii, 0) };
-
-                if (DG >= 3) {
-                    interpolate[0] += -0.5_ft * v(ii, 1);
-                    interpolate[1] += 0.5_ft * v(ii, 1);
-                    interpolate[2] += 0.5_ft * v(ii, 1);
-                    interpolate[3] += -0.5_ft * v(ii, 1);
-
-                    interpolate[0] += -0.5_ft * v(ii, 2);
-                    interpolate[1] += -0.5_ft * v(ii, 2);
-                    interpolate[2] += 0.5_ft * v(ii, 2);
-                    interpolate[3] += 0.5_ft * v(ii, 2);
-                }
-                if (DG >= 6) {
-                    interpolate[0] += 1. / 6. * v(ii, 3);
-                    interpolate[1] += 1. / 6. * v(ii, 3);
-                    interpolate[2] += 1. / 6. * v(ii, 3);
-                    interpolate[3] += 1. / 6. * v(ii, 3);
-
-                    interpolate[0] += 1. / 6. * v(ii, 4);
-                    interpolate[1] += 1. / 6. * v(ii, 4);
-                    interpolate[2] += 1. / 6. * v(ii, 4);
-                    interpolate[3] += 1. / 6. * v(ii, 4);
-
-                    interpolate[0] += 1. / 4. * v(ii, 5);
-                    interpolate[1] += -1. / 4. * v(ii, 5);
-                    interpolate[2] += 1. / 4. * v(ii, 5);
-                    interpolate[3] += -1. / 4. * v(ii, 5);
-                }
-                for (auto it : interpolate)
+            for (size_t ix = 0; ix < smesh.nx; ++ix, ++ii)
+                for (auto it : dg_in_corners(v, ii))
                     OUT << cuttol(it, 1.e-20) << std::endl;
-            }
         OUT.close();
+    }
+
+    //! Values of the dg function in the 4 corners of element ii, in vtk order
+    //! (bottom left, bottom right, top right, top left)
+    template <int DG>
+    static std::array<FloatType, 4> dg_in_corners(const DGVector<DG>& v, size_t ii)
+    {
+        // PSILagrange<DG,2> is ordered lexicographically: bl, br, tl, tr
+        const Eigen::Matrix<FloatType, 1, 4> vt = v.row(ii) * PSILagrange<DG, 2>;
+        return { vt(0), vt(1), vt(3), vt(2) };
     }
 
     static void write_dg(

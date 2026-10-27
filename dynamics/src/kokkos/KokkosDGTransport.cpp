@@ -39,11 +39,12 @@ KokkosDGTransport<DG>::KokkosDGTransport(const ParametricMesh& smesh, const Kokk
 /*!
  * writes the cell-basis on the edges in the edge basis
  *
- * CELL:
- * DGdegree 0:      1
- * DGdegree 1-2:    + (x-1/2), (y-1/2),
- * DGdegree 3-5:    + (x-1/2)^2-1/12, (y-1/2)^2-1/12, (x-1/2)(y-1/2)
- * DGdegree 6-7:    + (y-1/2)(x-1/2)^2-1/12, (x-1/2)(y-1/2)^2-1/12
+ * CELL: (X = x-1/2, Y = y-1/2), see also dgEdgeTools.hpp
+ * index 0:      1
+ * index 1-2:    X, Y
+ * index 3:      XY
+ * index 4-5:    X^2-1/12, Y^2-1/12
+ * index 6-7:    Y(X^2-1/12), X(Y^2-1/12)
  *
  * EDGE:
  * DGdegree 0:    1
@@ -102,54 +103,54 @@ KOKKOS_IMPL_FUNCTION LocalVec<2> topEdgeOfCell(const ConstDeviceViewDG<3>& cv, D
 
 KOKKOS_IMPL_FUNCTION LocalVec<3> leftEdgeOfCell(const ConstDeviceViewDG<6>& cv, DeviceIndex eid)
 {
-    return LocalVec<3>(cv(eid, 0) - 0.5_ft * cv(eid, 1) + FloatType(1. / 6.) * cv(eid, 3),
-        cv(eid, 2) - 0.5_ft * cv(eid, 5), cv(eid, 4));
+    return LocalVec<3>(cv(eid, 0) - 0.5_ft * cv(eid, 1) + FloatType(1. / 6.) * cv(eid, 4),
+        cv(eid, 2) - 0.5_ft * cv(eid, 3), cv(eid, 5));
 }
 
 KOKKOS_IMPL_FUNCTION LocalVec<3> rightEdgeOfCell(const ConstDeviceViewDG<6>& cv, DeviceIndex eid)
 {
-    return LocalVec<3>(cv(eid, 0) + 0.5_ft * cv(eid, 1) + FloatType(1. / 6.) * cv(eid, 3),
-        cv(eid, 2) + 0.5_ft * cv(eid, 5), cv(eid, 4));
+    return LocalVec<3>(cv(eid, 0) + 0.5_ft * cv(eid, 1) + FloatType(1. / 6.) * cv(eid, 4),
+        cv(eid, 2) + 0.5_ft * cv(eid, 3), cv(eid, 5));
 }
 
 KOKKOS_IMPL_FUNCTION LocalVec<3> bottomEdgeOfCell(const ConstDeviceViewDG<6>& cv, DeviceIndex eid)
 {
-    return LocalVec<3>(cv(eid, 0) - 0.5_ft * cv(eid, 2) + FloatType(1. / 6.) * cv(eid, 4),
-        cv(eid, 1) - 0.5_ft * cv(eid, 5), cv(eid, 3));
+    return LocalVec<3>(cv(eid, 0) - 0.5_ft * cv(eid, 2) + FloatType(1. / 6.) * cv(eid, 5),
+        cv(eid, 1) - 0.5_ft * cv(eid, 3), cv(eid, 4));
 }
 KOKKOS_IMPL_FUNCTION LocalVec<3> topEdgeOfCell(const ConstDeviceViewDG<6>& cv, DeviceIndex eid)
 {
-    return LocalVec<3>(cv(eid, 0) + 0.5_ft * cv(eid, 2) + FloatType(1. / 6.) * cv(eid, 4),
-        cv(eid, 1) + 0.5_ft * cv(eid, 5), cv(eid, 3));
+    return LocalVec<3>(cv(eid, 0) + 0.5_ft * cv(eid, 2) + FloatType(1. / 6.) * cv(eid, 5),
+        cv(eid, 1) + 0.5_ft * cv(eid, 3), cv(eid, 4));
 }
 
 // dG2+ (8 in cell, 3 on edge)
 
 KOKKOS_IMPL_FUNCTION LocalVec<3> leftEdgeOfCell(const ConstDeviceViewDG<8>& cv, DeviceIndex eid)
 {
-    return LocalVec<3>(cv(eid, 0) - 0.5_ft * cv(eid, 1) + FloatType(1. / 6.) * cv(eid, 3),
-        cv(eid, 2) - 0.5_ft * cv(eid, 5) + FloatType(1. / 6.) * cv(eid, 6),
-        cv(eid, 4) - 0.5_ft * cv(eid, 7));
+    return LocalVec<3>(cv(eid, 0) - 0.5_ft * cv(eid, 1) + FloatType(1. / 6.) * cv(eid, 4),
+        cv(eid, 2) - 0.5_ft * cv(eid, 3) + FloatType(1. / 6.) * cv(eid, 6),
+        cv(eid, 5) - 0.5_ft * cv(eid, 7));
 }
 
 KOKKOS_IMPL_FUNCTION LocalVec<3> rightEdgeOfCell(const ConstDeviceViewDG<8>& cv, DeviceIndex eid)
 {
-    return LocalVec<3>(cv(eid, 0) + 0.5_ft * cv(eid, 1) + FloatType(1. / 6.) * cv(eid, 3),
-        cv(eid, 2) + 0.5_ft * cv(eid, 5) + FloatType(1. / 6.) * cv(eid, 6),
-        cv(eid, 4) + 0.5_ft * cv(eid, 7));
+    return LocalVec<3>(cv(eid, 0) + 0.5_ft * cv(eid, 1) + FloatType(1. / 6.) * cv(eid, 4),
+        cv(eid, 2) + 0.5_ft * cv(eid, 3) + FloatType(1. / 6.) * cv(eid, 6),
+        cv(eid, 5) + 0.5_ft * cv(eid, 7));
 }
 
 KOKKOS_IMPL_FUNCTION LocalVec<3> bottomEdgeOfCell(const ConstDeviceViewDG<8>& cv, DeviceIndex eid)
 {
-    return LocalVec<3>(cv(eid, 0) - 0.5_ft * cv(eid, 2) + FloatType(1. / 6.) * cv(eid, 4),
-        cv(eid, 1) - 0.5_ft * cv(eid, 5) + FloatType(1. / 6.) * cv(eid, 7),
-        cv(eid, 3) - 0.5_ft * cv(eid, 6));
+    return LocalVec<3>(cv(eid, 0) - 0.5_ft * cv(eid, 2) + FloatType(1. / 6.) * cv(eid, 5),
+        cv(eid, 1) - 0.5_ft * cv(eid, 3) + FloatType(1. / 6.) * cv(eid, 7),
+        cv(eid, 4) - 0.5_ft * cv(eid, 6));
 }
 KOKKOS_IMPL_FUNCTION LocalVec<3> topEdgeOfCell(const ConstDeviceViewDG<8>& cv, DeviceIndex eid)
 {
-    return LocalVec<3>(cv(eid, 0) + 0.5_ft * cv(eid, 2) + FloatType(1. / 6.) * cv(eid, 4),
-        cv(eid, 1) + 0.5_ft * cv(eid, 5) + FloatType(1. / 6.) * cv(eid, 7),
-        cv(eid, 3) + 0.5_ft * cv(eid, 6));
+    return LocalVec<3>(cv(eid, 0) + 0.5_ft * cv(eid, 2) + FloatType(1. / 6.) * cv(eid, 5),
+        cv(eid, 1) + 0.5_ft * cv(eid, 3) + FloatType(1. / 6.) * cv(eid, 7),
+        cv(eid, 4) + 0.5_ft * cv(eid, 6));
 }
 
 // add local vector to global row atomically

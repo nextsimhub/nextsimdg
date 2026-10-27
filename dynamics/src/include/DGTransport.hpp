@@ -158,6 +158,5 @@ private:
 
 } /* namespace Nextsim */
 
-#undef EDGEDOFS
 
 #endif /* __DGTRANSPORT_HPP */

@@ -150,8 +150,8 @@ void KokkosSlopeLimiter<DG>::computeAlphasX(const DeviceViewDG1& alphaX,
             constexpr FloatType off = 0.5;
             // values of (d/dx phi) in the 4 nodes: lower-left, lower-right, upper-left, upper-right
             const Kokkos::Array<FloatType, 4> vertexValues = {
-                phi(c, 1) - phi(c, 3) - off * phi(c, 5), phi(c, 1) + phi(c, 3) - off * phi(c, 5),
-                phi(c, 1) - phi(c, 3) + off * phi(c, 5), phi(c, 1) + phi(c, 3) + off * phi(c, 5)
+                phi(c, 1) - phi(c, 4) - off * phi(c, 3), phi(c, 1) + phi(c, 4) - off * phi(c, 3),
+                phi(c, 1) - phi(c, 4) + off * phi(c, 3), phi(c, 1) + phi(c, 4) + off * phi(c, 3)
             };
             // value of d/dx phi in the midpoint
             const FloatType midValue = phi(c, 1);
@@ -178,8 +178,8 @@ void KokkosSlopeLimiter<DG>::computeAlphasY(const DeviceViewDG1& alphaY,
             constexpr FloatType off = 0.5;
             // values of (d/dx phi) in the 4 nodes: lower-left, lower-right, upper-left, upper-right
             const Kokkos::Array<FloatType, 4> vertexValues = {
-                phi(c, 2) - phi(c, 4) - off * phi(c, 5), phi(c, 2) - phi(c, 4) + off * phi(c, 5),
-                phi(c, 2) + phi(c, 4) - off * phi(c, 5), phi(c, 2) + phi(c, 4) + off * phi(c, 5)
+                phi(c, 2) - phi(c, 5) - off * phi(c, 3), phi(c, 2) - phi(c, 5) + off * phi(c, 3),
+                phi(c, 2) + phi(c, 5) - off * phi(c, 3), phi(c, 2) + phi(c, 5) + off * phi(c, 3)
             };
             // value of d/dx phi in the midpoint
             const FloatType midValue = phi(c, 2);

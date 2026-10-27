@@ -135,23 +135,23 @@ Uc))); else alpha_e = std::min(alpha_e, std::min(1.0_ft, (Umin[j] - Uc) / (U[j] 
 
                 // Kuzmin2011 eqns 21 and 22
                 std::array<FloatType, 4> Ux = { v(ii, 1), v(ii, 1), v(ii, 1), v(ii, 1) };
+                Ux[0] += -0.5_ft * v(ii, 4);
+                Ux[1] += 0.5_ft * v(ii, 4);
+                Ux[2] += 0.5_ft * v(ii, 4);
+                Ux[3] += -0.5_ft * v(ii, 4);
                 Ux[0] += -0.5_ft * v(ii, 3);
-                Ux[1] += 0.5_ft * v(ii, 3);
+                Ux[1] += -0.5_ft * v(ii, 3);
                 Ux[2] += 0.5_ft * v(ii, 3);
-                Ux[3] += -0.5_ft * v(ii, 3);
-                Ux[0] += -0.5_ft * v(ii, 5);
-                Ux[1] += -0.5_ft * v(ii, 5);
-                Ux[2] += 0.5_ft * v(ii, 5);
-                Ux[3] += 0.5_ft * v(ii, 5);
+                Ux[3] += 0.5_ft * v(ii, 3);
                 std::array<FloatType, 4> Uy = { v(ii, 2), v(ii, 2), v(ii, 2), v(ii, 2) };
+                Uy[0] += -0.5_ft * v(ii, 3);
+                Uy[1] += 0.5_ft * v(ii, 3);
+                Uy[2] += 0.5_ft * v(ii, 3);
+                Uy[3] += -0.5_ft * v(ii, 3);
                 Uy[0] += -0.5_ft * v(ii, 5);
-                Uy[1] += 0.5_ft * v(ii, 5);
+                Uy[1] += -0.5_ft * v(ii, 5);
                 Uy[2] += 0.5_ft * v(ii, 5);
-                Uy[3] += -0.5_ft * v(ii, 5);
-                Uy[0] += -0.5_ft * v(ii, 4);
-                Uy[1] += -0.5_ft * v(ii, 4);
-                Uy[2] += 0.5_ft * v(ii, 4);
-                Uy[3] += 0.5_ft * v(ii, 4);
+                Uy[3] += 0.5_ft * v(ii, 5);
 
                 // max and min bounds for verticies
                 std::array<FloatType, 4> Umin, Umax, Uminx, Umaxx, Uminy, Umaxy;

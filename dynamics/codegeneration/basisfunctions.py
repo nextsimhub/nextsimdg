@@ -7,24 +7,6 @@ The functions are specific to the unit square [0,1]^2.
 import numpy as np
 
 
-def dgdofs(d):
-    """
-    Compute the number of local unknowns in the DG space.
-
-    :param d: Number of unknowns per element depending on gauss degree
-    :return: the number of local unknowns in the dg spaces
-    """
-    if d == 0:
-        return 1
-    elif d == 1:
-        return 3
-    elif d == 2:
-        return 6
-    else:
-        msg = "dG3 and higher is not implemented"
-        raise AssertionError(msg)
-
-
 def cgdofs(d):
     """
     Compute the number of local unknowns in the CG space.
@@ -47,8 +29,10 @@ def dgbasis(j, x, y):
 
     dG 0:  1
     dG 1:  x, y
-    dG 2:  x^2, y^2, xy
-    dG X:  x^2y, xy^2.
+    dQ 1:  xy
+    dG 2:  x^2, y^2
+    dG X:  x^2y, xy^2
+    dQ 2:  x^2y^2.
     """
     if j == 0:
         return 1.0
@@ -57,17 +41,21 @@ def dgbasis(j, x, y):
     elif j == 2:
         return y - 0.5
     elif j == 3:
-        return (x - 0.5) * (x - 0.5) - 1.0 / 12.0
-    elif j == 4:
-        return (y - 0.5) * (y - 0.5) - 1.0 / 12.0
-    elif j == 5:
         return (x - 0.5) * (y - 0.5)
+    elif j == 4:
+        return (x - 0.5) * (x - 0.5) - 1.0 / 12.0
+    elif j == 5:
+        return (y - 0.5) * (y - 0.5) - 1.0 / 12.0
     elif j == 6:
         return (y - 0.5) * ((x - 0.5) * (x - 0.5) - 1.0 / 12.0)
     elif j == 7:
         return (x - 0.5) * ((y - 0.5) * (y - 0.5) - 1.0 / 12.0)
+    elif j == 8:
+        return ((x - 0.5) * (x - 0.5) - 1.0 / 12.0) * (
+            (y - 0.5) * (y - 0.5) - 1.0 / 12.0
+        )
     else:
-        print("dG3 and higher not implemented (yet)")
+        print("dQ3 and higher not implemented (yet)")
         raise AssertionError
 
 
@@ -79,17 +67,19 @@ def dx_dgbasis(j, x, y):
     elif j == 2:
         return 0.0
     elif j == 3:
-        return 2.0 * (x - 0.5)
-    elif j == 4:
-        return 0.0
-    elif j == 5:
         return y - 0.5
+    elif j == 4:
+        return 2.0 * (x - 0.5)
+    elif j == 5:
+        return 0.0
     elif j == 6:
         return (y - 0.5) * (2.0 * (x - 0.5))
     elif j == 7:
         return (y - 0.5) * (y - 0.5) - 1.0 / 12.0
+    elif j == 8:
+        return (2.0 * (x - 0.5)) * ((y - 0.5) * (y - 0.5) - 1.0 / 12.0)
     else:
-        print("dG3 and higher not implemented (yet)")
+        print("dQ3 and higher not implemented (yet)")
         raise AssertionError
 
 
@@ -99,17 +89,19 @@ def dy_dgbasis(j, x, y):
     elif j == 2:
         return 1.0
     elif j == 3:
-        return 0.0
-    elif j == 4:
-        return 2.0 * (y - 0.5)
-    elif j == 5:
         return x - 0.5
+    elif j == 4:
+        return 0.0
+    elif j == 5:
+        return 2.0 * (y - 0.5)
     elif j == 6:
         return (x - 0.5) * (x - 0.5) - 1.0 / 12.0
     elif j == 7:
         return (x - 0.5) * (2.0 * (y - 0.5))
+    elif j == 8:
+        return ((x - 0.5) * (x - 0.5) - 1.0 / 12.0) * (2.0 * (y - 0.5))
     else:
-        print("dG3 and higher not implemented (yet)")
+        print("dQ3 and higher not implemented (yet)")
         raise AssertionError
 
 
@@ -127,7 +119,7 @@ def dgbasis_edge(j, x):
 
 
 # Inverse element mass matrix for the dg methods
-inversemass = np.array([1.0, 12.0, 12.0, 180.0, 180.0, 144.0, 2160.0, 2160.0])
+inversemass = np.array([1.0, 12.0, 12.0, 144.0, 180.0, 180.0, 2160.0, 2160.0, 32400.0])
 
 
 def CGbasis1d(cg, j, x):

@@ -152,10 +152,10 @@ public:
 
             // values of (d/dx phi) in the 4 nodes: lower-left, lower-right, upper-left, upper-right
             const Eigen::Vector<FloatType, 4> vertexvalues
-                = { phi(c, 1) - phi(c, 3) - 0.5_ft * phi(c, 5),
-                      phi(c, 1) + phi(c, 3) - 0.5_ft * phi(c, 5),
-                      phi(c, 1) - phi(c, 3) + 0.5_ft * phi(c, 5),
-                      phi(c, 1) + phi(c, 3) + 0.5_ft * phi(c, 5) };
+                = { phi(c, 1) - phi(c, 4) - 0.5_ft * phi(c, 3),
+                      phi(c, 1) + phi(c, 4) - 0.5_ft * phi(c, 3),
+                      phi(c, 1) - phi(c, 4) + 0.5_ft * phi(c, 3),
+                      phi(c, 1) + phi(c, 4) + 0.5_ft * phi(c, 3) };
             // value of d/dx phi in the midpoint
             const FloatType midvalue = phi(c, 1);
 
@@ -190,10 +190,10 @@ public:
 
             // values of (d/dx phi) in the 4 nodes: lower-left, lower-right, upper-left, upper-right
             const Eigen::Vector<FloatType, 4> vertexvalues
-                = { phi(c, 2) - phi(c, 4) - 0.5_ft * phi(c, 5),
-                      phi(c, 2) - phi(c, 4) + 0.5_ft * phi(c, 5),
-                      phi(c, 2) + phi(c, 4) - 0.5_ft * phi(c, 5),
-                      phi(c, 2) + phi(c, 4) + 0.5_ft * phi(c, 5) };
+                = { phi(c, 2) - phi(c, 5) - 0.5_ft * phi(c, 3),
+                      phi(c, 2) - phi(c, 5) + 0.5_ft * phi(c, 3),
+                      phi(c, 2) + phi(c, 5) - 0.5_ft * phi(c, 3),
+                      phi(c, 2) + phi(c, 5) + 0.5_ft * phi(c, 3) };
             // value of d/dx phi in the midpoint
             const FloatType midvalue = phi(c, 2);
 

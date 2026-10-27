@@ -182,6 +182,9 @@ The dynamics for nextSIM-DG are chosen at the point of configuring CMake. This i
 
 * ``DG2``: Second order discontinuous Galerkin dynamics on a 2D rectangular grid. Advection calculations are performed with 6 DG components.
 
+  * The ordering of the second order DG basis functions was changed (see :doc:`numerical-implementation`).
+    Restart and output files of ``DG2`` written before this change can be converted with ``scripts/convert_dg_basis_order.py``.
+
 The syntax for chosing the dynamics via CMake is the standard method of providing options to CMake. For example, to compile the model with second order discontinuous Galerkin dynamics (``DG2``), the CMake command line with the dynamics argument would be
 
 .. code::

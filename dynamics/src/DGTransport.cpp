@@ -5,115 +5,11 @@
 #include "DGTransport.hpp"
 #include "Interpolations.hpp"
 #include "codeGenerationDGinGauss.hpp"
+#include "dgEdgeTools.hpp"
 
 namespace Nextsim {
 
-#define EDGEDOFS(DG) ((DG == 1) ? 1 : ((DG == 3) ? 2 : 3))
-
-//! returns the localization of the cell vector to the edges
-/*!
- * writes the cell-basis on the edges in the edge basis
- *
- * CELL:
- * DGdegree 0:      1
- * DGdegree 1-2:    + (x-1/2), (y-1/2),
- * DGdegree 3-5:    + (x-1/2)^2-1/12, (y-1/2)^2-1/12, (x-1/2)(y-1/2)
- * DGdegree 6-7:    + (y-1/2)(x-1/2)^2-1/12, (x-1/2)(y-1/2)^2-1/12
- *
- * EDGE:
- * DGdegree 0:    1
- * DGdegree 1: +  (t-1/2)
- * DGdegree 2: +  (t-1/2)^2-1/12
- *
- */
-template <int DG>
-Eigen::Matrix<FloatType, 1, EDGEDOFS(DG)> leftedgeofcell(const DGVector<DG>& cv, size_t eid);
-template <int DG>
-Eigen::Matrix<FloatType, 1, EDGEDOFS(DG)> rightedgeofcell(const DGVector<DG>& cv, size_t eid);
-template <int DG>
-Eigen::Matrix<FloatType, 1, EDGEDOFS(DG)> bottomedgeofcell(const DGVector<DG>& cv, size_t eid);
-template <int DG>
-Eigen::Matrix<FloatType, 1, EDGEDOFS(DG)> topedgeofcell(const DGVector<DG>& cv, size_t eid);
-
-// dG0 (1 in cell, 1 on edge)
-template <> Eigen::Matrix<FloatType, 1, 1> leftedgeofcell(const DGVector<1>& cv, size_t eid)
-{
-    return Eigen::Matrix<FloatType, 1, 1>(cv(eid, 0));
-}
-template <> Eigen::Matrix<FloatType, 1, 1> rightedgeofcell(const DGVector<1>& cv, size_t eid)
-{
-    return Eigen::Matrix<FloatType, 1, 1>(cv(eid, 0));
-}
-template <> Eigen::Matrix<FloatType, 1, 1> bottomedgeofcell(const DGVector<1>& cv, size_t eid)
-{
-    return Eigen::Matrix<FloatType, 1, 1>(cv(eid, 0));
-}
-template <> Eigen::Matrix<FloatType, 1, 1> topedgeofcell(const DGVector<1>& cv, size_t eid)
-{
-    return Eigen::Matrix<FloatType, 1, 1>(cv(eid, 0));
-}
-
-// dG1 (3 in cell, 2 on edge)
-template <> Eigen::Matrix<FloatType, 1, 2> leftedgeofcell(const DGVector<3>& cv, size_t eid)
-{
-    return Eigen::Matrix<FloatType, 1, 2>(cv(eid, 0) - 0.5_ft * cv(eid, 1), cv(eid, 2));
-}
-template <> Eigen::Matrix<FloatType, 1, 2> rightedgeofcell(const DGVector<3>& cv, size_t eid)
-{
-    return Eigen::Matrix<FloatType, 1, 2>(cv(eid, 0) + 0.5_ft * cv(eid, 1), cv(eid, 2));
-}
-template <> Eigen::Matrix<FloatType, 1, 2> bottomedgeofcell(const DGVector<3>& cv, size_t eid)
-{
-    return Eigen::Matrix<FloatType, 1, 2>(cv(eid, 0) - 0.5_ft * cv(eid, 2), cv(eid, 1));
-}
-template <> Eigen::Matrix<FloatType, 1, 2> topedgeofcell(const DGVector<3>& cv, size_t eid)
-{
-    return Eigen::Matrix<FloatType, 1, 2>(cv(eid, 0) + 0.5_ft * cv(eid, 2), cv(eid, 1));
-}
-
-// dG2 (6 in cell, 3 on edge)
-template <> Eigen::Matrix<FloatType, 1, 3> leftedgeofcell(const DGVector<6>& cv, size_t eid)
-{
-    return Eigen::Matrix<FloatType, 1, 3>(cv(eid, 0) - 0.5_ft * cv(eid, 1) + 1. / 6. * cv(eid, 3),
-        cv(eid, 2) - 0.5_ft * cv(eid, 5), cv(eid, 4));
-}
-template <> Eigen::Matrix<FloatType, 1, 3> rightedgeofcell(const DGVector<6>& cv, size_t eid)
-{
-    return Eigen::Matrix<FloatType, 1, 3>(cv(eid, 0) + 0.5_ft * cv(eid, 1) + 1. / 6. * cv(eid, 3),
-        cv(eid, 2) + 0.5_ft * cv(eid, 5), cv(eid, 4));
-}
-template <> Eigen::Matrix<FloatType, 1, 3> bottomedgeofcell(const DGVector<6>& cv, size_t eid)
-{
-    return Eigen::Matrix<FloatType, 1, 3>(cv(eid, 0) - 0.5_ft * cv(eid, 2) + 1. / 6. * cv(eid, 4),
-        cv(eid, 1) - 0.5_ft * cv(eid, 5), cv(eid, 3));
-}
-template <> Eigen::Matrix<FloatType, 1, 3> topedgeofcell(const DGVector<6>& cv, size_t eid)
-{
-    return Eigen::Matrix<FloatType, 1, 3>(cv(eid, 0) + 0.5_ft * cv(eid, 2) + 1. / 6. * cv(eid, 4),
-        cv(eid, 1) + 0.5_ft * cv(eid, 5), cv(eid, 3));
-}
-
-// dG2+ (8 in cell, 3 on edge)
-template <> Eigen::Matrix<FloatType, 1, 3> leftedgeofcell(const DGVector<8>& cv, size_t eid)
-{
-    return Eigen::Matrix<FloatType, 1, 3>(cv(eid, 0) - 0.5_ft * cv(eid, 1) + 1. / 6. * cv(eid, 3),
-        cv(eid, 2) - 0.5_ft * cv(eid, 5) + 1. / 6. * cv(eid, 6), cv(eid, 4) - 0.5_ft * cv(eid, 7));
-}
-template <> Eigen::Matrix<FloatType, 1, 3> rightedgeofcell(const DGVector<8>& cv, size_t eid)
-{
-    return Eigen::Matrix<FloatType, 1, 3>(cv(eid, 0) + 0.5_ft * cv(eid, 1) + 1. / 6. * cv(eid, 3),
-        cv(eid, 2) + 0.5_ft * cv(eid, 5) + 1. / 6. * cv(eid, 6), cv(eid, 4) + 0.5_ft * cv(eid, 7));
-}
-template <> Eigen::Matrix<FloatType, 1, 3> bottomedgeofcell(const DGVector<8>& cv, size_t eid)
-{
-    return Eigen::Matrix<FloatType, 1, 3>(cv(eid, 0) - 0.5_ft * cv(eid, 2) + 1. / 6. * cv(eid, 4),
-        cv(eid, 1) - 0.5_ft * cv(eid, 5) + 1. / 6. * cv(eid, 7), cv(eid, 3) - 0.5_ft * cv(eid, 6));
-}
-template <> Eigen::Matrix<FloatType, 1, 3> topedgeofcell(const DGVector<8>& cv, size_t eid)
-{
-    return Eigen::Matrix<FloatType, 1, 3>(cv(eid, 0) + 0.5_ft * cv(eid, 2) + 1. / 6. * cv(eid, 4),
-        cv(eid, 1) + 0.5_ft * cv(eid, 5) + 1. / 6. * cv(eid, 7), cv(eid, 3) + 0.5_ft * cv(eid, 6));
-}
+// leftedgeofcell, rightedgeofcell, bottomedgeofcell, topedgeofcell: see dgEdgeTools.hpp
 
 // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -388,14 +284,14 @@ inline void DGTransport<DG>::edge_term_Y(const ParametricMesh& smesh, const Floa
     const LocalEdgeVector<GAUSSPOINTS1D(DG)> vel_gauss
         = normalvel_Y.row(ie) * PSIe<EDGEDOFS(DG), GAUSSPOINTS1D(DG)>;
 
-    const LocalEdgeVector<EDGEDOFS(DG)> tmp = (vel_gauss.cwiseMax(0).array()
-            * (rightedgeofcell<DG>(phi, c1) * PSIe<EDGEDOFS(DG), EDGEDOFS(DG)>).array()
+    const LocalEdgeVector<GAUSSPOINTS1D(DG)> tmp = (vel_gauss.cwiseMax(0).array()
+            * (rightedgeofcell<DG>(phi, c1) * PSIe<EDGEDOFS(DG), GAUSSPOINTS1D(DG)>).array()
         + vel_gauss.cwiseMin(0).array()
-            * (leftedgeofcell<DG>(phi, c2) * PSIe<EDGEDOFS(DG), EDGEDOFS(DG)>).array());
+            * (leftedgeofcell<DG>(phi, c2) * PSIe<EDGEDOFS(DG), GAUSSPOINTS1D(DG)>).array());
 
     // - [[psi]] sind we're on the left side
-    phiup.row(c1) -= dt * tmp * PSIe_w<DG, EDGEDOFS(DG), 1>;
-    phiup.row(c2) += dt * tmp * PSIe_w<DG, EDGEDOFS(DG), 3>;
+    phiup.row(c1) -= dt * tmp * PSIe_w<DG, GAUSSPOINTS1D(DG), 1>;
+    phiup.row(c2) += dt * tmp * PSIe_w<DG, GAUSSPOINTS1D(DG), 3>;
 }
 
 template <int DG>
@@ -542,8 +438,6 @@ template <int DG> void DGTransport<DG>::step(const FloatType dt, DGVector<DG>& p
         abort();
     }
 }
-
-#undef EDGEDOFS
 
 template class DGTransport<1>;
 template class DGTransport<3>;

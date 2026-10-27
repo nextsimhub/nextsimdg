@@ -66,6 +66,11 @@ if(NOT ENABLE_MPI)
                                                                "${CoreDir}/${ModelArrayStructure}")
     target_link_libraries(testAdvectionPeriodicBC LINK_PUBLIC doctest::doctest Eigen3::Eigen)
 
+    add_executable(testDGBasis DGBasis_test.cpp)
+    target_include_directories(testDGBasis PRIVATE "${CoreDir}" "${SRC_DIR}"
+                                                   "${CoreDir}/${ModelArrayStructure}")
+    target_link_libraries(testDGBasis LINK_PUBLIC doctest::doctest Eigen3::Eigen)
+
     set(TEST_EXECUTABLES
         testDGModelArray
         testDGVectorHolder
@@ -73,7 +78,8 @@ if(NOT ENABLE_MPI)
         testParametricMesh
         testParametricMeshArea
         testAdvection
-        testAdvectionPeriodicBC)
+        testAdvectionPeriodicBC
+        testDGBasis)
 
     foreach(test_exec IN LISTS TEST_EXECUTABLES)
         add_test(NAME ${test_exec} COMMAND ${test_exec})

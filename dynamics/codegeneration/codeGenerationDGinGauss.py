@@ -12,7 +12,7 @@ import numpy as np
 # the edges: left, right, up, down
 #
 # edge: left, right, up, down
-# d   : number of dG - dofs (1, 3, 6, 8) for dG0/1/2 and dG2+ (nabla Q2)
+# d   : number of dG - dofs (1, 3, 4, 6, 8, 9) for dG0/1, dQ1, dG2, dG2+ (nabla Q2), dQ2
 # g   : number of gauss points (1,2,3)
 def basisfunctions_in_gausspoints_edge(edge, d, g):
     # print header
@@ -76,7 +76,7 @@ def basisfunctions_in_gausspoints_edge(edge, d, g):
 # the edges: left, right, up, down
 #
 # edge: left, right, up, down
-# d   : number of dG - dofs (1, 3, 6, 8) for dG0/1/2 and dG2+ (nabla Q2)
+# d   : number of dG - dofs (1, 3, 4, 6, 8, 9) for dG0/1, dQ1, dG2, dG2+ (nabla Q2), dQ2
 # g   : number of gauss points (1,2,3)
 def basisfunctions_in_gausspoints_edge_new(edge, d, g):
     # print header
@@ -137,7 +137,7 @@ def basisfunctions_in_gausspoints_edge_new(edge, d, g):
 #   M_d^(-1) weight(g) * (X) * Psi_i(g)
 #
 # edge: left, right, up, down
-# d   : number of dG - dofs (1, 3, 6, 8) for dG0/1/2 and dG2+ (nabla Q2)
+# d   : number of dG - dofs (1, 3, 4, 6, 8, 9) for dG0/1, dQ1, dG2, dG2+ (nabla Q2), dQ2
 # g   : number of gauss points (1,2,3) in each direction
 def integration_basisfunctions_in_gausspoints_cell(d, g):
     # print header
@@ -183,7 +183,7 @@ def integration_basisfunctions_in_gausspoints_cell(d, g):
 # evaluate basis functions in the trapecoidal / simpson points on
 # the cell
 #
-# d   : number of dG - dofs (1, 3, 6, 8) for dG0/1/2 and dG2+ (nabla Q2)
+# d   : number of dG - dofs (1, 3, 4, 6, 8, 9) for dG0/1, dQ1, dG2, dG2+ (nabla Q2), dQ2
 # g   : 2 Trapecoidal, 3 Simpson
 def basisfunctions_in_lagrangepoints_cell(d, g):
     # print header
@@ -214,7 +214,7 @@ def basisfunctions_in_lagrangepoints_cell(d, g):
 # evaluate basis functions in the quadrature points on
 # the cell
 #
-# d   : number of dG - dofs (1, 3, 6, 8) for dG0/1/2 and dG2+ (nabla Q2)
+# d   : number of dG - dofs (1, 3, 4, 6, 8, 9) for dG0/1, dQ1, dG2, dG2+ (nabla Q2), dQ2
 # g   : Gauss points in each direction (2,3). lower left to upper right, y/x
 def basisfunctions_in_gausspoints_cell(d, g):
     # print header
@@ -252,7 +252,7 @@ def basisfunctions_in_gausspoints_cell(d, g):
 # evaluate basis functions in the quadrature points on
 # the cell
 #
-# d   : number of dG - dofs (1, 3, 6, 8) for dG0/1/2 and dG2+ (nabla Q2)
+# d   : number of dG - dofs (1, 3, 4, 6, 8, 9) for dG0/1, dQ1, dG2, dG2+ (nabla Q2), dQ2
 # g   : Gauss points in each direction (2,3). lower left to upper right, y/x
 def basisfunctions_in_gausspoints_cell_gradient(d, g):
     # print header
@@ -466,32 +466,25 @@ print("\n\n//------------------------------ Basis Functions in Gauss Points (edg
 
 print("template<int DG, int GP, int E>")
 print("struct PSIe_wImpl;")
-for dg in [1, 3, 6, 8]:
+for dg in [1, 3, 4, 6, 8, 9]:
     for e in [0, 1, 2, 3]:
         if dg == 1:
             basisfunctions_in_gausspoints_edge(e, dg, 1)
-        #            basisfunctions_in_gausspoints_edge(e, dg,2)
-        elif dg == 3:
+        elif dg in {3, 4}:
             basisfunctions_in_gausspoints_edge(e, dg, 2)
-        #            basisfunctions_in_gausspoints_edge(e, dg,3)
         else:
             basisfunctions_in_gausspoints_edge(e, dg, 3)
-        #            basisfunctions_in_gausspoints_edge(e, dg,4)
         print("")
 
-        if dg == 1:
-            basisfunctions_in_gausspoints_edge_new(e, dg, 1)
-        #            basisfunctions_in_gausspoints_edge_new(e, dg,2)
-        elif dg == 3:
-            basisfunctions_in_gausspoints_edge_new(e, dg, 2)
-        #            basisfunctions_in_gausspoints_edge_new(e, dg,3)
-        else:
-            basisfunctions_in_gausspoints_edge_new(e, dg, 3)
-        #            basisfunctions_in_gausspoints_edge_new(e, dg,4)
+        # all rules 1..4 points: needed by the transport with the LDG velocity
+        # traces (edge integrand phi * (u.n) * psi, u of higher degree than phi)
+        for g in [1, 2, 3, 4]:
+            basisfunctions_in_gausspoints_edge_new(e, dg, g)
         print("")
 print("template<int DG, int GP, int E>")
+# Eigen forbids RowMajor storage for a matrix with a single column (DG = 1, GP > 1)
 print(
-    "const Eigen::Matrix<FloatType, GP, DG, Eigen::RowMajor> PSIe_w = PSIe_wImpl<DG, GP, E>::value;"
+    "const Eigen::Matrix<FloatType, GP, DG, (DG == 1 && GP != 1) ? Eigen::ColMajor : Eigen::RowMajor> PSIe_w = PSIe_wImpl<DG, GP, E>::value;"
 )
 print("")
 
@@ -502,7 +495,7 @@ print(
 
 print("template<int DG, int GP>")
 print("struct PSILagrangeImpl;")
-for dg in [1, 3, 6, 8]:
+for dg in [1, 3, 4, 6, 8, 9]:
     basisfunctions_in_lagrangepoints_cell(dg, 2)
     basisfunctions_in_lagrangepoints_cell(dg, 3)
 print("template<int DG, int GP>")
@@ -516,7 +509,7 @@ print("\n\n//------------------------------ Basis Functions in Gauss Points (cel
 
 print("template<int DG, int GP>")
 print("struct PSIImpl;")
-for dg in [1, 3, 6, 8]:
+for dg in [1, 3, 4, 6, 8, 9]:
     basisfunctions_in_gausspoints_cell(dg, 1)
     basisfunctions_in_gausspoints_cell(dg, 2)
     basisfunctions_in_gausspoints_cell(dg, 3)
@@ -533,7 +526,7 @@ print("template<int DG, int GP>")
 print("struct PSIxImpl;")
 print("template<int DG, int GP>")
 print("struct PSIyImpl;")
-for dg in [1, 3, 6, 8]:
+for dg in [1, 3, 4, 6, 8, 9]:
     basisfunctions_in_gausspoints_cell_gradient(dg, 1)
     basisfunctions_in_gausspoints_cell_gradient(dg, 2)
     basisfunctions_in_gausspoints_cell_gradient(dg, 3)
@@ -549,7 +542,7 @@ print(
 print("")
 
 
-for dg in [1, 3, 6, 8]:
+for dg in [1, 3, 4, 6, 8, 9]:
     integration_basisfunctions_in_gausspoints_cell(dg, 2)
     integration_basisfunctions_in_gausspoints_cell(dg, 3)
 
@@ -559,15 +552,17 @@ print("\n\n//------------------------------ Edge Basis Functions in Gauss Points
 
 print("template<int DG, int GP>")
 print("struct PSIeImpl;")
-for dg in [1, 2, 3]:
-    edge_basisfunctions_in_gausspoints(dg, dg)
-    #    edge_basisfunctions_in_gausspoints(dg,dg+1)
+# all combinations: the transport with the LDG velocity traces evaluates edge
+# traces of fields of any degree (EDGEDOFS 1..3) with any rule (1..4 points)
+for d in [1, 2, 3]:
+    for g in [1, 2, 3, 4]:
+        edge_basisfunctions_in_gausspoints(d, g)
     print("")
-edge_basisfunctions_in_gausspoints(2, 3)
 
 print("template<int DG, int GP>")
+# Eigen forbids RowMajor storage for a matrix with a single column (GP = 1, DG > 1)
 print(
-    "const Eigen::Matrix<FloatType, DG, GP, Eigen::RowMajor> PSIe = PSIeImpl<DG, GP>::value;"
+    "const Eigen::Matrix<FloatType, DG, GP, (GP == 1 && DG != 1) ? Eigen::ColMajor : Eigen::RowMajor> PSIe = PSIeImpl<DG, GP>::value;"
 )
 print("")
 

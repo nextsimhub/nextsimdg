@@ -177,7 +177,7 @@ print('#include "NextsimDynamics.hpp"')
 print("namespace Nextsim {")
 
 print("\n\n//------------------------------ CGtoDG\n")
-for dg in [1, 3, 6, 8]:
+for dg in [1, 3, 4, 6, 8]:
     for cg in [1, 2]:
         cg2dg_matrix(dg, cg)
         print("")
@@ -192,7 +192,7 @@ print("")
 
 
 print("//------------------------------ CG2toDG\n")
-for dg in [1, 3, 6, 8]:
+for dg in [1, 3, 4, 6, 8]:
     for cg in [1, 2]:
         cg2dg_dxy_matrix(dg, cg, "X")
         cg2dg_dxy_matrix(dg, cg, "Y")
@@ -206,7 +206,7 @@ print("")
 
 
 print("//------------------------------ CG2toDG\n")
-for dg in [1, 3, 6, 8]:
+for dg in [1, 3, 4, 6, 8]:
     for cg in [1, 2]:
         dg_cg_dxy_matrix(dg, cg, "X")
         dg_cg_dxy_matrix(dg, cg, "Y")

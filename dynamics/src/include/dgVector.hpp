@@ -76,12 +76,14 @@ public:
 /**
  * Stores coefficients of DGdegree vector
  *
- * Basis in local coordinate system:
+ * Basis in local coordinate system (X = x-1/2, Y = y-1/2), by index:
  *
- * DGdegree 0:      1
- * DGdegree 1-2:    + (x-1/2),
- * DGdegree 3-5:    + (x-1/2)^2-1/12, (y-1/2)^2-1/12, (x-1/2)(y-1/2)
- * DGdegree 6-7:    + (y-1/2)(x-1/2)^2-1/12, (x-1/2)(y-1/2)^2-1/12
+ * 0:      1
+ * 1-2:    X, Y                                 (DG = 3)
+ * 3:      XY                                   (DG = 4)
+ * 4-5:    X^2-1/12, Y^2-1/12                   (DG = 6)
+ * 6-7:    Y(X^2-1/12), X(Y^2-1/12)             (DG = 8)
+ * 8:      (X^2-1/12)(Y^2-1/12)                 (DG = 9)
  *
  **/
 template <int DG>

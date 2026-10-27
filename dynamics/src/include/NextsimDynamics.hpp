@@ -50,18 +50,36 @@ template <typename T> constexpr T SQR(T x) { return x * x; }
 
 /*!
  * number of Gauss points depending on DG unknowns
- *  1 for dG(0)   DG=1
- * 2 for dG(1)   DG=3
- * 3 for dG(2)   DG=6 and DG=8
+ * 1 for dG(0)   DG=1
+ * 2 for dG(1)   DG=3 and dQ(1) DG=4
+ * 3 for dG(2)   DG=6, DG=8 and dQ(2) DG=9
  */
-#define GAUSSPOINTS(Q) (((Q == 8) || (Q == 6)) ? 9 : (Q == 3) ? 4 : (Q == 1) ? 1 : -1)
-#define GAUSSPOINTS1D(Q) (((Q == 8) || (Q == 6)) ? 3 : (Q == 3) ? 2 : (Q == 1) ? 1 : -1)
+#define GAUSSPOINTS(Q)                                                                             \
+    (((Q == 9) || (Q == 8) || (Q == 6)) ? 9 : ((Q == 3) || (Q == 4)) ? 4 : (Q == 1) ? 1 : -1)
+#define GAUSSPOINTS1D(Q)                                                                           \
+    (((Q == 9) || (Q == 8) || (Q == 6)) ? 3 : ((Q == 3) || (Q == 4)) ? 2 : (Q == 1) ? 1 : -1)
 
 /*!
- * The number of unknowns on an edge depending on DG,
- * which is the number of unknowns in an element.
+ * Polynomial degree of the DG basis, per coordinate direction (x or y taken
+ * separately). This is not the same as DG itself, which counts the number of
+ * basis functions:
+ *   DG=1 -> {1}                                   degree 0
+ *   DG=3 -> {1, x, y}                             degree 1
+ *   DG=4 -> {1, x, y, xy}                         degree 1
+ *   DG=6 -> {1, x, y, xy, x^2, y^2}               degree 2
+ *   DG=8 -> {1, x, y, xy, x^2, y^2, x^2y, xy^2}   degree 2
+ *   DG=9 -> DG=8 plus x^2y^2                      degree 2
  */
-#define EDGEDOFS(DG) ((DG == 1) ? 1 : ((DG == 3) ? 2 : 3))
+#define DGDEGREE(DG)                                                                               \
+    (((DG == 9) || (DG == 8) || (DG == 6)) ? 2 : ((DG == 3) || (DG == 4)) ? 1 : (DG == 1) ? 0 : -1)
+
+/*!
+ * Number of Gauss points per direction needed to integrate a polynomial of
+ * degree D exactly. A rule with N points is exact up to degree 2N-1.
+ */
+#define NGAUSSFORDEGREE1D(D) (((D) + 2) / 2)
+
+#define EDGEDOFS(DG) ((DG == 1) ? 1 : (((DG == 3) || (DG == 4)) ? 2 : 3))
 
 }
 
