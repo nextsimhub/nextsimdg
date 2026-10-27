@@ -126,7 +126,7 @@ static void LimitMin(DGVector<6>& dg, FloatType min)
         // part coming from nonlinearity
         const FloatType l0 = minvalue - dg(i, 0);
         if (minvalue < min) {
-            dg.block<1, 5>(i, 1) *= (dg(i, 0) - min) / l0;
+            dg.block<1, 5>(i, 1) *= (min - dg(i, 0)) / l0;
         }
     }
 }
