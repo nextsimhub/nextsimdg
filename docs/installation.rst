@@ -176,9 +176,13 @@ Configuring the dynamics
 ------------------------
 The dynamics for nextSIM-DG are chosen at the point of configuring CMake. This is in contrast to most of the model configuration, which is done at model run time. The dynamics are set through the configuration option ``DynamicsType``. The available options for the dynamics are
 
+* ``DG0``: Zeroth order (finite volume) discontinuous Galerkin dynamics on a 2D rectangular grid. Advection calculations are performed with 1 DG component.
+
 * ``DG1``: First order discontinuous Galerkin dynamics on a 2D rectangular grid. Advection calculations are performed with 3 DG components.
 
   * This is the default option if no other option is provided to CMake.
+
+* ``DQ1``: Bilinear discontinuous Galerkin dynamics on a 2D rectangular grid. Advection calculations are performed with 4 DG components (1, x, y, xy).
 
 * ``DG2``: Second order discontinuous Galerkin dynamics on a 2D rectangular grid. Advection calculations are performed with 6 DG components.
 

@@ -111,11 +111,18 @@ public:
             size_t cgi = cy * (mesh.nx + 1) + cx; // index of lower-left vertex
 
             // values of phi in the 4 nodes: lower-left, lower-right, upper-left, upper-right
-            const Eigen::Vector<FloatType, 4> vertexvalues
+            Eigen::Vector<FloatType, 4> vertexvalues
                 = { phi(c, 0) - 0.5_ft * phi(c, 1) - 0.5_ft * phi(c, 2),
                       phi(c, 0) + 0.5_ft * phi(c, 1) - 0.5_ft * phi(c, 2),
                       phi(c, 0) - 0.5_ft * phi(c, 1) + 0.5_ft * phi(c, 2),
                       phi(c, 0) + 0.5_ft * phi(c, 1) + 0.5_ft * phi(c, 2) };
+            // dQ1: the bilinear term XY is limited together with the linear part
+            if constexpr (DG == 4) {
+                vertexvalues(0) += 0.25_ft * phi(c, 3);
+                vertexvalues(1) -= 0.25_ft * phi(c, 3);
+                vertexvalues(2) -= 0.25_ft * phi(c, 3);
+                vertexvalues(3) += 0.25_ft * phi(c, 3);
+            }
 
             // value of phi in the midpoint
             const FloatType midvalue = phi(c, 0);
@@ -236,13 +243,14 @@ public:
             }
         }
 
-        // limit 2nd order terms
+        // limit 1st order terms (and the bilinear term for DG4) with alpha, 2nd order terms with
+        // alphaX
 #pragma omp parallel for
         for (int c = 0; c < mesh.nelements; ++c) {
             for (int d = 1; d < 3; ++d)
                 phi(c, d) *= alpha(c, 0);
             for (int d = 3; d < DG; ++d)
-                phi(c, d) *= alphaX(c, 0);
+                phi(c, d) *= (DG == 4) ? alpha(c, 0) : alphaX(c, 0);
         }
     }
 };

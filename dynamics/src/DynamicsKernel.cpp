@@ -12,6 +12,9 @@ template class DynamicsKernel<1, 8>;
 template class DynamicsKernel<3, 3>;
 template class DynamicsKernel<3, 8>;
 
+template class DynamicsKernel<4, 3>;
+template class DynamicsKernel<4, 8>;
+
 template class DynamicsKernel<6, 3>;
 template class DynamicsKernel<6, 8>;
 

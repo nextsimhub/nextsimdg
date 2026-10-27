@@ -378,6 +378,7 @@ template <int CG, int DG> void ParametricMomentumMap<CG, DG>::InitializeCGLandma
 
 template class ParametricTransportMap<1>;
 template class ParametricTransportMap<3>;
+template class ParametricTransportMap<4>;
 template class ParametricTransportMap<6>;
 template class ParametricTransportMap<8>;
 
@@ -385,6 +386,8 @@ template class ParametricMomentumMap<1, 1>;
 template class ParametricMomentumMap<2, 1>;
 template class ParametricMomentumMap<1, 3>;
 template class ParametricMomentumMap<2, 3>;
+template class ParametricMomentumMap<1, 4>;
+template class ParametricMomentumMap<2, 4>;
 template class ParametricMomentumMap<1, 6>;
 template class ParametricMomentumMap<2, 6>;
 

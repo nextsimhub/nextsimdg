@@ -441,6 +441,7 @@ template <int DG> void DGTransport<DG>::step(const FloatType dt, DGVector<DG>& p
 
 template class DGTransport<1>;
 template class DGTransport<3>;
+template class DGTransport<4>;
 template class DGTransport<6>;
 template class DGTransport<8>;
 
@@ -448,6 +449,8 @@ template void DGTransport<1>::prepareAdvection(const CGVector<1>& cg_vx, const C
 template void DGTransport<1>::prepareAdvection(const CGVector<2>& cg_vx, const CGVector<2>& cg_vy);
 template void DGTransport<3>::prepareAdvection(const CGVector<1>& cg_vx, const CGVector<1>& cg_vy);
 template void DGTransport<3>::prepareAdvection(const CGVector<2>& cg_vx, const CGVector<2>& cg_vy);
+template void DGTransport<4>::prepareAdvection(const CGVector<1>& cg_vx, const CGVector<1>& cg_vy);
+template void DGTransport<4>::prepareAdvection(const CGVector<2>& cg_vx, const CGVector<2>& cg_vy);
 template void DGTransport<6>::prepareAdvection(const CGVector<1>& cg_vx, const CGVector<1>& cg_vy);
 template void DGTransport<6>::prepareAdvection(const CGVector<2>& cg_vx, const CGVector<2>& cg_vy);
 template void DGTransport<8>::prepareAdvection(const CGVector<2>& cg_vx, const CGVector<2>& cg_vy);

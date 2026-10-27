@@ -10,6 +10,22 @@
 
 namespace Nextsim {
 
+/*!
+ * Computes the minimum and maximum of the dQ1 polynomial
+ *   f(X,Y) = c0 + c1*X + c2*Y + c3*X*Y
+ * over the reference cell X,Y in [-1/2,1/2]. f is linear along each edge,
+ * so the extrema are attained in the corners.
+ */
+static void DG4Extrema(const DGVector<4>& dg, long int i, FloatType& minval, FloatType& maxval)
+{
+    const FloatType v0 = dg(i, 0) - 0.5_ft * dg(i, 1) - 0.5_ft * dg(i, 2) + 0.25_ft * dg(i, 3);
+    const FloatType v1 = dg(i, 0) + 0.5_ft * dg(i, 1) - 0.5_ft * dg(i, 2) - 0.25_ft * dg(i, 3);
+    const FloatType v2 = dg(i, 0) - 0.5_ft * dg(i, 1) + 0.5_ft * dg(i, 2) - 0.25_ft * dg(i, 3);
+    const FloatType v3 = dg(i, 0) + 0.5_ft * dg(i, 1) + 0.5_ft * dg(i, 2) + 0.25_ft * dg(i, 3);
+    minval = std::min(std::min(v0, v1), std::min(v2, v3));
+    maxval = std::max(std::max(v0, v1), std::max(v2, v3));
+}
+
 //! Limit a dg vector from above
 static void LimitMax(DGVector<1>& dg, FloatType max) { dg.col(0) = dg.col(0).cwiseMin(max); }
 static void LimitMax(DGVector<3>& dg, FloatType max)
@@ -25,6 +41,23 @@ static void LimitMax(DGVector<3>& dg, FloatType max)
         if (ex > 0) {
             dg(i, 1) *= (max - dg(i, 0)) / l0;
             dg(i, 2) *= (max - dg(i, 0)) / l0;
+        }
+    }
+}
+
+//! Limit a dg vector from above in the corners (exact for the bilinear polynomial)
+static void LimitMax(DGVector<4>& dg, FloatType max)
+{
+#pragma omp parallel for
+    for (long int i = 0; i < dg.rows(); ++i) {
+        dg(i, 0) = std::min(max, dg(i, 0));
+
+        FloatType minvalue, maxvalue;
+        DG4Extrema(dg, i, minvalue, maxvalue);
+        // part coming from the nonlinearities
+        const FloatType l0 = maxvalue - dg(i, 0);
+        if (maxvalue > max) {
+            dg.block<1, 3>(i, 1) *= (max - dg(i, 0)) / l0;
         }
     }
 }
@@ -64,6 +97,21 @@ static void LimitMin(DGVector<3>& dg, FloatType min)
         if (ex < 0) {
             dg(i, 1) *= (dg(i, 0) - min) / l0;
             dg(i, 2) *= (dg(i, 0) - min) / l0;
+        }
+    }
+}
+static void LimitMin(DGVector<4>& dg, FloatType min)
+{
+#pragma omp parallel for
+    for (long int i = 0; i < dg.rows(); ++i) {
+        dg(i, 0) = std::max(min, dg(i, 0));
+
+        FloatType minvalue, maxvalue;
+        DG4Extrema(dg, i, minvalue, maxvalue);
+        // part coming from the nonlinearities
+        const FloatType l0 = minvalue - dg(i, 0);
+        if (minvalue < min) {
+            dg.block<1, 3>(i, 1) *= (min - dg(i, 0)) / l0;
         }
     }
 }

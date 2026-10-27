@@ -8,6 +8,10 @@
 #include "NextsimDynamics.hpp"
 #include "ParametricMesh.hpp"
 #include "cgVector.hpp"
+#include "dgVector.hpp"
+
+#include <array>
+#include <vector>
 
 namespace Nextsim {
 
@@ -123,6 +127,120 @@ public:
     void InitializeDivSMatrices();
     //! initializes the CG landmask
     void InitializeCGLandmask();
+};
+
+/*!
+ * Stores precomputed matrices and stencils that are required for the momentum
+ * equation with a DG velocity space and the LDG discretization of the stress
+ * divergence (DG velocity, DGstress stress, DGstrain strain).
+ *
+ * Only CARTESIAN coordinates are supported so far.
+ */
+template <int DG, int DGstress, int DGstrain> class ParametricDGMomentumMap {
+    //! Reference to the map. Given with constructor
+    const ParametricMesh& smesh;
+
+public:
+    template <int R, int C> using Matrix = Eigen::Matrix<FloatType, R, C>;
+    template <int R, int C>
+    using MatrixVector = std::vector<Matrix<R, C>, Eigen::aligned_allocator<Matrix<R, C>>>;
+
+    /*!
+     * The dG mass matrix weighted with a DG field (e.g. rho_ice * H for the inertia term)
+     * and its inverse. Depends on the field, InitializeWeightedDGMassMatrix() must be
+     * called whenever the field changes.
+     */
+    MatrixVector<DG, DG> WeightedDGMassMatrix;
+    MatrixVector<DG, DG> InverseWeightedDGMassMatrix;
+
+    /*!
+     * Cell term (sigma, nabla v) of the velocity equation, used as
+     * (dgDivS1 * S11 + dgDivS2 * S12 ; dgDivS1 * S12 + dgDivS2 * S22).
+     * No inverse mass included: the velocity system is solved as a whole.
+     */
+    MatrixVector<DG, DGstress> dgDivS1, dgDivS2;
+
+    /*!
+     * Cell term (u, div tau) of the strain equation, multiplied with the local inverse
+     * strain mass matrix.
+     */
+    MatrixVector<DGstrain, DG> iMgradTauX, iMgradTauY;
+
+    //! Local inverse strain mass matrix, also applied to the flux terms of the strain equation
+    MatrixVector<DGstrain, DGstrain> InverseStrainMassMatrix;
+
+    /*!
+     * M_stress^-1 J w PSI: projection of a field given in the Gauss points onto the
+     * DGstress coefficients, as ParametricMomentumMap::iMJwPSI. Used in the stress update.
+     */
+    MatrixVector<DGstress, GAUSSPOINTS(DGstress)> iMJwPSI;
+
+    /*!
+     * J w PSI: projection of a forcing given in the Gauss points onto the (not inverted)
+     * load vector of the DG velocity.
+     */
+    MatrixVector<DG, GAUSSPOINTS(DG)> JwPSI;
+
+    /*!
+     * LDG jump penalty J, the part of -<sigma_hat.n, [[v]]> that depends on u, treated
+     * implicitly in the velocity system ((1+beta) rho M_H + dt J) u = F:
+     *
+     *   J(u,v) = sum_{interior e} w_e int_ref [[u]][[v]] dxi
+     *          + sum_{Dirichlet e} w_e int_ref u v dxi
+     *
+     * with the edge weights (edge length l_e, cell size h = sqrt(area))
+     *   interior  : w_e = b * l_e / (0.5*(h(c1)+h(c2)))
+     *   Dirichlet : w_e = b * l_e / (h(c) * (0.5-a))
+     * Side numbering s: 0 bottom, 1 right, 2 top, 3 left; the same edge seen from the
+     * neighbour across side s is its side (s+2)%4.
+     */
+
+    //! TraceMassSameCell[s](i,j) = int_0^1 phi_i|_s phi_j|_s dxi
+    std::array<Matrix<DG, DG>, 4> TraceMassSameCell;
+
+    //! TraceMassNeighborCell[s](i,j) = int_0^1 phi_i|_s phi_j|_(s+2)%4 dxi (trial
+    //! function from the neighbour across side s)
+    std::array<Matrix<DG, DG>, 4> TraceMassNeighborCell;
+
+    //! Interior edge weight w_e, one value per edge (0 on boundary edges and on edges
+    //! touching land). Numbering as ParametricMesh::coordinatesOfEdgeX/Y:
+    //!   X-edges, nx*(ny+1): cell c has bottom c, top c+nx
+    //!   Y-edges, (nx+1)*ny: cell c=(ix,iy) has left iy*(nx+1)+ix, right +1
+    std::vector<FloatType> JumpPenaltyWeightX, JumpPenaltyWeightY;
+
+    //! Diagonal block of J for each cell: sum over its interior and Dirichlet edges of
+    //! w_e * TraceMassSameCell[s]
+    MatrixVector<DG, DG> JumpPenaltyDiagonalBlock;
+
+    ParametricDGMomentumMap(const ParametricMesh& sm)
+        : smesh(sm)
+    {
+    }
+
+    //! Fills WeightedDGMassMatrix and InverseWeightedDGMassMatrix
+    template <int DGweight> void InitializeWeightedDGMassMatrix(const DGVector<DGweight>& weight);
+
+    //! Fills dgDivS1/dgDivS2, iMgradTauX/iMgradTauY and InverseStrainMassMatrix
+    void InitializeDGDivMatrices();
+
+    //! Fills JwPSI
+    void InitializeJwPSI();
+
+    //! Fills iMJwPSI. Must be called after InitializeDGDivMatrices()
+    void InitializeIMJwPSI();
+
+    //! Fills TraceMassSameCell/NeighborCell, JumpPenaltyWeightX/Y and
+    //! JumpPenaltyDiagonalBlock for the LDG parameters a, b
+    void InitializeJumpPenalty(const FloatType a, const FloatType b);
+
+    /*!
+     * y = massCoefficient * M_H x + penaltyCoefficient * J x
+     * Uses WeightedDGMassMatrix unless massCoefficient == 0.
+     * Velocity operator of the mEVP step: massCoefficient = (1+beta)*rho_ice,
+     * penaltyCoefficient = dt.
+     */
+    void ApplyMassPlusJumpPenalty(const FloatType massCoefficient,
+        const FloatType penaltyCoefficient, const DGVector<DG>& x, DGVector<DG>& y) const;
 };
 
 }

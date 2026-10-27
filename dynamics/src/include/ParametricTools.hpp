@@ -127,6 +127,13 @@ namespace ParametricTools {
         // J<1>(smesh,eid).array())).matrix() * PSI31.transpose();
     }
     template <>
+    inline Eigen::Matrix<FloatType, 4, 4> massMatrix(const ParametricMesh& smesh, const size_t eid)
+    {
+        return (PSI<4, 2>.array().rowwise() * (GAUSSWEIGHTS<2>.array() * J<2>(smesh, eid).array()))
+                   .matrix()
+            * PSI<4, 2>.transpose();
+    }
+    template <>
     inline Eigen::Matrix<FloatType, 6, 6> massMatrix(const ParametricMesh& smesh, const size_t eid)
     {
         return (PSI<6, 3>.array().rowwise() * (GAUSSWEIGHTS<3>.array() * J<3>(smesh, eid).array()))
@@ -139,6 +146,13 @@ namespace ParametricTools {
         return (PSI<8, 3>.array().rowwise() * (GAUSSWEIGHTS<3>.array() * J<3>(smesh, eid).array()))
                    .matrix()
             * PSI<8, 3>.transpose();
+    }
+    template <>
+    inline Eigen::Matrix<FloatType, 9, 9> massMatrix(const ParametricMesh& smesh, const size_t eid)
+    {
+        return (PSI<9, 3>.array().rowwise() * (GAUSSWEIGHTS<3>.array() * J<3>(smesh, eid).array()))
+                   .matrix()
+            * PSI<9, 3>.transpose();
     }
 
     /*!

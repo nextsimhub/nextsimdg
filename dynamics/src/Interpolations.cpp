@@ -307,19 +307,24 @@ namespace Interpolations {
 
     template void DG2CG(const ParametricMesh& smesh, CGVector<2>& dest, const DGVector<1>& src);
     template void DG2CG(const ParametricMesh& smesh, CGVector<2>& dest, const DGVector<3>& src);
+    template void DG2CG(const ParametricMesh& smesh, CGVector<2>& dest, const DGVector<4>& src);
     template void DG2CG(const ParametricMesh& smesh, CGVector<2>& dest, const DGVector<6>& src);
     template void DG2CG(const ParametricMesh& smesh, CGVector<2>& dest, const DGVector<8>& src);
     template void DG2CG(const ParametricMesh& smesh, CGVector<1>& dest, const DGVector<1>& src);
     template void DG2CG(const ParametricMesh& smesh, CGVector<1>& dest, const DGVector<3>& src);
+    template void DG2CG(const ParametricMesh& smesh, CGVector<1>& dest, const DGVector<4>& src);
     template void DG2CG(const ParametricMesh& smesh, CGVector<1>& dest, const DGVector<6>& src);
 
     template void CG2DG(const ParametricMesh& smesh, DGVector<1>& dg, const CGVector<1>& cg);
     template void CG2DG(const ParametricMesh& smesh, DGVector<3>& dg, const CGVector<1>& cg);
+    template void CG2DG(const ParametricMesh& smesh, DGVector<4>& dg, const CGVector<1>& cg);
     template void CG2DG(const ParametricMesh& smesh, DGVector<6>& dg, const CGVector<1>& cg);
     template void CG2DG(const ParametricMesh& smesh, DGVector<1>& dg, const CGVector<2>& cg);
     template void CG2DG(const ParametricMesh& smesh, DGVector<3>& dg, const CGVector<2>& cg);
+    template void CG2DG(const ParametricMesh& smesh, DGVector<4>& dg, const CGVector<2>& cg);
     template void CG2DG(const ParametricMesh& smesh, DGVector<6>& dg, const CGVector<2>& cg);
     template void CG2DG(const ParametricMesh& smesh, DGVector<8>& dg, const CGVector<2>& cg);
+    template void CG2DG(const ParametricMesh& smesh, DGVector<9>& dg, const CGVector<2>& cg);
 
     template void Function2CG(
         const ParametricMesh& smesh, CGVector<1>& phi, const Function& initial);
@@ -331,18 +336,26 @@ namespace Interpolations {
     template void Function2DG(
         const ParametricMesh& smesh, DGVector<3>& phi, const Function& initial);
     template void Function2DG(
+        const ParametricMesh& smesh, DGVector<4>& phi, const Function& initial);
+    template void Function2DG(
         const ParametricMesh& smesh, DGVector<6>& phi, const Function& initial);
     template void Function2DG(
         const ParametricMesh& smesh, DGVector<8>& phi, const Function& initial);
+    template void Function2DG(
+        const ParametricMesh& smesh, DGVector<9>& phi, const Function& initial);
 
     template FloatType L2ErrorFunctionDG(
         const ParametricMesh& smesh, const DGVector<1>& src, const Function& fct);
     template FloatType L2ErrorFunctionDG(
         const ParametricMesh& smesh, const DGVector<3>& src, const Function& fct);
     template FloatType L2ErrorFunctionDG(
+        const ParametricMesh& smesh, const DGVector<4>& src, const Function& fct);
+    template FloatType L2ErrorFunctionDG(
         const ParametricMesh& smesh, const DGVector<6>& src, const Function& fct);
     template FloatType L2ErrorFunctionDG(
         const ParametricMesh& smesh, const DGVector<8>& src, const Function& fct);
+    template FloatType L2ErrorFunctionDG(
+        const ParametricMesh& smesh, const DGVector<9>& src, const Function& fct);
 
     template FloatType L2ErrorFunctionCG(
         const ParametricMesh& smesh, const CGVector<1>& src, const Function& fct);

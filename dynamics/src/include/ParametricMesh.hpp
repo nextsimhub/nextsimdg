@@ -67,6 +67,14 @@ public:
      */
     std::vector<bool> landmask;
 
+    /*!
+     * Lists of the ice elements with a Dirichlet edge, one list per side:
+     *   dirichlet[0]: bottom, dirichlet[1]: right, dirichlet[2]: top, dirichlet[3]: left
+     * Only filled by dirichletFromLandmask(), used by the LDG momentum. The CG momentum and
+     * the transport derive the Dirichlet boundary from the landmask directly.
+     */
+    std::array<std::vector<size_t>, 4> dirichlet;
+
     ParametricMesh(const COORDINATES coords, int loglevel = -1)
         : CoordinateSystem(coords)
         , statuslog(loglevel)
@@ -88,6 +96,8 @@ public:
         nelements = -1;
         periodic.clear();
         landmask.clear();
+        for (auto& d : dirichlet)
+            d.clear();
     }
 
     /*!
@@ -375,6 +385,14 @@ public:
      * @param mask the ModelArray containing the mask to be used.
      */
     void landmaskFromModelArray(const ModelArray& mask);
+
+    /*!
+     * Fills the lists dirichlet[side] from the landmask: an edge of an ice element is a
+     * Dirichlet edge if the element across it is land. Edges on the outer mesh boundary are
+     * Dirichlet edges if outerBoundaryIsDirichlet is true. Periodic boundaries are not
+     * supported.
+     */
+    void dirichletFromLandmask(bool outerBoundaryIsDirichlet);
 
     // Global access functions
 

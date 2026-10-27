@@ -204,6 +204,36 @@ void ParametricMesh::landmaskFromModelArray(const ModelArray& mask)
     }
 }
 
+void ParametricMesh::dirichletFromLandmask(bool outerBoundaryIsDirichlet)
+{
+    if (!periodic.empty()) {
+        std::cerr << "ParametricMesh::dirichletFromLandmask: periodic boundaries not supported"
+                  << std::endl;
+        abort();
+    }
+    for (auto& d : dirichlet)
+        d.clear();
+
+    // is the edge on side 'side' of the ice element (ix,iy) a Dirichlet edge?
+    auto isDirichlet = [&](size_t ix, size_t iy, int side) {
+        const long int jx = ix + (side == 1) - (side == 3);
+        const long int jy = iy + (side == 2) - (side == 0);
+        if (jx < 0 || jy < 0 || jx >= (long int)nx || jy >= (long int)ny)
+            return outerBoundaryIsDirichlet;
+        return !landmask[jy * nx + jx];
+    };
+
+    for (size_t iy = 0; iy < ny; ++iy)
+        for (size_t ix = 0; ix < nx; ++ix) {
+            const size_t eid = iy * nx + ix;
+            if (!landmask[eid])
+                continue;
+            for (int side = 0; side < 4; ++side)
+                if (isDirichlet(ix, iy, side))
+                    dirichlet[side].push_back(eid);
+        }
+}
+
 /*!
  * returns minimum mesh size.
  *
