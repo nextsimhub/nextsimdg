@@ -295,8 +295,10 @@ TEST_CASE("Advection Periodic Boundary Conditions")
             std::array<FloatType, 6>(
                 { 8.7678853597311990e-01, 8.2389349440313742e-01, 5.8562737114004948e-01,
                     4.0006113872450388e-01, 2.8493698219799091e-01, 2.0801424342840488e-01 }),
+            // DG6: first two values new 27/10/2026 after the sign fix in LimitMin for DG6
+            // (only the first two values are tested)
             std::array<FloatType, 6>(
-                { 6.0231338733029061e-01, 4.6967937778236674e-01, 3.2769774426726950e-01,
+                { 4.9742485082439508e-01, 4.2029345872339385e-01, 3.2769774426726950e-01,
                     2.3427321065537998e-01, 1.7038111756667601e-01, 1.2487338791917807e-01 }) };
 
     std::cout << "DG\tNT\tNX\tmass\t\terror\t\texact" << std::endl;
