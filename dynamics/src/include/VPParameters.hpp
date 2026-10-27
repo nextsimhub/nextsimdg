@@ -25,6 +25,8 @@ public:
     FloatType pStar = pStarDefault;
     FloatType deltaMin = deltaMinDefault;
     int nSteps = nStepsDefault;
+    //! Replacement pressure P_r = P * Delta / (Delta + deltaMin) in the stress update
+    bool replacementPressure = false;
 };
 
 } /* namespace Nextsim */
