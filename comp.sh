@@ -1,23 +1,24 @@
 #!/bin/bash
 #SBATCH -J MPI76profiling-june-23-config
 #SBATCH -A ICCS-SL2-CPU
-#SBATCH --output=scaling_MPI76_x2048_scorep_64_32_1.out
-#SBATCH --error=scaling_MPI76_x2048_scorep_64_32_1.err
+#SBATCH --output=scaling_MPI76_x128_test.out
+#SBATCH --error=scaling_MPI76_x128_test.err
 
 #SBATCH --nodes=1
 #SBATCH --exclusive
-#SBATCH --time=36:00:00
-#SBATCH --mem=50000mb
+#SBATCH --time=00:30:00
+#SBATCH --mem=5000mb
 #SBATCH --ntasks=76
 
 #SBATCH -p icelake
 #SBATCH --mail-type=NONE
+#SBATCH --qos=INTR
 
 ### Set path and filenames ###
 export DD_PATH=/home/${USER}/rds/rds-iccs-DKRMHAHoC3M/${USER}/domain_decomp # CHANGE ME for domain_decomp path
 export VENV_PATH=/home/${USER}/nextsimdg # CHANGE ME for virtual environment path
 export SPACK_ROOT=/home/${USER}/spack # CHANGE ME for spack directory path
-export SPACK_ENV_NAME=nextsimdg-scorep-gcc # CHANGE ME for a suitable environment name
+export SPACK_ENV_NAME=nextsimdg-test2 # nextsimdg-scorep-gcc # CHANGE ME for a suitable environment name
 export NEXTSIMDG_PATH=/home/${USER}/rds/rds-iccs-DKRMHAHoC3M/${USER}/nextsimdg # CHANGE ME for path to NextSIMDG directory
 export BENCHMARK_PATH=/home/nvs31/rds/rds-iccs-DKRMHAHoC3M/nvs31/nextsimdg/run/run_benchmark # CHANGE ME for Benchmark Directory
 export CONFIG_FILE_NAME=config_benchmark.cfg # CHANGE ME for name of the config .cfg file in Benchmark directory
