@@ -50,7 +50,8 @@ namespace Tools {
         return lm;
     }
 
-#define S2A(Q) (Q == 1 ? 1 : (Q == 3 ? 3 : (Q == 6 ? 6 : (Q == 8 ? 6 : -1))))
+#define S2A(Q)                                                                                     \
+    (Q == 1 ? 1 : (Q == 3 ? 3 : (Q == 4 ? 4 : (Q == 6 ? 6 : (Q == 8 ? 6 : (Q == 9 ? 9 : -1))))))
     template <int DGs>
     DGVector<S2A(DGs)> Delta(const ParametricMesh& smesh, const DGVector<DGs>& E11,
         const DGVector<DGs>& E12, const DGVector<DGs>& E22, const FloatType DeltaMin)

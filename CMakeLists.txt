@@ -105,6 +105,24 @@ if(DynamicsType STREQUAL "DG2")
     set(CGDegree 2)
 endif()
 
+# Velocity, strain and stress space of the LDG momentum (LDGMEVPDynamics). Available options:
+#
+# * "DG1" (3 components), "DQ1" (4 components, default), "DG2" (6 components), "DQ2" (9 components)
+set(LDGVelocity
+    "DQ1"
+    CACHE STRING "Velocity space of the LDG momentum: DG1, DQ1, DG2 or DQ2")
+if(LDGVelocity STREQUAL "DG1")
+    set(LDGComp 3)
+elseif(LDGVelocity STREQUAL "DQ1")
+    set(LDGComp 4)
+elseif(LDGVelocity STREQUAL "DG2")
+    set(LDGComp 6)
+elseif(LDGVelocity STREQUAL "DQ2")
+    set(LDGComp 9)
+else()
+    message(FATAL_ERROR "Invalid value of LDGVelocity. Valid values are DG1, DQ1, DG2, DQ2")
+endif()
+
 # Set the components which provide source or object code to the main model
 set(CodeComponents "physics")
 
@@ -126,7 +144,7 @@ if(isDG)
 endif()
 # set degree / component parameters
 target_compile_definitions(nextsimlib PRIVATE DGCOMP=${DGComp} DGSTRESSCOMP=${DGStressComp}
-                                              CGDEGREE=${CGDegree})
+                                              CGDEGREE=${CGDegree} LDGCOMP=${LDGComp})
 
 if(USE_SINGLE_PRECISION)
     if(ENABLE_MPI)

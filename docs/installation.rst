@@ -195,6 +195,16 @@ The syntax for chosing the dynamics via CMake is the standard method of providin
 
         cmake -B build -S . -DDynamicsType=DG2
 
+The momentum equation can also be discretized with the local discontinuous Galerkin (LDG) method,
+selected at run time with ``DynamicsModule = Nextsim::LDGMEVPDynamics``. The DG space of the LDG
+velocity, strain and stress is chosen with the CMake option ``LDGVelocity``: ``DG1`` (3
+components), ``DQ1`` (4 components, the default), ``DG2`` (6 components) or ``DQ2`` (9
+components), for example
+
+.. code::
+
+        cmake -B build -S . -DDynamicsType=DQ1 -DLDGVelocity=DQ1
+
 Dependencies and Build for MPI Parallelisation
 ----------------------------------------------
 
