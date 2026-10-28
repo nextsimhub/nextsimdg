@@ -1,4 +1,4 @@
-spack..
+spack:
   packages:
     llvm:
       externals:
