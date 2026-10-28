@@ -12,7 +12,6 @@
 
 #SBATCH -p icelake
 #SBATCH --mail-type=NONE
-#SBATCH --qos=INTR
 
 ### Set path and filenames ###
 export DD_PATH=/home/${USER}/rds/rds-iccs-DKRMHAHoC3M/${USER}/domain_decomp # CHANGE ME for domain_decomp path
@@ -20,7 +19,7 @@ export VENV_PATH=/home/${USER}/nextsimdg # CHANGE ME for virtual environment pat
 export SPACK_ROOT=/home/${USER}/spack # CHANGE ME for spack directory path
 export SPACK_ENV_NAME=nextsimdg-test2 # nextsimdg-scorep-gcc # CHANGE ME for a suitable environment name
 export NEXTSIMDG_PATH=/home/${USER}/rds/rds-iccs-DKRMHAHoC3M/${USER}/nextsimdg # CHANGE ME for path to NextSIMDG directory
-export BENCHMARK_PATH=/home/nvs31/rds/rds-iccs-DKRMHAHoC3M/nvs31/nextsimdg/run/run_benchmark # CHANGE ME for Benchmark Directory
+export BENCHMARK_PATH=/homei/${USER}/rds/rds-iccs-DKRMHAHoC3M/${USER}/nextsimdg/run/run_benchmark # CHANGE ME for Benchmark Directory
 export CONFIG_FILE_NAME=config_benchmark.cfg # CHANGE ME for name of the config .cfg file in Benchmark directory
 export PARTITION_DATA_FILE_NAME=init_benchmark.nc # CHANGE ME for partition data .nc file
 
@@ -89,12 +88,12 @@ if [[ "$1" == "--enable-openmp" ]]; then
 				export OMP_NUM_THREADS=${NUM_THREADS}
 				echo "MPI Size: ${MPI_SIZE}; Number of threads ${NUM_THREADS}, ${OMP_NUM_THREADS}"
 				### Run nextsimdg ###
-				time ${NEXTSIMDG_PATH}/build/nextsim --config-file ${CONFIG_FILE_NAME} >> openmp_time.txt
+				time ${NEXTSIMDG_PATH}/build/nextsim --config-file ${CONFIG_FILE_NAME}
                          done
         done
 
 elif [[ "$1" == "--enable-mpi" || "$1" == "--enable-scorep-mpi" ]]; then
-	for MPI_SIZE in 64 32 1
+	for MPI_SIZE in 64 32 16 8 4 2 1
 	do
 			echo "MPI Size: ${MPI_SIZE}"
 			### Run domain_decomp ###
