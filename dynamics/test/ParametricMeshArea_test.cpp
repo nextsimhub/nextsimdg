@@ -1,0 +1,127 @@
+/*!
+ * @author  Tim Spain <timothy.spain@nersc.no>
+ * @brief Test the ParametricMesh class, especially processing from ModelArray files.
+ */
+
+#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#include <doctest/doctest.h>
+
+#include "include/ParametricMesh.hpp"
+
+#include "../test/FakeSmeshData.hpp"
+#include "include/gridNames.hpp"
+
+#include <filesystem>
+
+namespace Nextsim {
+#define TO_STR(s) TO_STRI(s)
+#define TO_STRI(s) #s
+#ifndef TEST_FILE_SOURCE
+#define TEST_FILE_SOURCE .
+#endif
+
+static constexpr size_t nx = 154;
+static constexpr size_t ny = 121;
+static constexpr FloatType dx = 25000;
+static constexpr FloatType dy = 25000;
+
+TEST_SUITE_BEGIN("ParametricMeshArea");
+
+TEST_CASE("Test area cartesian")
+{
+    ParametricMesh smesh(CARTESIAN);
+
+    // define mesh
+    smesh.nx = nx;
+    smesh.ny = ny;
+    smesh.nelements = nx * ny;
+    smesh.nnodes = (nx + 1) * (ny + 1);
+    smesh.vertices.resize(smesh.nnodes, 2);
+    for (int iy = 0; iy <= ny; ++iy)
+        for (int ix = 0; ix <= nx; ++ix) {
+            smesh.vertices((nx + 1) * iy + ix, 0) = dx * ix / nx;
+            smesh.vertices((nx + 1) * iy + ix, 1) = dy * iy / ny;
+        }
+    smesh.landmask.resize(nx * ny, true);
+
+    // exact area
+    FloatType exact = dx * dy;
+
+    // check mesh area
+    FloatType totalarea = 0.0;
+    for (int i = 0; i < nx * ny; ++i) {
+        REQUIRE(smesh.area(i) > 0);
+        totalarea += smesh.area(i); // area must be positive
+    }
+
+    // total area must match domain dimension up to machine accuracy
+    static const FloatType eps = std::is_same_v<FloatType, float> ? 1e-3 : 1.e-12;
+    REQUIRE(std::abs(1 - totalarea / exact) < eps);
+
+    //////// next, distort the inner vertices of the mesh
+    FloatType h = std::min(dx / nx, dy / ny); // min. mesh size in x/y-direction
+    for (int iy = 1; iy < ny; ++iy)
+        for (int ix = 1; ix < nx; ++ix) {
+            smesh.vertices((nx + 1) * iy + ix, 0) += 0.2 * h * sin(ix + iy); // distort by 20%
+            smesh.vertices((nx + 1) * iy + ix, 1) += 0.2 * h * cos(ix + iy);
+        }
+
+    // check mesh area
+    totalarea = 0.0;
+    for (int i = 0; i < nx * ny; ++i) {
+        REQUIRE(smesh.area(i) > 0);
+        totalarea += smesh.area(i); // area must be positive
+    }
+    // total area must match domain dimension up to machine accuracy
+    REQUIRE(std::abs(1 - totalarea / exact) < eps);
+}
+
+TEST_CASE("Test area spherical")
+{
+    ParametricMesh smesh(SPHERICAL);
+
+    // define mesh
+    smesh.nx = nx;
+    smesh.ny = ny;
+    smesh.nelements = nx * ny;
+    smesh.nnodes = (nx + 1) * (ny + 1);
+    smesh.vertices.resize(smesh.nnodes, 2);
+    for (int iy = 0; iy <= ny; ++iy)
+        for (int ix = 0; ix <= nx; ++ix) {
+            smesh.vertices((nx + 1) * iy + ix, 0) = -1.0_ft * pi + 2.0_ft * pi * ix / nx;
+            smesh.vertices((nx + 1) * iy + ix, 1) = -0.5_ft * pi + 1.0_ft * pi * iy / ny;
+        }
+    smesh.landmask.resize(nx * ny, true);
+
+    // exact radius (surface of earth)
+    FloatType exact = 4.0_ft * pi * EarthRadius * EarthRadius;
+
+    // check mesh area
+    FloatType totalarea = 0.0;
+    for (int i = 0; i < nx * ny; ++i) {
+        REQUIRE(smesh.area(i) > 0);
+        totalarea += smesh.area(i); // area must be positive
+    }
+
+    // total area must match domain dimension up to machine accuracy
+    static const FloatType eps = std::is_same_v<FloatType, float> ? 1e-4 : 1.e-9;
+    REQUIRE(std::abs(1 - totalarea / exact) < eps);
+
+    //////// next, distort the inner vertices of the mesh
+    FloatType h = std::min(2.0_ft * pi / nx, pi / ny); // min. mesh size in x/y-direction
+    for (int iy = 1; iy < ny; ++iy)
+        for (int ix = 1; ix < nx; ++ix) {
+            smesh.vertices((nx + 1) * iy + ix, 0) += 0.2_ft * h * sin(ix + iy); // distort by 20%
+            smesh.vertices((nx + 1) * iy + ix, 1) += 0.2_ft * h * cos(ix + iy);
+        }
+
+    // check mesh area
+    totalarea = 0.0;
+    for (int i = 0; i < nx * ny; ++i) {
+        REQUIRE(smesh.area(i) > 0);
+        totalarea += smesh.area(i); // area must be positive
+    }
+    // total area must match domain dimension up to machine accuracy
+    REQUIRE(std::abs(1 - totalarea / exact) < eps);
+}
+}

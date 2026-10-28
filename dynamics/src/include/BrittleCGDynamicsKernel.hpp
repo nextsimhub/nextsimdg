@@ -1,0 +1,270 @@
+/*!
+ * @author  Tim Spain <timothy.spain@nersc.no>
+ * @author  Einar Ólason <einar.olason@nersc.no>
+ * @author  Robert Jendersie <robert.jendersie@ovgu.de>
+ */
+
+#ifndef BRITTLECGDYNAMICSKERNEL_HPP
+#define BRITTLECGDYNAMICSKERNEL_HPP
+
+#include "CGDynamicsKernel.hpp"
+
+#include "BBMParameters.hpp"
+#include "ParametricMap.hpp"
+#include "StressUpdateStep.hpp"
+#include "include/constants.hpp"
+#include "kokkos/include/KokkosTimer.hpp"
+#include <cmath>
+
+#ifdef USE_MPI
+#include "include/Halo.hpp"
+#endif
+
+namespace Nextsim {
+
+// The brittle momentum solver for CG velocity fields
+template <int DGadvection> class BrittleCGDynamicsKernel : public CGDynamicsKernel<DGadvection> {
+protected:
+    using DynamicsKernel<DGadvection, DGstressComp>::s11;
+    using DynamicsKernel<DGadvection, DGstressComp>::s12;
+    using DynamicsKernel<DGadvection, DGstressComp>::s22;
+    using DynamicsKernel<DGadvection, DGstressComp>::e11;
+    using DynamicsKernel<DGadvection, DGstressComp>::e12;
+    using DynamicsKernel<DGadvection, DGstressComp>::e22;
+    using DynamicsKernel<DGadvection, DGstressComp>::hice;
+    using DynamicsKernel<DGadvection, DGstressComp>::cice;
+    using DynamicsKernel<DGadvection, DGstressComp>::smesh;
+    using DynamicsKernel<DGadvection, DGstressComp>::deltaT;
+    using DynamicsKernel<DGadvection, DGstressComp>::stressDivergence;
+    using DynamicsKernel<DGadvection, DGstressComp>::applyBoundaries;
+    using DynamicsKernel<DGadvection, DGstressComp>::dgtransport;
+    using DynamicsKernel<DGadvection, DGstressComp>::advectDGVField;
+
+    using CGDynamicsKernel<DGadvection>::u;
+    using CGDynamicsKernel<DGadvection>::v;
+    using CGDynamicsKernel<DGadvection>::xGradSeaSurfaceHeight;
+    using CGDynamicsKernel<DGadvection>::yGradSeaSurfaceHeight;
+    using CGDynamicsKernel<DGadvection>::uAtmos;
+    using CGDynamicsKernel<DGadvection>::vAtmos;
+    using CGDynamicsKernel<DGadvection>::uOcean;
+    using CGDynamicsKernel<DGadvection>::vOcean;
+    using CGDynamicsKernel<DGadvection>::prepareIteration;
+    using CGDynamicsKernel<DGadvection>::projectVelocityToStrain;
+    using CGDynamicsKernel<DGadvection>::dirichletZero;
+    using CGDynamicsKernel<DGadvection>::cgH;
+    using CGDynamicsKernel<DGadvection>::cgA;
+    using CGDynamicsKernel<DGadvection>::dStressX;
+    using CGDynamicsKernel<DGadvection>::dStressY;
+    using CGDynamicsKernel<DGadvection>::pmap;
+    using CGDynamicsKernel<DGadvection>::updateIceOceanStress;
+    using CGDynamicsKernel<DGadvection>::cosOceanAngle;
+    using CGDynamicsKernel<DGadvection>::sinOceanAngle;
+
+public:
+    using CGDynamicsKernel<DGadvection>::advectField;
+
+    BrittleCGDynamicsKernel(
+        StressUpdateStep<DGadvection, DGstressComp>& stressStepIn, const BBMParameters& paramsIn)
+        : CGDynamicsKernel<DGadvection>(paramsIn)
+        , stressStep(stressStepIn)
+        , params(paramsIn)
+        , stresstransport(nullptr)
+    {
+    }
+    virtual ~BrittleCGDynamicsKernel() = default;
+
+    void initialise(const ModelArray& coords, bool isSpherical, const ModelArray& mask) override
+    {
+        CGDynamicsKernel<DGadvection>::initialise(coords, isSpherical, mask);
+
+        //! Initialize stress transport
+        stresstransport = std::make_unique<Nextsim::DGTransport<DGstressComp>>(*smesh);
+        stresstransport->settimesteppingscheme("rk2");
+
+        avgU.resize_by_mesh(*smesh);
+        avgV.resize_by_mesh(*smesh);
+
+        // Set the fields to zero. Prognostic fields will be filled from the restart file.
+        avgU.zero();
+        avgV.zero();
+    }
+
+    // The brittle rheologies use avgU and avgV to do the advection, not u and v, like mEVP
+    void prepareAdvection() override { dgtransport->prepareAdvection(avgU, avgV); }
+
+    /*!
+     * Advection function for stress. Stress components have no limits.
+     *
+     * @param timestep Advection timestep length in seconds
+     * @param stessComp Stress component to advect
+     */
+    DGVector<DGstressComp>& advectStress(FloatType advectionTS, DGVector<DGstressComp>& stressComp)
+    {
+        stresstransport->step(advectionTS, stressComp);
+        return stressComp;
+    }
+
+    void advectDynamicsFields(FloatType timestep) override
+    {
+        // Let DynamicsKernel handle the advection of the ice.
+        DynamicsKernel<DGadvection, DGstressComp>::advectDynamicsFields(timestep);
+        advectDGVField(timestep, damage, params.minDamage, 1.0);
+
+        //! Perform transport step for stress
+        stresstransport->prepareAdvection(avgU, avgV);
+        advectStress(timestep, s11);
+        advectStress(timestep, s12);
+        advectStress(timestep, s22);
+    }
+
+    void update(const TimestepTime& tst) override
+    {
+        static KokkosTimer<true> timerBBM("bbm");
+        static KokkosTimer<true> timerAdvection("advection");
+        static KokkosTimer<true> timerPrepIt("prepIt");
+
+        timerAdvection.start();
+        advectDynamicsFields(tst.step.seconds());
+        timerAdvection.stop();
+
+        timerPrepIt.start();
+        prepareIteration({ { hiceName, hice }, { ciceName, cice } });
+        timerPrepIt.stop();
+
+        timerBBM.start();
+        // The timestep for the brittle solver is the solver subtimestep
+        deltaT = tst.step.seconds() / params.nSteps;
+
+        avgU.zero();
+        avgV.zero();
+
+#ifdef USE_MPI
+        // Note: we only need to create one halo object per array type,
+        // dimensionality and size.
+        Halo halo(u);
+#endif
+
+        for (size_t subStep = 0; subStep < params.nSteps; ++subStep) {
+
+            projectVelocityToStrain();
+
+            std::array<std::reference_wrapper<DGVector<DGstressComp>>, N_TENSOR_ELEMENTS> stress
+                = { s11, s12, s22 }; // Call the step function on the StressUpdateStep class
+            // Call the step function on the StressUpdateStep class
+            stressStep.stressUpdateHighOrder(
+                params, *smesh, stress, { e11, e12, e22 }, hice, cice, deltaT);
+
+            stressDivergence(); // Compute divergence of stress tensor
+
+            updateMomentum(tst);
+
+            applyBoundaries();
+
+#ifdef USE_MPI
+            halo.exchangeHalos(u);
+            halo.exchangeHalos(v);
+#endif
+
+            // Land mask
+        }
+        timerBBM.stop();
+
+        updateIceOceanStress(avgU, avgV);
+
+        // TODO: It's annoying to have to limit damage again. We need to find a better solution.
+        Nextsim::LimitMax(damage, 1.0);
+        Nextsim::LimitMin(damage, 1e-12);
+
+        // Finally, do the base class update
+        DynamicsKernel<DGadvection, DGstressComp>::update(tst);
+    }
+
+    void setData(const std::string& name, const ModelArray& data) override
+    {
+        if (name == damageName) {
+            throw std::runtime_error(std::string("Use setDGArray() to set the data for ") + name);
+        } else {
+            CGDynamicsKernel<DGadvection>::setData(name, data);
+        }
+    }
+
+    void setDGArray(const std::string& name, ModelArray::DataType& dgData) override
+    {
+        if (name == damageName) {
+            damage = DGVectorHolder<DGadvection>(dgData);
+        } else {
+            CGDynamicsKernel<DGadvection>::setDGArray(name, dgData);
+        }
+    }
+
+protected:
+    CGVector<CGdegree> avgU;
+    CGVector<CGdegree> avgV;
+
+    StressUpdateStep<DGadvection, DGstressComp>& stressStep;
+    const BBMParameters& params;
+
+    std::unique_ptr<DGTransport<DGstressComp>> stresstransport;
+
+    DGVectorHolder<DGadvection> damage;
+
+    // Common brittle parts of the momentum solver.
+    void updateMomentum(const TimestepTime& tst) override
+    {
+        const FloatType FOcean = params.COcean * params.rhoOcean;
+        const FloatType FAtm = params.CAtm * params.rhoAtm;
+
+#pragma omp parallel for
+        for (size_t i = 0; i < u.rows(); ++i) {
+            if (pmap->cglandmask(i) == 0)
+                continue;
+
+            // FIXME dte_over_mass should include snow in the total mass
+            const FloatType dteOverMass = deltaT / (params.rhoIce * cgH(i));
+            // Memoized initial velocity values
+            const FloatType uIce = u(i);
+            const FloatType vIce = v(i);
+
+            const FloatType cPrime
+                = cgA(i) * FOcean * std::hypot(uOcean(i) - uIce, vOcean(i) - vIce);
+
+            // FIXME grounding term tauB = cBu[i] / std::hypot(uIce, vIce) + u0
+            const FloatType tauB = 0.;
+            const FloatType alpha = 1 + dteOverMass * (cPrime * cosOceanAngle + tauB);
+            /* FIXME latitude needed for spherical cases
+             * const FloatType beta = deltaT * fc +
+             * dteOverMass * cPrime * std::copysign(sinOceanAngle, lat[i]);
+             */
+            const FloatType beta = deltaT * params.fc + dteOverMass * cPrime * sinOceanAngle;
+            const FloatType rDenom = 1 / (SQR(alpha) + SQR(beta));
+
+            // Atmospheric drag
+            const FloatType dragAtm = cgA(i) * FAtm * std::hypot(uAtmos(i), vAtmos(i));
+            const FloatType tauX = dragAtm * uAtmos(i)
+                + cPrime * (uOcean(i) * cosOceanAngle - vOcean(i) * sinOceanAngle);
+            const FloatType tauY = dragAtm * vAtmos(i)
+                + cPrime * (vOcean(i) * cosOceanAngle + uOcean(i) * sinOceanAngle);
+
+            // Stress gradient
+            const FloatType gradX = dStressX(i) / pmap->lumpedcgmass(i)
+                - params.rhoIce * cgH(i) * PhysicalConstants::g * xGradSeaSurfaceHeight(i);
+            const FloatType gradY = dStressY(i) / pmap->lumpedcgmass(i)
+                - params.rhoIce * cgH(i) * PhysicalConstants::g * yGradSeaSurfaceHeight(i);
+
+            u(i) = alpha * uIce + beta * vIce
+                + dteOverMass * (alpha * (gradX + tauX) + beta * (gradY + tauY));
+            u(i) *= rDenom;
+
+            v(i) = alpha * vIce - beta * uIce
+                + dteOverMass * (alpha * (gradY + tauY) + beta * (gradX + tauX));
+            v(i) *= rDenom;
+
+            // Calculate the contribution to the average velocity
+            avgU(i) += u(i) / params.nSteps;
+            avgV(i) += v(i) / params.nSteps;
+        }
+    }
+};
+}
+
+#endif /* BRITTLECGDYNAMICSKERNEL_HPP */
