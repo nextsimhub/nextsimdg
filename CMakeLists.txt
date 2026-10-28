@@ -301,5 +301,11 @@ target_link_libraries(nextsim PRIVATE nextsimlib)
 # nextsimlib does not expose the needed includes so they need to be set again
 target_include_directories(nextsim PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" "${NextsimIncludeDirs}")
 
+# Standalone benchmark executables of the dynamics
+option(BUILD_BENCHMARKS "Build the standalone dynamics benchmarks" OFF)
+if(BUILD_BENCHMARKS AND isDG)
+    add_subdirectory(dynamics/benchmarks)
+endif()
+
 # Generate the restart files that don't require additional data
 add_subdirectory(run)
