@@ -162,7 +162,7 @@ void ParaGridInputs::readDims()
     } catch (const netCDF::exceptions::NcException& nce) {
         std::string ncWhat(nce.what());
         ncWhat += ": " + fileName;
-        throw std::runtime_error(ncWhat);
+        throw std::runtime_error("ParaGridInputs::readDims:: " + ncWhat + "\n");
     }
 }
 
@@ -812,7 +812,7 @@ void ParaGridInputs::readRawForcing(
     } catch (const netCDF::exceptions::NcException& nce) {
         std::string ncWhat(nce.what());
         ncWhat += ": " + fileName;
-        throw std::runtime_error(ncWhat);
+        throw std::runtime_error("ParaGridInputs::readRawForcing: " + ncWhat + "\n");
     }
 
     // Read the data
@@ -881,7 +881,7 @@ ParaGridInputs::RawDataMap<T> ParaGridInputs::readRawData(
         } catch (const netCDF::exceptions::NcException& nce) {
             std::string ncWhat(nce.what());
             ncWhat += ": " + fileName;
-            throw std::runtime_error(ncWhat);
+            throw std::runtime_error("ParaGridInputs::readRawData: " + ncWhat + "\n");
         }
     }
     return data;
