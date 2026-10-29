@@ -291,10 +291,10 @@ void VectorRotator::fixLonLatPole(std::vector<FloatType>& uData, std::vector<Flo
 {
     // Check if the pole is at the first or the last index
     size_t poleIndex, belowPoleIndex;
-    if (const FloatType pole = *std::max_element(lat.begin(), lat.end()); *lat.begin() == pole) {
+    if (const FloatType pole = *std::max_element(lat.begin(), lat.end()); lat.front() == pole) {
         poleIndex = 0;
         belowPoleIndex = 1;
-    } else if (*lat.end() == pole) {
+    } else if (lat.back() == pole) {
         poleIndex = lat.size() - 1;
         belowPoleIndex = poleIndex - 1;
     } else {

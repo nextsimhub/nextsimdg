@@ -229,7 +229,7 @@ void ParaGridInputs::setWeights1D()
     auto forcingLats = forcingLonLats.at(ncLatName);
 
     bool flippedLats = false;
-    if (*forcingLats.begin() > *forcingLats.end()) {
+    if (forcingLats.front() > forcingLats.back()) {
         flippedLats = true;
         std::reverse(forcingLats.begin(), forcingLats.end());
     }
