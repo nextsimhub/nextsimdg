@@ -31,7 +31,7 @@ if __name__ == "__main__":
         "--grid-type",
         dest="grid_type",
         default="regular",
-        help="The type of input grid to use ('regular' or 'NEMO').",
+        help="The type of input grid to use ('ibcao', 'regular', or 'NEMO').",
     )
     parser.add_argument(
         "--grid-file",
