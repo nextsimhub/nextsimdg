@@ -1,0 +1,83 @@
+/*!
+ * @author  Einar Ólason <einar.olason@nersc.no>
+ */
+
+#ifndef GLORYSOCEAN_HPP
+#define GLORYSOCEAN_HPP
+
+#include "include/Configured.hpp"
+#include "include/IForcingInput.hpp"
+#include "include/IFreezingPoint.hpp"
+#include "include/IIceOceanHeatFlux.hpp"
+#include "include/IOceanBoundary.hpp"
+#include "include/SlabOcean.hpp"
+
+namespace Nextsim {
+
+/*!
+ * A class to provided forcings from pre-processed forcings files based on ERA5
+ * data.
+ */
+class GLORYSOcean : public IOceanBoundary, public Configured<GLORYSOcean> {
+public:
+    GLORYSOcean();
+
+    enum {
+        FILEPATH_KEY,
+    };
+
+    void setData(const ModelState::DataMap&) override;
+    std::string getName() const override { return "GLORYSOcean"; }
+
+    static HelpMap& getHelpRecursive(HelpMap& map, bool getAll);
+
+    void configure() override;
+
+    void updateBefore(const TimestepTime&) override;
+    void updateAfter(const TimestepTime&) override;
+    ModelState getStatePrognostic() const override;
+    ModelState getStateDiagnostic() const override;
+
+    void setFilePath(const std::string& filePathIn);
+
+protected:
+    ConfigMap getConfiguration() const override;
+
+private:
+    // Since the configuration is global, it makes sense for the file path to
+    // be static.
+    static std::string filePath;
+
+    ModelArrayAccessor<Protected::EXT_SST, RW> sstExtAccessor;
+    ModelArrayAccessor<Protected::EXT_SSS, RW> sssExtAccessor;
+
+    ModelArrayAccessor<Protected::SLAB_SST, RO> sstSlabAccessor;
+    ModelArrayAccessor<Protected::SLAB_SSS, RO> sssSlabAccessor;
+
+    SlabOcean slabOcean;
+
+    std::unique_ptr<IIceOceanHeatFlux> pIOHeatFlux;
+    std::unique_ptr<IFreezingPoint> pFreezingPoint;
+
+    // A list of variable names for the GLORYS inputs
+    // This overrides the canonical names in gridNames.hpp
+    const std::string sstName = "thetao";
+    const std::string sssName = "so";
+    const std::string mldName = "mlotst";
+    const std::string uName = "uo";
+    const std::string vName = "vo";
+    const std::string sshName = "zos";
+
+    const std::string ncLonName = "longitude";
+    const std::string ncLatName = "latitude";
+    const std::string ncTimeName = "time";
+
+    const std::set<std::string> forcings = { sstName, sssName, mldName, uName, vName, sshName };
+    const std::set<std::pair<std::string, std::string>> vectors = { { uName, vName } };
+
+    std::unique_ptr<IForcingInput> forcingState;
+};
+
+} /* namespace Nextsim */
+
+#endif /* GLORYSOCEAN_HPP_ */

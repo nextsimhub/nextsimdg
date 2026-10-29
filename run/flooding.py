@@ -172,7 +172,7 @@ class FloodInterpolator:
             A list of the variable names to be flooded.
         """
         for var in fields:
-            ds[var].values[np.stack([self.land_mask] * ds[var].values.shape[0])] = 0
+            ds[var].values[np.isnan(ds[var].values)] = 0
 
     def flood_nearest(self, ds, fields):
         """

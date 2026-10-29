@@ -71,18 +71,18 @@ ConfigMap CARRA2Atmosphere::getConfiguration() const
 
 void CARRA2Atmosphere::update(const TimestepTime& tst)
 {
-    forcingState.update(tst.start);
+    forcingState->update(tst.start);
 
     // Fetch the raw data fields
-    tairAccessor.getHostRW() = forcingState.getField(tAirName);
-    spHumAccessor.getHostRW() = forcingState.getField(sphumName);
-    pairAccessor.getHostRW() = forcingState.getField(pAirName);
-    sw_inAccessor.getHostRW() = forcingState.getField(swInName);
-    lw_inAccessor.getHostRW() = forcingState.getField(lwInName);
-    uwindAccessor.getHostRW() = forcingState.getField(uName);
-    vwindAccessor.getHostRW() = forcingState.getField(vName);
-    snowAccessor.getHostRW() = forcingState.getField(snowName);
-    rainAccessor.getHostRW() = forcingState.getField(rainName);
+    tairAccessor.getHostRW() = forcingState->getField(tAirName);
+    spHumAccessor.getHostRW() = forcingState->getField(sphumName);
+    pairAccessor.getHostRW() = forcingState->getField(pAirName);
+    sw_inAccessor.getHostRW() = forcingState->getField(swInName);
+    lw_inAccessor.getHostRW() = forcingState->getField(lwInName);
+    uwindAccessor.getHostRW() = forcingState->getField(uName);
+    vwindAccessor.getHostRW() = forcingState->getField(vName);
+    snowAccessor.getHostRW() = forcingState->getField(snowName);
+    rainAccessor.getHostRW() = forcingState->getField(rainName);
 
     // Postprocess the data fields
     auto& tair = tairAccessor.getAutoRW();
@@ -127,7 +127,7 @@ void CARRA2Atmosphere::setData(const ModelState::DataMap& ms)
     ModelState state;
     const ModelMetadata& metadata = ModelMetadata::getInstance();
     metadata.affixCoordinates(state);
-    forcingState.setData(metadata.startTime(), filePath, ncLonName, ncLatName, ncTimeName, forcings,
+    forcingState->initialise(metadata.startTime(), filePath, ncLonName, ncLatName, ncTimeName, forcings,
         vectors, state.data.at(longitudeName), state.data.at(latitudeName));
 }
 
