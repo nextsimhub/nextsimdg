@@ -8,7 +8,7 @@
     { "tice", "T_ICE0" }, // Ice temperature, ˚C
     { "tsurf", "T_SURF0" }, // Ice surface temperature, ˚C
     { "tair", "T_AIR" }, // Air temperature, ˚C
-    { "dew2m", "DEW_2M" }, // Dew point at 2 m, ˚C
+    { "sphum", "SPHUM" }, // Specific humidity at 2 m, kg kg⁻¹
     { "pair", "P_AIR" }, // sea level air pressure, Pa
     { "mixrat", "MIXRAT" }, // water vapour mass mixing ratio
     { "sw_in", "SW_IN" }, // incoming shortwave flux, W m⁻²

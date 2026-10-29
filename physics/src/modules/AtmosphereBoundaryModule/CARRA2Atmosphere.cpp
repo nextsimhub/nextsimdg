@@ -89,6 +89,10 @@ void CARRA2Atmosphere::update(const TimestepTime& tst)
     auto& wind = windAccessor.getAutoRW();
     const auto& uWind = uwindAccessor.getAutoRO();
     const auto& vWind = vwindAccessor.getAutoRO();
+    auto& lw = lw_inAccessor.getAutoRW();
+    auto& sw = sw_inAccessor.getAutoRW();
+    auto& rain = rainAccessor.getAutoRW();
+    auto& snow = snowAccessor.getAutoRW();
 
     overElementsAuto(OVER_ELEMENTS_LAMBDA(const ElementIndex i) {
         // Temperatures in Celsius
@@ -96,6 +100,12 @@ void CARRA2Atmosphere::update(const TimestepTime& tst)
 
         // Calculate wind speed from components
         wind[i] = std::sqrt(uWind[i] * uWind[i] + vWind[i] * vWind[i]);
+
+        // Change accumulated values to instantaneous ones
+        lw[i] /= 3._ft * 3600._ft;
+        sw[i] /= 3._ft * 3600._ft;
+        rain[i] /= 3._ft * 3600._ft;
+        snow[i] /= 3._ft * 3600._ft;
     });
 
     fluxImpl->update(tst);
