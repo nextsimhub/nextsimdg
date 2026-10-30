@@ -122,8 +122,8 @@ void ERA5Atmosphere::setData(const ModelState::DataMap& ms)
     ModelState state;
     const ModelMetadata& metadata = ModelMetadata::getInstance();
     metadata.affixCoordinates(state);
-    forcingState.setData(metadata.startTime(), filePath, ncLonName, ncLatName, ncTimeName, forcings,
-        vectors, state.data.at(longitudeName), state.data.at(latitudeName));
+    forcingState.initialise(metadata.startTime(), filePath, ncLonName, ncLatName, ncTimeName,
+        forcings, vectors, state.data.at(longitudeName), state.data.at(latitudeName));
 }
 
 } /* namespace Nextsim */

@@ -13,7 +13,7 @@
 
 namespace Nextsim {
 
-void ParaGridInputs::setData(const TimePoint& time, const std::string& pathSpecIn,
+void ParaGridInputs::initialise(const TimePoint& time, const std::string& pathSpecIn,
     const std::string& ncLonNameIn, const std::string& ncLatNameIn, const std::string& ncTimeNameIn,
     const std::set<std::string>& forcingsIn,
     const std::set<std::pair<std::string, std::string>>& vectorsIn, const ModelArray& modelLonsIn,
