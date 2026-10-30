@@ -202,6 +202,21 @@ public:
      */
     const std::vector<int>& getRankExtentsY() const;
 
+    /*!
+     * @brief True if we are using a tripolar grid topology, false otherwise.
+     *
+     */
+    bool usingTripolarTopology() const { return m_tripolarTopology; }
+
+    /*!
+     * @brief True if the rank needs to account for the tripolar fold
+     *
+     * In Tripolar topology, the ranks that touch the top edge need special treatment
+     * when communicating with their neighbours over the top edge.
+     *
+     */
+    bool needsTripolarFold() const { return m_tripolarFold; }
+
     enum Edge { BOTTOM, RIGHT, TOP, LEFT, N_EDGE };
     // An array to allow the edges to be accessed in the correct order.
     static constexpr std::array<Edge, N_EDGE> edges = { BOTTOM, RIGHT, TOP, LEFT };
@@ -218,18 +233,11 @@ public:
     NeighbourArray neighbourExtents;
     NeighbourArray neighbourHaloSend;
     NeighbourArray neighbourHaloRecv;
-    NeighbourArray neighbourRanksPeriodic;
-    NeighbourArray neighbourExtentsPeriodic;
-    NeighbourArray neighbourHaloSendPeriodic;
-    NeighbourArray neighbourHaloRecvPeriodic;
 
     using CornerArray = std::array<std::vector<int>, N_CORNER>;
     CornerArray cornerRanks;
     CornerArray cornerHaloSend;
     CornerArray cornerHaloRecv;
-    CornerArray cornerRanksPeriodic;
-    CornerArray cornerHaloSendPeriodic;
-    CornerArray cornerHaloRecvPeriodic;
 #endif
 
     std::string initialFileName;
@@ -244,10 +252,6 @@ private:
      * @param netCDF file with partition metadata
      */
     void readNeighbourData(netCDF::NcFile& ncFile);
-
-#ifdef USE_MPI
-    void setMpiMetadata(MPI_Comm comm);
-#endif
 
     TimePoint m_time;
     ConfigMap m_config;
@@ -278,6 +282,10 @@ private:
     std::vector<int> rankExtentsY; // vector containing domain extents for each rank y-direction
     const std::string bboxName = "bounding_boxes";
     const std::string neighbourName = "connectivity";
+    bool m_tripolarTopology = false;
+    // Marks the rank as a one that needs to account for the Tripolar grid fold
+    // when communicating with neighbour over top edge.
+    bool m_tripolarFold = false;
 #endif
 };
 
