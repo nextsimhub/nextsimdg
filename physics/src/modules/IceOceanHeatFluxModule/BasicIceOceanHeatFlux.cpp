@@ -11,8 +11,13 @@ namespace Nextsim {
 KERNEL_IMPL_FUNCTION static FloatType doOne(
     FloatType tBot, FloatType sst, FloatType mlBulkCp, FloatType timeT)
 {
+    // Compute in double because the flux computations are sensitive to catastrophic cancellation.
+    const double sstD = sst;
+    const double tBotD = tBot;
+    const double mlBulkCpD = mlBulkCp;
+    const double timeTD = timeT;
     // Transfer rate depends on the mixed layer depth and the relaxation time scale
-    return (sst - tBot) * mlBulkCp / timeT;
+    return (sstD - tBotD) * mlBulkCpD / timeTD;
 }
 
 void BasicIceOceanHeatFlux::update(const TimestepTime& tst)
@@ -30,7 +35,7 @@ void BasicIceOceanHeatFlux::update(const TimestepTime& tst)
         if (cice[i] > 0.0_ft) {
             qio[i] = doOne(tf[i], sst[i], mlBulkCp[i], dt);
         } else {
-            qio[i] = 0.;
+            qio[i] = 0.0_ft;
         }
     });
 }

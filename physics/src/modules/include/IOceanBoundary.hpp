@@ -161,33 +161,54 @@ public:
         const auto& deltaSmelt = deltaSmeltAccessor.getAutoRO();
         const auto& tauXOW = tauXOWAccessor.getAutoRO();
 
-        const FloatType dt = tst.step.seconds();
+        // Compute in double because the flux computations are sensitive to catastrophic
+        // cancellation.
+        const double dt = tst.step.seconds();
 
         overElementsAuto(OVER_ELEMENTS_LAMBDA(const ElementIndex i) {
             // Heat fluxes - partitioned in solar and non-solar
-            qswNet[i] = cice[i] * qswBase[i] + (1 - cice[i]) * qswow[i];
-            qNoSun[i] = cice[i] * qio[i] + (1 - cice[i]) * qow[i] - qswNet[i];
+            const double ciceD = cice[i];
+            const double qswBaseD = qswBase[i];
+            const double qioD = qio[i];
+            const double qswowD = qswow[i];
+            const double qowD = qow[i];
+
+            const double qswNetD = ciceD * qswBaseD + (1.0 - ciceD) * qswowD;
+            const double qNoSunD = ciceD * qioD + (1.0 - ciceD) * qowD - qswNetD;
+            qswNet[i] = qswNetD;
+            qNoSun[i] = qNoSunD;
 
             // Mass fluxes - fresh water and salt
+            const double deltaHiceD = deltaHice[i];
+            const double newIceD = newIce[i];
             // ice volume change, both laterally and vertically
-            const FloatType deltaIceVol = newIce[i] + deltaHice[i];
+            const double deltaIceVol = newIceD + deltaHiceD;
             // the device compiler does not like a global constant appearing in the argument list of
             // a template function: "identifier "Ice::s" is undefined in device code"
-            const FloatType s = Ice::s;
+            const double s = Ice::s;
+            const double sssD = sss[i];
             // Effective ice salinity is always less than or equal to the SSS, and here we use
             // the right units too
-            const FloatType effectiveIceSal = 1e-3_ft * Utils::min(s, sss[i]);
-
+            const double effectiveIceSal = 1e-3 * Utils::min(s, sssD);
+            const double deltaSmeltD = deltaSmelt[i];
+            const double evapD = evap[i];
+            const double rainD = rain[i];
             // Positive flux is up!
-            fwFlux[i]
-                = ((1 - effectiveIceSal) * Ice::rho * deltaIceVol + Ice::rhoSnow * deltaSmelt[i])
+            const double fwFluxD
+                = ((1.0 - effectiveIceSal) * Ice::rho * deltaIceVol + Ice::rhoSnow * deltaSmeltD)
                     / dt
-                + (evap[i] - rain[i]) * (1 - cice[i]);
+                + (evapD - rainD) * (1 - ciceD);
+            fwFlux[i] = fwFluxD;
             sFlux[i] = effectiveIceSal * Ice::rho * deltaIceVol / dt;
 
             // Momentum fluxes
-            tauX[i] = cice[i] * tauXIO[i] + (1 - cice[i]) * tauXOW[i];
-            tauY[i] = cice[i] * tauYIO[i] + (1 - cice[i]) * tauYOW[i];
+            const double tauXIOD = tauXIO[i];
+            const double tauYIOD = tauYIO[i];
+            const double tauXOWD = tauXOW[i];
+            const double tauYOWD = tauYOW[i];
+
+            tauX[i] = ciceD * tauXIOD + (1.0 - ciceD) * tauXOWD;
+            tauY[i] = ciceD * tauYIOD + (1.0 - ciceD) * tauYOWD;
         });
     }
 
