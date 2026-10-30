@@ -54,6 +54,8 @@ void TOPAZOcean::configure()
     pFreezingPoint = std::move(Module::getInstance<IFreezingPoint>());
     tryConfigure(*pFreezingPoint);
 
+    forcingState = Module::getInstance<IInput>();
+
     filePath = Configured::getConfiguration(keyMap.at(FILEPATH_KEY), std::string());
 
     slabOcean.configure();
@@ -63,17 +65,17 @@ ConfigMap TOPAZOcean::getConfiguration() const { return { { keyMap.at(FILEPATH_K
 
 void TOPAZOcean::updateBefore(const TimestepTime& tst)
 {
-    forcingState.update(tst.start);
+    forcingState->update(tst.start);
 
-    sstExtAccessor.getHostRW() = forcingState.getField(sstName);
-    sssExtAccessor.getHostRW() = forcingState.getField(sssName);
-    mldAccessor.getHostRW() = forcingState.getField(mldName);
-    uAccessor.getHostRW() = forcingState.getField(uName);
-    vAccessor.getHostRW() = forcingState.getField(vName);
+    sstExtAccessor.getHostRW() = forcingState->getField(sstName);
+    sssExtAccessor.getHostRW() = forcingState->getField(sssName);
+    mldAccessor.getHostRW() = forcingState->getField(mldName);
+    uAccessor.getHostRW() = forcingState->getField(uName);
+    vAccessor.getHostRW() = forcingState->getField(vName);
     HField& ssh = sshAccessor.getHostRW();
 
-    if (forcingState.isValid(sshName)) {
-        ssh = forcingState.getField(sshName);
+    if (forcingState->isValid(sshName)) {
+        ssh = forcingState->getField(sshName);
     } else {
         ssh = 0.;
     }
@@ -127,7 +129,7 @@ void TOPAZOcean::setData(const ModelState::DataMap& ms)
     ModelState state;
     const ModelMetadata& metadata = ModelMetadata::getInstance();
     metadata.affixCoordinates(state);
-    forcingState.initialise(metadata.startTime(), filePath, ncLonName, ncLatName, ncTimeName,
+    forcingState->initialise(metadata.startTime(), filePath, ncLonName, ncLatName, ncTimeName,
         forcings, vectors, state.data.at(longitudeName), state.data.at(latitudeName));
 
     HField& sstExt = sstExtAccessor.getHostRW();
