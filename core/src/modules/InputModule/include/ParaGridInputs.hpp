@@ -72,8 +72,8 @@ public:
     }
 
     // ModelComponent overrides
-    inline std::string getName() const override { return "ParaGridInputs"; };
-    inline void setData(const ModelState::DataMap&) override {};
+    std::string getName() const override { return "ParaGridInputs"; };
+    void setData(const ModelState::DataMap&) override {};
 
 private:
     // Useful structs and aliases

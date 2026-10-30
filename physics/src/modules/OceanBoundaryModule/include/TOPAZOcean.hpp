@@ -9,8 +9,8 @@
 #include "include/Configured.hpp"
 #include "include/IFreezingPoint.hpp"
 #include "include/IIceOceanHeatFlux.hpp"
+#include "include/IInput.hpp"
 #include "include/IOceanBoundary.hpp"
-#include "include/ParaGridInputs.hpp"
 #include "include/SlabOcean.hpp"
 
 namespace Nextsim {
@@ -77,7 +77,7 @@ private:
     const std::set<std::string> forcings = { sstName, sssName, mldName, uName, vName, sshName };
     const std::set<std::pair<std::string, std::string>> vectors = { { uName, vName } };
 
-    ParaGridInputs forcingState;
+    std::unique_ptr<IInput> forcingState;
 };
 
 } /* namespace Nextsim */

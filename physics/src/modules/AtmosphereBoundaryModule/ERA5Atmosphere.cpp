@@ -51,6 +51,8 @@ void ERA5Atmosphere::configure()
     fluxImpl = Module::getInstance<IFluxCalculation>();
     tryConfigure(*fluxImpl);
 
+    forcingState = Module::getInstance<IInput>();
+
     addChecks({
         { "tair", tairAccessor },
         { "tdew", tdewAccessor },
@@ -70,18 +72,18 @@ ConfigMap ERA5Atmosphere::getConfiguration() const
 
 void ERA5Atmosphere::update(const TimestepTime& tst)
 {
-    forcingState.update(tst.start);
+    forcingState->update(tst.start);
 
     // Fetch the raw data fields
-    tairAccessor.getHostRW() = forcingState.getField(tAirName);
-    tdewAccessor.getHostRW() = forcingState.getField(dew2mName);
-    pairAccessor.getHostRW() = forcingState.getField(pAirName);
-    sw_inAccessor.getHostRW() = forcingState.getField(swInName);
-    lw_inAccessor.getHostRW() = forcingState.getField(lwInName);
-    uwindAccessor.getHostRW() = forcingState.getField(uName);
-    vwindAccessor.getHostRW() = forcingState.getField(vName);
-    snowAccessor.getHostRW() = forcingState.getField(snowName);
-    rainAccessor.getHostRW() = forcingState.getField(rainName);
+    tairAccessor.getHostRW() = forcingState->getField(tAirName);
+    tdewAccessor.getHostRW() = forcingState->getField(dew2mName);
+    pairAccessor.getHostRW() = forcingState->getField(pAirName);
+    sw_inAccessor.getHostRW() = forcingState->getField(swInName);
+    lw_inAccessor.getHostRW() = forcingState->getField(lwInName);
+    uwindAccessor.getHostRW() = forcingState->getField(uName);
+    vwindAccessor.getHostRW() = forcingState->getField(vName);
+    snowAccessor.getHostRW() = forcingState->getField(snowName);
+    rainAccessor.getHostRW() = forcingState->getField(rainName);
 
     // Postprocess the data fields
     auto& tair = tairAccessor.getAutoRW();
@@ -122,7 +124,7 @@ void ERA5Atmosphere::setData(const ModelState::DataMap& ms)
     ModelState state;
     const ModelMetadata& metadata = ModelMetadata::getInstance();
     metadata.affixCoordinates(state);
-    forcingState.initialise(metadata.startTime(), filePath, ncLonName, ncLatName, ncTimeName,
+    forcingState->initialise(metadata.startTime(), filePath, ncLonName, ncLatName, ncTimeName,
         forcings, vectors, state.data.at(longitudeName), state.data.at(latitudeName));
 }
 
