@@ -5,6 +5,7 @@
 #ifndef NEXTSIM_DG_PARAGRIDINPUTS_HPP
 #define NEXTSIM_DG_PARAGRIDINPUTS_HPP
 
+#include "include/IInput.hpp"
 #include "include/ModelArray.hpp"
 #include "include/ModelState.hpp"
 #include "include/Time.hpp"
@@ -17,7 +18,7 @@
 
 namespace Nextsim {
 
-class ParaGridInputs {
+class ParaGridInputs : public IInput {
 
 public:
     ParaGridInputs() = default;
@@ -38,18 +39,18 @@ public:
      * @param modelLonsIn Model longitudes
      * @param modelLatsIn Model latitudes
      */
-    void setData(const TimePoint& time, const std::string& pathSpecIn,
+    void initialise(const TimePoint& time, const std::string& pathSpecIn,
         const std::string& ncLonNameIn, const std::string& ncLatNameIn,
         const std::string& ncTimeNameIn, const std::set<std::string>& forcingsIn,
         const std::set<std::pair<std::string, std::string>>& vectorsIn,
-        const ModelArray& modelLonsIn, const ModelArray& modelLatsIn);
+        const ModelArray& modelLonsIn, const ModelArray& modelLatsIn) override;
 
     /*!
      * @brief Update the forcing data for the current time step.
      *
      * @param time Current model time
      */
-    void update(const TimePoint& time);
+    void update(const TimePoint& time) override;
 
     /*!
      * @brief Get the forcing data for a specific field interpolated in time to currentTime.
@@ -57,7 +58,7 @@ public:
      * @param fieldName Name of the field to retrieve
      * @return Forcing data for the specified field
      */
-    [[nodiscard]] ModelArray getField(const std::string& fieldName) const;
+    [[nodiscard]] ModelArray getField(const std::string& fieldName) const override;
 
     /*!
      * @brief Check if a field can be read in from the forcing data set.
@@ -65,10 +66,14 @@ public:
      * @param fieldName Name of the field to check
      * @return True if the field is valid, false otherwise
      */
-    [[nodiscard]] bool isValid(const std::string& fieldName) const
+    [[nodiscard]] bool isValid(const std::string& fieldName) const override
     {
         return forcingStateBefore.data.count(fieldName) && forcingStateAfter.data.count(fieldName);
     }
+
+    // ModelComponent overrides
+    inline std::string getName() const override { return "ParaGridInputs"; };
+    inline void setData(const ModelState::DataMap&) override {};
 
 private:
     // Useful structs and aliases
