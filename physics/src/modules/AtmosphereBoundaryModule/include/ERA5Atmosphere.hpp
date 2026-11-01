@@ -56,6 +56,8 @@ private:
     const std::string uName = "u10";
     const std::string vName = "v10";
 
+    std::map<std::string, bool> warn;
+
     const std::string ncLonName = "longitude";
     const std::string ncLatName = "latitude";
     const std::string ncTimeName = "time";

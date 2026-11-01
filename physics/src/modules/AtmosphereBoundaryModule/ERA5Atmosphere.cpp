@@ -82,8 +82,31 @@ void ERA5Atmosphere::update(const TimestepTime& tst)
     lw_inAccessor.getHostRW() = forcingState->getField(lwInName);
     uwindAccessor.getHostRW() = forcingState->getField(uName);
     vwindAccessor.getHostRW() = forcingState->getField(vName);
-    snowAccessor.getHostRW() = forcingState->getField(snowName);
-    rainAccessor.getHostRW() = forcingState->getField(rainName);
+
+    // These ifs and warnings are for backwards compatability
+    if (forcingState->isValid(snowName)) {
+        snowAccessor.getHostRW() = forcingState->getField(snowName);
+    } else {
+        snowAccessor.getAutoRW() = 0._ft;
+        // Only warn once
+        if (warn.count(snowName) == 0) {
+            Logged::warning("ERA5Atmosphere::update: No snow fall in forcing file, but I continue "
+                            "anyway with zero snow fall.\n");
+            warn[snowName] = true;
+        }
+    }
+
+    if (forcingState->isValid(rainName)) {
+        rainAccessor.getHostRW() = forcingState->getField(rainName);
+    } else {
+        rainAccessor.getAutoRW() = 0._ft;
+        // Only warn once
+        if (warn.count(rainName) == 0) {
+            Logged::warning("ERA5Atmosphere::update: No rain fall in forcing file, but I continue "
+                            "anyway with zero rain fall.\n");
+            warn[rainName] = true;
+        }
+    }
 
     // Postprocess the data fields
     auto& tair = tairAccessor.getAutoRW();
