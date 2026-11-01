@@ -113,12 +113,12 @@ test_data = thousandths + millionths
 mdi = -(2.0**300)
 
 time_var = ncFile.createVariable("time", "f8", "time")
-sst = ncFile.createVariable("sst", "f8", timefield_dims)
-sss = ncFile.createVariable("sss", "f8", timefield_dims)
-mld = ncFile.createVariable("mld", "f8", timefield_dims)
-u = ncFile.createVariable("u", "f8", timefield_dims)
-v = ncFile.createVariable("v", "f8", timefield_dims)
-ssh = ncFile.createVariable("ssh", "f8", timefield_dims)
+sst = ncFile.createVariable("thetao", "f8", timefield_dims)
+sss = ncFile.createVariable("so", "f8", timefield_dims)
+mld = ncFile.createVariable("mlotst", "f8", timefield_dims)
+u = ncFile.createVariable("vxo", "f8", timefield_dims)
+v = ncFile.createVariable("vyo", "f8", timefield_dims)
+ssh = ncFile.createVariable("zos", "f8", timefield_dims)
 
 # 12 monthly values
 for t in range(12):
