@@ -17,9 +17,6 @@ from interpolators import (
 sec_per_hr = 3600
 hr_per_day = 24
 
-zero_C_in_kelvin = 273.15
-
-
 def create_era5_times(start_tm, stop_tm):
     """
     Calculate times for the ERA5 file.
@@ -208,8 +205,8 @@ if __name__ == "__main__":
     # azimuth of the +y grid direction in radians
     element_azimuth = np.radians(element_lon * 0 + 45)
 
-    wind_speed = "wind_speed"
-    atmos_fields = ("dew2m", "lw_in", "sw_in", "pair", "tair", wind_speed)
+    wind = "wind"
+    atmos_fields = ("dew2m", "lw_in", "sw_in", "pair", "tair", wind)
     era5_fields = (
         "d2m",
         "msdwlwrf",
@@ -221,14 +218,6 @@ if __name__ == "__main__":
         "u10",
         "v10",
     )
-    era5_translation = {
-        "dew2m": "d2m",
-        "lw_in": "msdwlwrf",
-        "sw_in": "msdwswrf",
-        "pair": "msl",
-        "tair": "t2m",
-    }  # windspeed is special
-    kelvin_fields = ("d2m", "t2m")
 
     ###################################################################
 
@@ -259,10 +248,9 @@ if __name__ == "__main__":
 
     (unix_times_e, era5_times) = create_era5_times(start_time, stop_time)
     # For each field and time, get the corresponding file name for each dataset
-    for field_name in atmos_fields:
-        data = era5_ncFile.createVariable(field_name, "f8", timefield_dims)
-        if field_name != wind_speed:
-            era5_field = era5_translation[field_name]
+    for era5_field in atmos_fields:
+        if era5_field != wind:
+            data = era5_ncFile.createVariable(era5_field, "f8", timefield_dims)
             for target_t_index in range(len(unix_times_e)):
                 # get the source data
                 source_file = netCDF4.Dataset(
@@ -281,8 +269,6 @@ if __name__ == "__main__":
                 time_data = era5_interpolate(
                     element_lon, element_lat, source_data, source_lons, source_lats
                 )
-                if era5_field in kelvin_fields:
-                    time_data -= zero_C_in_kelvin
                 data[target_t_index, :, :] = time_data
         else:
             # Also handle the wind components along with the wind speed
@@ -325,8 +311,6 @@ if __name__ == "__main__":
                 v_data_target = era5_interpolate(
                     element_lon, element_lat, v_data_source, source_lons, source_lats
                 )
-                speed_data = np.hypot(u_data_target, v_data_target)
-                data[target_t_index, :, :] = speed_data
                 # Rotate the components from the ERA5 geographic grid to the Greenland displaced pole grid
                 (u_data, v_data) = rotate_velocities(
                     u_data_target, -v_data_target, greenland_headings
@@ -339,7 +323,6 @@ if __name__ == "__main__":
 
     ocean_fields = ("mld", "sss", "sst", "ssh")
     skip_ocean_fields = ()
-    topaz_translation = {"mld": "mlotst", "sss": "so", "sst": "thetao", "ssh": "zos"}
 
     ###################################################################
 
@@ -379,12 +362,11 @@ if __name__ == "__main__":
     topaz_phi0 = 45  # degrees
 
     # For each field and time, get the corresponding file name for each dataset
-    for field_name in ocean_fields:
-        data = topaz_ncFile.createVariable(field_name, "f8", timefield_dims)
-        if field_name not in skip_ocean_fields:
-            topaz_field = topaz_translation[field_name]
+    for topaz_field in ocean_fields:
+        data = topaz_ncFile.createVariable(topaz_field, "f8", timefield_dims)
+        if topaz_field not in skip_ocean_fields:
             for target_t_index in range(len(unix_times_t)):
-                if field_name == ocean_fields[0]:
+                if topaz_field == ocean_fields[0]:
                     nc_times[target_t_index] = unix_times_t[target_t_index]
                 # get the source data
                 source_file = netCDF4.Dataset(
