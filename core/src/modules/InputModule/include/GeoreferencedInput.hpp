@@ -18,10 +18,10 @@
 
 namespace Nextsim {
 
-class ParaGridInputs : public IInput {
+class GeoreferencedInput : public IInput {
 
 public:
-    ParaGridInputs() = default;
+    GeoreferencedInput() = default;
 
     /*!
      *@brief Initialise object parameters and calculate interpolation weights. To be called by
@@ -72,7 +72,7 @@ public:
     }
 
     // ModelComponent overrides
-    std::string getName() const override { return "ParaGridInputs"; };
+    std::string getName() const override { return "GeoreferencedInput"; };
     void setData(const ModelState::DataMap&) override {};
 
 private:
