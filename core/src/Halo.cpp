@@ -37,8 +37,9 @@ namespace HaloExchange {
             // class instead, where the Orientation is given explicitly.
             return { 1.0 };
         case ModelArray::Type::V:
+            return { -1.0};
         case ModelArray::Type::U:
-            throw std::runtime_error("U and V fields are not implemented yet");
+            return { 1.0 };
         default:
             throw std::invalid_argument("Unknown ModelArray type");
         }
