@@ -19,16 +19,14 @@ public:
      * parent's setData function.
      *
      * @param time Initial time
-     * @param pathSpecIn Pathspec for the input file(s). This will be formatted with any time
-     * formats (e.g. %Y or %m) for the current time. For datasets comprising of multiple files with
-     * one file per variable, the key %v will be replaced by the variable name.
-     * @param ncLonNameIn Name of the longitude variable in the netCDF file
-     * @param ncLatNameIn Name of the latitude variable in the netCDF file
+     * @param pathSpecIn Path of for the input file.
+     * @param ncLonNameIn Not used
+     * @param ncLatNameIn Not used
      * @param ncTimeNameIn Name of the time variable in the netCDF file
      * @param forcingsIn Set of forcing variables to read
-     * @param vectorsIn Set of vector variables to read
-     * @param modelLonsIn Model longitudes
-     * @param modelLatsIn Model latitudes
+     * @param vectorsIn Not used
+     * @param modelLonsIn Not used
+     * @param modelLatsIn Not used
      */
     void initialise(const TimePoint& time, const std::string& pathSpecIn,
         const std::string& ncLonNameIn, const std::string& ncLatNameIn,
@@ -61,7 +59,7 @@ public:
 
     // ModelComponent overrides
     std::string getName() const override { return "ParaGridInputs"; };
-    void setData(const ModelState::DataMap&) override {};
+    void setData(const ModelState::DataMap&) override { };
 
 private:
     ModelState forcingState;
