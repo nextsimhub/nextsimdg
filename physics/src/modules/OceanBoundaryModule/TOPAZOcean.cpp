@@ -47,6 +47,7 @@ void TOPAZOcean::configure()
 {
     Finalizer::registerUnique(Module::finalize<IIceOceanHeatFlux>);
     Finalizer::registerUnique(Module::finalize<IFreezingPoint>);
+    Finalizer::registerUnique(Module::finalize<IInput>);
 
     pIOHeatFlux = std::move(Module::getInstance<IIceOceanHeatFlux>());
     tryConfigure(*pIOHeatFlux);

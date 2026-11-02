@@ -2,8 +2,8 @@
  * @author  Einar Olason <einar.olason@nersc.no>
  */
 
-#ifndef NEXTSIM_DG_PARAGRIDINPUTS_HPP
-#define NEXTSIM_DG_PARAGRIDINPUTS_HPP
+#ifndef GEOREFERENCEDINPUT_HPP
+#define GEOREFERENCEDINPUT_HPP
 
 #include "include/IInput.hpp"
 #include "include/ModelArray.hpp"
@@ -178,4 +178,4 @@ private:
 
 }
 
-#endif // NEXTSIM_DG_PARAGRIDINPUTS_HPP
+#endif // GEOREFERENCEDINPUT_HPP

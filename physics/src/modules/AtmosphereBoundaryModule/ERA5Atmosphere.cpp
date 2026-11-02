@@ -45,6 +45,7 @@ ConfigurationHelp::HelpMap& ERA5Atmosphere::getHelpRecursive(HelpMap& map, bool 
 void ERA5Atmosphere::configure()
 {
     Finalizer::registerUnique(Module::finalize<IFluxCalculation>);
+    Finalizer::registerUnique(Module::finalize<IInput>);
 
     filePath = Configured::getConfiguration(keyMap.at(FILEPATH_KEY), std::string());
 
