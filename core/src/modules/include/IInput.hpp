@@ -16,13 +16,11 @@ public:
     virtual ~IInput() = default;
 
     /*!
-     *@brief Initialise object parameters and calculate interpolation weights. To be called by
+     * @brief Initialise object parameters and calculate interpolation weights. To be called by
      * parent's setData function.
      *
      * @param time Initial time
-     * @param pathSpecIn Pathspec for the input file(s). This will be formatted with any time
-     * formats (e.g. %Y or %m) for the current time. For datasets comprising of multiple files with
-     * one file per variable, the key %v will be replaced by the variable name.
+     * @param pathSpecIn Pathspec for the input file(s).
      * @param ncLonNameIn Name of the longitude variable in the netCDF file
      * @param ncLatNameIn Name of the latitude variable in the netCDF file
      * @param ncTimeNameIn Name of the time variable in the netCDF file
