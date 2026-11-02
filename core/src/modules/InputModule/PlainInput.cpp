@@ -39,7 +39,7 @@ void PlainInput::initialise(const TimePoint& time, const std::string& pathSpecIn
     } catch (const netCDF::exceptions::NcException& nce) {
         std::string ncWhat(nce.what());
         ncWhat += ": " + filePath;
-        throw std::runtime_error("ParaGridInputs::readRawForcing: " + ncWhat + "\n");
+        throw std::runtime_error("PlainInput::initialise: " + ncWhat + "\n");
     }
 }
 
