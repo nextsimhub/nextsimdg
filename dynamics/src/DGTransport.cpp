@@ -462,10 +462,11 @@ void DGTransport<DG>::edge_term_X_full(DGVector<DG>& phiup, const DGVector<DG>& 
     constexpr int NGP = NGP_EDGE;
     const LocalEdgeVector<NGP> vel = edgeNormalVel_X.row(ie);
     // phi of c1 (below) where u_hat.n > 0, of c2 (above) where < 0
-    const LocalEdgeVector<NGP> flux = (vel.array().max(0)
-            * (topedgeofcell<DG>(phi, c1) * PSIe<EDGEDOFS(DG), NGP>).array()
-        + vel.array().min(0) * (bottomedgeofcell<DG>(phi, c2) * PSIe<EDGEDOFS(DG), NGP>).array())
-                                          .matrix();
+    const LocalEdgeVector<NGP> flux
+        = (vel.array().max(0.0_ft) * (topedgeofcell<DG>(phi, c1) * PSIe<EDGEDOFS(DG), NGP>).array()
+            + vel.array().min(0.0_ft)
+                * (bottomedgeofcell<DG>(phi, c2) * PSIe<EDGEDOFS(DG), NGP>).array())
+              .matrix();
     phiup.row(c1) -= dt * flux * PSIe_w<DG, NGP, 2>;
     phiup.row(c2) += dt * flux * PSIe_w<DG, NGP, 0>;
 }
@@ -479,10 +480,10 @@ void DGTransport<DG>::edge_term_Y_full(DGVector<DG>& phiup, const DGVector<DG>& 
     constexpr int NGP = NGP_EDGE;
     const LocalEdgeVector<NGP> vel = edgeNormalVel_Y.row(ie);
     // phi of c1 (left) where u_hat.n > 0, of c2 (right) where < 0
-    const LocalEdgeVector<NGP> flux
-        = (vel.array().max(0) * (rightedgeofcell<DG>(phi, c1) * PSIe<EDGEDOFS(DG), NGP>).array()
-            + vel.array().min(0) * (leftedgeofcell<DG>(phi, c2) * PSIe<EDGEDOFS(DG), NGP>).array())
-              .matrix();
+    const LocalEdgeVector<NGP> flux = (vel.array().max(0.0_ft)
+            * (rightedgeofcell<DG>(phi, c1) * PSIe<EDGEDOFS(DG), NGP>).array()
+        + vel.array().min(0.0_ft) * (leftedgeofcell<DG>(phi, c2) * PSIe<EDGEDOFS(DG), NGP>).array())
+                                          .matrix();
     phiup.row(c1) -= dt * flux * PSIe_w<DG, NGP, 1>;
     phiup.row(c2) += dt * flux * PSIe_w<DG, NGP, 3>;
 }
@@ -507,27 +508,31 @@ void DGTransport<DG>::boundary_term_full(
         const LocalEdgeVector<NGP> phiCell
             = bottomedgeofcell<DG>(phi, cell) * PSIe<EDGEDOFS(DG), NGP>;
         const LocalEdgeVector<NGP> flux
-            = (vel.array().max(0) * phiExt.array() + vel.array().min(0) * phiCell.array()).matrix();
+            = (vel.array().max(0.0_ft) * phiExt.array() + vel.array().min(0.0_ft) * phiCell.array())
+                  .matrix();
         phiup.row(cell) += dt * flux * PSIe_w<DG, NGP, 0>;
     } else if constexpr (Side == 1) { // right: cell left, exterior right
         const LocalEdgeVector<NGP> vel = edgeNormalVel_Y.row(iy * (nx + 1) + ix + 1);
         const LocalEdgeVector<NGP> phiCell
             = rightedgeofcell<DG>(phi, cell) * PSIe<EDGEDOFS(DG), NGP>;
         const LocalEdgeVector<NGP> flux
-            = (vel.array().max(0) * phiCell.array() + vel.array().min(0) * phiExt.array()).matrix();
+            = (vel.array().max(0.0_ft) * phiCell.array() + vel.array().min(0.0_ft) * phiExt.array())
+                  .matrix();
         phiup.row(cell) -= dt * flux * PSIe_w<DG, NGP, 1>;
     } else if constexpr (Side == 2) { // top: cell below, exterior above
         const LocalEdgeVector<NGP> vel = edgeNormalVel_X.row(cell + nx);
         const LocalEdgeVector<NGP> phiCell = topedgeofcell<DG>(phi, cell) * PSIe<EDGEDOFS(DG), NGP>;
         const LocalEdgeVector<NGP> flux
-            = (vel.array().max(0) * phiCell.array() + vel.array().min(0) * phiExt.array()).matrix();
+            = (vel.array().max(0.0_ft) * phiCell.array() + vel.array().min(0.0_ft) * phiExt.array())
+                  .matrix();
         phiup.row(cell) -= dt * flux * PSIe_w<DG, NGP, 2>;
     } else { // left: exterior left, cell right
         const LocalEdgeVector<NGP> vel = edgeNormalVel_Y.row(iy * (nx + 1) + ix);
         const LocalEdgeVector<NGP> phiCell
             = leftedgeofcell<DG>(phi, cell) * PSIe<EDGEDOFS(DG), NGP>;
         const LocalEdgeVector<NGP> flux
-            = (vel.array().max(0) * phiExt.array() + vel.array().min(0) * phiCell.array()).matrix();
+            = (vel.array().max(0.0_ft) * phiExt.array() + vel.array().min(0.0_ft) * phiCell.array())
+                  .matrix();
         phiup.row(cell) += dt * flux * PSIe_w<DG, NGP, 3>;
     }
 }
