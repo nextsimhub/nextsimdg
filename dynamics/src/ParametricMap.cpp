@@ -381,6 +381,7 @@ template class ParametricTransportMap<3>;
 template class ParametricTransportMap<4>;
 template class ParametricTransportMap<6>;
 template class ParametricTransportMap<8>;
+template class ParametricTransportMap<9>;
 
 template class ParametricMomentumMap<1, 1>;
 template class ParametricMomentumMap<2, 1>;
@@ -390,5 +391,7 @@ template class ParametricMomentumMap<1, 4>;
 template class ParametricMomentumMap<2, 4>;
 template class ParametricMomentumMap<1, 6>;
 template class ParametricMomentumMap<2, 6>;
+template class ParametricMomentumMap<1, 9>;
+template class ParametricMomentumMap<2, 9>;
 
 }

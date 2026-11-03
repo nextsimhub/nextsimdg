@@ -75,8 +75,14 @@ TEST_CASE("PrognosticData write test, including DG components")
             case (3):
                 dgData.components(idx) << c, c + 1, c + 2;
                 break;
+            case (4):
+                dgData.components(idx) << c, c + 1, c + 2, c + 3;
+                break;
             case (6):
                 dgData.components(idx) << c, c + 1, c + 2, c + 3, c + 4, c + 5;
+                break;
+            case (9):
+                dgData.components(idx) << c, c + 1, c + 2, c + 3, c + 4, c + 5, c + 6, c + 7, c + 8;
                 break;
             default:
                 REQUIRE_MESSAGE(false, "Unimplemented number of DG components");

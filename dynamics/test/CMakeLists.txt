@@ -103,6 +103,15 @@ if(NOT ENABLE_MPI)
                                                        "${CoreDir}/${ModelArrayStructure}")
     target_link_libraries(testLDGMomentum LINK_PUBLIC doctest::doctest Eigen3::Eigen)
 
+    add_executable(
+        testSlopeLimiter
+        SlopeLimiter_test.cpp "${SRC_DIR}/ParametricMesh.cpp" "${SRC_DIR}/Interpolations.cpp"
+        "${CoreDir}/ModelArray.cpp" "${CoreDir}/ModelArraySlice.cpp"
+        "${CoreDir}/${ModelArrayStructure}/ModelArrayDetails.cpp")
+    target_include_directories(testSlopeLimiter PRIVATE "${CoreDir}" "${SRC_DIR}"
+                                                        "${CoreDir}/${ModelArrayStructure}")
+    target_link_libraries(testSlopeLimiter LINK_PUBLIC doctest::doctest Eigen3::Eigen)
+
     set(TEST_EXECUTABLES
         testDGModelArray
         testDGVectorHolder
@@ -115,7 +124,8 @@ if(NOT ENABLE_MPI)
         testDGMomentumMap
         testDGLimit
         testAdvectionDGVelocity
-        testLDGMomentum)
+        testLDGMomentum
+        testSlopeLimiter)
 
     foreach(test_exec IN LISTS TEST_EXECUTABLES)
         add_test(NAME ${test_exec} COMMAND ${test_exec})

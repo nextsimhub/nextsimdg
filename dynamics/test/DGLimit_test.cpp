@@ -41,7 +41,7 @@ template <int DG> static void checkLimit()
         CHECK(vmin(i, 0) == doctest::Approx(v(i, 0)));
         CHECK(vmax(i, 0) == doctest::Approx(v(i, 0)));
         // DG3 is limited conservatively in the corners, DG4 exactly in the corners, DG6 in the
-        // Gauss points
+        // Gauss points, DG9 with its extrema over the cell (also in the Gauss points and corners)
         if (DG == 6) {
             CHECK((vmin.row(i) * PSI<DG, 3>).minCoeff() >= -EPS);
             CHECK((vmax.row(i) * PSI<DG, 3>).maxCoeff() <= 1.0 + EPS);
@@ -63,6 +63,7 @@ TEST_CASE("LimitMin and LimitMax")
     checkLimit<3>();
     checkLimit<4>();
     checkLimit<6>();
+    checkLimit<9>();
 }
 TEST_SUITE_END();
 

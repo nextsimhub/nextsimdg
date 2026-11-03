@@ -452,6 +452,8 @@ template void ParametricDGMomentumMap<3, 3, 3>::InitializeWeightedDGMassMatrix<4
     const DGVector<4>&);
 template void ParametricDGMomentumMap<3, 3, 3>::InitializeWeightedDGMassMatrix<6>(
     const DGVector<6>&);
+template void ParametricDGMomentumMap<3, 3, 3>::InitializeWeightedDGMassMatrix<9>(
+    const DGVector<9>&);
 template void ParametricDGMomentumMap<4, 4, 4>::InitializeWeightedDGMassMatrix<1>(
     const DGVector<1>&);
 template void ParametricDGMomentumMap<4, 4, 4>::InitializeWeightedDGMassMatrix<3>(
@@ -460,6 +462,8 @@ template void ParametricDGMomentumMap<4, 4, 4>::InitializeWeightedDGMassMatrix<4
     const DGVector<4>&);
 template void ParametricDGMomentumMap<4, 4, 4>::InitializeWeightedDGMassMatrix<6>(
     const DGVector<6>&);
+template void ParametricDGMomentumMap<4, 4, 4>::InitializeWeightedDGMassMatrix<9>(
+    const DGVector<9>&);
 template void ParametricDGMomentumMap<6, 6, 6>::InitializeWeightedDGMassMatrix<1>(
     const DGVector<1>&);
 template void ParametricDGMomentumMap<6, 6, 6>::InitializeWeightedDGMassMatrix<3>(
@@ -468,6 +472,8 @@ template void ParametricDGMomentumMap<6, 6, 6>::InitializeWeightedDGMassMatrix<4
     const DGVector<4>&);
 template void ParametricDGMomentumMap<6, 6, 6>::InitializeWeightedDGMassMatrix<6>(
     const DGVector<6>&);
+template void ParametricDGMomentumMap<6, 6, 6>::InitializeWeightedDGMassMatrix<9>(
+    const DGVector<9>&);
 template void ParametricDGMomentumMap<9, 9, 9>::InitializeWeightedDGMassMatrix<1>(
     const DGVector<1>&);
 template void ParametricDGMomentumMap<9, 9, 9>::InitializeWeightedDGMassMatrix<3>(
@@ -476,6 +482,8 @@ template void ParametricDGMomentumMap<9, 9, 9>::InitializeWeightedDGMassMatrix<4
     const DGVector<4>&);
 template void ParametricDGMomentumMap<9, 9, 9>::InitializeWeightedDGMassMatrix<6>(
     const DGVector<6>&);
+template void ParametricDGMomentumMap<9, 9, 9>::InitializeWeightedDGMassMatrix<9>(
+    const DGVector<9>&);
 
 #define INSTANTIATE_VISCOUS_JUMP_PENALTY(DG, DGadvection)                                          \
     template void ParametricDGMomentumMap<DG, DG, DG>::UpdateViscousJumpPenalty<DGadvection>(      \
@@ -486,7 +494,8 @@ template void ParametricDGMomentumMap<9, 9, 9>::InitializeWeightedDGMassMatrix<6
     INSTANTIATE_VISCOUS_JUMP_PENALTY(DG, 1)                                                        \
     INSTANTIATE_VISCOUS_JUMP_PENALTY(DG, 3)                                                        \
     INSTANTIATE_VISCOUS_JUMP_PENALTY(DG, 4)                                                        \
-    INSTANTIATE_VISCOUS_JUMP_PENALTY(DG, 6)
+    INSTANTIATE_VISCOUS_JUMP_PENALTY(DG, 6)                                                        \
+    INSTANTIATE_VISCOUS_JUMP_PENALTY(DG, 9)
 
 INSTANTIATE_VISCOUS_JUMP_PENALTY_ALL(3)
 INSTANTIATE_VISCOUS_JUMP_PENALTY_ALL(4)

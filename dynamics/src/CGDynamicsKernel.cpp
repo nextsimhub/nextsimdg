@@ -491,10 +491,11 @@ void CGDynamicsKernel<DGadvection>::updateIceOceanStress(
     }
 }
 
-// Instantiate the templates for all (1, 3, 6) degrees of DGadvection
+// Instantiate the templates for all (1, 3, 4, 6, 9) components of DGadvection
 template class CGDynamicsKernel<1>;
 template class CGDynamicsKernel<3>;
 template class CGDynamicsKernel<4>;
 template class CGDynamicsKernel<6>;
+template class CGDynamicsKernel<9>;
 
 }

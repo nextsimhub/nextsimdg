@@ -158,11 +158,17 @@ public:
             size_t cgi = cy * (mesh.nx + 1) + cx; // index of lower-left vertex
 
             // values of (d/dx phi) in the 4 nodes: lower-left, lower-right, upper-left, upper-right
-            const Eigen::Vector<FloatType, 4> vertexvalues
-                = { phi(c, 1) - phi(c, 4) - 0.5_ft * phi(c, 3),
-                      phi(c, 1) + phi(c, 4) - 0.5_ft * phi(c, 3),
-                      phi(c, 1) - phi(c, 4) + 0.5_ft * phi(c, 3),
-                      phi(c, 1) + phi(c, 4) + 0.5_ft * phi(c, 3) };
+            Eigen::Vector<FloatType, 4> vertexvalues = { phi(c, 1) - phi(c, 4) - 0.5_ft * phi(c, 3),
+                phi(c, 1) + phi(c, 4) - 0.5_ft * phi(c, 3),
+                phi(c, 1) - phi(c, 4) + 0.5_ft * phi(c, 3),
+                phi(c, 1) + phi(c, 4) + 0.5_ft * phi(c, 3) };
+            // dQ2: the bilinear part 2 c6 XY of d/dx phi
+            if constexpr (DG == 9) {
+                vertexvalues(0) += 0.5_ft * phi(c, 6);
+                vertexvalues(1) -= 0.5_ft * phi(c, 6);
+                vertexvalues(2) -= 0.5_ft * phi(c, 6);
+                vertexvalues(3) += 0.5_ft * phi(c, 6);
+            }
             // value of d/dx phi in the midpoint
             const FloatType midvalue = phi(c, 1);
 
@@ -196,11 +202,17 @@ public:
             size_t cgi = cy * (mesh.nx + 1) + cx; // index of lower-left vertex
 
             // values of (d/dx phi) in the 4 nodes: lower-left, lower-right, upper-left, upper-right
-            const Eigen::Vector<FloatType, 4> vertexvalues
-                = { phi(c, 2) - phi(c, 5) - 0.5_ft * phi(c, 3),
-                      phi(c, 2) - phi(c, 5) + 0.5_ft * phi(c, 3),
-                      phi(c, 2) + phi(c, 5) - 0.5_ft * phi(c, 3),
-                      phi(c, 2) + phi(c, 5) + 0.5_ft * phi(c, 3) };
+            Eigen::Vector<FloatType, 4> vertexvalues = { phi(c, 2) - phi(c, 5) - 0.5_ft * phi(c, 3),
+                phi(c, 2) - phi(c, 5) + 0.5_ft * phi(c, 3),
+                phi(c, 2) + phi(c, 5) - 0.5_ft * phi(c, 3),
+                phi(c, 2) + phi(c, 5) + 0.5_ft * phi(c, 3) };
+            // dQ2: the bilinear part 2 c7 XY of d/dy phi
+            if constexpr (DG == 9) {
+                vertexvalues(0) += 0.5_ft * phi(c, 7);
+                vertexvalues(1) -= 0.5_ft * phi(c, 7);
+                vertexvalues(2) -= 0.5_ft * phi(c, 7);
+                vertexvalues(3) += 0.5_ft * phi(c, 7);
+            }
             // value of d/dx phi in the midpoint
             const FloatType midvalue = phi(c, 2);
 
@@ -232,7 +244,7 @@ public:
         computeAlphas(alpha, phi, minV, maxV);
 
         // derivative & second
-        if (DG == 6) {
+        if (DG == 6 || DG == 9) {
             initMinMax(dxminV, dxmaxV, phi, 1); // get max/min values in vertices
             initMinMax(dyminV, dymaxV, phi, 2); // get max/min values in vertices
             computeAlphasX(alphaX, phi, dxminV, dxmaxV);
@@ -243,8 +255,8 @@ public:
             }
         }
 
-        // limit 1st order terms (and the bilinear term for DG4) with alpha, 2nd order terms with
-        // alphaX
+        // limit 1st order terms (and the bilinear term for DG4) with alpha, 2nd and higher order
+        // terms with alphaX
 #pragma omp parallel for
         for (int c = 0; c < mesh.nelements; ++c) {
             for (int d = 1; d < 3; ++d)

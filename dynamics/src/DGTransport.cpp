@@ -708,6 +708,7 @@ template class DGTransport<3>;
 template class DGTransport<4>;
 template class DGTransport<6>;
 template class DGTransport<8>;
+template class DGTransport<9>;
 
 template void DGTransport<1>::prepareAdvection(const CGVector<1>& cg_vx, const CGVector<1>& cg_vy);
 template void DGTransport<1>::prepareAdvection(const CGVector<2>& cg_vx, const CGVector<2>& cg_vy);
@@ -718,6 +719,8 @@ template void DGTransport<4>::prepareAdvection(const CGVector<2>& cg_vx, const C
 template void DGTransport<6>::prepareAdvection(const CGVector<1>& cg_vx, const CGVector<1>& cg_vy);
 template void DGTransport<6>::prepareAdvection(const CGVector<2>& cg_vx, const CGVector<2>& cg_vy);
 template void DGTransport<8>::prepareAdvection(const CGVector<2>& cg_vx, const CGVector<2>& cg_vy);
+template void DGTransport<9>::prepareAdvection(const CGVector<1>& cg_vx, const CGVector<1>& cg_vy);
+template void DGTransport<9>::prepareAdvection(const CGVector<2>& cg_vx, const CGVector<2>& cg_vy);
 
 // transport with the DG velocity of the LDG momentum
 template void DGTransport<1>::prepareAdvectionDG(
@@ -751,6 +754,14 @@ template void DGTransport<6>::prepareAdvectionDG(
 template void DGTransport<6>::prepareAdvectionDG(
     const DGVector<6>& dg_vx, const DGVector<6>& dg_vy, const FloatType a);
 template void DGTransport<6>::prepareAdvectionDG(
+    const DGVector<9>& dg_vx, const DGVector<9>& dg_vy, const FloatType a);
+template void DGTransport<9>::prepareAdvectionDG(
+    const DGVector<3>& dg_vx, const DGVector<3>& dg_vy, const FloatType a);
+template void DGTransport<9>::prepareAdvectionDG(
+    const DGVector<4>& dg_vx, const DGVector<4>& dg_vy, const FloatType a);
+template void DGTransport<9>::prepareAdvectionDG(
+    const DGVector<6>& dg_vx, const DGVector<6>& dg_vy, const FloatType a);
+template void DGTransport<9>::prepareAdvectionDG(
     const DGVector<9>& dg_vx, const DGVector<9>& dg_vy, const FloatType a);
 
 } /* namespace Nextsim */

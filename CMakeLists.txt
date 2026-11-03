@@ -15,7 +15,7 @@ option(ENABLE_XIOS "Enable XIOS library for IO" OFF)
 option(BUILD_TESTS "Build the tests" ON)
 set(DynamicsType
     "DG2"
-    CACHE STRING "Set the discretization order for the dynamics: DG0, DG1, DQ1 or DG2")
+    CACHE STRING "Set the discretization order for the dynamics: DG0, DG1, DQ1, DG2 or DQ2")
 option(USE_SINGLE_PRECISION "Use float instead of double everywhere" OFF)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
@@ -77,6 +77,7 @@ set(ModuleHeaderScript "${ScriptDirectory}/module_header.py")
 # * "DG1" Discontinuous Galerkin, degree 1 (3 components)
 # * "DQ1" Discontinuous Galerkin, bilinear (4 components)
 # * "DG2" Discontinuous Galerkin, degree 2 (6 components)
+# * "DQ2" Discontinuous Galerkin, biquadratic (9 components)
 set(isDG FALSE)
 
 message("Dynamics is set to ${DynamicsType}")
@@ -102,6 +103,15 @@ endif()
 if(DynamicsType STREQUAL "DG2")
     set(isDG TRUE)
     set(DGComp 6)
+    set(CGDegree 2)
+endif()
+
+if(DynamicsType STREQUAL "DQ2")
+    if(WITH_KOKKOS)
+        message(FATAL_ERROR "DynamicsType DQ2 is not supported with Kokkos")
+    endif()
+    set(isDG TRUE)
+    set(DGComp 9)
     set(CGDegree 2)
 endif()
 

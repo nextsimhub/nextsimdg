@@ -572,12 +572,13 @@ void LDGMomentum<DG, DGadvection>::mEVPStep(
     projectVelocityToStrain();
 }
 
-// velocity, stress and strain in DG3, DG4, DG6, DG9; advection in DG1, DG3, DG4, DG6
+// velocity, stress and strain in DG3, DG4, DG6, DG9; advection in DG1, DG3, DG4, DG6, DG9
 #define INSTANTIATE_LDG(DG)                                                                        \
     template class LDGMomentum<DG, 1>;                                                             \
     template class LDGMomentum<DG, 3>;                                                             \
     template class LDGMomentum<DG, 4>;                                                             \
     template class LDGMomentum<DG, 6>;                                                             \
+    template class LDGMomentum<DG, 9>;                                                             \
     template void ldgSigmaFlux<DG, DG>(const ParametricMesh&, const FloatType,                     \
         const DGVector<DG>&, const DGVector<DG>&, const DGVector<DG>&, DGVector<DG>&,              \
         DGVector<DG>&);                                                                            \

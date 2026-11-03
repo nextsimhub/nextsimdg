@@ -120,6 +120,7 @@ TEST_CASE("Constant velocity: full and projected velocity agree")
     compareConstantVelocity<3>(smesh);
     compareConstantVelocity<4>(smesh);
     compareConstantVelocity<6>(smesh);
+    compareConstantVelocity<9>(smesh);
 }
 TEST_CASE("Constant velocity, free outer boundary: full and projected velocity agree")
 {
@@ -129,6 +130,7 @@ TEST_CASE("Constant velocity, free outer boundary: full and projected velocity a
     compareConstantVelocity<3>(smesh, 80);
     compareConstantVelocity<4>(smesh, 80);
     compareConstantVelocity<6>(smesh, 80);
+    compareConstantVelocity<9>(smesh, 80);
 }
 TEST_CASE("Rotating DG velocity: mass conservation")
 {
@@ -138,6 +140,7 @@ TEST_CASE("Rotating DG velocity: mass conservation")
     checkMassRotation<3>(smesh);
     checkMassRotation<4>(smesh);
     checkMassRotation<6>(smesh);
+    checkMassRotation<9>(smesh);
 }
 TEST_SUITE_END();
 

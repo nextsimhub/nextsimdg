@@ -236,13 +236,13 @@ void create_rectanglemesh(Nextsim::ParametricMesh& smesh, const FloatType Lx, co
         smesh.landmask[(i + 1) * smesh.nx - 1] = 0;
 }
 
-template <int DG> void run(FloatType distort, const std::array<std::array<FloatType, 4>, 4>& exact)
+template <int DG> void run(FloatType distort, const std::array<std::array<FloatType, 4>, 5>& exact)
 {
     Nextsim::ParametricMesh smesh(Nextsim::CARTESIAN); // 0 means no output
 
-#define DG2DEG(DG) (DG == 1 ? 0 : ((DG == 3 || DG == 4) ? 1 : DG == 6 ? 2 : -1))
+#define DG2DEG(DG) (DG == 1 ? 0 : ((DG == 3 || DG == 4) ? 1 : (DG == 6 || DG == 9) ? 2 : -1))
 // row of the reference values
-#define DG2ROW(DG) (DG == 1 ? 0 : (DG == 3 ? 1 : DG == 6 ? 2 : DG == 4 ? 3 : -1))
+#define DG2ROW(DG) (DG == 1 ? 0 : (DG == 3 ? 1 : DG == 6 ? 2 : DG == 4 ? 3 : DG == 9 ? 4 : -1))
     for (int it = 0; it < 2; ++it) {
 
         // set number of elements in x- and y-direction
@@ -272,7 +272,7 @@ TEST_CASE("Advection")
     // New values 07/04/2025 after reimplementation of boundary data. Dirichlet data is now
     // realized using the landmaks info. Therefore, the physical domain shrinks by one layer all
     // around and this slightly changes the exact values.
-    std::array<std::array<FloatType, 4>, 4> exact = {
+    std::array<std::array<FloatType, 4>, 5> exact = {
         std::array<FloatType, 4>({ 5.0568601321622546e-02, 4.8785010758681462e-02,
             4.3807523095968269e-02, 3.6079575213776381e-02 }),
         std::array<FloatType, 4>({ 2.8463796850208754e-02, 1.4000140482658283e-02,
@@ -280,7 +280,9 @@ TEST_CASE("Advection")
         std::array<FloatType, 4>({ 1.0146940898974235e-02, 4.0853715304369851e-03,
             1.2400975498406005e-03, 2.8460132054714237e-04 }),
         // DG4 (dQ1): values taken 27/10/2026, only the first two are tested
-        std::array<FloatType, 4>({ 2.4157866091398181e-02, 1.0440859988340288e-02, 0., 0. })
+        std::array<FloatType, 4>({ 2.4157866091398181e-02, 1.0440859988340288e-02, 0., 0. }),
+        // DG9 (dQ2): values taken 03/11/2026, only the first two are tested
+        std::array<FloatType, 4>({ 7.7298405540977113e-03, 2.8817854695317186e-03, 0., 0. })
     };
 
     std::cout << std::endl << "DG\tNT\tNX\tmass loss\terror\t\texact" << std::endl;
@@ -288,6 +290,7 @@ TEST_CASE("Advection")
     run<3>(0.0, exact);
     run<6>(0.0, exact);
     run<4>(0.0, exact);
+    run<9>(0.0, exact);
 }
 TEST_CASE("Distorted Mesh")
 {
@@ -306,7 +309,7 @@ TEST_CASE("Distorted Mesh")
     // New values 07/04/2025 after reimplementation of boundary data. Dirichlet data is now
     // realized using the landmaks info. Therefore, the physical domain shrinks by one layer all
     // around and this slightly changes the exact values.
-    std::array<std::array<FloatType, 4>, 4> exact = {
+    std::array<std::array<FloatType, 4>, 5> exact = {
         std::array<FloatType, 4>({ 4.8195942137802428e-02, 4.9345757529052611e-02,
             4.4903895856787640e-02, 3.7467928845481245e-02 }),
         std::array<FloatType, 4>({ 3.2422647655365219e-02, 1.7062569520319999e-02,
@@ -314,7 +317,9 @@ TEST_CASE("Distorted Mesh")
         std::array<FloatType, 4>({ 1.2603978369132178e-02, 5.1434197544894689e-03,
             1.5845944976351275e-03, 3.8869603127842235e-04 }),
         // DG4 (dQ1): values taken 27/10/2026, only the first two are tested
-        std::array<FloatType, 4>({ 2.9817414681799263e-02, 1.2514011767613145e-02, 0., 0. })
+        std::array<FloatType, 4>({ 2.9817414681799263e-02, 1.2514011767613145e-02, 0., 0. }),
+        // DG9 (dQ2): values taken 03/11/2026, only the first two are tested
+        std::array<FloatType, 4>({ 9.3412461358671761e-03, 3.6292513163178643e-03, 0., 0. })
     };
 
     std::cout << std::endl << "Distorted mesh" << std::endl;
@@ -323,4 +328,5 @@ TEST_CASE("Distorted Mesh")
     run<3>(0.05, exact);
     run<6>(0.05, exact);
     run<4>(0.05, exact);
+    run<9>(0.05, exact);
 }

@@ -18,4 +18,7 @@ template class DynamicsKernel<4, 8>;
 template class DynamicsKernel<6, 3>;
 template class DynamicsKernel<6, 8>;
 
+template class DynamicsKernel<9, 3>;
+template class DynamicsKernel<9, 8>;
+
 }
