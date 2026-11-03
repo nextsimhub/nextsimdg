@@ -12,6 +12,9 @@ TripolarTestAtmosphere::TripolarTestAtmosphere() = default;
 
 void TripolarTestAtmosphere::setData(const ModelState::DataMap& ms)
 {
+    IAtmosphereBoundary::setData(ms);
+    BenchmarkCoordinates::setData();
+
     // Directly set the array values
     qiaAccessor.getHostRW() = 0.;
     dqia_dtAccessor.getHostRW() = 0.;
