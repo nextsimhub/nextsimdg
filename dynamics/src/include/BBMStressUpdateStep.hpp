@@ -25,15 +25,19 @@ public:
         , p_d(nullptr)
     {
     }
+
+
+    std::vector<float> cellSize;
+
     ~BBMStressUpdateStep() = default;
     void stressUpdateHighOrder(const DynamicsParameters& dParams, const ParametricMesh& smesh,
         SymmetricTensorVector& stress, const SymmetricTensorVector& strain,
         const DGVector<DGadvection>& h, const DGVector<DGadvection>& a,
-        const FloatType deltaT) override
+        const FloatType deltaT)override
     {
         assert(pmap);
 
-        // Number of Gauss points
+	// Number of Gauss points
         static constexpr size_t NGP
             = (((DGstress == 8) || (DGstress == 6)) ? 3 : (DGstress == 3 ? 2 : -1));
         using EdgeVec = Eigen::Matrix<FloatType, 1, NGP * NGP>;
@@ -47,9 +51,13 @@ public:
         DGVector<DGstress>& e12 = strain[I12];
         DGVector<DGstress>& e22 = strain[I22];
 
+	// std::vector<float> cellSize;
+	smesh.CalculateCellSize(cellSize);
+
         const BBMParameters& params = reinterpret_cast<const BBMParameters&>(dParams);
 
 //! Stress and Damage Update
+
 #pragma omp parallel for
         for (size_t i = 0; i < smesh.nelements; ++i) {
 
@@ -150,7 +158,8 @@ public:
             dcrit = dcrit.array().min(1.0_ft);
 
             // Eqn. 29
-            const EdgeVec td = smesh.h(i) * std::sqrt(2. * (1. + params.nu0) * params.rhoIce)
+	    // std::cout << "cellSize is empty? " << cellSize.empty() << std::endl;
+            const EdgeVec td = cellSize[i] * std::sqrt(2. * (1. + params.nu0) * params.rhoIce)
                 / elasticity.array().sqrt();
 
             // Update damage

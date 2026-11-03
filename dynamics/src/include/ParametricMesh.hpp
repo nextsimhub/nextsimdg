@@ -66,7 +66,7 @@ public:
      * if no landmask is given, all  elements are ice
      */
     std::vector<bool> landmask;
-
+    
     ParametricMesh(const COORDINATES coords, int loglevel = -1)
         : CoordinateSystem(coords)
         , statuslog(loglevel)
@@ -74,8 +74,12 @@ public:
         , ny(0)
         , nnodes(0)
         , nelements(0)
-    {
-    }
+	{
+	    // for (size_t i = 0; i < nelements; ++i){
+		// cellSize.push_back(this->h(i));
+		// std::cout << "Filled Cell Size with eid " << i << std::endl;
+	    // }
+	}
 
     /*!
      * resets mesh to initial state
@@ -159,6 +163,22 @@ public:
             vertices(i, 1) = asin(z2);
             vertices(i, 0) = atan2(y2, x2);
         }
+    }
+
+    void CalculateCellSize(std::vector<float>& cellSize_vec) const
+    {
+	    if (nelements == 0){
+	        std::cout << "NUmber of elements = 0" << std::endl;
+	    }
+	    else if (!cellSize_vec.empty()){
+	        // std::cout << "cellSize Vector not empty" << std::endl;
+	    }
+	    else if (cellSize_vec.empty()){
+	        for (size_t i = 0; i < nelements; ++i){
+		    cellSize_vec.push_back(this->h(i));
+		}
+	    }
+    
     }
 
     /*!
@@ -262,6 +282,7 @@ public:
      * return the mesh size (as square root of area)  of the mesh element eid
      */
     FloatType h(const size_t eid) const { return sqrt(area(eid)); }
+
 
     /*!
      * returns the cooridnate of a vertex by an index (ix,iy)
@@ -380,6 +401,7 @@ public:
 
     FloatType hmin() const; //! returns the minimum mesh size
     FloatType area() const; //! returns the area of the domain
+    void CalculateCellSize() const;
 };
 } /* namespace Nextsim */
 
