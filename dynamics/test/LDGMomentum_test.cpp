@@ -163,7 +163,7 @@ static void checkSeaSurfaceGradient()
  * Without ice strength and Coriolis, uniform wind and ocean at rest, free outer boundary: the
  * velocity converges to the free drift FAtm |a| a = FOcean |u| u in all cells.
  */
-template <int DG> static void checkFreeDrift()
+template <int DG> static void checkFreeDrift(FloatType viscousPenaltyC = 0.0)
 {
     ParametricMesh smesh(CARTESIAN);
     createMesh(smesh, 10, 0.05, false);
@@ -171,6 +171,9 @@ template <int DG> static void checkFreeDrift()
     smesh.vertices *= 1.e5;
 
     LDGMomentum<DG, 3> momentum(smesh);
+    // without ice strength zeta = 0, the viscous penalty is its lower bound
+    if (viscousPenaltyC > 0.0)
+        momentum.setViscousJumpPenalty(viscousPenaltyC, 1.e6);
     VPParameters params;
     params.pStar = 0.0;
     params.fc = 0.0;
@@ -203,8 +206,108 @@ template <int DG> static void checkFreeDrift()
         maxdev = std::max(maxdev, std::fabs(momentum.vy(eid, 0) - uy) / std::fabs(uy));
         maxdev = std::max(maxdev, momentum.vx.row(eid).tail(DG - 1).norm() / std::fabs(ux));
     }
-    std::cout << "LDG free drift DG" << DG << ": max relative deviation " << maxdev << std::endl;
+    std::cout << "LDG free drift DG" << DG << (viscousPenaltyC > 0.0 ? " viscous penalty" : "")
+              << ": max relative deviation " << maxdev << std::endl;
     CHECK(maxdev < tol);
+}
+
+//! y = J x, the jump penalty alone
+template <int DG>
+static DGVector<DG> applyJumpPenalty(
+    const ParametricDGMomentumMap<DG, DG, DG>& pmap, const DGVector<DG>& x)
+{
+    DGVector<DG> y = x; // only for the size, overwritten
+    pmap.ApplyMassPlusJumpPenalty(0.0, 1.0, x, y);
+    return y;
+}
+
+//! random DG field, zero on land
+template <int DG> static DGVector<DG> randomField(const ParametricMesh& smesh)
+{
+    DGVector<DG> x(smesh);
+    x.setRandom();
+    for (size_t eid = 0; eid < smesh.nelements; ++eid)
+        if (smesh.landmask[eid] == 0)
+            x.row(eid).setZero();
+    return x;
+}
+
+/*!
+ * Viscous jump penalty capped by bMax everywhere on a uniform mesh (l_e/h_perp = l_e/h = 1):
+ * the same operator J as the constant penalty bMax.
+ */
+template <int DG> static void checkViscousPenaltyCapped()
+{
+    ParametricMesh smesh(CARTESIAN);
+    createMesh(smesh, 8, 0.0, true);
+    const FloatType a = 0.4, b = 2.e9;
+    ParametricDGMomentumMap<DG, DG, DG> pmap(smesh);
+    pmap.InitializeJumpPenalty(a, b);
+
+    const DGVector<DG> x = randomField<DG>(smesh);
+    const DGVector<DG> yConstant = applyJumpPenalty(pmap, x);
+
+    // zero strain: zeta = P/(2 deltaMin) ~ 1e13 Pa s, C zeta >> bMax
+    VPParameters params;
+    DGVector<DG> E(smesh);
+    E.setZero();
+    DGVector<1> H(smesh), A(smesh);
+    H.setConstant(1.0);
+    A.setConstant(1.0);
+    pmap.template UpdateViscousJumpPenalty<1>(a, 1.e6, b, 1.0, params, E, E, E, H, A);
+    const DGVector<DG> yViscous = applyJumpPenalty(pmap, x);
+
+    CHECK(yConstant.norm() > 0.0);
+    CHECK((yViscous - yConstant).norm() / yConstant.norm() < (isDouble ? 1.e-12 : 1.e-5));
+}
+
+struct HeightFunction : public Interpolations::Function {
+    FloatType operator()(FloatType x, FloatType y) const { return 1.0 + 0.5 * sin(3.0 * x + y); }
+};
+struct ConcentrationFunction : public Interpolations::Function {
+    FloatType operator()(FloatType x, FloatType y) const { return 0.9 + 0.1 * x * y; }
+};
+
+/*!
+ * Viscous jump penalty varying along the edges (manufactured strain, H and A), distorted mesh:
+ * J is symmetric and positive.
+ */
+template <int DG> static void checkViscousPenaltySymmetric()
+{
+    ParametricMesh smesh(CARTESIAN);
+    createMesh(smesh, 10, 0.05, true);
+    ParametricDGMomentumMap<DG, DG, DG> pmap(smesh);
+    pmap.InitializeDGDivMatrices();
+    pmap.InitializeJumpPenalty(0.4, 1.0);
+
+    // strain of the manufactured velocity, as LDGMomentum::projectVelocityToStrain
+    DGVector<DG> vx(smesh), vy(smesh), E11(smesh), E12(smesh), E22(smesh);
+    Interpolations::Function2DG(smesh, vx, UX());
+    Interpolations::Function2DG(smesh, vy, UY());
+    for (size_t eid = 0; eid < smesh.nelements; ++eid) {
+        E11.row(eid) = -(pmap.iMgradTauX[eid] * vx.row(eid).transpose());
+        E22.row(eid) = -(pmap.iMgradTauY[eid] * vy.row(eid).transpose());
+        E12.row(eid) = -0.5
+            * (pmap.iMgradTauY[eid] * vx.row(eid).transpose()
+                + pmap.iMgradTauX[eid] * vy.row(eid).transpose());
+    }
+    DGVector<3> H(smesh), A(smesh);
+    Interpolations::Function2DG(smesh, H, HeightFunction());
+    Interpolations::Function2DG(smesh, A, ConcentrationFunction());
+
+    // deltaMin of the order of the strain: zeta varies, the bounds are not active
+    VPParameters params;
+    params.pStar = 1.0;
+    params.deltaMin = 1.0;
+    pmap.template UpdateViscousJumpPenalty<3>(0.4, 1.e-6, 1.e6, 1.0, params, E11, E12, E22, H, A);
+
+    const DGVector<DG> x = randomField<DG>(smesh);
+    const DGVector<DG> z = randomField<DG>(smesh);
+    const FloatType xJz = (x.array() * applyJumpPenalty(pmap, z).array()).sum();
+    const FloatType zJx = (z.array() * applyJumpPenalty(pmap, x).array()).sum();
+    const FloatType xJx = (x.array() * applyJumpPenalty(pmap, x).array()).sum();
+    CHECK(xJx > 0.0);
+    CHECK(std::fabs(xJz - zJx) / xJx < (isDouble ? 1.e-12 : 1.e-5));
 }
 
 TEST_SUITE_BEGIN("LDGMomentum");
@@ -228,6 +331,18 @@ TEST_CASE("Free drift")
 {
     checkFreeDrift<3>();
     checkFreeDrift<4>();
+    checkFreeDrift<4>(0.01);
+}
+TEST_CASE("Viscous jump penalty")
+{
+    checkViscousPenaltyCapped<3>();
+    checkViscousPenaltyCapped<4>();
+    checkViscousPenaltyCapped<6>();
+    checkViscousPenaltyCapped<9>();
+    checkViscousPenaltySymmetric<3>();
+    checkViscousPenaltySymmetric<4>();
+    checkViscousPenaltySymmetric<6>();
+    checkViscousPenaltySymmetric<9>();
 }
 TEST_SUITE_END();
 

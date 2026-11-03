@@ -32,6 +32,8 @@ static const std::map<int, std::string> keyMap = {
     { LDGMEVPDynamics::BETA_KEY, prefix + ".beta" },
     { LDGMEVPDynamics::LDGA_KEY, prefix + ".ldg_a" },
     { LDGMEVPDynamics::LDGB_KEY, prefix + ".ldg_b" },
+    { LDGMEVPDynamics::LDGC_KEY, prefix + ".ldg_viscous_penalty" },
+    { LDGMEVPDynamics::LDGBMIN_KEY, prefix + ".ldg_b_min" },
     { LDGMEVPDynamics::PCGTOL_KEY, prefix + ".pcg_tolerance" },
     { LDGMEVPDynamics::PCGMAXIT_KEY, prefix + ".pcg_max_iterations" },
 };
@@ -60,6 +62,10 @@ void LDGMEVPDynamics::configure()
     ldgParams.beta = Configured::getConfiguration(keyMap.at(BETA_KEY), ldgDefaults.beta);
     ldgParams.a = Configured::getConfiguration(keyMap.at(LDGA_KEY), ldgDefaults.a);
     ldgParams.b = Configured::getConfiguration(keyMap.at(LDGB_KEY), ldgDefaults.b);
+    ldgParams.viscousPenaltyC
+        = Configured::getConfiguration(keyMap.at(LDGC_KEY), ldgDefaults.viscousPenaltyC);
+    ldgParams.viscousPenaltyMin
+        = Configured::getConfiguration(keyMap.at(LDGBMIN_KEY), ldgDefaults.viscousPenaltyMin);
     ldgParams.pcgTolerance
         = Configured::getConfiguration(keyMap.at(PCGTOL_KEY), ldgDefaults.pcgTolerance);
     ldgParams.pcgMaxIterations
@@ -85,6 +91,8 @@ ConfigMap LDGMEVPDynamics::getConfiguration() const
         { keyMap.at(BETA_KEY), ldgParams.beta },
         { keyMap.at(LDGA_KEY), ldgParams.a },
         { keyMap.at(LDGB_KEY), ldgParams.b },
+        { keyMap.at(LDGC_KEY), ldgParams.viscousPenaltyC },
+        { keyMap.at(LDGBMIN_KEY), ldgParams.viscousPenaltyMin },
         { keyMap.at(PCGTOL_KEY), ldgParams.pcgTolerance },
         { keyMap.at(PCGMAXIT_KEY), ldgParams.pcgMaxIterations },
     };
@@ -209,7 +217,15 @@ LDGMEVPDynamics::HelpMap& LDGMEVPDynamics::getHelpText(HelpMap& map, bool getAll
             "LDG alternating flux: u_hat = (0.5+a) u1 + (0.5-a) u2" },
         { keyMap.at(LDGB_KEY), ConfigType::NUMERIC, { "0", "∞" },
             ConfigurationHelp::toString(ldgDefaults.b), "Pa s",
-            "LDG penalty of velocity jumps, scaled with 1/h" },
+            "LDG penalty of velocity jumps, scaled with 1/h (upper bound of the viscous "
+            "penalty)" },
+        { keyMap.at(LDGC_KEY), ConfigType::NUMERIC, { "0", "∞" },
+            ConfigurationHelp::toString(ldgDefaults.viscousPenaltyC), "[No unit]",
+            "C > 0: viscosity-dependent penalty min(max(C*zeta, ldg_b_min), ldg_b)/h on the "
+            "interior edges, 0: constant ldg_b/h" },
+        { keyMap.at(LDGBMIN_KEY), ConfigType::NUMERIC, { "0", "∞" },
+            ConfigurationHelp::toString(ldgDefaults.viscousPenaltyMin), "Pa s",
+            "Lower bound of the viscosity-dependent LDG penalty" },
         { keyMap.at(PCGTOL_KEY), ConfigType::NUMERIC, { "0", "1" },
             ConfigurationHelp::toString(ldgDefaults.pcgTolerance), "[No unit]",
             "Relative residual of the PCG solver for the velocity" },

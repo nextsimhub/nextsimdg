@@ -71,6 +71,8 @@ public:
         BETA_KEY,
         LDGA_KEY,
         LDGB_KEY,
+        LDGC_KEY,
+        LDGBMIN_KEY,
         PCGTOL_KEY,
         PCGMAXIT_KEY,
     };

@@ -64,12 +64,26 @@ is computed from the velocity with the LDG fluxes
 (1/2+a)\sigma^+ n - b/h [[u]]`. The ice and snow fields are transported with the full DG
 velocity (no projection onto the advection space).
 
+The penalty :math:`b` can be constant or depend on the viscosity of the previous time step:
+with ``LDGMEVPDynamics.ldg_viscous_penalty`` :math:`C>0`, the penalty on the interior edges
+is :math:`\min(\max(C\{\zeta\}, b_{min}), b)/h_\perp` in each Gauss point of the edge, with
+:math:`\{\zeta\}` the mean of the bulk viscosity :math:`\zeta=P/(2\Delta)` of the two cells,
+:math:`h_\perp = \min(|K_1|,|K_2|)/l_e` and :math:`b_{min}` set by
+``LDGMEVPDynamics.ldg_b_min``. The upper bound :math:`b` (``LDGMEVPDynamics.ldg_b``) keeps
+the velocity system well conditioned in the very viscous ice, the lower bound keeps the
+velocity jumps controlled in the shear zones where :math:`\zeta` collapses. The Dirichlet
+edges keep the constant penalty :math:`b`. The PCG solver is preconditioned with the inverse
+of the diagonal blocks (mass and jump penalty) of the velocity operator.
+
 Boundary conditions: :math:`u=0` on edges between ice and land, the outer boundary of the
 mesh is free (:math:`\sigma n = 0`). The current implementation supports Cartesian
 grids only, without periodic boundaries, MPI or Kokkos.
 
 Additional configuration options (besides those of ``MEVPDynamics``):
 ``LDGMEVPDynamics.ldg_a`` and ``LDGMEVPDynamics.ldg_b`` (flux parameters :math:`a`, :math:`b`),
+``LDGMEVPDynamics.ldg_viscous_penalty`` and ``LDGMEVPDynamics.ldg_b_min`` (viscosity-dependent
+penalty; defaults ``ldg_viscous_penalty = 0.01``, ``ldg_b_min = 2e6``, ``ldg_b = 2e9``,
+``ldg_viscous_penalty = 0`` gives the constant penalty :math:`b/h`),
 ``LDGMEVPDynamics.alpha`` and ``LDGMEVPDynamics.beta`` (mEVP parameters),
 ``LDGMEVPDynamics.pcg_tolerance`` and ``LDGMEVPDynamics.pcg_max_iterations``,
 ``LDGMEVPDynamics.replacement_pressure``.

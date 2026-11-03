@@ -7,6 +7,7 @@
 
 #include "NextsimDynamics.hpp"
 #include "ParametricMesh.hpp"
+#include "VPParameters.hpp"
 #include "cgVector.hpp"
 #include "dgVector.hpp"
 
@@ -185,11 +186,13 @@ public:
      * LDG jump penalty J, the part of -<sigma_hat.n, [[v]]> that depends on u, treated
      * implicitly in the velocity system ((1+beta) rho M_H + dt J) u = F:
      *
-     *   J(u,v) = sum_{interior e} w_e int_ref [[u]][[v]] dxi
+     *   J(u,v) = sum_{interior e} int_ref w_e(xi) [[u]][[v]] dxi
      *          + sum_{Dirichlet e} w_e int_ref u v dxi
      *
      * with the edge weights (edge length l_e, cell size h = sqrt(area))
-     *   interior  : w_e = b * l_e / (0.5*(h(c1)+h(c2)))
+     *   interior  : w_e = b * l_e / (0.5*(h(c1)+h(c2)))       (InitializeJumpPenalty)
+     *            or w_e(xi) = min(max(C {zeta}, bMin), bMax) * l_e / h_perp
+     *                                                         (UpdateViscousJumpPenalty)
      *   Dirichlet : w_e = b * l_e / (h(c) * (0.5-a))
      * Side numbering s: 0 bottom, 1 right, 2 top, 3 left; the same edge seen from the
      * neighbour across side s is its side (s+2)%4.
@@ -202,14 +205,18 @@ public:
     //! function from the neighbour across side s)
     std::array<Matrix<DG, DG>, 4> TraceMassNeighborCell;
 
-    //! Interior edge weight w_e, one value per edge (0 on boundary edges and on edges
-    //! touching land). Numbering as ParametricMesh::coordinatesOfEdgeX/Y:
+    //! Off-diagonal blocks of J, one per edge. Numbering as
+    //! ParametricMesh::coordinatesOfEdgeX/Y:
     //!   X-edges, nx*(ny+1): cell c has bottom c, top c+nx
     //!   Y-edges, (nx+1)*ny: cell c=(ix,iy) has left iy*(nx+1)+ix, right +1
-    std::vector<FloatType> JumpPenaltyWeightX, JumpPenaltyWeightY;
+    //! For an edge between c1 (below / left) and c2 (above / right):
+    //!   JumpPenaltyCoupling(i,j) = int_ref w_e(xi) phi_i^c1 phi_j^c2 dxi
+    //! (test function from c1, trial function from c2, seen from c2 it is the transpose).
+    //! Zero (no coupling) on boundary edges and on edges touching land.
+    MatrixVector<DG, DG> JumpPenaltyCouplingX, JumpPenaltyCouplingY;
 
     //! Diagonal block of J for each cell: sum over its interior and Dirichlet edges of
-    //! w_e * TraceMassSameCell[s]
+    //! int_ref w_e(xi) phi_i phi_j dxi
     MatrixVector<DG, DG> JumpPenaltyDiagonalBlock;
 
     ParametricDGMomentumMap(const ParametricMesh& sm)
@@ -229,9 +236,27 @@ public:
     //! Fills iMJwPSI. Must be called after InitializeDGDivMatrices()
     void InitializeIMJwPSI();
 
-    //! Fills TraceMassSameCell/NeighborCell, JumpPenaltyWeightX/Y and
-    //! JumpPenaltyDiagonalBlock for the LDG parameters a, b
+    //! Fills TraceMassSameCell/NeighborCell, JumpPenaltyCouplingX/Y and
+    //! JumpPenaltyDiagonalBlock for the LDG parameters a, b (constant penalty b/h)
     void InitializeJumpPenalty(const FloatType a, const FloatType b);
+
+    /*!
+     * Viscosity-dependent jump penalty, overwrites JumpPenaltyCouplingX/Y and
+     * JumpPenaltyDiagonalBlock (InitializeJumpPenalty must have been called once before):
+     *   interior  : w(xi) = min(max(C {zeta}(xi), bMin), bMax) * l_e / h_perp
+     *               {zeta} = 0.5 (zeta_c1 + zeta_c2) in each Gauss point of the edge,
+     *               h_perp = min(|c1|, |c2|) / l_e the width of the thinner neighbour
+     *   Dirichlet : w = bMax * l_e / (h(c) * (0.5-a)), constant as in InitializeJumpPenalty
+     *               (zeta vanishes in the shear zones along the walls)
+     * with zeta = P / (2 Delta) from the traces of E11/E12/E22, H and A, P and Delta as in
+     * mEVPStressUpdate. bMax caps the penalty in the very viscous ice (conditioning), bMin
+     * keeps the jumps controlled where zeta collapses (stability).
+     */
+    template <int DGadvection>
+    void UpdateViscousJumpPenalty(const FloatType a, const FloatType bMin, const FloatType bMax,
+        const FloatType C, const VPParameters& params, const DGVector<DGstrain>& E11,
+        const DGVector<DGstrain>& E12, const DGVector<DGstrain>& E22,
+        const DGVector<DGadvection>& H, const DGVector<DGadvection>& A);
 
     /*!
      * y = massCoefficient * M_H x + penaltyCoefficient * J x
@@ -241,6 +266,10 @@ public:
      */
     void ApplyMassPlusJumpPenalty(const FloatType massCoefficient,
         const FloatType penaltyCoefficient, const DGVector<DG>& x, DGVector<DG>& y) const;
+
+private:
+    //! Adds the Dirichlet edges b * l_e / (h(c) * (0.5-a)) to JumpPenaltyDiagonalBlock
+    void addDirichletJumpPenalty(const FloatType a, const FloatType b);
 };
 
 }

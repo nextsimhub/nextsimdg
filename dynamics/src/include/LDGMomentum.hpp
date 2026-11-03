@@ -93,6 +93,15 @@ public:
      */
     LDGMomentum(const ParametricMesh& smesh, const FloatType a = 0.4, const FloatType b = 1.e9);
 
+    /*!
+     * C > 0: jump penalty min(max(C {zeta}, bMin), b)/h_perp on the interior edges instead of
+     * b/h (b kept on the Dirichlet edges), rebuilt by every prepareIteration() with zeta =
+     * P/(2 Delta) from the strain of the previous time step and the advected H, A. The b of
+     * the constructor is the upper bound.
+     * C = 0 (default): constant penalty b/h.
+     */
+    void setViscousJumpPenalty(const FloatType C, const FloatType bMin = 0.0);
+
     //! Computes the gradient of the sea surface height (dG0) in the Gauss points, via CG1
     void setSeaSurfaceHeight(const DGVector<1>& ssh);
 
@@ -121,7 +130,11 @@ public:
 private:
     const ParametricMesh& smesh;
     const FloatType a; //!< LDG flux parameter
+    const FloatType b; //!< LDG jump penalty, upper bound of the viscous penalty
     const std::array<std::vector<size_t>, 4> freeEdges; //!< see freeEdgesOfMesh()
+
+    FloatType viscousPenaltyScale = 0.0; //!< C of the viscous penalty, 0: constant b
+    FloatType viscousPenaltyMin = 0.0; //!< bMin of the viscous penalty
 
     //! Ice height (limited from below) and concentration of the current time step
     DGVector<DGadvection> H, A;
@@ -129,6 +142,11 @@ private:
     FloatType velocityMassFactor = 0.0; //!< (1+beta)*rho_ice
     FloatType velocityDt = 0.0; //!< dt multiplying the jump penalty J
     int pcgIterations = 0;
+
+    //! Block-Jacobi preconditioner of the PCG, per cell the inverse of
+    //! (1+beta) rho_ice M_H[c] + dt J[c,c]. Set by prepareIteration()
+    typename ParametricDGMomentumMap<DG, DG, DG>::template MatrixVector<DG, DG>
+        velocityPreconditioner;
 };
 
 } /* namespace Nextsim */

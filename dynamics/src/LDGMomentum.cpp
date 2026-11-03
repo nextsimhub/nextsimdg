@@ -329,10 +329,11 @@ void ldgVelocityFlux(const ParametricMesh& smesh,
 
 template <int DG, int DGadvection>
 LDGMomentum<DG, DGadvection>::LDGMomentum(
-    const ParametricMesh& smesh_, const FloatType a_, const FloatType b)
+    const ParametricMesh& smesh_, const FloatType a_, const FloatType b_)
     : pmap(smesh_)
     , smesh(smesh_)
     , a(a_)
+    , b(b_)
     , freeEdges(freeEdgesOfMesh(smesh_))
 {
     if (!(smesh.nelements > 0)) {
@@ -409,11 +410,34 @@ void LDGMomentum<DG, DGadvection>::prepareIteration(const VPParameters& params,
     LimitMin(H, 1.e-4);
     A = Ain;
 
-    // also refreshes pmap.InverseWeightedDGMassMatrix, used as the PCG preconditioner
     pmap.template InitializeWeightedDGMassMatrix<DGadvection>(H);
+
+    // viscosity-dependent jump penalty: E11/E12/E22 are those of the end of the previous
+    // time step, H/A the advected ones. Otherwise J keeps the constant b of the constructor.
+    if (viscousPenaltyScale > 0.0)
+        pmap.template UpdateViscousJumpPenalty<DGadvection>(
+            a, viscousPenaltyMin, b, viscousPenaltyScale, params, E11, E12, E22, H, A);
 
     velocityMassFactor = (1.0_ft + beta) * params.rhoIce;
     velocityDt = dt;
+
+    // block-Jacobi preconditioner of the PCG: inverse of the diagonal block of the velocity
+    // operator in each cell (mass + jump penalty of its own edges)
+    velocityPreconditioner.resize(smesh.nelements);
+#pragma omp parallel for
+    for (size_t eid = 0; eid < smesh.nelements; ++eid)
+        velocityPreconditioner[eid] = (velocityMassFactor * pmap.WeightedDGMassMatrix[eid]
+            + velocityDt * pmap.JumpPenaltyDiagonalBlock[eid])
+                                          .inverse();
+}
+
+template <int DG, int DGadvection>
+void LDGMomentum<DG, DGadvection>::setViscousJumpPenalty(const FloatType C, const FloatType bMin)
+{
+    viscousPenaltyScale = C;
+    viscousPenaltyMin = bMin;
+    if (C == 0.0)
+        pmap.InitializeJumpPenalty(a, b);
 }
 
 template <int DG, int DGadvection> void LDGMomentum<DG, DGadvection>::projectVelocityToStrain()
@@ -518,16 +542,15 @@ void LDGMomentum<DG, DGadvection>::mEVPStep(
     Fx -= dt * FluxSigma_x;
     Fy -= dt * FluxSigma_y;
 
-    // matrix-free PCG, preconditioned with the cell mass blocks. vx/vy are the initial guess.
+    // matrix-free PCG, block-Jacobi preconditioner (velocityPreconditioner). vx/vy are the
+    // initial guess.
     auto applyA = [&](const DGVector<DG>& x, DGVector<DG>& y) {
         pmap.ApplyMassPlusJumpPenalty(velocityMassFactor, velocityDt, x, y);
     };
     auto applyPrec = [&](const DGVector<DG>& r, DGVector<DG>& z) {
 #pragma omp parallel for
         for (size_t eid = 0; eid < smesh.nelements; ++eid)
-            z.row(eid)
-                = (pmap.InverseWeightedDGMassMatrix[eid] * r.row(eid).transpose()).transpose()
-                / velocityMassFactor;
+            z.row(eid) = (velocityPreconditioner[eid] * r.row(eid).transpose()).transpose();
     };
     FloatType err_x, err_y;
     const int it_x = PCG<DG>(applyA, applyPrec, Fx, vx, pcgTolerance, pcgMaxIterations, err_x);

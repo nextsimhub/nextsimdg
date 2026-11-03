@@ -22,7 +22,15 @@ namespace Nextsim {
 //! Parameters of the LDG discretization
 struct LDGParameters {
     FloatType a = 0.4; //!< alternating flux u_hat = (0.5+a) u1 + (0.5-a) u2
-    FloatType b = 1.e9; //!< jump penalty b/h
+    //! Jump penalty. Default: viscosity-dependent penalty min(max(C {zeta}, bMin), b)/h on the
+    //! interior edges (LDGMomentum::setViscousJumpPenalty), b on the Dirichlet edges
+    FloatType b = 2.e9; //!< constant penalty b/h, upper bound of the viscous penalty
+    FloatType viscousPenaltyC = 0.01; //!< C of the viscous penalty C {zeta}, 0: constant b/h
+    FloatType viscousPenaltyMin = 2.e6; //!< bMin of the viscous penalty
+    // constant penalty b/h on all edges instead:
+    // FloatType b = 1.e9;
+    // FloatType viscousPenaltyC = 0.;
+    // FloatType viscousPenaltyMin = 0.;
     FloatType alpha = 1500.; //!< mEVP parameters
     FloatType beta = 1500.;
     FloatType pcgTolerance = 1.e-8; //!< relative residual of the PCG solver for the velocity
@@ -74,6 +82,8 @@ public:
         momentum = std::make_unique<LDGMomentum<DG, DGadvection>>(*smesh, ldgParams.a, ldgParams.b);
         momentum->pcgTolerance = ldgParams.pcgTolerance;
         momentum->pcgMaxIterations = ldgParams.pcgMaxIterations;
+        if (ldgParams.viscousPenaltyC > 0.)
+            momentum->setViscousJumpPenalty(ldgParams.viscousPenaltyC, ldgParams.viscousPenaltyMin);
 
         uIceOceanStress.resize_by_mesh(*smesh);
         vIceOceanStress.resize_by_mesh(*smesh);
