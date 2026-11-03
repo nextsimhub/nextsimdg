@@ -41,11 +41,11 @@ jobs:
     - name: clang-format
       run: |
         sudo apt update
-        sudo apt install clang-format
+        sudo apt install clang-format-18
         for component in core dynamics physics
         do
           cd $component/src
-          clang-format --dry-run -Werror *cpp include/*hpp
+          clang-format-18 --dry-run -Werror *cpp include/*hpp
           cd -
         done
 
