@@ -67,6 +67,19 @@ public:
      */
     std::vector<bool> landmask;
 
+    /*!
+     * Cached area of each element, indexed like landmask (eid in [0, nelements)).
+     * Populated by precalculate_area(), which must be called after the mesh
+     * geometry (vertices) has been set or modified.
+     */
+    std::vector<FloatType> elementArea;
+
+    /*!
+     * (Re)compute the cached per-element areas in elementArea from the current
+     * vertices. Must be called after any change to the mesh geometry.
+     */
+    void precalculate_area();
+
     ParametricMesh(const COORDINATES coords, int loglevel = -1)
         : CoordinateSystem(coords)
         , statuslog(loglevel)

@@ -63,6 +63,12 @@ TEST_CASE("Test readmesh")
 
     // No periodic boundary conditions
     REQUIRE(smesh.periodic.size() == 0);
+
+    // Cached element areas must match the on-demand area computation
+    REQUIRE(smesh.elementArea.size() == smesh.nelements);
+    for (size_t i = 0; i < smesh.nelements; ++i) {
+        REQUIRE(smesh.elementArea[i] == smesh.area(i));
+    }
 }
 
 // Read data from ModelArrays and compare to that obtained from a .smesh file.

@@ -169,6 +169,18 @@ void ParametricMesh::readmesh(std::string fname)
                   << "             " << nelements << " elements,  " << nnodes << " nodes"
                   << std::endl;
     }
+
+    precalculate_area();
+}
+
+/*!
+ * (Re)compute the cached per-element areas in elementArea from the current vertices.
+ */
+void ParametricMesh::precalculate_area()
+{
+    elementArea.resize(nelements);
+    for (size_t eid = 0; eid < nelements; ++eid)
+        elementArea[eid] = area(eid);
 }
 
 /*!
