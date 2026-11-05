@@ -10,10 +10,10 @@
 #include "include/ModelState.hpp"
 
 namespace Nextsim {
-class IInput : public ModelComponent {
+class IForcingInput : public ModelComponent {
 public:
-    IInput() = default;
-    virtual ~IInput() = default;
+    IForcingInput() = default;
+    virtual ~IForcingInput() = default;
 
     /*!
      * @brief Initialise object parameters and calculate interpolation weights. To be called by

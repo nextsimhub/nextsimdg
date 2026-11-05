@@ -45,14 +45,14 @@ ConfigurationHelp::HelpMap& ERA5Atmosphere::getHelpRecursive(HelpMap& map, bool 
 void ERA5Atmosphere::configure()
 {
     Finalizer::registerUnique(Module::finalize<IFluxCalculation>);
-    Finalizer::registerUnique(Module::finalize<IInput>);
+    Finalizer::registerUnique(Module::finalize<IForcingInput>);
 
     filePath = Configured::getConfiguration(keyMap.at(FILEPATH_KEY), std::string());
 
     fluxImpl = Module::getInstance<IFluxCalculation>();
     tryConfigure(*fluxImpl);
 
-    forcingState = Module::getInstance<IInput>();
+    forcingState = Module::getInstance<IForcingInput>();
 
     addChecks({
         { "tair", tairAccessor },

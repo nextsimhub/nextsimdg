@@ -7,9 +7,9 @@
 #define TOPAZOCEAN_HPP
 
 #include "include/Configured.hpp"
+#include "include/IForcingInput.hpp"
 #include "include/IFreezingPoint.hpp"
 #include "include/IIceOceanHeatFlux.hpp"
-#include "include/IInput.hpp"
 #include "include/IOceanBoundary.hpp"
 #include "include/SlabOcean.hpp"
 
@@ -77,7 +77,7 @@ private:
     const std::set<std::string> forcings = { sstName, sssName, mldName, uName, vName, sshName };
     const std::set<std::pair<std::string, std::string>> vectors = { { uName, vName } };
 
-    std::unique_ptr<IInput> forcingState;
+    std::unique_ptr<IForcingInput> forcingState;
 };
 
 } /* namespace Nextsim */

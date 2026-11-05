@@ -5,7 +5,7 @@
 #ifndef GEOREFERENCEDINPUT_HPP
 #define GEOREFERENCEDINPUT_HPP
 
-#include "include/IInput.hpp"
+#include "include/IForcingInput.hpp"
 #include "include/ModelArray.hpp"
 #include "include/ModelState.hpp"
 #include "include/Time.hpp"
@@ -18,7 +18,7 @@
 
 namespace Nextsim {
 
-class GeoreferencedInput : public IInput {
+class GeoreferencedInput : public IForcingInput {
 
 public:
     GeoreferencedInput() = default;
@@ -73,7 +73,7 @@ public:
 
     // ModelComponent overrides
     std::string getName() const override { return "GeoreferencedInput"; };
-    void setData(const ModelState::DataMap&) override {};
+    void setData(const ModelState::DataMap&) override { };
 
 private:
     // Useful structs and aliases

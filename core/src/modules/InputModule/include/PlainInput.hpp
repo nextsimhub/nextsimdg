@@ -2,7 +2,7 @@
  * @author  Einar Olason <einar.olason@nersc.no>
  */
 
-#include "include/IInput.hpp"
+#include "include/IForcingInput.hpp"
 #include "include/ParaGridIO.hpp"
 
 #ifndef PLAININPUT_HPP
@@ -10,7 +10,7 @@
 
 namespace Nextsim {
 
-class PlainInput : public IInput {
+class PlainInput : public IForcingInput {
 public:
     PlainInput() = default;
 
