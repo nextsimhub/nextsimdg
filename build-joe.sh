@@ -82,7 +82,7 @@ if [ "${HELP}" = true ]; then
 fi
 
 # Install Python dependencies
-python3 -m pip install -r requirements.txt
+uv pip install -r requirements.txt
 
 # Check if a fresh build is requested
 if [ "${FRESH_BUILD}" = true ]; then

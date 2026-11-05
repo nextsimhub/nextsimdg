@@ -8,7 +8,7 @@
 if [ ! -e "${HOME}/.virtualenvs/nextsim" ]; then
   echo "Creating a new virtual environment in ${HOME}/.virtualenvs/nextsim."
   mkdir -p "${HOME}/.virtualenvs"
-  python3 -m venv "${HOME}/.virtualenvs/nextsim"
+  uv venv "${HOME}/.virtualenvs/nextsim"
 fi
 source "${HOME}/.virtualenvs/nextsim/bin/activate"
 
