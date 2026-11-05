@@ -178,7 +178,7 @@ public:
     typedef std::chrono::time_point<Clock, Duration::Basis> Basis;
 
     TimePoint()
-        : m_t() {};
+        : m_t() { };
     TimePoint(const std::string& str) { this->parse(str); }
     TimePoint(const TimePoint&, const Duration&);
 

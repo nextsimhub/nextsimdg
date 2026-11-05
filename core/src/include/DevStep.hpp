@@ -19,7 +19,7 @@ public:
     virtual ~DevStep() = default;
 
     // Member functions inherited from IModelStep
-    void writeRestartFile(const std::string& filePath) override {};
+    void writeRestartFile(const std::string& filePath) override { };
 
     void setData(PrognosticData& pDat) override { pData = &pDat; }
 
@@ -36,7 +36,7 @@ public:
     void init() override;
     void start(const TimePoint& startTime) override;
     void iterate(const TimestepTime& dt) override;
-    void stop(const TimePoint& stopTime) override {};
+    void stop(const TimePoint& stopTime) override { };
 
 private:
     PrognosticData* pData;

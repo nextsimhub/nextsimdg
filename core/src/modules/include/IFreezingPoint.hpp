@@ -52,7 +52,8 @@ public:
     FloatType operator()(FloatType sss) const override { return m_impl.calculate(sss); }
     void update(ModelArrayAuto& tf, const ConstModelArrayAuto& sss) const override
     {
-        // we can't capture this directly because copying polymorphic objects between host and device is undefined behaviour
+        // we can't capture this directly because copying polymorphic objects between host and
+        // device is undefined behaviour
         const Base& impl = m_impl;
         ModelComponent::overElementsAuto(
             OVER_ELEMENTS_LAMBDA(const ElementIndex i) { tf[i] = impl.calculate(sss[i]); });

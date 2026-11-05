@@ -410,7 +410,7 @@ void DGTransport<DG>::DGTransportOperator(const ParametricMesh& smesh, const Flo
     for (size_t eid = 0; eid < smesh.nelements; ++eid)
         cell_term(smesh, dt, phiup, phi, vx, vy, eid);
 
-        // Y - edges, only inner ones
+    // Y - edges, only inner ones
 #pragma omp parallel for
     for (size_t iy = 0; iy < smesh.ny; ++iy) {
         size_t ic = iy * smesh.nx; // first index of left cell in row

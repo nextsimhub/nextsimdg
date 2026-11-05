@@ -237,7 +237,7 @@ FloatType ParametricMesh::area(const size_t eid) const
         // added
         return (ParametricTools::J<2>((*this), eid).array() * GAUSSWEIGHTS<2>.array()
                    * (ParametricTools::getGaussPointsInElement<2>((*this), eid).row(1).array())
-                         .cos())
+                       .cos())
                    .sum()
             * EarthRadius * EarthRadius;
     } else

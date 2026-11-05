@@ -185,7 +185,7 @@ namespace SphericalTools {
                        * (ParametricTools::getGaussPointsInElement<GAUSSPOINTS1D(DG)>(smesh, eid)
                                .row(1)
                                .array())
-                             .cos()))
+                           .cos()))
                    .matrix()
             * PSI<DG, GAUSSPOINTS1D(DG)>.transpose();
     }

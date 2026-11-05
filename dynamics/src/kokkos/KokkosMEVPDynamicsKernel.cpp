@@ -175,8 +175,8 @@ void KokkosMEVPDynamicsKernel<DGadvection>::updateStressHighOrderDevice(
                                 * (FloatType(5.0 / 8.0) * e11Gauss.array()
                                     + FloatType(3.0 / 8.0) * e22Gauss.array())
                             - 0.5_ft * P.array())
-                              .matrix()
-                              .transpose()))
+                            .matrix()
+                            .transpose()))
                       .transpose();
             s22.row(i) = fac * s22.row(i)
                 + (map
@@ -185,15 +185,15 @@ void KokkosMEVPDynamicsKernel<DGadvection>::updateStressHighOrderDevice(
                                 * (FloatType(5.0 / 8.0) * e22Gauss.array()
                                     + FloatType(3.0 / 8.0) * e11Gauss.array())
                             - 0.5_ft * P.array())
-                              .matrix()
-                              .transpose()))
+                            .matrix()
+                            .transpose()))
                       .transpose();
             s12.row(i) = fac * s12.row(i)
                 + (map
                     * (alphaInv
                         * (PDelta.array() * FloatType(1.0 / 4.0) * e12Gauss.array())
-                              .matrix()
-                              .transpose()))
+                            .matrix()
+                            .transpose()))
                       .transpose();
         });
 }

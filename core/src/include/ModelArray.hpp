@@ -139,7 +139,7 @@ public:
     ModelArray(const ModelArray&);
     //! Move constructor
     ModelArray(ModelArray&&) = default;
-    virtual ~ModelArray() {};
+    virtual ~ModelArray() { };
 
     //! Copy assignment operator
     ModelArray& operator=(const ModelArray&);
