@@ -13,31 +13,35 @@ namespace Interpolations {
         // much easier to do the pre-computation on CPU
         std::vector<CG2DGMatrix> cG2DGMatrix;
         cG2DGMatrix.resize(smesh.nelements);
+
+        constexpr int GP_1D = GAUSSPOINTS1D(DG);
+
 #pragma omp parallel for
         for (size_t dgi = 0; dgi < smesh.nelements; ++dgi) {
             if (smesh.CoordinateSystem == CARTESIAN) {
-                cG2DGMatrix[dgi]
-                    = ((ParametricTools::massMatrix<DG>(smesh, dgi).inverse()
-                           * (PSI<DG, GAUSSPOINTS1D(DG)>.array().rowwise()
-                               * (ParametricTools::J<GAUSSPOINTS1D(DG)>(smesh, dgi).array()
-                                   * GAUSSWEIGHTS<GAUSSPOINTS1D(DG)>.array())
-                                     .array())
-                                 .matrix())
-                        * PHI<CG, GAUSSPOINTS1D(DG)>.transpose());
+                cG2DGMatrix[dgi] = ((ParametricTools::massMatrix<DG, double>(smesh, dgi).inverse()
+                                        * (PSI<DG, GP_1D, double>.array().rowwise()
+                                            * (ParametricTools::J<GP_1D, double>(smesh, dgi).array()
+                                                * GAUSSWEIGHTS<GP_1D, double>.array())
+                                                  .array())
+                                              .matrix())
+                    * PHI<CG, GP_1D, double>.transpose())
+                                       .template cast<FloatType>();
             } else {
                 cG2DGMatrix[dgi]
-                    = ((SphericalTools::massMatrix<DG>(smesh, dgi).inverse()
-                           * (PSI<DG, GAUSSPOINTS1D(DG)>.array().rowwise()
-                               * (ParametricTools::J<GAUSSPOINTS1D(DG)>(smesh, dgi).array()
-                                   * GAUSSWEIGHTS<GAUSSPOINTS1D(DG)>.array()
-                                   * ParametricTools::getGaussPointsInElement<GAUSSPOINTS1D(DG)>(
+                    = ((SphericalTools::massMatrix<DG, double>(smesh, dgi).inverse()
+                           * (PSI<DG, GP_1D, double>.array().rowwise()
+                               * (ParametricTools::J<GP_1D, double>(smesh, dgi).array()
+                                   * GAUSSWEIGHTS<GP_1D, double>.array()
+                                   * ParametricTools::getGaussPointsInElement<GP_1D, double>(
                                        smesh, dgi)
                                          .row(1)
                                          .array()
                                          .cos())
                                      .array())
                                  .matrix())
-                        * PHI<CG, GAUSSPOINTS1D(DG)>.transpose());
+                        * PHI<CG, GP_1D, double>.transpose())
+                          .template cast<FloatType>();
             }
         }
         cG2DGMatrixDevice
