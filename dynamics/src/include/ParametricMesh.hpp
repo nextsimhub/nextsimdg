@@ -80,6 +80,13 @@ public:
      */
     void precalculate_area();
 
+    /*!
+     * Compute the area of element eid directly from the current vertices,
+     * bypassing the cache. This is the reference computation used to fill
+     * elementArea in precalculate_area() and to verify the cache in tests.
+     */
+    FloatType compute_area(const size_t eid) const;
+
     ParametricMesh(const COORDINATES coords, int loglevel = -1)
         : CoordinateSystem(coords)
         , statuslog(loglevel)
@@ -101,6 +108,7 @@ public:
         nelements = -1;
         periodic.clear();
         landmask.clear();
+        elementArea.clear();
     }
 
     /*!

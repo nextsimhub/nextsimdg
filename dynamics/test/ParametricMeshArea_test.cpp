@@ -43,6 +43,7 @@ TEST_CASE("Test area cartesian")
             smesh.vertices((nx + 1) * iy + ix, 1) = dy * iy / ny;
         }
     smesh.landmask.resize(nx * ny, true);
+    smesh.precalculate_area();
 
     // exact area
     FloatType exact = dx * dy;
@@ -51,6 +52,7 @@ TEST_CASE("Test area cartesian")
     FloatType totalarea = 0.0;
     for (int i = 0; i < nx * ny; ++i) {
         REQUIRE(smesh.area(i) > 0);
+        REQUIRE(smesh.area(i) == smesh.compute_area(i)); // cache matches direct computation
         totalarea += smesh.area(i); // area must be positive
     }
 
@@ -65,11 +67,13 @@ TEST_CASE("Test area cartesian")
             smesh.vertices((nx + 1) * iy + ix, 0) += 0.2 * h * sin(ix + iy); // distort by 20%
             smesh.vertices((nx + 1) * iy + ix, 1) += 0.2 * h * cos(ix + iy);
         }
+    smesh.precalculate_area();
 
     // check mesh area
     totalarea = 0.0;
     for (int i = 0; i < nx * ny; ++i) {
         REQUIRE(smesh.area(i) > 0);
+        REQUIRE(smesh.area(i) == smesh.compute_area(i)); // cache matches direct computation
         totalarea += smesh.area(i); // area must be positive
     }
     // total area must match domain dimension up to machine accuracy
@@ -92,6 +96,7 @@ TEST_CASE("Test area spherical")
             smesh.vertices((nx + 1) * iy + ix, 1) = -0.5_ft * pi + 1.0_ft * pi * iy / ny;
         }
     smesh.landmask.resize(nx * ny, true);
+    smesh.precalculate_area();
 
     // exact radius (surface of earth)
     FloatType exact = 4.0_ft * pi * EarthRadius * EarthRadius;
@@ -100,6 +105,7 @@ TEST_CASE("Test area spherical")
     FloatType totalarea = 0.0;
     for (int i = 0; i < nx * ny; ++i) {
         REQUIRE(smesh.area(i) > 0);
+        REQUIRE(smesh.area(i) == smesh.compute_area(i)); // cache matches direct computation
         totalarea += smesh.area(i); // area must be positive
     }
 
@@ -114,11 +120,13 @@ TEST_CASE("Test area spherical")
             smesh.vertices((nx + 1) * iy + ix, 0) += 0.2_ft * h * sin(ix + iy); // distort by 20%
             smesh.vertices((nx + 1) * iy + ix, 1) += 0.2_ft * h * cos(ix + iy);
         }
+    smesh.precalculate_area();
 
     // check mesh area
     totalarea = 0.0;
     for (int i = 0; i < nx * ny; ++i) {
         REQUIRE(smesh.area(i) > 0);
+        REQUIRE(smesh.area(i) == smesh.compute_area(i)); // cache matches direct computation
         totalarea += smesh.area(i); // area must be positive
     }
     // total area must match domain dimension up to machine accuracy

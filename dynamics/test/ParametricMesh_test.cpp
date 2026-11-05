@@ -64,10 +64,11 @@ TEST_CASE("Test readmesh")
     // No periodic boundary conditions
     REQUIRE(smesh.periodic.size() == 0);
 
-    // Cached element areas must match the on-demand area computation
+    // Cached element areas must match a direct recomputation from the vertices
     REQUIRE(smesh.elementArea.size() == smesh.nelements);
     for (size_t i = 0; i < smesh.nelements; ++i) {
-        REQUIRE(smesh.elementArea[i] == smesh.area(i));
+        REQUIRE(smesh.elementArea[i] == smesh.compute_area(i));
+        REQUIRE(smesh.area(i) == smesh.elementArea[i]);
     }
 }
 
