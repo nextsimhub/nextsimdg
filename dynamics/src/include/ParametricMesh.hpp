@@ -130,7 +130,11 @@ public:
      * changes from [-180,180] to [-pi,pi] and [-90,90] to [-pi/2,pi/2]
      * NO CHECKING IF REQUIRED!
      */
-    void TransformToRadians() { vertices *= M_PI / 180.0; }
+    void TransformToRadians()
+    {
+        vertices *= M_PI / 180.0;
+        precalculate_area();
+    }
 
     /*!
      * Rotates the mesh such that the singularities are in Greenland / Antarctica at
@@ -156,6 +160,7 @@ public:
             vertices(i, 1) = asin(z2);
             vertices(i, 0) = atan2(y2, x2);
         }
+        precalculate_area();
     }
 
     //! Rotation back to normal
@@ -180,6 +185,7 @@ public:
             vertices(i, 1) = asin(z2);
             vertices(i, 0) = atan2(y2, x2);
         }
+        precalculate_area();
     }
 
     /*!

@@ -110,5 +110,71 @@ TEST_CASE("Compare readmesh and landmask reading")
 
     // No periodic boundary conditions
     REQUIRE(fromArrays.periodic.size() == 0);
+
+    // Cached element areas must be populated and identical to those from readmesh
+    REQUIRE(fromArrays.elementArea.size() == fromFile.nelements);
+    for (size_t idx = 0; idx < fromArrays.nelements; ++idx) {
+        REQUIRE(fromArrays.area(idx) == fromFile.area(idx));
+        REQUIRE(fromArrays.elementArea[idx] == fromArrays.compute_area(idx));
+    }
+}
+
+// Check that the area cache is correctly recomputed after the geometry
+// transformations used in the production initialisation path
+// (DynamicsKernel::initialise: coordinatesFromModelArray + RotatePoleToGreenland).
+TEST_CASE("Area cache updated by mesh transformations")
+{
+    ParametricMesh smesh(SPHERICAL);
+
+    // Spherical grid in radians covering the whole globe
+    smesh.nx = nx;
+    smesh.ny = ny;
+    smesh.nelements = nx * ny;
+    smesh.nnodes = (nx + 1) * (ny + 1);
+    smesh.vertices.resize(smesh.nnodes, 2);
+    for (size_t iy = 0; iy <= ny; ++iy)
+        for (size_t ix = 0; ix <= nx; ++ix) {
+            smesh.vertices((nx + 1) * iy + ix, 0) = -1.0_ft * pi + 2.0_ft * pi * ix / nx;
+            smesh.vertices((nx + 1) * iy + ix, 1) = -0.5_ft * pi + 1.0_ft * pi * iy / ny;
+        }
+    smesh.landmask.resize(nx * ny, true);
+    smesh.precalculate_area();
+
+    // Cache must match a direct recomputation, and total area must match the
+    // surface of the earth up to machine accuracy
+    static const FloatType eps = std::is_same_v<FloatType, float> ? 1e-4 : 1.e-9;
+    FloatType totalarea = 0.0;
+    for (size_t i = 0; i < smesh.nelements; ++i) {
+        REQUIRE(smesh.area(i) > 0);
+        REQUIRE(smesh.area(i) == smesh.compute_area(i));
+        totalarea += smesh.area(i);
+    }
+    REQUIRE(std::abs(1 - totalarea / (4.0_ft * pi * EarthRadius * EarthRadius)) < eps);
+
+    // Rotating the pole changes the geometry and must update the cache
+    smesh.RotatePoleToGreenland();
+    for (size_t i = 0; i < smesh.nelements; ++i) {
+        REQUIRE(smesh.area(i) > 0);
+        REQUIRE(smesh.area(i) == smesh.compute_area(i));
+    }
+
+    // Rotating back must approximately restore the original areas
+    // (the rotation round-trip is not bit-exact in floating point)
+    smesh.RotatePoleFromGreenland();
+    ParametricMesh smesh2(SPHERICAL);
+    smesh2.nx = nx;
+    smesh2.ny = ny;
+    smesh2.nelements = nx * ny;
+    smesh2.nnodes = (nx + 1) * (ny + 1);
+    smesh2.vertices.resize(smesh2.nnodes, 2);
+    for (size_t iy = 0; iy <= ny; ++iy)
+        for (size_t ix = 0; ix <= nx; ++ix) {
+            smesh2.vertices((nx + 1) * iy + ix, 0) = -1.0_ft * pi + 2.0_ft * pi * ix / nx;
+            smesh2.vertices((nx + 1) * iy + ix, 1) = -0.5_ft * pi + 1.0_ft * pi * iy / ny;
+        }
+    smesh2.landmask.resize(nx * ny, true);
+    smesh2.precalculate_area();
+    for (size_t i = 0; i < smesh.nelements; ++i)
+        REQUIRE(std::abs(1 - smesh.area(i) / smesh2.area(i)) < eps);
 }
 }

@@ -201,6 +201,7 @@ void ParametricMesh::coordinatesFromModelArray(const ModelArray& coords)
         vertices(idx, 0) = coords.components(idx)[0];
         vertices(idx, 1) = coords.components(idx)[1];
     }
+    precalculate_area();
 }
 
 /*!
