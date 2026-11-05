@@ -4,6 +4,7 @@
 
 #include "include/ConfigOutput.hpp"
 #include "include/FileCallbackCloser.hpp"
+#include "include/IDynamics.hpp"
 #include "include/Logged.hpp"
 #include "include/ModelArrayAccessor.hpp"
 #include "include/StructureFactory.hpp"
@@ -155,9 +156,17 @@ void ConfigOutput::setData(const TimePoint& modelStart)
     const auto& meta = ModelMetadata::getInstance();
     ModelState state;
     meta.affixCoordinates(state);
-    if (const std::string orientationStr
-        = Configured::getConfiguration(keyMap.at(ORIENTATION_KEY), std::string("grid"));
-        orientationStr == "native") {
+
+    // Check if we're on a spherical grid. If not, then the orientation must be "native".
+    std::string orientationStr;
+    if (IDynamics::checkSpherical(state.data)) {
+        orientationStr
+            = Configured::getConfiguration(keyMap.at(ORIENTATION_KEY), std::string("grid"));
+    } else {
+        orientationStr = "native";
+    }
+
+    if (orientationStr == "native") {
         rotator = std::make_unique<VectorRotator>(state.data.at(coordsName).dimensions());
     } else if (orientationStr == "grid") {
         rotator = std::make_unique<VectorRotator>(state, VectorRotator::Orientation::GRID);

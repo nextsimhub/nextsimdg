@@ -6,14 +6,14 @@
 #include <ncFile.h>
 #include <ncVar.h>
 
+#include "include/GeoreferencedInput.hpp"
 #include "include/NetCDFUtils.hpp"
-#include "include/ParaGridInputs.hpp"
 #include "include/constants.hpp"
 #include "include/indexer.hpp"
 
 namespace Nextsim {
 
-void ParaGridInputs::setData(const TimePoint& time, const std::string& pathSpecIn,
+void GeoreferencedInput::initialise(const TimePoint& time, const std::string& pathSpecIn,
     const std::string& ncLonNameIn, const std::string& ncLatNameIn, const std::string& ncTimeNameIn,
     const std::set<std::string>& forcingsIn,
     const std::set<std::pair<std::string, std::string>>& vectorsIn, const ModelArray& modelLonsIn,
@@ -21,7 +21,9 @@ void ParaGridInputs::setData(const TimePoint& time, const std::string& pathSpecI
 {
     currentTime = time;
 
-    // An artificial time range ending before the current time. Needed for ParaGridInputs::update
+    /* An artificial time range ending before the current time. Needed for
+     * GeoreferencedInput::update
+     */
     timeRange.before = time - Duration(2);
     timeRange.after = time - Duration(1);
 
@@ -62,7 +64,7 @@ void ParaGridInputs::setData(const TimePoint& time, const std::string& pathSpecI
         gridDims, forcingLonLats.at(ncLonName), forcingLonLats.at(ncLatName), orient);
 }
 
-void ParaGridInputs::tightenGrid()
+void GeoreferencedInput::tightenGrid()
 {
     // OpenMP can't deal with vectors in the reduction clause
     size_t gridStart0 = std::numeric_limits<size_t>::max();
@@ -106,7 +108,7 @@ void ParaGridInputs::tightenGrid()
     }
 }
 
-void ParaGridInputs::readDims()
+void GeoreferencedInput::readDims()
 {
     // Get the grid dimensions from the frist variable in forcings
     const std::string& varName = *forcings.begin();
@@ -133,7 +135,7 @@ void ParaGridInputs::readDims()
             lonLat1D = true;
             if (lonDims[0].getSize() != gridDims[0] || latDims[0].getSize() != gridDims[1]) {
                 throw std::runtime_error(
-                    "ParaGridInputs::readDims: Inconsistent dimension sizes for " + varName
+                    "GeoreferencedInput::readDims: Inconsistent dimension sizes for " + varName
                     + " and longitude and latitude variables: [" + std::to_string(gridDims[0]) + ","
                     + std::to_string(gridDims[1]) + "] and [" + std::to_string(lonDims[0].getSize())
                     + "," + std::to_string(latDims[0].getSize()) + "] respectively.\n");
@@ -142,31 +144,32 @@ void ParaGridInputs::readDims()
             lonLat1D = false;
             if (latDims[1].getSize() != gridDims[0] || latDims[0].getSize() != gridDims[1]) {
                 throw std::runtime_error(
-                    "ParaGridInputs::readDims: Inconsistent dimension sizes for " + varName
+                    "GeoreferencedInput::readDims: Inconsistent dimension sizes for " + varName
                     + " and longitude and latitude variables: [" + std::to_string(gridDims[0]) + ","
                     + std::to_string(gridDims[1]) + "] and [" + std::to_string(latDims[0].getSize())
                     + "," + std::to_string(latDims[1].getSize()) + "] respectively.\n");
             }
             if (lonDims[1].getSize() != gridDims[0] || lonDims[0].getSize() != gridDims[1]) {
                 throw std::runtime_error(
-                    "ParaGridInputs::readDims: Inconsistent dimension sizes for " + varName
+                    "GeoreferencedInput::readDims: Inconsistent dimension sizes for " + varName
                     + " and longitude and latitude variables: [" + std::to_string(gridDims[0]) + ","
                     + std::to_string(gridDims[1]) + "] and [" + std::to_string(lonDims[0].getSize())
                     + "," + std::to_string(lonDims[1].getSize()) + "] respectively.\n");
             }
         } else {
-            throw std::runtime_error("ParaGridInputs::readDims: Inconsistent dimension size for "
-                + ncLonName + " and " + ncLatName + " " + std::to_string(lonDims.size()) + " and "
+            throw std::runtime_error(
+                "GeoreferencedInput::readDims: Inconsistent dimension size for " + ncLonName
+                + " and " + ncLatName + " " + std::to_string(lonDims.size()) + " and "
                 + std::to_string(latDims.size()) + " respectively.\n");
         }
     } catch (const netCDF::exceptions::NcException& nce) {
         std::string ncWhat(nce.what());
         ncWhat += ": " + fileName;
-        throw std::runtime_error("ParaGridInputs::readDims:: " + ncWhat + "\n");
+        throw std::runtime_error("GeoreferencedInput::readDims:: " + ncWhat + "\n");
     }
 }
 
-void ParaGridInputs::update(const TimePoint& time)
+void GeoreferencedInput::update(const TimePoint& time)
 {
     currentTime = time;
 
@@ -185,7 +188,7 @@ void ParaGridInputs::update(const TimePoint& time)
     }
 }
 
-ModelArray ParaGridInputs::getField(const std::string& fieldName) const
+ModelArray GeoreferencedInput::getField(const std::string& fieldName) const
 {
     ModelArray ma;
     ma.reinitialize();
@@ -202,7 +205,7 @@ ModelArray ParaGridInputs::getField(const std::string& fieldName) const
     return ma;
 }
 
-void ParaGridInputs::setWeights()
+void GeoreferencedInput::setWeights()
 {
     // Initialise the size of the weights and indexes
     xi.reinitialize();
@@ -220,7 +223,7 @@ void ParaGridInputs::setWeights()
         setWeights2D();
 }
 
-void ParaGridInputs::setWeights1D()
+void GeoreferencedInput::setWeights1D()
 {
     // Useful alias
     auto& forcingLons = forcingLonLats.at(ncLonName);
@@ -257,7 +260,7 @@ void ParaGridInputs::setWeights1D()
         // Just a quick check on latitude.
         // TODO: Check also longitude, taking periodicity into account.
         if (bLat == forcingLats.size())
-            throw std::out_of_range("ParaGridInputs::setWeights1D: Couldn't find "
+            throw std::out_of_range("GeoreferencedInput::setWeights1D: Couldn't find "
                 + std::to_string(x) + ", " + std::to_string(y) + " in the forcing grid.\n");
 
         size_t aLon = bLon - 1;
@@ -292,7 +295,7 @@ void ParaGridInputs::setWeights1D()
     }
 }
 
-void ParaGridInputs::setWeights2D()
+void GeoreferencedInput::setWeights2D()
 {
     /* Call recursiveBisectSearch for the first point in each row of the model grid, starting off
      * with the full grid. The recursive routine returns false if it didn't find anything at the
@@ -307,7 +310,7 @@ void ParaGridInputs::setWeights2D()
     for (size_t j = 0; j < modelLons.dimensions()[1]; ++j) {
         if (const size_t k = indexer(modelLons.dimensions(), { 0, j }); !recursiveBisectSearch(
                 k, modelLons[k], modelLats[k], 0, gridDims[0] - 1, 0, gridDims[1] - 1))
-            throw std::out_of_range("ParaGridInputs::setWeights2D: Couldn't find "
+            throw std::out_of_range("GeoreferencedInput::setWeights2D: Couldn't find "
                 + std::to_string(modelLons[k]) + ", " + std::to_string(modelLats[k])
                 + " in the forcing grid.\n");
 
@@ -323,7 +326,7 @@ void ParaGridInputs::setWeights2D()
     }
 }
 
-void ParaGridInputs::findCellByWalking(
+void GeoreferencedInput::findCellByWalking(
     const FloatType targetLon, const FloatType targetLat, const size_t k)
 {
     // Useful aliases
@@ -410,7 +413,7 @@ void ParaGridInputs::findCellByWalking(
             ij[1] += dij[1];
 
             if (ij[0] < 0 || ij[1] < 0 || ij[0] >= dims[0] || ij[1] >= dims[1]) {
-                throw std::out_of_range("ParaGridInputs::findCellByWalking: Point "
+                throw std::out_of_range("GeoreferencedInput::findCellByWalking: Point "
                     + std::to_string(targetLon) + ", " + std::to_string(targetLat)
                     + " is outside the grid.\n");
             }
@@ -456,16 +459,17 @@ void ParaGridInputs::findCellByWalking(
             break;
         }
         default:
-            throw std::logic_error("ParaGridInputs::findCellByWalking: Invalid worst_edge value "
+            throw std::logic_error(
+                "GeoreferencedInput::findCellByWalking: Invalid worst_edge value "
                 + std::to_string(worstEdge) + ".\n");
         }
     }
 
-    throw std::runtime_error("ParaGridInputs::findCellByWalking: Failed to find the cell after "
+    throw std::runtime_error("GeoreferencedInput::findCellByWalking: Failed to find the cell after "
         + std::to_string(maxSteps) + " steps.");
 }
 
-bool ParaGridInputs::recursiveBisectSearch(const size_t k, const FloatType targetLon,
+bool GeoreferencedInput::recursiveBisectSearch(const size_t k, const FloatType targetLon,
     const FloatType targetLat, const size_t i, const size_t ii, const size_t j, const size_t jj)
 {
     // If one of the dimensions has collapsed, then the point is not here(!)
@@ -529,7 +533,7 @@ bool ParaGridInputs::recursiveBisectSearch(const size_t k, const FloatType targe
     return false;
 }
 
-void ParaGridInputs::orthographicProjection(const double lon, const double lat,
+void GeoreferencedInput::orthographicProjection(const double lon, const double lat,
     const FloatType lon0, const FloatType lat0, FloatType& x, FloatType& y)
 {
     /* Most of these are used twice, but not all. But anyway, it's easier to read like this, and the
@@ -553,7 +557,7 @@ void ParaGridInputs::orthographicProjection(const double lon, const double lat,
     }
 }
 
-bool ParaGridInputs::pointInBoundingBox(
+bool GeoreferencedInput::pointInBoundingBox(
     const std::vector<FloatType>& xCorners, const std::vector<FloatType>& yCorners)
 {
     const FloatType xMin = *std::min_element(xCorners.begin(), xCorners.end());
@@ -566,9 +570,9 @@ bool ParaGridInputs::pointInBoundingBox(
     return 0. >= xMin && 0. <= xMax && 0. >= yMin && 0. <= yMax;
 }
 
-bool ParaGridInputs::findLocalCoordinates(const size_t k, const FloatType x00, const FloatType y00,
-    const FloatType x10, const FloatType y10, const FloatType x01, const FloatType y01,
-    const FloatType x11, const FloatType y11)
+bool GeoreferencedInput::findLocalCoordinates(const size_t k, const FloatType x00,
+    const FloatType y00, const FloatType x10, const FloatType y10, const FloatType x01,
+    const FloatType y01, const FloatType x11, const FloatType y11)
 {
     /*
      * Cell corners:
@@ -649,7 +653,7 @@ bool ParaGridInputs::findLocalCoordinates(const size_t k, const FloatType x00, c
     return true;
 }
 
-ModelState ParaGridInputs::interpolateSpatially(const RawDataMap<FloatType>& rawData)
+ModelState GeoreferencedInput::interpolateSpatially(const RawDataMap<FloatType>& rawData)
 {
     ModelState state;
     for (const auto& dataPair : rawData) {
@@ -678,7 +682,7 @@ ModelState ParaGridInputs::interpolateSpatially(const RawDataMap<FloatType>& raw
     return state;
 }
 
-void ParaGridInputs::rotateInputVectors(RawDataMap<FloatType>& rawData)
+void GeoreferencedInput::rotateInputVectors(RawDataMap<FloatType>& rawData)
 {
     // Useful alias
     const auto& forcingLats = forcingLonLats.at(ncLatName);
@@ -702,7 +706,7 @@ void ParaGridInputs::rotateInputVectors(RawDataMap<FloatType>& rawData)
     }
 }
 
-std::vector<TimePoint> ParaGridInputs::getTimeFromNetCDF(const netCDF::NcFile& ncFile) const
+std::vector<TimePoint> GeoreferencedInput::getTimeFromNetCDF(const netCDF::NcFile& ncFile) const
 {
     // Read the time axis
     const netCDF::NcDim timeDim = ncFile.getDim(ncTimeName);
@@ -732,7 +736,7 @@ std::vector<TimePoint> ParaGridInputs::getTimeFromNetCDF(const netCDF::NcFile& n
     else if (timeUnit == "days")
         multiplier = 24. * 3600.;
     else
-        throw std::runtime_error("ParaGridInputs::readRawForcing(): unsupported time unit "
+        throw std::runtime_error("GeoreferencedInput::readRawForcing(): unsupported time unit "
             + timeUnit + " in '" + unitStr + "'.\n");
 
     // Create and return a vector of TimePoints
@@ -743,7 +747,7 @@ std::vector<TimePoint> ParaGridInputs::getTimeFromNetCDF(const netCDF::NcFile& n
     return timePointVec;
 }
 
-void ParaGridInputs::readRawForcing(
+void GeoreferencedInput::readRawForcing(
     RawDataMap<FloatType>& rawDataBefore, RawDataMap<FloatType>& rawDataAfter)
 {
     /* First we find the correct time, time slice, and files. For multi-file datasets we just pick
@@ -772,7 +776,7 @@ void ParaGridInputs::readRawForcing(
 
             if (const std::vector<TimePoint> timeToCheck = getTimeFromNetCDF(ncFileToCheck);
                 timeToCheck[targetTIndex] != time)
-                throw std::runtime_error("ParaGridInputs::readRawForcing: Time stamp "
+                throw std::runtime_error("GeoreferencedInput::readRawForcing: Time stamp "
                     + time.format() + " not found in " + fileName + ".\n");
         };
 
@@ -812,7 +816,7 @@ void ParaGridInputs::readRawForcing(
     } catch (const netCDF::exceptions::NcException& nce) {
         std::string ncWhat(nce.what());
         ncWhat += ": " + fileName;
-        throw std::runtime_error("ParaGridInputs::readRawForcing: " + ncWhat + "\n");
+        throw std::runtime_error("GeoreferencedInput::readRawForcing: " + ncWhat + "\n");
     }
 
     // Read the data
@@ -821,7 +825,7 @@ void ParaGridInputs::readRawForcing(
 }
 
 template <typename T>
-ParaGridInputs::RawDataMap<T> ParaGridInputs::readRawData(
+GeoreferencedInput::RawDataMap<T> GeoreferencedInput::readRawData(
     const TimePoint& time, const std::set<std::string>& fields, const size_t timeIndex) const
 {
     RawDataMap<T> data;
@@ -881,7 +885,7 @@ ParaGridInputs::RawDataMap<T> ParaGridInputs::readRawData(
         } catch (const netCDF::exceptions::NcException& nce) {
             std::string ncWhat(nce.what());
             ncWhat += ": " + fileName;
-            throw std::runtime_error("ParaGridInputs::readRawData: " + ncWhat + "\n");
+            throw std::runtime_error("GeoreferencedInput::readRawData: " + ncWhat + "\n");
         }
     }
     return data;
