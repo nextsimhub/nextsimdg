@@ -28,6 +28,7 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/format.hpp>
 #include <boost/format/group.hpp>
+#include <context.hpp>
 #include <filesystem>
 #include <include/xios_c_interface.hpp>
 #include <iostream>
@@ -223,9 +224,42 @@ void Xios::close_context_definition()
             }
         }
 
-        cxios_context_close_definition();
+        try {
+            cxios_context_close_definition();
+        }
+        catch (...) {
+            dumpXmlContext(std::cerr);
+            throw;
+
+        }
         contextStatus = DEFINITION_CLOSED;
     }
+}
+
+/*!
+ * Dump the in-memory XIOS context definition as XML to an output stream.
+ *
+ * Intended for debugging: shows the client-side view of the definition,
+ * i.e. what the code has defined without iodef.xml content.
+ *
+ * @param os Output stream to write the XML to.
+ */
+void Xios::dumpXmlContext(std::ostream& os)
+{
+    if (!isEnabled) {
+        return;
+    }
+
+    xios::CContext* context = nullptr;
+    cxios_context_get_current(&context);
+    if (!context) {
+        return;
+    }
+
+    os << "<?xml version=\"1.0\"?>\n"
+       << "<simulation>\n"
+       << context->toString() << "\n"
+       << "</simulation>\n";
 }
 
 //! Finalize XIOS context

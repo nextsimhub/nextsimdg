@@ -20,6 +20,7 @@
 #include <boost/format.hpp>
 #include <boost/format/group.hpp>
 #include <include/xios_c_interface.hpp>
+#include <ostream>
 #include <mpi.h>
 
 namespace Nextsim {
@@ -77,6 +78,11 @@ public:
     /* Field */
     void setPrognosticFieldType(const std::string& fieldId, const ModelArray::Type& type);
     void setDiagnosticFieldType(const std::string& fieldId, const ModelArray::Type& type);
+
+    /*! Dump the in-memory XIOS context definition as XML to an output stream.
+     *  Intended for debugging: shows the client-side view of the definition,
+     *  i.e. what the code has defined without iodef.xml content. */
+    void dumpXmlContext(std::ostream& os);
 
     enum {
         ENABLED_KEY,
