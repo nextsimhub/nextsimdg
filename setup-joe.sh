@@ -19,16 +19,15 @@ if ! spack env activate -p nextsim; then
 fi
 
 # Source the environment variables for XIOS
-SOFTWARE="${HOME}/software"
-if ! source "${SOFTWARE}/nextSIM-DG/.github/xios_arch/ubuntu.env"; then
+if ! source "${HOME}/projects/nextsimdg/.github/xios_arch/ubuntu.env"; then
   echo "Failed to source XIOS environment variables." >&2
   exit 1
 fi
 
 # Set XIOS directory
 # NOTE: Modify as appropriate for the location you installed XIOS
-export xios_DIR="${SOFTWARE}/XIOS"
+export xios_DIR="${HOME}/tools/xios"
 
 # # Put decomp in the path
 # # NOTE: Modify as appropriate for the location you installed domain_decomp
-# export PATH="${SOFTWARE}/tools/domain_decomp/build":${PATH}
+# export PATH="${HOME}/tools/domain_decomp/build":${PATH}
