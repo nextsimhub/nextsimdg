@@ -47,7 +47,7 @@ void TOPAZOcean::configure()
 {
     Finalizer::registerUnique(Module::finalize<IIceOceanHeatFlux>);
     Finalizer::registerUnique(Module::finalize<IFreezingPoint>);
-    Finalizer::registerUnique(Module::finalize<IInput>);
+    Finalizer::registerUnique(Module::finalize<IForcingInput>);
 
     pIOHeatFlux = std::move(Module::getInstance<IIceOceanHeatFlux>());
     tryConfigure(*pIOHeatFlux);
@@ -55,7 +55,7 @@ void TOPAZOcean::configure()
     pFreezingPoint = std::move(Module::getInstance<IFreezingPoint>());
     tryConfigure(*pFreezingPoint);
 
-    forcingState = Module::getInstance<IInput>();
+    forcingState = Module::getInstance<IForcingInput>();
 
     filePath = Configured::getConfiguration(keyMap.at(FILEPATH_KEY), std::string());
 

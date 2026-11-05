@@ -10,7 +10,7 @@
 
 #include "include/Configured.hpp"
 #include "include/IFluxCalculation.hpp"
-#include "include/IInput.hpp"
+#include "include/IForcingInput.hpp"
 
 namespace Nextsim {
 
@@ -66,7 +66,7 @@ private:
         = { dew2mName, lwInName, pAirName, rainName, snowName, swInName, tAirName, uName, vName };
     const std::set<std::pair<std::string, std::string>> vectors = { { uName, vName } };
 
-    std::unique_ptr<IInput> forcingState;
+    std::unique_ptr<IForcingInput> forcingState;
 
     ModelArrayAccessor<Protected::T_AIR, RW> tairAccessor;
     ModelArrayAccessor<Protected::DEW_2M, RW> tdewAccessor;

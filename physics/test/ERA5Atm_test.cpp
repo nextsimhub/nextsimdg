@@ -56,7 +56,7 @@ TEST_CASE("ERA5Atmosphere construction test")
     ERA5Atmosphere e5;
 
     Module::Module<IFluxCalculation>::setExternalImplementation(setNullFlux);
-    Module::Module<IInput>::setImplementation("Nextsim::PlainInput");
+    Module::Module<IForcingInput>::setImplementation("Nextsim::PlainInput");
 
     /* The netCDF file has a 30 day time step. We test the input at start, after a single input
      * step, after 11, and after 119, i.e approx at months 1, 2, 12, and 120. */
