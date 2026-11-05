@@ -28,6 +28,6 @@ fi
 # NOTE: Modify as appropriate for the location you installed XIOS
 export xios_DIR="${HOME}/tools/xios"
 
-# # Put decomp in the path
-# # NOTE: Modify as appropriate for the location you installed domain_decomp
-# export PATH="${HOME}/tools/domain_decomp/build":${PATH}
+# Put decomp in the path
+# NOTE: Modify as appropriate for the location you installed domain_decomp
+export PATH="${HOME}/projects/nextsimdg/domain_decomp/build":${PATH}
