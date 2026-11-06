@@ -31,9 +31,9 @@ void TripolarTestAtmosphere::setData(const ModelState::DataMap& ms)
     for (size_t j = 0; j < BenchmarkCoordinates::ny(); ++j) {
         for (size_t i = 0; i < BenchmarkCoordinates::nx(); ++i) {
             if (BenchmarkCoordinates::fx()(i, j) < 0.5)
-                vwind(i, j) = 20;
-            else
                 vwind(i, j) = -20;
+            else
+                vwind(i, j) = 20;
         }
     }
 }
