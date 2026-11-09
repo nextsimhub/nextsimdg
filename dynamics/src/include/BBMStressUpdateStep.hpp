@@ -50,7 +50,6 @@ public:
         const BBMParameters& params = reinterpret_cast<const BBMParameters&>(dParams);
 
 //! Stress and Damage Update
-
 #pragma omp parallel for
         for (size_t i = 0; i < smesh.nelements; ++i) {
 
@@ -151,8 +150,8 @@ public:
             dcrit = dcrit.array().min(1.0_ft);
 
             // Eqn. 29
-	    // std::cout << "cellSize is empty? " << cellSize.empty() << std::endl;
-            const EdgeVec td = smesh.cellSize[i] * std::sqrt(2. * (1. + params.nu0) * params.rhoIce)
+	    // std::cout << "cellSize is empty? " << smesh.cellsize.empty() << std::endl;
+            const EdgeVec td = smesh.cellsize[i] * std::sqrt(2. * (1. + params.nu0) * params.rhoIce)
                 / elasticity.array().sqrt();
 
             // Update damage

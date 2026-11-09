@@ -254,4 +254,14 @@ FloatType ParametricMesh::area() const
         a += area(i);
     return a;
 }
+
+/*!
+ * returns vector of Cell Size
+ */
+void ParametricMesh::calculateCellSize()
+{
+        for (size_t i = 0; i < nelements; ++i)
+            cellsize.push_back(h(i));
+} 
+
 }

@@ -66,6 +66,7 @@ public:
      * if no landmask is given, all  elements are ice
      */
     std::vector<bool> landmask;
+    std::vector<FloatType> cellsize;
 
     ParametricMesh(const COORDINATES coords, int loglevel = -1)
         : CoordinateSystem(coords)
@@ -88,6 +89,7 @@ public:
         nelements = -1;
         periodic.clear();
         landmask.clear();
+	cellsize.clear();
     }
 
     /*!
@@ -380,6 +382,7 @@ public:
 
     FloatType hmin() const; //! returns the minimum mesh size
     FloatType area() const; //! returns the area of the domain
+    void calculateCellSize(); //! returns the vector of cell size
 };
 } /* namespace Nextsim */
 

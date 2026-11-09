@@ -51,6 +51,11 @@ public:
             smesh->RotatePoleToGreenland();
         smesh->landmaskFromModelArray(mask);
 
+        smesh->calculateCellSize();
+
+	// std::cout << smesh->nelements << " " << smesh->h(34) << smesh->cellsize[34] << std::endl;
+
+	// std::cout << smesh->nelements << " " << smesh->h(51) << smesh->cellsize[51] << std::endl;
         //! Initialize transport
         dgtransport = std::make_unique<Nextsim::DGTransport<DGadvection>>(*smesh);
         dgtransport->settimesteppingscheme("rk2");
