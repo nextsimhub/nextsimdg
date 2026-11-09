@@ -25,15 +25,11 @@ public:
         , p_d(nullptr)
     {
     }
-
-
-    // std::vector<float> cellSize;
-
     ~BBMStressUpdateStep() = default;
     void stressUpdateHighOrder(const DynamicsParameters& dParams, const ParametricMesh& smesh,
         SymmetricTensorVector& stress, const SymmetricTensorVector& strain,
         const DGVector<DGadvection>& h, const DGVector<DGadvection>& a,
-        const FloatType deltaT)override
+        const FloatType deltaT) override
     {
         assert(pmap);
 
@@ -50,9 +46,6 @@ public:
         DGVector<DGstress>& e11 = strain[I11];
         DGVector<DGstress>& e12 = strain[I12];
         DGVector<DGstress>& e22 = strain[I22];
-
-	// std::vector<float> cellSize;
-	// smesh.CalculateCellSize();
 
         const BBMParameters& params = reinterpret_cast<const BBMParameters&>(dParams);
 

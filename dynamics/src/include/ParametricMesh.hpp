@@ -66,7 +66,6 @@ public:
      * if no landmask is given, all  elements are ice
      */
     std::vector<bool> landmask;
-    std::vector<FloatType> cellSize;
 
     ParametricMesh(const COORDINATES coords, int loglevel = -1)
         : CoordinateSystem(coords)
@@ -75,8 +74,8 @@ public:
         , ny(0)
         , nnodes(0)
         , nelements(0)
-	{
-	}
+    {
+    }
 
     /*!
      * resets mesh to initial state
@@ -161,7 +160,6 @@ public:
             vertices(i, 0) = atan2(y2, x2);
         }
     }
-
 
     /*!
      * Returns index of lower left node in element with index eid
@@ -264,7 +262,6 @@ public:
      * return the mesh size (as square root of area)  of the mesh element eid
      */
     FloatType h(const size_t eid) const { return sqrt(area(eid)); }
-
 
     /*!
      * returns the cooridnate of a vertex by an index (ix,iy)
