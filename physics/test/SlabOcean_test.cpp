@@ -88,7 +88,7 @@ TEST_CASE("Test Qdw")
     constexpr FloatType prec = std::is_same_v<FloatType, float> ? 1e-6 : 1e-8;
     REQUIRE(qdw[0]
         == doctest::Approx(tOffset * cpml[0] / (SlabOcean::defaultRelaxationTime * 86400))
-               .epsilon(prec));
+            .epsilon(prec));
 
     ModelArrayAccessor<Protected::SLAB_SST> sstSlabAccessor(ModelComponent::getStore());
     // scope needed because we have to access sstSlab again after update
@@ -182,7 +182,7 @@ TEST_CASE("Test Fdw")
     REQUIRE(fdw[0]
         == doctest::Approx(
             sOffset * mld[0] * Water::rho / (SlabOcean::defaultRelaxationTime * 86400))
-               .epsilon(prec));
+            .epsilon(prec));
     // Test that the finiteelement.cpp calculation of fdw is not being used
     FloatType delS = -sOffset;
     FloatType timeS = SlabOcean::defaultRelaxationTime;
@@ -211,7 +211,7 @@ TEST_CASE("Test Fdw")
         REQUIRE(sssSlab[0]
             == doctest::Approx(
                 sss[0] + (sss[0] * snowMeltVol + fdw[0] * dt) / (mld[0] * Water::rho - snowMeltVol))
-                   .epsilon(prec));
+                .epsilon(prec));
     }
 }
 TEST_SUITE_END();

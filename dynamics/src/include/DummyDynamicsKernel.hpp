@@ -48,7 +48,7 @@ public:
      */
     ModelArray getDG0Data(const std::string& name) { return ModelArray(ModelArray::Type::H); }
 
-    void update(const TimestepTime& tst) {};
+    void update(const TimestepTime& tst) { };
 };
 
 } /* namespace Nextsim */

@@ -41,7 +41,7 @@ public:
 
     // ModelComponent overrides
     inline std::string getName() const override { return "ConfigOutput"; };
-    inline void setData(const ModelState::DataMap&) override {};
+    inline void setData(const ModelState::DataMap&) override { };
 
     // Configured overrides
     static HelpMap& getHelpRecursive(HelpMap& map, bool getAll);

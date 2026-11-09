@@ -109,8 +109,8 @@ namespace Tools {
                                + 4.0 * e12_gauss.array().square() + 1.e-20)
                                 .sqrt()
                             * ParametricTools::J<NGP>(smesh, i).array() * GAUSSWEIGHTS<NGP>.array())
-                              .matrix()
-                              .transpose());
+                            .matrix()
+                            .transpose());
             }
         }
 

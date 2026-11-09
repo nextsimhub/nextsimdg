@@ -17,7 +17,7 @@ public:
     DummyDynamics() = default;
 
     std::string getName() const override { return "DummyDynamics"; }
-    void update(const TimestepTime& tst) override {};
+    void update(const TimestepTime& tst) override { };
     void prepareAdvection() override { }
     void setData(const ModelState::DataMap& state) override
     {

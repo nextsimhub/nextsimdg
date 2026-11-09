@@ -71,7 +71,7 @@ public:
                 size_t c = mesh.nx * cy; // index of first cell in row
                 size_t cgi = (mesh.nx + 1) * cy; // index of vertex of cell in row
                 for (size_t cx = 0; cx < mesh.nx;
-                     ++cx, ++c, ++cgi) //!< loop over all cells of the mesh
+                    ++cx, ++c, ++cgi) //!< loop over all cells of the mesh
                 {
                     const FloatType meanvalue = phi(c, comp);
                     for (size_t j = 0; j < 4; ++j) {

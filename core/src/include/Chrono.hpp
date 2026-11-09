@@ -32,7 +32,7 @@ public:
         : m_wallTime(WallTimeDuration::zero())
         , m_cpuTime(0)
         , m_ticks(0)
-        , m_running(false) {};
+        , m_running(false) { };
     ~Chrono() = default;
 
     //! Returns the current time on the wall clock.

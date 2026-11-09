@@ -108,7 +108,7 @@ namespace Interpolations {
                         * (ParametricTools::getGaussPointsInElement<GAUSSPOINTS1D(DG)>(smesh, dgi)
                                 .row(1)
                                 .array())
-                              .cos()
+                            .cos()
                         * //! metric term
                         (PHI<CG, GAUSSPOINTS1D(DG)>.transpose() * cg_local).transpose().array())
                           .matrix()
@@ -263,7 +263,7 @@ namespace Interpolations {
             size_t cgi = CG * cgshift * row; //!< Lower left index of cg vector
 
             for (size_t col = 0; col < smesh.nx;
-                 ++col, ++eid, cgi += CG) { // loop over all elements
+                ++col, ++eid, cgi += CG) { // loop over all elements
 
                 if (smesh.landmask[eid] == 0) // only on ice
                     continue;

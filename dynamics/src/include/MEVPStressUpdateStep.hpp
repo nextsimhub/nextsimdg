@@ -95,16 +95,16 @@ public:
                     * (P.array() / 8.0_ft / DELTA.array()
                             * (5.0_ft * e11_gauss.array() + FloatType(3) * e22_gauss.array())
                         - 0.5_ft * P.array())
-                          .matrix()
-                          .transpose());
+                        .matrix()
+                        .transpose());
 
             //   S12.row(i) += 1.0 / alpha * (2. * eta * E12.row(i));
             // 2 eta = 2/4 * P / (2 Delta) = P / (4 Delta)
             s12.row(i) += pmap->iMJwPSI[i]
                 * (1.0_ft / alpha
                     * (P.array() / FloatType(4) / DELTA.array() * e12_gauss.array())
-                          .matrix()
-                          .transpose());
+                        .matrix()
+                        .transpose());
 
             //   S22.row(i)
             //       += 1.0 / alpha * (2. * eta * E22.row(i) + (zeta - eta) * (E11.row(i) +
@@ -115,8 +115,8 @@ public:
                     * (P.array() / 8.0_ft / DELTA.array()
                             * (5.0_ft * e22_gauss.array() + FloatType(3) * e11_gauss.array())
                         - 0.5_ft * P.array())
-                          .matrix()
-                          .transpose());
+                        .matrix()
+                        .transpose());
         }
     }
     void setPMap(ParametricMomentumMap<CG, DGadvection>* pmapIn) { pmap = pmapIn; }
