@@ -66,7 +66,8 @@ public:
      * if no landmask is given, all  elements are ice
      */
     std::vector<bool> landmask;
-    
+    std::vector<FloatType> cellSize;
+
     ParametricMesh(const COORDINATES coords, int loglevel = -1)
         : CoordinateSystem(coords)
         , statuslog(loglevel)
@@ -75,10 +76,6 @@ public:
         , nnodes(0)
         , nelements(0)
 	{
-	    // for (size_t i = 0; i < nelements; ++i){
-		// cellSize.push_back(this->h(i));
-		// std::cout << "Filled Cell Size with eid " << i << std::endl;
-	    // }
 	}
 
     /*!
@@ -165,21 +162,6 @@ public:
         }
     }
 
-    void CalculateCellSize(std::vector<float>& cellSize_vec) const
-    {
-	    if (nelements == 0){
-	        std::cout << "NUmber of elements = 0" << std::endl;
-	    }
-	    else if (!cellSize_vec.empty()){
-	        // std::cout << "cellSize Vector not empty" << std::endl;
-	    }
-	    else if (cellSize_vec.empty()){
-	        for (size_t i = 0; i < nelements; ++i){
-		    cellSize_vec.push_back(this->h(i));
-		}
-	    }
-    
-    }
 
     /*!
      * Returns index of lower left node in element with index eid
@@ -401,7 +383,6 @@ public:
 
     FloatType hmin() const; //! returns the minimum mesh size
     FloatType area() const; //! returns the area of the domain
-    void CalculateCellSize() const;
 };
 } /* namespace Nextsim */
 

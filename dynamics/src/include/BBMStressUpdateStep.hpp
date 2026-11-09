@@ -27,7 +27,7 @@ public:
     }
 
 
-    std::vector<float> cellSize;
+    // std::vector<float> cellSize;
 
     ~BBMStressUpdateStep() = default;
     void stressUpdateHighOrder(const DynamicsParameters& dParams, const ParametricMesh& smesh,
@@ -52,7 +52,7 @@ public:
         DGVector<DGstress>& e22 = strain[I22];
 
 	// std::vector<float> cellSize;
-	smesh.CalculateCellSize(cellSize);
+	// smesh.CalculateCellSize();
 
         const BBMParameters& params = reinterpret_cast<const BBMParameters&>(dParams);
 
@@ -159,7 +159,7 @@ public:
 
             // Eqn. 29
 	    // std::cout << "cellSize is empty? " << cellSize.empty() << std::endl;
-            const EdgeVec td = cellSize[i] * std::sqrt(2. * (1. + params.nu0) * params.rhoIce)
+            const EdgeVec td = smesh.cellSize[i] * std::sqrt(2. * (1. + params.nu0) * params.rhoIce)
                 / elasticity.array().sqrt();
 
             // Update damage
