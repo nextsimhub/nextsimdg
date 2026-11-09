@@ -22,8 +22,7 @@ static const std::map<int, std::string> keyMap = {
 };
 
 CARRA2Atmosphere::CARRA2Atmosphere()
-    : forcingState()
-    , tairAccessor(getStore(), RO, ModelArray::Type::H, std::pair(-100.0, 100.0))
+    : tairAccessor(getStore(), RO, ModelArray::Type::H, std::pair(-100.0, 100.0))
     , spHumAccessor(getStore(), RO, ModelArray::Type::H, std::pair(0.0, 1.0))
     , pairAccessor(getStore(), RO, ModelArray::Type::H, std::pair(500e2, 2000e2))
     , sw_inAccessor(getStore(), RO, ModelArray::Type::H, std::pair(-1e-3, 1e4))
@@ -127,8 +126,8 @@ void CARRA2Atmosphere::setData(const ModelState::DataMap& ms)
     ModelState state;
     const ModelMetadata& metadata = ModelMetadata::getInstance();
     metadata.affixCoordinates(state);
-    forcingState->initialise(metadata.startTime(), filePath, ncLonName, ncLatName, ncTimeName, forcings,
-        vectors, state.data.at(longitudeName), state.data.at(latitudeName));
+    forcingState->initialise(metadata.startTime(), filePath, ncLonName, ncLatName, ncTimeName,
+        forcings, vectors, state.data.at(longitudeName), state.data.at(latitudeName));
 }
 
 } /* namespace Nextsim */
