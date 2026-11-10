@@ -5,6 +5,7 @@ from pathlib import Path
 
 import numpy as np
 import xarray as xr
+
 from flooding import FloodInterpolator
 
 """
@@ -52,7 +53,9 @@ os.makedirs(out_dir, exist_ok=False)
 
 # Just pick a random "zos" file in "root_dir" to build the FloodInterpolator
 ds = xr.load_dataset(next(iter(Path(root_dir).rglob("*zos*.nc"))))
-flooder = FloodInterpolator(ds.longitude.values, ds.latitude.values, np.isnan(ds.zos.values[0,:,:]))
+flooder = FloodInterpolator(
+    ds.longitude.values, ds.latitude.values, np.isnan(ds.zos.values[0, :, :])
+)
 ds.close()
 
 for directory in glob.glob(root_dir + "/*"):
@@ -75,6 +78,7 @@ for directory in glob.glob(root_dir + "/*"):
             }
             print(os.path.join(out_dir, basedir, os.path.basename(file)))
             ds.to_netcdf(
-                os.path.join(out_dir, basedir, os.path.basename(file)), encoding=encoding
+                os.path.join(out_dir, basedir, os.path.basename(file)),
+                encoding=encoding,
             )
             ds.close()
