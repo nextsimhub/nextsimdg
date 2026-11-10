@@ -10,6 +10,7 @@
 #include "include/Time.hpp"
 #include "include/VectorRotator.hpp"
 
+#include <ncFile.h>
 #include <regex>
 #include <set>
 #include <string>
@@ -165,6 +166,9 @@ private:
         const std::regex pattern("%v");
         return time.format(std::regex_replace(pathSpec, pattern, variable));
     }
+
+    // Transform netCDF time to our time units
+    [[nodiscard]] std::vector<TimePoint> getTimeFromNetCDF(const netCDF::NcFile& ncFile) const;
 };
 
 }

@@ -162,7 +162,7 @@ void ParaGridInputs::readDims()
     } catch (const netCDF::exceptions::NcException& nce) {
         std::string ncWhat(nce.what());
         ncWhat += ": " + fileName;
-        throw std::runtime_error(ncWhat);
+        throw std::runtime_error("ParaGridInputs::readDims:: " + ncWhat + "\n");
     }
 }
 
@@ -229,7 +229,7 @@ void ParaGridInputs::setWeights1D()
     auto forcingLats = forcingLonLats.at(ncLatName);
 
     bool flippedLats = false;
-    if (*forcingLats.begin() > *forcingLats.end()) {
+    if (forcingLats.front() > forcingLats.back()) {
         flippedLats = true;
         std::reverse(forcingLats.begin(), forcingLats.end());
     }
@@ -702,64 +702,79 @@ void ParaGridInputs::rotateInputVectors(RawDataMap<FloatType>& rawData)
     }
 }
 
+std::vector<TimePoint> ParaGridInputs::getTimeFromNetCDF(const netCDF::NcFile& ncFile) const
+{
+    // Read the time axis
+    const netCDF::NcDim timeDim = ncFile.getDim(ncTimeName);
+    // Read the time variable
+    const netCDF::NcVar timeVar = ncFile.getVar(ncTimeName);
+    // Get the time axis as a vector. We use double here, because Duration expects double.
+    std::vector<double> timeVec(timeDim.getSize());
+    timeVar.getVar(timeVec.data());
+
+    // Time units nonsense
+    std::string unitStr, timeUnit, sinceKeyWord, timeOrigin;
+    timeVar.getAtt("units").getValues(unitStr);
+    std::stringstream ss(unitStr);
+    ss >> timeUnit >> sinceKeyWord >> timeOrigin;
+
+    // Get a TimePoint for the origin
+    const TimePoint timePointOrigin = TimePoint(timeOrigin);
+
+    // Multiply the time axis to get seconds
+    double multiplier;
+    if (timeUnit == "seconds")
+        multiplier = 1.;
+    else if (timeUnit == "minutes")
+        multiplier = 60.;
+    else if (timeUnit == "hour" || timeUnit == "hours")
+        multiplier = 3600.;
+    else if (timeUnit == "days")
+        multiplier = 24. * 3600.;
+    else
+        throw std::runtime_error("ParaGridInputs::readRawForcing(): unsupported time unit "
+            + timeUnit + " in '" + unitStr + "'.\n");
+
+    // Create and return a vector of TimePoints
+    std::vector<TimePoint> timePointVec(timeVec.size());
+    for (size_t i = 0; i < timeVec.size(); ++i)
+        timePointVec[i] = timePointOrigin + Duration(timeVec[i] * multiplier);
+
+    return timePointVec;
+}
+
 void ParaGridInputs::readRawForcing(
     RawDataMap<FloatType>& rawDataBefore, RawDataMap<FloatType>& rawDataAfter)
 {
     /* First we find the correct time, time slice, and files. For multi-file datasets we just pick
      * any (first) file/variable.
      */
-    const std::string fileName = formatFileName(currentTime, *forcings.begin());
+    std::string fileName = formatFileName(currentTime, *forcings.begin());
     size_t targetTIndexAfter, targetTIndexBefore;
     try {
-        netCDF::NcFile ncFile(fileName, netCDF::NcFile::read);
-
-        // Read the time axis
-        netCDF::NcDim timeDim = ncFile.getDim(ncTimeName);
-        // Read the time variable
-        netCDF::NcVar timeVar = ncFile.getVar(ncTimeName);
-        // Get the time axis as a vector. We use double here, because Duration expects double.
-        std::vector<double> timeVec(timeDim.getSize());
-        timeVar.getVar(timeVec.data());
-
-        // Time units nonsense
-        std::string unitStr, timeUnit, sinceKeyWord, timeOrigin;
-        timeVar.getAtt("units").getValues(unitStr);
-        std::stringstream ss(unitStr);
-        ss >> timeUnit >> sinceKeyWord >> timeOrigin;
-
-        // Get a TimePoint for the origin
-        const auto timePointOrigin = TimePoint(timeOrigin);
-
-        // Multiply the time axis to get seconds
-        double multiplier;
-        if (timeUnit == "seconds")
-            multiplier = 1.;
-        else if (timeUnit == "minutes")
-            multiplier = 60.;
-        else if (timeUnit == "hour" || timeUnit == "hours")
-            multiplier = 3600.;
-        else if (timeUnit == "days")
-            multiplier = 24. * 3600.;
-        else
-            throw std::runtime_error("ParaGridInputs::readRawForcing(): unsupported time unit "
-                + timeUnit + " in '" + unitStr + "'.\n");
-
-        std::transform(timeVec.begin(), timeVec.end(), timeVec.begin(),
-            [multiplier](const double t) { return t * multiplier; });
-
-        // Because currentTime can't be captured in the lambda function
-        const TimePoint& time = currentTime;
+        const netCDF::NcFile ncFile(fileName, netCDF::NcFile::read);
+        const std::vector<TimePoint> timeVec = getTimeFromNetCDF(ncFile);
 
         // Get the index of the first TimePoint greater than the target.
         targetTIndexAfter = std::find_if(timeVec.begin(), timeVec.end(),
-                                [time, timePointOrigin](const double t) {
-                                    return TimePoint(timePointOrigin, Duration(t)) > time;
-                                })
+                                // currentTime can't be captured directly in the lambda function
+                                [t0 = currentTime](const TimePoint t) { return t > t0; })
             - timeVec.begin();
 
         targetTIndexBefore = targetTIndexAfter - 1;
-        timeRange.before = TimePoint(timePointOrigin, Duration(timeVec[targetTIndexBefore]));
-        timeRange.after = TimePoint(timePointOrigin, Duration(timeVec[targetTIndexAfter]));
+        timeRange.before = timeVec[targetTIndexBefore];
+        timeRange.after = timeVec[targetTIndexAfter];
+
+        // Lambda to check that the date exists in a file. Keep fileName for the try/catch
+        auto checkDate = [&fileName, this](const size_t targetTIndex, const TimePoint& time) {
+            fileName = formatFileName(time, *forcings.begin());
+            const netCDF::NcFile ncFileToCheck(fileName, netCDF::NcFile::read);
+
+            if (const std::vector<TimePoint> timeToCheck = getTimeFromNetCDF(ncFileToCheck);
+                timeToCheck[targetTIndex] != time)
+                throw std::runtime_error("ParaGridInputs::readRawForcing: Time stamp "
+                    + time.format() + " not found in " + fileName + ".\n");
+        };
 
         /* We need to check if targetTIndexAfter is actually pointing at the right time, or if we
          * need to go on to the next file. Lucky for us, std::find_if returns timeVec.end() if it
@@ -769,19 +784,35 @@ void ParaGridInputs::readRawForcing(
             // Assume time is increasing at a constant rate(!)
             timeRange.after = timeRange.before + Duration(timeVec[1] - timeVec[0]);
             targetTIndexAfter = 0;
+
+            checkDate(targetTIndexAfter, timeRange.after);
         }
 
-        // Sanity check. Not really needed.
-        if (targetTIndexAfter >= timeVec.size() || targetTIndexBefore >= timeVec.size())
-            throw std::out_of_range(
-                "ParaGridInputs::readRawForcing::Target time index is out of range "
-                "- how could this happen?\n");
+        /* Here we check if targetTIndexBefore is still pointing to the current file, or if we need
+         * to go to the file before. The problem is that in order to set targetTIndexBefore
+         * correctly, we need to know how long that file is, so we read in the new file to find the
+         * last index.
+         */
+        if (targetTIndexAfter == 0) {
+            // Assume time is increasing at a constant rate(!)
+            timeRange.before = timeRange.after - Duration(timeVec[1] - timeVec[0]);
 
-        ncFile.close();
+            // Read in the new file to find the last index. Keep fileName for the try/catch
+            fileName = formatFileName(timeRange.before, *forcings.begin());
+            netCDF::NcFile ncFileBefore(fileName, netCDF::NcFile::read);
+            const netCDF::NcDim timeDimBefore = ncFileBefore.getDim(ncTimeName);
+            // Better close the file here, because checkDate will want to open it.
+            ncFileBefore.close();
+
+            targetTIndexBefore = timeDimBefore.getSize() - 1;
+
+            checkDate(targetTIndexBefore, timeRange.before);
+        }
+
     } catch (const netCDF::exceptions::NcException& nce) {
         std::string ncWhat(nce.what());
         ncWhat += ": " + fileName;
-        throw std::runtime_error(ncWhat);
+        throw std::runtime_error("ParaGridInputs::readRawForcing: " + ncWhat + "\n");
     }
 
     // Read the data
@@ -850,7 +881,7 @@ ParaGridInputs::RawDataMap<T> ParaGridInputs::readRawData(
         } catch (const netCDF::exceptions::NcException& nce) {
             std::string ncWhat(nce.what());
             ncWhat += ": " + fileName;
-            throw std::runtime_error(ncWhat);
+            throw std::runtime_error("ParaGridInputs::readRawData: " + ncWhat + "\n");
         }
     }
     return data;
