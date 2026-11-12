@@ -118,19 +118,19 @@ public:
     void RotatePoleToGreenland()
     {
         for (size_t i = 0; i < nnodes; ++i) {
-            const FloatType x = cos(vertices(i, 1)) * cos(vertices(i, 0));
-            const FloatType y = cos(vertices(i, 1)) * sin(vertices(i, 0));
-            const FloatType z = sin(vertices(i, 1));
+            const double x = cos(vertices(i, 1)) * cos(vertices(i, 0));
+            const double y = cos(vertices(i, 1)) * sin(vertices(i, 0));
+            const double z = sin(vertices(i, 1));
 
-            FloatType aw = 40.0 * M_PI / 180.0;
-            const FloatType x1 = cos(aw) * x - sin(aw) * y;
-            const FloatType y1 = sin(aw) * x + cos(aw) * y;
-            const FloatType z1 = z;
+            constexpr double aw = 40.0 * M_PI / 180.0;
+            const double x1 = cos(aw) * x - sin(aw) * y;
+            const double y1 = sin(aw) * x + cos(aw) * y;
+            const double z1 = z;
 
-            FloatType bw = 15.0 * M_PI / 180.0;
-            const FloatType x2 = cos(bw) * x1 - sin(bw) * z1;
-            const FloatType y2 = y1;
-            const FloatType z2 = sin(bw) * x1 + cos(bw) * z1;
+            double bw = 15.0 * M_PI / 180.0;
+            const double x2 = cos(bw) * x1 - sin(bw) * z1;
+            const double y2 = y1;
+            const double z2 = sin(bw) * x1 + cos(bw) * z1;
 
             vertices(i, 1) = asin(z2);
             vertices(i, 0) = atan2(y2, x2);
@@ -141,20 +141,20 @@ public:
     void RotatePoleFromGreenland()
     {
         for (size_t i = 0; i < nnodes; ++i) {
-            const FloatType x = cos(vertices(i, 1)) * cos(vertices(i, 0));
-            const FloatType y = cos(vertices(i, 1)) * sin(vertices(i, 0));
-            const FloatType z = sin(vertices(i, 1));
+            const double x = cos(vertices(i, 1)) * cos(vertices(i, 0));
+            const double y = cos(vertices(i, 1)) * sin(vertices(i, 0));
+            const double z = sin(vertices(i, 1));
 
-            FloatType aw = -40.0 * M_PI / 180.0;
-            FloatType bw = -15 * M_PI / 180.0;
+            constexpr double aw = -40.0 * M_PI / 180.0;
+            constexpr double bw = -15 * M_PI / 180.0;
 
-            const FloatType x1 = cos(bw) * x - sin(bw) * z;
-            const FloatType y1 = y;
-            const FloatType z1 = sin(bw) * x + cos(bw) * z;
+            const double x1 = cos(bw) * x - sin(bw) * z;
+            const double y1 = y;
+            const double z1 = sin(bw) * x + cos(bw) * z;
 
-            const FloatType x2 = cos(aw) * x1 - sin(aw) * y1;
-            const FloatType y2 = sin(aw) * x1 + cos(aw) * y1;
-            const FloatType z2 = z1;
+            const double x2 = cos(aw) * x1 - sin(aw) * y1;
+            const double y2 = sin(aw) * x1 + cos(aw) * y1;
+            const double z2 = z1;
 
             vertices(i, 1) = asin(z2);
             vertices(i, 0) = atan2(y2, x2);
@@ -172,22 +172,22 @@ public:
     /*!
      * makes sure that the longitudes in the coordinate vector coords
      * do not jump form Pi to -Pi degrees. If a jump is detected,
-     * all cordinates are shifted to the range 0,3 Pi by correcting
+     * all coordinates are shifted to the range 0,3 Pi by correcting
      * negative ones
      */
-    template <int N> void correctlongitude(Eigen::Matrix<FloatType, N, 2>& coords) const
+    template <int N, typename T> void correctlongitude(Eigen::Matrix<T, N, 2>& coords) const
     {
         assert(CoordinateSystem == SPHERICAL);
         bool problem = false;
         for (size_t i = 1; i < N; ++i)
-            if (fabs(coords(0, 0) - coords(i, 0)) > 2.0 / 3.0 * M_PI) {
+            if (std::abs(coords(0, 0) - coords(i, 0)) > T(2.0) / T(3.0) * pi_v<T>) {
                 problem = true;
                 break;
             }
         if (problem) {
             for (size_t i = 0; i < N; ++i)
                 if (coords(i, 0) < 0)
-                    coords(i, 0) += 2.0_ft * M_PI;
+                    coords(i, 0) += T(2.0) * pi_v<T>;
         }
     }
 
@@ -197,13 +197,14 @@ public:
      * If correctlongitude is set to true, the congitude coordinates will
      * be such that there is no jump (from Pi to -Pi) within the element
      */
-    const Eigen::Matrix<FloatType, 4, 2> coordinatesOfElement(const size_t eid) const
+    template <typename T = FloatType>
+    const Eigen::Matrix<T, 4, 2> coordinatesOfElement(const size_t eid) const
     {
         const size_t nid = eid2nid(eid);
         assert(nid < vertices.rows());
         assert(nid + nx + 2 < vertices.rows());
-        Eigen::Matrix<FloatType, 4, 2> coords
-            = Eigen::Matrix<FloatType, 4, 2>({ { vertices(nid, 0), vertices(nid, 1) },
+        Eigen::Matrix<T, 4, 2> coords
+            = Eigen::Matrix<T, 4, 2>({ { vertices(nid, 0), vertices(nid, 1) },
                 { vertices(nid + 1, 0), vertices(nid + 1, 1) },
                 { vertices(nid + nx + 1, 0), vertices(nid + nx + 1, 1) },
                 { vertices(nid + nx + 2, 0), vertices(nid + nx + 2, 1) } });
