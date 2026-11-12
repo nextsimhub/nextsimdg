@@ -302,7 +302,7 @@ template <int CG, int DG> void ParametricMomentumMap<CG, DG>::InitializeDivSMatr
             iMJwPSI[eid] = (imass
                 * (PSI<DG_STRESS, GP_1D, double>.array().rowwise()
                     * (GAUSSWEIGHTS<GP_1D, double>.array() * J.array()))
-                      .matrix())
+                    .matrix())
                                .template cast<FloatType>();
             // same but for the damage. However, we use the same number of Gausspoints as
             // for the DG-stress variant above for easier use in BBM Stress update
@@ -311,7 +311,7 @@ template <int CG, int DG> void ParametricMomentumMap<CG, DG>::InitializeDivSMatr
             iMJwPSI_dam[eid] = (imass_dam
                 * (PSI<DG, GP_1D, double>.array().rowwise()
                     * (GAUSSWEIGHTS<GP_1D, double>.array() * J.array()))
-                      .matrix())
+                    .matrix())
                                    .template cast<FloatType>();
 
         } else if (smesh.CoordinateSystem == SPHERICAL) {
@@ -364,7 +364,7 @@ template <int CG, int DG> void ParametricMomentumMap<CG, DG>::InitializeDivSMatr
             iMJwPSI[eid] = (imass
                 * (PSI<DG_STRESS, GP_1D, double>.array().rowwise()
                     * (GAUSSWEIGHTS<GP_1D, double>.array() * J.array() * cos_lat.array()))
-                      .matrix())
+                    .matrix())
                                .template cast<FloatType>();
 
             // smae for DG advection (damage)
@@ -373,7 +373,7 @@ template <int CG, int DG> void ParametricMomentumMap<CG, DG>::InitializeDivSMatr
             iMJwPSI_dam[eid] = (imass_dam
                 * (PSI<DG, GP_1D, double>.array().rowwise()
                     * (GAUSSWEIGHTS<GP_1D, double>.array() * J.array() * cos_lat.array()))
-                      .matrix())
+                    .matrix())
                                    .template cast<FloatType>();
 
         } else
