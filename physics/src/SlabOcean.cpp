@@ -15,7 +15,7 @@
 
 namespace Nextsim {
 
-const FloatType SlabOcean::defaultRelaxationTime = 7; // Unit is days
+const double SlabOcean::defaultRelaxationTime = 7; // Unit is days
 
 // Configuration strings
 static const std::string className = "SlabOcean";
@@ -79,10 +79,12 @@ void SlabOcean::setData(const ModelState::DataMap& ms)
     qdw.reinitialize();
     HField& fdw = fdwAccessor.getHostRW();
     fdw.reinitialize();
-    HField& sstSlab = sstSlabAccessor.getHostRW();
-    sstSlab.reinitialize();
-    HField& sssSlab = sssSlabAccessor.getHostRW();
-    sssSlab.reinitialize();
+
+    const auto& sst = sstAccessor.getHostRO();
+    sstSlab.assign(sst.getData(), sst.getData() + sst.trueSize());
+
+    const auto& sss = sssAccessor.getHostRO();
+    sssSlab.assign(sss.getData(), sss.getData() + sss.trueSize());
 }
 
 void SlabOcean::update(const TimestepTime& tst)
@@ -92,43 +94,45 @@ void SlabOcean::update(const TimestepTime& tst)
     timer.start();
 
     auto execSpace = DefaultExecutionSpace();
-    auto& sstSlab = sstSlabAccessor.getAutoRW(execSpace);
     auto& fdw = fdwAccessor.getAutoRW(execSpace);
     auto& qdw = qdwAccessor.getAutoRW(execSpace);
-    auto& sssSlab = sssSlabAccessor.getAutoRW(execSpace);
+    auto& sst = sstAccessor.getAutoRW(execSpace);
+    auto& sss = sssAccessor.getAutoRW(execSpace);
     const auto& fwFlux = fwFluxAccessor.getAutoRO(execSpace);
     const auto& sFlux = sFluxAccessor.getAutoRO(execSpace);
     const auto& sssExt = sssExtAccessor.getAutoRO(execSpace);
-    const auto& sst = sstAccessor.getAutoRO(execSpace);
     const auto& sstExt = sstExtAccessor.getAutoRO(execSpace);
     const auto& qswNet = qswNetAccessor.getAutoRO(execSpace);
-    const auto& sss = sssAccessor.getAutoRO(execSpace);
     const auto& qNoSun = qNoSunAccessor.getAutoRO(execSpace);
     const auto& cpml = cpmlAccessor.getAutoRO(execSpace);
 
-    const FloatType dt = tst.step.seconds();
-    const FloatType rRelaxationTimeT = 1 / (relaxationTimeT * 86400);
-    const FloatType rRelaxationTimeS = 1 / (relaxationTimeS * 86400);
+    const double dt = tst.step.seconds();
+    const double rRelaxationTimeT = 1. / (relaxationTimeT * 86400.);
+    const double rRelaxationTimeS = 1. / (relaxationTimeS * 86400.);
 
     overElementsAuto(OVER_ELEMENTS_LAMBDA(const ElementIndex i) {
         // Slab SST update
-        qdw[i] = (sstExt[i] - sst[i]) * cpml[i] * rRelaxationTimeT;
-        sstSlab[i] = sst[i] - dt * (qswNet[i] + qNoSun[i] - qdw[i]) / cpml[i];
+        qdw[i] = (sstExt[i] - sstSlab[i]) * cpml[i] * rRelaxationTimeT;
+        sstSlab[i] -= dt * (qswNet[i] + qNoSun[i] - qdw[i]) / cpml[i];
 
         // Slab SSS update
-        const FloatType arealDensity
+        const double arealDensity
             = cpml[i] / Water::cp; // density times depth, or cpml divided by cp
         /* Just use a salt flux as the nudging flux. This is simplified compared to the
          * finiteelement.cpp calculation
          * Fdw = delS * mld * physical::rhow /(timeS*M_sss[i] - ddt*delS)
          * where delS = sssSlab - sssExt
          */
-        fdw[i] = (sssExt[i] - sss[i]) * arealDensity * rRelaxationTimeS;
+        fdw[i] = (sssExt[i] - sssSlab[i]) * arealDensity * rRelaxationTimeS;
 
         // Mass per unit area after all the changes in water volume
         // sFlux is in kg/m^2/s, but we need PSU/m^2/s
-        sssSlab[i] = (sss[i] * arealDensity + (fdw[i] - 1e3_ft * sFlux[i]) * dt)
+        sssSlab[i] = (sssSlab[i] * arealDensity + (fdw[i] - 1e3_ft * sFlux[i]) * dt)
             / (arealDensity - fwFlux[i] * dt);
+
+        // Pass the double precision local values to FloatType global variables
+        sst[i] = sstSlab[i];
+        sss[i] = sssSlab[i];
     });
     timer.stop();
 }

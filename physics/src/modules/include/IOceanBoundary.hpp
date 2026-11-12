@@ -20,8 +20,8 @@ class IOceanBoundary : public CheckingModelComponent {
 public:
     IOceanBoundary()
         : qioAccessor(getStore(), RW, ModelArray::Type::H)
-        , sstAccessor(getStore(), RO, ModelArray::Type::H, std::pair(-5.0, 50.0))
-        , sssAccessor(getStore(), RO, ModelArray::Type::H, std::pair(0.0, 50.0))
+        , sstAccessor(getStore(), RW, ModelArray::Type::H, std::pair(-5.0, 50.0))
+        , sssAccessor(getStore(), RW, ModelArray::Type::H, std::pair(0.0, 50.0))
         , mldAccessor(getStore(), RO, ModelArray::Type::H, std::pair(1e-3, 12e3))
         , cpmlAccessor(getStore(), RO, ModelArray::Type::H, std::pair(0.0, 1e11))
         , tfAccessor(getStore(), RO, ModelArray::Type::H, std::pair(-5.0, 0.0))

@@ -28,12 +28,12 @@ TEST_CASE("Test Qdw")
     FloatType tOffset = 0.001;
     // Supply the data to the slab ocean
     ModelArrayAccessor<Protected::SSS, RW> sssAccessor(
-        ModelComponent::getStore(), RO, ModelArray::Type::H);
+        ModelComponent::getStore(), RW, ModelArray::Type::H);
     HField& sss = sssAccessor.getHostRW();
     sss = 32.;
 
     ModelArrayAccessor<Protected::SST, RW> sstAccessor(
-        ModelComponent::getStore(), RO, ModelArray::Type::H);
+        ModelComponent::getStore(), RW, ModelArray::Type::H);
     HField& sst = sstAccessor.getHostRW();
     sst = LinearFreezing()(sss[0]);
 
@@ -80,6 +80,8 @@ TEST_CASE("Test Qdw")
 
     SlabOcean slabOcean(couplingArrays);
     slabOcean.configure();
+    slabOcean.setData(ModelState::DataMap());
+    FloatType sst0 = sst[0];
     slabOcean.update(tst);
 
     ModelArrayAccessor<Protected::SLAB_QDW> qdwAccessor(ModelComponent::getStore());
@@ -90,14 +92,8 @@ TEST_CASE("Test Qdw")
         == doctest::Approx(tOffset * cpml[0] / (SlabOcean::defaultRelaxationTime * 86400))
             .epsilon(prec));
 
-    ModelArrayAccessor<Protected::SLAB_SST> sstSlabAccessor(ModelComponent::getStore());
-    // scope needed because we have to access sstSlab again after update
-    {
-        const HField& sstSlab = sstSlabAccessor.getHostRO();
-
-        REQUIRE(sstSlab[0] != doctest::Approx(sst[0]).epsilon(prec / dt));
-        REQUIRE(sstSlab[0] == doctest::Approx(sst[0] + dt * qdw[0] / cpml[0]).epsilon(prec));
-    }
+    REQUIRE(sst[0] != doctest::Approx(sst0).epsilon(prec / dt));
+    REQUIRE(sst[0] == doctest::Approx(sst0 + dt * qdw[0] / cpml[0]).epsilon(prec));
 
     HField& qswNet = qswNetAccessor.getHostRW();
     qswNet[0] = 15;
@@ -105,10 +101,10 @@ TEST_CASE("Test Qdw")
     qNoSun[0] = -17.5;
 
     // Should not need to update anything else, as the slabOcean update only changes SLAB_SST
+    sst0 = sst[0];
     slabOcean.update(tst);
-    const HField& sstSlab = sstSlabAccessor.getHostRO();
-    REQUIRE(sstSlab[0]
-        == doctest::Approx(sst[0] - dt * (qswNet[0] + qNoSun[0] - qdw[0]) / cpml[0]).epsilon(prec));
+    REQUIRE(sst[0]
+        == doctest::Approx(sst0 - dt * (qswNet[0] + qNoSun[0] - qdw[0]) / cpml[0]).epsilon(prec));
 }
 
 TEST_CASE("Test Fdw")
@@ -125,12 +121,12 @@ TEST_CASE("Test Fdw")
     FloatType sOffset = 0.1;
     // Supply the data to the slab ocean
     ModelArrayAccessor<Protected::SSS, RW> sssAccessor(
-        ModelComponent::getStore(), RO, ModelArray::Type::H);
+        ModelComponent::getStore(), RW, ModelArray::Type::H);
     HField& sss = sssAccessor.getHostRW();
     sss = 32.;
 
     ModelArrayAccessor<Protected::SST, RW> sstAccessor(
-        ModelComponent::getStore(), RO, ModelArray::Type::H);
+        ModelComponent::getStore(), RW, ModelArray::Type::H);
     HField& sst = sstAccessor.getHostRW();
     sst = LinearFreezing()(sss[0]);
 
@@ -171,6 +167,8 @@ TEST_CASE("Test Fdw")
 
     SlabOcean slabOcean(couplingArrays);
     slabOcean.configure();
+    slabOcean.setData(ModelState::DataMap());
+    FloatType sss0 = sss[0];
     slabOcean.update(tst);
 
     ModelArrayAccessor<Protected::SLAB_FDW> fdwAccessor(ModelComponent::getStore());
@@ -190,29 +188,20 @@ TEST_CASE("Test Fdw")
     FloatType oldFdw = delS * mld[0] * Water::rho / (timeS * sss[0] - ddt * delS);
     REQUIRE(fdw[0] != doctest::Approx(oldFdw).epsilon(prec * 1e-6));
 
-    ModelArrayAccessor<Protected::SLAB_SSS> sssSlabAccessor(ModelComponent::getStore());
+    REQUIRE(sss[0] != doctest::Approx(sss0).epsilon(prec / dt));
+    REQUIRE(sss[0] == doctest::Approx(sss0 + fdw[0] * dt / (mld[0] * Water::rho)).epsilon(prec));
 
-    {
-        const HField& sssSlab = sssSlabAccessor.getHostRO();
+    HField& snowMeltFlux = snowMeltFluxAccessor.getHostRW();
+    FloatType snowMelt = -1e-4;
+    FloatType snowMeltVol = snowMelt * Ice::rhoSnow;
+    snowMeltFlux = snowMeltVol / dt;
+    sss0 = sss[0];
+    slabOcean.update(tst);
 
-        REQUIRE(sssSlab[0] != doctest::Approx(sss[0]).epsilon(prec / dt));
-        REQUIRE(sssSlab[0]
-            == doctest::Approx(sss[0] + fdw[0] * dt / (mld[0] * Water::rho)).epsilon(prec));
-    }
-
-    {
-        HField& snowMeltFlux = snowMeltFluxAccessor.getHostRW();
-        FloatType snowMelt = -1e-4;
-        FloatType snowMeltVol = snowMelt * Ice::rhoSnow;
-        snowMeltFlux = snowMeltVol / dt;
-        slabOcean.update(tst);
-        const HField& sssSlab = sssSlabAccessor.getHostRO();
-
-        REQUIRE(sssSlab[0]
-            == doctest::Approx(
-                sss[0] + (sss[0] * snowMeltVol + fdw[0] * dt) / (mld[0] * Water::rho - snowMeltVol))
-                .epsilon(prec));
-    }
+    REQUIRE(sss[0]
+        == doctest::Approx(
+            sss0 + (sss0 * snowMeltVol + fdw[0] * dt) / (mld[0] * Water::rho - snowMeltVol))
+            .epsilon(prec));
 }
 TEST_SUITE_END();
 } /* namespace Nextsim */

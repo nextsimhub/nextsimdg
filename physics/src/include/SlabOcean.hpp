@@ -56,7 +56,7 @@ public:
 
     void update(const TimestepTime&);
 
-    static const FloatType defaultRelaxationTime; // A default value for the relaxation time in s.
+    static const double defaultRelaxationTime; // A default value for the relaxation time in s.
 
 private:
     // Owned shared fields
@@ -68,8 +68,8 @@ private:
     // Input fields
     ModelArrayAccessor<Protected::EXT_SST> sstExtAccessor;
     ModelArrayAccessor<Protected::EXT_SSS> sssExtAccessor;
-    ModelArrayAccessor<Protected::SST> sstAccessor;
-    ModelArrayAccessor<Protected::SSS> sssAccessor;
+    ModelArrayAccessor<Protected::SST, RW> sstAccessor;
+    ModelArrayAccessor<Protected::SSS, RW> sssAccessor;
     ModelArrayAccessor<Protected::ML_BULK_CP> cpmlAccessor;
     ModelArrayAccessor<CouplingFields::Q_SS_SW, RO> qswNetAccessor;
     ModelArrayAccessor<CouplingFields::Q_SS_NO_SW, RO> qNoSunAccessor;
@@ -77,8 +77,10 @@ private:
     ModelArrayAccessor<CouplingFields::SFLUX, RO> sFluxAccessor;
     // TODO ModelArrayAccessor to assimilation flux
 
-    FloatType relaxationTimeT = defaultRelaxationTime;
-    FloatType relaxationTimeS = defaultRelaxationTime;
+    double relaxationTimeT = defaultRelaxationTime;
+    double relaxationTimeS = defaultRelaxationTime;
+
+    std::vector<double> sstSlab, sssSlab;
 };
 
 } /* namespace Nextsim */
