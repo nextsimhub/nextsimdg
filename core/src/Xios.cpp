@@ -184,7 +184,11 @@ void Xios::close_context_definition()
                 setFieldGridRef(fieldId, gridIds[baseType]);
                 setFieldGridRef(inputFieldId, gridIds[inputType]);
 
-                if ((inputType == baseType)
+                if (ioType == ERA5_FORCING) {
+                    std::string tempFieldId = fieldId + "_era5";
+                    cxios_set_field_field_ref(
+                        getField(inputFieldId), tempFieldId.c_str(), tempFieldId.length());
+                } else if ((inputType == baseType)
                     || (inputType == Type::H && (baseType == Type::U || baseType == Type::V))) {
                     // Link the input field to the base field if their types align
                     // NOTE: Here we assume that the U and V types are duplicates of H. This may not
@@ -621,6 +625,12 @@ void Xios::setupDomains()
             throw std::runtime_error("Xios: Failed to set type for domain '" + domainId + "'");
         }
 
+        // add interpolation
+        xios::CInterpolateDomain* interpDomain = NULL;
+        cxios_xml_tree_add_interpolatedomaintodomain(
+            domain, &interpDomain, Xios::era5interpId.c_str(), Xios::era5interpId.length());
+        cxios_set_interpolate_domain_order(interpDomain, 1); /*1 = bilinear, 2 = quadratic*/
+
         // Set domain extents based on model metadata
         size_t counter = 0;
         for (ModelArray::Dimension& dim : ModelArray::typeDimensions[type]) {
@@ -758,6 +768,14 @@ void Xios::setupGrids()
         xios::CDomain* domain = getDomain(domainId);
         cxios_xml_tree_add_domaintogrid(grid, &domain, domainId.c_str(), domainId.length());
     }
+    // TODO make this less hard-coded
+    // This adds temp grid for High Res version of HGrid for reading low res ERA5 data
+    // for (const auto& [type, gridId] : ERA5GridIds) {
+    //     xios::CGrid* grid = getGrid(gridId);
+    //     const std::string& domainId = domainIds[type];
+    //     xios::CDomain* domain = getDomain(domainId);
+    //     cxios_xml_tree_add_domaintogrid(grid, &domain, domainId.c_str(), domainId.length());
+    // }
 }
 
 /*!
