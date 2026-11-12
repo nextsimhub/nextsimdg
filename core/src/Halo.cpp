@@ -20,6 +20,37 @@ namespace Nextsim {
 using Edge = ModelMetadata::Edge;
 using Corner = ModelMetadata::Corner;
 
+namespace HaloExchange {
+    std::vector<FloatType> rotate180ComponentCorrections(ModelArray::Type type)
+    {
+        switch (type) {
+        case ModelArray::Type::VERTEX:
+            // I assume that the vertex field represents 2D vectors
+            return { 1.0, -1.0 };
+        case ModelArray::Type::H:
+        case ModelArray::Type::DG:
+        case ModelArray::Type::DGSTRESS:
+            return { 1.0, -1.0, -1.0, 1.0, 1.0, 1.0, -1.0, -1.0 };
+        case ModelArray::Type::CG:
+            // Note: This is ok for scalars, May be incorrect vertical components
+            // of a vector field. Ideally these should be represented by a CGVector
+            // class instead, where the Orientation is given explicitly.
+            return { 1.0 };
+        case ModelArray::Type::V:
+        case ModelArray::Type::U:
+            throw std::runtime_error("U and V fields are not implemented yet");
+        default:
+            throw std::invalid_argument("Unknown ModelArray type");
+        }
+    }
+} // namespace HaloExchange
+
+void Halo::setTripolarFlags()
+{
+    auto& metadata = ModelMetadata::getInstance();
+    m_tripolarFold = metadata.needsTripolarFold();
+}
+
 void Halo::setSpatialDims()
 {
     auto& metadata = ModelMetadata::getInstance();
@@ -112,8 +143,28 @@ Edge Halo::edgeFromSendPos(int sendPos, int fromRank)
     }
 }
 
-void Halo::recvPositions(int& fromRank, size_t& count, size_t& disp, size_t& recvOffset, Edge edge,
-    const size_t neighbourIndex, const size_t cell)
+int Halo::recvPosFromEdge(Edge edge) const
+{
+    // extents of the local domain (buffer-map row unit, matching recvPositions)
+    const int extentX = m_innerNx;
+    const int extentY = m_innerNy;
+
+    switch (edge) {
+    case Edge::BOTTOM:
+        return 0;
+    case Edge::RIGHT:
+        return extentX;
+    case Edge::TOP:
+        return extentX + extentY;
+    case Edge::LEFT:
+        return 2 * extentX + extentY;
+    default:
+        throw std::runtime_error("Halo :: Invalid edge enum");
+    }
+}
+
+void Halo::recvPositions(int& fromRank, size_t& count, size_t& disp, size_t& recvOffset,
+    const Edge edge, const size_t neighbourIndex, const size_t cell)
 {
     auto& metadata = ModelMetadata::getInstance();
     fromRank = metadata.neighbourRanks[edge][neighbourIndex];
@@ -121,15 +172,81 @@ void Halo::recvPositions(int& fromRank, size_t& count, size_t& disp, size_t& rec
     disp = metadata.neighbourHaloSend[edge][neighbourIndex];
     recvOffset = metadata.neighbourHaloRecv[edge][neighbourIndex];
     auto sendEdge = edgeFromSendPos(disp, fromRank);
+
+    // The data stored in Metadata is calculated for the DG fields only
+    // The Vertex and CG fields have larger size and hence the size of the recv
+    // buffer is changed
+    auto correctRecvOffset = [&](size_t recvOffset) {
+        // WARNING: here we assume the that the order in the Edge enum matches the
+        // order in the recv buffer. Things will break if it changes
+        static_assert(Edge::BOTTOM == 0);
+        static_assert(Edge::RIGHT == 1);
+        static_assert(Edge::TOP == 2);
+        static_assert(Edge::LEFT == 3);
+        // recvPosFormEdge(Edge::BOTTOM) == 0 as well but we cannot static assert it
+
+        if (isCG) {
+            return CGdegree * recvOffset + edge;
+        } else if (isVertex) {
+            return recvOffset + edge;
+        } else {
+            return recvOffset;
+        }
+    };
+
+    // For Vertex and CG fields, when the Halo is copied into the recv buffer we need
+    // to decide how to handle the extra point
+    // Previously we would just copy the overlapping ranges into the recv buffer.
+    // This was technically a race condition but since the identity of the points
+    // was the same, so were the values.
+    //
+    // However, to support tripolar topology, we copy the values to the recv buffer
+    // and only later perform the 180deg flip. This means that the overlapping points
+    // are no longer identical and we need to avoid the overlap.
+    //
+    // Hence we handle the extra point by using a longer memory transaction for
+    // the 1st transfer in the edge. Subsequent transfers are shorter by one point
+    // and we need to correct length and input and output locations to reflect it.
+    //
+    // There is a final trap for the tripolar case. Since we are flipping the data,
+    // to get the right data in, we need to shorten the range at the end, not the
+    // beginning. Thus, the input location remain unaffected for tripolar flipped
+    // transaction.
+    //
+    auto avoidOverlapInMemoryTransactions
+        = [this, edge](std::size_t& count, size_t& disp, size_t& recvOffset) {
+              // DG fields are unaffected
+              if (!(isCG || isVertex)) {
+                  return;
+              }
+              const bool notFirstTransaction = (recvOffset != recvPosFromEdge(edge));
+              const bool notTripolarFlippedTransaction = !(m_tripolarFold && edge == Edge::TOP);
+
+              if (notFirstTransaction) {
+                  count = count - 1;
+                  recvOffset = recvOffset + 1;
+
+                  if (notTripolarFlippedTransaction) {
+                      disp = disp + 1;
+                  }
+              }
+          };
+
     if (isVertex) {
+        recvOffset = correctRecvOffset(recvOffset);
         count = count + 1;
         disp = disp + sendEdge;
-        recvOffset = recvOffset + edge;
+
+        avoidOverlapInMemoryTransactions(count, disp, recvOffset);
+        return;
     }
     if (isCG) {
+        recvOffset = correctRecvOffset(recvOffset);
+
         count = CGdegree * count + 1;
         disp = (disp > 0) ? CGdegree * disp + sendEdge : 0;
-        recvOffset = (recvOffset > 0) ? CGdegree * recvOffset + edge : 0;
+
+        avoidOverlapInMemoryTransactions(count, disp, recvOffset);
 
         // recvOffset is the offset in the recv buffer and this belongs to the current rank
         recvOffset = recvOffset + recvBufferSize / nCells * cell;
@@ -141,6 +258,7 @@ void Halo::recvPositions(int& fromRank, size_t& count, size_t& disp, size_t& rec
         auto extentY = CGdegree * metadata.getRankExtentsY()[fromRank] + 1;
         auto fromRankSendBufferSize = 2 * haloWidth * CGdegree * (extentX + extentY);
         disp = disp + fromRankSendBufferSize / nCells * cell;
+        return;
     }
 }
 
@@ -153,23 +271,63 @@ void Halo::recvPositions(int& fromRank, size_t& count, size_t& disp, size_t& rec
     disp = metadata.cornerHaloSend[corner][0];
     recvOffset = metadata.cornerHaloRecv[corner][0];
     auto sendEdge = edgeFromSendPos(disp, fromRank);
-    if (isVertex) {
-        count = 1;
-        disp = disp + sendEdge;
-        recvOffset = recvOffset + Edge::N_EDGE;
+
+    // The metadata information tells us what cell is the corner neighbour.
+    // It is sufficient for DG fields, but for Vertex and CG there are multiple
+    // nodes in a cell and we need to select a subset of them.
+    //
+    // The correct subset depends on the orientation of the neighbours, so
+    // in case of transaction over the folded tripolar top edge, we need to correct
+    // the orientation for the purpose of selecting the right nodes.
+    auto correctTripolarCornerOrientation = [](Corner corner) {
+        switch (corner) {
+        case Corner::TOP_LEFT:
+            return Corner::BOTTOM_RIGHT;
+            break;
+        case Corner::TOP_RIGHT:
+            return Corner::BOTTOM_LEFT;
+            break;
+        default:
+            throw std::runtime_error("Halo :: Invalid corner enum for tripolar fold");
+            break;
+        }
+    };
+
+    auto selectDispBasedOnOrientation = [](Corner corner, Edge sendEdge, auto disp) {
         // Account for the fact that the vertex field is split differently to the face centered
         // fields. We dont take the data directly adjacent to the halo, but the one after that.
         // e.g., if you have two adjacent domains, the vertex on the far right of the left-hand
         // domain is the same as the vertex on the far left of the right-hand domain. We need
         // the vertex which is the next one along for halo exchange.
-        if ((sendEdge == Edge::TOP or sendEdge == Edge::BOTTOM)
-            and (corner == Corner::TOP_RIGHT or corner == Corner::BOTTOM_RIGHT)) {
-            disp = disp + 1;
+        const bool topOrBottomEdge = (sendEdge == Edge::TOP or sendEdge == Edge::BOTTOM);
+        switch (corner) {
+        case Corner::TOP_RIGHT:
+            return disp + 1;
+        case Corner::TOP_LEFT:
+            return topOrBottomEdge ? disp : disp + 1;
+        case Corner::BOTTOM_RIGHT:
+            return topOrBottomEdge ? disp + 1 : disp;
+        case Corner::BOTTOM_LEFT:
+            return disp;
+        default:
+            throw std::runtime_error("Halo :: Invalid corner enum");
+            break;
         }
-        if ((sendEdge == Edge::LEFT or sendEdge == Edge::RIGHT)
-            and (corner == Corner::TOP_RIGHT or corner == Corner::TOP_LEFT)) {
-            disp = disp + 1;
+    };
+
+    const bool isCornerOverTripolarTopEdge
+        = m_tripolarFold && (corner == Corner::TOP_LEFT || corner == Corner::TOP_RIGHT);
+
+    if (isVertex) {
+        count = 1;
+        disp = disp + sendEdge;
+        recvOffset = recvOffset + Edge::N_EDGE;
+
+        if (isCornerOverTripolarTopEdge) {
+            corner = correctTripolarCornerOrientation(corner);
         }
+
+        disp = selectDispBasedOnOrientation(corner, sendEdge, disp);
     }
     if (isCG) {
         count = CGdegree * count;
@@ -179,6 +337,10 @@ void Halo::recvPositions(int& fromRank, size_t& count, size_t& disp, size_t& rec
         // recvOffset is the offset in the recv buffer and this belongs to the current rank
         recvOffset = recvOffset + recvBufferSize / nCells * cell;
 
+        if (isCornerOverTripolarTopEdge) {
+            corner = correctTripolarCornerOrientation(corner);
+        }
+
         // disp is the offset in the "sending" buffer which belongs to rank "fromRank"
         // Therefore we need to compute how many halo cells that rank has to work out the offset
         // for each cell
@@ -186,14 +348,7 @@ void Halo::recvPositions(int& fromRank, size_t& count, size_t& disp, size_t& rec
         auto extentY = CGdegree * metadata.getRankExtentsY()[fromRank] + 1;
         auto fromRankSendBufferSize = 2 * haloWidth * CGdegree * (extentX + extentY);
         disp = disp + fromRankSendBufferSize / nCells * cell;
-        if ((sendEdge == Edge::TOP or sendEdge == Edge::BOTTOM)
-            and (corner == Corner::TOP_RIGHT or corner == Corner::BOTTOM_RIGHT)) {
-            disp = disp + 1;
-        }
-        if ((sendEdge == Edge::LEFT or sendEdge == Edge::RIGHT)
-            and (corner == Corner::TOP_RIGHT or corner == Corner::TOP_LEFT)) {
-            disp = disp + 1;
-        }
+        disp = selectDispBasedOnOrientation(corner, sendEdge, disp);
     }
 }
 
@@ -241,6 +396,103 @@ void Halo::populateRecvBuffers()
         // close memory window (essentially make sure all communications are done before
         // moving on)
         closeMemoryWindow();
+    }
+}
+
+void Halo::rotateTopEdgeInBuffer()
+{
+    // Protect against control flow errors.
+    if (!m_tripolarFold) {
+        throw std::runtime_error(
+            "rotateTopEdgeInBuffer called on rank that does not need tripolar fold");
+    }
+    const auto& metadata = ModelMetadata::getInstance();
+    const Edge edge = Edge::TOP;
+
+    // We fixup the order of data component by component
+    for (std::size_t comp = 0; comp < m_numComps; ++comp) {
+        // We loop over all edge-based memory transactions on the top edge
+        auto numNeighbours = metadata.neighbourRanks[edge].size();
+        for (std::size_t i = 0; i < numNeighbours; ++i) {
+            // Collect the buffer ranges of the `nCells` rows received in this transaction
+            std::vector<FloatType*> starts;
+            std::vector<FloatType*> ends;
+            starts.reserve(nCells);
+            ends.reserve(nCells);
+            for (std::size_t cell = 0; cell < nCells; ++cell) {
+                int fromRank;
+                std::size_t count, disp_ignore, recvOffset;
+                recvPositions(fromRank, count, disp_ignore, recvOffset, edge, i, cell);
+                starts.push_back(&recv[comp][recvOffset]);
+                ends.push_back(&recv[comp][recvOffset] + count);
+            }
+            // The tripolar fold is a 180-degree rotation of the received rows
+            HaloExchange::rotate180InPlace(starts, ends);
+        }
+
+        // For the CG case we need to transpose the corners
+        if (isCG) {
+            for (const auto corner : { Corner::TOP_LEFT, Corner::TOP_RIGHT }) {
+                auto hasCorner = metadata.cornerRanks[corner].size();
+                if (!hasCorner) {
+                    continue;
+                }
+
+                // Collect the buffer ranges of the `nCells` rows received for this corner
+                std::vector<FloatType*> starts;
+                std::vector<FloatType*> ends;
+                starts.reserve(nCells);
+                ends.reserve(nCells);
+                for (std::size_t cell = 0; cell < nCells; ++cell) {
+                    int fromRank;
+                    std::size_t count, disp_ignore, recvOffset;
+                    recvPositions(fromRank, count, disp_ignore, recvOffset, corner, cell);
+                    starts.push_back(&recv[comp][recvOffset]);
+                    ends.push_back(&recv[comp][recvOffset] + count);
+                }
+                // The tripolar fold is a 180-degree rotation of the received rows
+                HaloExchange::rotate180InPlace(starts, ends);
+            }
+        }
+    }
+
+    // Apply correction to the components
+    // We need to touch all points on the top edge and TOP_RIGHT and TOP_LEFT corners.
+    // The recv buffer consists of `nCells` blocks of `buffer_len` points (one block per
+    // halo cell for CG fields, a single block otherwise), each laid out as BOTTOM, RIGHT,
+    // TOP, LEFT edge followed by the corner points.
+    const std::size_t buffer_len = recvBufferSize / nCells;
+    const std::size_t topEdgeStart = recvPosFromEdge(Edge::TOP);
+    const std::size_t topEdgeEnd = recvPosFromEdge(Edge::LEFT);
+    for (std::size_t comp = 0; comp < m_numComps; ++comp) {
+        const auto correction = m_tripolarComponentCorrection.at(comp);
+        for (std::size_t cell = 0; cell < nCells; ++cell) {
+            const std::size_t blockOffset = cell * buffer_len;
+            for (std::size_t i = topEdgeStart; i < topEdgeEnd; ++i) {
+                recv[comp][blockOffset + i] *= correction;
+            }
+        }
+    }
+
+    // Correct the corners
+    // FIXME: there should be nicer way to do it
+    for (const auto corner : { Corner::TOP_LEFT, Corner::TOP_RIGHT }) {
+        auto hasCorner = metadata.cornerRanks[corner].size();
+        if (!hasCorner) {
+            continue;
+        }
+        for (std::size_t comp = 0; comp < m_numComps; ++comp) {
+            const auto correction = m_tripolarComponentCorrection.at(comp);
+            for (std::size_t cell = 0; cell < nCells; ++cell) {
+                int fromRank;
+                std::size_t count, disp_ignore, recvOffset;
+                recvPositions(fromRank, count, disp_ignore, recvOffset, corner, cell);
+                // a corner spans `count` points per halo cell
+                for (std::size_t i = 0; i < count; ++i) {
+                    recv[comp][recvOffset + i] *= correction;
+                }
+            }
+        }
     }
 }
 
