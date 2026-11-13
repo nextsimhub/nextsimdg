@@ -16,6 +16,11 @@ execute_process(
     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}")
 
 include_directories(${COMMON_INCLUDE_DIRS})
+
+# Tests that run identically with and without MPI
+add_executable(testNetcdfMetadataConfiguration "NetcdfMetadataConfiguration_test.cpp")
+target_link_libraries(testNetcdfMetadataConfiguration PRIVATE nextsimlib doctest::doctest)
+add_test(NAME testNetcdfMetadataConfiguration COMMAND testNetcdfMetadataConfiguration)
 set(MODEL_INCLUDE_DIR "../../core/src/discontinuousgalerkin")
 
 if(ENABLE_MPI)

@@ -24,7 +24,7 @@ std::stringstream NetcdfMetadataConfiguration::read(const std::string& source)
 
     std::multimap<std::string, netCDF::NcVar> configs = ncFile.getVars();
     for (auto entry : configs) {
-        if (entry.second.getDimCount() > 1) {
+        if (entry.second.getDimCount() >= 1) {
             continue; // Skip arrays
         }
         config << entry.first << " = ";
