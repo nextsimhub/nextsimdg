@@ -45,11 +45,14 @@ ConfigurationHelp::HelpMap& ERA5Atmosphere::getHelpRecursive(HelpMap& map, bool 
 void ERA5Atmosphere::configure()
 {
     Finalizer::registerUnique(Module::finalize<IFluxCalculation>);
+    Finalizer::registerUnique(Module::finalize<IForcingInput>);
 
     filePath = Configured::getConfiguration(keyMap.at(FILEPATH_KEY), std::string());
 
     fluxImpl = Module::getInstance<IFluxCalculation>();
     tryConfigure(*fluxImpl);
+
+    forcingState = Module::getInstance<IForcingInput>();
 
     addChecks({
         { "tair", tairAccessor },
@@ -70,19 +73,41 @@ ConfigMap ERA5Atmosphere::getConfiguration() const
 
 void ERA5Atmosphere::update(const TimestepTime& tst)
 {
-    forcingState.update(tst.start);
+    forcingState->update(tst.start);
 
     // Fetch the raw data fields
-    tairAccessor.getHostRW() = forcingState.getField(tAirName);
-    tdewAccessor.getHostRW() = forcingState.getField(dew2mName);
-    pairAccessor.getHostRW() = forcingState.getField(pAirName);
-    sw_inAccessor.getHostRW() = forcingState.getField(swInName);
-    lw_inAccessor.getHostRW() = forcingState.getField(lwInName);
-    uwindAccessor.getHostRW() = forcingState.getField(uName);
-    vwindAccessor.getHostRW() = forcingState.getField(vName);
-    snowAccessor.getHostRW() = forcingState.getField(snowName);
-    // Rain from ERA5 is actually total precipitation - so subtract the snowfall
-    rainAccessor.getHostRW() = forcingState.getField(rainName) - snowAccessor.getHostRW();
+    tairAccessor.getHostRW() = forcingState->getField(tAirName);
+    tdewAccessor.getHostRW() = forcingState->getField(dew2mName);
+    pairAccessor.getHostRW() = forcingState->getField(pAirName);
+    sw_inAccessor.getHostRW() = forcingState->getField(swInName);
+    lw_inAccessor.getHostRW() = forcingState->getField(lwInName);
+    uwindAccessor.getHostRW() = forcingState->getField(uName);
+    vwindAccessor.getHostRW() = forcingState->getField(vName);
+
+    // These ifs and warnings are for backwards compatability
+    if (forcingState->isValid(snowName)) {
+        snowAccessor.getHostRW() = forcingState->getField(snowName);
+    } else {
+        snowAccessor.getAutoRW() = 0._ft;
+        // Only warn once
+        if (warn.count(snowName) == 0) {
+            Logged::warning("ERA5Atmosphere::update: No snow fall in forcing file, but I continue "
+                            "anyway with zero snow fall.\n");
+            warn[snowName] = true;
+        }
+    }
+
+    if (forcingState->isValid(rainName)) {
+        rainAccessor.getHostRW() = forcingState->getField(rainName);
+    } else {
+        rainAccessor.getAutoRW() = 0._ft;
+        // Only warn once
+        if (warn.count(rainName) == 0) {
+            Logged::warning("ERA5Atmosphere::update: No rain fall in forcing file, but I continue "
+                            "anyway with zero rain fall.\n");
+            warn[rainName] = true;
+        }
+    }
 
     // Postprocess the data fields
     auto& tair = tairAccessor.getAutoRW();
@@ -123,8 +148,8 @@ void ERA5Atmosphere::setData(const ModelState::DataMap& ms)
     ModelState state;
     const ModelMetadata& metadata = ModelMetadata::getInstance();
     metadata.affixCoordinates(state);
-    forcingState.setData(metadata.startTime(), filePath, ncLonName, ncLatName, ncTimeName, forcings,
-        vectors, state.data.at(longitudeName), state.data.at(latitudeName));
+    forcingState->initialise(metadata.startTime(), filePath, ncLonName, ncLatName, ncTimeName,
+        forcings, vectors, state.data.at(longitudeName), state.data.at(latitudeName));
 }
 
 } /* namespace Nextsim */

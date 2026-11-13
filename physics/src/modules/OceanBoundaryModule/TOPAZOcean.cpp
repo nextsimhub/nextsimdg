@@ -47,12 +47,15 @@ void TOPAZOcean::configure()
 {
     Finalizer::registerUnique(Module::finalize<IIceOceanHeatFlux>);
     Finalizer::registerUnique(Module::finalize<IFreezingPoint>);
+    Finalizer::registerUnique(Module::finalize<IForcingInput>);
 
     pIOHeatFlux = std::move(Module::getInstance<IIceOceanHeatFlux>());
     tryConfigure(*pIOHeatFlux);
 
     pFreezingPoint = std::move(Module::getInstance<IFreezingPoint>());
     tryConfigure(*pFreezingPoint);
+
+    forcingState = Module::getInstance<IForcingInput>();
 
     filePath = Configured::getConfiguration(keyMap.at(FILEPATH_KEY), std::string());
 
@@ -63,17 +66,17 @@ ConfigMap TOPAZOcean::getConfiguration() const { return { { keyMap.at(FILEPATH_K
 
 void TOPAZOcean::updateBefore(const TimestepTime& tst)
 {
-    forcingState.update(tst.start);
+    forcingState->update(tst.start);
 
-    sstExtAccessor.getHostRW() = forcingState.getField(sstName);
-    sssExtAccessor.getHostRW() = forcingState.getField(sssName);
-    mldAccessor.getHostRW() = forcingState.getField(mldName);
-    uAccessor.getHostRW() = forcingState.getField(uName);
-    vAccessor.getHostRW() = forcingState.getField(vName);
+    sstExtAccessor.getHostRW() = forcingState->getField(sstName);
+    sssExtAccessor.getHostRW() = forcingState->getField(sssName);
+    mldAccessor.getHostRW() = forcingState->getField(mldName);
+    uAccessor.getHostRW() = forcingState->getField(uName);
+    vAccessor.getHostRW() = forcingState->getField(vName);
     HField& ssh = sshAccessor.getHostRW();
 
-    if (forcingState.isValid(sshName)) {
-        ssh = forcingState.getField(sshName);
+    if (forcingState->isValid(sshName)) {
+        ssh = forcingState->getField(sshName);
     } else {
         ssh = 0.;
     }
@@ -127,8 +130,8 @@ void TOPAZOcean::setData(const ModelState::DataMap& ms)
     ModelState state;
     const ModelMetadata& metadata = ModelMetadata::getInstance();
     metadata.affixCoordinates(state);
-    forcingState.setData(metadata.startTime(), filePath, ncLonName, ncLatName, ncTimeName, forcings,
-        vectors, state.data.at(longitudeName), state.data.at(latitudeName));
+    forcingState->initialise(metadata.startTime(), filePath, ncLonName, ncLatName, ncTimeName,
+        forcings, vectors, state.data.at(longitudeName), state.data.at(latitudeName));
 
     HField& sstExt = sstExtAccessor.getHostRW();
     sstExt.reinitialize();

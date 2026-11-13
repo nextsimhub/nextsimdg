@@ -10,7 +10,7 @@
 
 #include "include/Configured.hpp"
 #include "include/IFluxCalculation.hpp"
-#include "include/ParaGridInputs.hpp"
+#include "include/IForcingInput.hpp"
 
 namespace Nextsim {
 
@@ -56,6 +56,8 @@ private:
     const std::string uName = "u10";
     const std::string vName = "v10";
 
+    std::map<std::string, bool> warn;
+
     const std::string ncLonName = "longitude";
     const std::string ncLatName = "latitude";
     const std::string ncTimeName = "time";
@@ -64,7 +66,7 @@ private:
         = { dew2mName, lwInName, pAirName, rainName, snowName, swInName, tAirName, uName, vName };
     const std::set<std::pair<std::string, std::string>> vectors = { { uName, vName } };
 
-    ParaGridInputs forcingState;
+    std::unique_ptr<IForcingInput> forcingState;
 
     ModelArrayAccessor<Protected::T_AIR, RW> tairAccessor;
     ModelArrayAccessor<Protected::DEW_2M, RW> tdewAccessor;
