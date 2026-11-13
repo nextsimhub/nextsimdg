@@ -199,9 +199,8 @@ ModelArray GeoreferencedInput::getField(const std::string& fieldName) const
 
     auto& before = forcingStateBefore.data.at(fieldName);
     auto& after = forcingStateAfter.data.at(fieldName);
-#pragma omp parallel for
-    for (size_t i = 0; i < ma.size(); ++i)
-        ma[i] = frac * after[i] + (1 - frac) * before[i];
+    overElementsAuto(OVER_ELEMENTS_LAMBDA(
+        const ElementIndex i) { ma[i] = frac * after[i] + (1 - frac) * before[i]; });
     return ma;
 }
 
@@ -664,8 +663,7 @@ ModelState GeoreferencedInput::interpolateSpatially(const RawDataMap<FloatType>&
 
         state.data[name].reinitialize();
         ModelArray& ma = state.data.at(name);
-#pragma omp parallel for
-        for (size_t i = 0; i < ma.size(); ++i) {
+        overElementsAuto(OVER_ELEMENTS_LAMBDA(const ElementIndex i) {
             const FloatType f00 = data[ij00[i]];
             const FloatType f10 = data[ij10[i]];
             const FloatType f01 = data[ij01[i]];
@@ -680,7 +678,7 @@ ModelState GeoreferencedInput::interpolateSpatially(const RawDataMap<FloatType>&
             const FloatType N11 = xii * etai;
 
             ma[i] = N00 * f00 + N10 * f10 + N01 * f01 + N11 * f11;
-        }
+        });
     }
 
     return state;
