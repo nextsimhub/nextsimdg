@@ -40,7 +40,6 @@ set(BaseSources
     "ModelArraySlice.cpp"
     "ModelArrayStore.cpp"
     "ModelComponent.cpp"
-    "CheckingModelComponent.cpp"
     "ModelMetadata.cpp"
     "NetcdfMetadataConfiguration.cpp"
     "PrognosticData.cpp"
@@ -49,7 +48,6 @@ set(BaseSources
     "${ModelArrayStructure}/ModelArrayDetails.cpp"
     "Xios.cpp"
     "Halo.cpp"
-    "VectorRotator.cpp"
 )
 
 set(ParallelNetCDFSources "${CMAKE_CURRENT_SOURCE_DIR}/ParallelNetcdfFile.cpp")

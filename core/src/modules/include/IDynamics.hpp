@@ -132,34 +132,6 @@ public:
 
     virtual void prepareAdvection() = 0;
 
-    /*
-     * Checks and returns if the provided data map is spherical
-     */
-    static bool checkSpherical(const ModelState::DataMap& ms)
-    {
-        // Check if someone prescribed both lon/lat and x/y coordinates(!)
-        if (ms.count(longitudeName) > 0 && ms.count(latitudeName) > 0 && ms.count(xName) > 0
-            && ms.count(yName) > 0) {
-            throw std::runtime_error("Input data must contain either Cartesian (" + xName + ", "
-                + yName + ") or spherical (" + longitudeName + ", " + latitudeName
-                + ") coordinates.");
-        }
-
-        // If we find lon/lat, we can be sure it's spherical
-        if (ms.count(longitudeName) > 0 && ms.count(latitudeName) > 0) {
-            return true;
-        }
-
-        // If we find x/y coordinates, we can be sure it's Cartesian
-        if (ms.count(xName) > 0 && ms.count(yName) > 0) {
-            return false;
-        }
-
-        // If we reach here, the data is invalid
-        throw std::runtime_error("Input data must contain either Cartesian (" + xName + ", " + yName
-            + ") or spherical (" + longitudeName + ", " + latitudeName + ") coordinates.");
-    }
-
 protected:
     // Shared ice velocity arrays
     ModelArrayAccessor<Protected::ICE_U, RW> uiceAccessor;
@@ -189,6 +161,24 @@ protected:
     ModelArrayAccessor<Shared::H_ICE_DG, RW> hiceDGAccessor;
     ModelArrayAccessor<Shared::C_ICE_DG, RW> ciceDGAccessor;
     ModelArrayAccessor<Shared::H_SNOW_DG, RW> hsnowDGAccessor;
+
+    /*
+     * Checks and returns if the provided data map is spherical
+     */
+    static bool checkSpherical(const ModelState::DataMap& ms)
+    {
+        // Decide between Cartesian (x & y) and spherical (longitude & latitude)
+        if (ms.count(longitudeName) > 0 && ms.count(latitudeName) > 0) {
+            return true;
+        } else if (ms.count(xName) > 0 && ms.count(yName) > 0) {
+            return false;
+        } else {
+            // Throw a runtime_error exception which can either be handled or not
+            throw std::runtime_error("Input data must contain either Cartesian (" + xName + ", "
+                + yName + ") or spherical (" + longitudeName + ", " + latitudeName
+                + ") coordinates.");
+        }
+    }
 };
 }
 

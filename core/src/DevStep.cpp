@@ -19,7 +19,7 @@ DevStep::DevStep()
 void DevStep::init()
 {
     Finalizer::registerUnique(Module::finalize<IDiagnosticOutput>);
-    auto& ido = Module::getImplementation<IDiagnosticOutput>();
+    IDiagnosticOutput& ido = Module::getImplementation<IDiagnosticOutput>();
     ido.setFilenamePrefix("diagnostic");
     tryConfigure(ido);
 }
@@ -29,7 +29,7 @@ void DevStep::start(const TimePoint& startTime)
     // Set the last output time for the restart files to the model start time
     lastOutput = startTime;
     // Set the model start time for the diagnostic output files
-    Module::getImplementation<IDiagnosticOutput>().setData(startTime);
+    Module::getImplementation<IDiagnosticOutput>().setModelStart(startTime);
 }
 
 void DevStep::iterate(const TimestepTime& tst)
@@ -40,7 +40,7 @@ void DevStep::iterate(const TimestepTime& tst)
     auto& mData = ModelMetadata::getInstance();
     mData.incrementTime(tst.step);
     if ((m_restartPeriod.seconds() > 0) && (mData.time() >= lastOutput + m_restartPeriod)) {
-        const std::string currentFileName = mData.time().format(m_restartFileName);
+        std::string currentFileName = mData.time().format(m_restartFileName);
         pData->writeRestartFile(currentFileName);
         lastOutput = mData.time();
     }

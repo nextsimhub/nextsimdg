@@ -98,10 +98,12 @@ void Model::configureTime()
 #endif
 
     // Start/stop times. Run length will override stop time, if present.
-    const std::string startTimeStr = getConfiguration(keyMap.at(STARTTIME_KEY), std::string());
-    const std::string stopTimeStr = getConfiguration(keyMap.at(STOPTIME_KEY), std::string());
-    const std::string runLengthStr = getConfiguration(keyMap.at(RUNLENGTH_KEY), std::string());
-    const std::string stepStr = getConfiguration(keyMap.at(TIMESTEP_KEY), std::string());
+    std::string startTimeStr
+        = Configured::getConfiguration(keyMap.at(STARTTIME_KEY), std::string());
+    std::string stopTimeStr = Configured::getConfiguration(keyMap.at(STOPTIME_KEY), std::string());
+    std::string runLengthStr
+        = Configured::getConfiguration(keyMap.at(RUNLENGTH_KEY), std::string());
+    std::string stepStr = Configured::getConfiguration(keyMap.at(TIMESTEP_KEY), std::string());
 
     if (runLengthStr.empty()) {
         if (stopTimeStr.empty()) {
@@ -140,7 +142,7 @@ void Model::configure()
     modelStep.setInitFile(metadata.initialFileName);
 
     // Read the initial state from file
-    const ModelState initialState(StructureFactory::stateFromFile(metadata.initialFileName));
+    ModelState initialState(StructureFactory::stateFromFile(metadata.initialFileName));
 
     // Get the coordinates from the ModelState for persistence
     metadata.extractCoordinates(initialState);

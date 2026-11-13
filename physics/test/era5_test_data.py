@@ -113,14 +113,14 @@ test_data = units + thousandths
 mdi = -(2.0**300)
 
 time_var = ncFile.createVariable("time", "f8", "time")
-q_swin = ncFile.createVariable("msdwswrf", "f8", timefield_dims)
-q_lwin = ncFile.createVariable("msdwlwrf", "f8", timefield_dims)
-rain = ncFile.createVariable("mtpr", "f8", timefield_dims)
-pmsl = ncFile.createVariable("msl", "f8", timefield_dims)
-tair = ncFile.createVariable("t2m", "f8", timefield_dims)
-tdew = ncFile.createVariable("d2m", "f8", timefield_dims)
-u = ncFile.createVariable("u10", "f8", timefield_dims)
-v = ncFile.createVariable("v10", "f8", timefield_dims)
+q_swin = ncFile.createVariable("sw_in", "f8", timefield_dims)
+q_lwin = ncFile.createVariable("lw_in", "f8", timefield_dims)
+wind = ncFile.createVariable("wind_speed", "f8", timefield_dims)
+pmsl = ncFile.createVariable("pair", "f8", timefield_dims)
+tair = ncFile.createVariable("tair", "f8", timefield_dims)
+tdew = ncFile.createVariable("dew2m", "f8", timefield_dims)
+u = ncFile.createVariable("u", "f8", timefield_dims)
+v = ncFile.createVariable("v", "f8", timefield_dims)
 
 # 12 monthly values
 for t in range(12):
@@ -132,8 +132,8 @@ for t in range(12):
     q_lwin[t, :, :] = -200 - test_data - 100 * t
     q_lwin.missing_value = mdi
 
-    rain[t, :, :] = test_data + 100 * t
-    rain.missing_value = mdi
+    wind[t, :, :] = test_data + 100 * t
+    wind.missing_value = mdi
 
     pmsl[t, :, :] = test_data + 1.01e5 + 1000 * t
     pmsl.missing_value = mdi

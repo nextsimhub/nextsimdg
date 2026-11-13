@@ -10,7 +10,6 @@
 #include <array>
 #include <cstddef>
 #include <map>
-#include <optional>
 #include <string>
 #include <utility>
 #include <vector>
@@ -38,7 +37,6 @@ class ConstModelArraySlice;
  */
 const static Eigen::StorageOptions majority = Eigen::RowMajor;
 
-using Indexer::deIndexer;
 using Indexer::indexer;
 
 /*!
@@ -661,8 +659,7 @@ private:
 
 public:
     void setLimits(const FloatType lower, const FloatType upper);
-    //! Returns an error message if the limits are violated.
-    std::optional<std::string> checkLimits(const ModelArray& mask) const;
+    void checkLimits(const ModelArray& mask) const;
 
 protected:
     Type type;

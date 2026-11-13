@@ -7,7 +7,6 @@
 #include "include/TOPAZOcean.hpp"
 
 #include "include/IFluxCalculation.hpp"
-#include "include/NextsimModule.hpp"
 #include "include/Time.hpp"
 
 #include <filesystem>
@@ -36,23 +35,9 @@ TEST_CASE("TOPAZOcean test")
     ModelArray::setDimension(ModelArray::Dimension::XVERTEX, nxvertex);
     ModelArray::setDimension(ModelArray::Dimension::YVERTEX, nyvertex);
 
-    Module::Module<IForcingInput>::setImplementation("Nextsim::PlainInput");
-
-    /* The netCDF file has a 30 day time step. We test the input at start, after a single input
-     * step, after 11, and after 119, i.e approx at months 1, 2, 12, and 120. */
-    TimePoint t1("2000-01-01T00:00:00Z");
-    TimestepTime tst = { t1, Duration(600) };
-    TimePoint t2(t1, Duration(30 * 24 * 3600));
-    TimePoint t12(t1, Duration(11 * 30 * 24 * 3600));
-    TimePoint t120(t1, Duration(119 * 30 * 24 * 3600));
-
-    auto& meta = ModelMetadata::getInstance();
-    meta.setTimes(t1, t120, tst.step);
-
     TOPAZOcean topaz;
     topaz.configure();
     topaz.setFilePath(filePath);
-    topaz.setData(ModelState::DataMap {});
 
     ModelArrayAccessor<Protected::EXT_SST> sstAccessor(ModelComponent::getStore());
     ModelArrayAccessor<Protected::EXT_SSS> sssAccessor(ModelComponent::getStore());
@@ -60,6 +45,9 @@ TEST_CASE("TOPAZOcean test")
     ModelArrayAccessor<Protected::OCEAN_U> uAccessor(ModelComponent::getStore());
     ModelArrayAccessor<Protected::OCEAN_V> vAccessor(ModelComponent::getStore());
     ModelArrayAccessor<Protected::SSH> sshAccessor(ModelComponent::getStore());
+
+    TimePoint t1("2000-01-01T00:00:00Z");
+    TimestepTime tst = { t1, Duration(600) };
 
     // The Qio calculation requires c_ice data
     ModelArrayAccessor<Shared::C_ICE_DG, RW> ciceAccessor(
@@ -89,6 +77,7 @@ TEST_CASE("TOPAZOcean test")
         REQUIRE(ssh(45, 35) == (20 + targetFrac));
     }
 
+    TimePoint t2("2000-02-01T00:00:00Z");
     topaz.updateBefore({ t2, Duration(600) });
 
     {
@@ -105,6 +94,7 @@ TEST_CASE("TOPAZOcean test")
         REQUIRE(ssh(45, 35) == (20 + targetFrac) + 1);
     }
 
+    TimePoint t12("2000-12-01T00:00:00Z");
     topaz.updateBefore({ t12, Duration(600) });
 
     {
@@ -122,6 +112,7 @@ TEST_CASE("TOPAZOcean test")
     }
 
     // All times after the last time sample should use the last sample's data
+    TimePoint t120("2010-01-01T00:00:00Z");
     topaz.updateBefore({ t120, Duration(600) });
 
     {

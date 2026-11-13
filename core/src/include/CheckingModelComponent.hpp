@@ -1,6 +1,7 @@
 /*!
  * @file CheckingModelComponent.hpp
  *
+ * @date 02 Jun 2025
  * @author Einar Ólason <einar.olason@nersc.no>
  */
 
@@ -22,8 +23,21 @@ protected:
      * @brief Check fields listed in fieldsToCheck. Throw a runtime_error if values are outside
      * bounds.
      */
-    void checkFields() const;
+    void checkFields() const
+    {
+        // Do nothing if checks are not enabled
+        if (!checkFast && !checkAll())
+            return;
 
+        for (const auto& field : fieldsToCheck) {
+
+            try {
+                field.arrayRef.getHostRO().checkLimits(oceanMask());
+            } catch (const std::exception& e) {
+                throw std::runtime_error("Check failed for '" + field.name + "': " + e.what());
+            }
+        }
+    }
     /*!
      * @brief Add all the fields listed to the vector fieldsToCheck so they will be checked by
      * checkFields()
@@ -31,7 +45,11 @@ protected:
      * @param fieldsToAdd An std::map of string-s and ModelArrayAccessors-s with field names and
      * references to check.
      */
-    void addChecks(const std::map<const std::string, ModelArrayAccessorBase<RO>>& fieldsToAdd);
+    void addChecks(const std::map<const std::string, ModelArrayAccessorBase<RO>>& fieldsToAdd)
+    {
+        for (const auto& field : fieldsToAdd)
+            fieldsToCheck.emplace_back(field.first, field.second);
+    }
 
     //! @param checkFast Set to true to do a quick check of the main prognostics in PrognosticData
     bool checkFast = false;
