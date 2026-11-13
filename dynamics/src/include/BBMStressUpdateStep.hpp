@@ -33,7 +33,7 @@ public:
     {
         assert(pmap);
 
-        // Number of Gauss points
+	// Number of Gauss points
         static constexpr size_t NGP
             = (((DGstress == 8) || (DGstress == 6)) ? 3 : (DGstress == 3 ? 2 : -1));
         using EdgeVec = Eigen::Matrix<FloatType, 1, NGP * NGP>;
@@ -150,7 +150,7 @@ public:
             dcrit = dcrit.array().min(1.0_ft);
 
             // Eqn. 29
-            const EdgeVec td = smesh.h(i) * std::sqrt(2. * (1. + params.nu0) * params.rhoIce)
+	    const EdgeVec td = smesh.h(i) * std::sqrt(2. * (1. + params.nu0) * params.rhoIce)
                 / elasticity.array().sqrt();
 
             // Update damage

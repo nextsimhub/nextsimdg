@@ -51,6 +51,8 @@ public:
             smesh->RotatePoleToGreenland();
         smesh->landmaskFromModelArray(mask);
 
+        smesh->precalculate_area();
+
         //! Initialize transport
         dgtransport = std::make_unique<Nextsim::DGTransport<DGadvection>>(*smesh);
         dgtransport->settimesteppingscheme("rk2");

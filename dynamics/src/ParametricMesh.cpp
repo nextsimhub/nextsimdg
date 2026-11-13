@@ -183,6 +183,7 @@ void ParametricMesh::coordinatesFromModelArray(const ModelArray& coords)
     nx = ModelArray::size(ModelArray::Dimension::X);
     ny = ModelArray::size(ModelArray::Dimension::Y);
     nelements = nx * ny;
+    cellsize.resize(nelements);
     nnodes = (nx + 1) * (ny + 1);
     vertices.resize(nnodes, 2);
     for (size_t idx = 0; idx < nnodes; ++idx) {
@@ -230,6 +231,11 @@ FloatType ParametricMesh::area(const size_t eid) const
     // In Spherical Coordinates, the cosine of the lat must be added. This increases the error
     // Machine precision is only achieved for 3 GP. I propose to use only two, which still gives
     // 10^-9 rel. error.
+
+    if (cellsize[eid].has_value()){
+        return cellsize[eid].value();
+    }
+    else{
     if (CoordinateSystem == CARTESIAN) {
         return (ParametricTools::J<1>((*this), eid).array() * GAUSSWEIGHTS<1>.array()).sum();
     } else if (CoordinateSystem == SPHERICAL) {
@@ -242,6 +248,17 @@ FloatType ParametricMesh::area(const size_t eid) const
             * EarthRadius * EarthRadius;
     } else
         abort();
+    }
+}
+
+/*!
+ * Fills cellsize vector with area values
+ */
+void ParametricMesh::precalculate_area()
+{
+    for (size_t i = 0; i < nelements; ++i){
+        cellsize[i] = area(i);
+    } 
 }
 
 /*!
@@ -254,4 +271,5 @@ FloatType ParametricMesh::area() const
         a += area(i);
     return a;
 }
+
 }
