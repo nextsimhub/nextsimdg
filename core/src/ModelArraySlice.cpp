@@ -16,7 +16,7 @@ ModelArraySlice& ModelArraySlice::operator=(FloatType v)
     SliceIter si(slice, data.dimensions());
     while (!si.isEnd()) {
         const size_t index = si.index();
-        data.m_data(Eigen::seqN(index, si.nElements(0), si.step(0)), Eigen::all) = v;
+        data.m_data(Eigen::seqN(index, si.nElements(0), si.step(0)), Eigen::placeholders::all) = v;
         si.incrementDim(1);
     }
     return *this;

@@ -332,10 +332,10 @@ private:
         int idx_a, idx_b, offset;
         sendBufferPositions(idx_a, idx_b, offset, edge);
         if (isVertical(edge)) {
-            buffer_map.transpose()(Eigen::all, Eigen::seq(offset, offset + m_innerNy - 1))
+            buffer_map.transpose()(Eigen::placeholders::all, Eigen::seq(offset, offset + m_innerNy - 1))
                 = source_map(Eigen::seq(idx_a, idx_b), Eigen::seq(nCells, Eigen::last - nCells));
         } else {
-            buffer_map(Eigen::seq(offset, offset + m_innerNx - 1), Eigen::all)
+            buffer_map(Eigen::seq(offset, offset + m_innerNx - 1), Eigen::placeholders::all)
                 = source_map(Eigen::seq(nCells, Eigen::last - nCells), Eigen::seq(idx_a, idx_b));
         }
     }
@@ -367,10 +367,10 @@ private:
         recvBufferPositions(idx_a, idx_b, offset, edge);
         if (isVertical(edge)) {
             target_map(Eigen::seq(idx_a, idx_b), Eigen::seq(nCells, Eigen::last - nCells))
-                = buffer_map.transpose()(Eigen::all, Eigen::seq(offset, offset + m_innerNy - 1));
+                = buffer_map.transpose()(Eigen::placeholders::all, Eigen::seq(offset, offset + m_innerNy - 1));
         } else {
             target_map(Eigen::seq(nCells, Eigen::last - nCells), Eigen::seq(idx_a, idx_b))
-                = buffer_map(Eigen::seq(offset, offset + m_innerNx - 1), Eigen::all);
+                = buffer_map(Eigen::seq(offset, offset + m_innerNx - 1), Eigen::placeholders::all);
         }
     }
 
@@ -393,20 +393,20 @@ private:
         switch (corner) {
         case Corner::TOP_LEFT:
             target_map(Eigen::seq(0, nCells - 1), Eigen::seq(Eigen::last - nCells + 1, Eigen::last))
-                = buffer_map(Eigen::seq(offset, offset + nCells - 1), Eigen::all);
+                = buffer_map(Eigen::seq(offset, offset + nCells - 1), Eigen::placeholders::all);
             break;
         case Corner::TOP_RIGHT:
             target_map(Eigen::seq(Eigen::last - nCells + 1, Eigen::last),
                 Eigen::seq(Eigen::last - nCells + 1, Eigen::last))
-                = buffer_map(Eigen::seq(offset, offset + nCells - 1), Eigen::all);
+                = buffer_map(Eigen::seq(offset, offset + nCells - 1), Eigen::placeholders::all);
             break;
         case Corner::BOTTOM_RIGHT:
             target_map(Eigen::seq(Eigen::last - nCells + 1, Eigen::last), Eigen::seq(0, nCells - 1))
-                = buffer_map(Eigen::seq(offset, offset + nCells - 1), Eigen::all);
+                = buffer_map(Eigen::seq(offset, offset + nCells - 1), Eigen::placeholders::all);
             break;
         case Corner::BOTTOM_LEFT:
             target_map(Eigen::seq(0, nCells - 1), Eigen::seq(0, nCells - 1))
-                = buffer_map(Eigen::seq(offset, offset + nCells - 1), Eigen::all);
+                = buffer_map(Eigen::seq(offset, offset + nCells - 1), Eigen::placeholders::all);
             break;
         default:
             throw std::runtime_error("Unrecognised corner type");

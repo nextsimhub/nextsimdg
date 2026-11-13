@@ -581,16 +581,16 @@ TEST_CASE("Eigen (ModelArray::DataType) subscripted buffers")
     Slice bottom { { {}, { 0 } } };
     Slice top { { {}, { ny - 1 } } };
     // bottom 0, nx points
-    perimeterBuffer(Eigen::seqN(0, nx), Eigen::all)
+    perimeterBuffer(Eigen::seqN(0, nx), Eigen::placeholders::all)
         = static_cast<ModelArray::DataType>(maSrc[bottom]);
     // right nx, ny points
-    perimeterBuffer(Eigen::seqN(nx, ny), Eigen::all)
+    perimeterBuffer(Eigen::seqN(nx, ny), Eigen::placeholders::all)
         = static_cast<ModelArray::DataType>(maSrc[right]);
     // top nx + ny, nx points
-    perimeterBuffer(Eigen::seqN(nx + ny, nx), Eigen::all)
+    perimeterBuffer(Eigen::seqN(nx + ny, nx), Eigen::placeholders::all)
         = static_cast<ModelArray::DataType>(maSrc[top]);
     // left 2nx + ny, ny points
-    perimeterBuffer(Eigen::seqN(2 * nx + ny, ny), Eigen::all)
+    perimeterBuffer(Eigen::seqN(2 * nx + ny, ny), Eigen::placeholders::all)
         = static_cast<ModelArray::DataType>(maSrc[left]);
 
     // bottom check
@@ -612,10 +612,10 @@ TEST_CASE("Eigen (ModelArray::DataType) subscripted buffers")
 
     ModelArray maSnk(ModelArray::Type::TWOCOMP);
     maSnk.reinitialize();
-    maSnk[bottom] = ModelArray::DataType(perimeterBuffer(Eigen::seqN(0, nx), Eigen::all));
-    maSnk[right] = ModelArray::DataType(perimeterBuffer(Eigen::seqN(nx, ny), Eigen::all));
-    maSnk[top] = ModelArray::DataType(perimeterBuffer(Eigen::seqN(nx + ny, nx), Eigen::all));
-    maSnk[left] = ModelArray::DataType(perimeterBuffer(Eigen::seqN(2 * nx + ny, ny), Eigen::all));
+    maSnk[bottom] = ModelArray::DataType(perimeterBuffer(Eigen::seqN(0, nx), Eigen::placeholders::all));
+    maSnk[right] = ModelArray::DataType(perimeterBuffer(Eigen::seqN(nx, ny), Eigen::placeholders::all));
+    maSnk[top] = ModelArray::DataType(perimeterBuffer(Eigen::seqN(nx + ny, nx), Eigen::placeholders::all));
+    maSnk[left] = ModelArray::DataType(perimeterBuffer(Eigen::seqN(2 * nx + ny, ny), Eigen::placeholders::all));
 
     // bottom check
     for (size_t i = 0; i < nx; ++i) {

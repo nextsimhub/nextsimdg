@@ -220,8 +220,8 @@ private:
         while (!targetIter.isEnd() && !sourceIter.isEnd()) {
             const size_t targetIndex = targetIter.index();
             const size_t sourceIndex = sourceIter.index();
-            target(Eigen::seqN(targetIndex, targetNEl, targetIter.step(0)), Eigen::all)
-                = source(Eigen::seqN(sourceIndex, sourceNEl, sourceIter.step(0)), Eigen::all);
+            target(Eigen::seqN(targetIndex, targetNEl, targetIter.step(0)), Eigen::placeholders::all)
+                = source(Eigen::seqN(sourceIndex, sourceNEl, sourceIter.step(0)), Eigen::placeholders::all);
             targetIter.incrementDim(1);
             sourceIter.incrementDim(1);
         }
