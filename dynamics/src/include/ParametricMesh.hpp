@@ -9,6 +9,7 @@
 #include <array>
 #include <cassert>
 #include <cstddef>
+#include <optional>
 
 #include "NextsimDynamics.hpp"
 #include "include/ModelArray.hpp"
@@ -66,7 +67,7 @@ public:
      * if no landmask is given, all  elements are ice
      */
     std::vector<bool> landmask;
-    std::vector<FloatType> cellsize;
+    std::vector<std::optional<FloatType>> cellsize;
 
     ParametricMesh(const COORDINATES coords, int loglevel = -1)
         : CoordinateSystem(coords)
@@ -382,7 +383,7 @@ public:
 
     FloatType hmin() const; //! returns the minimum mesh size
     FloatType area() const; //! returns the area of the domain
-    void calculateCellSize(); //! returns the vector of cell size
+    void precalculate_area(); //! returns the vector of cell size
 };
 } /* namespace Nextsim */
 

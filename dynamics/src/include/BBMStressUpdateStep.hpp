@@ -150,8 +150,7 @@ public:
             dcrit = dcrit.array().min(1.0_ft);
 
             // Eqn. 29
-	    // std::cout << "cellSize is empty? " << smesh.cellsize.empty() << std::endl;
-            const EdgeVec td = smesh.cellsize[i] * std::sqrt(2. * (1. + params.nu0) * params.rhoIce)
+	    const EdgeVec td = smesh.h(i) * std::sqrt(2. * (1. + params.nu0) * params.rhoIce)
                 / elasticity.array().sqrt();
 
             // Update damage
