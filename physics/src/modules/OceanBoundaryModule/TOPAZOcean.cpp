@@ -68,6 +68,7 @@ void TOPAZOcean::updateBefore(const TimestepTime& tst)
 {
     forcingState->update(tst.start);
 
+
     sstExtAccessor.getHostRW() = forcingState->getField(sstName);
     sssExtAccessor.getHostRW() = forcingState->getField(sssName);
     mldAccessor.getHostRW() = forcingState->getField(mldName);
