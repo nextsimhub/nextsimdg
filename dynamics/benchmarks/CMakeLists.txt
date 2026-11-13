@@ -1,7 +1,8 @@
-# Standalone executables of the Mehlmann et al. (2021) benchmark, running the dynamics kernels
-# without the rest of the model. Built with -DBUILD_BENCHMARKS=ON.
+# Standalone executables of the Mehlmann et al. (2021) benchmark (box) and of the Nares channel,
+# running the dynamics kernels without the rest of the model. Built with -DBUILD_BENCHMARKS=ON.
 
-set(BenchmarkNames benchmark_mehlmann_mevp benchmark_mehlmann_bbm benchmark_mehlmann_ldg_mevp)
+set(BenchmarkNames benchmark_mehlmann_mevp benchmark_mehlmann_bbm benchmark_mehlmann_ldg_mevp
+                   benchmark_nares_mevp benchmark_nares_ldg_mevp)
 
 foreach(name IN LISTS BenchmarkNames)
     add_executable(${name} "${name}.cpp")
