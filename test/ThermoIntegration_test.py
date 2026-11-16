@@ -183,15 +183,14 @@ i0 = 0.3
         meanval = 3.1093
         maxval = 3.3327
         minval = 2.9702
-        hiceDG0 = self.hice[:, 0]
         self.assertAlmostEqual(
-            maxval, hiceDG0.max(), 4, f"Max ice thickness not ~= {maxval} m"
+            maxval, self.hice.max(), 4, f"Max ice thickness not ~= {maxval} m"
         )
         self.assertAlmostEqual(
-            minval, hiceDG0.min(), 4, f"Min ice thickness not ~= {minval} m"
+            minval, self.hice.min(), 4, f"Min ice thickness not ~= {minval} m"
         )
         self.assertAlmostEqual(
-            meanval, hiceDG0.mean(), 4, f"Mean ice thickness not ~= {meanval} m"
+            meanval, self.hice.mean(), 4, f"Mean ice thickness not ~= {meanval} m"
         )
 
     def test_snowThickness(self):
@@ -199,15 +198,14 @@ i0 = 0.3
         meanval = 0.2474
         maxval = 0.4000
         minval = 0.0000
-        snowDG0 = self.hsnow[:, 0]
         self.assertAlmostEqual(
-            maxval, snowDG0.max(), 4, f"Max snow thickness not ~= {maxval} m"
+            maxval, self.hsnow.max(), 4, f"Max snow thickness not ~= {maxval} m"
         )
         self.assertAlmostEqual(
-            minval, snowDG0.min(), 4, f"Min snow thickness not ~= {minval} m"
+            minval, self.hsnow.min(), 4, f"Min snow thickness not ~= {minval} m"
         )
         self.assertAlmostEqual(
-            meanval, snowDG0.mean(), 4, f"Mean snow thickness not ~= {meanval} m"
+            meanval, self.hsnow.mean(), 4, f"Mean snow thickness not ~= {meanval} m"
         )
 
     def test_temperatureTest(self):
@@ -225,9 +223,7 @@ i0 = 0.3
         meanvals = [-17.6202, -7.5904, -3.7944]
         maxvals = [0.0000, -1.1280, -1.5939]
         minvals = [-33.1569, -14.8520, -6.1389]
-        for i, t_level in enumerate(
-            (self.tsurf[:, 0, 0, 0], self.tintr[:, 0, 0, 0], self.tbott[:, 0, 0, 0])
-        ):
+        for i, t_level in enumerate((self.tsurf, self.tintr, self.tbott)):
             self.assertAlmostEqual(
                 maxvals[i], t_level.max(), 4, f"Max T {i} not ~= {maxvals[i]} ˚C"
             )

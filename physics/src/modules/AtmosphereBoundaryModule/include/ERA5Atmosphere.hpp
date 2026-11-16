@@ -10,6 +10,7 @@
 
 #include "include/Configured.hpp"
 #include "include/IFluxCalculation.hpp"
+#include "include/IForcingInput.hpp"
 
 namespace Nextsim {
 
@@ -37,14 +38,35 @@ public:
     //! Calculates the fluxes from the given values
     void update(const TimestepTime&) override;
 
-    void setFilePath(const std::string& filePathIn);
+    static void setFilePath(const std::string& filePathIn);
 
 private:
     // Since the configuration is global, it makes sense for the file path to
     // be static.
     static std::string filePath;
 
-    ModelState forcingState;
+    // A list of variable names for the ERA5 inputs
+    const std::string tAirName = "t2m";
+    const std::string dew2mName = "d2m";
+    const std::string pAirName = "msl";
+    const std::string swInName = "msdwswrf";
+    const std::string lwInName = "msdwlwrf";
+    const std::string snowName = "msr";
+    const std::string rainName = "mtpr";
+    const std::string uName = "u10";
+    const std::string vName = "v10";
+
+    std::map<std::string, bool> warn;
+
+    const std::string ncLonName = "longitude";
+    const std::string ncLatName = "latitude";
+    const std::string ncTimeName = "time";
+
+    const std::set<std::string> forcings
+        = { dew2mName, lwInName, pAirName, rainName, snowName, swInName, tAirName, uName, vName };
+    const std::set<std::pair<std::string, std::string>> vectors = { { uName, vName } };
+
+    std::unique_ptr<IForcingInput> forcingState;
 
     ModelArrayAccessor<Protected::T_AIR, RW> tairAccessor;
     ModelArrayAccessor<Protected::DEW_2M, RW> tdewAccessor;
@@ -53,7 +75,7 @@ private:
     ModelArrayAccessor<Protected::LW_IN, RW> lw_inAccessor;
     ModelArrayAccessor<Protected::WIND_SPEED, RW> windAccessor;
 
-    IFluxCalculation* fluxImpl;
+    std::unique_ptr<IFluxCalculation> fluxImpl;
 };
 
 } /* namespace Nextsim */

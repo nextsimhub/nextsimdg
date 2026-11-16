@@ -65,8 +65,8 @@ void ModelMetadata::readNeighbourData(netCDF::NcFile& ncFile)
     for (auto edge : edges) {
         size_t nStart = 0; // start point in metadata arrays
         size_t count = 0; // number of elements to read from metadata arrays
-        std::vector<int> numNeighbours = std::vector<int>(mpiSize, 0);
-        std::vector<int> offsets = std::vector<int>(mpiSize, 0);
+        std::vector<int> numNeighbours = std::vector(mpiSize, 0);
+        std::vector<int> offsets = std::vector(mpiSize, 0);
         std::vector<std::reference_wrapper<std::vector<int>>> arrays;
 
         arrays = { neighbourRanks[edge], neighbourExtents[edge], neighbourHaloSend[edge],
@@ -101,8 +101,8 @@ void ModelMetadata::readNeighbourData(netCDF::NcFile& ncFile)
     for (auto corner : corners) {
         size_t nStart = 0; // start index in the netCDF variable
         size_t count = 0; // number of elements to read for this rank
-        std::vector<int> numCorners = std::vector<int>(mpiSize, 0);
-        std::vector<int> offsets = std::vector<int>(mpiSize, 0);
+        std::vector<int> numCorners = std::vector(mpiSize, 0);
+        std::vector<int> offsets = std::vector(mpiSize, 0);
         std::vector<std::reference_wrapper<std::vector<int>>> arrays;
 
         arrays = { cornerRanks[corner], cornerHaloSend[corner] };
