@@ -117,7 +117,7 @@ void HiblerSpread::update(const TimestepTime& tstep)
         // deal with cooling below the freezing point
         if (const FloatType t1 = t0 + deltaTml; t1 < tf0) {
             // Heat lost cooling the mixed layer to freezing point
-            const FloatType sensibleFlux = (tf0 - t0) / deltaTml * coolingFlux;
+            const FloatType sensibleFlux = deltaTml ? (tf0 - t0) / deltaTml * coolingFlux : 0;
             // Any heat beyond that is latent heat forming new ice
             const FloatType latentFlux = coolingFlux - sensibleFlux;
 

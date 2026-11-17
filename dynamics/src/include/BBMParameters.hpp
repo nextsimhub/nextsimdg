@@ -42,7 +42,7 @@ public:
 
     FloatType c0 = 10e3; //! \param
 
-    FloatType minDamage = std::is_same_v<FloatType, float> ? 1e-7 : 1e-12;
+    FloatType minDamage = std::is_same_v<FloatType, float> ? 1e-6 : 1e-12;
 };
 
 } /* namespace Nextsim */
