@@ -1,5 +1,5 @@
 /*!
- * @author  Tom Meltzer <tdm39@cam.ac.uk>
+ * @author  Mikolaj A. Kowalski <mak60@cam.ac.uk>
  * @brief   Test tripolar partition metadata reading in ModelMetadata
  * @details
  *
