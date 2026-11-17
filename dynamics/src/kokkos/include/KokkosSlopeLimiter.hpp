@@ -27,8 +27,6 @@ template <int DG> class KokkosSlopeLimiter {
 
     //! minimum and maximum values at the mesh nodes
     DeviceViewCG1 minV, maxV;
-    DeviceViewCG1 dxminV, dxmaxV;
-    DeviceViewCG1 dyminV, dymaxV;
 
     //! alpha-values for limiting
     DeviceViewDG1 alpha, alphaX, alphaY;

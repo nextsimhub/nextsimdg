@@ -337,8 +337,9 @@ void KokkosDGTransport<DG>::stepRK1(FloatType dt, const ConstDeviceViewDG& velXD
     const KokkosDeviceMapView<Eigen::Matrix<FloatType, DG, DG>>& inverseDGMassMatrixDevice,
     const KokkosMesh& meshDevice)
 {
-    dGTransportOperatorDevice(dt, velX, velY, normalVelX, normalVelY, phiDevice, tmpRes1,
-        advectionCellTermXDevice, advectionCellTermYDevice, inverseDGMassMatrixDevice, meshDevice);
+    dGTransportOperatorDevice(dt, velXDevice, velYDevice, normalVelXDevice, normalVelYDevice,
+        phiDevice, tmpRes1, advectionCellTermXDevice, advectionCellTermYDevice,
+        inverseDGMassMatrixDevice, meshDevice);
 
     if constexpr (DG == 1) {
         Kokkos::parallel_for(
@@ -364,8 +365,9 @@ void KokkosDGTransport<DG>::stepRK2(FloatType dt, const ConstDeviceViewDG& velXD
     const KokkosDeviceMapView<Eigen::Matrix<FloatType, DG, DG>>& inverseDGMassMatrixDevice,
     const KokkosMesh& meshDevice)
 {
-    dGTransportOperatorDevice(dt, velX, velY, normalVelX, normalVelY, phiDevice, tmpRes1,
-        advectionCellTermXDevice, advectionCellTermYDevice, inverseDGMassMatrixDevice, meshDevice);
+    dGTransportOperatorDevice(dt, velXDevice, velYDevice, normalVelXDevice, normalVelYDevice,
+        phiDevice, tmpRes1, advectionCellTermXDevice, advectionCellTermYDevice,
+        inverseDGMassMatrixDevice, meshDevice);
 
     if constexpr (DG == 1) {
         Kokkos::parallel_for(
@@ -380,8 +382,9 @@ void KokkosDGTransport<DG>::stepRK2(FloatType dt, const ConstDeviceViewDG& velXD
             });
     }
 
-    dGTransportOperatorDevice(dt, velX, velY, normalVelX, normalVelY, phiDevice, tmpRes2,
-        advectionCellTermXDevice, advectionCellTermYDevice, inverseDGMassMatrixDevice, meshDevice);
+    dGTransportOperatorDevice(dt, velXDevice, velYDevice, normalVelXDevice, normalVelYDevice,
+        phiDevice, tmpRes2, advectionCellTermXDevice, advectionCellTermYDevice,
+        inverseDGMassMatrixDevice, meshDevice);
 
     if constexpr (DG == 1) {
         Kokkos::parallel_for(
@@ -408,8 +411,9 @@ void KokkosDGTransport<DG>::stepRK3(FloatType dt, const ConstDeviceViewDG& velXD
     const KokkosDeviceMapView<Eigen::Matrix<FloatType, DG, DG>>& inverseDGMassMatrixDevice,
     const KokkosMesh& meshDevice)
 {
-    dGTransportOperatorDevice(dt, velX, velY, normalVelX, normalVelY, phiDevice, tmpRes1,
-        advectionCellTermXDevice, advectionCellTermYDevice, inverseDGMassMatrixDevice, meshDevice);
+    dGTransportOperatorDevice(dt, velXDevice, velYDevice, normalVelXDevice, normalVelYDevice,
+        phiDevice, tmpRes1, advectionCellTermXDevice, advectionCellTermYDevice,
+        inverseDGMassMatrixDevice, meshDevice);
 
     if constexpr (DG == 1) {
         Kokkos::parallel_for(
@@ -424,8 +428,9 @@ void KokkosDGTransport<DG>::stepRK3(FloatType dt, const ConstDeviceViewDG& velXD
             });
     }
 
-    dGTransportOperatorDevice(dt, velX, velY, normalVelX, normalVelY, tmpRes1, tmpRes2,
-        advectionCellTermXDevice, advectionCellTermYDevice, inverseDGMassMatrixDevice, meshDevice);
+    dGTransportOperatorDevice(dt, velXDevice, velYDevice, normalVelXDevice, normalVelYDevice,
+        tmpRes1, tmpRes2, advectionCellTermXDevice, advectionCellTermYDevice,
+        inverseDGMassMatrixDevice, meshDevice);
 
     if constexpr (DG == 1) {
         Kokkos::parallel_for(
@@ -442,8 +447,9 @@ void KokkosDGTransport<DG>::stepRK3(FloatType dt, const ConstDeviceViewDG& velXD
             });
     }
 
-    dGTransportOperatorDevice(dt, velX, velY, normalVelX, normalVelY, tmpRes2, tmpRes3,
-        advectionCellTermXDevice, advectionCellTermYDevice, inverseDGMassMatrixDevice, meshDevice);
+    dGTransportOperatorDevice(dt, velXDevice, velYDevice, normalVelXDevice, normalVelYDevice,
+        tmpRes2, tmpRes3, advectionCellTermXDevice, advectionCellTermYDevice,
+        inverseDGMassMatrixDevice, meshDevice);
 
     if constexpr (DG == 1) {
         Kokkos::parallel_for(

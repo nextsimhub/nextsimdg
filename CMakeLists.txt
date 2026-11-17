@@ -223,17 +223,20 @@ if(WITH_KOKKOS)
         if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
             message("Clang is currently not supported with CUDA.")
         else()
-            # Disable warning caused by Eigen: "calling a __host__ function from a __host__
-            # __device__ function is not allowed" It is not sufficient to disable this for just CUDA
-            # code, i.e. with the generator expression: $<$<COMPILE_LANGUAGE:CUDA>:-Xcudafe
-            # --diag_suppress=20014> "#68-D: integer conversion resulted in a change of sign" This
-            # warning is also caused by CPU code (e.g. Slice.hpp) and should be fixed at some point.
-            # "#611-D: overloaded virtual function "[...]" is only partially overridden in class
-            # "[...]" Caused by child classes of ModelComponent.
+            # Disable warnings that we can not reasonably fix. It is not sufficient to disable this
+            # for just CUDA code, i.e. with the generator expression:
+            # $<$<COMPILE_LANGUAGE:CUDA>:-Xcudafe--diag_suppress=20014>
+            # * "#20014-D, #20015-D: calling a constexpr __host__ function from a __host__
+            #   __device__ function is not allowed."
+            #  Caused by Eigen code that we do not use.
+            # * "#68-D: integer conversion resulted in a change of sign"
+            #  Caused by CPU code (e.g. Slice.hpp) and should be fixed at some point.
+            # * "#611-D: overloaded virtual function "[...]" is only partially overridden in class"
+            #  Caused by child classes of ModelComponent.
             target_compile_options(
                 nextsimlib
                 PUBLIC "SHELL:-Xcudafe --diag_suppress=20014" "SHELL:-Xcudafe --diag_suppress=68"
-                       "SHELL:-Xcudafe --diag_suppress=611")
+                       "SHELL:-Xcudafe --diag_suppress=611" "SHELL:-Xcudafe --diag_suppress=20015")
         endif()
     endif()
     # stdandard is not set correctly for amdclang based on just the target property does not matter

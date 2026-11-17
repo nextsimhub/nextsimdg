@@ -30,7 +30,7 @@ void BasicIceOceanHeatFlux::update(const TimestepTime& tst)
         if (cice[i] > 0.0_ft) {
             qio[i] = doOne(tf[i], sst[i], mlBulkCp[i], dt);
         } else {
-            qio[i] = 0.;
+            qio[i] = 0.0_ft;
         }
     });
 }
