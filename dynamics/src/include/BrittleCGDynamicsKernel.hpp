@@ -141,9 +141,9 @@ public:
 #ifdef USE_MPI
         // Note: we only need to create one halo object per array type,
         // dimensionality and size. u and v need separate halo objects because
-        // they carry different tripolar component corrections: the horizontal
-        // (u) component is unchanged over the fold, while the vertical (v)
-        // component flips sign.
+        // they carry the same tripolar component correction: both the
+        // horizontal (u) and vertical (v) components flip sign over the
+        // fold.
         Halo haloU(u, Halo::Orientation::HorizontalComponent);
         Halo haloV(v, Halo::Orientation::VerticalComponent);
 #endif

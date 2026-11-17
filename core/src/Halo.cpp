@@ -26,7 +26,7 @@ namespace HaloExchange {
         switch (type) {
         case ModelArray::Type::VERTEX:
             // I assume that the vertex field represents 2D vectors
-            return { 1.0, -1.0 };
+            return { -1.0, -1.0 };
         case ModelArray::Type::H:
         case ModelArray::Type::DG:
         case ModelArray::Type::DGSTRESS:
@@ -55,7 +55,7 @@ namespace HaloExchange {
         case ModelArray::Type::V:
             return { -1.0};
         case ModelArray::Type::U:
-            return { 1.0 };
+            return { -1.0 };
         default:
             throw std::invalid_argument("Unknown ModelArray type");
         }

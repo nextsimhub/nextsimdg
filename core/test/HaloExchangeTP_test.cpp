@@ -519,12 +519,12 @@ MPI_TEST_CASE("CGVector", 3)
         initializeTestData(cgVector, CGDomain);
 
         // create halo and exchange
-        // the horizontal component of a vector field is unchanged over the
+        // the horizontal component of a vector field flips sign over the
         // tripolar fold
         Halo halo(cgVector, Halo::Orientation::HorizontalComponent);
         halo.exchangeHalos(cgVector);
 
-        verifyTestData(cgVector, CGDomain, { 1.0 });
+        verifyTestData(cgVector, CGDomain, { -1.0 });
     }
 
     // Vertical component case
