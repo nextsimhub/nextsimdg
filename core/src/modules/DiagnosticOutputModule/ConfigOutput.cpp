@@ -205,7 +205,14 @@ void ConfigOutput::outputState(const ModelState& diagState)
 
     // Filter the passed state by the field names for output
     for (const auto& [key, arrayRef] : diagState.data) {
-        if (fieldsForOutput.count(key) > 0) {
+        // Avoid double counting
+        bool inStoreData;
+        if (externalNames.count(key)) {
+            inStoreData = storeData.count(externalNames.at(key)) > 0;
+        } else {
+            inStoreData = storeData.count(key) > 0;
+        }
+        if (!inStoreData && fieldsForOutput.count(key) > 0) {
             addToState(key, state, arrayRef);
         }
     }
