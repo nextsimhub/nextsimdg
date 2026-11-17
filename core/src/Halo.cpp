@@ -53,7 +53,7 @@ namespace HaloExchange {
             // class instead, where the Orientation is given explicitly.
             return { 1.0 };
         case ModelArray::Type::V:
-            return { -1.0};
+            return { -1.0 };
         case ModelArray::Type::U:
             return { -1.0 };
         default:
