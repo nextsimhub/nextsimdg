@@ -26,7 +26,6 @@ static const std::string snapshotKey = pfx + ".snapshots";
 static const std::string startKey = pfx + ".start";
 static const std::string fieldNamesKey = pfx + ".field_names";
 static const std::string fileNameKey = pfx + ".filename";
-static const std::string filePeriodKey = pfx + ".file_period";
 static const std::string orientationKey = pfx + ".vector_orientation";
 
 // Access the model.start key. There's no clean way of getting this from Model, I think.
@@ -38,7 +37,6 @@ static const std::map<int, std::string> keyMap = {
     { ConfigOutput::SNAPSHOT_KEY, snapshotKey },
     { ConfigOutput::FIELDNAMES_KEY, fieldNamesKey },
     { ConfigOutput::FILENAME_KEY, fileNameKey },
-    { ConfigOutput::FILEPERIOD_KEY, filePeriodKey },
     { ConfigOutput::ORIENTATION_KEY, orientationKey },
 };
 
@@ -52,7 +50,7 @@ ConfigOutput::ConfigOutput()
     , lastOutput(defaultLastOutput)
     , fieldsForOutput()
     , currentFileName()
-    , snapshots(true)
+    , snapshots(false)
     , resetState(true)
 {
 }
@@ -72,8 +70,6 @@ ConfigurationHelp::HelpMap& ConfigOutput::getHelpText(HelpMap& map, bool getAll)
         { fileNameKey, ConfigType::STRING, {}, "", "",
             "Filename pattern for the output diagnostic files. Date and time elements can be "
             "included as in std::put_time()." },
-        { filePeriodKey, ConfigType::STRING, {}, "", "",
-            "The period with which diagnostic files are created." },
         { orientationKey, ConfigType::STRING, { "grid", "east_north", "native" }, "grid", "",
             "The orientation of the vectors in the output." },
     };
@@ -137,12 +133,6 @@ void ConfigOutput::configure()
     std::smatch match;
     std::regex_search(rawFileName, match, ncSuffix);
     m_filePrefix = match.empty() ? rawFileName : match.prefix();
-
-    // The default string is the number of seconds in 10000 years of 365 days
-    std::string newFilePeriodStr
-        = Configured::getConfiguration(keyMap.at(FILEPERIOD_KEY), std::string("315360000000"));
-    fileChangePeriod = Duration(newFilePeriodStr);
-    lastFileChange = lastOutput;
 }
 
 void ConfigOutput::setData(const TimePoint& modelStart)
@@ -182,41 +172,48 @@ void ConfigOutput::outputState(const ModelState& diagState)
 {
     const auto& meta = ModelMetadata::getInstance();
 
-    // Open a new file if needed
-    if (const TimePoint& time = meta.time();
-        currentFileName.empty() || lastFileChange + fileChangePeriod <= time) {
-        if (const std::string newFileName = time.format(m_filePrefix) + ".nc";
-            newFileName != currentFileName) {
-            // TODO: Close the file currentFileName
-            FileCallbackCloser::close(currentFileName);
-            currentFileName = newFileName;
-        }
-        lastFileChange = time;
-    }
-
     FloatType averagingFactor = meta.stepLength().seconds() / outputPeriod.seconds();
-    ModelState state = { {}, diagState.config };
+    if (snapshots || everyTS) {
+        averagingFactor = 1.0;
+        state = { {}, diagState.config };
+    }
     const auto storeData = ModelArrayAccessorBase<>::getAll(getStore());
+
+    auto addToState = [averagingFactor](const std::string& name, ModelState& state,
+                          const ModelArray& modelArray) -> void {
+        if (state.data.count(name) == 0) {
+            state.data[name] = ModelArray(modelArray.getType());
+            state.data.at(name).reinitialize();
+        }
+        state.data.at(name) += modelArray * averagingFactor;
+    };
 
     // Output every entry in storeData, as either its external name if
     // defined, or as its internal name.
     for (const auto& [internalName, arrayRef] : storeData) {
         if (const ModelArray& modelArray = arrayRef.getHostRO(); modelArray.trueSize()) {
             if (reverseExternalNames.count(internalName)) {
-                if (const auto externalName = reverseExternalNames.at(internalName);
+                if (const auto& externalName = reverseExternalNames.at(internalName);
                     outputAllTheFields || fieldsForOutput.count(externalName))
-                    state.data[externalName] = modelArray;
+                    addToState(externalName, state, modelArray);
             } else {
                 if (outputAllTheFields)
-                    state.data[internalName] = modelArray;
+                    addToState(internalName, state, modelArray);
             }
         }
     }
 
     // Filter the passed state by the field names for output
     for (const auto& [key, arrayRef] : diagState.data) {
-        if (fieldsForOutput.count(key) > 0) {
-            state.data[key] = arrayRef;
+        // Avoid double counting
+        bool inStoreData;
+        if (externalNames.count(key)) {
+            inStoreData = storeData.count(externalNames.at(key)) > 0;
+        } else {
+            inStoreData = storeData.count(key) > 0;
+        }
+        if (!inStoreData && fieldsForOutput.count(key) > 0) {
+            addToState(key, state, arrayRef);
         }
     }
 
@@ -228,6 +225,15 @@ void ConfigOutput::outputState(const ModelState& diagState)
      */
     if (const Duration timeSinceOutput = meta.time() - lastOutput; timeSinceOutput.seconds() > 0
         && (everyTS || std::fmod(timeSinceOutput.seconds(), outputPeriod.seconds()) == 0.0_ft)) {
+
+        // Open a new file if needed
+        if (const std::string newFileName = meta.time().format(m_filePrefix) + ".nc";
+            newFileName != currentFileName || currentFileName.empty()) {
+            // TODO: Close the file currentFileName
+            FileCallbackCloser::close(currentFileName);
+            currentFileName = newFileName;
+        }
+
         Logged::info("ConfigOutput: Outputting " + std::to_string(state.data.size()) + " fields to "
             + currentFileName + " at " + meta.time().format() + "\n");
 
@@ -254,6 +260,9 @@ void ConfigOutput::outputState(const ModelState& diagState)
         meta.affixCoordinates(outputState);
         StructureFactory::fileFromState(outputState, currentFileName, false);
         lastOutput = meta.time();
+
+        // Reset output state
+        state = { .data = {}, .config = diagState.config };
     }
 }
 
