@@ -88,6 +88,22 @@ namespace HaloExchange {
         }
     }
 
+    /**
+     * @brief Correction factors for each component of a field for 180° rotation
+     *
+     * In the tripolar halo exchange, after communication we need to account
+     * for the change in the orientation (a field was rotated 180°). This
+     * requires to modify the components of the field by some factor. At the
+     * moment it is only a sign change, but we return a float for future
+     * flexibility.
+     *
+     * The specific factors are determined based on the type of the field
+     * and its representation.
+     *
+     * @param type The type of the field (e.g., DG, CG, etc.)
+     *
+     * @return A vector of correction factors for each component of the field
+     */
     std::vector<FloatType> rotate180ComponentCorrections(ModelArray::Type type);
 }
 

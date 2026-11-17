@@ -30,6 +30,22 @@ namespace HaloExchange {
         case ModelArray::Type::H:
         case ModelArray::Type::DG:
         case ModelArray::Type::DGSTRESS:
+            // The DG corrections were obtained in private communication from
+            // Thomas Richter
+            // They should be valid for up to DG=8
+            // This assumes basis functions as given below and (x -> -x and y -> -y)
+            // coordinate change. (Table reproduced from Thomas' email)
+            //
+            //  i       w       the basis function
+            //  0       1       1
+            //  1       -1      (x-1/2)
+            //  2       -1      (y-1/2)
+            //  3       1       (x-1/2)^2-1/12
+            //  4       1       (y-1/2)^2-1/12
+            //  5       1       (x-1/2)(y-1/2)
+            //  6       -1      (y-1/2)(x-1/2)^2-1/12
+            //  7       -1      (x-1/2)(y-1/2)^2-1/12
+            //
             return { 1.0, -1.0, -1.0, 1.0, 1.0, 1.0, -1.0, -1.0 };
         case ModelArray::Type::CG:
             // Note: This is ok for scalars, May be incorrect vertical components
