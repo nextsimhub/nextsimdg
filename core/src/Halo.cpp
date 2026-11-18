@@ -65,7 +65,7 @@ namespace HaloExchange {
 void Halo::setTripolarFlags()
 {
     auto& metadata = ModelMetadata::getInstance();
-    m_tripolarFold = metadata.needsTripolarFold();
+    hasTripolarFold = metadata.needsTripolarFold();
 }
 
 void Halo::setSpatialDims()
@@ -237,7 +237,7 @@ void Halo::recvPositions(int& fromRank, size_t& count, size_t& disp, size_t& rec
                   return;
               }
               const bool notFirstTransaction = (recvOffset != recvPosFromEdge(edge));
-              const bool notTripolarFlippedTransaction = !(m_tripolarFold && edge == Edge::TOP);
+              const bool notTripolarFlippedTransaction = !(hasTripolarFold && edge == Edge::TOP);
 
               if (notFirstTransaction) {
                   count = count - 1;
@@ -333,7 +333,7 @@ void Halo::recvPositions(int& fromRank, size_t& count, size_t& disp, size_t& rec
     };
 
     const bool isCornerOverTripolarTopEdge
-        = m_tripolarFold && (corner == Corner::TOP_LEFT || corner == Corner::TOP_RIGHT);
+        = hasTripolarFold && (corner == Corner::TOP_LEFT || corner == Corner::TOP_RIGHT);
 
     if (isVertex) {
         count = 1;
@@ -419,7 +419,7 @@ void Halo::populateRecvBuffers()
 void Halo::rotateTopEdgeInBuffer()
 {
     // Protect against control flow errors.
-    if (!m_tripolarFold) {
+    if (!hasTripolarFold) {
         throw std::runtime_error(
             "rotateTopEdgeInBuffer called on rank that does not need tripolar fold");
     }
@@ -482,7 +482,7 @@ void Halo::rotateTopEdgeInBuffer()
     const std::size_t topEdgeStart = recvPosFromEdge(Edge::TOP);
     const std::size_t topEdgeEnd = recvPosFromEdge(Edge::LEFT);
     for (std::size_t comp = 0; comp < m_numComps; ++comp) {
-        const auto correction = m_tripolarComponentCorrection.at(comp);
+        const auto correction = tripolarComponentCorrection.at(comp);
         for (std::size_t cell = 0; cell < nCells; ++cell) {
             const std::size_t blockOffset = cell * buffer_len;
             for (std::size_t i = topEdgeStart; i < topEdgeEnd; ++i) {
@@ -499,7 +499,7 @@ void Halo::rotateTopEdgeInBuffer()
             continue;
         }
         for (std::size_t comp = 0; comp < m_numComps; ++comp) {
-            const auto correction = m_tripolarComponentCorrection.at(comp);
+            const auto correction = tripolarComponentCorrection.at(comp);
             for (std::size_t cell = 0; cell < nCells; ++cell) {
                 int fromRank;
                 std::size_t count, disp_ignore, recvOffset;

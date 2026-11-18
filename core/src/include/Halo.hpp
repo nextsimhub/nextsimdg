@@ -132,7 +132,7 @@ public:
         m_numComps = ma.nComponents();
         isVertex = ma.getType() == ModelArray::Type::VERTEX;
         setTripolarFlags();
-        m_tripolarComponentCorrection = HaloExchange::rotate180ComponentCorrections(ma.getType());
+        tripolarComponentCorrection = HaloExchange::rotate180ComponentCorrections(ma.getType());
         setSpatialDims();
         initializeHaloMetadata();
     }
@@ -155,7 +155,7 @@ public:
     {
         m_numComps = N;
         setTripolarFlags();
-        m_tripolarComponentCorrection
+        tripolarComponentCorrection
             = HaloExchange::rotate180ComponentCorrections(ModelArray::Type::DG);
         setSpatialDims();
         initializeHaloMetadata();
@@ -178,11 +178,11 @@ public:
         setTripolarFlags();
         switch (orientation) {
         case Orientation::Scalar:
-            m_tripolarComponentCorrection = { 1.0 };
+            tripolarComponentCorrection = { 1.0 };
             break;
         case Orientation::HorizontalComponent:
         case Orientation::VerticalComponent:
-            m_tripolarComponentCorrection = { -1.0 };
+            tripolarComponentCorrection = { -1.0 };
             break;
         default:
             throw std::invalid_argument("Unrecognised orientation");
@@ -270,9 +270,9 @@ private:
     size_t sendBufferSize = 0;
     size_t recvBufferSize = 0;
 
-    bool m_tripolarFold = false; // does this rank need tripolar fold treatment
+    bool hasTripolarFold = false; // does this rank need tripolar fold treatment
     std::vector<FloatType>
-        m_tripolarComponentCorrection; // component correction factors for tripolar fold
+        tripolarComponentCorrection; // component correction factors for tripolar fold
 
     std::vector<std::vector<FloatType>>
         send; // buffer to store halo region that will be read by other ranks
@@ -609,7 +609,7 @@ public:
     {
         populateSendBuffers(target);
         populateRecvBuffers();
-        if (m_tripolarFold) {
+        if (hasTripolarFold) {
             rotateTopEdgeInBuffer();
         }
         if (isCG) {

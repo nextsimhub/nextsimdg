@@ -61,8 +61,8 @@ ModelMetadata::ModelMetadata(std::string partitionFile)
     }
     getPartitionMetadata(partitionFile);
 
-    m_tripolarFold
-        = m_tripolarTopology && rankTouchesTopEdge(globalExtentY, localCornerY, localExtentY);
+    hasTripolarFold
+        = tripolarTopology && rankTouchesTopEdge(globalExtentY, localCornerY, localExtentY);
     static bool doneOnce = doOnce();
     isInitialized = true;
 }
@@ -159,7 +159,7 @@ void ModelMetadata::getPartitionMetadata(std::string partitionFile)
         if (!tripolarAtt.isNull()) {
             int tripolarValue = 0;
             tripolarAtt.getValues(&tripolarValue);
-            m_tripolarTopology = (tripolarValue != 0);
+            tripolarTopology = (tripolarValue != 0);
         }
 
         auto& modelMPI = ModelMPI::getInstance();
