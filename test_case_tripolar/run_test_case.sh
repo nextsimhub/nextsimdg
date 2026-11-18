@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #SBATCH --account=ICCS-SL2-CPU
 #SBATCH --partition=icelake
-#SBATCH --ntasks=32
+#SBATCH --ntasks=8
 #SBATCH --time=12:00:00
 
 set -euo pipefail
