@@ -9,7 +9,6 @@
 #include <array>
 #include <cassert>
 #include <cstddef>
-#include <optional>
 
 #include "NextsimDynamics.hpp"
 #include "include/ModelArray.hpp"
@@ -67,7 +66,7 @@ public:
      * if no landmask is given, all  elements are ice
      */
     std::vector<bool> landmask;
-    std::vector<std::optional<FloatType>> cellsize;
+    std::vector<FloatType> cellsize;
 
     ParametricMesh(const COORDINATES coords, int loglevel = -1)
         : CoordinateSystem(coords)
@@ -112,7 +111,12 @@ public:
      * changes from [-180,180] to [-pi,pi] and [-90,90] to [-pi/2,pi/2]
      * NO CHECKING IF REQUIRED!
      */
-    void TransformToRadians() { vertices *= M_PI / 180.0; }
+    void TransformToRadians()
+    {
+        vertices *= M_PI / 180.0;
+        cellsize.clear();
+	precalculate_area();
+    }
 
     /*!
      * Rotates the mesh such that the singularities are in Greenland / Antarctica at
@@ -138,6 +142,8 @@ public:
             vertices(i, 1) = asin(z2);
             vertices(i, 0) = atan2(y2, x2);
         }
+	cellsize.clear();
+	precalculate_area();
     }
 
     //! Rotation back to normal
@@ -162,6 +168,8 @@ public:
             vertices(i, 1) = asin(z2);
             vertices(i, 0) = atan2(y2, x2);
         }
+        cellsize.clear();
+	precalculate_area();
     }
 
     /*!

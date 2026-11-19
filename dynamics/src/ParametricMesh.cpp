@@ -169,6 +169,9 @@ void ParametricMesh::readmesh(std::string fname)
                   << "             " << nelements << " elements,  " << nnodes << " nodes"
                   << std::endl;
     }
+
+    cellsize.clear();
+    precalculate_area();
 }
 
 /*!
@@ -190,6 +193,8 @@ void ParametricMesh::coordinatesFromModelArray(const ModelArray& coords)
         vertices(idx, 0) = coords.components(idx)[0];
         vertices(idx, 1) = coords.components(idx)[1];
     }
+    cellsize.clear();
+    precalculate_area();
 }
 
 /*!
@@ -203,6 +208,7 @@ void ParametricMesh::landmaskFromModelArray(const ModelArray& mask)
     for (size_t idx = 0; idx < mask.trueSize(); ++idx) {
         landmask[idx] = (mask[idx] == 1.);
     }
+
 }
 
 /*!
@@ -222,6 +228,16 @@ FloatType ParametricMesh::hmin() const
  */
 FloatType ParametricMesh::area(const size_t eid) const
 {
+    assert(eid < cellsize.size());
+    return cellsize[eid];
+    
+}
+/*!
+ * Fills cellsize vector with area values
+ */
+void ParametricMesh::precalculate_area()
+{
+
     // The element area is computed by transforming the reference element K = [0,1]^2 onto the
     // element T. Hence, Area(T) = \int_T dx = \int_K J(z) dz
     // The integral is computed with Gauss-Quadrature
@@ -232,33 +248,21 @@ FloatType ParametricMesh::area(const size_t eid) const
     // Machine precision is only achieved for 3 GP. I propose to use only two, which still gives
     // 10^-9 rel. error.
 
-    if (cellsize[eid].has_value()){
-        return cellsize[eid].value();
-    }
-    else{
-    if (CoordinateSystem == CARTESIAN) {
-        return (ParametricTools::J<1>((*this), eid).array() * GAUSSWEIGHTS<1>.array()).sum();
-    } else if (CoordinateSystem == SPHERICAL) {
-        // In spherical coordinates cosine of the latitude and the square of the radius must be
-        // added
-        return (ParametricTools::J<2>((*this), eid).array() * GAUSSWEIGHTS<2>.array()
-                   * (ParametricTools::getGaussPointsInElement<2>((*this), eid).row(1).array())
-                         .cos())
-                   .sum()
-            * EarthRadius * EarthRadius;
-    } else
-        abort();
-    }
-}
-
-/*!
- * Fills cellsize vector with area values
- */
-void ParametricMesh::precalculate_area()
-{
-    for (size_t i = 0; i < nelements; ++i){
-        cellsize[i] = area(i);
-    } 
+    cellsize.resize(nelements);
+    for (size_t eid = 0; eid < nelements; ++eid){ 
+	if (CoordinateSystem == CARTESIAN) {
+            cellsize[eid] = (ParametricTools::J<1>((*this), eid).array() * GAUSSWEIGHTS<1>.array()).sum();
+        } else if (CoordinateSystem == SPHERICAL) {
+            // In spherical coordinates cosine of the latitude and the square of the radius must be
+            // added
+            cellsize[eid] = (ParametricTools::J<2>((*this), eid).array() * GAUSSWEIGHTS<2>.array()
+                       * (ParametricTools::getGaussPointsInElement<2>((*this), eid).row(1).array())
+                             .cos())
+                       .sum()
+                * EarthRadius * EarthRadius;
+        } else
+            abort();
+    }	
 }
 
 /*!
