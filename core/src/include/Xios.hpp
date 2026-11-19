@@ -85,6 +85,7 @@ public:
         DIAGNOSTIC_FIELD_NAMES_KEY,
         ERA5_FORCING_FILE_KEY,
         TOPAZ_FORCING_FILE_KEY,
+        CONFIG_DUMP_FILE_KEY,
     };
 
 protected:
@@ -236,6 +237,7 @@ private:
     /* I/O */
     void read(const std::string& fieldId, ModelArray& modelarray);
     void write(const std::string& fieldId, const ModelArray& modelarray);
+    void dumpXmlContext(std::ostream& os);
 
     /* Declare any classes that need to access private members */
     friend ParaGridIO;
