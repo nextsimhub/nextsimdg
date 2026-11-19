@@ -19,6 +19,7 @@
 
 #include "StructureModule/include/ParametricGrid.hpp"
 #include "include/Finalizer.hpp"
+#include "include/Logged.hpp"
 #include "include/ModelMPI.hpp"
 #include "include/ModelMetadata.hpp"
 #include "include/ParallelNetcdfFile.hpp"
@@ -28,6 +29,7 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/format.hpp>
 #include <boost/format/group.hpp>
+#include <context.hpp>
 #include <filesystem>
 #include <include/xios_c_interface.hpp>
 #include <iostream>
@@ -56,7 +58,8 @@ static const std::map<int, std::string> keyMap = { { Xios::ENABLED_KEY, "xios.en
     // TODO: Avoid having to parse diagnostic fields for XIOS specifically (#981)
     { Xios::DIAGNOSTIC_FIELD_NAMES_KEY, xDiagnosticPfx + ".field_names" },
     { Xios::ERA5_FORCING_FILE_KEY, "ERA5Atmosphere.file" },
-    { Xios::TOPAZ_FORCING_FILE_KEY, "TOPAZOcean.file" } };
+    { Xios::TOPAZ_FORCING_FILE_KEY, "TOPAZOcean.file" },
+    { Xios::CONFIG_DUMP_FILE_KEY, xDiagnosticPfx + ".context_dump_file" } };
 
 Xios::HelpMap& Xios::getHelpText(HelpMap& map, bool getAll)
 {
@@ -77,6 +80,8 @@ Xios::HelpMap& Xios::getHelpText(HelpMap& map, bool getAll)
         { keyMap.at(DIAGNOSTIC_FIELD_NAMES_KEY), ConfigType::STRING, {}, "", "",
             "Comma-separated list of field names to be read from the diagnostics "
             "file." },
+        { keyMap.at(CONFIG_DUMP_FILE_KEY), ConfigType::STRING, {}, "", "",
+            "Name of the file to dump full XIOS XML context definition (skipped if empty)" },
     };
     map["ERA5Atmosphere"] = {
         { keyMap.at(ERA5_FORCING_FILE_KEY), ConfigType::STRING, {}, "", "",
@@ -224,6 +229,15 @@ void Xios::close_context_definition()
         }
 
         cxios_context_close_definition();
+
+        if (const std::string filename
+            = Configured::getConfiguration(keyMap.at(CONFIG_DUMP_FILE_KEY), std::string());
+            !filename.empty()) {
+            std::ofstream os(filename);
+            dumpXmlContext(os);
+            os.close();
+        }
+
         contextStatus = DEFINITION_CLOSED;
     }
 }
@@ -1759,6 +1773,34 @@ void Xios::read(const std::string& fieldId, ModelArray& modelarray)
                                     "DGSFields, and CGFields are supported");
     }
 }
+
+/*!
+ * Dump the in-memory XIOS context definition as XML to an output stream.
+ *
+ *
+ * @param os Output stream to write the XML to.
+ */
+void Xios::dumpXmlContext(std::ostream& os)
+{
+    if (!isEnabled) {
+        Logged::warning("Xios::dumpXmlContext: XIOS is not enabled, skipping XML context dump");
+        return;
+    }
+
+    xios::CContext* context = nullptr;
+    cxios_context_get_current(&context);
+    if (!context) {
+        Logged::warning(
+            "Xios::dumpXmlContext: Failed to retrive current context, skipping XML context dump");
+        return;
+    }
+
+    os << "<?xml version=\"1.0\"?>\n"
+       << "<simulation>\n"
+       << context->toString() << "\n"
+       << "</simulation>\n";
 }
+
+} // namespace Nextsim
 
 #endif
