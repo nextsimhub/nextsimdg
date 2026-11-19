@@ -74,6 +74,14 @@ TEST_CASE("Test area cartesian")
     }
     // total area must match domain dimension up to machine accuracy
     REQUIRE(std::abs(1 - totalarea / exact) < eps);
+
+    // Check if cellsizes are correct
+    smesh.cellsize.clear();
+    smesh.precalculate_area();
+    REQUIRE(smesh.cellsize.size() == smesh.nelements); // Length of cellsize array check
+    for (size_t i = 0; i < nelements; ++i){
+        REQUIRE(smesh.cellsize[i] == (dx/nx) * (dy/ny)); // Check each element of array
+    }
 }
 
 TEST_CASE("Test area spherical")
