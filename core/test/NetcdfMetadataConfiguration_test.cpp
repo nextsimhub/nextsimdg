@@ -12,7 +12,6 @@
 #include <ncVar.h>
 
 #include <cstdio>
-#include <filesystem>
 #include <sstream>
 #include <string>
 
@@ -21,7 +20,7 @@ namespace Nextsim {
 struct RAIITempFile {
     std::string filename;
     RAIITempFile()
-        : filename(std::tmpnam(nullptr))
+        : filename("NetcdfMetadataConfiguration_test_init_file.nc")
     {
     }
     ~RAIITempFile() { std::remove(filename.c_str()); }
