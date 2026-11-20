@@ -12,8 +12,6 @@
 #include "include/constants.hpp"
 #include "kokkos/include/KokkosTimer.hpp"
 
-#include <memory>
-
 namespace Nextsim {
 
 FloatType FiniteElementFluxes::dragOcean_q;
@@ -125,24 +123,24 @@ FiniteElementFluxes::HelpMap& FiniteElementFluxes::getHelpRecursive(HelpMap& map
 /*************************************************************/
 // Drag coefficient from Gill(1982) / Smith (1980)
 // Could be replaced by a  module ... but we'll probably never do that
-KERNEL_IMPL_FUNCTION static FloatType dragOcean_m(FloatType windSpeed)
+KERNEL_IMPL_FUNCTION static FloatType dragOcean_m(const FloatType windSpeed)
 {
-    return 1e-3 * Utils::max(1., Utils::min(2., 0.61 + 0.063 * windSpeed));
+    return 1e-3_ft * Utils::max(1_ft, Utils::min(2_ft, 0.61_ft + 0.063_ft * windSpeed));
 }
 
-KERNEL_IMPL_FUNCTION static FloatType latentHeatWater(FloatType temperature)
+KERNEL_IMPL_FUNCTION static FloatType latentHeatWater(const FloatType temperature)
 {
     // Polynomial approximation expressed using Horner's scheme
     return Water::Lv0
-        + temperature * (-2.36418e3 + temperature * (1.58927 + temperature * (-6.14342e-2)));
+        + temperature * (-2.36418e3_ft + temperature * (1.58927_ft - 6.14342e-2_ft * temperature));
 }
 
-KERNEL_IMPL_FUNCTION static FloatType latentHeatIce(FloatType temperature)
+KERNEL_IMPL_FUNCTION static FloatType latentHeatIce(const FloatType temperature)
 {
-    return Water::Lv0 + Water::Lf - 240. + temperature * (-290. + temperature * (-4.));
+    return Water::Lv0 + Water::Lf - 240 + temperature * (-290 + temperature * (-4));
 }
 
-KERNEL_IMPL_FUNCTION static FloatType stefanBoltzmannLaw(FloatType temperatureC)
+KERNEL_IMPL_FUNCTION static FloatType stefanBoltzmannLaw(const FloatType temperatureC)
 {
     return Ice::epsilon * PhysicalConstants::sigma * Utils::pow(kelvin(temperatureC), 4);
 }
@@ -188,7 +186,7 @@ void FiniteElementFluxes::updateAtmosphere(const TimestepTime& tst)
         sh_ice[i] = shIce;
         dshice_dT[i] = dshIceDT;
         // Density of the wet air
-        FloatType Ra_wet = Air::Ra / (1 - sh_air[i] * (1 - Vapour::Ra / Air::Ra));
+        const FloatType Ra_wet = Air::Ra / (1 - sh_air[i] * (1 - Vapour::Ra / Air::Ra));
         rho_air[i] = p_air[i] / (Ra_wet * kelvin(t_air[i]));
         // Heat capacity of the wet air
         cp_air[i] = Air::cp + sh_air[i] * Vapour::cp;
@@ -260,10 +258,8 @@ void FiniteElementFluxes::updateIce(const TimestepTime& tst)
     auto& Q_sw_base = Q_sw_baseAccessor.getAutoRW(execSpace);
     auto& Q_sw_ia = Q_sw_iaAccessor.getAutoRW(execSpace);
     auto& Q_sh_ia = Q_sh_iaAccessor.getAutoRW(execSpace);
-    const auto& cice = ciceAccessor.getAutoRO(execSpace);
     const auto& cp_air = cp_airAccessor.getAutoRO(execSpace);
     const auto& dshice_dT = dshice_dTAccessor.getAutoRO(execSpace);
-    const auto& hsnow = hsnowAccessor.getAutoRO(execSpace);
     const auto& lw_in = lw_inAccessor.getAutoRO(execSpace);
     const auto& rho_air = rho_airAccessor.getAutoRO(execSpace);
     const auto& sh_air = sh_airAccessor.getAutoRO(execSpace);
@@ -287,24 +283,24 @@ void FiniteElementFluxes::updateIce(const TimestepTime& tst)
         // Heat flux ice-atmosphere
         // Latent heat from sublimation
         Q_lh_ia[i] = subl[i] * latentHeatIce(tsurf[i]);
-        FloatType dmdot_dT = dragIce_t * rho_air[i] * windSpeed[i] * dshice_dT[i];
-        FloatType dQlh_dT = latentHeatIce(tsurf[i]) * dmdot_dT;
+        const FloatType dmdot_dT = dragIce_t * rho_air[i] * windSpeed[i] * dshice_dT[i];
+        const FloatType dQlh_dT = latentHeatIce(tsurf[i]) * dmdot_dT;
 
         // Sensible heat flux
         Q_sh_ia[i] = dragIce_t * rho_air[i] * cp_air[i] * windSpeed[i] * (tsurf[i] - t_air[i]);
-        FloatType dQsh_dT = dragIce_t * rho_air[i] * cp_air[i] * windSpeed[i];
+        const FloatType dQsh_dT = dragIce_t * rho_air[i] * cp_air[i] * windSpeed[i];
 
         // Shortwave flux
         const FloatType albedoValue = iceAlbedo[i];
         const FloatType i0 = icePenSW[i];
-        Q_sw_ia[i] = -sw_in[i] * (1. - albedoValue) * (1. - i0);
-        const FloatType extinction = 0.; // TODO: Replace with de Beer's law or a module
-        penSW[i] = sw_in[i] * (1. - albedoValue) * i0 * (1. - extinction);
-        Q_sw_base[i] = sw_in[i] * (1. - albedoValue) * i0 * extinction;
+        Q_sw_ia[i] = -sw_in[i] * (1 - albedoValue) * (1 - i0);
+        constexpr FloatType extinction = 0.; // TODO: Replace with de Beer's law or a module
+        penSW[i] = sw_in[i] * (1 - albedoValue) * i0 * (1 - extinction);
+        Q_sw_base[i] = sw_in[i] * (1 - albedoValue) * i0 * extinction;
 
         // Longwave flux
         Q_lw_ia[i] = stefanBoltzmannLaw(tsurf[i]) - lw_in[i];
-        FloatType dQlw_dT = 4 / kelvin(tsurf[i]) * stefanBoltzmannLaw(tsurf[i]);
+        const FloatType dQlw_dT = 4 / kelvin(tsurf[i]) * stefanBoltzmannLaw(tsurf[i]);
 
         // Total flux
         qia[i] = Q_lh_ia[i] + Q_sh_ia[i] + Q_sw_ia[i] + Q_lw_ia[i];
