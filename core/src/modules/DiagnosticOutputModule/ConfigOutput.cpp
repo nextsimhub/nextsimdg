@@ -230,7 +230,11 @@ void ConfigOutput::outputState(const ModelState& diagState)
         && (everyTS || std::fmod(timeSinceOutput.seconds(), outputPeriod.seconds()) == 0.0_ft)) {
         Logged::info("ConfigOutput: Outputting " + std::to_string(state.data.size()) + " fields to "
             + currentFileName + " at " + meta.time().format() + "\n");
-
+#ifdef USE_XIOS
+        //meta.affixCoordinates(state);
+        StructureFactory::fileFromState(state, currentFileName, false);
+        lastOutput = meta.time();
+#else
         // Mask and toss out the higher order DG components
         ModelState outputState = { .data = {}, .config = state.config };
         for (const auto& [key, arrayRef] : state.data) {
@@ -254,6 +258,7 @@ void ConfigOutput::outputState(const ModelState& diagState)
         meta.affixCoordinates(outputState);
         StructureFactory::fileFromState(outputState, currentFileName, false);
         lastOutput = meta.time();
+#endif
     }
 }
 
