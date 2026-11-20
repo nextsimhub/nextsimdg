@@ -137,7 +137,5 @@ void ConfiguredOcean::updateAfter(const TimestepTime& tst)
 {
     mergeFluxes(tst);
     slabOcean.update(tst);
-    sstAccessor.getAutoRW().assignData(sstSlabAccessor.getAutoRO());
-    sssAccessor.getAutoRW().assignData(sssSlabAccessor.getAutoRO());
 }
 } /* namespace Nextsim */

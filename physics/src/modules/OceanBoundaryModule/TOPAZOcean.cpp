@@ -27,8 +27,6 @@ static const std::map<int, std::string> keyMap = {
 TOPAZOcean::TOPAZOcean()
     : sstExtAccessor(getStore(), RO, ModelArray::Type::H, std::pair(-5.0, 50.0))
     , sssExtAccessor(getStore(), RO, ModelArray::Type::H, std::pair(0.0, 50.0))
-    , sstSlabAccessor(getStore())
-    , sssSlabAccessor(getStore())
     , slabOcean(m_couplingArrays)
 {
 }
@@ -99,9 +97,6 @@ void TOPAZOcean::updateAfter(const TimestepTime& tst)
 {
     mergeFluxes(tst);
     slabOcean.update(tst);
-
-    sstAccessor.getAutoRW().assignData(sstSlabAccessor.getAutoRO());
-    sssAccessor.getAutoRW().assignData(sssSlabAccessor.getAutoRO());
 
     try {
         checkFields();

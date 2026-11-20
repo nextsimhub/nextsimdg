@@ -11,7 +11,14 @@ namespace Nextsim {
  */
 using FloatType = NEXTSIM_FLOAT_TYPE;
 
-KERNEL_IMPL_FUNCTION constexpr FloatType operator""_ft(long double v) { return FloatType(v); }
+KERNEL_IMPL_FUNCTION constexpr FloatType operator""_ft(const long double v)
+{
+    return static_cast<FloatType>(v);
+}
+KERNEL_IMPL_FUNCTION constexpr FloatType operator""_ft(const unsigned long long v)
+{
+    return static_cast<FloatType>(v);
+}
 
 } /* namespace Nextsim */
 
