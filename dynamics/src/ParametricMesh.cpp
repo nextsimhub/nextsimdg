@@ -199,7 +199,7 @@ void ParametricMesh::coordinatesFromModelArray(const ModelArray& coords)
  * @param coord2 y in metres or latitude in radians
  */
 void ParametricMesh::coordinatesFromVectors(const std::vector<size_t>& dims,
-    const std::vector<FloatType>& coord1, const std::vector<FloatType>& coord2)
+    const std::vector<double>& coord1, const std::vector<double>& coord2)
 {
     // Fill in the array sizes from the ModelArray dimensions
     nx = dims[0] - 1;
@@ -215,8 +215,8 @@ void ParametricMesh::coordinatesFromVectors(const std::vector<size_t>& dims,
     }
 
     for (size_t idx = 0; idx < nnodes; ++idx) {
-        vertices(idx, 0) = coord1[idx];
-        vertices(idx, 1) = coord2[idx];
+        vertices(idx, 0) = static_cast<FloatType>(coord1[idx]);
+        vertices(idx, 1) = static_cast<FloatType>(coord2[idx]);
     }
 }
 

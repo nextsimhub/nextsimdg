@@ -123,7 +123,7 @@ private:
 
     // Project {lon, lat} onto the orthographic coordinates {x,y} with {lon0, lat0} at its centre.
     static void orthographicProjection(
-        double lon, double lat, double lon0, double lat0, FloatType& x, FloatType& y);
+        double lon, double lat, FloatType lon0, FloatType lat0, FloatType& x, FloatType& y);
 
     /* Do a quick axis-aligned bounding box check to see if a point is (probably) in the grid cell.
      * This is a necessary condition, not a sufficient one.
