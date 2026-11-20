@@ -89,7 +89,7 @@ public:
         nelements = -1;
         periodic.clear();
         landmask.clear();
-	cellsize.clear();
+	    cellsize.clear();
     }
 
     /*!
@@ -115,7 +115,7 @@ public:
     {
         vertices *= M_PI / 180.0;
         cellsize.clear();
-	precalculate_area();
+	    precalculate_area();
     }
 
     /*!
@@ -142,8 +142,8 @@ public:
             vertices(i, 1) = asin(z2);
             vertices(i, 0) = atan2(y2, x2);
         }
-	cellsize.clear();
-	precalculate_area();
+	    cellsize.clear();
+        precalculate_area();
     }
 
     //! Rotation back to normal
@@ -169,7 +169,7 @@ public:
             vertices(i, 0) = atan2(y2, x2);
         }
         cellsize.clear();
-	precalculate_area();
+	    precalculate_area();
     }
 
     /*!
