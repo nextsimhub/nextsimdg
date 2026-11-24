@@ -45,7 +45,7 @@ void GeoreferencedInput::initialise(const TimePoint& time, const std::string& pa
      *  - Calculate a reduced domain
      *  - Re-read the lon/lat coordinates
      * Now, everything should just work on the reduced coordinates. This reduces memory usage, and
-     * is also good for MPI).
+     * is also good for MPI.
      */
     readDims();
     forcingLonLats = readRawData<double>(currentTime, { ncLatName, ncLonName });
@@ -194,7 +194,7 @@ ModelArray GeoreferencedInput::getField(const std::string& fieldName) const
     ma.reinitialize();
 
     // Just a linear interpolation between forcing data time steps.
-    const FloatType frac = static_cast<FloatType>((currentTime - timeRange.before).seconds()
+    const auto frac = static_cast<FloatType>((currentTime - timeRange.before).seconds()
         / (timeRange.after - timeRange.before).seconds());
 
     auto& before = forcingStateBefore.data.at(fieldName);
@@ -553,8 +553,8 @@ void GeoreferencedInput::orthographicProjection(const double lon, const double l
 
     // If the point is outside the projected area, then we move it to the map edge
     if (const double c = sinPhi0 * sinPhi - cosPhi0 * cosPhi * cosDeltaLambda; std::cos(c) < 0.) {
-        x = std::copysign(1_ft, x);
-        y = std::copysign(1_ft, y);
+        x = std::copysign(1., x);
+        y = std::copysign(1., y);
     }
 }
 
