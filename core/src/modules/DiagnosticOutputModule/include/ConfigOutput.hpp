@@ -33,7 +33,6 @@ public:
         SNAPSHOT_KEY,
         FIELDNAMES_KEY,
         FILENAME_KEY,
-        FILEPERIOD_KEY,
         ORIENTATION_KEY,
     };
 
@@ -61,9 +60,6 @@ private:
     std::set<std::string> fieldsForOutput;
     std::string currentFileName;
 
-    TimePoint lastFileChange;
-    Duration fileChangePeriod;
-
     static const std::string all;
     static const std::string defaultLastOutput;
 
@@ -75,6 +71,8 @@ private:
     std::vector<std::pair<std::string, std::string>> vectors
         = { { uName, vName }, { uWindName, vWindName }, { uOceanName, vOceanName } };
     std::unique_ptr<VectorRotator> rotator;
+
+    ModelState state = {};
 };
 
 } /* namespace Nextsim */
