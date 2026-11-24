@@ -84,7 +84,7 @@ private:
     } timeRange;
 
     // Weights and coordinate pointers for the bi-linear interpolation
-    ModelArray xi, eta;
+    std::vector<double> xi, eta;
     std::vector<size_t> ij00, ij01, ij10, ij11;
 
     // Some (hopefully) self explanatory state variables
@@ -123,22 +123,22 @@ private:
 
     // Project {lon, lat} onto the orthographic coordinates {x,y} with {lon0, lat0} at its centre.
     static void orthographicProjection(
-        double lon, double lat, FloatType lon0, FloatType lat0, FloatType& x, FloatType& y);
+        double lon, double lat, FloatType lon0, FloatType lat0, double& x, double& y);
 
     /* Do a quick axis-aligned bounding box check to see if a point is (probably) in the grid cell.
      * This is a necessary condition, not a sufficient one.
      */
     [[nodiscard]] static bool pointInBoundingBox(
-        const std::vector<FloatType>& xCorners, const std::vector<FloatType>& yCorners);
+        const std::vector<double>& xCorners, const std::vector<double>& yCorners);
 
     /* Find the local coordinates and weights {xi, eta} for a bi-linear interpolation on a
      * curvilinear grid
      */
-    [[nodiscard]] bool findLocalCoordinates(size_t k, FloatType x00, FloatType y00, FloatType x10,
-        FloatType y10, FloatType x01, FloatType y01, FloatType x11, FloatType y11);
+    [[nodiscard]] bool findLocalCoordinates(size_t k, double x00, double y00, double x10,
+        double y10, double x01, double y01, double x11, double y11);
 
     // Apply the weights to do a bi-linear interpolation
-    [[nodiscard]] ModelState interpolateSpatially(const RawDataMap<FloatType>& rawData);
+    [[nodiscard]] ModelState interpolateSpatially(const RawDataMap<FloatType>& rawData) const;
 
     // Rotate the vectors from the input to model grid
     void rotateInputVectors(RawDataMap<FloatType>& rawData);
@@ -152,7 +152,7 @@ private:
         const TimePoint& time, const std::set<std::string>& fields, size_t timeIndex = 0) const;
 
     // Wrap longitudes, so that lon0 is the largest value (usually either [-180 180] or [0 360]
-    [[nodiscard]] static FloatType wrapLon(const FloatType lon, const FloatType lon0 = 0.)
+    [[nodiscard]] static FloatType wrapLon(const double lon, const double lon0 = 0.)
     {
         // Shift the value relative to the lower bound so the range starts at 0
         const FloatType shifted = lon - lon0;

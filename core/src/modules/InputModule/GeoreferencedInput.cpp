@@ -194,27 +194,27 @@ ModelArray GeoreferencedInput::getField(const std::string& fieldName) const
     ma.reinitialize();
 
     // Just a linear interpolation between forcing data time steps.
-    const FloatType frac = (currentTime - timeRange.before).seconds()
-        / (timeRange.after - timeRange.before).seconds();
+    const FloatType frac = static_cast<FloatType>((currentTime - timeRange.before).seconds()
+        / (timeRange.after - timeRange.before).seconds());
 
     auto& before = forcingStateBefore.data.at(fieldName);
     auto& after = forcingStateAfter.data.at(fieldName);
 #pragma omp parallel for
     for (size_t i = 0; i < ma.size(); ++i)
-        ma[i] = frac * after[i] + (1. - frac) * before[i];
+        ma[i] = frac * after[i] + (1 - frac) * before[i];
     return ma;
 }
 
 void GeoreferencedInput::setWeights()
 {
     // Initialise the size of the weights and indexes
-    xi.reinitialize();
-    eta.reinitialize();
+    xi.resize(modelLons.size());
+    eta.resize(modelLons.size());
 
-    ij00.resize(xi.size());
-    ij01.resize(xi.size());
-    ij10.resize(xi.size());
-    ij11.resize(xi.size());
+    ij00.resize(modelLons.size());
+    ij01.resize(modelLons.size());
+    ij10.resize(modelLons.size());
+    ij11.resize(modelLons.size());
 
     // Different methods for Mercator maps and curvilinear grids
     if (lonLat1D)
@@ -238,7 +238,7 @@ void GeoreferencedInput::setWeights1D()
     }
 
     // Careful to wrap the longitudes of the model the same as that of the data
-    const FloatType lon0 = *std::min_element(forcingLons.begin(), forcingLons.end());
+    const double lon0 = *std::min_element(forcingLons.begin(), forcingLons.end());
 
 #pragma omp parallel for
     for (size_t i = 0; i < modelLons.size(); ++i) {
@@ -248,8 +248,8 @@ void GeoreferencedInput::setWeights1D()
          * but R and \cos(\phi) cancel out */
 
         // This is the target. It can be FloatType, because we don't use any trigometric functions
-        const FloatType x = wrapLon(modelLons[i], lon0);
-        const FloatType y = modelLats[i];
+        const double x = wrapLon(modelLons[i], lon0);
+        const double y = modelLats[i];
 
         // Find the bounding box
         size_t bLon
@@ -273,10 +273,10 @@ void GeoreferencedInput::setWeights1D()
         bLon %= forcingLons.size();
 
         // Now for the weights
-        const FloatType x1 = forcingLons[aLon];
-        const FloatType x2 = forcingLons[bLon];
-        const FloatType y1 = forcingLats[aLat];
-        const FloatType y2 = forcingLats[bLat];
+        const double x1 = forcingLons[aLon];
+        const double x2 = forcingLons[bLon];
+        const double y1 = forcingLats[aLat];
+        const double y2 = forcingLats[bLat];
 
         xi[i] = wrapLon(x - x1, lon0) / wrapLon(x2 - x1, lon0);
         eta[i] = (y - y1) / (y2 - y1);
@@ -347,7 +347,7 @@ void GeoreferencedInput::findCellByWalking(
         /* Project the corner points onto an orthographic projection, centred on the target. We do
          * the rest of the work in {x,y} coordinates. The target {x,y} is now always at the origin.
          */
-        FloatType x00, y00, x10, y10, x01, y01, x11, y11;
+        double x00, y00, x10, y10, x01, y01, x11, y11;
         orthographicProjection(
             forcingLons[ij00[k]], forcingLats[ij00[k]], targetLon, targetLat, x00, y00);
         orthographicProjection(
@@ -361,20 +361,19 @@ void GeoreferencedInput::findCellByWalking(
          * locally). */
 
         // Coordinates-of-element matrix in a 00-10-01-11 order as in ParametricMesh
-        const Eigen::Matrix<FloatType, 2, 4> coe(
-            { { x00, x10, x01, x11 }, { y00, y10, y01, y11 } });
+        const Eigen::Matrix<double, 2, 4> coe({ { x00, x10, x01, x11 }, { y00, y10, y01, y11 } });
 
         // Connect the edge-midpoints to get the unit-vectors
-        const Eigen::Matrix<FloatType, 4, 1> ix({ -0.5, 0.5, -0.5, 0.5 });
-        const Eigen::Matrix<FloatType, 4, 1> iy({ -0.5, -0.5, 0.5, 0.5 });
+        const Eigen::Matrix<double, 4, 1> ix({ -0.5, 0.5, -0.5, 0.5 });
+        const Eigen::Matrix<double, 4, 1> iy({ -0.5, -0.5, 0.5, 0.5 });
 
         // Calculate unit vectors
-        const Eigen::Matrix<FloatType, 2, 1> ex = (coe * ix).normalized();
-        const Eigen::Matrix<FloatType, 2, 1> ey = (coe * iy).normalized();
+        const Eigen::Matrix<double, 2, 1> ex = (coe * ix).normalized();
+        const Eigen::Matrix<double, 2, 1> ey = (coe * iy).normalized();
 
         // Rotate the coordinates
-        auto rot = [ex, ey](FloatType& x, FloatType& y) -> void {
-            const Eigen::Matrix<FloatType, 2, 1> coordVec = ex * x + ey * y;
+        auto rot = [ex, ey](double& x, double& y) -> void {
+            const Eigen::Matrix<double, 2, 1> coordVec = ex * x + ey * y;
             x = coordVec(0);
             y = coordVec(1);
         };
@@ -384,10 +383,10 @@ void GeoreferencedInput::findCellByWalking(
         rot(x11, y11);
 
         // Test the four edges.
-        auto cross = [](const FloatType x0, const FloatType y0, const FloatType x1,
-                         const FloatType y1) -> FloatType { return x0 * y1 - y0 * x1; };
+        auto cross = [](const double x0, const double y0, const double x1,
+                         const double y1) -> double { return x0 * y1 - y0 * x1; };
 
-        const std::array<FloatType, 4> c = {
+        const std::array<double, 4> c = {
             cross(x10 - x00, y10 - y00, -x00, -y00), // bottom
             cross(x11 - x10, y11 - y10, -x10, -y10), // right
             cross(x01 - x11, y01 - y11, -x11, -y11), // top
@@ -401,7 +400,7 @@ void GeoreferencedInput::findCellByWalking(
          * finite machine precision, findLocalCoordinates may not agree. If that's the case, we
          * should continue searching.
          */
-        if (*it >= -10._ft * std::numeric_limits<FloatType>::epsilon())
+        if (*it >= -10._ft * std::numeric_limits<double>::epsilon())
             if (findLocalCoordinates(k, x00, y00, x10, y10, x01, y01, x11, y11))
                 return;
 
@@ -483,7 +482,7 @@ bool GeoreferencedInput::recursiveBisectSearch(const size_t k, const FloatType t
     /* Project the corner points onto an orthographic projection, centred on the target. We do the
      * rest of the work in {x,y} coordinates. The target {x,y} is now always at the origin.
      */
-    FloatType x00, y00, x10, y10, x01, y01, x11, y11;
+    double x00, y00, x10, y10, x01, y01, x11, y11;
     orthographicProjection(forcingLons[indexer(gridDims, { i, j })],
         forcingLats[indexer(gridDims, { i, j })], targetLon, targetLat, x00, y00);
     orthographicProjection(forcingLons[indexer(gridDims, { ii, j })],
@@ -534,17 +533,19 @@ bool GeoreferencedInput::recursiveBisectSearch(const size_t k, const FloatType t
 }
 
 void GeoreferencedInput::orthographicProjection(const double lon, const double lat,
-    const FloatType lon0, const FloatType lat0, FloatType& x, FloatType& y)
+    const FloatType lon0, const FloatType lat0, double& x, double& y)
 {
     /* Most of these are used twice, but not all. But anyway, it's easier to read like this, and the
      * compiler should optimise the excessive assignments out, right?
      */
-    const double cosPhi = std::cos(radians(lat));
-    const double cosPhi0 = std::cos(radians(lat0));
-    const double sinPhi = std::sin(radians(lat));
-    const double sinPhi0 = std::sin(radians(lat0));
-    const double cosDeltaLambda = std::cos(radians(lon - lon0));
-    const double sinDeltaLambda = std::sin(radians(lon - lon0));
+    auto rad = [](const double deg) -> double { return deg * M_PI / 180.0; };
+
+    const double cosPhi = std::cos(rad(lat));
+    const double cosPhi0 = std::cos(rad(lat0));
+    const double sinPhi = std::sin(rad(lat));
+    const double sinPhi0 = std::sin(rad(lat0));
+    const double cosDeltaLambda = std::cos(rad(lon - lon0));
+    const double sinDeltaLambda = std::sin(rad(lon - lon0));
 
     // Projected coordinates
     x = cosPhi * sinDeltaLambda;
@@ -552,27 +553,27 @@ void GeoreferencedInput::orthographicProjection(const double lon, const double l
 
     // If the point is outside the projected area, then we move it to the map edge
     if (const double c = sinPhi0 * sinPhi - cosPhi0 * cosPhi * cosDeltaLambda; std::cos(c) < 0.) {
-        x = std::copysign(1., x);
-        y = std::copysign(1., y);
+        x = std::copysign(1_ft, x);
+        y = std::copysign(1_ft, y);
     }
 }
 
 bool GeoreferencedInput::pointInBoundingBox(
-    const std::vector<FloatType>& xCorners, const std::vector<FloatType>& yCorners)
+    const std::vector<double>& xCorners, const std::vector<double>& yCorners)
 {
-    const FloatType xMin = *std::min_element(xCorners.begin(), xCorners.end());
-    const FloatType xMax = *std::max_element(xCorners.begin(), xCorners.end());
+    const double xMin = *std::min_element(xCorners.begin(), xCorners.end());
+    const double xMax = *std::max_element(xCorners.begin(), xCorners.end());
 
-    const FloatType yMin = *std::min_element(yCorners.begin(), yCorners.end());
-    const FloatType yMax = *std::max_element(yCorners.begin(), yCorners.end());
+    const double yMin = *std::min_element(yCorners.begin(), yCorners.end());
+    const double yMax = *std::max_element(yCorners.begin(), yCorners.end());
 
     // The target point is at the origin
     return 0. >= xMin && 0. <= xMax && 0. >= yMin && 0. <= yMax;
 }
 
-bool GeoreferencedInput::findLocalCoordinates(const size_t k, const FloatType x00,
-    const FloatType y00, const FloatType x10, const FloatType y10, const FloatType x01,
-    const FloatType y01, const FloatType x11, const FloatType y11)
+bool GeoreferencedInput::findLocalCoordinates(const size_t k, const double x00, const double y00,
+    const double x10, const double y10, const double x01, const double y01, const double x11,
+    const double y11)
 {
     /*
      * Cell corners:
@@ -594,7 +595,7 @@ bool GeoreferencedInput::findLocalCoordinates(const size_t k, const FloatType x0
      */
 
     // Initial guess.
-    // The center of the cell is usually a reasonable starting point.
+    // The centre of the cell is usually a reasonable starting point.
     xi[k] = 0.5;
     eta[k] = 0.5;
 
@@ -603,16 +604,16 @@ bool GeoreferencedInput::findLocalCoordinates(const size_t k, const FloatType x0
      */
     for (int iteration = 0; iteration < 20; ++iteration) {
         // What is the right tolerance for both single and double? I guess this is fine.
-        constexpr FloatType tolerance = 10 * std::numeric_limits<FloatType>::epsilon();
+        constexpr double tolerance = 10 * std::numeric_limits<double>::epsilon();
 
         // Bilinear mapping from local coordinates to physical coordinates.
-        const FloatType N00 = (1.0 - xi[k]) * (1.0 - eta[k]);
-        const FloatType N10 = xi[k] * (1.0 - eta[k]);
-        const FloatType N01 = (1.0 - xi[k]) * eta[k];
-        const FloatType N11 = xi[k] * eta[k];
+        const double N00 = (1 - xi[k]) * (1 - eta[k]);
+        const double N10 = xi[k] * (1 - eta[k]);
+        const double N01 = (1 - xi[k]) * eta[k];
+        const double N11 = xi[k] * eta[k];
 
-        const FloatType xp = N00 * x00 + N10 * x10 + N01 * x01 + N11 * x11;
-        const FloatType yp = N00 * y00 + N10 * y10 + N01 * y01 + N11 * y11;
+        const double xp = N00 * x00 + N10 * x10 + N01 * x01 + N11 * x11;
+        const double yp = N00 * y00 + N10 * y10 + N01 * y01 + N11 * y11;
 
         // Convergence test - target is at origin
         if (std::sqrt(xp * xp + yp * yp) < tolerance)
@@ -623,12 +624,12 @@ bool GeoreferencedInput::findLocalCoordinates(const size_t k, const FloatType x0
          * J = [                  ]
          *     [ dy/dxi   dy/deta ]
          */
-        const FloatType dx_dxi = (1.0 - eta[k]) * (x10 - x00) + eta[k] * (x11 - x01);
-        const FloatType dx_deta = (1.0 - xi[k]) * (x01 - x00) + xi[k] * (x11 - x10);
-        const FloatType dy_dxi = (1.0 - eta[k]) * (y10 - y00) + eta[k] * (y11 - y01);
-        const FloatType dy_deta = (1.0 - xi[k]) * (y01 - y00) + xi[k] * (y11 - y10);
+        const double dx_dxi = (1 - eta[k]) * (x10 - x00) + eta[k] * (x11 - x01);
+        const double dx_deta = (1 - xi[k]) * (x01 - x00) + xi[k] * (x11 - x10);
+        const double dy_dxi = (1 - eta[k]) * (y10 - y00) + eta[k] * (y11 - y01);
+        const double dy_deta = (1 - xi[k]) * (y01 - y00) + xi[k] * (y11 - y10);
 
-        const FloatType determinant = dx_dxi * dy_deta - dx_deta * dy_dxi;
+        const double determinant = dx_dxi * dy_deta - dx_deta * dy_dxi;
 
         // Check if the cell is degenerate
         if (std::abs(determinant) < tolerance)
@@ -653,7 +654,7 @@ bool GeoreferencedInput::findLocalCoordinates(const size_t k, const FloatType x0
     return true;
 }
 
-ModelState GeoreferencedInput::interpolateSpatially(const RawDataMap<FloatType>& rawData)
+ModelState GeoreferencedInput::interpolateSpatially(const RawDataMap<FloatType>& rawData) const
 {
     ModelState state;
     for (const auto& dataPair : rawData) {
@@ -670,10 +671,13 @@ ModelState GeoreferencedInput::interpolateSpatially(const RawDataMap<FloatType>&
             const FloatType f01 = data[ij01[i]];
             const FloatType f11 = data[ij11[i]];
 
-            const FloatType N00 = (1.0 - xi[i]) * (1.0 - eta[i]);
-            const FloatType N10 = xi[i] * (1.0 - eta[i]);
-            const FloatType N01 = (1.0 - xi[i]) * eta[i];
-            const FloatType N11 = xi[i] * eta[i];
+            const auto xii = static_cast<FloatType>(xi[i]);
+            const auto etai = static_cast<FloatType>(eta[i]);
+
+            const FloatType N00 = (1 - xii) * (1 - etai);
+            const FloatType N10 = xii * (1 - etai);
+            const FloatType N01 = (1 - xii) * etai;
+            const FloatType N11 = xii * etai;
 
             ma[i] = N00 * f00 + N10 * f10 + N01 * f01 + N11 * f11;
         }
