@@ -39,7 +39,7 @@ void TripolarTestAtmosphere::setData(const ModelState::DataMap& ms)
             if (static_cast<FloatType>(i0 + i) / nxGlobal < 0.5)
                 vwind(i, j) = -20;
             else
-                vwind(i, j) = 20;
+                vwind(i, j) = -20;
         }
     }
 }
