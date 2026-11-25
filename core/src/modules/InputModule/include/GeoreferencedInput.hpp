@@ -56,9 +56,9 @@ public:
      * @brief Get the forcing data for a specific field interpolated in time to currentTime.
      *
      * @param fieldName Name of the field to retrieve
-     * @return Forcing data for the specified field
+     * @param destination The array to populate with the forcing data.
      */
-    [[nodiscard]] ModelArray getField(const std::string& fieldName) const override;
+    void getField(const std::string& fieldName, ModelArrayAuto& destination) const override;
 
     /*!
      * @brief Check if a field can be read in from the forcing data set.
@@ -68,7 +68,7 @@ public:
      */
     [[nodiscard]] bool isValid(const std::string& fieldName) const override
     {
-        return forcingStateBefore.data.count(fieldName) && forcingStateAfter.data.count(fieldName);
+        return forcingStateBefore.count(fieldName) && forcingStateAfter.count(fieldName);
     }
 
     // ModelComponent overrides
@@ -78,6 +78,11 @@ public:
 private:
     // Useful structs and aliases
     template <typename T> using RawDataMap = std::map<std::string, std::vector<T>>;
+#ifdef USE_KOKKOS
+    using ForcingDataMap = std::map<std::string, DeviceViewMA>;
+#else
+    using ForcingDataMap = ModelState::DataMap;
+#endif
 
     struct {
         TimePoint before, after;
@@ -89,7 +94,7 @@ private:
 
     // Some (hopefully) self explanatory state variables
     TimePoint currentTime;
-    ModelState forcingStateBefore, forcingStateAfter;
+    ForcingDataMap forcingStateBefore, forcingStateAfter;
     std::string pathSpec, ncTimeName, ncLonName, ncLatName;
     ModelArray modelLons, modelLats;
     RawDataMap<double> forcingLonLats;
@@ -138,7 +143,7 @@ private:
         double y10, double x01, double y01, double x11, double y11);
 
     // Apply the weights to do a bi-linear interpolation
-    [[nodiscard]] ModelState interpolateSpatially(const RawDataMap<FloatType>& rawData) const;
+    [[nodiscard]] ForcingDataMap interpolateSpatially(const RawDataMap<FloatType>& rawData) const;
 
     // Rotate the vectors from the input to model grid
     void rotateInputVectors(RawDataMap<FloatType>& rawData);

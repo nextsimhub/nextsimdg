@@ -188,20 +188,25 @@ void GeoreferencedInput::update(const TimePoint& time)
     }
 }
 
-ModelArray GeoreferencedInput::getField(const std::string& fieldName) const
+void GeoreferencedInput::getField(const std::string& fieldName, ModelArrayAuto& destination) const
 {
-    ModelArray ma;
-    ma.reinitialize();
-
     // Just a linear interpolation between forcing data time steps.
     const auto frac = static_cast<FloatType>((currentTime - timeRange.before).seconds()
         / (timeRange.after - timeRange.before).seconds());
 
-    auto& before = forcingStateBefore.data.at(fieldName);
-    auto& after = forcingStateAfter.data.at(fieldName);
+    const auto& before = forcingStateBefore.at(fieldName);
+    const auto& after = forcingStateAfter.at(fieldName);
+
+#if USE_KOKKOS
+    const auto destinationDevice = destination.deviceView();
+    overElementsAuto(OVER_ELEMENTS_LAMBDA(const ElementIndex i) {
+        destinationDevice(i, 0) = frac * after(i, 0) + (1. - frac) * before(i, 0);
+    });
+#else
+    destination.reinitialize();
     overElementsAuto(OVER_ELEMENTS_LAMBDA(
-        const ElementIndex i) { ma[i] = frac * after[i] + (1 - frac) * before[i]; });
-    return ma;
+        const ElementIndex i) { destination[i] = frac * after[i] + (1 - frac) * before[i]; });
+#endif
 }
 
 void GeoreferencedInput::setWeights()
@@ -653,16 +658,49 @@ bool GeoreferencedInput::findLocalCoordinates(const size_t k, const double x00, 
     return true;
 }
 
-ModelState GeoreferencedInput::interpolateSpatially(const RawDataMap<FloatType>& rawData) const
+GeoreferencedInput::ForcingDataMap GeoreferencedInput::interpolateSpatially(
+    const RawDataMap<FloatType>& rawData) const
 {
-    ModelState state;
+    ForcingDataMap state;
+
+#if USE_KOKKOS
+    const auto ij00Device = makeKokkosDeviceViewMap<MakeViewOptions::ALWAYS_COPY>("ij00", ij00);
+    const auto ij10Device = makeKokkosDeviceViewMap<MakeViewOptions::ALWAYS_COPY>("ij10", ij10);
+    const auto ij01Device = makeKokkosDeviceViewMap<MakeViewOptions::ALWAYS_COPY>("ij01", ij01);
+    const auto ij11Device = makeKokkosDeviceViewMap<MakeViewOptions::ALWAYS_COPY>("ij11", ij11);
+    const auto xiDevice = makeKokkosDeviceViewMap<MakeViewOptions::ALWAYS_COPY>("xi", xi);
+    const auto etaDevice = makeKokkosDeviceViewMap<MakeViewOptions::ALWAYS_COPY>("eta", eta);
+#endif
+
     for (const auto& dataPair : rawData) {
         // Structured bindings and omp don't mesh
         const std::string& name = dataPair.first;
         const std::vector<FloatType>& data = dataPair.second;
 
-        state.data[name].reinitialize();
-        ModelArray& ma = state.data.at(name);
+        ModelArray ma;
+        ma.reinitialize();
+#if USE_KOKKOS
+        const auto dataDevice = makeKokkosDeviceViewMap<MakeViewOptions::ALWAYS_COPY>("data", data);
+        DeviceViewMA maDevice(Kokkos::ViewAllocateWithoutInitializing("interpolated field"),
+            ma.getDataRef().rows(), ma.getDataRef().cols());
+        overElementsAuto(OVER_ELEMENTS_LAMBDA(const ElementIndex i) {
+            const FloatType f00 = dataDevice(ij00Device[i]);
+            const FloatType f10 = dataDevice(ij10Device[i]);
+            const FloatType f01 = dataDevice(ij01Device[i]);
+            const FloatType f11 = dataDevice(ij11Device[i]);
+
+            const auto xii = static_cast<FloatType>(xiDevice(i));
+            const auto etai = static_cast<FloatType>(etaDevice(i));
+
+            const FloatType N00 = (1 - xii) * (1 - etai);
+            const FloatType N10 = xii * (1 - etai);
+            const FloatType N01 = (1 - xii) * etai;
+            const FloatType N11 = xii * etai;
+
+            maDevice(i, 0) = N00 * f00 + N10 * f10 + N01 * f01 + N11 * f11;
+        });
+        state.emplace(name, std::move(maDevice));
+#else
         overElementsAuto(OVER_ELEMENTS_LAMBDA(const ElementIndex i) {
             const FloatType f00 = data[ij00[i]];
             const FloatType f10 = data[ij10[i]];
@@ -679,6 +717,8 @@ ModelState GeoreferencedInput::interpolateSpatially(const RawDataMap<FloatType>&
 
             ma[i] = N00 * f00 + N10 * f10 + N01 * f01 + N11 * f11;
         });
+        state.emplace(name, std::move(ma));
+#endif
     }
 
     return state;

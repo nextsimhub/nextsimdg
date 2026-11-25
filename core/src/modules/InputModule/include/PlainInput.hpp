@@ -5,6 +5,8 @@
 #include "include/IForcingInput.hpp"
 #include "include/ParaGridIO.hpp"
 
+#include <map>
+
 #ifndef PLAININPUT_HPP
 #define PLAININPUT_HPP
 
@@ -45,9 +47,9 @@ public:
      * @brief Get the forcing data for a specific field interpolated in time to currentTime.
      *
      * @param fieldName Name of the field to retrieve
-     * @return Forcing data for the specified field
+     * @param destination The array to populate with the forcing data.
      */
-    [[nodiscard]] ModelArray getField(const std::string& fieldName) const override;
+    void getField(const std::string& fieldName, ModelArrayAuto& destination) const override;
 
     /*!
      * @brief Check if a field can be read in from the forcing data set.
@@ -62,7 +64,11 @@ public:
     void setData(const ModelState::DataMap&) override { };
 
 private:
-    ModelState forcingState;
+#ifdef USE_KOKKOS
+    std::map<std::string, DeviceViewMA> forcingState;
+#else
+    ModelState::DataMap forcingState;
+#endif
     std::set<std::string> forcings;
     std::string filePath;
     double deltaTime;

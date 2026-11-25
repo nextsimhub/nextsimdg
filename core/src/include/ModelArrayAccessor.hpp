@@ -265,6 +265,14 @@ public:
 
         return this->target.deviceModelArray();
     }
+
+    /// @brief Get write access to the device array when its entire contents will be overwritten.
+    DeviceModelArray& getDeviceRWOverwrite()
+    {
+        this->target.deviceView();
+        this->target.syncState = SyncState::DEVICE_CHANGED;
+        return this->target.deviceModelArray();
+    }
 #endif
 
     /// @brief Get read-write access to the field on the GPU (Kokkos enabled) or the CPU.
@@ -274,6 +282,26 @@ public:
         return getDeviceRW();
 #else
         return getHostRW();
+#endif
+    }
+
+    /// @brief Get write access when the entire field will be overwritten.
+    ModelArrayAuto& getAutoRWOverwrite()
+    {
+#ifdef USE_KOKKOS
+        return getDeviceRWOverwrite();
+#else
+        return getHostRW();
+#endif
+    }
+
+    /// @brief Set every element without syncing the previous contents to the host.
+    void setAutoValue(FloatType value)
+    {
+#ifdef USE_KOKKOS
+        Kokkos::deep_copy(getDeviceRWOverwrite().deviceView(), value);
+#else
+        getHostRW() = value;
 #endif
     }
 

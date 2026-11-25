@@ -45,14 +45,30 @@ void PlainInput::initialise(const TimePoint& time, const std::string& pathSpecIn
 
 void PlainInput::update(const TimePoint& time)
 {
-    if (std::fmod((time - initTime).seconds(), deltaTime) == 0.0_ft)
-        forcingState = ParaGridIO::readForcingTimeStatic(forcings, time, filePath);
+    if (std::fmod((time - initTime).seconds(), deltaTime) == 0.0_ft) {
+        ModelState state = ParaGridIO::readForcingTimeStatic(forcings, time, filePath);
+#ifdef USE_KOKKOS
+        std::map<std::string, DeviceViewMA> deviceState;
+        for (auto& [name, field] : state.data) {
+            deviceState.emplace(name,
+                makeKokkosDeviceView<MakeViewOptions::ALWAYS_COPY>(
+                    "PlainInput " + name, field.getDataRef()));
+        }
+        forcingState = std::move(deviceState);
+#else
+        forcingState = std::move(state.data);
+#endif
+    }
 }
 
-[[nodiscard]] ModelArray PlainInput::getField(const std::string& fieldName) const
+void PlainInput::getField(const std::string& fieldName, ModelArrayAuto& destination) const
 {
     try {
-        return forcingState.data.at(fieldName);
+#ifdef USE_KOKKOS
+        Kokkos::deep_copy(destination.deviceView(), forcingState.at(fieldName));
+#else
+        destination = forcingState.at(fieldName);
+#endif
     } catch (const std::out_of_range& e) {
         throw std::runtime_error("PlainInput::getField: Field '" + fieldName
             + "' not found in file '" + filePath + "'.\n");
@@ -61,7 +77,7 @@ void PlainInput::update(const TimePoint& time)
 
 [[nodiscard]] bool PlainInput::isValid(const std::string& fieldName) const
 {
-    return forcingState.data.count(fieldName);
+    return forcingState.count(fieldName);
 }
 
 }

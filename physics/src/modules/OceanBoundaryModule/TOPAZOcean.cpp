@@ -68,18 +68,16 @@ void TOPAZOcean::updateBefore(const TimestepTime& tst)
 {
     forcingState->update(tst.start);
 
-
-    sstExtAccessor.getHostRW() = forcingState->getField(sstName);
-    sssExtAccessor.getHostRW() = forcingState->getField(sssName);
-    mldAccessor.getHostRW() = forcingState->getField(mldName);
-    uAccessor.getHostRW() = forcingState->getField(uName);
-    vAccessor.getHostRW() = forcingState->getField(vName);
-    HField& ssh = sshAccessor.getHostRW();
+    forcingState->getField(sstName, sstExtAccessor.getAutoRWOverwrite());
+    forcingState->getField(sssName, sssExtAccessor.getAutoRWOverwrite());
+    forcingState->getField(mldName, mldAccessor.getAutoRWOverwrite());
+    forcingState->getField(uName, uAccessor.getAutoRWOverwrite());
+    forcingState->getField(vName, vAccessor.getAutoRWOverwrite());
 
     if (forcingState->isValid(sshName)) {
-        ssh = forcingState->getField(sshName);
+        forcingState->getField(sshName, sshAccessor.getAutoRWOverwrite());
     } else {
-        ssh = 0.;
+        sshAccessor.setAutoValue(0._ft);
     }
 
     auto& cpml = cpmlAccessor.getAutoRW();

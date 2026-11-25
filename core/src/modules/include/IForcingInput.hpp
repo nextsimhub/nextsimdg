@@ -5,6 +5,7 @@
 #ifndef IINPUT_HPP
 #define IINPUT_HPP
 
+#include "include/ModelArrayAccessor.hpp"
 #include "include/ModelComponent.hpp"
 #include "include/ModelMetadata.hpp"
 #include "include/ModelState.hpp"
@@ -47,9 +48,9 @@ public:
      * @brief Get the forcing data for a specific field interpolated in time to currentTime.
      *
      * @param fieldName Name of the field to retrieve
-     * @return Forcing data for the specified field
+     * @param destination The array to populate with the forcing data.
      */
-    [[nodiscard]] virtual ModelArray getField(const std::string& fieldName) const = 0;
+    virtual void getField(const std::string& fieldName, ModelArrayAuto& destination) const = 0;
 
     /*!
      * @brief Check if a field can be read in from the forcing data set.

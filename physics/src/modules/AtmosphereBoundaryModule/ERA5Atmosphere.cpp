@@ -76,19 +76,19 @@ void ERA5Atmosphere::update(const TimestepTime& tst)
     forcingState->update(tst.start);
 
     // Fetch the raw data fields
-    tairAccessor.getHostRW() = forcingState->getField(tAirName);
-    tdewAccessor.getHostRW() = forcingState->getField(dew2mName);
-    pairAccessor.getHostRW() = forcingState->getField(pAirName);
-    sw_inAccessor.getHostRW() = forcingState->getField(swInName);
-    lw_inAccessor.getHostRW() = forcingState->getField(lwInName);
-    uwindAccessor.getHostRW() = forcingState->getField(uName);
-    vwindAccessor.getHostRW() = forcingState->getField(vName);
+    forcingState->getField(tAirName, tairAccessor.getAutoRWOverwrite());
+    forcingState->getField(dew2mName, tdewAccessor.getAutoRWOverwrite());
+    forcingState->getField(pAirName, pairAccessor.getAutoRWOverwrite());
+    forcingState->getField(swInName, sw_inAccessor.getAutoRWOverwrite());
+    forcingState->getField(lwInName, lw_inAccessor.getAutoRWOverwrite());
+    forcingState->getField(uName, uwindAccessor.getAutoRWOverwrite());
+    forcingState->getField(vName, vwindAccessor.getAutoRWOverwrite());
 
     // These ifs and warnings are for backwards compatability
     if (forcingState->isValid(snowName)) {
-        snowAccessor.getHostRW() = forcingState->getField(snowName);
+        forcingState->getField(snowName, snowAccessor.getAutoRWOverwrite());
     } else {
-        snowAccessor.getHostRW() = 0._ft;
+        snowAccessor.setAutoValue(0._ft);
         // Only warn once
         if (warn.count(snowName) == 0) {
             Logged::warning("ERA5Atmosphere::update: No snow fall in forcing file, but I continue "
@@ -98,9 +98,9 @@ void ERA5Atmosphere::update(const TimestepTime& tst)
     }
 
     if (forcingState->isValid(rainName)) {
-        rainAccessor.getHostRW() = forcingState->getField(rainName);
+        forcingState->getField(rainName, rainAccessor.getAutoRWOverwrite());
     } else {
-        rainAccessor.getHostRW() = 0._ft;
+        rainAccessor.setAutoValue(0._ft);
         // Only warn once
         if (warn.count(rainName) == 0) {
             Logged::warning("ERA5Atmosphere::update: No rain fall in forcing file, but I continue "
