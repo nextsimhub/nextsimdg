@@ -146,3 +146,16 @@ We set the compiler options for nextsimdg. Here, ``-DWITH_THREADS=ON`` allows op
 
     make -j $(nprocs)
     make install #This includes testing
+
+Next, we describe the nextsimdg test example with MPI. Once a config file ``CONFIG_FILE_NAME`` is created inside ``BENCHMARK_PATH``, we execute the test case as:
+
+.. code-block::
+
+    ### domain_decomp to create partition data ###
+    mpiexec -n ${MPI_SIZE} ${DD_PATH}/build/decomp -g ${BENCHMARK_PATH}/${PARTITION_DATA_FILE_NAME} -x x_dim -y y_dim
+	### Optional: CReate symbolic link which can be used inside config file
+    ln -sf ${BENCHMARK_PATH}/partition_metadata_${MPI_SIZE}.nc ${BENCHMARK_PATH}/partition.nc
+
+    ### nextsimdg case ###
+    mpiexec -n ${MPI_SIZE} ${NEXTSIMDG_PATH}/build/nextsim --config-file ${CONFIG_FILE_NAME}
+
