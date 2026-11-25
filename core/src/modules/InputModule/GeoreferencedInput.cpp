@@ -400,7 +400,7 @@ void GeoreferencedInput::findCellByWalking(
          * finite machine precision, findLocalCoordinates may not agree. If that's the case, we
          * should continue searching.
          */
-        if (*it >= -10._ft * std::numeric_limits<double>::epsilon())
+        if (*it >= -10. * std::numeric_limits<double>::epsilon())
             if (findLocalCoordinates(k, x00, y00, x10, y10, x01, y01, x11, y11))
                 return;
 
