@@ -162,7 +162,7 @@ protected:
     template <typename... Args>
     ModelArray& dG2MA(ModelArray& ma, const Kokkos::View<Args...>& dg) const
     {
-        constexpr int N = static_cast<int>(dg.static_extent(1));
+        constexpr int N = static_cast<int>(Kokkos::View<Args...>::static_extent(1));
         static_assert(N == DGadvection || N == DGstressComp,
             "dG2MA expects a dG field, either from the advection or stress space.");
 
