@@ -68,30 +68,81 @@ This should show the available ``gcc`` and ``llvm`` compilers on the system whic
         reuse: false
     view: true
 
-Once spack environment is created and activated, environment variables PATH and LD_LIBRARY_PATH should be adjusted to point towards domain_decomp executable and use spack installed packages respectively.
+The spack installations then can be done with
 
 .. code-block::
+    spack env create SPACK_ENV_NAME
+    spack env activate SPACK_ENV_NAME
+    spack concretize -f
+    spack install
+    spack env deactivate
 
-    export PATH=$PATH:${DD_PATH}/build #Path to Domain Decomp (DD) executable
+In the above step spack environment with necessary dependencies is now created.
+
+After creating spack environment ``SPACK_ENV_NAME``, we set some environment variables:
+
+.. code-block::
+    ### Set path and filenames ###
+    export DD_PATH=/home/${USER}/rds/rds-iccs-DKRMHAHoC3M/${USER}/domain_decomp # CHANGE ME for domain_decomp path
+    export VENV_PATH=/home/${USER}/nextsimdg # CHANGE ME for virtual environment path
+    export SPACK_ROOT=/home/${USER}/spack # CHANGE ME for spack directory path
+    export SPACK_ENV_NAME=nextsimdg-test2 # nextsimdg-scorep-gcc # CHANGE ME for a suitable environment name
+    export NEXTSIMDG_PATH=/home/${USER}/rds/rds-iccs-DKRMHAHoC3M/${USER}/nextsimdg # CHANGE ME for path to NextSIMDG directory
+    export BENCHMARK_PATH=/homei/${USER}/rds/rds-iccs-DKRMHAHoC3M/${USER}/nextsimdg/run/run_benchmark # CHANGE ME for Benchmark Directory
+    export CONFIG_FILE_NAME=config_benchmark.cfg # CHANGE ME for name of the config .cfg file in Benchmark directory
+    export PARTITION_DATA_FILE_NAME=init_benchmark.nc # CHANGE ME for partition data .nc file
+
+We also need to create virtual python environment:
+
+.. code-block::
+    python -m venv VENV_NAME
+
+Next, virtual environment and spack environment are intialised:
+
+.. code-block::
+    source ${VENV_PATH}/.venv/bin/activate
+    source ${SPACK_ROOT}/share/spack/setup-env.sh
+    spack env activate -p ${SPACK_ENV_NAME}
+
+and update ``LD_LIBRARY_PATH`` as:
+
+.. code-block::
     export LD_LIBRARY_PATH=${SPACK_ROOT}/var/spack/environments/${SPACK_ENV_NAME}/.spack-env/view/lib:$LD_LIBRARY_PATH #Adding spack libraries to the LD_LIBRARY_PATH
 
-During the build of Domain Decomp, it might be necessary to specify:
+Next, domain_decomp is installed with
 
 .. code-block::
+    
+    ### Build and test domain_decomp ###
+    cd ${DD_PATH}
+    rm -rf build
+    mkdir -p build
+    cd ${DD_PATH}/build
+    
+    cmake .. -DCMAKE_CXX_COMPILER=$(which mpic++) -DCMAKE_C_COMPILER=$(which mpicc) -DCMAKE_INSTALL_PREFIX=${DD_PATH}/build -DZoltan_INCLUDE_DIRS=${SPACK_ROOT}/var/spack/environments/${SPACK_ENV_NAME}/.spack-env/view/include
+    
+    export PATH=$PATH:${DD_PATH}/build #Path to Domain Decomp (DD) executable
+    
+    make -j $(nprocs)
+    make test
+    make install
 
-    -DZoltan_INCLUDE_DIRS=${SPACK_ROOT}/var/spack/environments/${SPACK_ENV_NAME}/.spack-env/view/include
+Next, we create install or create nextsimdg executable.
 
 .. code-block::
+    
+    ### Build and test NextSIMDG ###
+    cd ${NEXTSIMDG_PATH}
+    
+    rm -rf build
+    mkdir build
+    cd build
 
-   left_neighbour_ids = 0, 1
-   left_neighbour_halos = 3, 2
+We set the compiler options for nextsimdg. Here, ``-DWITH_THREADS=ON`` allows openmp thread parallelization and ``-DENABLE_MPI`` allows MPI parallelization.
 
+.. code-block::
+    
+    cmake .. -DCMAKE_EXPORT_COMPILE_COMMANDS=1 -DCMAKE_C_COMPILER=$(which mpicc) -DCMAKE_CXX_COMPILER=$(which mpicxx) -DENABLE_MPI=ON -DWITH_THREADS=ON -DPython_EXECUTABLE=$(which python) -DCMAKE_BUILD_TYPE=Release
 
-
-Notes
------
-
-``Halo.hpp`` is still under active development. This documentation applies in a similar way for
-corner neighbours (currently being implemented). Also, this diagram represents face-centered values
-like those in ``ModelArray`` ``HField``'s for example. A similar approach is used for
-``VertexField``'s and ``CGVector``'s (currently being implemented).
+    make -j $(nprocs)
+    make install #This includes testing
