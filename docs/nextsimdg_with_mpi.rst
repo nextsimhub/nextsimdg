@@ -24,6 +24,7 @@ Installation instruction with MPI using spack
 This should show the available ``gcc`` and ``llvm`` compilers on the system which will be used by spack. Next we use below spack specifications for creating spack environment.
 
 .. code-block::
+
 spack:
   packages:
     llvm:
@@ -69,12 +70,14 @@ spack:
 Once spack environment is created and activated, environment variables PATH and LD_LIBRARY_PATH should be adjusted to point towards domain_decomp executable and use spack installed packages respectively.
 
 .. code-block::
+
     export PATH=$PATH:${DD_PATH}/build #Path to Domain Decomp (DD) executable
     export LD_LIBRARY_PATH=${SPACK_ROOT}/var/spack/environments/${SPACK_ENV_NAME}/.spack-env/view/lib:$LD_LIBRARY_PATH #Adding spack libraries to the LD_LIBRARY_PATH
 
 During the build of Domain Decomp, it might be necessary to specify:
 
 .. code-block::
+
     -DZoltan_INCLUDE_DIRS=${SPACK_ROOT}/var/spack/environments/${SPACK_ENV_NAME}/.spack-env/view/include
 
 .. code-block::
