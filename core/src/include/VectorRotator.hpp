@@ -50,8 +50,8 @@ public:
      * @param lat The latitudes of the grid points
      * @param orient Vector orientation (GRID or EAST_NORTH)
      */
-    VectorRotator(const std::vector<size_t>& dimsIn, const std::vector<FloatType>& lonIn,
-        const std::vector<FloatType>& latIn, Orientation orient);
+    VectorRotator(const std::vector<size_t>& dimsIn, const std::vector<double>& lonIn,
+        const std::vector<double>& latIn, Orientation orient);
 
     /*!
      * @brief Constructor for the VectorRotator class based on a the coordinates in a ModelArray

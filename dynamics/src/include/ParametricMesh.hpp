@@ -377,8 +377,8 @@ public:
      * @param coord1 x in metres or longitude in radians
      * @param coord2 y in metres or latitude in radians
      */
-    void coordinatesFromVectors(const std::vector<size_t>& dims,
-        const std::vector<FloatType>& coord1, const std::vector<FloatType>& coord2);
+    void coordinatesFromVectors(const std::vector<size_t>& dims, const std::vector<double>& coord1,
+        const std::vector<double>& coord2);
 
     /*!
      * Copy the landmask from the passed ModelArray.
