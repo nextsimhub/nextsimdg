@@ -129,6 +129,8 @@ private:
 
     /* Axis */
     xios::CAxis* getAxis(const std::string& axisId);
+    const std::string era5interpId = "era5interp";
+    const std::string era5HGridHR = "HGridEra5HR";
 
     /* Domain */
     // NOTE: Dimension names get processed as <dim>_<domainId> by XIOS, so we define the domainIds
@@ -144,6 +146,9 @@ private:
         { ModelArray::Type::VERTEX, "vertex" },
         // CG-based x- and y-dimensions (alt. names x_cg and y_cg)
         { ModelArray::Type::CG, "cg" },
+    };
+    std::map<ModelArray::Type, std::string> EAR5domainIds = {
+        { ModelArray::Type::H, "dim" },
     };
     std::map<std::string, bool> domainWritten = {
         { "dim", false },
@@ -164,6 +169,9 @@ private:
         { ModelArray::Type::DGSTRESS, "DGSGrid" },
         { ModelArray::Type::VERTEX, "VertexGrid" },
         { ModelArray::Type::CG, "CGGrid" },
+    };
+    std::map<ModelArray::Type, std::string> ERA5GridIds = {
+        { ModelArray::Type::H, "HGridEra5HR" },
     };
     void setupGrids();
 
