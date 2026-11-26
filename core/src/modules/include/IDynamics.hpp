@@ -76,22 +76,6 @@ public:
         return state;
     }
 
-    ModelState getStateDiagnostic() const override
-    {
-        ModelState state = { {
-                                 { uIOStressName, tauxAccessor.getHostRO() },
-                                 { vIOStressName, tauyAccessor.getHostRO() },
-                                 { uName, uiceAccessor.getHostRO() },
-                                 { vName, viceAccessor.getHostRO() },
-                                 { shearName, shearAccessor.getHostRO() },
-                                 { divergenceName, divergenceAccessor.getHostRO() },
-                                 { sigmaIName, sigmaIAccessor.getHostRO() },
-                                 { sigmaIIName, sigmaIIAccessor.getHostRO() },
-                             },
-            {} };
-        return state.merge(getStatePrognostic());
-    }
-
     void appendStateDiagnostic(ModelState& state) const override
     {
         state.config.merge(getConfiguration());

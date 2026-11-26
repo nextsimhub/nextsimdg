@@ -56,27 +56,6 @@ ConfigMap FiniteElementFluxes::getConfiguration() const
     };
 }
 
-ModelState FiniteElementFluxes::getStateDiagnostic() const
-{
-    return { {
-                 { "evap", evapAccessor.getHostRO() },
-                 { "Q_lh_ow", Q_lh_owAccessor.getHostRO() },
-                 { "Q_sh_ow", Q_sh_owAccessor.getHostRO() },
-                 { "Q_lw_ow", Q_lw_owAccessor.getHostRO() },
-                 { "Q_lh_ia", Q_lh_iaAccessor.getHostRO() },
-                 { "Q_sh_ia", Q_sh_iaAccessor.getHostRO() },
-                 { "Q_sw_ia", Q_sw_iaAccessor.getHostRO() },
-                 { "Q_lw_ia", Q_lw_iaAccessor.getHostRO() },
-                 { "rho_air", rho_airAccessor.getHostRO() },
-                 { "cp_air", cp_airAccessor.getHostRO() },
-                 { "sh_air", sh_airAccessor.getHostRO() },
-                 { "sh_water", sh_waterAccessor.getHostRO() },
-                 { "sh_ice", sh_iceAccessor.getHostRO() },
-                 { "dshice_dT", dshice_dTAccessor.getHostRO() },
-             },
-        getConfiguration() };
-}
-
 void FiniteElementFluxes::appendStateDiagnostic(ModelState& state) const
 {
     state.config.merge(getConfiguration());

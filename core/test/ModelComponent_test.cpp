@@ -127,6 +127,28 @@ TEST_CASE("ModelState resolves accessor references lazily")
     CHECK(accessor.calls == 1);
 }
 
+TEST_CASE("getStateDiagnostic uses appended diagnostic state")
+{
+    class DiagnosticComponent : public ModelComponent {
+    public:
+        std::string getName() const override { return "DiagnosticComponent"; }
+        void setData(const ModelState::DataMap&) override { }
+        void appendStateDiagnostic(ModelState& state) const override
+        {
+            state.addReference("field", field);
+        }
+
+        ModelArray field { ModelArray::Type::H };
+    };
+
+    ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
+    DiagnosticComponent component;
+    const ModelState state = component.getStateDiagnostic();
+
+    REQUIRE(state.references.count("field") == 1);
+    CHECK(&state.references.at("field")() == &component.field);
+}
+
 class ModuleSemiShared : public ModelComponent {
 public:
     ModuleSemiShared()

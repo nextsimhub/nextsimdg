@@ -49,17 +49,6 @@ ModelState SlabOcean::getStatePrognostic() const
         getConfiguration() };
 }
 
-ModelState SlabOcean::getStateDiagnostic() const
-{
-    ModelState state = { {
-                             { "Q_slab", qdwAccessor.getHostRO() },
-                             { "F_slab", fdwAccessor.getHostRO() },
-                         },
-        {} };
-
-    return state.merge(getStatePrognostic());
-}
-
 void SlabOcean::appendStateDiagnostic(ModelState& state) const
 {
     state.config.merge(getConfiguration());

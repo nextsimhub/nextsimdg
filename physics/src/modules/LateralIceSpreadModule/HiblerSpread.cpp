@@ -29,8 +29,6 @@ ConfigMap HiblerSpread::getConfiguration() const
     };
 }
 
-ModelState HiblerSpread::getStateDiagnostic() const { return { {}, getConfiguration() }; }
-
 HiblerSpread::HelpMap& HiblerSpread::getHelpText(HelpMap& map, bool getAll)
 {
     map["HiblerSpread"] = {

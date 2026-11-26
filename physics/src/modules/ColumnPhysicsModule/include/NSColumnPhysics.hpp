@@ -32,7 +32,6 @@ public:
     std::string getName() const override { return "NSColumnPhysics"; }
 
     void setData(const ModelState::DataMap&) override;
-    ModelState getStateDiagnostic() const override;
     void appendStateDiagnostic(ModelState& state) const override;
     ModelState getStatePrognostic() const override;
 

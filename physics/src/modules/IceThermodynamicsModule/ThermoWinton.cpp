@@ -72,19 +72,6 @@ ConfigMap ThermoWinton::getConfiguration() const
     };
 }
 
-ModelState ThermoWinton::getStateDiagnostic() const
-{
-    ModelState state = { {
-                             { "snow_melt", snowMeltAccessor.getHostRO() },
-                             { "top_melt", topMeltAccessor.getHostRO() },
-                             { "bottom_melt", botMeltAccessor.getHostRO() },
-                         },
-        getConfiguration() };
-
-    state.merge(getStatePrognostic());
-    return state.merge(IIceThermodynamics::getStateDiagnostic());
-}
-
 void ThermoWinton::appendStateDiagnostic(ModelState& state) const
 {
     state.config.merge(getConfiguration());

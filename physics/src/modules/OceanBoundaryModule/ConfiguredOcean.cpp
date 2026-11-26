@@ -96,12 +96,6 @@ ModelState ConfiguredOcean::getStatePrognostic() const
     return state.merge(slabOcean.getStatePrognostic());
 }
 
-ModelState ConfiguredOcean::getStateDiagnostic() const
-{
-    ModelState state = IOceanBoundary::getStateDiagnostic();
-    return state.merge(slabOcean.getStateDiagnostic());
-}
-
 void ConfiguredOcean::appendStateDiagnostic(ModelState& state) const
 {
     state.config.merge(getConfiguration());

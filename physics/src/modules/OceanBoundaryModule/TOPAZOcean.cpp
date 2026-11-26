@@ -115,12 +115,6 @@ ModelState TOPAZOcean::getStatePrognostic() const
     return state.merge(slabOcean.getStatePrognostic());
 }
 
-ModelState TOPAZOcean::getStateDiagnostic() const
-{
-    ModelState state = IOceanBoundary::getStateDiagnostic();
-    return state.merge(slabOcean.getStateDiagnostic());
-}
-
 void TOPAZOcean::appendStateDiagnostic(ModelState& state) const
 {
     state.config.merge(getConfiguration());

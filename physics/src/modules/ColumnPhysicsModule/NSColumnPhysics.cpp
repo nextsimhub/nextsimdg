@@ -25,15 +25,6 @@ void NSColumnPhysics::setData(const ModelState::DataMap& ms)
     iHealing->setData(ms);
 }
 
-ModelState NSColumnPhysics::getStateDiagnostic() const
-{
-    ModelState state = iLateral->getStateDiagnostic();
-    state.merge(iVertical->getStateDiagnostic());
-    state.merge(iHealing->getStateDiagnostic());
-
-    return state;
-}
-
 void NSColumnPhysics::appendStateDiagnostic(ModelState& state) const
 {
     iLateral->appendStateDiagnostic(state);

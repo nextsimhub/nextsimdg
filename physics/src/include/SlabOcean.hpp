@@ -46,7 +46,6 @@ public:
     ConfigMap getConfiguration() const override;
 
     ModelState getStatePrognostic() const override;
-    ModelState getStateDiagnostic() const override;
     void appendStateDiagnostic(ModelState& state) const override;
 
     static HelpMap& getHelpText(HelpMap& map, bool getAll);

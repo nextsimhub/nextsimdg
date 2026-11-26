@@ -57,18 +57,6 @@ public:
             getConfiguration() };
     }
 
-    ModelState getStateDiagnostic() const override
-    {
-        ModelState state = { {
-                                 { "delta_H_ice", deltaHiAccessor.getHostRO() },
-                                 { "snow_to_ice", snowToIceAccessor.getHostRO() },
-                             },
-            getConfiguration() };
-        state.merge(getStatePrognostic());
-
-        return state;
-    }
-
     void appendStateDiagnostic(ModelState& state) const override
     {
         state.config.merge(getConfiguration());

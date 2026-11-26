@@ -136,20 +136,6 @@ void PrognosticData::update(const TimestepTime& tst)
     }
 }
 
-// Gets the diagnostic data from all subcomponents
-ModelState PrognosticData::getStateDiagnostic() const
-{
-    ModelState state = getStatePrognostic();
-
-    // Get the prognostic data from the dynamics, including the full dynamics state
-    state.merge(pDynamics->getStateDiagnostic());
-    state.merge(pColumnPhysics->getStateDiagnostic());
-    state.merge(pAtmBdy->getStateDiagnostic());
-    state.merge(pOcnBdy->getStateDiagnostic());
-
-    return state;
-}
-
 void PrognosticData::appendStateDiagnostic(ModelState& state) const
 {
     state.config.merge(ModelComponent::getConfiguration());

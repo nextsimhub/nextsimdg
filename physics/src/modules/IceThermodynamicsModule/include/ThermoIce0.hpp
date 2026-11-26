@@ -23,7 +23,6 @@ public:
     void configure() override;
     ConfigMap getConfiguration() const override;
 
-    ModelState getStateDiagnostic() const override;
     void appendStateDiagnostic(ModelState& state) const override;
     ModelState getStatePrognostic() const override;
 

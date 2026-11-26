@@ -161,17 +161,21 @@ public:
      * @details The state returned by this function contains all
      * available data in this component and all components that it calls.
      */
-    virtual ModelState getStateDiagnostic() const { return getStatePrognostic(); }
+    virtual ModelState getStateDiagnostic() const
+    {
+        ModelState state;
+        appendStateDiagnostic(state);
+        return state;
+    }
     /*!
      * @brief Adds diagnostic fields to a non-owning view.
      *
      * Components with accessor-backed fields should override this method to
-     * avoid copying their arrays. The default preserves compatibility with
-     * components that only implement getStateDiagnostic().
+     * avoid copying their arrays. By default, prognostic state is appended.
      */
     virtual void appendStateDiagnostic(ModelState& state) const
     {
-        state.merge(getStateDiagnostic());
+        state.merge(getStatePrognostic());
     }
     /*!
      * @brief Returns a ModelState from this component at a specified level of detail.
