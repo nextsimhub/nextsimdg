@@ -213,6 +213,7 @@ if(WITH_KOKKOS)
         FetchContent_Declare(
             kokkos
             URL https://github.com/kokkos/kokkos/archive/refs/tags/4.7.04.tar.gz
+            DOWNLOAD_EXTRACT_TIMESTAMP TRUE
         )
         FetchContent_MakeAvailable(kokkos)
     endif()
