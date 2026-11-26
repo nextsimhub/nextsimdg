@@ -95,16 +95,16 @@ public:
     void appendStateDiagnostic(ModelState& state) const override
     {
         state.config.merge(getConfiguration());
-        state.addReference(uIOStressName, tauxAccessor.getHostRO());
-        state.addReference(vIOStressName, tauyAccessor.getHostRO());
-        state.addReference(uName, uiceAccessor.getHostRO());
-        state.addReference(vName, viceAccessor.getHostRO());
-        state.addReference(shearName, shearAccessor.getHostRO());
-        state.addReference(divergenceName, divergenceAccessor.getHostRO());
-        state.addReference(sigmaIName, sigmaIAccessor.getHostRO());
-        state.addReference(sigmaIIName, sigmaIIAccessor.getHostRO());
+        state.addReference(uIOStressName, tauxAccessor);
+        state.addReference(vIOStressName, tauyAccessor);
+        state.addReference(uName, uiceAccessor);
+        state.addReference(vName, viceAccessor);
+        state.addReference(shearName, shearAccessor);
+        state.addReference(divergenceName, divergenceAccessor);
+        state.addReference(sigmaIName, sigmaIAccessor);
+        state.addReference(sigmaIIName, sigmaIIAccessor);
         if (m_usesDamage) {
-            state.addReference(damageName, damageAccessor.getHostRO());
+            state.addReference(damageName, damageAccessor);
         }
     }
 

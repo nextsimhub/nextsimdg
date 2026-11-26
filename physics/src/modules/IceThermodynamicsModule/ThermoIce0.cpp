@@ -204,10 +204,10 @@ ModelState ThermoIce0::getStateDiagnostic() const
 void ThermoIce0::appendStateDiagnostic(ModelState& state) const
 {
     state.config.merge(getConfiguration());
-    state.addReference("snow_melt", snowMeltAccessor.getHostRO());
-    state.addReference("top_melt", topMeltAccessor.getHostRO());
-    state.addReference("bottom_melt", botMeltAccessor.getHostRO());
-    state.addReference("Q_ic", qicAccessor.getHostRO());
+    state.addReference("snow_melt", snowMeltAccessor);
+    state.addReference("top_melt", topMeltAccessor);
+    state.addReference("bottom_melt", botMeltAccessor);
+    state.addReference("Q_ic", qicAccessor);
     IIceThermodynamics::appendStateDiagnostic(state);
 }
 

@@ -80,20 +80,20 @@ ModelState FiniteElementFluxes::getStateDiagnostic() const
 void FiniteElementFluxes::appendStateDiagnostic(ModelState& state) const
 {
     state.config.merge(getConfiguration());
-    state.addReference("evap", evapAccessor.getHostRO());
-    state.addReference("Q_lh_ow", Q_lh_owAccessor.getHostRO());
-    state.addReference("Q_sh_ow", Q_sh_owAccessor.getHostRO());
-    state.addReference("Q_lw_ow", Q_lw_owAccessor.getHostRO());
-    state.addReference("Q_lh_ia", Q_lh_iaAccessor.getHostRO());
-    state.addReference("Q_sh_ia", Q_sh_iaAccessor.getHostRO());
-    state.addReference("Q_sw_ia", Q_sw_iaAccessor.getHostRO());
-    state.addReference("Q_lw_ia", Q_lw_iaAccessor.getHostRO());
-    state.addReference("rho_air", rho_airAccessor.getHostRO());
-    state.addReference("cp_air", cp_airAccessor.getHostRO());
-    state.addReference("sh_air", sh_airAccessor.getHostRO());
-    state.addReference("sh_water", sh_waterAccessor.getHostRO());
-    state.addReference("sh_ice", sh_iceAccessor.getHostRO());
-    state.addReference("dshice_dT", dshice_dTAccessor.getHostRO());
+    state.addReference("evap", evapAccessor);
+    state.addReference("Q_lh_ow", Q_lh_owAccessor);
+    state.addReference("Q_sh_ow", Q_sh_owAccessor);
+    state.addReference("Q_lw_ow", Q_lw_owAccessor);
+    state.addReference("Q_lh_ia", Q_lh_iaAccessor);
+    state.addReference("Q_sh_ia", Q_sh_iaAccessor);
+    state.addReference("Q_sw_ia", Q_sw_iaAccessor);
+    state.addReference("Q_lw_ia", Q_lw_iaAccessor);
+    state.addReference("rho_air", rho_airAccessor);
+    state.addReference("cp_air", cp_airAccessor);
+    state.addReference("sh_air", sh_airAccessor);
+    state.addReference("sh_water", sh_waterAccessor);
+    state.addReference("sh_ice", sh_iceAccessor);
+    state.addReference("dshice_dT", dshice_dTAccessor);
 }
 
 void FiniteElementFluxes::setData(const ModelState::DataMap& ms)

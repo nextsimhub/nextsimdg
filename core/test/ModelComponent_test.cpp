@@ -98,9 +98,33 @@ TEST_CASE("ModelState references arrays")
 
     state.addReference("field", source);
 
-    CHECK(&state.references.at("field").get() == &source);
+    CHECK(&state.references.at("field")() == &source);
     state.forEachData(
         [&source](const std::string&, const ModelArray& array) { CHECK(&array == &source); });
+}
+
+TEST_CASE("ModelState resolves accessor references lazily")
+{
+    struct TestAccessor {
+        const ModelArray& getHostRO() const
+        {
+            ++calls;
+            return *array;
+        }
+
+        const ModelArray* array;
+        mutable int calls = 0;
+    };
+
+    ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
+    ModelArray source(ModelArray::Type::H);
+    TestAccessor accessor { &source };
+    ModelState state;
+
+    state.addReference("field", accessor);
+    CHECK(accessor.calls == 0);
+    CHECK(&state.references.at("field")() == &source);
+    CHECK(accessor.calls == 1);
 }
 
 class ModuleSemiShared : public ModelComponent {

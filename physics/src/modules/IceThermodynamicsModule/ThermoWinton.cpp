@@ -88,11 +88,11 @@ ModelState ThermoWinton::getStateDiagnostic() const
 void ThermoWinton::appendStateDiagnostic(ModelState& state) const
 {
     state.config.merge(getConfiguration());
-    state.addReference("snow_melt", snowMeltAccessor.getHostRO());
-    state.addReference("top_melt", topMeltAccessor.getHostRO());
-    state.addReference("bottom_melt", botMeltAccessor.getHostRO());
-    state.addReference(tInteriorName, tInternalAccessor.getHostRO());
-    state.addReference(tBottomName, tBottomAccessor.getHostRO());
+    state.addReference("snow_melt", snowMeltAccessor);
+    state.addReference("top_melt", topMeltAccessor);
+    state.addReference("bottom_melt", botMeltAccessor);
+    state.addReference(tInteriorName, tInternalAccessor);
+    state.addReference(tBottomName, tBottomAccessor);
     IIceThermodynamics::appendStateDiagnostic(state);
 }
 

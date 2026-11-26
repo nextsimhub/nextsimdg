@@ -63,10 +63,10 @@ ModelState SlabOcean::getStateDiagnostic() const
 void SlabOcean::appendStateDiagnostic(ModelState& state) const
 {
     state.config.merge(getConfiguration());
-    state.addReference("Q_slab", qdwAccessor.getHostRO());
-    state.addReference("F_slab", fdwAccessor.getHostRO());
-    state.addReference(sstName, sstSlabAccessor.getHostRO());
-    state.addReference(sssName, sssSlabAccessor.getHostRO());
+    state.addReference("Q_slab", qdwAccessor);
+    state.addReference("F_slab", fdwAccessor);
+    state.addReference(sstName, sstSlabAccessor);
+    state.addReference(sssName, sssSlabAccessor);
 }
 
 SlabOcean::HelpMap& SlabOcean::getHelpText(HelpMap& map, bool getAll)

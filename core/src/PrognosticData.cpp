@@ -154,9 +154,9 @@ void PrognosticData::appendStateDiagnostic(ModelState& state) const
 {
     state.config.merge(ModelComponent::getConfiguration());
     state.addReference(maskName, oceanMask());
-    state.addReference(hiceName, hiceAccessor.getHostRO());
-    state.addReference(ciceName, ciceAccessor.getHostRO());
-    state.addReference(hsnowName, hsnowAccessor.getHostRO());
+    state.addReference(hiceName, hiceAccessor);
+    state.addReference(ciceName, ciceAccessor);
+    state.addReference(hsnowName, hsnowAccessor);
 
     pDynamics->appendStateDiagnostic(state);
     pColumnPhysics->appendStateDiagnostic(state);

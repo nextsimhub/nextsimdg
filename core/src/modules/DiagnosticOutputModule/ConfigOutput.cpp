@@ -191,31 +191,38 @@ void ConfigOutput::outputState(const ModelState& diagState)
     // Output every entry in storeData, as either its external name if
     // defined, or as its internal name.
     for (const auto& [internalName, arrayRef] : storeData) {
-        if (const ModelArray& modelArray = arrayRef.getHostRO(); modelArray.trueSize()) {
-            if (reverseExternalNames.count(internalName)) {
-                if (const auto& externalName = reverseExternalNames.at(internalName);
-                    outputAllTheFields || fieldsForOutput.count(externalName))
-                    addToState(externalName, state, modelArray);
-            } else {
-                if (outputAllTheFields)
-                    addToState(internalName, state, modelArray);
+        const std::string* outputName = nullptr;
+        if (reverseExternalNames.count(internalName)) {
+            const auto& externalName = reverseExternalNames.at(internalName);
+            if (outputAllTheFields || fieldsForOutput.count(externalName)) {
+                outputName = &externalName;
+            }
+        } else if (outputAllTheFields) {
+            outputName = &internalName;
+        }
+
+        if (outputName) {
+            const ModelArray& modelArray = arrayRef.getHostRO();
+            if (modelArray.trueSize()) {
+                addToState(*outputName, state, modelArray);
             }
         }
     }
 
     // Filter the passed state by the field names for output
-    diagState.forEachData([&](const std::string& key, const ModelArray& array) {
-        // Avoid double counting
-        bool inStoreData;
-        if (externalNames.count(key)) {
-            inStoreData = storeData.count(externalNames.at(key)) > 0;
-        } else {
-            inStoreData = storeData.count(key) > 0;
-        }
-        if (!inStoreData && fieldsForOutput.count(key) > 0) {
-            addToState(key, state, array);
-        }
-    });
+    diagState.forEachDataReference(
+        [&](const std::string& key, const ModelState::DataReference& arrayRef) {
+            // Avoid double counting
+            bool inStoreData;
+            if (externalNames.count(key)) {
+                inStoreData = storeData.count(externalNames.at(key)) > 0;
+            } else {
+                inStoreData = storeData.count(key) > 0;
+            }
+            if (!inStoreData && fieldsForOutput.count(key) > 0) {
+                addToState(key, state, arrayRef());
+            }
+        });
 
     /*
      * Produce output either:

@@ -72,9 +72,9 @@ public:
     void appendStateDiagnostic(ModelState& state) const override
     {
         state.config.merge(getConfiguration());
-        state.addReference("delta_H_ice", deltaHiAccessor.getHostRO());
-        state.addReference("snow_to_ice", snowToIceAccessor.getHostRO());
-        state.addReference(tsurfName, tsurfAccessor.getHostRO());
+        state.addReference("delta_H_ice", deltaHiAccessor);
+        state.addReference("snow_to_ice", snowToIceAccessor);
+        state.addReference(tsurfName, tsurfAccessor);
     }
 
     /*!

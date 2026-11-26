@@ -18,7 +18,8 @@ namespace Nextsim {
 
 struct ModelState {
     typedef std::map<std::string, ModelArray> DataMap;
-    typedef std::map<std::string, std::reference_wrapper<const ModelArray>> ReferenceMap;
+    typedef std::function<const ModelArray&()> DataReference;
+    typedef std::map<std::string, DataReference> ReferenceMap;
 
     DataMap data;
     ConfigMap config;
@@ -26,19 +27,33 @@ struct ModelState {
 
     void addReference(const std::string& name, const ModelArray& array)
     {
-        references.emplace(name, std::cref(array));
+        references.emplace(name, [&array]() -> const ModelArray& { return array; });
+    }
+
+    template <typename Accessor>
+    void addReference(const std::string& name, const Accessor& accessor)
+    {
+        references.emplace(
+            name, [&accessor]() -> const ModelArray& { return accessor.getHostRO(); });
+    }
+
+    template <typename Fn> void forEachDataReference(Fn&& fn) const
+    {
+        for (const auto& [name, array] : data) {
+            const ModelArray* arrayPtr = &array;
+            fn(name, [arrayPtr]() -> const ModelArray& { return *arrayPtr; });
+        }
+        for (const auto& [name, array] : references) {
+            if (data.count(name) == 0) {
+                fn(name, array);
+            }
+        }
     }
 
     template <typename Fn> void forEachData(Fn&& fn) const
     {
-        for (const auto& [name, array] : data) {
-            fn(name, array);
-        }
-        for (const auto& [name, array] : references) {
-            if (data.count(name) == 0) {
-                fn(name, array.get());
-            }
-        }
+        forEachDataReference(
+            [&fn](const std::string& name, const DataReference& array) { fn(name, array()); });
     }
 
     inline ModelState& merge(ModelState& source)
