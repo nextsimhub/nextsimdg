@@ -96,7 +96,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     container:
-      image: ghcr.io/nextsimhub/nextsimdg-dev-env:latest
+      # Pinned to most recent release on ghcr.io/nextsimhub/nextsimdg-dev-env for reproducibility
+      image: ghcr.io/nextsimhub/nextsimdg-dev-env@sha256:f80c65c95ca8b4c85d56de34e9b8bbcefe085f02dba07e4a2252d84ed72a29fb
     steps:
     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
