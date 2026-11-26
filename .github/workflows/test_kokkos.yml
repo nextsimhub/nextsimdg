@@ -1,0 +1,76 @@
+# Workflow for compiling nextSIM-DG with Kokkos and running the tests
+name: Kokkos test
+
+on:
+  push:
+    branches: [ main, develop ]
+
+  pull_request:
+    paths:
+      - '.github/workflows/test_kokkos.yml'
+      - 'core/*.sh'
+      - 'dynamics/codegeneration/*.sh'
+      - 'run/*.sh'
+      - '**.cdl'
+      - '**.cfg'
+      - '**.cpp'
+      - '**.hpp'
+      - '**.py'
+      - '**.xml'
+      - '**CMakeLists.txt'
+
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test-ubuntu-kokkos:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    container:
+      image: ghcr.io/nextsimhub/nextsimdg-dev-env:latest
+    steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        persist-credentials: false
+
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        repository: kokkos/kokkos
+        ref: 4.7.04
+        path: lib/kokkos
+        persist-credentials: false
+
+    - name: build and compile with Kokkos
+      run: |
+        . /opt/spack-environment/activate.sh
+        cmake -B build -S . -DCMAKE_BUILD_TYPE=Release -DWITH_KOKKOS=ON
+        cmake --build build -j 4
+
+    - name: installs for python tests
+      run: |
+        apt -y update
+        apt install -y python3-venv
+        python3 -m venv ~/nextsim
+        . $HOME/nextsim/bin/activate
+        pip install netCDF4 numpy
+
+    - name: run serial tests
+      run: |
+        . /opt/spack-environment/activate.sh
+        . $HOME/nextsim/bin/activate
+        apt update
+        apt install -y wget
+        cd build
+        (cd core/test && wget "ftp://ftp.nersc.no/nextsim/netCDF/partition_metadata_1.nc")
+        ctest -V
+        mv ../test .
+        cd test
+        python3 ThermoIntegration_test.py
+        ./run_test_jan2010_integration.sh python3
+        ./run_test_advection.sh python3
+        ./run_test_error_handling_test.sh python3
