@@ -74,24 +74,17 @@ ConfigMap ThermoWinton::getConfiguration() const
 
 void ThermoWinton::appendStateDiagnostic(ModelState& state) const
 {
-    state.config.merge(getConfiguration());
     state.addReference("snow_melt", snowMeltAccessor);
     state.addReference("top_melt", topMeltAccessor);
     state.addReference("bottom_melt", botMeltAccessor);
-    state.addReference(tInteriorName, tInternalAccessor);
-    state.addReference(tBottomName, tBottomAccessor);
     IIceThermodynamics::appendStateDiagnostic(state);
 }
 
-ModelState ThermoWinton::getStatePrognostic() const
+void ThermoWinton::appendStatePrognostic(ModelState& state) const
 {
-    ModelState state = { {
-                             { tInteriorName, tInternalAccessor.getHostRO() },
-                             { tBottomName, tBottomAccessor.getHostRO() },
-                         },
-        getConfiguration() };
-
-    return state.merge(IIceThermodynamics::getStatePrognostic());
+    IIceThermodynamics::appendStatePrognostic(state);
+    state.addReference(tInteriorName, tInternalAccessor);
+    state.addReference(tBottomName, tBottomAccessor);
 }
 
 ThermoWinton::HelpMap& ThermoWinton::getHelpText(HelpMap& map, bool getAll)

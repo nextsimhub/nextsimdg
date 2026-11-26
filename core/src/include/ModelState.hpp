@@ -56,6 +56,16 @@ struct ModelState {
             [&fn](const std::string& name, const DataReference& array) { fn(name, array()); });
     }
 
+    void materializeReferences()
+    {
+        for (const auto& [name, array] : references) {
+            if (data.count(name) == 0) {
+                data.emplace(name, array());
+            }
+        }
+        references.clear();
+    }
+
     inline ModelState& merge(ModelState& source)
     {
         data.merge(source.data);

@@ -90,10 +90,10 @@ ConfigMap ConfiguredOcean::getConfiguration() const
     };
 }
 
-ModelState ConfiguredOcean::getStatePrognostic() const
+void ConfiguredOcean::appendStatePrognostic(ModelState& state) const
 {
-    ModelState state = IOceanBoundary::getStatePrognostic();
-    return state.merge(slabOcean.getStatePrognostic());
+    state.config.merge(getConfiguration());
+    slabOcean.appendStatePrognostic(state);
 }
 
 void ConfiguredOcean::appendStateDiagnostic(ModelState& state) const

@@ -155,48 +155,19 @@ public:
      * @param state The ModelState containing the data to be set.
      */
     virtual void setData(const ModelState::DataMap& state) = 0;
-    /*!
-     * @brief Returns all data and configuration from this component.
-     *
-     * @details The state returned by this function contains all
-     * available data in this component and all components that it calls.
-     */
-    virtual ModelState getStateDiagnostic() const
-    {
-        ModelState state;
-        appendStateDiagnostic(state);
-        return state;
-    }
-    /*!
-     * @brief Adds diagnostic fields to a non-owning view.
-     *
-     * Components with accessor-backed fields should override this method to
-     * avoid copying their arrays. By default, prognostic state is appended.
-     */
-    virtual void appendStateDiagnostic(ModelState& state) const
-    {
-        state.merge(getStatePrognostic());
-    }
-    /*!
-     * @brief Returns a ModelState from this component at a specified level of detail.
-     *
-     * @details See the zero argument version for more details. The output
-     * levels reuse those defined in the Logged class. The default level is
-     * NOTICE, and only levels such as INFO, DEBUG and TRACE should be used,
-     * and should provide extra diagnostic fields.
-     */
-    virtual ModelState getStateDiagnostic(const OutputLevel&) const { return getStateDiagnostic(); }
+    //! Appends the diagnostic data and configuration for this component.
+    virtual void appendStateDiagnostic(ModelState& state) const { appendStatePrognostic(state); }
 
     /*!
-     * @brief Returns the state of the ModelComponent.
+     * @brief Appends the prognostic state of the ModelComponent.
      *
-     * @details Returns the state of the ModelComponent and any ModelComponents
-     * it depends on.
-     *
-     * @details The state returned by this function contains all the
-     * data necessary to restart this component and all components that it calls.
+     * @details The state contains all data necessary to restart this component
+     * and any ModelComponents it depends on.
      */
-    virtual ModelState getStatePrognostic() const { return { {}, getConfiguration() }; }
+    virtual void appendStatePrognostic(ModelState& state) const
+    {
+        state.config.merge(getConfiguration());
+    }
 
     /*!
      * @brief Returns the ModelArrayAccessor backing store for column physics fields.

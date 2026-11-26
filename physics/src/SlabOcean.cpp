@@ -40,22 +40,18 @@ ConfigMap SlabOcean::getConfiguration() const
     };
 }
 
-ModelState SlabOcean::getStatePrognostic() const
+void SlabOcean::appendStatePrognostic(ModelState& state) const
 {
-    return { {
-                 { sstName, sstSlabAccessor.getHostRO() },
-                 { sssName, sssSlabAccessor.getHostRO() },
-             },
-        getConfiguration() };
+    state.config.merge(getConfiguration());
+    state.addReference(sstName, sstSlabAccessor);
+    state.addReference(sssName, sssSlabAccessor);
 }
 
 void SlabOcean::appendStateDiagnostic(ModelState& state) const
 {
-    state.config.merge(getConfiguration());
+    appendStatePrognostic(state);
     state.addReference("Q_slab", qdwAccessor);
     state.addReference("F_slab", fdwAccessor);
-    state.addReference(sstName, sstSlabAccessor);
-    state.addReference(sssName, sssSlabAccessor);
 }
 
 SlabOcean::HelpMap& SlabOcean::getHelpText(HelpMap& map, bool getAll)

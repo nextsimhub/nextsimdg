@@ -32,15 +32,11 @@ void NSColumnPhysics::appendStateDiagnostic(ModelState& state) const
     iHealing->appendStateDiagnostic(state);
 }
 
-ModelState NSColumnPhysics::getStatePrognostic() const
+void NSColumnPhysics::appendStatePrognostic(ModelState& state) const
 {
-    ModelState state;
-    // Merge in other states here
-    state.merge(iLateral->getStatePrognostic());
-    state.merge(iVertical->getStatePrognostic());
-    state.merge(iHealing->getStatePrognostic());
-
-    return state;
+    iLateral->appendStatePrognostic(state);
+    iVertical->appendStatePrognostic(state);
+    iHealing->appendStatePrognostic(state);
 }
 
 NSColumnPhysics::HelpMap& NSColumnPhysics::getHelpText(HelpMap& map, bool getAll)

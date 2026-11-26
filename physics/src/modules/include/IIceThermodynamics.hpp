@@ -49,20 +49,17 @@ public:
         }
     }
 
-    ModelState getStatePrognostic() const override
+    void appendStatePrognostic(ModelState& state) const override
     {
-        return { {
-                     { tsurfName, tsurfAccessor.getHostRO() },
-                 },
-            getConfiguration() };
+        state.config.merge(getConfiguration());
+        state.addReference(tsurfName, tsurfAccessor);
     }
 
     void appendStateDiagnostic(ModelState& state) const override
     {
-        state.config.merge(getConfiguration());
+        appendStatePrognostic(state);
         state.addReference("delta_H_ice", deltaHiAccessor);
         state.addReference("snow_to_ice", snowToIceAccessor);
-        state.addReference(tsurfName, tsurfAccessor);
     }
 
     /*!

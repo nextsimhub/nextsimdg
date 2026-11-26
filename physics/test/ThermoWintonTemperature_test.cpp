@@ -104,7 +104,10 @@ TEST_CASE("Melting conditions")
     twin.setData(iceTempState);
     twin.update(tst);
 
-    ModelState::DataMap output = twin.getStatePrognostic().data;
+    ModelState outputState;
+    twin.appendStatePrognostic(outputState);
+    outputState.materializeReferences();
+    ModelState::DataMap output = std::move(outputState.data);
     REQUIRE(output.count(tsurfName) != 0);
     REQUIRE(output.count(ThermoWinton::tInteriorName) != 0);
     REQUIRE(output.count(ThermoWinton::tBottomName) != 0);
@@ -204,7 +207,10 @@ TEST_CASE("Freezing conditions")
     twin.setData(iceTempState);
     twin.update(tst);
 
-    ModelState::DataMap output = twin.getStatePrognostic().data;
+    ModelState outputState;
+    twin.appendStatePrognostic(outputState);
+    outputState.materializeReferences();
+    ModelState::DataMap output = std::move(outputState.data);
     REQUIRE(output.count(tsurfName) != 0);
     REQUIRE(output.count(ThermoWinton::tInteriorName) != 0);
     REQUIRE(output.count(ThermoWinton::tBottomName) != 0);

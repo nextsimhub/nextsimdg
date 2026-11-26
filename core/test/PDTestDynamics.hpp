@@ -14,7 +14,7 @@ public:
 
     void setData(const ModelState::DataMap& ms) override { dataMap = ms; }
 
-    ModelState getStatePrognostic() const override { return { dataMap, {} }; }
+    void appendStatePrognostic(ModelState& state) const override { state.data = dataMap; }
 
 private:
     ModelState::DataMap dataMap;

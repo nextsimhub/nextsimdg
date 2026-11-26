@@ -36,12 +36,9 @@ public:
     }
     void setData(const ModelState::DataMap& ms) override { hiceAccessor.getHostRW()[0] = hiceData; }
     std::string getName() const override { return "SupplyAndWait"; }
-    ModelState getStatePrognostic() const override
+    void appendStatePrognostic(ModelState& state) const override
     {
-        return { {
-                     { "hice", hiceAccessor.getHostRO() },
-                 },
-            {} };
+        state.addReference("hice", hiceAccessor);
     }
 
     const FloatType hiceData = 1.2;
@@ -62,12 +59,9 @@ public:
     }
     void setData(const ModelState::DataMap& ms) override { ciceAccessor.getHostRW()[0] = ciceData; }
     std::string getName() const override { return "SupplyAndWait"; }
-    ModelState getStatePrognostic() const override
+    void appendStatePrognostic(ModelState& state) const override
     {
-        return { {
-                     { "cice", ciceAccessor.getHostRO() },
-                 },
-            {} };
+        state.addReference("cice", ciceAccessor);
     }
 
     const FloatType ciceData = 0.6;
@@ -127,7 +121,7 @@ TEST_CASE("ModelState resolves accessor references lazily")
     CHECK(accessor.calls == 1);
 }
 
-TEST_CASE("getStateDiagnostic uses appended diagnostic state")
+TEST_CASE("Diagnostic state appending")
 {
     class DiagnosticComponent : public ModelComponent {
     public:
@@ -143,7 +137,8 @@ TEST_CASE("getStateDiagnostic uses appended diagnostic state")
 
     ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
     DiagnosticComponent component;
-    const ModelState state = component.getStateDiagnostic();
+    ModelState state;
+    component.appendStateDiagnostic(state);
 
     REQUIRE(state.references.count("field") == 1);
     CHECK(&state.references.at("field")() == &component.field);
@@ -158,12 +153,9 @@ public:
     }
     void setData(const ModelState::DataMap& ms) override { qicAccessor.getHostRW()[0] = qicData; }
     std::string getName() const override { return "SemiShared"; }
-    ModelState getStatePrognostic() const override
+    void appendStatePrognostic(ModelState& state) const override
     {
-        return { {
-                     { "qic", qicAccessor.getHostRO() },
-                 },
-            {} };
+        state.addReference("qic", qicAccessor);
     }
 
     const FloatType qicData = 123;
@@ -184,12 +176,9 @@ public:
     }
     void setData(const ModelState::DataMap& ms) override { /*qio[0]; */ }
     std::string getName() const override { return "Shared"; }
-    ModelState getStatePrognostic() const override
+    void appendStatePrognostic(ModelState& state) const override
     {
-        return { {
-                     { "qio", qioAccessor.getHostRO() },
-                 },
-            {} };
+        state.addReference("qio", qioAccessor);
     }
 
     const FloatType qioData = 234;

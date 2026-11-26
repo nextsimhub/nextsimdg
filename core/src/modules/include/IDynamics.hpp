@@ -60,36 +60,26 @@ public:
     }
     virtual ~IDynamics() = default;
 
-    ModelState getStatePrognostic() const override
+    void appendStatePrognostic(ModelState& state) const override
     {
-        ModelState state = { {
-                                 { uName, uiceAccessor.getHostRO() },
-                                 { vName, viceAccessor.getHostRO() },
-                             },
-            getConfiguration() };
+        state.config.merge(getConfiguration());
+        state.addReference(uName, uiceAccessor);
+        state.addReference(vName, viceAccessor);
 
         if (m_usesDamage) {
-            ModelState::DataMap damageState = { { damageName, damageAccessor.getHostRO() } };
-            state.merge(damageState);
+            state.addReference(damageName, damageAccessor);
         }
-
-        return state;
     }
 
     void appendStateDiagnostic(ModelState& state) const override
     {
-        state.config.merge(getConfiguration());
+        appendStatePrognostic(state);
         state.addReference(uIOStressName, tauxAccessor);
         state.addReference(vIOStressName, tauyAccessor);
-        state.addReference(uName, uiceAccessor);
-        state.addReference(vName, viceAccessor);
         state.addReference(shearName, shearAccessor);
         state.addReference(divergenceName, divergenceAccessor);
         state.addReference(sigmaIName, sigmaIAccessor);
         state.addReference(sigmaIIName, sigmaIIAccessor);
-        if (m_usesDamage) {
-            state.addReference(damageName, damageAccessor);
-        }
     }
 
     std::string getName() const override { return "IDynamics"; }

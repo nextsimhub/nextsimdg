@@ -109,10 +109,10 @@ void TOPAZOcean::updateAfter(const TimestepTime& tst)
     }
 }
 
-ModelState TOPAZOcean::getStatePrognostic() const
+void TOPAZOcean::appendStatePrognostic(ModelState& state) const
 {
-    ModelState state = IOceanBoundary::getStatePrognostic();
-    return state.merge(slabOcean.getStatePrognostic());
+    state.config.merge(getConfiguration());
+    slabOcean.appendStatePrognostic(state);
 }
 
 void TOPAZOcean::appendStateDiagnostic(ModelState& state) const
