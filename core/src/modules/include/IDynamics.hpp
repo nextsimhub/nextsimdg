@@ -92,6 +92,22 @@ public:
         return state.merge(getStatePrognostic());
     }
 
+    void appendStateDiagnostic(ModelStateView& view) const override
+    {
+        view.config.merge(getConfiguration());
+        view.addReference(uIOStressName, tauxAccessor.getHostRO());
+        view.addReference(vIOStressName, tauyAccessor.getHostRO());
+        view.addReference(uName, uiceAccessor.getHostRO());
+        view.addReference(vName, viceAccessor.getHostRO());
+        view.addReference(shearName, shearAccessor.getHostRO());
+        view.addReference(divergenceName, divergenceAccessor.getHostRO());
+        view.addReference(sigmaIName, sigmaIAccessor.getHostRO());
+        view.addReference(sigmaIIName, sigmaIIAccessor.getHostRO());
+        if (m_usesDamage) {
+            view.addReference(damageName, damageAccessor.getHostRO());
+        }
+    }
+
     std::string getName() const override { return "IDynamics"; }
     virtual void setData(const ModelState::DataMap& ms) override
     {

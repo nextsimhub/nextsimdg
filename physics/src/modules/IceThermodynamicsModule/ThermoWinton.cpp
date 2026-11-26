@@ -85,6 +85,17 @@ ModelState ThermoWinton::getStateDiagnostic() const
     return state.merge(IIceThermodynamics::getStateDiagnostic());
 }
 
+void ThermoWinton::appendStateDiagnostic(ModelStateView& view) const
+{
+    view.config.merge(getConfiguration());
+    view.addReference("snow_melt", snowMeltAccessor.getHostRO());
+    view.addReference("top_melt", topMeltAccessor.getHostRO());
+    view.addReference("bottom_melt", botMeltAccessor.getHostRO());
+    view.addReference(tInteriorName, tInternalAccessor.getHostRO());
+    view.addReference(tBottomName, tBottomAccessor.getHostRO());
+    IIceThermodynamics::appendStateDiagnostic(view);
+}
+
 ModelState ThermoWinton::getStatePrognostic() const
 {
     ModelState state = { {

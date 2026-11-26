@@ -69,6 +69,14 @@ public:
         return state;
     }
 
+    void appendStateDiagnostic(ModelStateView& view) const override
+    {
+        view.config.merge(getConfiguration());
+        view.addReference("delta_H_ice", deltaHiAccessor.getHostRO());
+        view.addReference("snow_to_ice", snowToIceAccessor.getHostRO());
+        view.addReference(tsurfName, tsurfAccessor.getHostRO());
+    }
+
     /*!
      * Updates the ice thermodynamic and thickness growth calculation for the timestep.
      *

@@ -38,6 +38,7 @@ public:
 
     ModelState getStatePrognostic() const override;
     ModelState getStateDiagnostic() const override;
+    void appendStateDiagnostic(ModelStateView& view) const override;
     void updateBefore(const TimestepTime& tst) override;
     void updateAfter(const TimestepTime& tst) override;
 

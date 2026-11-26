@@ -170,6 +170,11 @@ void ConfigOutput::setData(const TimePoint& modelStart)
 
 void ConfigOutput::outputState(const ModelState& diagState)
 {
+    outputState(ModelStateView(diagState));
+}
+
+void ConfigOutput::outputState(const ModelStateView& diagState)
+{
     const auto& meta = ModelMetadata::getInstance();
 
     FloatType averagingFactor = meta.stepLength().seconds() / outputPeriod.seconds();
@@ -213,7 +218,7 @@ void ConfigOutput::outputState(const ModelState& diagState)
             inStoreData = storeData.count(key) > 0;
         }
         if (!inStoreData && fieldsForOutput.count(key) > 0) {
-            addToState(key, state, arrayRef);
+            addToState(key, state, arrayRef.get());
         }
     }
 

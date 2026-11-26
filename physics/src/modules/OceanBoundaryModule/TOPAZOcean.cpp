@@ -68,7 +68,6 @@ void TOPAZOcean::updateBefore(const TimestepTime& tst)
 {
     forcingState->update(tst.start);
 
-
     sstExtAccessor.getHostRW() = forcingState->getField(sstName);
     sssExtAccessor.getHostRW() = forcingState->getField(sssName);
     mldAccessor.getHostRW() = forcingState->getField(mldName);
@@ -120,6 +119,12 @@ ModelState TOPAZOcean::getStateDiagnostic() const
 {
     ModelState state = IOceanBoundary::getStateDiagnostic();
     return state.merge(slabOcean.getStateDiagnostic());
+}
+
+void TOPAZOcean::appendStateDiagnostic(ModelStateView& view) const
+{
+    view.config.merge(getConfiguration());
+    slabOcean.appendStateDiagnostic(view);
 }
 
 void TOPAZOcean::setFilePath(const std::string& filePathIn) { filePath = filePathIn; }

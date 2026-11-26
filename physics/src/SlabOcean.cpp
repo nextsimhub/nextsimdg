@@ -60,6 +60,15 @@ ModelState SlabOcean::getStateDiagnostic() const
     return state.merge(getStatePrognostic());
 }
 
+void SlabOcean::appendStateDiagnostic(ModelStateView& view) const
+{
+    view.config.merge(getConfiguration());
+    view.addReference("Q_slab", qdwAccessor.getHostRO());
+    view.addReference("F_slab", fdwAccessor.getHostRO());
+    view.addReference(sstName, sstSlabAccessor.getHostRO());
+    view.addReference(sssName, sssSlabAccessor.getHostRO());
+}
+
 SlabOcean::HelpMap& SlabOcean::getHelpText(HelpMap& map, bool getAll)
 {
     map[className] = {

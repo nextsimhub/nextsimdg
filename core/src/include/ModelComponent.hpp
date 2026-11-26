@@ -163,6 +163,17 @@ public:
      */
     virtual ModelState getStateDiagnostic() const { return getStatePrognostic(); }
     /*!
+     * @brief Adds diagnostic fields to a non-owning view.
+     *
+     * Components with accessor-backed fields should override this method to
+     * avoid copying their arrays. The default preserves compatibility with
+     * components that only implement getStateDiagnostic().
+     */
+    virtual void appendStateDiagnostic(ModelStateView& view) const
+    {
+        view.merge(getStateDiagnostic());
+    }
+    /*!
      * @brief Returns a ModelState from this component at a specified level of detail.
      *
      * @details See the zero argument version for more details. The output

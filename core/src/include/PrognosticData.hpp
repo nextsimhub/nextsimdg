@@ -32,6 +32,7 @@ public:
 
     void setData(const ModelState::DataMap& ms) override;
     ModelState getStateDiagnostic() const override;
+    void appendStateDiagnostic(ModelStateView& view) const override;
     ModelState getStatePrognostic() const override;
 
     static HelpMap& getHelpText(HelpMap& map, bool getAll);

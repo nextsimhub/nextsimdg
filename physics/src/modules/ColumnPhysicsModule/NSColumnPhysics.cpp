@@ -34,6 +34,13 @@ ModelState NSColumnPhysics::getStateDiagnostic() const
     return state;
 }
 
+void NSColumnPhysics::appendStateDiagnostic(ModelStateView& view) const
+{
+    iLateral->appendStateDiagnostic(view);
+    iVertical->appendStateDiagnostic(view);
+    iHealing->appendStateDiagnostic(view);
+}
+
 ModelState NSColumnPhysics::getStatePrognostic() const
 {
     ModelState state;

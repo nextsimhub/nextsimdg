@@ -40,6 +40,7 @@ public:
     void updateAfter(const TimestepTime&) override;
     ModelState getStatePrognostic() const override;
     ModelState getStateDiagnostic() const override;
+    void appendStateDiagnostic(ModelStateView& view) const override;
 
     void setFilePath(const std::string& filePathIn);
 
