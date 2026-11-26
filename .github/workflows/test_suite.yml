@@ -91,6 +91,46 @@ jobs:
         ./run_test_advection.sh python3
         ./run_test_error_handling_test.sh python3
 
+  # Serial tests on latest Ubuntu OS with Kokkos
+  test-ubuntu-kokkos:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    container:
+      image: ghcr.io/nextsimhub/nextsimdg-dev-env:latest
+    steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        persist-credentials: false
+
+    - name: build and compile with Kokkos
+      run: |
+        . /opt/spack-environment/activate.sh
+        cmake -B build -S . -DCMAKE_BUILD_TYPE=Release -DWITH_KOKKOS=ON -DKokkos_ENABLE_OPENMP=ON
+        cmake --build build -j 4
+
+    - name: installs for python tests
+      run: |
+        apt -y update
+        apt install -y python3-venv
+        python3 -m venv ~/nextsim
+        . $HOME/nextsim/bin/activate
+        pip install netCDF4 numpy
+
+    - name: run serial tests
+      run: |
+        . /opt/spack-environment/activate.sh
+        . $HOME/nextsim/bin/activate
+        apt update
+        apt install -y wget
+        cd build
+        ctest -V
+        mv ../test .
+        cd test
+        python3 ThermoIntegration_test.py
+        ./run_test_jan2010_integration.sh python3
+        ./run_test_advection.sh python3
+        ./run_test_error_handling_test.sh python3
+
   # MPI tests on latest Ubuntu OS without XIOS support
   test-ubuntu-mpi-noxios:
     runs-on: ubuntu-latest
