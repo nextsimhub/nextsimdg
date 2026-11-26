@@ -17,16 +17,34 @@
 namespace Nextsim {
 
 struct ModelState {
-private:
-public:
     typedef std::map<std::string, ModelArray> DataMap;
+    typedef std::map<std::string, std::reference_wrapper<const ModelArray>> ReferenceMap;
 
     DataMap data;
     ConfigMap config;
+    ReferenceMap references;
+
+    void addReference(const std::string& name, const ModelArray& array)
+    {
+        references.emplace(name, std::cref(array));
+    }
+
+    template <typename Fn> void forEachData(Fn&& fn) const
+    {
+        for (const auto& [name, array] : data) {
+            fn(name, array);
+        }
+        for (const auto& [name, array] : references) {
+            if (data.count(name) == 0) {
+                fn(name, array.get());
+            }
+        }
+    }
 
     inline ModelState& merge(ModelState& source)
     {
         data.merge(source.data);
+        references.merge(source.references);
         config.merge(source.config);
         return *this;
     }
@@ -34,6 +52,7 @@ public:
     inline ModelState& merge(ModelState&& source)
     {
         data.merge(std::move(source.data));
+        references.merge(std::move(source.references));
         config.merge(std::move(source.config));
         return *this;
     }
@@ -61,44 +80,6 @@ public:
         data.merge(std::move(dataSrc));
         return *this;
     }
-};
-
-struct ModelStateView {
-    using DataMap = std::map<std::string, std::reference_wrapper<const ModelArray>>;
-
-    ModelStateView() = default;
-    explicit ModelStateView(const ModelState& state)
-        : config(state.config)
-    {
-        for (const auto& [name, array] : state.data) {
-            addReference(name, array);
-        }
-    }
-
-    ModelStateView(const ModelStateView&) = delete;
-    ModelStateView& operator=(const ModelStateView&) = delete;
-
-    void addReference(const std::string& name, const ModelArray& array)
-    {
-        data.emplace(name, std::cref(array));
-    }
-
-    void merge(ModelState&& state)
-    {
-        config.merge(std::move(state.config));
-        for (auto& [name, array] : state.data) {
-            auto [it, inserted] = ownedData.emplace(name, std::move(array));
-            if (inserted) {
-                addReference(it->first, it->second);
-            }
-        }
-    }
-
-    DataMap data;
-    ConfigMap config;
-
-private:
-    std::map<std::string, ModelArray> ownedData;
 };
 
 } /* namespace Nextsim */

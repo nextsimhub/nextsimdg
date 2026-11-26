@@ -169,9 +169,9 @@ public:
      * avoid copying their arrays. The default preserves compatibility with
      * components that only implement getStateDiagnostic().
      */
-    virtual void appendStateDiagnostic(ModelStateView& view) const
+    virtual void appendStateDiagnostic(ModelState& state) const
     {
-        view.merge(getStateDiagnostic());
+        state.merge(getStateDiagnostic());
     }
     /*!
      * @brief Returns a ModelState from this component at a specified level of detail.

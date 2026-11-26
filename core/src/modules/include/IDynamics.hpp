@@ -92,19 +92,19 @@ public:
         return state.merge(getStatePrognostic());
     }
 
-    void appendStateDiagnostic(ModelStateView& view) const override
+    void appendStateDiagnostic(ModelState& state) const override
     {
-        view.config.merge(getConfiguration());
-        view.addReference(uIOStressName, tauxAccessor.getHostRO());
-        view.addReference(vIOStressName, tauyAccessor.getHostRO());
-        view.addReference(uName, uiceAccessor.getHostRO());
-        view.addReference(vName, viceAccessor.getHostRO());
-        view.addReference(shearName, shearAccessor.getHostRO());
-        view.addReference(divergenceName, divergenceAccessor.getHostRO());
-        view.addReference(sigmaIName, sigmaIAccessor.getHostRO());
-        view.addReference(sigmaIIName, sigmaIIAccessor.getHostRO());
+        state.config.merge(getConfiguration());
+        state.addReference(uIOStressName, tauxAccessor.getHostRO());
+        state.addReference(vIOStressName, tauyAccessor.getHostRO());
+        state.addReference(uName, uiceAccessor.getHostRO());
+        state.addReference(vName, viceAccessor.getHostRO());
+        state.addReference(shearName, shearAccessor.getHostRO());
+        state.addReference(divergenceName, divergenceAccessor.getHostRO());
+        state.addReference(sigmaIName, sigmaIAccessor.getHostRO());
+        state.addReference(sigmaIIName, sigmaIIAccessor.getHostRO());
         if (m_usesDamage) {
-            view.addReference(damageName, damageAccessor.getHostRO());
+            state.addReference(damageName, damageAccessor.getHostRO());
         }
     }
 

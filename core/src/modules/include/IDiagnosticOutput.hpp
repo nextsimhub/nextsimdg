@@ -41,23 +41,6 @@ public:
      * @param state The model state to be written out.
      */
     virtual void outputState(const ModelState& state) = 0;
-    /*!
-     * @brief Outputs a non-owning view of the diagnostic state.
-     *
-     * The default implementation supports existing outputs by materializing
-     * an owning ModelState. Output modules can override this to consume the
-     * view directly.
-     */
-    virtual void outputState(const ModelStateView& view)
-    {
-        ModelState state;
-        state.config = view.config;
-        for (const auto& [name, array] : view.data) {
-            state.data.emplace(name, array.get());
-        }
-        outputState(state);
-    }
-
     // Define some of the ModelComponent class functions
     // No data to be set
     void setData(const ModelState::DataMap& state) { }

@@ -150,18 +150,18 @@ ModelState PrognosticData::getStateDiagnostic() const
     return state;
 }
 
-void PrognosticData::appendStateDiagnostic(ModelStateView& view) const
+void PrognosticData::appendStateDiagnostic(ModelState& state) const
 {
-    view.config.merge(ModelComponent::getConfiguration());
-    view.addReference(maskName, oceanMask());
-    view.addReference(hiceName, hiceAccessor.getHostRO());
-    view.addReference(ciceName, ciceAccessor.getHostRO());
-    view.addReference(hsnowName, hsnowAccessor.getHostRO());
+    state.config.merge(ModelComponent::getConfiguration());
+    state.addReference(maskName, oceanMask());
+    state.addReference(hiceName, hiceAccessor.getHostRO());
+    state.addReference(ciceName, ciceAccessor.getHostRO());
+    state.addReference(hsnowName, hsnowAccessor.getHostRO());
 
-    pDynamics->appendStateDiagnostic(view);
-    pColumnPhysics->appendStateDiagnostic(view);
-    pAtmBdy->appendStateDiagnostic(view);
-    pOcnBdy->appendStateDiagnostic(view);
+    pDynamics->appendStateDiagnostic(state);
+    pColumnPhysics->appendStateDiagnostic(state);
+    pAtmBdy->appendStateDiagnostic(state);
+    pOcnBdy->appendStateDiagnostic(state);
 }
 
 // Gets the prognostic data from all subcomponents

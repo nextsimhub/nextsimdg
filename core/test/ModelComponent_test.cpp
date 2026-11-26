@@ -90,15 +90,17 @@ TEST_CASE("Test array registration")
     REQUIRE(saw.data() == ras.refData());
 }
 
-TEST_CASE("Diagnostic state view references arrays")
+TEST_CASE("ModelState references arrays")
 {
     ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
     ModelArray source(ModelArray::Type::H);
-    ModelStateView view;
+    ModelState state;
 
-    view.addReference("field", source);
+    state.addReference("field", source);
 
-    CHECK(&view.data.at("field").get() == &source);
+    CHECK(&state.references.at("field").get() == &source);
+    state.forEachData(
+        [&source](const std::string&, const ModelArray& array) { CHECK(&array == &source); });
 }
 
 class ModuleSemiShared : public ModelComponent {

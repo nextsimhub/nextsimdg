@@ -14,11 +14,6 @@ namespace Nextsim {
 
 void SimpleOutput::outputState(const ModelState& diagState)
 {
-    outputState(ModelStateView(diagState));
-}
-
-void SimpleOutput::outputState(const ModelStateView& diagState)
-{
     auto& meta = ModelMetadata::getInstance();
     std::stringstream startStream;
     startStream << meta.time();
@@ -31,9 +26,9 @@ void SimpleOutput::outputState(const ModelStateView& diagState)
     // Take the passed state, and add the files in the data store
     ModelState state;
     state.config = diagState.config;
-    for (const auto& [name, array] : diagState.data) {
-        state.data.emplace(name, array.get());
-    }
+    diagState.forEachData([&state](const std::string& name, const ModelArray& array) {
+        state.data.emplace(name, array);
+    });
     // Create the output by iterating over all fields referenced in ModelState
     auto storeData = ModelArrayAccessorBase<RO>::getAll(ModelComponent::getStore());
     for (auto entry : storeData) {

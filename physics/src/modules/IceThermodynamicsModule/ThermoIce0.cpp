@@ -201,14 +201,14 @@ ModelState ThermoIce0::getStateDiagnostic() const
     return state.merge(IIceThermodynamics::getStateDiagnostic());
 }
 
-void ThermoIce0::appendStateDiagnostic(ModelStateView& view) const
+void ThermoIce0::appendStateDiagnostic(ModelState& state) const
 {
-    view.config.merge(getConfiguration());
-    view.addReference("snow_melt", snowMeltAccessor.getHostRO());
-    view.addReference("top_melt", topMeltAccessor.getHostRO());
-    view.addReference("bottom_melt", botMeltAccessor.getHostRO());
-    view.addReference("Q_ic", qicAccessor.getHostRO());
-    IIceThermodynamics::appendStateDiagnostic(view);
+    state.config.merge(getConfiguration());
+    state.addReference("snow_melt", snowMeltAccessor.getHostRO());
+    state.addReference("top_melt", topMeltAccessor.getHostRO());
+    state.addReference("bottom_melt", botMeltAccessor.getHostRO());
+    state.addReference("Q_ic", qicAccessor.getHostRO());
+    IIceThermodynamics::appendStateDiagnostic(state);
 }
 
 ModelState ThermoIce0::getStatePrognostic() const

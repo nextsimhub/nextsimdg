@@ -170,11 +170,6 @@ void ConfigOutput::setData(const TimePoint& modelStart)
 
 void ConfigOutput::outputState(const ModelState& diagState)
 {
-    outputState(ModelStateView(diagState));
-}
-
-void ConfigOutput::outputState(const ModelStateView& diagState)
-{
     const auto& meta = ModelMetadata::getInstance();
 
     FloatType averagingFactor = meta.stepLength().seconds() / outputPeriod.seconds();
@@ -209,7 +204,7 @@ void ConfigOutput::outputState(const ModelStateView& diagState)
     }
 
     // Filter the passed state by the field names for output
-    for (const auto& [key, arrayRef] : diagState.data) {
+    diagState.forEachData([&](const std::string& key, const ModelArray& array) {
         // Avoid double counting
         bool inStoreData;
         if (externalNames.count(key)) {
@@ -218,9 +213,9 @@ void ConfigOutput::outputState(const ModelStateView& diagState)
             inStoreData = storeData.count(key) > 0;
         }
         if (!inStoreData && fieldsForOutput.count(key) > 0) {
-            addToState(key, state, arrayRef.get());
+            addToState(key, state, array);
         }
-    }
+    });
 
     /*
      * Produce output either:

@@ -45,7 +45,7 @@ void DevStep::iterate(const TimestepTime& tst)
         lastOutput = mData.time();
     }
     // XIOS wants all the fields, every timestep, so I guess that's what everyone gets
-    ModelStateView state;
+    ModelState state;
     pData->appendStateDiagnostic(state);
     Module::getImplementation<IDiagnosticOutput>().outputState(state);
 }

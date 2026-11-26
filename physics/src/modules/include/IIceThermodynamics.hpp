@@ -69,12 +69,12 @@ public:
         return state;
     }
 
-    void appendStateDiagnostic(ModelStateView& view) const override
+    void appendStateDiagnostic(ModelState& state) const override
     {
-        view.config.merge(getConfiguration());
-        view.addReference("delta_H_ice", deltaHiAccessor.getHostRO());
-        view.addReference("snow_to_ice", snowToIceAccessor.getHostRO());
-        view.addReference(tsurfName, tsurfAccessor.getHostRO());
+        state.config.merge(getConfiguration());
+        state.addReference("delta_H_ice", deltaHiAccessor.getHostRO());
+        state.addReference("snow_to_ice", snowToIceAccessor.getHostRO());
+        state.addReference(tsurfName, tsurfAccessor.getHostRO());
     }
 
     /*!

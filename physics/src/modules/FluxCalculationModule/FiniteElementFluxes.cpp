@@ -77,23 +77,23 @@ ModelState FiniteElementFluxes::getStateDiagnostic() const
         getConfiguration() };
 }
 
-void FiniteElementFluxes::appendStateDiagnostic(ModelStateView& view) const
+void FiniteElementFluxes::appendStateDiagnostic(ModelState& state) const
 {
-    view.config.merge(getConfiguration());
-    view.addReference("evap", evapAccessor.getHostRO());
-    view.addReference("Q_lh_ow", Q_lh_owAccessor.getHostRO());
-    view.addReference("Q_sh_ow", Q_sh_owAccessor.getHostRO());
-    view.addReference("Q_lw_ow", Q_lw_owAccessor.getHostRO());
-    view.addReference("Q_lh_ia", Q_lh_iaAccessor.getHostRO());
-    view.addReference("Q_sh_ia", Q_sh_iaAccessor.getHostRO());
-    view.addReference("Q_sw_ia", Q_sw_iaAccessor.getHostRO());
-    view.addReference("Q_lw_ia", Q_lw_iaAccessor.getHostRO());
-    view.addReference("rho_air", rho_airAccessor.getHostRO());
-    view.addReference("cp_air", cp_airAccessor.getHostRO());
-    view.addReference("sh_air", sh_airAccessor.getHostRO());
-    view.addReference("sh_water", sh_waterAccessor.getHostRO());
-    view.addReference("sh_ice", sh_iceAccessor.getHostRO());
-    view.addReference("dshice_dT", dshice_dTAccessor.getHostRO());
+    state.config.merge(getConfiguration());
+    state.addReference("evap", evapAccessor.getHostRO());
+    state.addReference("Q_lh_ow", Q_lh_owAccessor.getHostRO());
+    state.addReference("Q_sh_ow", Q_sh_owAccessor.getHostRO());
+    state.addReference("Q_lw_ow", Q_lw_owAccessor.getHostRO());
+    state.addReference("Q_lh_ia", Q_lh_iaAccessor.getHostRO());
+    state.addReference("Q_sh_ia", Q_sh_iaAccessor.getHostRO());
+    state.addReference("Q_sw_ia", Q_sw_iaAccessor.getHostRO());
+    state.addReference("Q_lw_ia", Q_lw_iaAccessor.getHostRO());
+    state.addReference("rho_air", rho_airAccessor.getHostRO());
+    state.addReference("cp_air", cp_airAccessor.getHostRO());
+    state.addReference("sh_air", sh_airAccessor.getHostRO());
+    state.addReference("sh_water", sh_waterAccessor.getHostRO());
+    state.addReference("sh_ice", sh_iceAccessor.getHostRO());
+    state.addReference("dshice_dT", dshice_dTAccessor.getHostRO());
 }
 
 void FiniteElementFluxes::setData(const ModelState::DataMap& ms)

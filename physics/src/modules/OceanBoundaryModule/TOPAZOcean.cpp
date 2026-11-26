@@ -121,10 +121,10 @@ ModelState TOPAZOcean::getStateDiagnostic() const
     return state.merge(slabOcean.getStateDiagnostic());
 }
 
-void TOPAZOcean::appendStateDiagnostic(ModelStateView& view) const
+void TOPAZOcean::appendStateDiagnostic(ModelState& state) const
 {
-    view.config.merge(getConfiguration());
-    slabOcean.appendStateDiagnostic(view);
+    state.config.merge(getConfiguration());
+    slabOcean.appendStateDiagnostic(state);
 }
 
 void TOPAZOcean::setFilePath(const std::string& filePathIn) { filePath = filePathIn; }

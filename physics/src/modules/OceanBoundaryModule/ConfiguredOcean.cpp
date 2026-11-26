@@ -102,10 +102,10 @@ ModelState ConfiguredOcean::getStateDiagnostic() const
     return state.merge(slabOcean.getStateDiagnostic());
 }
 
-void ConfiguredOcean::appendStateDiagnostic(ModelStateView& view) const
+void ConfiguredOcean::appendStateDiagnostic(ModelState& state) const
 {
-    view.config.merge(getConfiguration());
-    slabOcean.appendStateDiagnostic(view);
+    state.config.merge(getConfiguration());
+    slabOcean.appendStateDiagnostic(state);
 }
 
 void ConfiguredOcean::setData(const ModelState::DataMap& ms)
