@@ -64,7 +64,7 @@ jobs:
     - name: build and compile without XIOS or MPI
       run: |
         . /opt/spack-environment/activate.sh
-        cmake -B build -S . -DCMAKE_BUILD_TYPE=Release
+        cmake -B build -S . -DCMAKE_BUILD_TYPE=Release -DWITH_THREADS=ON
         cmake --build build -j 4
 
     - name: installs for python tests
@@ -271,7 +271,7 @@ jobs:
       run: |
         export CMAKE_PREFIX_PATH=/opt/homebrew/Cellar/eigen@3/3.4.1/share/eigen3/cmake
         . $HOME/nextsim/bin/activate
-        cmake -B build -S . -DCMAKE_BUILD_TYPE=Release -DENABLE_MPI=OFF -DENABLE_XIOS=OFF
+        cmake -B build -S . -DCMAKE_BUILD_TYPE=Release -DENABLE_MPI=OFF -DENABLE_XIOS=OFF -DWITH_THREADS=ON
         cmake --build build -j 4
 
     - name: run serial tests
