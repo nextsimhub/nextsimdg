@@ -201,12 +201,18 @@ if(WITH_KOKKOS)
         set(CMAKE_POSITION_INDEPENDENT_CODE True)
     endif()
 
-    find_package(Kokkos 4.3 QUIET CONFIG)
+    find_package(Kokkos 4 QUIET CONFIG)
     if(Kokkos_FOUND)
         message(STATUS "Found Kokkos: ${Kokkos_DIR} (version \"${Kokkos_VERSION}\")")
     else()
-        message("No kokkos installation found. Looking for local version in \"lib/\".")
-        add_subdirectory("lib/kokkos")
+        message(STATUS "No Kokkos installation found. Fetching Kokkos 4.7.4.")
+        include(FetchContent)
+        FetchContent_Declare(
+            kokkos
+            URL https://github.com/kokkos/kokkos/archive/refs/tags/4.7.04.tar.gz
+            DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+        )
+        FetchContent_MakeAvailable(kokkos)
     endif()
 
     target_link_libraries(nextsimlib PUBLIC Kokkos::kokkos)
