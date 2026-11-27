@@ -533,7 +533,11 @@ private:
     }
 
     /**
+     * @brief Apply the tripolar fold correction to the TOP edge data in the recv buffer
      *
+     * After the communication is done in `populateRecvBuffers`, in the tripolar
+     * topology case, the data needs to be put in the right places to account for
+     * the 180° rotation (the tripolar fold).
      */
     void rotateTopEdgeInBuffer();
 
