@@ -36,12 +36,9 @@ public:
     }
     void setData(const ModelState::DataMap& ms) override { hiceAccessor.getHostRW()[0] = hiceData; }
     std::string getName() const override { return "SupplyAndWait"; }
-    ModelState getStatePrognostic() const override
+    void appendStatePrognostic(ModelState& state) const override
     {
-        return { {
-                     { "hice", hiceAccessor.getHostRO() },
-                 },
-            {} };
+        state.addReference("hice", hiceAccessor);
     }
 
     const FloatType hiceData = 1.2;
@@ -62,12 +59,9 @@ public:
     }
     void setData(const ModelState::DataMap& ms) override { ciceAccessor.getHostRW()[0] = ciceData; }
     std::string getName() const override { return "SupplyAndWait"; }
-    ModelState getStatePrognostic() const override
+    void appendStatePrognostic(ModelState& state) const override
     {
-        return { {
-                     { "cice", ciceAccessor.getHostRO() },
-                 },
-            {} };
+        state.addReference("cice", ciceAccessor);
     }
 
     const FloatType ciceData = 0.6;
@@ -90,6 +84,66 @@ TEST_CASE("Test array registration")
     REQUIRE(saw.data() == ras.refData());
 }
 
+TEST_CASE("ModelState references arrays")
+{
+    ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
+    ModelArray source(ModelArray::Type::H);
+    ModelState state;
+
+    state.addReference("field", source);
+
+    CHECK(&state.references.at("field")() == &source);
+    state.forEachData(
+        [&source](const std::string&, const ModelArray& array) { CHECK(&array == &source); });
+}
+
+TEST_CASE("ModelState resolves accessor references lazily")
+{
+    struct TestAccessor {
+        const ModelArray& getHostRO() const
+        {
+            ++calls;
+            return *array;
+        }
+
+        const ModelArray* array;
+        mutable int calls = 0;
+    };
+
+    ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
+    ModelArray source(ModelArray::Type::H);
+    TestAccessor accessor { &source };
+    ModelState state;
+
+    state.addReference("field", accessor);
+    CHECK(accessor.calls == 0);
+    CHECK(&state.references.at("field")() == &source);
+    CHECK(accessor.calls == 1);
+}
+
+TEST_CASE("Diagnostic state appending")
+{
+    class DiagnosticComponent : public ModelComponent {
+    public:
+        std::string getName() const override { return "DiagnosticComponent"; }
+        void setData(const ModelState::DataMap&) override { }
+        void appendStateDiagnostic(ModelState& state) const override
+        {
+            state.addReference("field", field);
+        }
+
+        ModelArray field { ModelArray::Type::H };
+    };
+
+    ModelArray::setDimensions(ModelArray::Type::H, { 1, 1 });
+    DiagnosticComponent component;
+    ModelState state;
+    component.appendStateDiagnostic(state);
+
+    REQUIRE(state.references.count("field") == 1);
+    CHECK(&state.references.at("field")() == &component.field);
+}
+
 class ModuleSemiShared : public ModelComponent {
 public:
     ModuleSemiShared()
@@ -99,12 +153,9 @@ public:
     }
     void setData(const ModelState::DataMap& ms) override { qicAccessor.getHostRW()[0] = qicData; }
     std::string getName() const override { return "SemiShared"; }
-    ModelState getStatePrognostic() const override
+    void appendStatePrognostic(ModelState& state) const override
     {
-        return { {
-                     { "qic", qicAccessor.getHostRO() },
-                 },
-            {} };
+        state.addReference("qic", qicAccessor);
     }
 
     const FloatType qicData = 123;
@@ -125,12 +176,9 @@ public:
     }
     void setData(const ModelState::DataMap& ms) override { /*qio[0]; */ }
     std::string getName() const override { return "Shared"; }
-    ModelState getStatePrognostic() const override
+    void appendStatePrognostic(ModelState& state) const override
     {
-        return { {
-                     { "qio", qioAccessor.getHostRO() },
-                 },
-            {} };
+        state.addReference("qio", qioAccessor);
     }
 
     const FloatType qioData = 234;

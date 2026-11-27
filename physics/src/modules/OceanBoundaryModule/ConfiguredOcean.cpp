@@ -90,16 +90,16 @@ ConfigMap ConfiguredOcean::getConfiguration() const
     };
 }
 
-ModelState ConfiguredOcean::getStatePrognostic() const
+void ConfiguredOcean::appendStatePrognostic(ModelState& state) const
 {
-    ModelState state = IOceanBoundary::getStatePrognostic();
-    return state.merge(slabOcean.getStatePrognostic());
+    state.config.merge(getConfiguration());
+    slabOcean.appendStatePrognostic(state);
 }
 
-ModelState ConfiguredOcean::getStateDiagnostic() const
+void ConfiguredOcean::appendStateDiagnostic(ModelState& state) const
 {
-    ModelState state = IOceanBoundary::getStateDiagnostic();
-    return state.merge(slabOcean.getStateDiagnostic());
+    state.config.merge(getConfiguration());
+    slabOcean.appendStateDiagnostic(state);
 }
 
 void ConfiguredOcean::setData(const ModelState::DataMap& ms)

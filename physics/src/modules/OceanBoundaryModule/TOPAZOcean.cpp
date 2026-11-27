@@ -68,7 +68,6 @@ void TOPAZOcean::updateBefore(const TimestepTime& tst)
 {
     forcingState->update(tst.start);
 
-
     sstExtAccessor.getHostRW() = forcingState->getField(sstName);
     sssExtAccessor.getHostRW() = forcingState->getField(sssName);
     mldAccessor.getHostRW() = forcingState->getField(mldName);
@@ -110,16 +109,16 @@ void TOPAZOcean::updateAfter(const TimestepTime& tst)
     }
 }
 
-ModelState TOPAZOcean::getStatePrognostic() const
+void TOPAZOcean::appendStatePrognostic(ModelState& state) const
 {
-    ModelState state = IOceanBoundary::getStatePrognostic();
-    return state.merge(slabOcean.getStatePrognostic());
+    state.config.merge(getConfiguration());
+    slabOcean.appendStatePrognostic(state);
 }
 
-ModelState TOPAZOcean::getStateDiagnostic() const
+void TOPAZOcean::appendStateDiagnostic(ModelState& state) const
 {
-    ModelState state = IOceanBoundary::getStateDiagnostic();
-    return state.merge(slabOcean.getStateDiagnostic());
+    state.config.merge(getConfiguration());
+    slabOcean.appendStateDiagnostic(state);
 }
 
 void TOPAZOcean::setFilePath(const std::string& filePathIn) { filePath = filePathIn; }

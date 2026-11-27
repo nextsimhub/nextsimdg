@@ -88,7 +88,7 @@ void ERA5Atmosphere::update(const TimestepTime& tst)
     if (forcingState->isValid(snowName)) {
         snowAccessor.getHostRW() = forcingState->getField(snowName);
     } else {
-        snowAccessor.getAutoRW() = 0._ft;
+        snowAccessor.getHostRW() = 0._ft;
         // Only warn once
         if (warn.count(snowName) == 0) {
             Logged::warning("ERA5Atmosphere::update: No snow fall in forcing file, but I continue "
@@ -100,7 +100,7 @@ void ERA5Atmosphere::update(const TimestepTime& tst)
     if (forcingState->isValid(rainName)) {
         rainAccessor.getHostRW() = forcingState->getField(rainName);
     } else {
-        rainAccessor.getAutoRW() = 0._ft;
+        rainAccessor.getHostRW() = 0._ft;
         // Only warn once
         if (warn.count(rainName) == 0) {
             Logged::warning("ERA5Atmosphere::update: No rain fall in forcing file, but I continue "

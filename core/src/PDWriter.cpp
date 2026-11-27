@@ -13,7 +13,9 @@ void PrognosticData::writeRestartFile(const std::string& filePath) const
 {
     Logged::notice(std::string("  Writing state-based restart file: ") + filePath + '\n');
 
-    ModelState state = getStatePrognostic();
+    ModelState state;
+    appendStatePrognostic(state);
+    state.materializeReferences();
 
     auto& meta = ModelMetadata::getInstance();
     meta.affixCoordinates(state);

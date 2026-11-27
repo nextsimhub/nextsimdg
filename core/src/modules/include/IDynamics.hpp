@@ -60,36 +60,26 @@ public:
     }
     virtual ~IDynamics() = default;
 
-    ModelState getStatePrognostic() const override
+    void appendStatePrognostic(ModelState& state) const override
     {
-        ModelState state = { {
-                                 { uName, uiceAccessor.getHostRO() },
-                                 { vName, viceAccessor.getHostRO() },
-                             },
-            getConfiguration() };
+        state.config.merge(getConfiguration());
+        state.addReference(uName, uiceAccessor);
+        state.addReference(vName, viceAccessor);
 
         if (m_usesDamage) {
-            ModelState::DataMap damageState = { { damageName, damageAccessor.getHostRO() } };
-            state.merge(damageState);
+            state.addReference(damageName, damageAccessor);
         }
-
-        return state;
     }
 
-    ModelState getStateDiagnostic() const override
+    void appendStateDiagnostic(ModelState& state) const override
     {
-        ModelState state = { {
-                                 { uIOStressName, tauxAccessor.getHostRO() },
-                                 { vIOStressName, tauyAccessor.getHostRO() },
-                                 { uName, uiceAccessor.getHostRO() },
-                                 { vName, viceAccessor.getHostRO() },
-                                 { shearName, shearAccessor.getHostRO() },
-                                 { divergenceName, divergenceAccessor.getHostRO() },
-                                 { sigmaIName, sigmaIAccessor.getHostRO() },
-                                 { sigmaIIName, sigmaIIAccessor.getHostRO() },
-                             },
-            {} };
-        return state.merge(getStatePrognostic());
+        appendStatePrognostic(state);
+        state.addReference(uIOStressName, tauxAccessor);
+        state.addReference(vIOStressName, tauyAccessor);
+        state.addReference(shearName, shearAccessor);
+        state.addReference(divergenceName, divergenceAccessor);
+        state.addReference(sigmaIName, sigmaIAccessor);
+        state.addReference(sigmaIIName, sigmaIIAccessor);
     }
 
     std::string getName() const override { return "IDynamics"; }

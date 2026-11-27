@@ -36,8 +36,8 @@ public:
     void configure() override;
     ConfigMap getConfiguration() const override;
 
-    ModelState getStatePrognostic() const override;
-    ModelState getStateDiagnostic() const override;
+    void appendStatePrognostic(ModelState& state) const override;
+    void appendStateDiagnostic(ModelState& state) const override;
     void updateBefore(const TimestepTime& tst) override;
     void updateAfter(const TimestepTime& tst) override;
 

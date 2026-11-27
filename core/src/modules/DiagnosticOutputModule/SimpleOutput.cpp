@@ -24,7 +24,11 @@ void SimpleOutput::outputState(const ModelState& diagState)
         "Outputting " + std::to_string(externalNames.size()) + " fields to " + timeFileName + "\n");
 
     // Take the passed state, and add the files in the data store
-    ModelState state = diagState;
+    ModelState state;
+    state.config = diagState.config;
+    diagState.forEachData([&state](const std::string& name, const ModelArray& array) {
+        state.data.emplace(name, array);
+    });
     // Create the output by iterating over all fields referenced in ModelState
     auto storeData = ModelArrayAccessorBase<RO>::getAll(ModelComponent::getStore());
     for (auto entry : storeData) {

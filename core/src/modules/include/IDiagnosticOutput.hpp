@@ -23,7 +23,7 @@ public:
      */
 #include "include/ProtectedArrayNames.ipp"
 #include "include/SharedArrayNames.ipp"
-        })
+          })
     {
     }
     virtual ~IDiagnosticOutput() = default;
@@ -41,7 +41,6 @@ public:
      * @param state The model state to be written out.
      */
     virtual void outputState(const ModelState& state) = 0;
-
     // Define some of the ModelComponent class functions
     // No data to be set
     void setData(const ModelState::DataMap& state) { }

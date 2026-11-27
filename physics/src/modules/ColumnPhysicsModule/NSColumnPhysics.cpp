@@ -25,24 +25,18 @@ void NSColumnPhysics::setData(const ModelState::DataMap& ms)
     iHealing->setData(ms);
 }
 
-ModelState NSColumnPhysics::getStateDiagnostic() const
+void NSColumnPhysics::appendStateDiagnostic(ModelState& state) const
 {
-    ModelState state = iLateral->getStateDiagnostic();
-    state.merge(iVertical->getStateDiagnostic());
-    state.merge(iHealing->getStateDiagnostic());
-
-    return state;
+    iLateral->appendStateDiagnostic(state);
+    iVertical->appendStateDiagnostic(state);
+    iHealing->appendStateDiagnostic(state);
 }
 
-ModelState NSColumnPhysics::getStatePrognostic() const
+void NSColumnPhysics::appendStatePrognostic(ModelState& state) const
 {
-    ModelState state;
-    // Merge in other states here
-    state.merge(iLateral->getStatePrognostic());
-    state.merge(iVertical->getStatePrognostic());
-    state.merge(iHealing->getStatePrognostic());
-
-    return state;
+    iLateral->appendStatePrognostic(state);
+    iVertical->appendStatePrognostic(state);
+    iHealing->appendStatePrognostic(state);
 }
 
 NSColumnPhysics::HelpMap& NSColumnPhysics::getHelpText(HelpMap& map, bool getAll)

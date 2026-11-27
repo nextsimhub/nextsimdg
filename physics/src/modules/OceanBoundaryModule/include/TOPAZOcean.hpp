@@ -38,8 +38,8 @@ public:
 
     void updateBefore(const TimestepTime&) override;
     void updateAfter(const TimestepTime&) override;
-    ModelState getStatePrognostic() const override;
-    ModelState getStateDiagnostic() const override;
+    void appendStatePrognostic(ModelState& state) const override;
+    void appendStateDiagnostic(ModelState& state) const override;
 
     void setFilePath(const std::string& filePathIn);
 

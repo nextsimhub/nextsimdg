@@ -188,23 +188,13 @@ void ThermoIce0::configure()
 
 ConfigMap ThermoIce0::getConfiguration() const { return { { keyMap.at(KS_KEY), kappa_s } }; }
 
-ModelState ThermoIce0::getStateDiagnostic() const
+void ThermoIce0::appendStateDiagnostic(ModelState& state) const
 {
-    ModelState state = { {
-                             { "snow_melt", snowMeltAccessor.getHostRO() },
-                             { "top_melt", topMeltAccessor.getHostRO() },
-                             { "bottom_melt", botMeltAccessor.getHostRO() },
-                             { "Q_ic", qicAccessor.getHostRO() },
-                         },
-        getConfiguration() };
-
-    return state.merge(IIceThermodynamics::getStateDiagnostic());
-}
-
-ModelState ThermoIce0::getStatePrognostic() const
-{
-    ModelState state = IIceThermodynamics::getStatePrognostic();
-    return state.merge(getConfiguration());
+    state.addReference("snow_melt", snowMeltAccessor);
+    state.addReference("top_melt", topMeltAccessor);
+    state.addReference("bottom_melt", botMeltAccessor);
+    state.addReference("Q_ic", qicAccessor);
+    IIceThermodynamics::appendStateDiagnostic(state);
 }
 
 ThermoIce0::HelpMap& ThermoIce0::getHelpText(HelpMap& map, bool getAll)

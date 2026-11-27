@@ -136,38 +136,27 @@ void PrognosticData::update(const TimestepTime& tst)
     }
 }
 
-// Gets the diagnostic data from all subcomponents
-ModelState PrognosticData::getStateDiagnostic() const
+void PrognosticData::appendStateDiagnostic(ModelState& state) const
 {
-    ModelState state = getStatePrognostic();
-
-    // Get the prognostic data from the dynamics, including the full dynamics state
-    state.merge(pDynamics->getStateDiagnostic());
-    state.merge(pColumnPhysics->getStateDiagnostic());
-    state.merge(pAtmBdy->getStateDiagnostic());
-    state.merge(pOcnBdy->getStateDiagnostic());
-
-    return state;
+    appendStatePrognostic(state);
+    pDynamics->appendStateDiagnostic(state);
+    pColumnPhysics->appendStateDiagnostic(state);
+    pAtmBdy->appendStateDiagnostic(state);
+    pOcnBdy->appendStateDiagnostic(state);
 }
 
-// Gets the prognostic data from all subcomponents
-ModelState PrognosticData::getStatePrognostic() const
+void PrognosticData::appendStatePrognostic(ModelState& state) const
 {
-    ModelState state = { {
-                             { maskName, ModelArray(oceanMask()) }, // make a copy
-                             { hiceName, hiceAccessor.getHostRO() },
-                             { ciceName, ciceAccessor.getHostRO() },
-                             { hsnowName, hsnowAccessor.getHostRO() },
-                         },
-        ModelComponent::getConfiguration() };
+    state.config.merge(ModelComponent::getConfiguration());
+    state.addReference(maskName, oceanMask());
+    state.addReference(hiceName, hiceAccessor);
+    state.addReference(ciceName, ciceAccessor);
+    state.addReference(hsnowName, hsnowAccessor);
 
-    // Get the prognostic data from the dynamics, including the full dynamics state
-    state.merge(pDynamics->getStatePrognostic());
-    state.merge(pColumnPhysics->getStatePrognostic());
-    state.merge(pAtmBdy->getStatePrognostic());
-    state.merge(pOcnBdy->getStatePrognostic());
-
-    return state;
+    pDynamics->appendStatePrognostic(state);
+    pColumnPhysics->appendStatePrognostic(state);
+    pAtmBdy->appendStatePrognostic(state);
+    pOcnBdy->appendStatePrognostic(state);
 }
 
 PrognosticData::HelpMap& PrognosticData::getHelpText(HelpMap& map, bool getAll)
