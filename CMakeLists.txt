@@ -201,14 +201,11 @@ if(WITH_KOKKOS)
         set(CMAKE_POSITION_INDEPENDENT_CODE True)
     endif()
 
-    find_package(Kokkos 4.3 QUIET CONFIG)
+    find_package(Kokkos 4 QUIET CONFIG)
     if(Kokkos_FOUND)
         message(STATUS "Found Kokkos: ${Kokkos_DIR} (version \"${Kokkos_VERSION}\")")
-    elseif(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/lib/kokkos/CMakeLists.txt")
-        message(STATUS "Using local Kokkos source in \"lib/kokkos\".")
-        add_subdirectory("lib/kokkos")
     else()
-        message(STATUS "No Kokkos installation or local source found. Fetching Kokkos 4.7.4.")
+        message(STATUS "No Kokkos installation found. Fetching Kokkos 4.7.4.")
         include(FetchContent)
         FetchContent_Declare(
             kokkos
