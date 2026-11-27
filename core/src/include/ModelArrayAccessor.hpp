@@ -266,7 +266,15 @@ public:
         return this->target.deviceModelArray();
     }
 
-    /// @brief Get write access to the device array when its entire contents will be overwritten.
+    /*!
+     * @brief Get write access to the device array without preserving its current contents.
+     *
+     * @details Marks the device copy as changed without copying host data to it. The caller must
+     * overwrite every element before reading the array; any elements not written have unspecified
+     * values. Use this when producing a complete replacement for the field on the device.
+     *
+     * @return Mutable access to the device array.
+     */
     DeviceModelArray& getDeviceRWOverwrite()
     {
         this->target.deviceView();
@@ -285,7 +293,15 @@ public:
 #endif
     }
 
-    /// @brief Get write access when the entire field will be overwritten.
+    /*!
+     * @brief Get write access without preserving the field's current contents.
+     *
+     * @details With Kokkos enabled, returns device access without copying the previous host data;
+     * the caller must overwrite every element before reading it. Without Kokkos, returns host
+     * access through getHostRW().
+     *
+     * @return Mutable access to the field on the active backend.
+     */
     ModelArrayAuto& getAutoRWOverwrite()
     {
 #ifdef USE_KOKKOS
@@ -295,7 +311,14 @@ public:
 #endif
     }
 
-    /// @brief Set every element without syncing the previous contents to the host.
+    /*!
+     * @brief Assign a value to every element of the field.
+     *
+     * @details Fills the device array when Kokkos is enabled, without first syncing its previous
+     * contents to the host. Otherwise, fills the host array.
+     *
+     * @param value The value assigned to every element.
+     */
     void setAutoValue(FloatType value)
     {
 #ifdef USE_KOKKOS
