@@ -25,7 +25,7 @@ namespace HaloExchange {
     {
         switch (type) {
         case ModelArray::Type::VERTEX:
-            // I assume that the vertex field represents 2D vectors
+            // The vertex field represents 2D vectors
             return { -1.0, -1.0 };
         case ModelArray::Type::H:
         case ModelArray::Type::DG:
