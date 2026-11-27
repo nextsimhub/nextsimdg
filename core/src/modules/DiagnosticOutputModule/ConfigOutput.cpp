@@ -236,7 +236,11 @@ void ConfigOutput::outputState(const ModelState& diagState)
 
         Logged::info("ConfigOutput: Outputting " + std::to_string(state.data.size()) + " fields to "
             + currentFileName + " at " + meta.time().format() + "\n");
-
+#ifdef USE_XIOS
+        // meta.affixCoordinates(state);
+        StructureFactory::fileFromState(state, currentFileName, false);
+        lastOutput = meta.time();
+#else
         // Mask and toss out the higher order DG components
         ModelState outputState = { .data = {}, .config = state.config };
         for (const auto& [key, arrayRef] : state.data) {
@@ -263,6 +267,7 @@ void ConfigOutput::outputState(const ModelState& diagState)
 
         // Reset output state
         state = { .data = {}, .config = diagState.config };
+#endif
     }
 }
 
