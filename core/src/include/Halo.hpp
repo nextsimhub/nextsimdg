@@ -118,10 +118,9 @@ public:
      * CGVector often represents a single component of a vector field but we
      * don't have any information about the orientation of the component in
      * the class itself. This is a challenge for the tripolar fold since the
-     * horizontal and vertical components must be treated differently: vector
-     * components flip sign over the fold, while scalars are unchanged.
+     * vector components flip sign over the fold, while scalars are unchanged.
      */
-    enum class Orientation { Scalar, HorizontalComponent, VerticalComponent };
+    enum class Orientation { Scalar, VectorComponent };
 
     /*!
      * @brief Constructs a halo object from ModelArray
@@ -165,9 +164,8 @@ public:
      * @brief Constructs a halo object from CGVector
      * @param cgv CGVector object to create halo from
      * @param orientation Orientation of the field that the CGVector represents
-     * (see Orientation). It determines the component correction factor applied
-     * over the tripolar fold: scalar fields (1.0), while vector components
-     * flip sign (-1.0).
+     * It determines the component correction factor applied over the tripolar fold.
+     *
      */
     template <int N> Halo(CGVector<N>& cgv, Orientation orientation)
     {
@@ -180,8 +178,7 @@ public:
         case Orientation::Scalar:
             tripolarComponentCorrection = { 1.0 };
             break;
-        case Orientation::HorizontalComponent:
-        case Orientation::VerticalComponent:
+        case Orientation::VectorComponent:
             tripolarComponentCorrection = { -1.0 };
             break;
         default:

@@ -512,31 +512,29 @@ MPI_TEST_CASE("CGVector", 3)
     cgVector.resize_by_mesh(smesh);
     cgVector.zero();
 
-    // Horizontal component case
+    // Scalar case
     {
         cgVector.zero();
         // initialize data
         initializeTestData(cgVector, CGDomain);
 
         // create halo and exchange
-        // the horizontal component of a vector field flips sign over the
-        // tripolar fold
-        Halo halo(cgVector, Halo::Orientation::HorizontalComponent);
+        // a scalar field is unchanged over the tripolar fold
+        Halo halo(cgVector, Halo::Orientation::Scalar);
         halo.exchangeHalos(cgVector);
 
-        verifyTestData(cgVector, CGDomain, { -1.0 });
+        verifyTestData(cgVector, CGDomain, { 1.0 });
     }
 
-    // Vertical component case
+    // Vector component case
     {
         cgVector.zero();
         // initialize data
         initializeTestData(cgVector, CGDomain);
 
         // create halo and exchange
-        // the vertical component of a vector field flips sign over the
-        // tripolar fold
-        Halo halo(cgVector, Halo::Orientation::VerticalComponent);
+        // a vector component flips sign over the tripolar fold
+        Halo halo(cgVector, Halo::Orientation::VectorComponent);
         halo.exchangeHalos(cgVector);
 
         verifyTestData(cgVector, CGDomain, { -1.0 });
