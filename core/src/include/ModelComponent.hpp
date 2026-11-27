@@ -155,14 +155,26 @@ public:
      * @param state The ModelState containing the data to be set.
      */
     virtual void setData(const ModelState::DataMap& state) = 0;
-    //! Appends the diagnostic data and configuration for this component.
+    /*!
+     * @brief Appends this component's diagnostic state to @p state.
+     *
+     * The diagnostic state includes the prognostic state by default.
+     * Components with additional diagnostic fields should append them here.
+     * Fields may be added as deferred references; the referenced accessors
+     * must remain valid while the state can be consumed.
+     *
+     * @param state State to append fields and configuration to.
+     */
     virtual void appendStateDiagnostic(ModelState& state) const { appendStatePrognostic(state); }
 
     /*!
-     * @brief Appends the prognostic state of the ModelComponent.
+     * @brief Appends this component's prognostic state to @p state.
      *
-     * @details The state contains all data necessary to restart this component
-     * and any ModelComponents it depends on.
+     * The state contains all data necessary to restart this component and any
+     * ModelComponents it depends on. Overrides should append their fields and
+     * configuration without removing existing entries.
+     *
+     * @param state State to append fields and configuration to.
      */
     virtual void appendStatePrognostic(ModelState& state) const
     {
