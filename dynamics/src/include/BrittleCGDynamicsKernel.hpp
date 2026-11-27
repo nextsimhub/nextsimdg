@@ -139,9 +139,7 @@ public:
         avgV.zero();
 
 #ifdef USE_MPI
-        // Note: we only need to create one halo object per array type,
-        // dimensionality and size.
-        Halo halo(u);
+        Halo halo(u, Halo::Orientation::VectorComponent);
 #endif
 
         for (size_t subStep = 0; subStep < params.nSteps; ++subStep) {

@@ -46,6 +46,9 @@ MPI_TEST_CASE("Test getPartitionMetadata for periodic boundaries", 3)
     auto& meta = ModelMetadata::getInstance(partitionFilename);
     REQUIRE(modelMPI.getComm() == test_comm);
 
+    CHECK(!meta.usingTripolarTopology());
+    CHECK(!meta.needsTripolarFold());
+
     // this metadata is specific to the periodic boundary conditions
     if (test_rank == 0) {
         // edges
